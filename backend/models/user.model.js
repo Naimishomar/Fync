@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema({
     },
     avatar:{
         type:String,
+        default: 'https://cdn-icons-png.freepik.com/512/219/219988.png'
+    },
+    banner:{
+        type:String,
+        default: 'https://cdn.pixabay.com/photo/2015/10/29/14/38/web-1012467_1280.jpg'
     },
     is_subscribed:{
         type:Boolean,

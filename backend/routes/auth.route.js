@@ -1,0 +1,13 @@
+import express from 'express';
+import { login, register, updateUser, getProfile, getUserProfile } from '../controllers/auth.controller.js';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { upload } from '../utils/cloudinary.js';
+const router = express.Router();
+
+router.post('/register', upload.single('avatar'), register);
+router.post('/login', login);
+router.post('/update', authMiddleware, upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), updateUser);
+router.get('/profile', authMiddleware, getProfile);
+router.get('/:id', authMiddleware, getUserProfile);
+
+export default router; 
