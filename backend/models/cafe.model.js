@@ -12,6 +12,11 @@ const cafeSchema = new mongoose.Schema({
     cafe_description:{
         type:String,
         required:true
+    },
+    cafe_owner:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"User",
+        require: true
     }
 },{timestamps:true});
 

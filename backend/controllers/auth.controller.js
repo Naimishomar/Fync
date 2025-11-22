@@ -9,6 +9,9 @@ export const register = async(req,res)=>{
         if(!email || !username || !mobileNumber || !password || !name || !dob || !year || !gender || !major){
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
+        if(!email.includes('@kiet.edu')){
+            return res.status(400).json({ success: false, message: 'Invalid email, please use college email' });
+        }
         else{
             const user = await User.findOne({ $or: [{ email }, { username }, { mobileNumber }] });
             if(user){
@@ -140,3 +143,78 @@ export const getUserProfile = async (req,res)=>{
         return res.status(500).json({ success: false, message: "Internal server error" });  
     }
 }
+
+export const followUser = async (req, res) => {
+  try {
+    const targetUserId = req.params.id;
+    const currentUserId = req.user.id;
+    if (targetUserId === currentUserId) {
+      return res.status(400).json({ success: false, message: "You cannot follow yourself" });
+    }
+    const targetUser = await User.findById(targetUserId);
+    const currentUser = await User.findById(currentUserId);
+    if (!targetUser || !currentUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    if (targetUser.followers.includes(currentUserId)) {
+      return res.status(400).json({ success: false, message: "You are already following this user" });
+    }
+    targetUser.followers.push(currentUserId);
+    currentUser.following.push(targetUserId);
+    await targetUser.save();
+    await currentUser.save();
+    return res.status(200).json({ success: true, message: `You are now following ${targetUser.username}`, targetUser });
+  } catch (error) {
+    console.error("Follow Error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const unfollowUser = async (req, res) => {
+  try {
+    const targetUserId = req.params.id;
+    const currentUserId = req.user.id;
+
+    const targetUser = await User.findById(targetUserId);
+    const currentUser = await User.findById(currentUserId);
+    if (!targetUser || !currentUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    if (!targetUser.followers.includes(currentUserId)) {
+      return res.status(400).json({ success: false, message: "You are not following this user" });
+    }
+    targetUser.followers = targetUser.followers.filter(id => id.toString() !== currentUserId);
+    currentUser.following = currentUser.following.filter(id => id.toString() !== targetUserId);
+
+    await targetUser.save();
+    await currentUser.save();
+    return res.status(200).json({ success: true, message: `You unfollowed ${targetUser.username}` }, targetUser);
+  } catch (error) {
+    console.error("Unfollow Error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const getFollowers = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).populate('followers', '-password');
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    
+    return res.status(200).json({ success: true, followers: user.followers });
+  } catch (error) {
+    console.error("Get Followers Error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const getFollowing = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).populate('following', '-password');
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    return res.status(200).json({ success: true, following: user.following });
+  } catch (error) {
+    console.error("Get Following Error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
