@@ -1,7 +1,7 @@
 import express from 'express';
 import { createPost, updatePost, getPosts, deletePost, likePost, addComment, deleteComment, updateComment, getComments, getFeed } from '../controllers/post.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
-import { upload } from '../utils/cloudinary';
+import { upload } from '../utils/cloudinary.js';
 const router = express.Router();
 
 router.post('/create', authMiddleware, upload.array('image'), createPost);
