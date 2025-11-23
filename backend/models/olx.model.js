@@ -34,6 +34,10 @@ const olxSchema = new mongoose.Schema({
     buyer:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"User",
+    },
+    college:{
+        type: String,
+        required:true
     }
 },{timestamps:true});
 

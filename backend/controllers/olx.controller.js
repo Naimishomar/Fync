@@ -26,7 +26,8 @@ export const sellProduct = async(req,res)=>{
                 price,
                 is_selled: false,
                 seller: req.user.id,
-                buyer: null
+                buyer: null,
+                college: req.user.college
             })
             return res.status(200).json({ success: true, message: 'Product created successfully', product: sellingProduct });
         }
@@ -109,11 +110,28 @@ export const deleteProduct = async(req,res)=>{
 
 export const getAllProducts = async(req,res)=>{
     try {
-        const products = await OLX.find();
+        const products = await OLX.find({ college: req.user.college });
         if(!products){
             return res.status(404).json({ success: false, message: 'Products not found' });
         }
         return res.status(200).json({ success: true, message: 'Products fetched successfully', products });
+    } catch (error) {
+        console.log("Internal server error", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+}
+
+export const detailsOfParticularProduct = async(req,res)=>{
+    try {
+        const {product_id} = req.params;
+        if(!product_id){
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
+        }
+        const product = await OLX.findById(product_id);
+        if(!product){
+            return res.status(404).json({ success: false, message: 'Product not found' });
+        }
+        return res.status(200).json({ success: true, message: 'Product fetched successfully', product });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });

@@ -35,6 +35,10 @@ const gamingSchema = new mongoose.Schema({
         type:Number,
         required:true
     },
+    college:{
+        type: String,
+        required:true
+    }
 },{timestamps:true});
 
 const Gaming = mongoose.model('Gaming', gamingSchema);  

@@ -27,6 +27,10 @@ const outingSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
     }],
+    college:{
+        type: String,
+        required:true
+    }
 }, {timestamps: true})
 
 const Outing = mongoose.model('Outing', outingSchema);

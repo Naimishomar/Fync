@@ -3,7 +3,7 @@ import User from '../../models/user.model.js';
 
 export const findTeamMembers = async(req,res)=>{
     try {
-        const members = await User.find();
+        const members = await User.find({ college: req.user.college });
         if(!members){
             return res.status(404).json({ success: false, message: 'Members not found' });
         }

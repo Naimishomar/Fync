@@ -1,18 +1,16 @@
 import express from 'express';
 import Gaming from '../../models/collaboration/gaming.model.js';
-import cron from 'node-cron';
+// import cron from 'node-cron';
 
-cron.schedule('* * * * *', async () => {
-  const now = new Date();
-  try {
-    const result = await Gaming.deleteMany({ gamingDate: { $lte: now } });
-    console.log(`Deleted ${result.deletedCount} past gamings`);
-  } catch (err) {
-    console.error(err);
-  }
-});
-
-//hiii
+// cron.schedule('* * * * *', async () => {
+//   const now = new Date();
+//   try {
+//     const result = await Gaming.deleteMany({ gamingDate: { $lte: now } });
+//     console.log(`Deleted ${result.deletedCount} past gamings`);
+//   } catch (err) {
+//     console.error(err);
+//   }
+// });
 
 export const addGames = async (req, res) => {
   try {
@@ -47,7 +45,8 @@ export const addGames = async (req, res) => {
       time,
       gamingDate,
       venue,
-      admin: req.user.id
+      admin: req.user.id,
+      college: req.user.college
     });
 
     return res.status(200).json({
@@ -63,7 +62,7 @@ export const addGames = async (req, res) => {
 
 export const getAllGames = async (req, res) => {
   try {
-    const gamings = await Gaming.find();
+    const gamings = await Gaming.find({ college: req.user.college });
     if (!gamings) {
       return res.status(404).json({ success: false, message: 'Gamings not found' });
     }

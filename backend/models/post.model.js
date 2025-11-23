@@ -17,6 +17,10 @@ const postSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  college:{
+    type: String,
+    required: true,
+  },
   likes: {
     type: Number,
     default: 0,

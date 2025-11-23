@@ -23,6 +23,7 @@ export const createPost = async(req,res)=>{
                 description,
                 image,
                 user: req.user.id,
+                college: req.user.college,
                 likes: 0,
                 liked_by: [],
                 comments: []
@@ -242,7 +243,7 @@ export const updateComment = async (req, res) => {
 
 export const getFeed = async (req, res) => {
     try {
-        const posts = await Post.find()
+        const posts = await Post.find({ college: req.user.college })
         .populate("user", "name username avatar")
         .populate({
             path: "comments",

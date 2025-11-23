@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema({
         type:Date,
         required: true
     },
+    college:{
+        type: String,
+        required: true,
+    },
     year:{
         type:Number,
         required: true
@@ -63,11 +67,9 @@ const userSchema = new mongoose.Schema({
     }],
     linkedIn_id:{
         type:String,
-        unique:true
     },
     github_id:{
         type:String,
-        unique:true
     },
     interest:{
         type: [String]

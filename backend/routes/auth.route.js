@@ -1,9 +1,11 @@
 import express from 'express';
-import { login, register, updateUser, getProfile, getUserProfile, followUser, unfollowUser, getFollowers, getFollowing } from '../controllers/auth.controller.js';
+import { login, register, updateUser, getProfile, getUserProfile, followUser, unfollowUser, getFollowers, getFollowing, sendOTP, sendnumberOTP } from '../controllers/auth.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { upload } from '../utils/cloudinary.js';
 const router = express.Router();
 
+router.post('/send-email-otp', sendOTP);
+router.post('/send-phone-otp', sendnumberOTP);
 router.post('/register', upload.single('avatar'), register);
 router.post('/login', login);
 router.post('/update', authMiddleware, upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), updateUser);

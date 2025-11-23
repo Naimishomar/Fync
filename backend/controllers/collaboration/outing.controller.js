@@ -1,16 +1,16 @@
 import express from 'express';
 import Outing from '../../models/collaboration/outing.model.js';
-import cron from 'node-cron';
+// import cron from 'node-cron';
 
-cron.schedule('* * * * *', async () => {
-  const now = new Date();
-  try {
-    const result = await Outing.deleteMany({ outingDate: { $lte: now } });
-    console.log(`Deleted ${result.deletedCount} past outings`);
-  } catch (err) {
-    console.error(err);
-  }
-});
+// cron.schedule('* * * * *', async () => {
+//   const now = new Date();
+//   try {
+//     const result = await Outing.deleteMany({ outingDate: { $lte: now } });
+//     console.log(`Deleted ${result.deletedCount} past outings`);
+//   } catch (err) {
+//     console.error(err);
+//   }
+// });
 
 
 export const addOuting = async (req, res) => {
@@ -45,7 +45,8 @@ export const addOuting = async (req, res) => {
       date,
       time,
       outingDate,
-      admin: req.user.id
+      admin: req.user.id,
+      college: req.user.college
     });
 
     return res.status(200).json({
@@ -61,7 +62,7 @@ export const addOuting = async (req, res) => {
 
 export const getAllOutings = async (req, res) => {
   try {
-    const outings = await Outing.find();
+    const outings = await Outing.find({ college: req.user.college });
     if (!outings) {
       return res.status(404).json({ success: false, message: 'Outings not found' });
     }
