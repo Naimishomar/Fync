@@ -15,7 +15,7 @@ export default function LoginScreen() {
   const navigation = useNavigation<LoginScreenNavigationProp>();
 
   return (
-    <View className="flex-1 justify-center bg-white px-8">
+    <View className="flex-1 justify-center bg-transparent px-8">
       <View className="h-20" />
 
       <Image
@@ -24,12 +24,12 @@ export default function LoginScreen() {
         resizeMode="contain"
       />
       <TextInput
-        className="mb-4 w-full rounded-lg border border-gray-300 p-4 text-base"
+        className="mb-4 w-full rounded-lg border border-white p-4 text-base"
         placeholder="Username, phone number or email"
         placeholderTextColor="#A1A1A1"
       />
 
-      <View className="mb-3 w-full flex-row items-center rounded-lg border border-gray-300 p-4">
+      <View className="mb-3 w-full flex-row items-center rounded-lg border border-white p-4">
         <TextInput
           className="flex-1"
           placeholder="Password"
@@ -48,33 +48,33 @@ export default function LoginScreen() {
             onValueChange={setRememberMe}
             color={rememberMe ? '#000' : undefined}
           />
-          <Text className="ml-2 text-gray-700">Remember Me</Text>
+          <Text className="ml-2 text-white">Remember Me</Text>
         </View>
 
         <TouchableOpacity>
-          <Text className="font-medium text-gray-700">Forgot Password?</Text>
+          <Text className="font-medium text-white">Forgot Password?</Text>
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity className="mt-2 items-center rounded-lg bg-black py-4">
+      <TouchableOpacity className="mt-2 items-center rounded-lg bg-pink-300 py-4">
         <Text className="text-base font-semibold text-white">Log in</Text>
       </TouchableOpacity>
 
       <View className="my-7 flex-row items-center">
-        <View className="h-px flex-1 bg-gray-300" />
-        <Text className="mx-3 text-gray-500">OR</Text>
-        <View className="h-px flex-1 bg-gray-300" />
+        <View className="h-px flex-1 bg-white" />
+        <Text className="mx-3 text-white">OR</Text>
+        <View className="h-px flex-1 bg-white" />
       </View>
 
-      <TouchableOpacity className="flex-row items-center justify-center rounded-full border border-black py-3">
-        <AntDesign name="google" size={20} color="black" />
-        <Text className="ml-3 text-base font-medium">Log in with Google</Text>
+      <TouchableOpacity className="flex-row items-center justify-center rounded-full border border-white py-3">
+        <AntDesign name="google" size={20} color="white" />
+        <Text className="ml-3 text-base font-medium text-white">Log in with Google</Text>
       </TouchableOpacity>
 
       <View className="mt-6 flex-row justify-center">
-        <Text className="text-gray-600">Don’t have an account? </Text>
+        <Text className="text-white">Don’t have an account? </Text>
         <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-          <Text className="font-semibold text-black">SignUp</Text>
+          <Text className="font-semibold text-white underline">SignUp</Text>
         </TouchableOpacity>
       </View>
     </View>

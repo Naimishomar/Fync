@@ -15,7 +15,7 @@ export default function SignUpScreen() {
   const navigation = useNavigation<SignupScreenNavigationProp>();
 
   return (
-    <View className="flex-1 justify-center bg-white px-8">
+    <View className="flex-1 justify-center bg-transparent px-8">
       <View className="h-16" />
 
       <Image
@@ -25,20 +25,20 @@ export default function SignUpScreen() {
       />
 
       <TextInput
-        className="mb-4 w-full rounded-lg border border-gray-300 p-4 text-base"
+        className="mb-4 w-full rounded-lg border border-white p-4 text-base"
         placeholder="Full Name"
         placeholderTextColor="#A1A1A1"
       />
 
       <TextInput
-        className="mb-4 w-full rounded-lg border border-gray-300 p-4 text-base"
+        className="mb-4 w-full rounded-lg border border-white p-4 text-base"
         placeholder="Email"
         placeholderTextColor="#A1A1A1"
         keyboardType="email-address"
         autoCapitalize="none"
       />
 
-      <View className="mb-4 w-full flex-row items-center rounded-lg border border-gray-300 p-4">
+      <View className="mb-4 w-full flex-row items-center rounded-lg border border-white p-4">
         <TextInput
           className="flex-1"
           placeholder="Password"
@@ -50,7 +50,7 @@ export default function SignUpScreen() {
         </TouchableOpacity>
       </View>
 
-      <View className="mb-4 w-full flex-row items-center rounded-lg border border-gray-300 p-4">
+      <View className="mb-4 w-full flex-row items-center rounded-lg border border-white p-4">
         <TextInput
           className="flex-1"
           placeholder="Confirm Password"
@@ -68,28 +68,28 @@ export default function SignUpScreen() {
           onValueChange={setAgreeTerms}
           color={agreeTerms ? '#000' : undefined}
         />
-        <Text className="ml-2 text-gray-700">I agree to the Terms & Conditions</Text>
+        <Text className="ml-2 text-white">I agree to the Terms & Conditions</Text>
       </View>
 
-      <TouchableOpacity className="mt-2 items-center rounded-lg bg-black py-4">
+      <TouchableOpacity className="mt-2 items-center rounded-lg bg-pink-300 py-4">
         <Text className="text-base font-semibold text-white">Sign Up</Text>
       </TouchableOpacity>
 
       <View className="my-7 flex-row items-center">
-        <View className="h-px flex-1 bg-gray-300" />
-        <Text className="mx-3 text-gray-500">OR</Text>
-        <View className="h-px flex-1 bg-gray-300" />
+        <View className="h-px flex-1 bg-white" />
+        <Text className="mx-3 text-white">OR</Text>
+        <View className="h-px flex-1 bg-white" />
       </View>
 
-      <TouchableOpacity className="flex-row items-center justify-center rounded-full border border-black py-3">
-        <AntDesign name="google" size={20} color="black" />
-        <Text className="ml-3 text-base font-medium">Sign up with Google</Text>
+      <TouchableOpacity className="flex-row items-center justify-center rounded-full border border-white py-3">
+        <AntDesign name="google" size={20} color="white" />
+        <Text className="ml-3 text-base font-medium text-white">Sign up with Google</Text>
       </TouchableOpacity>
 
       <View className="mt-6 flex-row justify-center">
-        <Text className="text-gray-600">Already have an account? </Text>
+        <Text className="text-white">Already have an account? </Text>
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text className="font-semibold text-black">Login</Text>
+          <Text className="font-semibold text-white underline">Login</Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -28,13 +28,13 @@ export default function ProfileSetup1() {
         justifyContent: 'center',
         paddingBottom: Platform.OS === 'ios' ? 20 : 10,
       }}
-      className="flex-1 bg-white px-8 pt-12"
+      className="flex-1 bg-transparent px-8 pt-12"
       keyboardShouldPersistTaps="handled">
       <View>
-        <Text className="mb-10 text-3xl font-bold text-gray-900">Profile Set Up</Text>
+        <Text className="mb-10 text-center text-3xl font-bold text-white">Profile Set Up</Text>
 
         <TextInput
-          className="mb-6 w-full rounded-lg border border-gray-300 p-4 text-base"
+          className="mb-6 w-full rounded-lg border border-white p-4 text-base"
           placeholder="Full Name"
           placeholderTextColor="#A1A1A1"
           value={fullName}
@@ -42,7 +42,7 @@ export default function ProfileSetup1() {
           autoCapitalize="words"
         />
 
-        <TouchableOpacity className="mb-6 w-full flex-row items-center justify-between rounded-lg border border-gray-300 p-4 text-base">
+        <TouchableOpacity className="mb-6 w-full flex-row items-center justify-between rounded-lg border border-white p-4 text-base">
           <Text className={birthday ? 'text-base text-gray-900' : 'text-base text-[#A1A1A1]'}>
             {birthday || 'Birthday'}
           </Text>
@@ -73,11 +73,11 @@ export default function ProfileSetup1() {
 
       <View className="mb-4">
         <TouchableOpacity
-          className="w-full items-center rounded-lg bg-black py-4 active:opacity-80"
+          className="w-full items-center rounded-lg bg-pink-300 py-4 active:opacity-80"
           onPress={handleContinue}>
           <Text className="text-base font-semibold text-white">Continue</Text>
         </TouchableOpacity>
-        <Text className="mt-4 text-center text-sm text-gray-500">Step 1 of 2</Text>
+        <Text className="mt-4 text-center text-sm text-white">Step 1 of 2</Text>
       </View>
     </ScrollView>
   );

@@ -6,6 +6,7 @@ import ProfileSetup1 from './components/profile-setup-1';
 import ProfileSetup2 from './components/profile-setup-2';
 import HomeScreen from './components/home-screen';
 import { StatusBar } from 'expo-status-bar';
+import BackgroundWrapper from './components/background-wrapper';
 import './global.css';
 
 export type RootStackParamList = {
@@ -22,19 +23,23 @@ export default function App() {
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
-
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-          animation: 'slide_from_right',
-        }}
-        initialRouteName="Home1">
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Signup" component={SignUpScreen} />
-        <Stack.Screen name="ProfileSetup1" component={ProfileSetup1} />
-        <Stack.Screen name="ProfileSetup2" component={ProfileSetup2} />
-        <Stack.Screen name="Home1" component={HomeScreen} />
-      </Stack.Navigator>
+      <BackgroundWrapper>
+        <Stack.Navigator
+          screenOptions={{
+            headerShown: false,
+            animation: 'slide_from_right',
+            contentStyle: {
+              backgroundColor: 'transparent',
+            },
+          }}
+          initialRouteName="Login">
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Signup" component={SignUpScreen} />
+          <Stack.Screen name="ProfileSetup1" component={ProfileSetup1} />
+          <Stack.Screen name="ProfileSetup2" component={ProfileSetup2} />
+          <Stack.Screen name="Home1" component={HomeScreen} />
+        </Stack.Navigator>
+      </BackgroundWrapper>
     </NavigationContainer>
   );
 }
