@@ -6,12 +6,8 @@ import ProfileSetup1 from './components/profile-setup-1';
 import ProfileSetup2 from './components/profile-setup-2';
 import HomeScreen from './components/home-screen';
 import { StatusBar } from 'expo-status-bar';
-<<<<<<< HEAD
-=======
 import BackgroundWrapper from './components/background-wrapper';
->>>>>>> f18fca26f74403108d329667df4b1367558e8f2e
 import './global.css';
-import { Hello } from 'components/Hello';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -25,11 +21,6 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
-<<<<<<< HEAD
-    <>
-    <Hello/>
-    </>
-=======
     <NavigationContainer>
       <StatusBar style="auto" />
       <BackgroundWrapper>
@@ -50,6 +41,5 @@ export default function App() {
         </Stack.Navigator>
       </BackgroundWrapper>
     </NavigationContainer>
->>>>>>> f18fca26f74403108d329667df4b1367558e8f2e
   );
 }

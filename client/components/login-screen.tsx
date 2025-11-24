@@ -1,80 +1,94 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
-import Checkbox from 'expo-checkbox';
-import { Ionicons, AntDesign } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../App';
+import React, { useState, useCallback } from "react";
+import { View, Text, TextInput, TouchableOpacity, Image } from "react-native";
+import Checkbox from "expo-checkbox";
+import { Ionicons, AntDesign } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../App";
 
-type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
+type LoginScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  "Login"
+>;
 
 export default function LoginScreen() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-
   const navigation = useNavigation<LoginScreenNavigationProp>();
 
-  return (
-    <View className="flex-1 justify-center bg-transparent px-8">
-      <View className="h-20" />
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
+  const togglePassword = useCallback(
+    () => setPasswordVisible((prev) => !prev),
+    []
+  );
+
+  return (
+    <View className="flex-1 px-8 justify-center bg-transparent">
+      <View className="h-20" />
       <Image
-        source={require('../assets/logo.png')}
-        className="mb-10 h-14 w-28 self-center"
+        source={require("../assets/logo.png")}
+        className="w-28 h-14 mb-5 self-center"
         resizeMode="contain"
       />
-      <TextInput
-        className="mb-4 w-full rounded-lg border border-white p-4 text-base"
-        placeholder="Username, phone number or email"
-        placeholderTextColor="#A1A1A1"
-      />
-
-      <View className="mb-3 w-full flex-row items-center rounded-lg border border-white p-4">
+      <View className="flex-col gap-3">
         <TextInput
-          className="flex-1"
-          placeholder="Password"
+          className="w-full px-3 py-4 text-base text-pink-300 border border-white rounded-lg"
+          placeholder="Username, phone number or email"
           placeholderTextColor="#A1A1A1"
-          secureTextEntry={!showPassword}
         />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={22} color="#A1A1A1" />
-        </TouchableOpacity>
+        <View className="w-full mb-2 flex-row items-center px-3 py-1 border border-white rounded-lg">
+          <TextInput
+            className="flex-1 text-pink-300"
+            placeholder="Password"
+            placeholderTextColor="#A1A1A1"
+            secureTextEntry={!passwordVisible}
+          />
+          <TouchableOpacity onPress={togglePassword}>
+            <Ionicons
+              name={passwordVisible ? "eye-off" : "eye"}
+              size={22}
+              color="#A1A1A1"
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <View className="mb-5 flex-row items-center justify-between">
+      <View className="flex-row items-center justify-between mb-5">
         <View className="flex-row items-center">
           <Checkbox
             value={rememberMe}
             onValueChange={setRememberMe}
-            color={rememberMe ? '#000' : undefined}
+            color={rememberMe ? "#fbb6ce" : undefined}
           />
           <Text className="ml-2 text-white">Remember Me</Text>
         </View>
 
         <TouchableOpacity>
-          <Text className="font-medium text-white">Forgot Password?</Text>
+          <Text className="text-white font-medium">Forgot Password?</Text>
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity className="mt-2 items-center rounded-lg bg-pink-300 py-4">
-        <Text className="text-base font-semibold text-white">Log in</Text>
+      <TouchableOpacity className="bg-pink-300 py-4 rounded-lg items-center mt-2">
+        <Text className="text-white font-semibold text-base">Log in</Text>
       </TouchableOpacity>
 
-      <View className="my-7 flex-row items-center">
-        <View className="h-px flex-1 bg-white" />
-        <Text className="mx-3 text-white">OR</Text>
-        <View className="h-px flex-1 bg-white" />
+      <View className="flex-row items-center justify-center my-7">
+        <View className="flex-1 h-px bg-white" />
+        <Text className="mx-3 text-white text-center">OR</Text>
+        <View className="flex-1 h-px bg-white" />
       </View>
 
-      <TouchableOpacity className="flex-row items-center justify-center rounded-full border border-white py-3">
+      <TouchableOpacity className="flex-row items-center justify-center border border-white py-3 rounded-full">
         <AntDesign name="google" size={20} color="white" />
-        <Text className="ml-3 text-base font-medium text-white">Log in with Google</Text>
+        <Text className="ml-3 text-white font-medium text-base">
+          Log in with Google
+        </Text>
       </TouchableOpacity>
 
-      <View className="mt-6 flex-row justify-center">
+      <View className="flex-row justify-center mt-6">
         <Text className="text-white">Don’t have an account? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-          <Text className="font-semibold text-white underline">SignUp</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
+          <Text className="text-white font-semibold underline">SignUp</Text>
         </TouchableOpacity>
       </View>
     </View>

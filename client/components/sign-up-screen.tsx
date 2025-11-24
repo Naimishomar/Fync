@@ -9,7 +9,6 @@ import type { RootStackParamList } from '../App';
 type SignupScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Signup'>;
 
 export default function SignUpScreen() {
-  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [agreeTerms, setAgreeTerms] = useState<boolean>(false);
   const navigation = useNavigation<SignupScreenNavigationProp>();
@@ -20,58 +19,49 @@ export default function SignUpScreen() {
 
       <Image
         source={require('../assets/logo.png')}
-        className="mb-10 h-14 w-28 self-center"
+        className="mb-5 h-14 w-28 self-center"
         resizeMode="contain"
       />
 
-      <TextInput
-        className="mb-4 w-full rounded-lg border border-white p-4 text-base"
-        placeholder="Full Name"
-        placeholderTextColor="#A1A1A1"
-      />
-
-      <TextInput
-        className="mb-4 w-full rounded-lg border border-white p-4 text-base"
-        placeholder="Email"
-        placeholderTextColor="#A1A1A1"
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-
-      <View className="mb-4 w-full flex-row items-center rounded-lg border border-white p-4">
+      <View className='flex-col gap-3'>
         <TextInput
-          className="flex-1"
-          placeholder="Password"
+          className="w-full rounded-lg border border-white p-4 text-base text-pink-300"
+          placeholder="Email id"
           placeholderTextColor="#A1A1A1"
-          secureTextEntry={!showPassword}
         />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={22} color="#A1A1A1" />
-        </TouchableOpacity>
-      </View>
-
-      <View className="mb-4 w-full flex-row items-center rounded-lg border border-white p-4">
         <TextInput
-          className="flex-1"
-          placeholder="Confirm Password"
+          className="w-full rounded-lg border border-white p-4 text-base text-pink-300"
+          placeholder="Username"
           placeholderTextColor="#A1A1A1"
-          secureTextEntry={!showConfirmPassword}
         />
-        <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-          <Ionicons name={showConfirmPassword ? 'eye-off' : 'eye'} size={22} color="#A1A1A1" />
-        </TouchableOpacity>
+        <TextInput
+          className="w-full rounded-lg border border-white p-4 text-base text-pink-300"
+          placeholder="Phone Number"
+          placeholderTextColor="#A1A1A1"
+        />
+        <View className="w-full flex-row items-center rounded-lg border border-white px-3 py-1">
+          <TextInput
+            className="flex-1 text-pink-300"
+            placeholder="Password"
+            placeholderTextColor="#A1A1A1"
+            secureTextEntry={!showConfirmPassword}
+          />
+          <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+            <Ionicons name={showConfirmPassword ? 'eye-off' : 'eye'} size={22} color="#A1A1A1" />
+          </TouchableOpacity>
+        </View>
+
+        <View className="mb-5 flex-row items-center">
+          <Checkbox
+            value={agreeTerms}
+            onValueChange={setAgreeTerms}
+            color={agreeTerms ? '#fbb6ce' : undefined}
+          />
+          <Text className="ml-2 text-white">I agree to the Terms & Conditions</Text>
+        </View>
       </View>
 
-      <View className="mb-5 flex-row items-center">
-        <Checkbox
-          value={agreeTerms}
-          onValueChange={setAgreeTerms}
-          color={agreeTerms ? '#000' : undefined}
-        />
-        <Text className="ml-2 text-white">I agree to the Terms & Conditions</Text>
-      </View>
-
-      <TouchableOpacity className="mt-2 items-center rounded-lg bg-pink-300 py-4">
+      <TouchableOpacity className="mt-2 items-center rounded-lg bg-pink-300 py-4" onPress={() => navigation.navigate("ProfileSetup1")}>
         <Text className="text-base font-semibold text-white">Sign Up</Text>
       </TouchableOpacity>
 

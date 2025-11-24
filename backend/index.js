@@ -12,7 +12,7 @@ import paymentRoute from './routes/payment.route.js';
 import collaborationRoute from './routes/collaboration.route.js';
 import { socketController } from './controllers/socket.controller.js';
 
-dotenv.config();
+dotenv.config({quiet: true});
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 8000;

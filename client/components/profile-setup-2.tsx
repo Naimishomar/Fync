@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
+import * as ImagePicker from 'expo-image-picker';
 
 type ProfileSetup2NavigationProp = NativeStackNavigationProp<RootStackParamList, 'ProfileSetup2'>;
 
@@ -11,8 +12,21 @@ export default function ProfileSetup2() {
   const navigation = useNavigation<ProfileSetup2NavigationProp>();
   const [profileImageUri, setProfileImageUri] = useState<string | null>(null);
 
-  const handleUploadProfilePic = () => {
-    console.log('Open image picker');
+  const handleUploadProfilePic = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permission.status !== 'granted') {
+      alert('Permission to access gallery is required!');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+    if (!result.canceled) {
+      setProfileImageUri(result.assets[0].uri);
+    }
   };
 
   const handleContinue = () => {

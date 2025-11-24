@@ -1,7 +1,6 @@
 import express from 'express';
 import OLX from '../models/olx.model.js';
 import User from '../models/user.model.js';
-import { log } from 'console';
 
 export const sellProduct = async(req,res)=>{
     try {

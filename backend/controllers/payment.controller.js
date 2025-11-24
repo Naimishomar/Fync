@@ -5,7 +5,7 @@ import crypto from "crypto";
 import fs from "fs";
 import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
-dotenv.config();
+dotenv.config({quiet: true});
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
