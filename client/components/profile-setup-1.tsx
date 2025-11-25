@@ -2,22 +2,25 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform, Modal } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
 import { collegesInIndia } from 'data/college'; 
 
-type ProfileSetup1NavigationProp = NativeStackNavigationProp<RootStackParamList, 'ProfileSetup1'>;
+type ProfileSetup1RouteProp = RouteProp<RootStackParamList,'ProfileSetup1'>;
+type ProfileSetup1NavigationProp = NativeStackNavigationProp<RootStackParamList,'ProfileSetup1'>;
 
 export default function ProfileSetup1() {
   const navigation = useNavigation<ProfileSetup1NavigationProp>();
+  const route = useRoute<ProfileSetup1RouteProp>();
+  const { email, username, phoneNumber, password, otp } = route.params;
 
   const [fullName, setFullName] = useState('');
   const [birthday, setBirthday] = useState('');
   const [gender, setGender] = useState('');
   const [college, setCollege] = useState('');
-  const [year, setYear] = useState('');
   const [major, setMajor] = useState('');
+  const [year, setYear] = useState('');
 
   // Modal controls
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -28,11 +31,6 @@ export default function ProfileSetup1() {
     col.toLowerCase().includes(search.toLowerCase())
   );
 
-
-  const handleContinue = () => {
-    navigation.navigate('ProfileSetup2');
-  };
-
   const handleDateChange = (_, selectedDate) => {
     setShowDatePicker(false);
     if (selectedDate) {
@@ -42,7 +40,7 @@ export default function ProfileSetup1() {
   };
 
   const genderOptions = ["Male", "Female", "Other"];
-  const yearOptions = [2025, 2026, 2027, 2028, 2029, 2030];
+  const yearOptions = ["2025", "2026", "2027", "2028", "2029", "2030"];
   const majorOptions = ["B.Tech", "BCA", "MCA", "MBA", "Pharmacy", "B.Sc", "M.Tech"];
 
   const openDropdown = (type: any) => {
@@ -125,7 +123,7 @@ export default function ProfileSetup1() {
         {/* Continue */}
         <TouchableOpacity
           className="w-full items-center rounded-lg bg-pink-300 py-4 active:opacity-80"
-          onPress={handleContinue}
+          onPress={()=> navigation.navigate("ProfileSetup2",{email, username, phoneNumber, password, otp, fullName, birthday, gender, college, major, year})}
         >
           <Text className="text-base font-semibold text-white">Continue</Text>
         </TouchableOpacity>

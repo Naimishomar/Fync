@@ -7,20 +7,45 @@ import ProfileSetup2 from './components/profile-setup-2';
 import HomeScreen from './components/home-screen';
 import { StatusBar } from 'expo-status-bar';
 import BackgroundWrapper from './components/background-wrapper';
+import Toast from 'react-native-toast-message';
 import './global.css';
 
 export type RootStackParamList = {
   Login: undefined;
   Signup: undefined;
-  ProfileSetup1: undefined;
-  ProfileSetup2: undefined;
+
+  ProfileSetup1: {
+    email: string;
+    username: string;
+    phoneNumber: string;
+    password: string;
+    otp: string;
+  };
+
+  ProfileSetup2: {
+    email: string;
+    username: string;
+    phoneNumber: string;
+    password: string;
+    otp: string;
+
+    fullName: string;
+    birthday: string;
+    gender: string;
+    college: string;
+    major: string;
+    year: string;
+  };
+
   Home1: undefined;
 };
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
+    <>
     <NavigationContainer>
       <StatusBar style="auto" />
       <BackgroundWrapper>
@@ -41,5 +66,11 @@ export default function App() {
         </Stack.Navigator>
       </BackgroundWrapper>
     </NavigationContainer>
+    <Toast
+      position="top"
+      visibilityTime={2500}
+      autoHide
+    />
+    </>
   );
 }

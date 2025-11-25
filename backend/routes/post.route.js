@@ -1,5 +1,5 @@
 import express from 'express';
-import { createPost, updatePost, getPosts, deletePost, likePost, addComment, deleteComment, updateComment, getComments, getFeed } from '../controllers/post.controller.js';
+import { createPost, updatePost, getPosts, deletePost, likePost, addComment, deleteComment, updateComment, getComments, getFeed, getFollowingPosts } from '../controllers/post.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { upload } from '../utils/cloudinary.js';
 const router = express.Router();
@@ -14,5 +14,6 @@ router.delete('/comment/:id', authMiddleware, deleteComment);
 router.post('/comment/:id', authMiddleware, updateComment);
 router.get('/comment/:id', authMiddleware, getComments);
 router.get('/feed', authMiddleware, getFeed);
+router.get("/feed/followers", authMiddleware, getFollowingPosts);
 
 export default router;

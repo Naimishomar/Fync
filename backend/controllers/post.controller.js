@@ -258,3 +258,26 @@ export const getFeed = async (req, res) => {
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
+export const getFollowingPosts = async (req, res) => {
+  try {
+    const loggedInUserId = req.user.id;
+    const user = await User.findById(loggedInUserId).select("following");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    const posts = await Post.find({ user: { $in: followingList } })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .populate("user", "name username avatar");
+    res.status(200).json({ success: true, messgae: "Posts fetched successfully", posts });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

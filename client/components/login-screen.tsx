@@ -5,6 +5,7 @@ import { Ionicons, AntDesign } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../App";
+import Toast from "react-native-toast-message";
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -14,6 +15,8 @@ type LoginScreenNavigationProp = NativeStackNavigationProp<
 export default function LoginScreen() {
   const navigation = useNavigation<LoginScreenNavigationProp>();
 
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -21,6 +24,35 @@ export default function LoginScreen() {
     () => setPasswordVisible((prev) => !prev),
     []
   );
+
+  const handleSubmit = async () => {
+    const res = await fetch("http://10.21.170.90:3000/user/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(data.success);
+      Toast.show({
+        type: "success",
+        text1: "Logged in successfully!",
+        text2: "Home"
+      });
+      navigation.navigate("Home1");
+    } else {
+      Toast.show({
+        type: "error",
+        text1: "Failed",
+        text2: data.message
+      });
+    }
+  };
 
   return (
     <View className="flex-1 px-8 justify-center bg-transparent">
@@ -35,6 +67,8 @@ export default function LoginScreen() {
           className="w-full px-3 py-4 text-base text-pink-300 border border-white rounded-lg"
           placeholder="Username, phone number or email"
           placeholderTextColor="#A1A1A1"
+          value={email}
+          onChangeText={setEmail}
         />
         <View className="w-full mb-2 flex-row items-center px-3 py-1 border border-white rounded-lg">
           <TextInput
@@ -42,6 +76,8 @@ export default function LoginScreen() {
             placeholder="Password"
             placeholderTextColor="#A1A1A1"
             secureTextEntry={!passwordVisible}
+            value={password}
+            onChangeText={setPassword}
           />
           <TouchableOpacity onPress={togglePassword}>
             <Ionicons
@@ -68,7 +104,7 @@ export default function LoginScreen() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity className="bg-pink-300 py-4 rounded-lg items-center mt-2">
+      <TouchableOpacity className="bg-pink-300 py-4 rounded-lg items-center mt-2" onPress={handleSubmit}>
         <Text className="text-white font-semibold text-base">Log in</Text>
       </TouchableOpacity>
 

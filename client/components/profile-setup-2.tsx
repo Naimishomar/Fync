@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
 import * as ImagePicker from 'expo-image-picker';
+import Toast from 'react-native-toast-message';
 
 type ProfileSetup2NavigationProp = NativeStackNavigationProp<RootStackParamList, 'ProfileSetup2'>;
+type ProfileSetup2RouteProp = RouteProp<RootStackParamList, 'ProfileSetup2'>;
 
 export default function ProfileSetup2() {
+  const route = useRoute<ProfileSetup2RouteProp>();
   const navigation = useNavigation<ProfileSetup2NavigationProp>();
   const [profileImageUri, setProfileImageUri] = useState<string | null>(null);
 
@@ -29,10 +32,52 @@ export default function ProfileSetup2() {
     }
   };
 
-  const handleContinue = () => {
-    console.log('Profile setup complete');
-  };
+  const submitRegistration = async () => {
+    const formData = new FormData();
 
+    formData.append("email", route.params.email);
+    formData.append("username", route.params.username);
+    formData.append("mobileNumber", route.params.phoneNumber);
+    formData.append("password", route.params.password);
+    formData.append("name", route.params.fullName);
+    formData.append("dob", route.params.birthday);
+    formData.append("college", route.params.college);
+    formData.append("year", route.params.year);
+    formData.append("gender", route.params.gender);
+    formData.append("major", route.params.major);
+    formData.append("userOTP", route.params.otp);
+
+    if (profileImageUri) {
+      formData.append("avatar", {
+        uri: profileImageUri,
+        type: "image/jpeg",
+        name: "avatar.jpg",
+      } as any);
+    }
+
+    const res = await fetch("http://10.21.170.90:3000/user/register", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      alert(data.success);
+      Toast.show({
+        type: "success",
+        text1: "Registeed successfully!",
+        text2: "Register"
+      });
+      navigation.navigate("Home1");
+    } else {
+      alert(data.message);
+      Toast.show({
+        type: "error",
+        text1: "Failed",
+        text2: data.message
+      });
+    }
+  };
   const handleSkip = () => {
     console.log('Skipped profile pic');
   };
@@ -59,12 +104,12 @@ export default function ProfileSetup2() {
       <View className="mt-12 w-full">
         <TouchableOpacity
           className="mb-4 w-full items-center rounded-lg bg-pink-300 py-4 shadow-md active:opacity-80"
-          onPress={handleContinue}>
+          onPress={submitRegistration}>
           <Text className="text-base font-semibold text-white">Continue</Text>
         </TouchableOpacity>
         <TouchableOpacity
           className="w-full items-center rounded-lg border border-white py-4 active:bg-gray-50"
-          onPress={handleSkip}>
+          onPress={submitRegistration}>
           <Text className="text-base font-semibold text-white">Skip for now</Text>
         </TouchableOpacity>
         <Text className="mt-4 text-center text-sm text-white">Step 2 of 2</Text>

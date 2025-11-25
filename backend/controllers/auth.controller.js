@@ -4,7 +4,7 @@ import User from '../models/user.model.js';
 import jwt from 'jsonwebtoken';
 import { customAlphabet } from 'nanoid';
 import sendMail from '../utils/emailOtp.js';
-import {sendPhoneOTP, verifyPhoneOTP } from '../utils/phoneOtp.js';
+// import {sendPhoneOTP, verifyPhoneOTP } from '../utils/phoneOtp.js';
 
 const otpStore = {};
 export const sendOTP = async (req, res) => {
@@ -28,31 +28,31 @@ export const sendOTP = async (req, res) => {
   }
 };
 
-export const sendnumberOTP = async (req, res) => {
-  try {
-    let { mobileNumber } = req.body;
-    if (!mobileNumber) {
-      return res.status(400).json({ success: false, message: "Phone number required" });
-    }
-    mobileNumber = mobileNumber.replace(/\s|-/g, "");
-    if (mobileNumber.startsWith("0")) {
-      mobileNumber = mobileNumber.substring(1);
-    }
-    if (!mobileNumber.startsWith("+91")) {
-      mobileNumber = "+91" + mobileNumber;
-    }
-    await sendPhoneOTP(mobileNumber);
-    return res.status(200).json({ success: true, message: "OTP sent successfully", numberUsed: mobileNumber });
-  } catch (error) {
-    console.error("OTP Error:", error);
-    return res.status(500).json({ success: false, message: "Unable to send OTP" });
-  }
-};
+// export const sendnumberOTP = async (req, res) => {
+//   try {
+//     let { mobileNumber } = req.body;
+//     if (!mobileNumber) {
+//       return res.status(400).json({ success: false, message: "Phone number required" });
+//     }
+//     mobileNumber = mobileNumber.replace(/\s|-/g, "");
+//     if (mobileNumber.startsWith("0")) {
+//       mobileNumber = mobileNumber.substring(1);
+//     }
+//     if (!mobileNumber.startsWith("+91")) {
+//       mobileNumber = "+91" + mobileNumber;
+//     }
+//     await sendPhoneOTP(mobileNumber);
+//     return res.status(200).json({ success: true, message: "OTP sent successfully", numberUsed: mobileNumber });
+//   } catch (error) {
+//     console.error("OTP Error:", error);
+//     return res.status(500).json({ success: false, message: "Unable to send OTP" });
+//   }
+// };
 
 export const register = async (req, res) => {
   try {
-    const { email, username, mobileNumber, password, name, dob, college, year, gender, major, userOTP, phoneOtp } = req.body;
-    if (!email || !username || !mobileNumber || !password || !name || !dob || !college || !year || !gender || !major || !userOTP || !phoneOtp) {
+    const { email, username, mobileNumber, password, name, dob, college, year, gender, major, userOTP } = req.body;
+    if (!email || !username || !mobileNumber || !password || !name || !dob || !college || !year || !gender || !major || !userOTP) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
     let formattedDob = dob;
@@ -67,10 +67,10 @@ export const register = async (req, res) => {
     if (storedOtp !== String(userOTP).trim()) {
       return res.status(400).json({ success: false, message: "Invalid Email OTP" });
     }
-    const twilioCheck = await verifyPhoneOTP(mobileNumber, phoneOtp);
-    if (twilioCheck.status !== "approved") {
-      return res.status(400).json({ success: false, message: "Invalid Mobile OTP" });
-    }
+    // const twilioCheck = await verifyPhoneOTP(mobileNumber, phoneOtp);
+    // if (twilioCheck.status !== "approved") {
+    //   return res.status(400).json({ success: false, message: "Invalid Mobile OTP" });
+    // }
     delete otpStore[email];
     const existing = await User.findOne({ $or: [{ email }, { username }, { mobileNumber }]});
     if (existing) {
