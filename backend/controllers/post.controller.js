@@ -43,11 +43,12 @@ export const getPosts = async (req, res) => {
             return res.status(404).json({ success: false, message: "User not found, please login" });
         }
         const posts = await Post.find({ user: req.user.id })
-        .populate("user", "name avatar username")
+        .populate("user", "name avatar username college")
         .populate({
             path: "comments",
             populate: { path: "user", select: "name avatar username" }
-        });
+        })
+        .sort({ createdAt: -1 });
         return res.status(200).json({ success: true, message: "Posts fetched successfully", posts });
     } catch (error) {
         console.log("Internal server error", error);

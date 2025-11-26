@@ -26,7 +26,7 @@ export default function LoginScreen() {
   );
 
   const handleSubmit = async () => {
-    const res = await fetch("http://10.21.170.90:3000/user/login", {
+    const res = await fetch("http://192.168.29.104:3000/user/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

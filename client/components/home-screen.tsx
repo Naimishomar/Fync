@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Image,
-  SafeAreaView,
   ScrollView,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../context/auth.context';
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home1'>;
 
@@ -33,33 +35,40 @@ const EmptyStateIllustration = () => (
 
 export default function HomeScreen() {
   const navigation = useNavigation<HomeScreenNavigationProp>();
+  const [profileImage, setProfileImage] = useState<string | undefined>('');
   const [activeTab, setActiveTab] = useState<'forYou' | 'following'>('forYou');
+  const { user } = useAuth();
 
-  const profileImage = 'https://placehold.co/40x40/000000/FFFFFF?text=P';
+  useEffect(() => {
+    if (user) {
+      setProfileImage(user.avatar);
+    }
+  }, [user]);
+
 
   const renderHeader = () => (
-    <View className="flex-row items-center justify-between border-b border-gray-200 px-4 pb-3">
-      <View className="flex-row items-center">
+    <View className="flex-row items-center justify-between px-4 py-3">
+      <TouchableOpacity className="flex-row items-center" onPress={()=> navigation.navigate("Profile")}>
         <Image
           source={{ uri: profileImage }}
-          className="mr-2 h-8 w-8 rounded-full border border-gray-400"
+          className="mr-2 h-12 w-12 rounded-full border border-pink-300"
         />
-        <Text className="text-2xl font-semibold italic">Fync</Text>
-      </View>
+        <Text className="text-4xl font-medium text-white">Fync</Text>
+      </TouchableOpacity>
 
-      <View className="flex-row items-center space-x-4">
+      <View className="flex-row items-center gap-8">
         <TouchableOpacity>
-          <Ionicons name="notifications-outline" size={24} color="black" />
+          <Ionicons name="notifications-outline" size={26} color="white" />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Ionicons name="send-outline" size={24} color="black" />
+          <Ionicons name="send-outline" size={24} color="white" className='-rotate-45' />
         </TouchableOpacity>
       </View>
     </View>
   );
 
   const renderTabBar = () => (
-    <View className="w-full flex-row border-b border-gray-300 bg-white">
+    <View className="w-full flex-row border-b border-gray-700">
       {['For You', 'Following'].map((tabTitle) => {
         const key = tabTitle === 'For You' ? 'forYou' : 'following';
         const isActive = activeTab === key;
@@ -69,12 +78,12 @@ export default function HomeScreen() {
             onPress={() => setActiveTab(key)}
             className="flex-1 items-center pb-2">
             <Text
-              className={`text-base font-semibold ${isActive ? 'text-black' : 'text-gray-500'}`}>
+              className={`text-base font-semibold ${isActive ? 'text-white' : 'text-gray-400'}`}>
               {tabTitle}
             </Text>
             {isActive && (
               <View
-                className="absolute bottom-0 h-0.5 w-full bg-black"
+                className="absolute bottom-0 h-0.5 w-full bg-pink-300"
                 style={{ width: width * 0.45 }}
               />
             )}
@@ -95,19 +104,19 @@ export default function HomeScreen() {
   );
 
   const renderBottomBar = () => (
-    <SafeAreaView className="absolute bottom-0 w-full border-t border-gray-200 bg-white">
-      <View className="h-14 flex-row items-center justify-around">
-        <Ionicons name="home-outline" size={24} color="black" />
-        <Feather name="volume-2" size={24} color="gray" />
-        <Ionicons name="server-outline" size={24} color="gray" />
-        <Feather name="briefcase" size={24} color="gray" />
-        <Ionicons name="heart-outline" size={24} color="gray" />
+    <SafeAreaView className="absolute bottom-0 w-full border-t border-gray-800">
+      <View className="flex-row items-center justify-around">
+        <Ionicons name="home-outline" size={24} color="white" />
+        <Feather name="volume-2" size={24} color="white" />
+        <Ionicons name="server-outline" size={24} color="white" />
+        <Feather name="briefcase" size={24} color="white" />
+        <Ionicons name="heart-outline" size={24} color="white" />
       </View>
     </SafeAreaView>
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-black">
       {renderHeader()}
 
       {renderTabBar()}
@@ -115,9 +124,9 @@ export default function HomeScreen() {
       <ScrollView className="flex-1">{renderEmptyState()}</ScrollView>
 
       <TouchableOpacity
-        className="absolute bottom-20 right-8 h-14 w-14 items-center justify-center rounded-full bg-black shadow-lg"
+        className="absolute bottom-36 right-8 h-14 w-14 items-center justify-center rounded-full bg-pink-300 shadow-lg"
         onPress={() => console.log('Navigate to Create Post')}>
-        <Ionicons name="add" size={30} color="white" />
+        <Ionicons name="add" size={30} color="black" />
       </TouchableOpacity>
 
       {renderBottomBar()}

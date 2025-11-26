@@ -1,76 +1,88 @@
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import LoginScreen from './components/login-screen';
-import SignUpScreen from './components/sign-up-screen';
-import ProfileSetup1 from './components/profile-setup-1';
-import ProfileSetup2 from './components/profile-setup-2';
-import HomeScreen from './components/home-screen';
-import { StatusBar } from 'expo-status-bar';
-import BackgroundWrapper from './components/background-wrapper';
-import Toast from 'react-native-toast-message';
-import './global.css';
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-export type RootStackParamList = {
-  Login: undefined;
-  Signup: undefined;
+import LoginScreen from "./components/login-screen";
+import SignUpScreen from "./components/sign-up-screen";
+import ProfileSetup1 from "./components/profile-setup-1";
+import ProfileSetup2 from "./components/profile-setup-2";
+import HomeScreen from "./components/home-screen";
+import Profile from "./components/profile";
+import BackgroundWrapper from "./components/background-wrapper";
 
-  ProfileSetup1: {
-    email: string;
-    username: string;
-    phoneNumber: string;
-    password: string;
-    otp: string;
-  };
+import Toast from "react-native-toast-message";
+import "./global.css";
 
-  ProfileSetup2: {
-    email: string;
-    username: string;
-    phoneNumber: string;
-    password: string;
-    otp: string;
+import { AuthProvider, useAuth } from "./context/auth.context";
+import { View, ActivityIndicator } from "react-native";
 
-    fullName: string;
-    birthday: string;
-    gender: string;
-    college: string;
-    major: string;
-    year: string;
-  };
+const Stack = createNativeStackNavigator();
 
-  Home1: undefined;
-};
+function AuthStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Login">
+        {() => (
+          <BackgroundWrapper>
+            <LoginScreen />
+          </BackgroundWrapper>
+        )}
+      </Stack.Screen>
 
+      <Stack.Screen name="Signup">
+        {() => (
+          <BackgroundWrapper>
+            <SignUpScreen />
+          </BackgroundWrapper>
+        )}
+      </Stack.Screen>
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+      <Stack.Screen name="ProfileSetup1">
+        {() => (
+          <BackgroundWrapper>
+            <ProfileSetup1 />
+          </BackgroundWrapper>
+        )}
+      </Stack.Screen>
+
+      <Stack.Screen name="ProfileSetup2">
+        {() => (
+          <BackgroundWrapper>
+            <ProfileSetup2 />
+          </BackgroundWrapper>
+        )}
+      </Stack.Screen>
+    </Stack.Navigator>
+  );
+}
+
+function AppStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Home1" component={HomeScreen} />
+      <Stack.Screen name="Profile" component={Profile} />
+    </Stack.Navigator>
+  );
+}
+
+function RootNavigator() {
+  const { isLoggedIn, loading } = useAuth();
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-black">
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
+
+  return <NavigationContainer>{isLoggedIn ? <AppStack /> : <AuthStack />}</NavigationContainer>;
+}
 
 export default function App() {
   return (
-    <>
-    <NavigationContainer>
-      <StatusBar style="auto" />
-      <BackgroundWrapper>
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: false,
-            animation: 'slide_from_right',
-            contentStyle: {
-              backgroundColor: 'transparent',
-            },
-          }}
-          initialRouteName="Login">
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Signup" component={SignUpScreen} />
-          <Stack.Screen name="ProfileSetup1" component={ProfileSetup1} />
-          <Stack.Screen name="ProfileSetup2" component={ProfileSetup2} />
-          <Stack.Screen name="Home1" component={HomeScreen} />
-        </Stack.Navigator>
-      </BackgroundWrapper>
-    </NavigationContainer>
-    <Toast
-      position="top"
-      visibilityTime={2500}
-      autoHide
-    />
-    </>
+    <AuthProvider>
+      <RootNavigator />
+      <Toast position="top" />
+    </AuthProvider>
   );
 }

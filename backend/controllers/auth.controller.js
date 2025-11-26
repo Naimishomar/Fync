@@ -271,3 +271,17 @@ export const getFollowing = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
+export const logout = async(req,res)=>{
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found, please login" });
+    }
+    res.clearCookie("token", { httpOnly: true, secure: true, sameSite: "strict" });
+    return res.status(200).json({ success: true, message: "User logged out successfully" });
+  } catch (error) {
+    console.log("Internal server error", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}

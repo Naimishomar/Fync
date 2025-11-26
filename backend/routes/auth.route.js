@@ -1,5 +1,5 @@
 import express from 'express';
-import { login, register, updateUser, getProfile, getUserProfile, followUser, unfollowUser, getFollowers, getFollowing, sendOTP } from '../controllers/auth.controller.js';
+import { login, register, updateUser, getProfile, getUserProfile, followUser, unfollowUser, getFollowers, getFollowing, sendOTP, logout } from '../controllers/auth.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { upload } from '../utils/cloudinary.js';
 const router = express.Router();
@@ -15,5 +15,6 @@ router.post('/:id/follow', authMiddleware, followUser);
 router.post('/:id/unfollow', authMiddleware, unfollowUser);
 router.get('/:id/followers', authMiddleware, getFollowers);
 router.get('/:id/following', authMiddleware, getFollowing);
+router.get('/logout', authMiddleware, logout);
 
 export default router; 

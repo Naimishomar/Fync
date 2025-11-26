@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import User from "../models/user.model.js";
 
 export const authMiddleware = async (req, res, next) => {
   try {
@@ -16,7 +17,18 @@ export const authMiddleware = async (req, res, next) => {
     if (!decoded) {
       return res.status(401).json({ success: false, message: "Invalid token" });
     }
-    req.user = decoded;
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Invalid token" });
+    }
+    req.user = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      username: user.username,
+      mobileNumber: user.mobileNumber,
+      college: user.college,
+    };
     next();
   } catch (error) {
     console.error("Auth Error:", error);

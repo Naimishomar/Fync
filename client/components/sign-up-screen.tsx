@@ -21,11 +21,11 @@ export default function SignUpScreen() {
   const navigation = useNavigation<any>();
 
   const sendOtpToEmail = async () => {
-    if (!email || !username) {
+    if (!email || !username || !phoneNumber || !password) {
       Toast.show({
         type: "error",
         text1: "Missing Fields",
-        text2: "Email & username are required"
+        text2: "All fiels are required"
       });
       return;
     }
