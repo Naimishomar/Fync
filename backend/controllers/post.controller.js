@@ -5,8 +5,8 @@ import User from '../models/user.model.js';
 
 export const createPost = async(req,res)=>{
     try {
-        const { title, description } = req.body;
-        if(!title || !description){
+        const { description } = req.body;
+        if(!description){
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
         else{
@@ -19,7 +19,6 @@ export const createPost = async(req,res)=>{
                 image = req.files.map(file => file.path);
             }
             const post = await Post.create({
-                title,
                 description,
                 image,
                 user: req.user.id,
@@ -58,7 +57,7 @@ export const getPosts = async (req, res) => {
 
 export const updatePost = async(req,res)=>{
     try {
-        const { title, description } = req.body;
+        const { description } = req.body;
         const post = await Post.findById(req.params.id);
         if (!post) {
             return res.status(404).json({ success: false, message: "Post not found" });
@@ -75,7 +74,6 @@ export const updatePost = async(req,res)=>{
                 req.params.id,
                 {
                     $set: {
-                        ...(title && { title }),
                         ...(description && { description }),
                         ...(image.length > 0 && { image }),
                     },

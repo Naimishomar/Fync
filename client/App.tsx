@@ -9,6 +9,7 @@ import ProfileSetup2 from "./components/profile-setup-2";
 import HomeScreen from "./components/home-screen";
 import Profile from "./components/profile";
 import BackgroundWrapper from "./components/background-wrapper";
+import CreatePost from "components/create-post";
 
 import Toast from "react-native-toast-message";
 import "./global.css";
@@ -61,6 +62,7 @@ function AppStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Home1" component={HomeScreen} />
       <Stack.Screen name="Profile" component={Profile} />
+      <Stack.Screen name="CreatePost" component={CreatePost} />
     </Stack.Navigator>
   );
 }

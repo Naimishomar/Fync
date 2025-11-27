@@ -10,12 +10,13 @@ function Profile() {
   const { user } = useAuth();
   const navigation = useNavigation();
   const [posts, setPosts] = useState([]);
+  const [about, setAbout] = useState([]);
   const [activeTab, setActiveTab] = useState<'posts' | 'about'>('posts');
 
   useEffect(() => {
     const getPosts = async () => {
       const token = await AsyncStorage.getItem('token') || '';
-      const res = await fetch('http://192.168.29.104:3000/post/posts', {
+      const res = await fetch('http://192.168.43.82:3000/post/posts', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -81,6 +82,21 @@ const Posts = () => (
   </View>
 );
 
+const About = () => (
+  <View className="flex-1 bg-black">
+    <FlatList
+      data={about}
+      renderItem={({ item }) => (
+        <View className="mb-5">
+          <Text className="text-white text-xl">{item.title}</Text>
+          <Text className="text-gray-500 text-md">{item.description}</Text>
+        </View>
+      )}
+      keyExtractor={(item) => item._id}
+    />
+  </View>
+);
+
 
   const renderTabBar = () => (
     <View className="w-full flex-row border-b border-gray-700">
@@ -123,7 +139,7 @@ const Posts = () => (
       <View className="absolute left-1/2 top-[27%]" style={{ transform: [{ translateX: -50 }] }}>
         <Image
           source={{ uri: user?.avatar }}
-          className="w-32 h-32 rounded-full border-3 border-pink-300"
+          className="w-32 h-32 rounded-full border-4 border-pink-300"
           resizeMode="cover"
         />
       </View>
@@ -151,7 +167,7 @@ const Posts = () => (
 
       {renderTabBar()}
 
-      {activeTab === 'posts' && <Posts />}
+      {activeTab === 'posts' ? <Posts /> : <About />}
 
     </SafeAreaView>
   );

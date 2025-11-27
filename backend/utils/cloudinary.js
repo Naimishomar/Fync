@@ -13,6 +13,11 @@ const storage = new CloudinaryStorage({
   params: {
     folder: "avatar",
     allowed_formats: ["jpg", "jpeg", "png"],
+    transformation: [
+      { width: 800, height: 800, crop: "limit" },
+      { quality: "auto:low" },
+      { fetch_format: "jpg" },
+    ],
   },
 });
 const upload = multer({ storage });

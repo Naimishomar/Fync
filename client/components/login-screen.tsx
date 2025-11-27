@@ -6,6 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../App";
 import Toast from "react-native-toast-message";
+import { useAuth } from "context/auth.context";
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -20,13 +21,15 @@ export default function LoginScreen() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
+  const { login } = useAuth();
+
   const togglePassword = useCallback(
     () => setPasswordVisible((prev) => !prev),
     []
   );
 
   const handleSubmit = async () => {
-    const res = await fetch("http://192.168.29.104:3000/user/login", {
+    const res = await fetch("http://192.168.43.82:3000/user/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -38,6 +41,7 @@ export default function LoginScreen() {
     });
     const data = await res.json();
     if (data.success) {
+      login(email, password);
       alert(data.success);
       Toast.show({
         type: "success",
