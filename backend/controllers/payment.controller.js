@@ -71,16 +71,11 @@ export const verifyOrder = async(req,res)=>{
       .fontSize(24)
       .text("Payment Receipt", { align: "center" })
       .moveDown();
-
-    // Add a logo (optional, comment if not needed)
-    // doc.image("logo.png", 50, 50, { width: 80 });
-
     doc.moveDown();
 
     // ---------- Customer Info ----------
     doc.fontSize(16).text("Customer Details", { underline: true });
     doc.moveDown(0.5);
-
     doc.fontSize(12).text(`Name: ${customerName || "N/A"}`);
     doc.text(`Email: ${customerEmail || "N/A"}`);
     doc.moveDown();
@@ -88,7 +83,6 @@ export const verifyOrder = async(req,res)=>{
     // ---------- Payment Info ----------
     doc.fontSize(16).text("Payment Info", { underline: true });
     doc.moveDown(0.5);
-
     doc.fontSize(12).text(`Order ID: ${razorpay_order_id}`);
     doc.text(`Payment ID: ${razorpay_payment_id}`);
     doc.text(`Amount: ₹${amount}`);

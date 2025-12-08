@@ -30,7 +30,7 @@ export default function SignUpScreen() {
       return;
     }
 
-    const res = await fetch("http://10.21.170.90:3000/user/send-email-otp", {
+    const res = await fetch("http://192.168.28.228:3000/user/send-email-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, username }),

@@ -8,17 +8,20 @@ const userSchema = new mongoose.Schema({
     username:{
         type:String,
         required:true,
-        unique:true
+        unique:true,
+        sparse: true
     },
     email:{
         type:String,
         required:true,
-        unique:true
+        unique:true,
+        sparse: true
     },
     mobileNumber:{
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        sparse: true
     },
     password:{
         type:String,
@@ -67,9 +70,11 @@ const userSchema = new mongoose.Schema({
     }],
     linkedIn_id:{
         type:String,
+        sparse: true
     },
     github_id:{
         type:String,
+        sparse: true
     },
     interest:{
         type: [String]

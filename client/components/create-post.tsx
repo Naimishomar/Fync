@@ -55,7 +55,7 @@ function CreatePost() {
           type,
         } as any);
       });
-      const response = await fetch("http://192.168.43.82:3000/post/create", {
+      const response = await fetch("http://192.168.28.228:3000/post/create", {
         method: "POST",
         body: formData,
         headers: {

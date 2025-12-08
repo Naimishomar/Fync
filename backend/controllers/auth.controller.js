@@ -19,7 +19,7 @@ export const sendOTP = async (req, res) => {
     }
     const otp = customAlphabet('1234567890', 6)();
     otpStore[email] = otp;
-    setTimeout(() => delete otpStore[email], 300000);
+    setTimeout(() => delete otpStore[email], 1000000);
     await sendMail(email, otp, username);
     return res.status(200).json({ success: true, message: "OTP sent successfully" });
   } catch (error) {
@@ -71,11 +71,11 @@ export const register = async (req, res) => {
     // if (twilioCheck.status !== "approved") {
     //   return res.status(400).json({ success: false, message: "Invalid Mobile OTP" });
     // }
-    delete otpStore[email];
     const existing = await User.findOne({ $or: [{ email }, { username }, { mobileNumber }]});
     if (existing) {
       return res.status(400).json({ success: false, message: "User already exists" });
     }
+    delete otpStore[email];
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
       email,

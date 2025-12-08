@@ -3,18 +3,18 @@ import { View, Text, TextInput, TouchableOpacity, Image } from "react-native";
 import Checkbox from "expo-checkbox";
 import { Ionicons, AntDesign } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../App";
+// import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+// import type { RootStackParamList } from "../App";
 import Toast from "react-native-toast-message";
 import { useAuth } from "context/auth.context";
 
-type LoginScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  "Login"
->;
+// type LoginScreenNavigationProp = NativeStackNavigationProp<
+//   RootStackParamList,
+//   "Login"
+// >;
 
 export default function LoginScreen() {
-  const navigation = useNavigation<LoginScreenNavigationProp>();
+  const navigation = useNavigation<any>();
 
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -29,7 +29,7 @@ export default function LoginScreen() {
   );
 
   const handleSubmit = async () => {
-    const res = await fetch("http://192.168.43.82:3000/user/login", {
+    const res = await fetch("http://192.168.28.228:3000/user/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -48,7 +48,7 @@ export default function LoginScreen() {
         text1: "Logged in successfully!",
         text2: "Home"
       });
-      navigation.navigate("Home1");
+      // navigation.navigate("Home1");
     } else {
       Toast.show({
         type: "error",

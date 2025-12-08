@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
+import { useAuth } from 'context/auth.context';
 
 type ProfileSetup2NavigationProp = NativeStackNavigationProp<RootStackParamList, 'ProfileSetup2'>;
 type ProfileSetup2RouteProp = RouteProp<RootStackParamList, 'ProfileSetup2'>;
@@ -14,6 +16,7 @@ export default function ProfileSetup2() {
   const route = useRoute<ProfileSetup2RouteProp>();
   const navigation = useNavigation<ProfileSetup2NavigationProp>();
   const [profileImageUri, setProfileImageUri] = useState<string | null>(null);
+  const {login} = useAuth();
 
   const handleUploadProfilePic = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -55,7 +58,7 @@ export default function ProfileSetup2() {
       } as any);
     }
 
-    const res = await fetch("http://10.21.170.90:3000/user/register", {
+    const res = await fetch("http://192.168.28.228:3000/user/register", {
       method: "POST",
       body: formData,
     });
@@ -68,7 +71,8 @@ export default function ProfileSetup2() {
         text1: "Registeed successfully!",
         text2: "Register"
       });
-      navigation.navigate("Home1");
+      await login(route.params.email, route.params.password);
+      navigation.navigate("Login")
     } else {
       alert(data.message);
       Toast.show({
@@ -77,9 +81,6 @@ export default function ProfileSetup2() {
         text2: data.message
       });
     }
-  };
-  const handleSkip = () => {
-    console.log('Skipped profile pic');
   };
 
   return (

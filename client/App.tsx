@@ -10,9 +10,11 @@ import HomeScreen from "./components/home-screen";
 import Profile from "./components/profile";
 import BackgroundWrapper from "./components/background-wrapper";
 import CreatePost from "components/create-post";
+import RazorpayWebView from "utils/RazorpayWebview";
+import PaymentVerify from "utils/PaymentVerify";
 
 import Toast from "react-native-toast-message";
-import "./global.css";
+import "./global.css"
 
 import { AuthProvider, useAuth } from "./context/auth.context";
 import { View, ActivityIndicator } from "react-native";
@@ -63,6 +65,8 @@ function AppStack() {
       <Stack.Screen name="Home1" component={HomeScreen} />
       <Stack.Screen name="Profile" component={Profile} />
       <Stack.Screen name="CreatePost" component={CreatePost} />
+      <Stack.Screen name="RazorpayWebView" component={RazorpayWebView} />
+      <Stack.Screen name="PaymentVerify" component={PaymentVerify} />
     </Stack.Navigator>
   );
 }

@@ -1,22 +1,41 @@
 import React,{useState, useEffect} from 'react';
-import { Text, Image, View, TouchableOpacity, FlatList, ScrollView } from 'react-native';
+import { Text, Image, View, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { handlePayment } from 'utils/payment';
+
+type UserType = {
+  _id: string;
+  name: string;
+  username: string;
+  avatar: string;
+  college?: string;
+};
+
+type PostType = {
+  _id: string;
+  title: string;
+  description: string;
+  image: string[];
+  createdAt: string;
+  user: UserType;
+};
+
 
 function Profile() {
   const { user } = useAuth();
   const navigation = useNavigation();
-  const [posts, setPosts] = useState([]);
-  const [about, setAbout] = useState([]);
+  const [posts, setPosts] = useState<PostType[]>([]);
+  const [about, setAbout] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'posts' | 'about'>('posts');
 
   useEffect(() => {
     const getPosts = async () => {
       const token = await AsyncStorage.getItem('token') || '';
-      const res = await fetch('http://192.168.43.82:3000/post/posts', {
+      const res = await fetch('http://192.168.28.228:3000/post/posts', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -162,6 +181,9 @@ const About = () => (
         <TouchableOpacity>
             <Text className='text-white text-4xl text-center'>{user?.following?.length}</Text>
             <Text className="text-gray-400 text-md">Followers</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={()=>handlePayment(50, user)} className='border border-pink-300 p-2 rounded-md'>
+          <Text className='text-white'>Pay Now</Text>
         </TouchableOpacity>
       </View>
 

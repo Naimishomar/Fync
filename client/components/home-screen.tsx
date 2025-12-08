@@ -14,22 +14,10 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/auth.context';
+import no_post from '../assets/no_post.png';
 
 const { width } = Dimensions.get('window');
 
-const EmptyStateIllustration = () => (
-  <View className="mb-10 w-full items-center">
-    <View style={{ width: width * 0.7, height: 100 }} className="border-b border-gray-400">
-      <Feather
-        name="users"
-        size={80}
-        color="#E5E7EB"
-        style={{ alignSelf: 'center', marginTop: 10 }}
-      />
-      <Text className="mt-2 text-center text-xs text-gray-400">Personalized Feed Illustration</Text>
-    </View>
-  </View>
-);
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -40,7 +28,7 @@ export default function HomeScreen() {
 
   const getFeed = async () => {
     const token = await AsyncStorage.getItem('token') || '';
-    const res = await fetch('http://192.168.43.82:3000/post/feed', {
+    const res = await fetch('http://192.168.28.228:3000/post/feed', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -88,13 +76,15 @@ export default function HomeScreen() {
 
   const renderHeader = () => (
     <View className="flex-row items-center justify-between px-4 py-3">
-      <TouchableOpacity className="flex-row items-center" onPress={() => navigation.navigate("Profile")}>
-        <Image
-          source={{ uri: profileImage }}
-          className="mr-2 h-12 w-12 rounded-full border border-pink-300"
-        />
+      <View className='flex-row items-center'>
+        <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
+          <Image
+            source={{ uri: profileImage }}
+            className="mr-2 h-12 w-12 rounded-full border border-pink-300"
+          />
+        </TouchableOpacity>
         <Text className="text-4xl font-medium text-white">Fync</Text>
-      </TouchableOpacity>
+      </View>
 
       <View className="flex-row items-center gap-8">
         <TouchableOpacity>
@@ -173,10 +163,10 @@ export default function HomeScreen() {
   );
 
   const EmptyListComponent = () => (
-    <View className="flex-1 items-center justify-center px-4 pt-5">
-      <EmptyStateIllustration />
-      <Text className="mb-2 text-xl font-bold text-gray-300">No posts to show... yet</Text>
-      <Text className="max-w-sm text-center text-gray-500">
+    <View className="flex-1 items-center mt-10 px-4 pt-5">
+      <Image source={no_post} className="w-[90%] h-48" resizeMode="cover" />
+      <Text className="mb-2 text-2xl font-bold text-gray-300">No posts to show... yet</Text>
+      <Text className="max-w-sm text-center text-gray-500 px-5">
         Your personalized feed will appear here once creators start posting.
       </Text>
     </View>
