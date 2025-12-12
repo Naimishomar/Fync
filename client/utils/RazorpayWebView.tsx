@@ -57,10 +57,10 @@ export default function RazorpayWebView({ route, navigation }) {
             const msg = JSON.parse(event.nativeEvent.data);
 
             if (msg.event === "SUCCESS") {
-              navigation.navigate("PaymentVerify", {
+              navigation.replace("PaymentVerify", {
                 ...msg.data,
                 order,
-                user
+                user,
               });
             } else {
               alert("Payment Cancelled ❌");

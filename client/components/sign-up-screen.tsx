@@ -23,16 +23,16 @@ export default function SignUpScreen() {
   const sendOtpToEmail = async () => {
     if (!email || !username || !phoneNumber || !password) {
       Toast.show({
-        type: "error",
-        text1: "Missing Fields",
-        text2: "All fiels are required"
+        type: 'error',
+        text1: 'Missing Fields',
+        text2: 'All fiels are required',
       });
       return;
     }
 
-    const res = await fetch("http://192.168.28.228:3000/user/send-email-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch('http://10.21.99.81:3000/user/send-email-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, username }),
     });
 
@@ -41,19 +41,18 @@ export default function SignUpScreen() {
     if (data.success) {
       setOtpSent(true);
       Toast.show({
-        type: "success",
-        text1: "OTP Sent!",
-        text2: "Check your email"
+        type: 'success',
+        text1: 'OTP Sent!',
+        text2: 'Check your email',
       });
     } else {
       Toast.show({
-        type: "error",
-        text1: "Failed",
-        text2: data.message
+        type: 'error',
+        text1: 'Failed',
+        text2: data.message,
       });
     }
   };
-
 
   return (
     <View className="flex-1 justify-center bg-transparent px-8">
@@ -65,7 +64,7 @@ export default function SignUpScreen() {
         resizeMode="contain"
       />
 
-      <View className='flex-col gap-3'>
+      <View className="flex-col gap-3">
         <TextInput
           className="w-full rounded-lg border border-white p-4 text-base text-pink-300"
           placeholder="Email id"
@@ -102,7 +101,7 @@ export default function SignUpScreen() {
         </View>
         {otpSent && (
           <TextInput
-            className="w-full rounded-lg border border-white text-base p-4 text-pink-300"
+            className="w-full rounded-lg border border-white p-4 text-base text-pink-300"
             placeholder="Enter your OTP"
             placeholderTextColor="#A1A1A1"
             value={otp}
@@ -120,11 +119,17 @@ export default function SignUpScreen() {
       </View>
 
       {!otpSent ? (
-        <TouchableOpacity className="items-center rounded-lg bg-pink-300 py-4" onPress={sendOtpToEmail}>
+        <TouchableOpacity
+          className="items-center rounded-lg bg-pink-300 py-4"
+          onPress={sendOtpToEmail}>
           <Text className="text-base font-semibold text-white">Send OTP</Text>
         </TouchableOpacity>
-        ): (
-        <TouchableOpacity className="items-center rounded-lg bg-pink-300 py-4" onPress={() => navigation.navigate("ProfileSetup1", { email, username, phoneNumber, password, otp})}>
+      ) : (
+        <TouchableOpacity
+          className="items-center rounded-lg bg-pink-300 py-4"
+          onPress={() =>
+            navigation.navigate('ProfileSetup1', { email, username, phoneNumber, password, otp })
+          }>
           <Text className="text-base font-semibold text-white">Sign Up</Text>
         </TouchableOpacity>
       )}

@@ -1,7 +1,9 @@
+// App.js
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-
+import Toast from "react-native-toast-message";
+import "./global.css";
 import LoginScreen from "./components/login-screen";
 import SignUpScreen from "./components/sign-up-screen";
 import ProfileSetup1 from "./components/profile-setup-1";
@@ -9,12 +11,12 @@ import ProfileSetup2 from "./components/profile-setup-2";
 import HomeScreen from "./components/home-screen";
 import Profile from "./components/profile";
 import BackgroundWrapper from "./components/background-wrapper";
-import CreatePost from "components/create-post";
-import RazorpayWebView from "utils/RazorpayWebview";
-import PaymentVerify from "utils/PaymentVerify";
-
-import Toast from "react-native-toast-message";
-import "./global.css"
+import CreatePost from "./components/create-post";
+import RazorpayWebView from "./utils/RazorpayWebView";
+import PaymentVerify from "./utils/PaymentVerify";
+import ReceiptWebview from "./utils/ReceiptWebview";
+import TabLayout from "./components/TabLayout";
+import Shorts from "./components/Shorts";
 
 import { AuthProvider, useAuth } from "./context/auth.context";
 import { View, ActivityIndicator } from "react-native";
@@ -67,21 +69,32 @@ function AppStack() {
       <Stack.Screen name="CreatePost" component={CreatePost} />
       <Stack.Screen name="RazorpayWebView" component={RazorpayWebView} />
       <Stack.Screen name="PaymentVerify" component={PaymentVerify} />
+      <Stack.Screen name="ReceiptWebview" component={ReceiptWebview} />
+      <Stack.Screen name="Shorts" component={Shorts} />
     </Stack.Navigator>
   );
 }
 
 function RootNavigator() {
   const { isLoggedIn, loading } = useAuth();
+
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-black">
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#000" }}>
         <ActivityIndicator size="large" color="#fff" />
       </View>
     );
   }
 
-  return <NavigationContainer>{isLoggedIn ? <AppStack /> : <AuthStack />}</NavigationContainer>;
+  return (
+    <NavigationContainer>
+      {isLoggedIn ? (
+        <TabLayout />
+      ) : (
+        <AuthStack />
+      )}
+    </NavigationContainer>
+  );
 }
 
 export default function App() {

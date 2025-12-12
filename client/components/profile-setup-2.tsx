@@ -16,7 +16,7 @@ export default function ProfileSetup2() {
   const route = useRoute<ProfileSetup2RouteProp>();
   const navigation = useNavigation<ProfileSetup2NavigationProp>();
   const [profileImageUri, setProfileImageUri] = useState<string | null>(null);
-  const {login} = useAuth();
+  const { login } = useAuth();
 
   const handleUploadProfilePic = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -38,28 +38,28 @@ export default function ProfileSetup2() {
   const submitRegistration = async () => {
     const formData = new FormData();
 
-    formData.append("email", route.params.email);
-    formData.append("username", route.params.username);
-    formData.append("mobileNumber", route.params.phoneNumber);
-    formData.append("password", route.params.password);
-    formData.append("name", route.params.fullName);
-    formData.append("dob", route.params.birthday);
-    formData.append("college", route.params.college);
-    formData.append("year", route.params.year);
-    formData.append("gender", route.params.gender);
-    formData.append("major", route.params.major);
-    formData.append("userOTP", route.params.otp);
+    formData.append('email', route.params.email);
+    formData.append('username', route.params.username);
+    formData.append('mobileNumber', route.params.phoneNumber);
+    formData.append('password', route.params.password);
+    formData.append('name', route.params.fullName);
+    formData.append('dob', route.params.birthday);
+    formData.append('college', route.params.college);
+    formData.append('year', route.params.year);
+    formData.append('gender', route.params.gender);
+    formData.append('major', route.params.major);
+    formData.append('userOTP', route.params.otp);
 
     if (profileImageUri) {
-      formData.append("avatar", {
+      formData.append('avatar', {
         uri: profileImageUri,
-        type: "image/jpeg",
-        name: "avatar.jpg",
+        type: 'image/jpeg',
+        name: 'avatar.jpg',
       } as any);
     }
 
-    const res = await fetch("http://192.168.28.228:3000/user/register", {
-      method: "POST",
+    const res = await fetch('http://10.21.99.81:3000/user/register', {
+      method: 'POST',
       body: formData,
     });
 
@@ -67,18 +67,18 @@ export default function ProfileSetup2() {
     if (data.success) {
       alert(data.success);
       Toast.show({
-        type: "success",
-        text1: "Registeed successfully!",
-        text2: "Register"
+        type: 'success',
+        text1: 'Registeed successfully!',
+        text2: 'Register',
       });
       await login(route.params.email, route.params.password);
-      navigation.navigate("Login")
+      navigation.navigate('Login');
     } else {
       alert(data.message);
       Toast.show({
-        type: "error",
-        text1: "Failed",
-        text2: data.message
+        type: 'error',
+        text1: 'Failed',
+        text2: data.message,
       });
     }
   };

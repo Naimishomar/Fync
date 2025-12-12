@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,22 +6,24 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { FontAwesome6 } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
-import Toast from "react-native-toast-message";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
+  ActivityIndicator,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { FontAwesome6 } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import Toast from 'react-native-toast-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 
 function CreatePost() {
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState('');
   const [images, setImages] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
   const openGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      alert("Permission required!");
+    if (status !== 'granted') {
+      alert('Permission required!');
       return;
     }
 
@@ -42,57 +44,60 @@ function CreatePost() {
   };
 
   const handleSubmit = async () => {
-    const token = await AsyncStorage.getItem("token");
+    setIsLoading(true);
+    const token = await AsyncStorage.getItem('token');
     try {
       const formData = new FormData();
-      formData.append("description", description);
+      formData.append('description', description);
       images.forEach((uri, index) => {
-        const filename = uri.split("/").pop() || `image_${index}.jpg`;
-        const type = `image/${filename.split(".").pop()}`;
-        formData.append("image", {
+        const filename = uri.split('/').pop() || `image_${index}.jpg`;
+        const type = `image/${filename.split('.').pop()}`;
+        formData.append('image', {
           uri,
           name: filename,
           type,
         } as any);
       });
-      const response = await fetch("http://192.168.28.228:3000/post/create", {
-        method: "POST",
+      const response = await fetch('http://10.21.99.81:3000/post/create', {
+        method: 'POST',
         body: formData,
         headers: {
-          "Content-Type": "multipart/form-data",
-          "Authorization": `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
         },
       });
       const data = await response.json();
       if (data.success) {
         Toast.show({
-          type: "success",
-          text1: "Posted successfully!",
+          type: 'success',
+          text1: 'Posted successfully!',
         });
-        navigation.navigate("Home1");
+        navigation.navigate('Home1');
       } else {
         Toast.show({
-          type: "error",
-          text1: "Error",
+          type: 'error',
+          text1: 'Error',
           text2: data.message,
         });
       }
     } catch (error) {
-      console.log("Error uploading", error);
+      console.log('Error uploading', error);
       Toast.show({
-        type: "error",
-        text1: "Failed to upload",
+        type: 'error',
+        text1: 'Failed to upload',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <SafeAreaView className="w-full bg-black h-screen text-white p-2">
-      <Text className="text-white text-3xl p-4">Create Post</Text>
+    <SafeAreaView className="h-screen w-full bg-black p-2 text-white">
+      <Text className="p-4 text-3xl text-white">Create Post</Text>
 
-      <View className="mt-2 border border-pink-300 rounded-xl p-2">
+      <View className="mt-2 rounded-xl border border-pink-300 p-2">
         <TextInput
-          className="text-pink-300 placeholder:text-white text-md rounded-xl min-h-56"
+          className="text-md min-h-56 rounded-xl text-pink-300 placeholder:text-white"
           placeholder="Share your thoughts..."
           multiline
           textAlignVertical="top"
@@ -100,7 +105,7 @@ function CreatePost() {
           onChangeText={setDescription}
         />
 
-        <View className="flex-row gap-5 items-center mx-3 my-2">
+        <View className="mx-3 my-2 flex-row items-center gap-5">
           <TouchableOpacity onPress={openGallery}>
             <FontAwesome6 name="image" size={24} color="white" />
           </TouchableOpacity>
@@ -110,29 +115,29 @@ function CreatePost() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {images.map((uri, index) => (
             <View key={index} className="relative mr-2">
-              <Image source={{ uri }} className="w-24 h-24 rounded-lg" />
+              <Image source={{ uri }} className="h-24 w-24 rounded-lg" />
 
               <TouchableOpacity
                 onPress={() => removeImage(index)}
-                className="absolute right-1 top-1 bg-pink-400 w-5 h-5 rounded-full flex items-center justify-center"
-              >
-                <Text className="text-white text-xs">✕</Text>
+                className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-pink-400">
+                <Text className="text-xs text-white">✕</Text>
               </TouchableOpacity>
             </View>
           ))}
         </ScrollView>
       </View>
 
-      <View className="flex-row justify-end items-center gap-4 mt-3">
-        <TouchableOpacity className="px-4 py-2 border border-pink-300 rounded-full">
-          <Text className="text-white text-md">Save Draft</Text>
+      <View className="mt-3 flex-row items-center justify-end gap-4">
+        <TouchableOpacity className="rounded-full border border-pink-300 px-4 py-2">
+          <Text className="text-md text-white">Save Draft</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          className="bg-pink-300 rounded-full px-8 py-2"
-          onPress={handleSubmit}
-        >
-          <Text className="text-white text-md">Post</Text>
+        <TouchableOpacity className="rounded-full bg-pink-300 px-8 py-2" onPress={handleSubmit}>
+          {isLoading ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text className="text-md text-white">Post</Text>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>

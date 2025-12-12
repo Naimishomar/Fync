@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
-const API_URL = "http://192.168.28.228:3000";
+const API_URL = 'http://10.21.99.81:3000';
 
 type UserType = {
   id?: string;
@@ -53,19 +53,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const loadUserFromStorage = async () => {
       setLoading(true);
-      const token = await AsyncStorage.getItem("token");
+      const token = await AsyncStorage.getItem('token');
       console.log(token);
-    
+
       if (token) {
         try {
-          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           const res = await axios.get(`${API_URL}/user/profile`);
           if (res.data.success) {
             setUser({ ...res.data.user, token });
           }
         } catch (error) {
-          console.log("Auth load failed", error);
-          await AsyncStorage.removeItem("token");
+          console.log('Auth load failed', error);
+          await AsyncStorage.removeItem('token');
         }
       }
       setLoading(false);
@@ -79,12 +79,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const res = await axios.post(`${API_URL}/user/login`, { email, password });
       if (res.data.success) {
         const token = res.data.token;
-        await AsyncStorage.setItem("token", token);
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        await AsyncStorage.setItem('token', token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         setUser({ ...res.data.user, token });
       }
     } catch (error) {
-      console.log("Login failed:", error);
+      console.log('Login failed:', error);
       throw error;
     }
   };
@@ -94,9 +94,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await axios.get(`${API_URL}/user/logout`);
     } catch {}
 
-    await AsyncStorage.removeItem("token");
+    await AsyncStorage.removeItem('token');
     setUser(null);
-    delete axios.defaults.headers.common["Authorization"];
+    delete axios.defaults.headers.common['Authorization'];
   };
 
   return (
@@ -107,8 +107,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         loading,
         login,
         logout,
-      }}
-    >
+      }}>
       {children}
     </AuthContext.Provider>
   );
