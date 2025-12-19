@@ -2,7 +2,18 @@ import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { WebView } from "react-native-webview";
 
-export default function RazorpayWebView({ route, navigation }) {
+interface RazorpayWebViewProps {
+  route: {
+    params: {
+      order: any;
+      user: any;
+      keyId: string;
+    };
+  };
+  navigation: any;
+}
+
+export default function RazorpayWebView({ route, navigation }: RazorpayWebViewProps) {
   const { order, user, keyId } = route.params;
   const [html, setHtml] = useState("");
 

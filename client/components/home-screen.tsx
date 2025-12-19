@@ -1,26 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, Dimensions, FlatList } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../App';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/auth.context';
+// @ts-ignore
 import no_post from '../assets/no_post.png';
 
 const { width } = Dimensions.get('window');
 
+interface Post {
+  _id: string;
+  user?: {
+    avatar?: string;
+    name?: string;
+  };
+  createdAt: string;
+  image?: string[];
+  description: string;
+}
+
 export default function HomeScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const [profileImage, setProfileImage] = useState<string | undefined>('');
   const [activeTab, setActiveTab] = useState<'forYou' | 'following'>('forYou');
-  const [feed, setFeed] = useState([]);
+  const [feed, setFeed] = useState<Post[]>([]);
   const { user } = useAuth();
 
   const getFeed = async () => {
     const token = (await AsyncStorage.getItem('token')) || '';
-    const res = await fetch('http://10.21.99.81:3000/post/feed', {
+    const res = await fetch('http://192.168.28.164:3000/post/feed', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -43,7 +52,7 @@ export default function HomeScreen() {
   const timeAgo = (date: any) => {
     const now = new Date();
     const posted = new Date(date);
-    const seconds = Math.floor((now - posted) / 1000);
+    const seconds = Math.floor((now.getTime() - posted.getTime()) / 1000);
 
     if (seconds < 60) return 'Just now';
 
@@ -67,7 +76,7 @@ export default function HomeScreen() {
   };
 
   const renderHeader = () => (
-    <View className="flex-row items-center justify-between px-4 pt-14">
+    <View className="flex-row items-center justify-between px-4 pt-10">
       <View className="flex-row items-center">
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
           <Image
@@ -115,7 +124,7 @@ export default function HomeScreen() {
     </View>
   );
 
-  const renderPostItem = ({ item }) => (
+  const renderPostItem = ({ item }: { item: Post }) => (
     <View className="mb-5 rounded-xl bg-white/10">
       <View className="flex-row items-center justify-between px-4 py-3">
         <View className="flex-row items-center">
@@ -139,8 +148,8 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {item.image?.length > 0 && (
-        <Image source={{ uri: item.image[0] }} className="h-64 w-full" resizeMode="cover" />
+      {(item.image?.length ?? 0) > 0 && (
+        <Image source={{ uri: item.image![0] }} className="h-64 w-full" resizeMode="cover" />
       )}
       <View className="px-3 py-2">
         <Text className="text-md text-pink-300">{item.description}</Text>
@@ -157,18 +166,6 @@ export default function HomeScreen() {
       </Text>
     </View>
   );
-
-  // const renderBottomBar = () => (
-  //   <SafeAreaView className="absolute bottom-0 w-full border-t border-gray-800 bg-black">
-  //     <View className="flex-row items-center justify-around">
-  //       <Ionicons name="home-outline" size={24} color="white" />
-  //       <Feather name="volume-2" size={24} color="white" />
-  //       <Ionicons name="server-outline" size={24} color="white" />
-  //       <Feather name="briefcase" size={24} color="white" />
-  //       <Ionicons name="heart-outline" size={24} color="white" />
-  //     </View>
-  //   </SafeAreaView>
-  // );
 
   return (
     <View className="flex-1 bg-black">
@@ -188,8 +185,6 @@ export default function HomeScreen() {
         onPress={() => navigation.navigate('CreatePost')}>
         <Ionicons name="add" size={30} color="black" />
       </TouchableOpacity>
-
-      {/* {renderBottomBar()} */}
     </View>
   );
 }

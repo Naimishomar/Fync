@@ -5,10 +5,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
-import { collegesInIndia } from 'data/college'; 
+import { collegesInIndia } from 'data/college';
 
-type ProfileSetup1RouteProp = RouteProp<RootStackParamList,'ProfileSetup1'>;
-type ProfileSetup1NavigationProp = NativeStackNavigationProp<RootStackParamList,'ProfileSetup1'>;
+type ProfileSetup1RouteProp = RouteProp<RootStackParamList, 'ProfileSetup1'>;
+type ProfileSetup1NavigationProp = NativeStackNavigationProp<RootStackParamList, 'ProfileSetup1'>;
 
 export default function ProfileSetup1() {
   const navigation = useNavigation<ProfileSetup1NavigationProp>();
@@ -31,7 +31,7 @@ export default function ProfileSetup1() {
     col.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleDateChange = (_, selectedDate) => {
+  const handleDateChange = (_: any, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (selectedDate) {
       const formatted = selectedDate.toISOString().split("T")[0];
@@ -123,7 +123,7 @@ export default function ProfileSetup1() {
         {/* Continue */}
         <TouchableOpacity
           className="w-full items-center rounded-lg bg-pink-300 py-4 active:opacity-80"
-          onPress={()=> navigation.navigate("ProfileSetup2",{email, username, phoneNumber, password, otp, fullName, birthday, gender, college, major, year})}
+          onPress={() => navigation.navigate("ProfileSetup2", { email, username, phoneNumber, password, otp, fullName, birthday, gender, college, major, year })}
         >
           <Text className="text-base font-semibold text-white">Continue</Text>
         </TouchableOpacity>
@@ -164,10 +164,10 @@ export default function ProfileSetup1() {
               {(dropdownType === "gender"
                 ? genderOptions
                 : dropdownType === "year"
-                ? yearOptions
-                : dropdownType === "college"
-                ? filteredColleges
-                : majorOptions
+                  ? yearOptions
+                  : dropdownType === "college"
+                    ? filteredColleges
+                    : majorOptions
               ).map((item) => (
                 <TouchableOpacity
                   key={item}

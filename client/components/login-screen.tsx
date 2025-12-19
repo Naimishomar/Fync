@@ -3,15 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { Ionicons, AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-// import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-// import type { RootStackParamList } from "../App";
 import Toast from 'react-native-toast-message';
 import { useAuth } from 'context/auth.context';
-
-// type LoginScreenNavigationProp = NativeStackNavigationProp<
-//   RootStackParamList,
-//   "Login"
-// >;
 
 export default function LoginScreen() {
   const navigation = useNavigation<any>();
@@ -26,7 +19,7 @@ export default function LoginScreen() {
   const togglePassword = useCallback(() => setPasswordVisible((prev) => !prev), []);
 
   const handleSubmit = async () => {
-    const res = await fetch('http://10.21.99.81:3000/user/login', {
+    const res = await fetch('http://192.168.28.164:3000/user/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -45,7 +38,6 @@ export default function LoginScreen() {
         text1: 'Logged in successfully!',
         text2: 'Home',
       });
-      // navigation.navigate("Home1");
     } else {
       Toast.show({
         type: 'error',

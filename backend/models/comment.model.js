@@ -12,9 +12,14 @@ const commentSchema = new mongoose.Schema({
   },
   post: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Post",
     required: true,
+    refPath: 'postType'
   },
+  postType: {
+    type: String,
+    required: true,
+    enum: ['Post', 'Shorts']
+  }
 },{timestamps:true});
 
 const Comment = mongoose.model("Comment", commentSchema);

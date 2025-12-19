@@ -10,6 +10,7 @@ import chatRoute from './routes/chat.route.js';
 import cafeRoute from './routes/cafe.route.js';
 import paymentRoute from './routes/payment.route.js';
 import collaborationRoute from './routes/collaboration.route.js';
+import shortRoute from './routes/short.route.js';
 import { socketController } from './controllers/socket.controller.js';
 
 dotenv.config({quiet: true});
@@ -32,6 +33,7 @@ app.use('/cafe', cafeRoute);
 app.use('/collaboration', collaborationRoute);
 app.use('/chat', chatRoute);
 app.use('/payment', paymentRoute);
+app.use('/shorts', shortRoute);
 socketController(io);
 
 app.get('/', (req, res) => {

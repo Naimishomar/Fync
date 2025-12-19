@@ -2,7 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-export default function PaymentVerify({ route }) {
+interface PaymentVerifyProps {
+  route: {
+    params: {
+      razorpay_order_id: string;
+      razorpay_payment_id: string;
+      razorpay_signature: string;
+      order: any;
+      user: any;
+    };
+  };
+}
+
+export default function PaymentVerify({ route }: PaymentVerifyProps) {
   const navigation: any = useNavigation();
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order, user } = route.params;
 
@@ -13,7 +25,7 @@ export default function PaymentVerify({ route }) {
   // ⬇ VERIFY PAYMENT FROM BACKEND
   const verifyPayment = async () => {
     try {
-      const res = await fetch('http://10.21.99.81:3000/payment/api/verify', {
+      const res = await fetch('http://192.168.28.164:3000/payment/api/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

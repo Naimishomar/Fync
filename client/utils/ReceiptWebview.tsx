@@ -1,7 +1,15 @@
 import { View, ActivityIndicator } from "react-native";
 import { WebView } from "react-native-webview";
 
-export default function ReceiptWebview({ route }) {
+interface ReceiptWebviewProps {
+  route: {
+    params: {
+      url: string;
+    };
+  };
+}
+
+export default function ReceiptWebview({ route }: ReceiptWebviewProps) {
   const { url } = route.params;
 
   return (

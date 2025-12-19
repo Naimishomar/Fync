@@ -21,7 +21,22 @@ import Shorts from "./components/Shorts";
 import { AuthProvider, useAuth } from "./context/auth.context";
 import { View, ActivityIndicator } from "react-native";
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+export type RootStackParamList = {
+  Login: undefined;
+  Signup: undefined;
+  ProfileSetup1: { email: any; username: any; phoneNumber: any; password: any; otp: any };
+  ProfileSetup2: { email: any; username: any; phoneNumber: any; password: any; otp: any; fullName: any; birthday: any; gender: any; college: any; major: any; year: any };
+  Home1: undefined;
+  Profile: undefined;
+  CreatePost: undefined;
+  RazorpayWebView: { order: any; user: any; keyId: string };
+  PaymentVerify: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string; order: any; user: any };
+  ReceiptWebview: { url: string };
+  Shorts: undefined;
+  Home: undefined; // specific for Tab screen name overlap
+};
 
 function AuthStack() {
   return (

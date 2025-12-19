@@ -15,11 +15,17 @@ import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type RootStackParamList = {
+  Home1: undefined;
+};
+
 function CreatePost() {
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const openGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -58,7 +64,7 @@ function CreatePost() {
           type,
         } as any);
       });
-      const response = await fetch('http://10.21.99.81:3000/post/create', {
+      const response = await fetch('http://192.168.28.164:3000/post/create', {
         method: 'POST',
         body: formData,
         headers: {

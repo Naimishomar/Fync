@@ -45,6 +45,11 @@ const shortsSchema = new mongoose.Schema({
         ],
         default: [],
     },
+    views: {
+        type: Number,
+        default: 0,
+        required: true,
+    },
 }, {timestamps: true})
 
 const Shorts = mongoose.model('Shorts', shortsSchema);

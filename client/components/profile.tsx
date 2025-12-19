@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Text, Image, View, TouchableOpacity, FlatList } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
@@ -34,7 +33,7 @@ function Profile() {
   useEffect(() => {
     const getPosts = async () => {
       const token = (await AsyncStorage.getItem('token')) || '';
-      const res = await fetch('http://10.21.99.81:3000/post/posts', {
+      const res = await fetch('http://192.168.28.164:3000/post/posts', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +130,7 @@ function Profile() {
   );
 
   return (
-    <SafeAreaView className="relative h-full bg-black p-3">
+    <View className="relative h-full bg-black p-3">
       <View className="mb-3 flex-row items-center gap-2">
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={30} color="white" />
@@ -180,7 +179,7 @@ function Profile() {
       {renderTabBar()}
 
       {activeTab === 'posts' ? <Posts /> : <About />}
-    </SafeAreaView>
+    </View>
   );
 }
 
