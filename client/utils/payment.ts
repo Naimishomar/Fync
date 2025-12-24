@@ -2,7 +2,7 @@ import { RAZORPAY_KEY_ID } from 'constants/keys';
 
 export const handlePayment = async (amount: number, user: any, navigation: any) => {
   try {
-    const orderRes = await fetch('http://10.21.97.246:3000/payment/api/order', {
+    const orderRes = await fetch('http://192.168.28.151:3000/payment/api/order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ amount }),

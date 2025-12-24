@@ -110,7 +110,7 @@ export const verifyOrder = async (req, res) => {
   doc.end();
 
   stream.on("finish", () => {
-    const url = `http://10.21.97.246:3000/receipts/${razorpay_order_id}.pdf`;
+    const url = `http://192.168.28.151:3000/receipts/${razorpay_order_id}.pdf`;
     res.json({
       success: true,
       receipt_url: url,

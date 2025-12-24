@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, Dimensions, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Dimensions, FlatList, TextInput, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/auth.context';
+import CreatePost from './create-post';
 // @ts-ignore
 import no_post from '../assets/no_post.png';
 
@@ -29,7 +30,7 @@ export default function HomeScreen() {
 
   const getFeed = async () => {
     const token = (await AsyncStorage.getItem('token')) || '';
-    const res = await fetch('http://10.21.97.246:3000/post/feed', {
+    const res = await fetch('http://192.168.28.151:3000/post/feed', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -124,6 +125,7 @@ export default function HomeScreen() {
     </View>
   );
 
+
   const renderPostItem = ({ item }: { item: Post }) => (
     <View className="mb-5 rounded-xl bg-white/10">
       <View className="flex-row items-center justify-between px-4 py-3">
@@ -175,6 +177,11 @@ export default function HomeScreen() {
         data={feed}
         renderItem={renderPostItem}
         keyExtractor={(item) => item._id}
+        ListHeaderComponent={
+          <View>
+            <CreatePost />
+          </View>
+        }
         ListEmptyComponent={<EmptyListComponent />}
         contentContainerStyle={{ paddingVertical: 10, paddingHorizontal: 5, flexGrow: 1 }}
         showsVerticalScrollIndicator={false}

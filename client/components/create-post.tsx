@@ -8,7 +8,6 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome6 } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
@@ -64,7 +63,7 @@ function CreatePost() {
           type,
         } as any);
       });
-      const response = await fetch('http://10.21.97.246:3000/post/create', {
+      const response = await fetch('http://192.168.28.151:3000/post/create', {
         method: 'POST',
         body: formData,
         headers: {
@@ -79,6 +78,7 @@ function CreatePost() {
           text1: 'Posted successfully!',
         });
         navigation.navigate('Home1');
+        setDescription('');
       } else {
         Toast.show({
           type: 'error',
@@ -98,55 +98,53 @@ function CreatePost() {
   };
 
   return (
-    <SafeAreaView className="h-screen w-full bg-black p-2 text-white">
-      <Text className="p-4 text-3xl text-white">Create Post</Text>
+    <View className="mx-3 my-4 rounded-xl bg-white/5 p-3 border border-pink-300">
+      <TextInput
+        placeholder="Share your thoughts..."
+        placeholderTextColor="#9ca3af"
+        value={description}
+        onChangeText={setDescription}
+        multiline
+        className="text-white text-base"
+      />
 
-      <View className="mt-2 rounded-xl border border-pink-300 p-2">
-        <TextInput
-          className="text-md min-h-56 rounded-xl text-pink-300 placeholder:text-white"
-          placeholder="Share your thoughts..."
-          multiline
-          textAlignVertical="top"
-          value={description}
-          onChangeText={setDescription}
-        />
-
-        <View className="mx-3 my-2 flex-row items-center gap-5">
+      <View className="mt-3 flex-row items-center justify-between">
+        <View className="flex-row gap-5">
           <TouchableOpacity onPress={openGallery}>
-            <FontAwesome6 name="image" size={24} color="white" />
+            <FontAwesome6 name="image" size={20} color="white" />
           </TouchableOpacity>
-          <FontAwesome6 name="globe" size={22} color="white" />
+          <FontAwesome6 name="globe" size={18} color="white" />
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {images.map((uri, index) => (
-            <View key={index} className="relative mr-2">
-              <Image source={{ uri }} className="h-24 w-24 rounded-lg" />
+        <TouchableOpacity
+          onPress={handleSubmit}
+          disabled={isLoading}
+          className="rounded-full bg-pink-400 px-4 py-1"
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#000" />
+          ) : (
+            <Text className="font-semibold text-black">Post</Text>
+          )}
+        </TouchableOpacity>
+      </View>
 
+      {images.length > 0 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
+          {images.map((uri, index) => (
+            <View key={index} className="mr-2 relative">
+              <Image source={{ uri }} className="h-20 w-20 rounded-lg" />
               <TouchableOpacity
                 onPress={() => removeImage(index)}
-                className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-pink-400">
-                <Text className="text-xs text-white">✕</Text>
+                className="absolute top-1 right-1 bg-black/70 h-5 w-5 rounded-full items-center justify-center"
+              >
+                <Text className="text-white text-xs">✕</Text>
               </TouchableOpacity>
             </View>
           ))}
         </ScrollView>
-      </View>
-
-      <View className="mt-3 flex-row items-center justify-end gap-4">
-        <TouchableOpacity className="rounded-full border border-pink-300 px-4 py-2">
-          <Text className="text-md text-white">Save Draft</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity className="rounded-full bg-pink-300 px-8 py-2" onPress={handleSubmit}>
-          {isLoading ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <Text className="text-md text-white">Post</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      )}
+    </View>
   );
 }
 

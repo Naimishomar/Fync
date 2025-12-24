@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-const API_URL = 'http://10.21.97.246:3000';
+const API_URL = 'http://192.168.28.151:3000';
 
 type UserType = {
   id?: string;

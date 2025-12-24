@@ -19,7 +19,7 @@ export default function LoginScreen() {
   const togglePassword = useCallback(() => setPasswordVisible((prev) => !prev), []);
 
   const handleSubmit = async () => {
-    const res = await fetch('http://10.21.97.246:3000/user/login', {
+    const res = await fetch('http://192.168.28.151:3000/user/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

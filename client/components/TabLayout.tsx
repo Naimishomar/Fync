@@ -6,6 +6,7 @@ import Profile from "../components/profile";
 import CreatePost from "../components/create-post";
 import RazorpayWebView from "../utils/RazorpayWebView";
 import Shorts from "../components/Shorts";
+import CreateShorts from "../components/CreateShorts";
 
 const Tab = createBottomTabNavigator();
 
@@ -16,7 +17,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarStyle: {
           position: "absolute",
-          bottom: 30,
+          bottom: 40,
           alignSelf: "center",
           height: 60,
           marginHorizontal: 20,
@@ -37,13 +38,13 @@ export default function TabLayout() {
           if (route.name === "Home") iconName = "home";
           if (route.name === "Profile") iconName = "megaphone-outline";
           if (route.name === "Shorts") iconName = "image-outline";
-          if (route.name === "CreatePost") iconName = "add-circle";
+          if (route.name === "CreateShorts") iconName = "add-circle";
           if (route.name === "RazorpayWebView") iconName = "heart-outline";
 
           return (
             <Ionicons
               name={iconName}
-              size={focused ? 32 : 28}
+              size={focused ? 24 : 24}
               color={color}
             />
           );
@@ -52,8 +53,8 @@ export default function TabLayout() {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Profile" component={Profile} />
-      <Tab.Screen name="Shorts" component={Shorts} />
-      <Tab.Screen name="CreatePost" component={CreatePost} />
+      <Tab.Screen name="Shorts" component={Shorts}/>
+      <Tab.Screen name="CreateShorts" component={CreateShorts} />
       <Tab.Screen
         name="RazorpayWebView"
         component={RazorpayWebView as any}
