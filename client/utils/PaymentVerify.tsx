@@ -25,7 +25,7 @@ export default function PaymentVerify({ route }: PaymentVerifyProps) {
   // ⬇ VERIFY PAYMENT FROM BACKEND
   const verifyPayment = async () => {
     try {
-      const res = await fetch('http://192.168.28.164:3000/payment/api/verify', {
+      const res = await fetch('http://10.21.97.246:3000/payment/api/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

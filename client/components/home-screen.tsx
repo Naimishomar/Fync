@@ -29,7 +29,7 @@ export default function HomeScreen() {
 
   const getFeed = async () => {
     const token = (await AsyncStorage.getItem('token')) || '';
-    const res = await fetch('http://192.168.28.164:3000/post/feed', {
+    const res = await fetch('http://10.21.97.246:3000/post/feed', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
