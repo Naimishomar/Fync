@@ -11,7 +11,7 @@ dotenv.config({quiet: true});
   const storage = new CloudinaryStorage({
     cloudinary,
     params: {
-      folder: "avatar",
+      folder: "posts",
       allowed_formats: ["jpg", "jpeg", "png"],
       transformation: [
         { width: 1080, height: 1920, crop: "limit" },

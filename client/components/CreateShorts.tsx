@@ -11,9 +11,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Video, ResizeMode } from "expo-av";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
 import { useNavigation } from "@react-navigation/native";
+import axios from "../context/axiosConfig";
 
 const CreateShorts = () => {
   // const { width, height } = useWindowDimensions();
@@ -43,54 +43,53 @@ const CreateShorts = () => {
   };
 
   /* ---------------- UPLOAD SHORT ---------------- */
-  const uploadShort = async () => {
-    if (!videoUri || !title || !description) {
-      Toast.show({
-        type: "error",
-        text1: "All fields are required",
-      });
-      return;
-    }
+const uploadShort = async () => {
+  if (!videoUri || !title || !description) {
+    Toast.show({ type: "error", text1: "All fields are required" });
+    return;
+  }
 
-    setLoading(true);
-    const token = await AsyncStorage.getItem("token");
+  setLoading(true);
 
-    try {
-      const formData = new FormData();
-      formData.append("title", title.trim());
-      formData.append("description", description.trim());
+  try {
+    const formData = new FormData();
+    formData.append("title", title.trim());
+    formData.append("description", description.trim());
 
-      const filename = videoUri.split("/").pop() || "short.mp4";
+    const filename = videoUri.split("/").pop() || "short.mp4";
 
-      formData.append("video", {
-        uri: videoUri,
-        name: filename,
-        type: "video/mp4",
-      } as any);
+    formData.append("video", {
+      uri: videoUri,
+      name: filename,
+      type: "video/mp4",
+    } as any);
 
-      const res = await fetch("http://192.168.28.151:3000/shorts/create", {
-        method: "POST",
+    const res = await axios.post(
+      "http://192.168.28.139:3000/shorts/create",
+      formData,
+      {
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
         },
-        body: formData,
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        Toast.show({ type: "success", text1: "Short uploaded!" });
-        navigation.goBack();
-      } else {
-        Toast.show({ type: "error", text1: data.message });
       }
-    } catch (err) {
-      console.log(err);
-      Toast.show({ type: "error", text1: "Upload failed" });
-    } finally {
-      setLoading(false);
+    );
+
+    if (res.data.success) {
+      Toast.show({ type: "success", text1: "Short uploaded!" });
+      setTitle('');
+      setDescription('');
+      setVideoUri(null);
+      navigation.goBack();
+    } else {
+      Toast.show({ type: "error", text1: res.data.message });
     }
-  };
+  } catch (err) {
+    console.log(err);
+    Toast.show({ type: "error", text1: "Upload failed" });
+  } finally {
+    setLoading(false);
+  }
+};
 
 return (
   <SafeAreaView className="flex-1 bg-white">

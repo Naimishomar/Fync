@@ -58,7 +58,7 @@ export default function ProfileSetup2() {
       } as any);
     }
 
-    const res = await fetch('http://192.168.28.151:3000/user/register', {
+    const res = await fetch('http://192.168.28.139:3000/user/register', {
       method: 'POST',
       body: formData,
     });

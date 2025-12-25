@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/auth.context';
 import CreatePost from './create-post';
+import axios from '../context/axiosConfig';
 // @ts-ignore
 import no_post from '../assets/no_post.png';
 
@@ -29,17 +30,13 @@ export default function HomeScreen() {
   const { user } = useAuth();
 
   const getFeed = async () => {
-    const token = (await AsyncStorage.getItem('token')) || '';
-    const res = await fetch('http://192.168.28.151:3000/post/feed', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const data = await res.json();
-    if (data.success) {
-      setFeed(data.posts);
+    try {
+      const res = await axios.get('http://192.168.28.139:3000/post/feed');
+      if (res.data.success) {
+        setFeed(res.data.posts);
+      }
+    } catch (error) {
+      console.log('Failed to load feed', error);
     }
   };
 

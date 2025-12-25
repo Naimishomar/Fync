@@ -19,30 +19,18 @@ export default function LoginScreen() {
   const togglePassword = useCallback(() => setPasswordVisible((prev) => !prev), []);
 
   const handleSubmit = async () => {
-    const res = await fetch('http://192.168.28.151:3000/user/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-        password,
-      }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      login(email, password);
-      alert(data.success);
+    try {
+      await login(email, password);
       Toast.show({
         type: 'success',
         text1: 'Logged in successfully!',
-        text2: 'Home',
+        text2: 'Welcome back',
       });
-    } else {
+    } catch (error: any) {
       Toast.show({
         type: 'error',
-        text1: 'Failed',
-        text2: data.message,
+        text1: 'Login failed',
+        text2: error?.response?.data?.message || 'Something went wrong',
       });
     }
   };

@@ -3,8 +3,8 @@ import { Text, Image, View, TouchableOpacity, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { handlePayment } from 'utils/payment';
+import axios from '../context/axiosConfig';
 
 type UserType = {
   _id: string;
@@ -32,17 +32,9 @@ function Profile() {
 
   useEffect(() => {
     const getPosts = async () => {
-      const token = (await AsyncStorage.getItem('token')) || '';
-      const res = await fetch('http://192.168.28.151:3000/post/posts', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      if (data.success) {
-        setPosts(data.posts);
+      const res = await axios.get('http://192.168.28.139:3000/post/posts');
+      if (res.data.success) {
+        setPosts(res.data.posts);
       }
     };
     getPosts();

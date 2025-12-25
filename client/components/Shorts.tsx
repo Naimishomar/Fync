@@ -20,6 +20,8 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { useAuth } from "../context/auth.context";
+import axios from "../context/axiosConfig";
+
 
 /* ---------------- CONSTANTS ---------------- */
 
@@ -73,12 +75,14 @@ export default function Shorts() {
   /* ---------------- FETCH ---------------- */
 
   const fetchShorts = async () => {
-    const token = await AsyncStorage.getItem("token");
-    const res = await fetch("http://192.168.28.151:3000/shorts/get/shorts", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    if (data.success) setShorts(data.shorts);
+    try {
+      const res = await axios.get(
+        "http://192.168.28.139:3000/shorts/get/shorts"
+      );
+      if (res.data.success) setShorts(res.data.shorts);
+    } catch (err) {
+      console.log("Failed to load shorts", err);
+    }
   };
 
   useEffect(() => {
@@ -113,10 +117,7 @@ export default function Shorts() {
       }
 
       // register view
-      const token = await AsyncStorage.getItem("token");
-      fetch(`http://192.168.28.151:3000/shorts/view/${item._id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      axios.get(`http://192.168.28.139:3000/shorts/view/${item._id}`);
     }
   ).current;
 
@@ -172,41 +173,24 @@ export default function Shorts() {
       )
     );
 
-    fetch(`http://192.168.28.151:3000/shorts/like/${short._id}`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    axios.post(`http://192.168.28.139:3000/shorts/like/${short._id}`);
   };
 
-const openComments = async (shortId: string) => {
-  setActiveShortId(shortId);
-  setCommentModalVisible(true);
+  const openComments = async (shortId: string) => {
+    setActiveShortId(shortId);
+    setCommentModalVisible(true);
 
-  const token = await AsyncStorage.getItem("token");
-  const res = await fetch(
-    `http://192.168.28.151:3000/shorts/comment/all/${shortId}`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  const data = await res.json();
-  if (data.success) setComments(data.comments);
-};
+    const res = await axios.get(`http://192.168.28.139:3000/shorts/comment/all/${shortId}`);
+    if (res.data.success) setComments(res.data.comments);
+  };
+
 
 const addComment = async () => {
   if (!commentText.trim() || !activeShortId) return;
-
-  const token = await AsyncStorage.getItem("token");
-  await fetch(
-    `http://192.168.28.151:3000/shorts/comment/add/${activeShortId}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ text: commentText }),
-    }
+  await axios.post(
+    `http://192.168.28.139:3000/shorts/comment/add/${activeShortId}`,
+    { text: commentText }
   );
-
   setCommentText("");
   openComments(activeShortId);
 };
@@ -215,18 +199,7 @@ const updateComment = async (id: string) => {
   if (!editingText.trim()) return;
   setCommentLoading(id);
 
-  const token = await AsyncStorage.getItem("token");
-  await fetch(
-    `http://192.168.28.151:3000/shorts/comment/update/${id}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ text: editingText }),
-    }
-  );
+  await axios.post(`http://192.168.28.139:3000/shorts/comment/update/${id}`,{ text: editingText });
 
   setEditingId(null);
   setEditingText("");
@@ -237,14 +210,7 @@ const updateComment = async (id: string) => {
 const deleteComment = async (id: string) => {
   setCommentLoading(id);
 
-  const token = await AsyncStorage.getItem("token");
-  await fetch(
-    `http://192.168.28.151:3000/shorts/comment/delete/${id}`,
-    {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
+  await axios.post(`http://192.168.28.139:3000/shorts/comment/delete/${id}`);
 
   openComments(activeShortId!);
   setCommentLoading(null);
@@ -257,7 +223,7 @@ const deleteComment = async (id: string) => {
     const isLiked = item.liked_by.includes(currentUserId || "");
 
     return (
-      <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }}>
+      <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }} className="bg-black">
         <Pressable onPress={() => togglePlay(item._id)}>
           <Video
             ref={ref => ref && videoRefs.current.set(item._id, ref)}

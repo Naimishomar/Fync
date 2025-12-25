@@ -34,6 +34,13 @@ app.use('/collaboration', collaborationRoute);
 app.use('/chat', chatRoute);
 app.use('/payment', paymentRoute);
 app.use('/shorts', shortRoute);
+
+app.use((req, res, next) => {
+  console.log("REQ:", req.method, req.url);
+  next();
+});
+
+
 socketController(io);
 
 app.get('/', (req, res) => {

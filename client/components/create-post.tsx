@@ -11,20 +11,12 @@ import {
 import { FontAwesome6 } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
-
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-type RootStackParamList = {
-  Home1: undefined;
-};
+import axios from '../context/axiosConfig';
 
 function CreatePost() {
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const openGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -50,52 +42,45 @@ function CreatePost() {
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    const token = await AsyncStorage.getItem('token');
     try {
       const formData = new FormData();
       formData.append('description', description);
+
+      const getMimeType = (uri: string) => {
+        if (uri.endsWith(".png")) return "image/png";
+        if (uri.endsWith(".jpg") || uri.endsWith(".jpeg")) return "image/jpeg";
+        return "image/jpeg";
+      };
+
       images.forEach((uri, index) => {
-        const filename = uri.split('/').pop() || `image_${index}.jpg`;
-        const type = `image/${filename.split('.').pop()}`;
-        formData.append('image', {
+        const filename = uri.split("/").pop() || `image_${index}.jpg`;
+
+        formData.append("image", {
           uri,
           name: filename,
-          type,
+          type: getMimeType(uri),
         } as any);
       });
-      const response = await fetch('http://192.168.28.151:3000/post/create', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      if (data.success) {
-        Toast.show({
-          type: 'success',
-          text1: 'Posted successfully!',
-        });
-        navigation.navigate('Home1');
+
+      const res = await axios.post('http://192.168.28.139:3000/post/create', formData);
+
+      if (res.data.success) {
+        Toast.show({ type: 'success', text1: 'Posted successfully!' });
         setDescription('');
+        setImages([]);
       } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Error',
-          text2: data.message,
-        });
+        Toast.show({ type: 'error', text1: res.data.message });
       }
     } catch (error) {
-      console.log('Error uploading', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to upload',
-      });
+      console.log('Upload failed', error);
+      console.log(error?.response?.data?.message);
+
+      Toast.show({ type: 'error', text1: 'Failed to upload' });
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <View className="mx-3 my-4 rounded-xl bg-white/5 p-3 border border-pink-300">

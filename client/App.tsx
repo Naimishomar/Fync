@@ -1,5 +1,6 @@
 // App.js
 import React from "react";
+import './context/axiosConfig'
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Toast from "react-native-toast-message";
@@ -28,7 +29,6 @@ export type RootStackParamList = {
   Signup: undefined;
   ProfileSetup1: { email: any; username: any; phoneNumber: any; password: any; otp: any };
   ProfileSetup2: { email: any; username: any; phoneNumber: any; password: any; otp: any; fullName: any; birthday: any; gender: any; college: any; major: any; year: any };
-  Home1: undefined;
   Profile: undefined;
   CreatePost: undefined;
   RazorpayWebView: { order: any; user: any; keyId: string };
@@ -79,7 +79,6 @@ function AuthStack() {
 function AppStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Home1" component={HomeScreen} />
       <Stack.Screen name="Profile" component={Profile} />
       <Stack.Screen name="CreatePost" component={CreatePost} />
       <Stack.Screen name="RazorpayWebView" component={RazorpayWebView} />
