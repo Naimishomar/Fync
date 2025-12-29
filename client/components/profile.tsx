@@ -5,6 +5,7 @@ import { useAuth } from '../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import { handlePayment } from 'utils/payment';
 import axios from '../context/axiosConfig';
+import Toast from 'react-native-toast-message';
 
 type UserType = {
   _id: string;
@@ -24,33 +25,50 @@ type PostType = {
 };
 
 function Profile() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigation = useNavigation();
   const [posts, setPosts] = useState<PostType[]>([]);
   const [about, setAbout] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'posts' | 'about'>('posts');
+  const [refreshing, setRefreshing] = useState(false);
 
+  const getPosts = async () => {
+    const res = await axios.get('http://192.168.28.79:3000/post/posts');
+    if (res.data.success) {
+      setPosts(res.data.posts);
+    }
+  };
   useEffect(() => {
-    const getPosts = async () => {
-      const res = await axios.get('http://192.168.28.139:3000/post/posts');
-      if (res.data.success) {
-        setPosts(res.data.posts);
-      }
-    };
     getPosts();
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await getPosts();
+    setRefreshing(false);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    Toast.show({
+      type: 'success',
+      text1: 'Logged out successfully!',
+    });
+  };
 
   const Posts = () => (
     <View className="flex-1 bg-black">
       <FlatList
         data={posts}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
         renderItem={({ item }) => (
           <View className="mb-5">
             {/* User Info */}
             <View className="flex-row items-center justify-between p-3">
               <View className="flex-row items-center">
                 <Image
-                  source={{ uri: item.user?.avatar }}
+                  source={{ uri: item.user?.avatar || `https://ui-avatars.com/api/?name=${item.user?.username}&background=random&color=fff` }}
                   className="h-12 w-12 rounded-full border border-pink-300"
                 />
 
@@ -153,18 +171,21 @@ function Profile() {
           <Text className="text-center text-4xl text-white">{posts?.length}</Text>
           <Text className="text-md text-gray-400">Posts</Text>
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={()=> navigation.navigate('FollowersAndFollowing', {userId: user._id, type: 'followers'})}>
           <Text className="text-center text-4xl text-white">{user?.followers?.length}</Text>
           <Text className="text-md text-gray-400">Followers</Text>
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={()=> navigation.navigate('FollowersAndFollowing', {userId: user._id, type: 'following'})}>
           <Text className="text-center text-4xl text-white">{user?.following?.length}</Text>
-          <Text className="text-md text-gray-400">Followers</Text>
+          <Text className="text-md text-gray-400">Following</Text>
         </TouchableOpacity>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={() => handlePayment(50, user, navigation)}
           className="rounded-md border border-pink-300 p-2">
           <Text className="text-white">Pay Now</Text>
+        </TouchableOpacity> */}
+        <TouchableOpacity onPress={handleLogout}>
+          <Text className="text-center text-xl text-white bg-red-500 rounded-lg p-2">Logout</Text>
         </TouchableOpacity>
       </View>
 

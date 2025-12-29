@@ -3,10 +3,10 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import HomeScreen from "../components/home-screen";
 import Profile from "../components/profile";
-import CreatePost from "../components/create-post";
 import RazorpayWebView from "../utils/RazorpayWebView";
 import Shorts from "../components/Shorts";
 import CreateShorts from "../components/CreateShorts";
+import FundingFeed from "../components/FundingFeed";
 
 const Tab = createBottomTabNavigator();
 
@@ -39,7 +39,7 @@ export default function TabLayout() {
           if (route.name === "Profile") iconName = "megaphone-outline";
           if (route.name === "Shorts") iconName = "image-outline";
           if (route.name === "CreateShorts") iconName = "add-circle";
-          if (route.name === "RazorpayWebView") iconName = "heart-outline";
+          if (route.name === "FundingFeed") iconName = "heart-outline";
 
           return (
             <Ionicons
@@ -55,10 +55,7 @@ export default function TabLayout() {
       <Tab.Screen name="Profile" component={Profile} />
       <Tab.Screen name="Shorts" component={Shorts}/>
       <Tab.Screen name="CreateShorts" component={CreateShorts} />
-      <Tab.Screen
-        name="RazorpayWebView"
-        component={RazorpayWebView as any}
-      />
+      <Tab.Screen name="FundingFeed" component={FundingFeed}/>
     </Tab.Navigator>
   );
 }

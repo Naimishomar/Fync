@@ -62,7 +62,7 @@ function CreatePost() {
         } as any);
       });
 
-      const res = await axios.post('http://192.168.28.139:3000/post/create', formData);
+      const res = await axios.post('http://192.168.28.79:3000/post/create', formData);
 
       if (res.data.success) {
         Toast.show({ type: 'success', text1: 'Posted successfully!' });
@@ -98,7 +98,7 @@ function CreatePost() {
           <TouchableOpacity onPress={openGallery}>
             <FontAwesome6 name="image" size={20} color="white" />
           </TouchableOpacity>
-          <FontAwesome6 name="globe" size={18} color="white" />
+          {/* <FontAwesome6 name="globe" size={18} color="white" /> */}
         </View>
 
         <TouchableOpacity

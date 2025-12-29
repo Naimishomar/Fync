@@ -71,13 +71,15 @@ export default function Shorts() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
   const [commentLoading, setCommentLoading] = useState<string | null>(null);
+  const [loadingVideoId, setLoadingVideoId] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   /* ---------------- FETCH ---------------- */
 
   const fetchShorts = async () => {
     try {
       const res = await axios.get(
-        "http://192.168.28.139:3000/shorts/get/shorts"
+        "http://192.168.28.79:3000/shorts/get/shorts"
       );
       if (res.data.success) setShorts(res.data.shorts);
     } catch (err) {
@@ -117,7 +119,7 @@ export default function Shorts() {
       }
 
       // register view
-      axios.get(`http://192.168.28.139:3000/shorts/view/${item._id}`);
+      axios.get(`http://192.168.28.79:3000/shorts/view/${item._id}`);
     }
   ).current;
 
@@ -138,6 +140,7 @@ export default function Shorts() {
   const togglePlay = async (id: string) => {
     const ref = videoRefs.current.get(id);
     if (!ref) return;
+    if (loadingVideoId === id) return;
 
     const status = await ref.getStatusAsync();
     if (status.isPlaying) {
@@ -173,14 +176,14 @@ export default function Shorts() {
       )
     );
 
-    axios.post(`http://192.168.28.139:3000/shorts/like/${short._id}`);
+    axios.post(`http://192.168.28.79:3000/shorts/like/${short._id}`);
   };
 
   const openComments = async (shortId: string) => {
     setActiveShortId(shortId);
     setCommentModalVisible(true);
 
-    const res = await axios.get(`http://192.168.28.139:3000/shorts/comment/all/${shortId}`);
+    const res = await axios.get(`http://192.168.28.79:3000/shorts/comment/all/${shortId}`);
     if (res.data.success) setComments(res.data.comments);
   };
 
@@ -188,7 +191,7 @@ export default function Shorts() {
 const addComment = async () => {
   if (!commentText.trim() || !activeShortId) return;
   await axios.post(
-    `http://192.168.28.139:3000/shorts/comment/add/${activeShortId}`,
+    `http://192.168.28.79:3000/shorts/comment/add/${activeShortId}`,
     { text: commentText }
   );
   setCommentText("");
@@ -199,7 +202,7 @@ const updateComment = async (id: string) => {
   if (!editingText.trim()) return;
   setCommentLoading(id);
 
-  await axios.post(`http://192.168.28.139:3000/shorts/comment/update/${id}`,{ text: editingText });
+  await axios.post(`http://192.168.28.79:3000/shorts/comment/update/${id}`,{ text: editingText });
 
   setEditingId(null);
   setEditingText("");
@@ -210,11 +213,29 @@ const updateComment = async (id: string) => {
 const deleteComment = async (id: string) => {
   setCommentLoading(id);
 
-  await axios.post(`http://192.168.28.139:3000/shorts/comment/delete/${id}`);
+  await axios.post(`http://192.168.28.79:3000/shorts/comment/delete/${id}`);
 
   openComments(activeShortId!);
   setCommentLoading(null);
 };
+
+const onRefresh = async () => {
+  try {
+    setRefreshing(true);
+
+    // Stop all videos before refresh
+    await pauseAll();
+    activeVideoId.current = null;
+
+    // Re-fetch shorts
+    await fetchShorts();
+  } catch (e) {
+    console.log("Refresh failed", e);
+  } finally {
+    setRefreshing(false);
+  }
+};
+
 
 
   /* ---------------- RENDER ---------------- */
@@ -235,11 +256,34 @@ const deleteComment = async (id: string) => {
             resizeMode={ResizeMode.COVER}
             isLooping
             shouldPlay={false}
+            onLoadStart={() => {
+              setLoadingVideoId(item._id);
+            }}
+
+            onReadyForDisplay={() => {
+              setLoadingVideoId(null);
+            }}
+
+            onPlaybackStatusUpdate={status => {
+              if (status.isLoaded) {
+                if (status.isBuffering) {
+                  setLoadingVideoId(item._id);
+                } else if (status.isPlaying) {
+                  setLoadingVideoId(null);
+                }
+              }
+            }}
           />
         </Pressable>
 
+        {loadingVideoId === item._id && (
+          <View className="absolute inset-0 items-center justify-center bg-black/40">
+            <ActivityIndicator size={80} color="#808080" />
+          </View>
+        )}
+
         {showIcon?.id === item._id && (
-          <View className="absolute inset-0 items-center justify-center">
+          <View className="absolute inset-0 items-center justify-center bg-black/10">
             <Ionicons
               name={showIcon.type === "play" ? "play" : "pause"}
               size={72}
@@ -316,6 +360,8 @@ const deleteComment = async (id: string) => {
       initialNumToRender={1}
       maxToRenderPerBatch={1}
       removeClippedSubviews
+      refreshing={refreshing}
+      onRefresh={onRefresh}
     />
 
     <Modal

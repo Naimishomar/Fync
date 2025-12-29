@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, Dimensions, FlatList, TextInput, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Dimensions, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/auth.context';
 import CreatePost from './create-post';
 import axios from '../context/axiosConfig';
@@ -31,7 +30,7 @@ export default function HomeScreen() {
 
   const getFeed = async () => {
     try {
-      const res = await axios.get('http://192.168.28.139:3000/post/feed');
+      const res = await axios.get('http://192.168.28.79:3000/post/feed');
       if (res.data.success) {
         setFeed(res.data.posts);
       }
@@ -78,19 +77,22 @@ export default function HomeScreen() {
       <View className="flex-row items-center">
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
           <Image
-            source={{ uri: profileImage }}
+            source={{ uri: profileImage || `https://ui-avatars.com/api/?name=${user?.username}&background=random&color=fff` }}
             className="mr-2 h-12 w-12 rounded-full border border-pink-300"
           />
         </TouchableOpacity>
         <Text className="text-4xl font-medium text-white">Fync</Text>
       </View>
 
-      <View className="flex-row items-center gap-8">
-        <TouchableOpacity>
-          <Ionicons name="notifications-outline" size={26} color="white" />
+      <View className="flex-row items-center gap-6">
+        <TouchableOpacity onPress={()=> navigation.navigate('SearchScreen')}>
+          <Ionicons name="search-outline" size={25} color="white"/>
         </TouchableOpacity>
         <TouchableOpacity>
-          <Ionicons name="send-outline" size={24} color="white" className="-rotate-45" />
+          <Ionicons name="notifications-outline" size={25} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={()=> navigation.navigate('ChatList')}>
+          <Ionicons name="send-outline" size={23} color="white" className="-rotate-45" />
         </TouchableOpacity>
       </View>
     </View>

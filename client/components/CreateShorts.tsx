@@ -65,7 +65,7 @@ const uploadShort = async () => {
     } as any);
 
     const res = await axios.post(
-      "http://192.168.28.139:3000/shorts/create",
+      "http://192.168.28.79:3000/shorts/create",
       formData,
       {
         headers: {

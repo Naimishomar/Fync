@@ -175,7 +175,7 @@ export const addComment = async(req,res)=>{
 
 export const getComments = async(req,res)=>{
     try {
-        const post = await Post.find({post: req.params.id, postType: "Post"})
+        const post = await Comment.find({post: req.params.id, postType: "Post"}).populate("commentor", "name avatar username").sort({ createdAt: -1 });
         if(!post){
             return res.status(404).json({ success: false, message: 'Post not found' });
         }
@@ -279,5 +279,19 @@ export const getFollowingPosts = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getPostsByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const posts = await Post.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .populate("user", "name username avatar");
+    
+    return res.status(200).json({ success: true, posts });
+  } catch (error) {
+    console.log("Error fetching user posts:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };

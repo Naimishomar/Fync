@@ -216,14 +216,14 @@ export const updateComment = async (req, res) => {
 
 export const deleteComment = async (req, res) => {
   try {
-    const comment = await Comment.findById(req.params.id);
+    const comment = await Comment.find({post:req.params.id, postType: "Shorts"});
     if (!comment) {
       return res.status(404).json({ success: false, message: "Comment not found" });
     }
     if (comment.commentor.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: "Not authorized" });
     }
-    await Comment.findByIdAndDelete(req.params.id);
+    await Comment.findOneAndDelete({post:req.params.id});
     return res.status(200).json({ success: true, message: "Comment deleted successfully" });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Internal server error" });
@@ -252,3 +252,15 @@ export const viewsInShort = async(req,res)=>{
         return res.status(500).json({ success: false, message: "Internal server error" });        
     }
 }
+
+export const getShortsByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const shorts = await Shorts.find({ user: userId })
+      .sort({ createdAt: -1 });
+    return res.status(200).json({ success: true, shorts });
+  } catch (error) {
+    console.log("Error fetching user shorts:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};

@@ -11,7 +11,7 @@ dotenv.config({quiet: true});
   const storage = new CloudinaryStorage({
     cloudinary,
     params: {
-      folder: "posts",
+      folder: "avatar",
       allowed_formats: ["jpg", "jpeg", "png"],
       transformation: [
         { width: 1080, height: 1920, crop: "limit" },
@@ -32,6 +32,7 @@ dotenv.config({quiet: true});
       ],
     },
   });
+
 
 const upload = multer({ storage: storage });
 const videoUpload = multer({ storage: videoStorage, limits: { fileSize: 1024 * 1024 * 20 } });

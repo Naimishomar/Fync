@@ -1,7 +1,6 @@
-// AuthProvider.tsx
 import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "./axiosConfig"; // 👈 IMPORTANT: use configured axios
+import axios from "./axiosConfig";
 
 const AuthContext = createContext<any>(null);
 
@@ -16,6 +15,12 @@ export const AuthProvider = ({ children }: any) => {
 
   const login = async (email: string, password: string) => {
     const res = await axios.post("/user/login", { email, password });
+
+    const { token, refreshToken } = res.data;
+
+    if (!token || !refreshToken) {
+      throw new Error("Invalid auth response");
+    }
 
     await AsyncStorage.multiSet([
       ["accessToken", res.data.token],

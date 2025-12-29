@@ -18,7 +18,7 @@ const commentSchema = new mongoose.Schema({
   postType: {
     type: String,
     required: true,
-    enum: ['Post', 'Shorts']
+    enum: ['Post', 'Shorts', 'FundingProject']
   }
 },{timestamps:true});
 

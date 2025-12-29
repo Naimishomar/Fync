@@ -18,24 +18,34 @@ import PaymentVerify from "./utils/PaymentVerify";
 import ReceiptWebview from "./utils/ReceiptWebview";
 import TabLayout from "./components/TabLayout";
 import Shorts from "./components/Shorts";
-
+import SearchScreen from "components/SearchScreen";
+import ChatList from "components/ChatList";
 import { AuthProvider, useAuth } from "./context/auth.context";
 import { View, ActivityIndicator } from "react-native";
+import PublicProfile from "components/PublicProfile";
+import Chat from "components/Chat";
+import FollowersAndFollowing from "components/FollowersAndFollowing";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export type RootStackParamList = {
+  Tabs: undefined;
   Login: undefined;
   Signup: undefined;
-  ProfileSetup1: { email: any; username: any; phoneNumber: any; password: any; otp: any };
-  ProfileSetup2: { email: any; username: any; phoneNumber: any; password: any; otp: any; fullName: any; birthday: any; gender: any; college: any; major: any; year: any };
+  ProfileSetup1: { email: any; username: any; phoneNumber: any; password: any;};
+  ProfileSetup2: { email: any; username: any; phoneNumber: any; password: any; fullName: any; birthday: any; gender: any; college: any; major: any; year: any };
   Profile: undefined;
   CreatePost: undefined;
+  SearchScreen: undefined;
   RazorpayWebView: { order: any; user: any; keyId: string };
   PaymentVerify: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string; order: any; user: any };
   ReceiptWebview: { url: string };
   Shorts: undefined;
-  Home: undefined; // specific for Tab screen name overlap
+  Home: undefined;
+  PublicProfile: undefined;
+  FollowersAndFollowing: undefined;
+  Chat: { conversationId: string, user: any };
+  ChatList: undefined;
 };
 
 function AuthStack() {
@@ -43,33 +53,33 @@ function AuthStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login">
         {() => (
-          <BackgroundWrapper>
+          <>
             <LoginScreen />
-          </BackgroundWrapper>
+          </>
         )}
       </Stack.Screen>
 
       <Stack.Screen name="Signup">
         {() => (
-          <BackgroundWrapper>
+          <>
             <SignUpScreen />
-          </BackgroundWrapper>
+          </>
         )}
       </Stack.Screen>
 
       <Stack.Screen name="ProfileSetup1">
         {() => (
-          <BackgroundWrapper>
+          <>
             <ProfileSetup1 />
-          </BackgroundWrapper>
+          </>
         )}
       </Stack.Screen>
 
       <Stack.Screen name="ProfileSetup2">
         {() => (
-          <BackgroundWrapper>
+          <>
             <ProfileSetup2 />
-          </BackgroundWrapper>
+          </>
         )}
       </Stack.Screen>
     </Stack.Navigator>
@@ -79,12 +89,18 @@ function AuthStack() {
 function AppStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Tabs" component={TabLayout} />
       <Stack.Screen name="Profile" component={Profile} />
       <Stack.Screen name="CreatePost" component={CreatePost} />
       <Stack.Screen name="RazorpayWebView" component={RazorpayWebView} />
       <Stack.Screen name="PaymentVerify" component={PaymentVerify} />
       <Stack.Screen name="ReceiptWebview" component={ReceiptWebview} />
       <Stack.Screen name="Shorts" component={Shorts} />
+      <Stack.Screen name="SearchScreen" component={SearchScreen} />
+      <Stack.Screen name="PublicProfile" component={PublicProfile} />
+      <Stack.Screen name="FollowersAndFollowing" component={FollowersAndFollowing} />
+      <Stack.Screen name="Chat" component={Chat} />
+      <Stack.Screen name="ChatList" component={ChatList} />
     </Stack.Navigator>
   );
 }
@@ -103,7 +119,7 @@ function RootNavigator() {
   return (
     <NavigationContainer>
       {isLoggedIn ? (
-        <TabLayout />
+        <AppStack />
       ) : (
         <AuthStack />
       )}

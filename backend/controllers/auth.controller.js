@@ -4,30 +4,78 @@ import User from '../models/user.model.js';
 import jwt from 'jsonwebtoken';
 import { customAlphabet } from 'nanoid';
 import sendMail from '../utils/emailOtp.js';
+import OTP from '../models/otp.model.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/token.js';
 // import {sendPhoneOTP, verifyPhoneOTP } from '../utils/phoneOtp.js';
 
-const otpStore = {};
 export const sendOTP = async (req, res) => {
   try {
-    const { email, username } = req.body;
-    if (!email || !username) {
-      return res.status(400).json({ success: false, message: "Email & username are required" });
+    console.log(req.body);
+    const { email, username, mobileNumber } = req.body;
+    if (!email || !username|| !mobileNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Email & username or mobile number are required"
+      });
     }
-    const exists = await User.findOne({ email });
-    if (exists) {
-      return res.status(400).json({ success: false, message: "User already exists" });
+    const existingUser = await User.findOne({ $or: [{ email }, { username }, { mobileNumber }]});
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User already exists"
+      });
     }
-    const otp = customAlphabet('1234567890', 6)();
-    otpStore[email] = otp;
-    setTimeout(() => delete otpStore[email], 1000000);
+    await OTP.deleteMany({ email });
+    const otp = customAlphabet("1234567890", 6)();
+    await OTP.create({
+      email,
+      otp,
+      purpose: "register"
+    });
     await sendMail(email, otp, username);
-    return res.status(200).json({ success: true, message: "OTP sent successfully" });
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent successfully"
+    });
   } catch (error) {
     console.error("OTP Error:", error);
-    return res.status(500).json({ success: false, message: "Unable to send OTP" });
+    return res.status(500).json({
+      success: false,
+      message: "Unable to send OTP"
+    });
   }
 };
+
+export const verifyEmailOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required"
+      });
+    }
+    const otpDoc = await OTP.findOne({ email, otp });
+    if (!otpDoc) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP"
+      });
+    }
+    await OTP.deleteMany({ email });
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully"
+    });
+  } catch (error) {
+    console.error("Verify OTP Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
+
 
 // export const sendnumberOTP = async (req, res) => {
 //   try {
@@ -52,31 +100,25 @@ export const sendOTP = async (req, res) => {
 
 export const register = async (req, res) => {
   try {
-    const { email, username, mobileNumber, password, name, dob, college, year, gender, major, userOTP } = req.body;
-    if (!email || !username || !mobileNumber || !password || !name || !dob || !college || !year || !gender || !major || !userOTP) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
+    const {
+      email,
+      username,
+      mobileNumber,
+      password,
+      name,
+      dob,
+      college,
+      year,
+      gender,
+      major,
+    } = req.body;
+    if (!email || !username || !mobileNumber || !password || !name || !dob || !college || !year || !gender || !major) {
+      return res.status(400).json({ success: false,message: "Missing required fields"});
     }
-    let formattedDob = dob;
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dob)) {
-      const [day, month, year] = dob.split("/");
-      formattedDob = new Date(`${year}-${month}-${day}`);
-    }
-    const storedOtp = otpStore[email];
-    if (!storedOtp) {
-      return res.status(400).json({ success: false, message: "Email OTP expired or was never requested" });
-    }
-    if (storedOtp !== String(userOTP).trim()) {
-      return res.status(400).json({ success: false, message: "Invalid Email OTP" });
-    }
-    // const twilioCheck = await verifyPhoneOTP(mobileNumber, phoneOtp);
-    // if (twilioCheck.status !== "approved") {
-    //   return res.status(400).json({ success: false, message: "Invalid Mobile OTP" });
-    // }
     const existing = await User.findOne({ $or: [{ email }, { username }, { mobileNumber }]});
     if (existing) {
-      return res.status(400).json({ success: false, message: "User already exists" });
+      return res.status(400).json({success: false,message: "User already exists"});
     }
-    delete otpStore[email];
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
       email,
@@ -84,18 +126,21 @@ export const register = async (req, res) => {
       mobileNumber,
       password: hashedPassword,
       name,
-      dob : formattedDob,
+      dob,
       college,
       year,
       gender,
       major,
       avatar: req.file?.path || ""
     });
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET,{ expiresIn: "7d" });
-    return res.status(200).json({ success: true, message: "User registered successfully", token, user: newUser});
+    const token = jwt.sign({ id: newUser._id },process.env.JWT_SECRET,{ expiresIn: "7d" });
+    return res.status(200).json({ success: true, message: "User registered successfully",token,user: newUser});
   } catch (error) {
     console.error("Register Error:", error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
   }
 };
 
@@ -175,6 +220,23 @@ export const getProfile = async (req, res) => {
   }
 };
 
+export const getUserProfileByName = async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) {
+      return res.status(200).json({ success: true, users: [] });
+    };
+    const searchRegex = new RegExp(name, "i");
+    const users = await User.find({ $or: [{ username: { $regex: searchRegex } },{ name: { $regex: searchRegex } }]})
+    .limit(10);
+    return res.status(200).json({ success: true, users: users});
+  } catch (error) {
+    console.log("Search error:", error);
+    return res.status(500).json({ success: false,  message: "Internal server error" });
+  }
+};
+
+
 export const getUserProfile = async (req,res)=>{
     try {
         const id = req.params.id;
@@ -194,24 +256,31 @@ export const getUserProfile = async (req,res)=>{
 
 export const followUser = async (req, res) => {
   try {
-    const targetUserId = req.params.id;
+    const { id: targetUserId } = req.params;
     const currentUserId = req.user.id;
-    if (targetUserId === currentUserId) {
+    if (!targetUserId || !currentUserId) {
+      return res.status(401).json({ success: false, message: "Please login first" });
+    }
+    if (targetUserId.toString() === currentUserId.toString()) {
       return res.status(400).json({ success: false, message: "You cannot follow yourself" });
     }
-    const targetUser = await User.findById(targetUserId);
-    const currentUser = await User.findById(currentUserId);
-    if (!targetUser || !currentUser) {
+    const targetUser = await User.findByIdAndUpdate(
+      targetUserId,
+      { $addToSet: { followers: currentUserId } },
+      { new: true }
+    );
+    if (!targetUser) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
-    if (targetUser.followers.includes(currentUserId)) {
-      return res.status(400).json({ success: false, message: "You are already following this user" });
-    }
-    targetUser.followers.push(currentUserId);
-    currentUser.following.push(targetUserId);
-    await targetUser.save();
-    await currentUser.save();
-    return res.status(200).json({ success: true, message: `You are now following ${targetUser.username}`, targetUser });
+    await User.findByIdAndUpdate(
+      currentUserId,
+      { $addToSet: { following: targetUserId } }
+    );
+    return res.status(200).json({
+      success: true,
+      message: `You are now following ${targetUser.username}`,
+      targetUser
+    });
   } catch (error) {
     console.error("Follow Error:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
@@ -220,28 +289,31 @@ export const followUser = async (req, res) => {
 
 export const unfollowUser = async (req, res) => {
   try {
-    const targetUserId = req.params.id;
+    const { id: targetUserId } = req.params;
     const currentUserId = req.user.id;
-
-    const targetUser = await User.findById(targetUserId);
-    const currentUser = await User.findById(currentUserId);
-    if (!targetUser || !currentUser) {
+    const targetUser = await User.findByIdAndUpdate(
+      targetUserId,
+      { $pull: { followers: currentUserId } },
+      { new: true }
+    );
+    if (!targetUser) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
-    if (!targetUser.followers.includes(currentUserId)) {
-      return res.status(400).json({ success: false, message: "You are not following this user" });
-    }
-    targetUser.followers = targetUser.followers.filter(id => id.toString() !== currentUserId);
-    currentUser.following = currentUser.following.filter(id => id.toString() !== targetUserId);
-
-    await targetUser.save();
-    await currentUser.save();
-    return res.status(200).json({ success: true, message: `You unfollowed ${targetUser.username}` }, targetUser);
+    await User.findByIdAndUpdate(
+      currentUserId,
+      { $pull: { following: targetUserId } }
+    );
+    return res.status(200).json({
+      success: true,
+      message: `You unfollowed ${targetUser.username}`,
+      targetUser
+    });
   } catch (error) {
     console.error("Unfollow Error:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
 
 export const getFollowers = async (req, res) => {
   try {
@@ -276,6 +348,8 @@ export const logout = async(req,res)=>{
     user.refreshToken = null;
     await user.save();
     return res.status(200).json({ success: true, message: "User logged out successfully" });
+    
+    
   } catch (error) {
     console.log("Internal server error", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
