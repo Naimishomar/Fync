@@ -88,7 +88,7 @@ const ChatList = ({ navigation }) => {
             </Text>
 
             {unread > 0 && (
-              <View className="bg-blue-500 min-w-[22px] px-2 py-0.5 rounded-full">
+              <View className="bg-blue-500 min-w-[22px] min-h-[22px] flex justify-center items-center rounded-full">
                 <Text className="text-white text-xs text-center">
                   {unread}
                 </Text>

@@ -12,6 +12,7 @@ import paymentRoute from './routes/payment.route.js';
 import collaborationRoute from './routes/collaboration.route.js';
 import shortRoute from './routes/short.route.js';
 import fundingRoute from './routes/funding.route.js';
+import quizRoute from './routes/quiz.route.js';
 import { socketController } from './controllers/socket.controller.js';
 import { rateLimit } from 'express-rate-limit';
 import { logout } from './controllers/auth.controller.js';
@@ -52,6 +53,8 @@ app.use('/chat', chatRoute);
 app.use('/payment', paymentRoute);
 app.use('/shorts', shortRoute);
 app.use('/funding', fundingRoute);
+app.use('/quiz', quizRoute);
+
 
 
 socketController(io);

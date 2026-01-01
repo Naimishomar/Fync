@@ -2,11 +2,10 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import HomeScreen from "../components/home-screen";
-import Profile from "../components/profile";
-import RazorpayWebView from "../utils/RazorpayWebView";
 import Shorts from "../components/Shorts";
 import CreateShorts from "../components/CreateShorts";
 import FundingFeed from "../components/FundingFeed";
+import QuizHome from "../components/quiz/QuizHome"; 
 
 const Tab = createBottomTabNavigator();
 
@@ -36,7 +35,7 @@ export default function TabLayout() {
           let iconName: any = "home";
 
           if (route.name === "Home") iconName = "home";
-          if (route.name === "Profile") iconName = "megaphone-outline";
+          if (route.name === "QuizHome") iconName = "podium-outline";
           if (route.name === "Shorts") iconName = "image-outline";
           if (route.name === "CreateShorts") iconName = "add-circle";
           if (route.name === "FundingFeed") iconName = "heart-outline";
@@ -52,7 +51,7 @@ export default function TabLayout() {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Profile" component={Profile} />
+      <Tab.Screen name="QuizHome" component={QuizHome} />
       <Tab.Screen name="Shorts" component={Shorts}/>
       <Tab.Screen name="CreateShorts" component={CreateShorts} />
       <Tab.Screen name="FundingFeed" component={FundingFeed}/>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { useRoute, useNavigation } from "@react-navigation/native";
+import { useRoute, useNavigation, useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
@@ -32,9 +32,16 @@ const FollowersAndFollowing = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchList();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      fetchList();
+
+      return () => {
+        setUsers([]);
+      };
+    }, [userId, type])
+  );
 
   const fetchList = async () => {
     try {
@@ -89,7 +96,7 @@ const FollowersAndFollowing = () => {
     return (
       <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
         <TouchableOpacity
-          onPress={() => navigation.push("PublicProfile", { user: item })}
+          onPress={() => navigation.push("PublicProfile", { userId: item._id })}
           className="flex-row items-center"
         >
           <Image

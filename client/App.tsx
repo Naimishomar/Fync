@@ -1,4 +1,3 @@
-// App.js
 import React from "react";
 import './context/axiosConfig'
 import { NavigationContainer } from "@react-navigation/native";
@@ -9,9 +8,8 @@ import LoginScreen from "./components/login-screen";
 import SignUpScreen from "./components/sign-up-screen";
 import ProfileSetup1 from "./components/profile-setup-1";
 import ProfileSetup2 from "./components/profile-setup-2";
-import HomeScreen from "./components/home-screen";
 import Profile from "./components/profile";
-import BackgroundWrapper from "./components/background-wrapper";
+// import BackgroundWrapper from "./components/background-wrapper";
 import CreatePost from "./components/create-post";
 import RazorpayWebView from "./utils/RazorpayWebView";
 import PaymentVerify from "./utils/PaymentVerify";
@@ -25,8 +23,21 @@ import { View, ActivityIndicator } from "react-native";
 import PublicProfile from "components/PublicProfile";
 import Chat from "components/Chat";
 import FollowersAndFollowing from "components/FollowersAndFollowing";
+import CreateRoom from "components/quiz/CreateRoom";
+import JoinRoomInput from "./components/quiz/JoinRoomInput";
+import WaitingRoom from "./components/quiz/WaitingRoom";
+import OneVsOneSetup from "./components/quiz/OneVsOneSetup";
+import QuizScreen from "./components/quiz/QuizScreen";
+import QuizHome from "components/quiz/QuizHome";
+import LeaderboardScreen from "./components/quiz/LeaderboardScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+export interface Question {
+  question: string;
+  options: string[];
+  correctAnswer: number;
+}
 
 export type RootStackParamList = {
   Tabs: undefined;
@@ -42,15 +53,26 @@ export type RootStackParamList = {
   ReceiptWebview: { url: string };
   Shorts: undefined;
   Home: undefined;
-  PublicProfile: undefined;
-  FollowersAndFollowing: undefined;
-  Chat: { conversationId: string, user: any };
+  PublicProfile: {userId: string};
+  FollowersAndFollowing: { userId: string; type: "followers" | "following" };
+  Chat: { conversationId: string };
   ChatList: undefined;
+  QuizHome: undefined;
+  CreateRoom: undefined;
+  JoinRoomInput: undefined;
+  WaitingRoom: { roomId: string; startTime: string };
+  OneVsOneSetup: undefined;
+  QuizScreen: { 
+    questions: Question[]; 
+    roomId: string; 
+    mode: 'custom' | '1v1' 
+  };
+  LeaderboardScreen: { roomId: string, myScore?: number };
 };
 
 function AuthStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
       <Stack.Screen name="Login">
         {() => (
           <>
@@ -101,6 +123,13 @@ function AppStack() {
       <Stack.Screen name="FollowersAndFollowing" component={FollowersAndFollowing} />
       <Stack.Screen name="Chat" component={Chat} />
       <Stack.Screen name="ChatList" component={ChatList} />
+      <Stack.Screen name="CreateRoom" component={CreateRoom} />
+      <Stack.Screen name="JoinRoomInput" component={JoinRoomInput} />
+      <Stack.Screen name="WaitingRoom" component={WaitingRoom} />
+      <Stack.Screen name="OneVsOneSetup" component={OneVsOneSetup} />
+      <Stack.Screen name="QuizScreen" component={QuizScreen} />
+      <Stack.Screen name="QuizHome" component={QuizHome} />
+      <Stack.Screen name="LeaderboardScreen" component={LeaderboardScreen} />
     </Stack.Navigator>
   );
 }
