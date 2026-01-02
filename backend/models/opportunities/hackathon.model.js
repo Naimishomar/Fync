@@ -9,16 +9,12 @@ const hackathonSchema = new mongoose.Schema({
         type:String,
         required:true
     },
-    skills:{
-        type:[String],
-        required:true
-    },
     start_date:{
         type:Date,
         required:true
     },
-    end_date:{
-        type:Date,
+    time_duration:{
+        type:Number,
         required:true
     },
     location:{
@@ -34,6 +30,10 @@ const hackathonSchema = new mongoose.Schema({
         type:String,
         enum: ['Ongoing', 'Completed', 'Cancelled'],
         default: 'Ongoing',
+    },
+    url:{
+        type:String,
+        required:true
     }
 },{timestamps:true});
 

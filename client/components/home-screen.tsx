@@ -30,7 +30,7 @@ export default function HomeScreen() {
 
   const getFeed = async () => {
     try {
-      const res = await axios.get('http://192.168.28.79:3000/post/feed');
+      const res = await axios.get('http://192.168.28.112:3000/post/feed');
       if (res.data.success) {
         setFeed(res.data.posts);
       }

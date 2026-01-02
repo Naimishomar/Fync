@@ -33,7 +33,7 @@ function Profile() {
   const [refreshing, setRefreshing] = useState(false);
 
   const getPosts = async () => {
-    const res = await axios.get('http://192.168.28.79:3000/post/posts');
+    const res = await axios.get('http://192.168.28.112:3000/post/posts');
     if (res.data.success) {
       setPosts(res.data.posts);
     }

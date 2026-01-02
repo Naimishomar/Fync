@@ -36,7 +36,7 @@ const SearchScreen = () => {
     try {
       setLoading(true);
       const normalized = searchText.replace(/\s+/g, "").trim();
-      const res = await axios.post("http://192.168.28.79:3000/user/search", {
+      const res = await axios.post("http://192.168.28.112:3000/user/search", {
         name: normalized,
       });
 

@@ -40,7 +40,7 @@ const sendOtpToEmail = async () => {
   }
 
   const res = await fetch(
-    'http://192.168.28.79:3000/user/send-email-otp',
+    'http://192.168.28.112:3000/user/send-email-otp',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -67,7 +67,7 @@ const sendOtpToEmail = async () => {
 
 const verifyOtpAndProceed = async () => {
   const res = await fetch(
-    'http://192.168.28.79:3000/user/verify-email-otp',
+    'http://192.168.28.112:3000/user/verify-email-otp',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -62,7 +62,7 @@ function CreatePost() {
         } as any);
       });
 
-      const res = await axios.post('http://192.168.28.79:3000/post/create', formData);
+      const res = await axios.post('http://192.168.28.112:3000/post/create', formData);
 
       if (res.data.success) {
         Toast.show({ type: 'success', text1: 'Posted successfully!' });

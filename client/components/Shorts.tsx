@@ -79,7 +79,7 @@ export default function Shorts() {
   const fetchShorts = async () => {
     try {
       const res = await axios.get(
-        "http://192.168.28.79:3000/shorts/get/shorts"
+        "http://192.168.28.112:3000/shorts/get/shorts"
       );
       if (res.data.success) setShorts(res.data.shorts);
     } catch (err) {
@@ -119,7 +119,7 @@ export default function Shorts() {
       }
 
       // register view
-      axios.get(`http://192.168.28.79:3000/shorts/view/${item._id}`);
+      axios.get(`http://192.168.28.112:3000/shorts/view/${item._id}`);
     }
   ).current;
 
@@ -176,14 +176,14 @@ export default function Shorts() {
       )
     );
 
-    axios.post(`http://192.168.28.79:3000/shorts/like/${short._id}`);
+    axios.post(`http://192.168.28.112:3000/shorts/like/${short._id}`);
   };
 
   const openComments = async (shortId: string) => {
     setActiveShortId(shortId);
     setCommentModalVisible(true);
 
-    const res = await axios.get(`http://192.168.28.79:3000/shorts/comment/all/${shortId}`);
+    const res = await axios.get(`http://192.168.28.112:3000/shorts/comment/all/${shortId}`);
     if (res.data.success) setComments(res.data.comments);
   };
 
@@ -191,7 +191,7 @@ export default function Shorts() {
 const addComment = async () => {
   if (!commentText.trim() || !activeShortId) return;
   await axios.post(
-    `http://192.168.28.79:3000/shorts/comment/add/${activeShortId}`,
+    `http://192.168.28.112:3000/shorts/comment/add/${activeShortId}`,
     { text: commentText }
   );
   setCommentText("");
@@ -202,7 +202,7 @@ const updateComment = async (id: string) => {
   if (!editingText.trim()) return;
   setCommentLoading(id);
 
-  await axios.post(`http://192.168.28.79:3000/shorts/comment/update/${id}`,{ text: editingText });
+  await axios.post(`http://192.168.28.112:3000/shorts/comment/update/${id}`,{ text: editingText });
 
   setEditingId(null);
   setEditingText("");
@@ -213,7 +213,7 @@ const updateComment = async (id: string) => {
 const deleteComment = async (id: string) => {
   setCommentLoading(id);
 
-  await axios.post(`http://192.168.28.79:3000/shorts/comment/delete/${id}`);
+  await axios.post(`http://192.168.28.112:3000/shorts/comment/delete/${id}`);
 
   openComments(activeShortId!);
   setCommentLoading(null);

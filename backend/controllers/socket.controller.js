@@ -70,10 +70,6 @@ export const socketController = (io) => {
       }
     });
 
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected:", socket.id);
-    });
-
     socket.on("watch_leaderboard", ({ roomId }) => {
         socket.join(roomId);
     });
@@ -316,6 +312,10 @@ export const socketController = (io) => {
         } catch (err) {
             console.error("Redis Error in Submit:", err);
         }
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected:", socket.id);
     });
   });
 };
