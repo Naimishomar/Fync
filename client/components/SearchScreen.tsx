@@ -1,4 +1,4 @@
-import { View, Text, TextInput, FlatList, TouchableOpacity, Image, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, FlatList, Pressable, Image, ActivityIndicator } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
@@ -36,7 +36,7 @@ const SearchScreen = () => {
     try {
       setLoading(true);
       const normalized = searchText.replace(/\s+/g, "").trim();
-      const res = await axios.post("http://192.168.28.112:3000/user/search", {
+      const res = await axios.post("/user/search", {
         name: normalized,
       });
 
@@ -86,7 +86,7 @@ const SearchScreen = () => {
   };
 
   const renderUserItem = ({ item, isRecent }: { item: User; isRecent: boolean }) => (
-    <TouchableOpacity 
+    <Pressable 
       onPress={() => handleUserPress(item)}
       className="flex-row items-center justify-between py-3 border-b border-gray-100"
     >
@@ -107,11 +107,11 @@ const SearchScreen = () => {
       </View>
 
       {isRecent && (
-        <TouchableOpacity onPress={() => removeItem(item._id)}>
+        <Pressable onPress={() => removeItem(item._id)}>
           <Ionicons name="close" size={18} color="#555" />
-        </TouchableOpacity>
+        </Pressable>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 
   return (
@@ -150,9 +150,9 @@ const SearchScreen = () => {
           <View className="flex-row justify-between items-center mt-6 mb-3">
             <Text className="text-base font-semibold text-black">Recent</Text>
             {recentSearches.length > 0 && (
-              <TouchableOpacity onPress={clearAll}>
+              <Pressable onPress={clearAll}>
                 <Text className="text-sm text-blue-500">Clear all</Text>
-              </TouchableOpacity>
+              </Pressable>
             )}
           </View>
 

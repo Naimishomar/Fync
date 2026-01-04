@@ -3,7 +3,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   Image,
   ScrollView,
   ActivityIndicator,
@@ -62,7 +62,12 @@ function CreatePost() {
         } as any);
       });
 
-      const res = await axios.post('http://192.168.28.112:3000/post/create', formData);
+      const res = await axios.post('/post/create', 
+        formData,{
+          headers:{
+            'Content-Type': 'multipart/form-data'
+          }
+        });
 
       if (res.data.success) {
         Toast.show({ type: 'success', text1: 'Posted successfully!' });
@@ -74,7 +79,6 @@ function CreatePost() {
     } catch (error) {
       console.log('Upload failed', error);
       console.log(error?.response?.data?.message);
-
       Toast.show({ type: 'error', text1: 'Failed to upload' });
     } finally {
       setIsLoading(false);
@@ -95,13 +99,13 @@ function CreatePost() {
 
       <View className="mt-3 flex-row items-center justify-between">
         <View className="flex-row gap-5">
-          <TouchableOpacity onPress={openGallery}>
+          <Pressable onPress={openGallery}>
             <FontAwesome6 name="image" size={20} color="white" />
-          </TouchableOpacity>
+          </Pressable>
           {/* <FontAwesome6 name="globe" size={18} color="white" /> */}
         </View>
 
-        <TouchableOpacity
+        <Pressable
           onPress={handleSubmit}
           disabled={isLoading}
           className="rounded-full bg-pink-400 px-4 py-1"
@@ -111,7 +115,7 @@ function CreatePost() {
           ) : (
             <Text className="font-semibold text-black">Post</Text>
           )}
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {images.length > 0 && (
@@ -119,12 +123,12 @@ function CreatePost() {
           {images.map((uri, index) => (
             <View key={index} className="mr-2 relative">
               <Image source={{ uri }} className="h-20 w-20 rounded-lg" />
-              <TouchableOpacity
+              <Pressable
                 onPress={() => removeImage(index)}
                 className="absolute top-1 right-1 bg-black/70 h-5 w-5 rounded-full items-center justify-center"
               >
                 <Text className="text-white text-xs">✕</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           ))}
         </ScrollView>

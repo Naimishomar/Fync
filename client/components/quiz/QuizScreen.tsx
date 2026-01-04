@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert, BackHandler, ActivityIndicator, Image } from 'react-native';
+import { View, Text, Pressable, ScrollView, Alert, BackHandler, ActivityIndicator, Image } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import socket from '../../utils/socket';
@@ -155,7 +155,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
           <View key={index} className="mb-6 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
             <Text className="text-lg font-semibold mb-4">{index + 1}. {q.question}</Text>
             {q.options.map((opt: string, optIndex: number) => (
-              <TouchableOpacity
+              <Pressable
                 key={optIndex}
                 disabled={submitted}
                 onPress={() => {
@@ -171,14 +171,14 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
                     answers[index] === optIndex ? 'border-4 border-blue-500' : 'border-gray-400'
                  }`} />
                 <Text className="text-gray-800 flex-1">{opt}</Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
           </View>
         ))}
       </ScrollView>
 
       <View className="p-4 border-t border-gray-100">
-        <TouchableOpacity 
+        <Pressable 
           onPress={submitQuiz}
           disabled={submitted}
           className={`p-4 rounded-xl shadow-md ${submitted ? 'bg-gray-400' : 'bg-green-600'}`}
@@ -186,7 +186,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
           <Text className="text-white text-center font-bold text-lg">
             {submitted ? "Submitting..." : "Submit Answers"}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );

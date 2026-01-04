@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import axios from '../context/axiosConfig';
 
 interface PaymentVerifyProps {
   route: {
@@ -22,32 +23,31 @@ export default function PaymentVerify({ route }: PaymentVerifyProps) {
   const [success, setSuccess] = useState<boolean | null>(null);
   const [receiptUrl, setReceiptUrl] = useState('');
 
-  // ⬇ VERIFY PAYMENT FROM BACKEND
-  const verifyPayment = async () => {
+const verifyPayment = async () => {
     try {
-      const res = await fetch('http://192.168.28.112:3000/payment/api/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          razorpay_order_id,
-          razorpay_payment_id,
-          razorpay_signature,
-          customerName: user.name,
-          customerEmail: user.email,
-          amount: order.amount / 100,
-        }),
-      });
+      const res = await axios.post('/payment/api/verify', {
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        customerName: user.name,
+        customerEmail: user.email,
+        amount: order.amount / 100,
+      },
+      {
+          headers: { 
+            'Content-Type': 'application/json' 
+          }
+        });
 
-      const json = await res.json();
-
-      if (json.success) {
+      if (res.data.success) {
         setSuccess(true);
-        setReceiptUrl(json.receipt_url || ''); // backend should return this
-        console.log(json.receipt_url || '');
+        setReceiptUrl(res.data.receipt_url || '');
+        console.log(res.data.receipt_url || '');
       } else {
         setSuccess(false);
       }
     } catch (err) {
+      console.log("Failed to verify", err);
       setSuccess(false);
     } finally {
       setLoading(false);
@@ -58,7 +58,6 @@ export default function PaymentVerify({ route }: PaymentVerifyProps) {
     verifyPayment();
   }, []);
 
-  // ⬇ LOADING UI
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-black">
@@ -78,15 +77,15 @@ export default function PaymentVerify({ route }: PaymentVerifyProps) {
 
         {/* DOWNLOAD RECEIPT */}
         {receiptUrl ? (
-          <TouchableOpacity
+          <Pressable
             className="mb-5 rounded-xl bg-pink-400 px-6 py-3"
             onPress={() => navigation.navigate('ReceiptWebview', { url: receiptUrl })}>
             <Text className="text-lg font-semibold text-white">Download Receipt</Text>
-          </TouchableOpacity>
+          </Pressable>
         ) : null}
 
         {/* GO HOME */}
-        <TouchableOpacity
+        <Pressable
           className="rounded-xl border border-gray-400 px-6 py-3"
           onPress={() =>
             navigation.reset({
@@ -95,7 +94,7 @@ export default function PaymentVerify({ route }: PaymentVerifyProps) {
             })
           }>
           <Text className="text-lg font-semibold text-white">Go Back to Home</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     );
   }
@@ -109,7 +108,7 @@ export default function PaymentVerify({ route }: PaymentVerifyProps) {
         Something went wrong. Your payment was not completed.
       </Text>
 
-      <TouchableOpacity
+      <Pressable
         className="mb-5 rounded-xl bg-red-500 px-6 py-3"
         onPress={() =>
           navigation.reset({
@@ -118,7 +117,7 @@ export default function PaymentVerify({ route }: PaymentVerifyProps) {
           })
         }>
         <Text className="text-lg font-semibold text-white">Go Back to Home</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 }

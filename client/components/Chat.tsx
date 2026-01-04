@@ -4,7 +4,7 @@ import {
   Text,
   TextInput,
   FlatList,
-  TouchableOpacity,
+  Pressable,
   KeyboardAvoidingView,
   Platform,
   Image,
@@ -163,12 +163,12 @@ const Chat = ({ route, navigation }) => {
       >
         {/* ---------- HEADER ---------- */}
         <View className="flex-row items-center px-4 py-3 border-b border-gray-200 bg-white">
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Pressable onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={22} />
-          </TouchableOpacity>
+          </Pressable>
 
           {otherUser && (
-            <TouchableOpacity
+            <Pressable
               className="flex-row items-center ml-4"
               onPress={() =>
                 navigation.navigate("PublicProfile", {
@@ -189,7 +189,7 @@ const Chat = ({ route, navigation }) => {
                   @{otherUser.username}
                 </Text>
               </View>
-            </TouchableOpacity>
+            </Pressable>
           )}
         </View>
 
@@ -213,12 +213,12 @@ const Chat = ({ route, navigation }) => {
             placeholder="Message..."
             className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-base"
           />
-          <TouchableOpacity
+          <Pressable
             onPress={sendMessage}
             className="ml-3 bg-blue-500 p-2 rounded-full"
           >
             <Ionicons name="send" size={18} color="white" />
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

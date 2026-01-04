@@ -1,9 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   Image,
   ScrollView,
   KeyboardAvoidingView,
@@ -15,7 +15,9 @@ import Checkbox from 'expo-checkbox';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
+// @ts-ignore
 import loginImage from '../assets/loginImage.png';
+import axios from '../context/axiosConfig';
 
 export default function SignUpScreen() {
   const navigation = useNavigation<any>();
@@ -39,61 +41,69 @@ const sendOtpToEmail = async () => {
     return;
   }
 
-  const res = await fetch(
-    'http://192.168.28.112:3000/user/send-email-otp',
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, username, mobileNumber: phoneNumber }),
-    }
-  );
-
-  const data = await res.json();
-  if (data.success) {
-    setOtpSent(true);
-    Toast.show({
-      type: 'success',
-      text1: 'OTP Sent',
-      text2: 'Check your email',
+  try {
+    const res = await axios.post('/user/send-email-otp', {
+      email,
+      username,
+      mobileNumber: phoneNumber,
     });
-  } else {
+
+    if (res.data.success) {
+      setOtpSent(true);
+      Toast.show({
+        type: 'success',
+        text1: 'OTP Sent',
+        text2: 'Check your email',
+      });
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed',
+        text2: res.data.message,
+      });
+    }
+  } catch (error : any) {
+    console.error("Send OTP Error", error);
     Toast.show({
       type: 'error',
-      text1: 'Failed',
-      text2: data.message,
+      text1: 'Error',
+      text2: error.response?.data?.message || 'Failed to send OTP',
     });
   }
 };
 
 const verifyOtpAndProceed = async () => {
-  const res = await fetch(
-    'http://192.168.28.112:3000/user/verify-email-otp',
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, otp }),
-    }
-  );
-
-  const data = await res.json();
-
-  if (data.success) {
-    Toast.show({
-      type: 'success',
-      text1: 'OTP Verified',
-    });
-
-    navigation.navigate('ProfileSetup1', {
+  try {
+    const res = await axios.post('/user/verify-email-otp', {
       email,
-      username,
-      phoneNumber,
-      password,
+      otp,
     });
-  } else {
+
+    if (res.data.success) {
+      Toast.show({
+        type: 'success',
+        text1: 'OTP Verified',
+      });
+
+      navigation.navigate('ProfileSetup1', {
+        email,
+        username,
+        phoneNumber,
+        password,
+      });
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid OTP',
+        text2: res.data.message,
+      });
+    }
+  } catch (error : any) {
+    console.error("Verify OTP Error", error);
     Toast.show({
       type: 'error',
-      text1: 'Invalid OTP',
-      text2: data.message,
+      text1: 'Verification Failed',
+      text2: error.response?.data?.message || 'Invalid OTP or Server Error',
     });
   }
 };
@@ -158,13 +168,13 @@ const verifyOtpAndProceed = async () => {
                   value={password}
                   onChangeText={setPassword}
                 />
-                <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
+                <Pressable onPress={() => setPasswordVisible(!passwordVisible)}>
                   <Ionicons
                     name={passwordVisible ? 'eye-off' : 'eye'}
                     size={22}
                     color="#9CA3AF"
                   />
-                </TouchableOpacity>
+                </Pressable>
               </View>
 
               {otpSent && (
@@ -184,30 +194,30 @@ const verifyOtpAndProceed = async () => {
               </View>
 
               {!otpSent ? (
-                <TouchableOpacity
+                <Pressable
                   className="rounded-full bg-black py-4 items-center"
                   onPress={sendOtpToEmail}
                 >
                   <Text className="text-white text-lg font-semibold">
                     Send OTP
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               ) : (
-                <TouchableOpacity
+                <Pressable
                   className="rounded-full bg-black py-4 items-center"
                   onPress={verifyOtpAndProceed}
                 >
                   <Text className="text-white text-lg font-semibold">
                     Verify & Continue
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               )}
 
               <View className="mt-6 flex-row justify-center">
                 <Text className="text-gray-600">Already have an account? </Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <Pressable onPress={() => navigation.navigate('Login')}>
                   <Text className="font-semibold text-black">Login</Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
             </View>
           </ScrollView>

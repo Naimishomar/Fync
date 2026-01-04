@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   TextInput,
   ActivityIndicator,
   // useWindowDimensions,
@@ -64,8 +64,7 @@ const uploadShort = async () => {
       type: "video/mp4",
     } as any);
 
-    const res = await axios.post(
-      "http://192.168.28.112:3000/shorts/create",
+    const res = await axios.post("/shorts/create",
       formData,
       {
         headers: {
@@ -95,9 +94,9 @@ return (
   <SafeAreaView className="flex-1 bg-white">
     {/* HEADER */}
     <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
-      <TouchableOpacity onPress={() => navigation.goBack()}>
+      <Pressable onPress={() => navigation.goBack()}>
         <Ionicons name="close" size={26} color="#111827" />
-      </TouchableOpacity>
+      </Pressable>
 
       <Text className="text-gray-900 text-lg font-semibold">
         Create Short
@@ -113,13 +112,13 @@ return (
         {!videoUri ? (
           <View className="flex-1 items-center justify-center">
             {/* ONLY ICON IS TOUCHABLE */}
-            <TouchableOpacity
+            <Pressable
               onPress={pickVideo}
               activeOpacity={0.7}
               className="bg-gray-200 w-40 h-40 rounded-full items-center justify-center"
             >
               <Ionicons name="videocam-outline" size={44} color="#374151" />
-            </TouchableOpacity>
+            </Pressable>
 
             <Text className="text-gray-500 mt-4 text-md">
               Select a video
@@ -136,12 +135,12 @@ return (
             />
 
             {/* REMOVE VIDEO BUTTON */}
-            <TouchableOpacity
+            <Pressable
               onPress={() => setVideoUri(null)}
               className="absolute top-3 right-3 bg-white/90 h-8 w-8 rounded-full items-center justify-center shadow"
             >
               <Ionicons name="close" size={16} color="#111827" />
-            </TouchableOpacity>
+            </Pressable>
           </View>
         )}
       </View>
@@ -169,7 +168,7 @@ return (
 
     {/* FOOTER */}
     <View className="px-4 py-4 border-t border-gray-200 mb-14">
-      <TouchableOpacity
+      <Pressable
         onPress={uploadShort}
         disabled={loading}
         className={`h-12 rounded-full items-center justify-center ${
@@ -185,7 +184,7 @@ return (
             Upload Short
           </Text>
         )}
-      </TouchableOpacity>
+      </Pressable>
     </View>
   </SafeAreaView>
 );

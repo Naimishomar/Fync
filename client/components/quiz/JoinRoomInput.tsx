@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, Alert } from 'react-native';
+import { View, TextInput, Pressable, Text, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App'; 
@@ -44,7 +44,7 @@ const JoinRoomInput = () => {
         maxLength={6} // Set to 6 to match backend ID length
       />
       
-      <TouchableOpacity 
+      <Pressable 
         onPress={handleJoin} 
         disabled={loading}
         className={`w-full p-4 rounded-xl shadow-sm ${loading ? 'bg-green-400' : 'bg-green-600'}`}
@@ -52,7 +52,7 @@ const JoinRoomInput = () => {
         <Text className="text-center text-white font-bold text-lg">
           {loading ? "Joining..." : "Enter Room"}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

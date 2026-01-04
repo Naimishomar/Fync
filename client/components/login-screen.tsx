@@ -3,13 +3,14 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   Image,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
@@ -25,6 +26,8 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const togglePassword = useCallback(
     () => setPasswordVisible((prev) => !prev),
     []
@@ -32,6 +35,7 @@ export default function LoginScreen() {
 
   const handleSubmit = async () => {
     try {
+      setIsLoading(true);
       await login(email, password);
       Toast.show({
         type: 'success',
@@ -43,6 +47,8 @@ export default function LoginScreen() {
         text1: 'Login failed',
         text2: error?.response?.data?.message || 'Something went wrong',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -99,27 +105,33 @@ export default function LoginScreen() {
                   value={password}
                   onChangeText={setPassword}
                 />
-                <TouchableOpacity onPress={togglePassword}>
+                <Pressable onPress={togglePassword}>
                   <Ionicons
                     name={passwordVisible ? 'eye-off' : 'eye'}
                     size={22}
                     color="#9CA3AF"
                   />
-                </TouchableOpacity>
+                </Pressable>
               </View>
 
-              <TouchableOpacity
-                className="rounded-full bg-black py-4 items-center"
-                onPress={handleSubmit}
-              >
-                <Text className="text-white text-lg font-semibold">Login</Text>
-              </TouchableOpacity>
+              {isLoading ? 
+                <Pressable className="rounded-full bg-black py-4 items-center">
+                  <ActivityIndicator size="small" color="#9CA3AF" /> 
+                </Pressable>
+                : 
+                <Pressable
+                  className="rounded-full bg-black py-4 items-center"
+                  onPress={handleSubmit}
+                >
+                  <Text className="text-white text-lg font-semibold">Login</Text>
+                </Pressable>
+              }
 
               <View className="mt-5 flex-row justify-center">
                 <Text className="text-gray-600">Don’t have an account? </Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+                <Pressable onPress={() => navigation.navigate('Signup')}>
                   <Text className="font-semibold text-black">Signup</Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
             </View>
           </ScrollView>

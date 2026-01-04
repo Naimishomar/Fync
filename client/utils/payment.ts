@@ -1,16 +1,13 @@
 import { RAZORPAY_KEY_ID } from 'constants/keys';
+import axios from '../context/axiosConfig';
 
 export const handlePayment = async (amount: number, user: any, navigation: any) => {
   try {
-    const orderRes = await fetch('http://192.168.28.112:3000/payment/api/order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount }),
+    const orderRes = await axios.post('/payment/api/order', {
+      amount,
     });
-
-    const order = await orderRes.json();
+    const order = orderRes.data;
     console.log('Order RAW:', order);
-
     navigation.navigate('RazorpayWebView', {
       order,
       user,

@@ -3,7 +3,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   ScrollView,
   Platform,
   Modal,
@@ -87,7 +87,7 @@ export default function ProfileSetup1() {
                 autoCapitalize="words"
               />
 
-              <TouchableOpacity
+              <Pressable
                 className="mb-4 flex-row items-center justify-between rounded-xl border border-gray-300 px-4 py-4"
                 onPress={() => setShowDatePicker(true)}
               >
@@ -95,7 +95,7 @@ export default function ProfileSetup1() {
                   {birthday || 'Birthday'}
                 </Text>
                 <Ionicons name="calendar-outline" size={20} color="#9CA3AF" />
-              </TouchableOpacity>
+              </Pressable>
 
               {[
                 ['Gender', gender],
@@ -103,7 +103,7 @@ export default function ProfileSetup1() {
                 ['Your Major', major],
                 ['Passout Year', year],
               ].map(([label, value]) => (
-                <TouchableOpacity
+                <Pressable
                   key={label}
                   className="mb-4 flex-row items-center justify-between rounded-xl border border-gray-300 px-4 py-4"
                   onPress={() => setDropdownType(label.toLowerCase())}
@@ -112,10 +112,10 @@ export default function ProfileSetup1() {
                     {value || label}
                   </Text>
                   <Ionicons name="chevron-down" size={20} color="#9CA3AF" />
-                </TouchableOpacity>
+                </Pressable>
               ))}
 
-              <TouchableOpacity
+              <Pressable
                 className="mt-4 rounded-full bg-black py-4 items-center"
                 onPress={() =>
                   navigation.navigate('ProfileSetup2', {
@@ -133,7 +133,7 @@ export default function ProfileSetup1() {
                 }
               >
                 <Text className="text-white text-lg font-semibold">Continue</Text>
-              </TouchableOpacity>
+              </Pressable>
 
               <Text className="mt-4 text-center text-gray-500">
                 Step 1 of 2
@@ -178,7 +178,7 @@ export default function ProfileSetup1() {
                   ? filteredColleges
                   : majorOptions
                 ).map((item) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={item}
                     className="border-b border-gray-200 p-3"
                     onPress={() => {
@@ -191,11 +191,11 @@ export default function ProfileSetup1() {
                     }}
                   >
                     <Text className="text-center">{item}</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
               </ScrollView>
 
-              <TouchableOpacity
+              <Pressable
                 className="mt-3 rounded bg-gray-200 p-3"
                 onPress={() => {
                   setSearch('');
@@ -203,7 +203,7 @@ export default function ProfileSetup1() {
                 }}
               >
                 <Text className="text-center font-semibold">Cancel</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </Modal>

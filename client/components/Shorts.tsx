@@ -4,10 +4,9 @@ import {
   Text,
   FlatList,
   Dimensions,
-  TouchableOpacity,
+  Pressable,
   Image,
   ViewToken,
-  Pressable,
   Modal,
   TextInput,
   KeyboardAvoidingView,
@@ -79,7 +78,7 @@ export default function Shorts() {
   const fetchShorts = async () => {
     try {
       const res = await axios.get(
-        "http://192.168.28.112:3000/shorts/get/shorts"
+        "/shorts/get/shorts"
       );
       if (res.data.success) setShorts(res.data.shorts);
     } catch (err) {
@@ -119,7 +118,7 @@ export default function Shorts() {
       }
 
       // register view
-      axios.get(`http://192.168.28.112:3000/shorts/view/${item._id}`);
+      axios.get(`/shorts/view/${item._id}`);
     }
   ).current;
 
@@ -176,14 +175,14 @@ export default function Shorts() {
       )
     );
 
-    axios.post(`http://192.168.28.112:3000/shorts/like/${short._id}`);
+    axios.post(`/shorts/like/${short._id}`);
   };
 
   const openComments = async (shortId: string) => {
     setActiveShortId(shortId);
     setCommentModalVisible(true);
 
-    const res = await axios.get(`http://192.168.28.112:3000/shorts/comment/all/${shortId}`);
+    const res = await axios.get(`/shorts/comment/all/${shortId}`);
     if (res.data.success) setComments(res.data.comments);
   };
 
@@ -191,7 +190,7 @@ export default function Shorts() {
 const addComment = async () => {
   if (!commentText.trim() || !activeShortId) return;
   await axios.post(
-    `http://192.168.28.112:3000/shorts/comment/add/${activeShortId}`,
+    `/shorts/comment/add/${activeShortId}`,
     { text: commentText }
   );
   setCommentText("");
@@ -202,7 +201,7 @@ const updateComment = async (id: string) => {
   if (!editingText.trim()) return;
   setCommentLoading(id);
 
-  await axios.post(`http://192.168.28.112:3000/shorts/comment/update/${id}`,{ text: editingText });
+  await axios.post(`/shorts/comment/update/${id}`,{ text: editingText });
 
   setEditingId(null);
   setEditingText("");
@@ -213,7 +212,7 @@ const updateComment = async (id: string) => {
 const deleteComment = async (id: string) => {
   setCommentLoading(id);
 
-  await axios.post(`http://192.168.28.112:3000/shorts/comment/delete/${id}`);
+  await axios.post(`/shorts/comment/delete/${id}`);
 
   openComments(activeShortId!);
   setCommentLoading(null);
@@ -316,18 +315,18 @@ const onRefresh = async () => {
 
           {/* RIGHT */}
           <View className="items-center">
-            <TouchableOpacity onPress={() => toggleLike(item)}>
+            <Pressable onPress={() => toggleLike(item)}>
               <Ionicons
                 name={isLiked ? "heart" : "heart-outline"}
                 size={34}
                 color={isLiked ? "red" : "white"}
               />
-            </TouchableOpacity>
+            </Pressable>
             <Text className="text-white text-xs mb-4">{item.likes || 0}</Text>
 
-            <TouchableOpacity onPress={() => openComments(item._id)} className="mb-4">
+            <Pressable onPress={() => openComments(item._id)} className="mb-4">
               <Ionicons name="chatbubble-outline" size={28} color="white" />
-            </TouchableOpacity>
+            </Pressable>
 
             <Ionicons name="eye-outline" size={28} color="white" />
             <Text className="text-white text-xs">{item.views || 0}</Text>
@@ -472,9 +471,9 @@ const onRefresh = async () => {
               placeholderTextColor="#888"
               className="flex-1 text-white bg-neutral-800 rounded-full px-4 py-3 mr-2"
             />
-            <TouchableOpacity onPress={addComment}>
+            <Pressable onPress={addComment}>
               <Text className="text-pink-300 font-semibold">Post</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </KeyboardAvoidingView>

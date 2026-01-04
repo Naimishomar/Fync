@@ -4,7 +4,7 @@ import {
   Text,
   FlatList,
   Image,
-  TouchableOpacity,
+  Pressable,
   TextInput,
   Modal,
   Dimensions,
@@ -268,11 +268,11 @@ export default function FundingFeed() {
           renderItem={({ item, index }) => (
             <View className="mr-3 relative">
               <Image source={{ uri: item.uri }} className="h-28 w-28 rounded-lg" />
-              <TouchableOpacity
+              <Pressable
                 onPress={() => removeImage(index)}
                 className="absolute top-1 right-1 bg-black/60 rounded-full p-1">
                 <Ionicons name="close" size={14} color="white" />
-              </TouchableOpacity>
+              </Pressable>
             </View>
           )}
         />
@@ -286,30 +286,30 @@ export default function FundingFeed() {
             style={{ height: 180, borderRadius: 10 }}
             useNativeControls
           />
-          <TouchableOpacity
+          <Pressable
             onPress={removeVideo}
             className="absolute top-2 right-2 bg-black/60 rounded-full p-2">
             <Ionicons name="close" size={16} color="white" />
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
 
       <View className="flex-row justify-between items-center mt-3">
         <View className="flex-row gap-4">
-          <TouchableOpacity onPress={pickImages} className="flex-row items-center">
+          <Pressable onPress={pickImages} className="flex-row items-center">
             <Ionicons name="images-outline" size={22} color="black" />
             <Text className="ml-1 text-black">Photos</Text>
-          </TouchableOpacity>
+          </Pressable>
 
-          <TouchableOpacity onPress={pickVideo} className="flex-row items-center">
+          <Pressable onPress={pickVideo} className="flex-row items-center">
             <Ionicons name="videocam-outline" size={22} color="black" />
             <Text className="ml-1 text-black">Video</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
-        <TouchableOpacity onPress={createProject}>
+        <Pressable onPress={createProject}>
           <Text className="text-pink-500 font-semibold">Post</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );
@@ -338,17 +338,17 @@ export default function FundingFeed() {
         </View>
 
         <View className="flex-row items-center px-4 pb-3">
-          <TouchableOpacity onPress={() => toggleLike(item)}>
+          <Pressable onPress={() => toggleLike(item)}>
             <Ionicons
               name={isLiked ? "heart" : "heart-outline"}
               size={22}
               color={isLiked ? "#ec4899" : "black"}
             />
-          </TouchableOpacity>
+          </Pressable>
 
-          <TouchableOpacity onPress={() => openComments(item._id)} className="ml-4">
+          <Pressable onPress={() => openComments(item._id)} className="ml-4">
             <Ionicons name="chatbubble-outline" size={22} color="black" />
-          </TouchableOpacity>
+          </Pressable>
 
           <Text className="ml-4 text-gray-500">{item.likes} upvotes</Text>
         </View>
@@ -398,14 +398,14 @@ export default function FundingFeed() {
               placeholder="Add a comment..."
               className="flex-1 text-black"
             />
-            <TouchableOpacity onPress={postComment}>
+            <Pressable onPress={postComment}>
               <Text className="text-pink-500 ml-3">Post</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
-          <TouchableOpacity onPress={() => setCommentModal(false)} className="p-4">
+          <Pressable onPress={() => setCommentModal(false)} className="p-4">
             <Text className="text-center text-black">Close</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </Modal>
     </View>

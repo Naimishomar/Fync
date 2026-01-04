@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   Image,
   ScrollView,
   Platform,
@@ -18,6 +18,7 @@ import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
 import { useAuth } from 'context/auth.context';
 import loginImage from '../assets/loginImage.png';
+import axios from '../context/axiosConfig';
 
 type ProfileSetup2NavigationProp =
   NativeStackNavigationProp<RootStackParamList, 'ProfileSetup2'>;
@@ -50,50 +51,56 @@ export default function ProfileSetup2() {
     }
   };
 
-  const submitRegistration = async () => {
-    const formData = new FormData();
+const submitRegistration = async () => {
+    try {
+      const formData = new FormData();
 
-    formData.append('email', route.params.email);
-    formData.append('username', route.params.username);
-    formData.append('mobileNumber', route.params.phoneNumber);
-    formData.append('password', route.params.password);
-    formData.append('name', route.params.fullName);
-    formData.append('dob', route.params.birthday);
-    formData.append('college', route.params.college);
-    formData.append('year', route.params.year);
-    formData.append('gender', route.params.gender);
-    formData.append('major', route.params.major);
+      formData.append('email', route.params.email);
+      formData.append('username', route.params.username);
+      formData.append('mobileNumber', route.params.phoneNumber);
+      formData.append('password', route.params.password);
+      formData.append('name', route.params.fullName);
+      formData.append('dob', route.params.birthday);
+      formData.append('college', route.params.college);
+      formData.append('year', route.params.year);
+      formData.append('gender', route.params.gender);
+      formData.append('major', route.params.major);
 
-    if (profileImageUri) {
-      formData.append('avatar', {
-        uri: profileImageUri,
-        type: 'image/jpeg',
-        name: 'avatar.jpg',
-      } as any);
-    }
+      if (profileImageUri) {
+        const filename = profileImageUri.split('/').pop();
+        const match = /\.(\w+)$/.exec(filename || '');
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
 
-    const res = await fetch('http://192.168.28.112:3000/user/register', {
-      method: 'POST',
-      headers:{
-        'Content-Type': 'multipart/form-data'
-      },
-      body: formData,
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      Toast.show({
-        type: 'success',
-        text1: 'Registered successfully',
+        formData.append('avatar', {
+          uri: profileImageUri,
+          name: filename || 'avatar.jpg',
+          type: type,
+        } as any);
+      }
+      const res = await axios.post('/user/register', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
-      await login(route.params.email, route.params.password);
-      navigation.navigate('Login');
-    } else {
+      if (res.data.success) {
+        Toast.show({
+          type: 'success',
+          text1: 'Registered successfully',
+        });
+        await login(route.params.email, route.params.password);
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Failed',
+          text2: res.data.message || 'Registration failed',
+        });
+      }
+    } catch (error: any) {
+      console.error("Registration Error", error);
       Toast.show({
         type: 'error',
-        text1: 'Failed',
-        text2: data.message,
+        text1: 'Error',
+        text2: error.response?.data?.message || 'Something went wrong',
       });
     }
   };
@@ -124,7 +131,7 @@ export default function ProfileSetup2() {
 
               {/* Avatar */}
               <View className="items-center mb-8">
-                <TouchableOpacity
+                <Pressable
                   onPress={handleUploadProfilePic}
                   className="h-36 w-36 items-center justify-center overflow-hidden rounded-full bg-gray-200"
                 >
@@ -137,29 +144,29 @@ export default function ProfileSetup2() {
                   ) : (
                     <Ionicons name="camera" size={36} color="#6B7280" />
                   )}
-                </TouchableOpacity>
+                </Pressable>
                 <Text className="mt-3 text-gray-600">Upload Profile Photo</Text>
               </View>
 
               {/* Continue */}
-              <TouchableOpacity
+              <Pressable
                 className="rounded-full bg-black py-4 items-center mb-4"
                 onPress={submitRegistration}
               >
                 <Text className="text-white text-lg font-semibold">
                   Continue
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
 
               {/* Skip */}
-              <TouchableOpacity
+              <Pressable
                 className="rounded-full border border-gray-300 py-4 items-center"
                 onPress={submitRegistration}
               >
                 <Text className="text-gray-700 text-lg font-semibold">
                   Skip for now
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
 
               <Text className="mt-5 text-center text-gray-500">
                 Step 2 of 2

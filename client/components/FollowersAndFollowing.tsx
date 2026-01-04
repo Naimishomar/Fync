@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
   Image,
   FlatList,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
 } from "react-native";
 import { useRoute, useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -24,10 +24,11 @@ type User = {
 const FollowersAndFollowing = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const { userId, type } = route.params;
+  const { userId, type } = route.params; // type is "followers" or "following"
 
   const { user: currentUser } = useAuth();
-  const myId = currentUser?._id;
+  // 1. FIX: Ensure myId is a string, fallback to empty if user not loaded
+  const myId = currentUser?._id || "";
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,16 +46,13 @@ const FollowersAndFollowing = () => {
 
   const fetchList = async () => {
     try {
-      const url =
-        type === "followers"
-          ? `/user/followers/${userId}`
-          : `/user/following/${userId}`;
-
-      const res = await axios.get(url);
+      const endpoint = type === "followers" ? "followers" : "following";
+      const res = await axios.get(`/user/${endpoint}/${userId}`);
+      
       if (res.data.success) {
-        setUsers(
-          type === "followers" ? res.data.followers : res.data.following
-        );
+        // Ensure we handle the response key correctly based on type
+        const list = type === "followers" ? res.data.followers : res.data.following;
+        setUsers(list || []);
       }
     } catch (err) {
       console.log("Fetch error", err);
@@ -64,71 +62,70 @@ const FollowersAndFollowing = () => {
   };
 
   const toggleFollow = async (targetId: string, isFollowing: boolean) => {
+    // Prevent following yourself or if not logged in
+    if (!myId || targetId === myId) return;
+
     try {
-      await axios.post(
-        isFollowing
-          ? `/user/unfollow/${targetId}`
-          : `/user/follow/${targetId}`
+      // Optimistic Update
+      setUsers((prev) =>
+        prev.map((u) => {
+          if (u._id !== targetId) return u;
+
+          // 2. FIX: Safely update followers array
+          const currentFollowers = u.followers || [];
+          const updatedFollowers = isFollowing
+            ? currentFollowers.filter((id) => id !== myId) // Remove ID
+            : [...currentFollowers, myId]; // Add ID
+
+          return { ...u, followers: updatedFollowers };
+        })
       );
 
-      // Optimistic UI update
-      setUsers((prev) =>
-        prev.map((u) =>
-          u._id === targetId
-            ? {
-                ...u,
-                followers: isFollowing
-                  ? u.followers.filter((id) => id !== myId)
-                  : [...u.followers, myId],
-              }
-            : u
-        )
-      );
+      // API Call
+      await axios.post(isFollowing ? `/user/unfollow/${targetId}` : `/user/follow/${targetId}`);
     } catch (err) {
       console.log("Follow error", err);
+      // Optional: Revert state here if API fails
     }
   };
 
   const renderItem = ({ item }: { item: User }) => {
     const isMe = item._id === myId;
-    const isFollowing = item.followers.includes(myId);
+    // 3. FIX: Safe check for includes
+    const isFollowing = (item.followers || []).includes(myId);
 
     return (
-      <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
-        <TouchableOpacity
+      <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-900">
+        <Pressable
           onPress={() => navigation.push("PublicProfile", { userId: item._id })}
-          className="flex-row items-center"
+          className="flex-row items-center flex-1"
         >
           <Image
             source={{
-              uri:
-                item.avatar ||
-                `https://ui-avatars.com/api/?name=${item.username}`,
+              uri: item.avatar || `https://ui-avatars.com/api/?name=${item.username}&background=random&color=fff`,
             }}
-            className="h-12 w-12 rounded-full bg-gray-200"
+            className="h-12 w-12 rounded-full border border-gray-800"
           />
 
-          <View className="ml-3">
-            <Text className="text-black font-semibold">{item.username}</Text>
-            <Text className="text-gray-500 text-sm">{item.name}</Text>
+          <View className="ml-3 flex-1">
+            <Text className="text-white font-semibold text-base">{item.username}</Text>
+            <Text className="text-gray-400 text-sm" numberOfLines={1}>{item.name}</Text>
           </View>
-        </TouchableOpacity>
+        </Pressable>
 
         {!isMe && (
-          <TouchableOpacity
+          <Pressable
             onPress={() => toggleFollow(item._id, isFollowing)}
-            className={`px-4 py-1 rounded-md ${
-              isFollowing ? "bg-gray-200" : "bg-blue-500"
+            className={`px-5 py-1.5 rounded-lg border ${
+              isFollowing 
+                ? "bg-black border-gray-600" 
+                : "bg-blue-600 border-blue-600"
             }`}
           >
-            <Text
-              className={`font-semibold ${
-                isFollowing ? "text-black" : "text-white"
-              }`}
-            >
+            <Text className={`font-semibold text-sm ${isFollowing ? "text-white" : "text-white"}`}>
               {isFollowing ? "Following" : "Follow"}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         )}
       </View>
     );
@@ -136,20 +133,20 @@ const FollowersAndFollowing = () => {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-white">
-        <ActivityIndicator size="large" color="#000" />
+      <SafeAreaView className="flex-1 justify-center items-center bg-black">
+        <ActivityIndicator size="large" color="#f9a8d4" />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      {/* HEADER WITH BACK BUTTON */}
-      <View className="flex-row items-center px-4 py-3 border-b border-gray-200">
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text className="ml-4 text-lg font-semibold text-black capitalize">
+    <SafeAreaView className="flex-1 bg-black">
+      {/* HEADER */}
+      <View className="flex-row items-center px-4 py-3 border-b border-gray-900">
+        <Pressable onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={26} color="white" />
+        </Pressable>
+        <Text className="ml-6 text-xl font-bold text-white capitalize">
           {type}
         </Text>
       </View>
@@ -158,10 +155,12 @@ const FollowersAndFollowing = () => {
         data={users}
         keyExtractor={(item) => item._id}
         renderItem={renderItem}
+        contentContainerClassName="pt-2"
         ListEmptyComponent={
-          <Text className="text-center text-gray-400 mt-10">
-            No users found
-          </Text>
+          <View className="items-center justify-center mt-20">
+             <Ionicons name="people-outline" size={48} color="#333" />
+             <Text className="text-gray-500 mt-4 text-lg">No {type} found</Text>
+          </View>
         }
       />
     </SafeAreaView>

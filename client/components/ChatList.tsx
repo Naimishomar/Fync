@@ -1,11 +1,13 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
   FlatList,
   Image,
-  TouchableOpacity,
+  Pressable,
   TextInput,
+  ActivityIndicator,
+  StatusBar
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
@@ -19,6 +21,10 @@ const ChatList = ({ navigation }) => {
   const [conversations, setConversations] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // 1. Create a Ref to store the timer ID
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -27,159 +33,212 @@ const ChatList = ({ navigation }) => {
   );
 
   const loadChats = async () => {
-    const res = await axios.get("/chat/conversations");
-    setConversations(res.data.conversations || []);
+    try {
+      const res = await axios.get("/chat/conversations");
+      setConversations(res.data.conversations || []);
+    } catch (e) {
+      console.log("Error loading chats",e);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  /* ---------- SEARCH USERS ---------- */
-  const searchUsers = async (text: string) => {
-    setSearch(text);
-
+  const performSearch = async (text: string) => {
     if (!text.trim()) {
       setResults([]);
       return;
     }
-
-    const res = await axios.get(`/chat/search?q=${text.trim()}`);
-    setResults(res.data.users || []);
+    try {
+      console.log("Searching for:", text);
+      const res = await axios.get(`/chat/search?q=${text.trim()}`);
+      setResults(res.data.users || []);
+    } catch (e) {
+      console.log("Search error",e);
+    }
   };
 
-  /* ---------- START CHAT ---------- */
+  /* ---------- 3. INPUT HANDLER (DEBOUNCED) ---------- */
+  const handleSearchChange = (text: string) => {
+    setSearch(text);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    if (text.trim() === "") {
+        setResults([]);
+        return;
+    }
+    typingTimeoutRef.current = setTimeout(() => {
+      performSearch(text);
+    }, 1000); 
+  };
+
   const startChat = async (targetUser: any) => {
-    const res = await axios.post("/chat/start", {
-      userId: targetUser._id,
-    });
-
-    navigation.navigate("Chat", {
-      conversationId: res.data.conversation._id,
-    });
-
-    setSearch("");
-    setResults([]);
+    try {
+      const res = await axios.post("/chat/start", {
+        userId: targetUser._id,
+      });
+      navigation.navigate("Chat", {
+        conversationId: res.data.conversation._id,
+      });
+      setSearch("");
+      setResults([]);
+    } catch (e) {
+      console.log("Start chat error",e);
+    }
   };
 
-  /* ---------- CHAT ITEM ---------- */
+  const formatTime = (dateString: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const now = new Date();
+    if (date.toDateString() === now.toDateString()) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
   const renderConversation = ({ item }: any) => {
     const otherUser = item.participants.find(
       (p: any) => p._id !== user._id
     );
-
     const unread = item.unreadCount?.[user._id] || 0;
+    const isLastMsgMine = item.lastMessage?.sender === user._id;
 
     return (
-      <TouchableOpacity
-        className="flex-row items-center px-4 py-3"
+      <Pressable
+        activeOpacity={0.7}
+        className="flex-row items-center px-4 py-4 mb-1"
         onPress={() =>
-          navigation.navigate("Chat", {
-            conversationId: item._id,
-          })
+          navigation.navigate("Chat", { conversationId: item._id })
         }
       >
-        <Image
-          source={{
-            uri: otherUser?.avatar?.trim() || `https://ui-avatars.com/api/?name=${otherUser?.username}&background=random&color=fff`,}}
-          className="h-14 w-14 rounded-full bg-gray-200"
-        />
+        <View className="relative">
+            <Image
+            source={{
+                uri: otherUser?.avatar?.trim() || `https://ui-avatars.com/api/?name=${otherUser?.username}&background=random&color=fff`,
+            }}
+            className="h-14 w-14 rounded-full border border-gray-800"
+            />
+        </View>
 
-        <View className="ml-4 flex-1">
+        <View className="ml-4 flex-1 justify-center">
           <View className="flex-row items-center justify-between">
-            <Text className="font-semibold text-base text-black">
-              {otherUser?.username}
+            <Text className="font-bold text-base text-white">
+              {otherUser?.username || "Unknown"}
+            </Text>
+            <Text className="text-xs text-gray-500 font-medium">
+              {formatTime(item.updatedAt || new Date())}
+            </Text>
+          </View>
+
+          <View className="flex-row items-center justify-between mt-1">
+            <Text
+              className={`flex-1 text-sm mr-4 ${unread > 0 ? 'text-white font-semibold' : 'text-gray-400'}`}
+              numberOfLines={1}
+            >
+              {isLastMsgMine ? "You: " : ""}{item.lastMessage?.message || "Started a chat"}
             </Text>
 
             {unread > 0 && (
-              <View className="bg-blue-500 min-w-[22px] min-h-[22px] flex justify-center items-center rounded-full">
-                <Text className="text-white text-xs text-center">
-                  {unread}
+              <View className="bg-blue-500 min-w-[20px] h-5 px-1.5 flex justify-center items-center rounded-full">
+                <Text className="text-white text-[10px] font-bold text-center">
+                  {unread > 9 ? '9+' : unread}
                 </Text>
               </View>
             )}
           </View>
-
-          <Text
-            className="text-gray-500 mt-0.5"
-            numberOfLines={1}
-          >
-            {item.lastMessage?.message || "Say hi 👋"}
-          </Text>
         </View>
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 
-  /* ---------- SEARCH RESULT ITEM ---------- */
   const renderUser = ({ item }: any) => (
-    <TouchableOpacity
+    <Pressable
       className="flex-row items-center px-4 py-3"
       onPress={() => startChat(item)}
     >
       <Image
         source={{
-          uri:
-            item.avatar?.trim() ||
-            `https://ui-avatars.com/api/?name=${item.username}&background=random&color=fff`,
+          uri: item.avatar?.trim() || `https://ui-avatars.com/api/?name=${item.username}&background=random&color=fff`,
         }}
-        className="h-14 w-14 rounded-full bg-gray-200"
+        className="h-12 w-12 rounded-full border border-gray-800"
       />
-      <View className="ml-4">
-        <Text className="font-semibold text-black">
+      <View className="ml-4 flex-1 border-b border-gray-900 pb-3">
+        <Text className="font-bold text-white text-base">
           {item.username}
         </Text>
         <Text className="text-gray-500 text-sm">
           {item.name}
         </Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-black">
+      <StatusBar barStyle="light-content" />
+      
       {/* HEADER */}
-      <View className="px-4 py-3 border-b border-gray-200">
-        <Text className="text-2xl font-bold text-black">
+      <View className="px-4 py-2 mb-2 flex-row gap-1 items-center">
+        <Pressable  className="p-2" onPress={() => {navigation.goBack()}}>
+            <Ionicons name="arrow-back-outline" size={24} color="#fff" />
+        </Pressable>
+        <Text className="text-3xl font-bold text-white">
           Messages
         </Text>
       </View>
 
       {/* SEARCH BAR */}
-      <View className="px-4 py-3">
-        <View className="flex-row items-center bg-gray-100 rounded-full px-3 py-1">
-          <Ionicons name="search" size={18} color="#666" />
+      <View className="px-4 mb-4">
+        <View className="flex-row items-center bg-gray-900 rounded-xl px-4 border border-gray-800">
+          <Ionicons name="search" size={20} color="#6b7280" />
           <TextInput
             value={search}
-            onChangeText={searchUsers}
-            placeholder="Search name or username"
-            placeholderTextColor="#888"
-            className="ml-2 flex-1 text-base text-black"
+            onChangeText={handleSearchChange} // 4. Use the new handler
+            placeholder="Search friends..."
+            placeholderTextColor="#6b7280"
+            className="ml-3 flex-1 text-base text-white"
+            autoCapitalize="none"
           />
           {search.length > 0 && (
-            <TouchableOpacity onPress={() => searchUsers("")}>
-              <Ionicons name="close" size={18} color="#666" />
-            </TouchableOpacity>
+            <Pressable onPress={() => handleSearchChange("")}>
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </Pressable>
           )}
         </View>
       </View>
 
-      {/* LIST */}
-      <FlatList
-        data={search.length > 0 ? results : conversations}
-        keyExtractor={(item) => item._id}
-        renderItem={
-          search.length > 0
-            ? renderUser
-            : renderConversation
-        }
-        ItemSeparatorComponent={() => (
-          <View className="h-[1px] bg-gray-100 ml-20" />
-        )}
-        ListEmptyComponent={
-          <Text className="text-center text-gray-400 mt-16">
-            {search.length > 0
-              ? "No users found"
-              : "No chats yet"}
-          </Text>
-        }
-      />
+      {/* LIST CONTENT */}
+      {loading ? (
+          <View className="flex-1 justify-center items-center">
+              <ActivityIndicator size="large" color="#3b82f6" />
+          </View>
+      ) : (
+          <FlatList
+            data={search.length > 0 ? results : conversations}
+            keyExtractor={(item) => item._id}
+            renderItem={search.length > 0 ? renderUser : renderConversation}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View className="flex-1 items-center justify-center mt-20 opacity-50">
+                <Ionicons 
+                    name={search.length > 0 ? "person-remove-outline" : "chatbubbles-outline"} 
+                    size={64} 
+                    color="gray" 
+                />
+                <Text className="text-center text-gray-500 mt-4 text-lg font-medium">
+                  {search.length > 0
+                    ? "No users found"
+                    : "No conversations yet"}
+                </Text>
+                {search.length === 0 && (
+                    <Text className="text-gray-600 text-sm mt-2">Start searching to chat!</Text>
+                )}
+              </View>
+            }
+          />
+      )}
     </SafeAreaView>
   );
 };

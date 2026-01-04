@@ -3,7 +3,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   ScrollView,
   Alert,
   Clipboard,
@@ -154,7 +154,7 @@ const CreateRoom = () => {
         <Text className="font-semibold mb-2 text-gray-600">Select Domain</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
           {DOMAINS.map((d) => (
-            <TouchableOpacity
+            <Pressable
               key={d}
               onPress={() => setDomain(d)}
               className={`px-4 py-2 mr-2 rounded-full ${
@@ -164,7 +164,7 @@ const CreateRoom = () => {
               <Text className={`${domain === d ? "text-white" : "text-gray-800"}`}>
                 {d}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </ScrollView>
 
@@ -193,7 +193,7 @@ const CreateRoom = () => {
           {/* DATE PICKER BUTTON */}
           <View>
              <Text className="font-semibold text-gray-600 mb-1">Start Time</Text>
-             <TouchableOpacity
+             <Pressable
                 onPress={handleDatePress}
                 className="bg-blue-50 p-4 rounded-lg border border-blue-100 flex-row items-center justify-between"
              >
@@ -203,16 +203,16 @@ const CreateRoom = () => {
                   })}
                 </Text>
                 <Ionicons name="calendar" size={20} color="#1e40af" />
-             </TouchableOpacity>
+             </Pressable>
           </View>
 
           {/* iOS ONLY PICKER */}
           {Platform.OS === 'ios' && showIOSPicker && (
              <View className="bg-gray-100 rounded-xl mt-2 p-2">
                 <View className="flex-row justify-end border-b border-gray-300 pb-2 mb-2">
-                   <TouchableOpacity onPress={() => setShowIOSPicker(false)}>
+                   <Pressable onPress={() => setShowIOSPicker(false)}>
                       <Text className="text-blue-600 font-bold text-lg px-4">Done</Text>
-                   </TouchableOpacity>
+                   </Pressable>
                 </View>
                 <DateTimePicker
                   value={startTime}
@@ -242,7 +242,7 @@ const CreateRoom = () => {
             />
 
             {q.options.map((opt, i) => (
-              <TouchableOpacity
+              <Pressable
                 key={i}
                 onPress={() => updateQuestion(qIndex, "correctAnswer", i)}
                 className="flex-row items-center mb-3"
@@ -263,20 +263,20 @@ const CreateRoom = () => {
                       q.correctAnswer === i ? "border-blue-500 bg-blue-50" : "border-gray-300"
                   }`}
                 />
-              </TouchableOpacity>
+              </Pressable>
             ))}
           </View>
         ))}
 
-        <TouchableOpacity
+        <Pressable
           onPress={addQuestion}
           className="flex-row items-center justify-center gap-2 py-4 border-2 border-dashed border-gray-300 rounded-xl mb-8 bg-gray-50"
         >
           <Ionicons name="add-circle" size={24} color="#4b5563" />
           <Text className="font-bold text-gray-600 text-lg">Add Question</Text>
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity
+        <Pressable
           onPress={submitRoom}
           disabled={loading}
           className={`py-4 rounded-xl mb-12 shadow-md ${loading ? 'bg-blue-400' : 'bg-blue-600'}`}
@@ -284,7 +284,7 @@ const CreateRoom = () => {
           <Text className="text-white text-center font-bold text-lg">
             {loading ? "Creating..." : "Save & Create Room"}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );

@@ -13,6 +13,7 @@ import collaborationRoute from './routes/collaboration.route.js';
 import shortRoute from './routes/short.route.js';
 import fundingRoute from './routes/funding.route.js';
 import quizRoute from './routes/quiz.route.js';
+import interviewRoute from './routes/interview.route.js';
 import { socketController } from './controllers/socket.controller.js';
 import { rateLimit } from 'express-rate-limit';
 import { logout } from './controllers/auth.controller.js';
@@ -54,12 +55,13 @@ app.use('/payment', paymentRoute);
 app.use('/shorts', shortRoute);
 app.use('/funding', fundingRoute);
 app.use('/quiz', quizRoute);
+app.use('/interview', interviewRoute);
 
 
 
 socketController(io);
 
-app.get('/test', (req, res) => {
+app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 

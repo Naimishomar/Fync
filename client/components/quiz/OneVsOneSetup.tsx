@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList, Question } from '../../App';
@@ -53,9 +53,9 @@ const OneVsOneSetup = () => {
         <Text className="text-gray-500 text-center">
             Looking for a match in <Text className="font-bold text-purple-600">{domain}</Text>
         </Text>
-        <TouchableOpacity onPress={cancelSearch} className="mt-8 px-8 py-3 bg-gray-200 rounded-full">
+        <Pressable onPress={cancelSearch} className="mt-8 px-8 py-3 bg-gray-200 rounded-full">
           <Text className="text-gray-600 font-semibold">Cancel</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     );
   }
@@ -65,7 +65,7 @@ const OneVsOneSetup = () => {
       <Text className="text-2xl font-bold mb-8 text-gray-800">Select Topic</Text>
       <View className="flex-row flex-wrap justify-center gap-3 mb-12">
         {['DSA', 'Frontend', 'Backend', 'System Design'].map(d => (
-          <TouchableOpacity 
+          <Pressable 
             key={d} 
             onPress={() => setDomain(d)}
             className={`px-5 py-3 rounded-xl border ${
@@ -73,12 +73,12 @@ const OneVsOneSetup = () => {
             }`}
           >
             <Text className={domain === d ? 'text-white font-bold' : 'text-gray-700'}>{d}</Text>
-          </TouchableOpacity>
+          </Pressable>
         ))}
       </View>
-      <TouchableOpacity onPress={findMatch} className="bg-purple-600 w-3/4 py-4 rounded-full shadow-lg">
+      <Pressable onPress={findMatch} className="bg-purple-600 w-3/4 py-4 rounded-full shadow-lg">
         <Text className="text-white text-center font-bold text-lg">Find Opponent</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

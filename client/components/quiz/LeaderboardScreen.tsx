@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, Image, Pressable, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
 import axios from '../../context/axiosConfig';
@@ -153,26 +153,26 @@ const LeaderboardScreen = () => {
     <View className="flex-1 bg-gray-50 pt-10 px-4">
       {/* HEADER */}
       <View className="flex-row items-center justify-between mb-6">
-        <TouchableOpacity onPress={() => navigation.navigate("Tabs")}>
+        <Pressable onPress={() => navigation.navigate("Tabs")}>
           <Ionicons name="home" size={24} color="black" />
-        </TouchableOpacity>
+        </Pressable>
         
         <Text className="text-2xl font-bold text-center">🏆 Leaderboard</Text>
         
         {/* ACTION BUTTONS */}
         <View className="flex-row gap-4">
             {/* Manual Refresh (Optional now, but good to keep) */}
-            <TouchableOpacity onPress={fetchLeaderboard}>
+            <Pressable onPress={fetchLeaderboard}>
                 <Ionicons name="refresh" size={24} color="#4F46E5" />
-            </TouchableOpacity>
+            </Pressable>
 
-            <TouchableOpacity onPress={downloadPDF} disabled={downloading}>
+            <Pressable onPress={downloadPDF} disabled={downloading}>
                 {downloading ? (
                     <ActivityIndicator size="small" color="#4F46E5" />
                 ) : (
                     <Ionicons name="cloud-download-outline" size={28} color="#4F46E5" />
                 )}
-            </TouchableOpacity>
+            </Pressable>
         </View>
       </View>
 
