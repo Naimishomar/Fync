@@ -181,7 +181,7 @@ export const getComments = async(req,res)=>{
         }
         const comments = await Comment.find({ post: req.params.id })
         .populate("commentor", "name avatar username");
-        return res.status(200).json({ success: true, message: 'Comments fetched successfully', comments });
+        return res.status(200).json({ success: true, message: 'Comments fetched successfully', comments, commentLength: comments.length });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });

@@ -183,6 +183,38 @@ export default function CustomSidebar(props: any) {
                 <Ionicons name="videocam-outline" size={24} color="#f9a8d4" /> 
                 <Text className="text-white text-lg ml-4 font-medium">Video Calls</Text>
             </Pressable>
+
+            {/* 5. Bunk O Meter */}
+            <Pressable 
+            onPress={() => props.navigation.navigate('BunkOMeter')}
+            className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800">
+                <Ionicons name="flashlight-outline" size={24} color="#f9a8d4" /> 
+                <Text className="text-white text-lg ml-4 font-medium">BunkOMeter</Text>
+            </Pressable>
+
+            {/* 5. Vibe Selector */}
+            <Pressable 
+            onPress={() => props.navigation.navigate('VibeSelector')}
+            className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800">
+                <Ionicons name="musical-notes-outline" size={24} color="#f9a8d4" /> 
+                <Text className="text-white text-lg ml-4 font-medium">Vibe Selector</Text>
+            </Pressable>
+
+            {/* 5. Twelve AM Club */}
+            <Pressable 
+            onPress={() => props.navigation.navigate('TwelveAMHomeCard')}
+            className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800">
+                <Ionicons name="time-outline" size={24} color="#f9a8d4" />
+                <Text className="text-white text-lg ml-4 font-medium">12 AM Night Club</Text>
+            </Pressable>
+
+            {/* 6. Find Teammate */}
+            <Pressable 
+            onPress={() => props.navigation.navigate('FindTeammate')}
+            className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800">
+                <Ionicons name="people-outline" size={24} color="#f9a8d4" />
+                <Text className="text-white text-lg ml-4 font-medium">Find Teammate</Text>
+            </Pressable>
         </View>
       </DrawerContentScrollView>
 

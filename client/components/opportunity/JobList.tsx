@@ -7,58 +7,77 @@ import {
   ActivityIndicator, 
   Pressable, 
   Linking,
-  TextInput
+  TextInput,
+  TouchableOpacity
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { LinearGradient } from 'expo-linear-gradient';
 
-// --- 1. SEPARATE & MEMOIZE JOB CARD ---
-// This prevents the whole list from re-rendering when you search or load more.
+// --- 🌌 BACKGROUND IMAGE ---
+const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
+
+// --- 1. MEMOIZED JOB CARD (Dark Theme) ---
 const JobCard = memo(({ item, onPress }: { item: any; onPress: (url: string) => void }) => {
   return (
-    <View className="bg-white rounded-2xl mb-4 mx-4 p-4 border border-gray-200 shadow-sm">
+    <View className="bg-[#1e1e1e]/80 rounded-3xl mb-5 mx-5 p-5 border border-white/10 shadow-lg">
+      
+      {/* Header Row */}
       <View className="flex-row gap-4">
         {/* Company Logo */}
-        <View className="w-16 h-16 rounded-xl border border-gray-100 overflow-hidden bg-gray-50 items-center justify-center">
+        <View className="w-16 h-16 rounded-2xl border border-white/10 overflow-hidden bg-white/5 items-center justify-center">
             <Image 
                 source={{ uri: item.logoUrl2 || item.organisation?.logoUrl || 'https://via.placeholder.com/100' }} 
-                className="w-12 h-12 rounded-md"
+                className="w-12 h-12 rounded-xl"
                 resizeMode="contain"
             />
         </View>
-        <View className="flex-1">
-            <Text className="text-lg font-bold text-gray-900" numberOfLines={2}>{item.title}</Text>
-            <Text className="text-sm text-gray-500 font-medium mt-1">
+
+        {/* Title & Company */}
+        <View className="flex-1 justify-center">
+            <Text className="text-lg font-bold text-white leading-6" numberOfLines={2}>
+                {item.title}
+            </Text>
+            <Text className="text-sm text-gray-400 font-medium mt-1">
                 {item.organisation?.name || "Unknown Company"}
             </Text>
         </View>
       </View>
 
-      <View className="mt-3 flex-row flex-wrap gap-2">
-         <View className="flex-row items-center bg-gray-100 px-2 py-1 rounded-md">
-            <Ionicons name="briefcase-outline" size={12} color="#4B5563" />
-            <Text className="text-xs text-gray-600 ml-1 font-medium">
+      {/* Tags Row */}
+      <View className="mt-4 flex-row flex-wrap gap-2">
+         {/* Experience */}
+         <View className="flex-row items-center bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+            <Ionicons name="briefcase-outline" size={12} color="#9ca3af" />
+            <Text className="text-xs text-gray-300 ml-1 font-medium">
                 {(item.jobDetail?.min_experience === null || item.jobDetail?.max_experience === null) 
                     ? "Fresher" 
-                    : `${item.jobDetail?.min_experience}-${item.jobDetail?.max_experience} Years`
+                    : `${item.jobDetail?.min_experience}-${item.jobDetail?.max_experience} Yrs`
                 }
             </Text>
          </View>
-         <View className="flex-row items-center bg-gray-100 px-2 py-1 rounded-md">
-            <Ionicons name="location-outline" size={12} color="#4B5563" />
-            <Text className="text-xs text-gray-600 ml-1 font-medium">{item.job_location || "Remote"}</Text>
+
+         {/* Location */}
+         <View className="flex-row items-center bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+            <Ionicons name="location-outline" size={12} color="#9ca3af" />
+            <Text className="text-xs text-gray-300 ml-1 font-medium">
+                {item.job_location || "Remote"}
+            </Text>
          </View>
-         <View className="flex-row items-center bg-purple-50 px-2 py-1 rounded-md border border-purple-100">
-             <Text className="text-xs text-purple-700 font-medium">
+         
+         {/* Type (Full Time/Contract) */}
+         <View className="flex-row items-center bg-indigo-500/20 px-3 py-1.5 rounded-lg border border-indigo-500/30">
+            <Text className="text-xs text-indigo-300 font-bold">
                 {item.jobDetail?.timing === 'full_time' ? 'Full Time' : 'Contract'}
-             </Text>
+            </Text>
          </View>
       </View>
 
-      <View className="mt-4 pt-4 border-t border-gray-100 flex-row items-center justify-between">
-          <View>
-              <Text className="text-xs text-gray-400 font-medium">Salary (CTC)</Text>
-              <Text className="text-sm font-bold text-gray-800">
+      {/* Footer / CTA */}
+      <View className="mt-5 pt-4 border-t border-white/10 flex-row items-center justify-between">
+            <View>
+              <Text className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Salary (CTC)</Text>
+              <Text className="text-sm font-bold text-gray-200 mt-0.5">
                   {item.jobDetail?.paid_unpaid === "unpaid" 
                     ? "Unpaid" 
                     : (item.payment_amount 
@@ -69,16 +88,23 @@ const JobCard = memo(({ item, onPress }: { item: any; onPress: (url: string) => 
                       )
                   }
               </Text>
-          </View>
+            </View>
 
-          <Pressable 
-            className="bg-blue-600 px-5 py-2 rounded-full" 
-            activeOpacity={0.9} 
-            onPress={() => onPress(item.public_url)}
-          >
-              <Text className="text-white font-bold text-sm">Apply Now</Text>
-          </Pressable>
+            <TouchableOpacity 
+              onPress={() => onPress(item.public_url)}
+              activeOpacity={0.8}
+            >
+                <LinearGradient
+                    colors={['#6366f1', '#a855f7']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    className="px-6 py-2.5 rounded-full shadow-lg shadow-indigo-500/20"
+                >
+                    <Text className="text-white font-bold text-sm">Apply Now</Text>
+                </LinearGradient>
+            </TouchableOpacity>
       </View>
+
     </View>
   );
 });
@@ -99,8 +125,7 @@ const JobList = () => {
     setLoading(true);
 
     try {
-      console.log(`Fetching Jobs page ${pageNum}...`);
-      
+      // Fetch from Unstop Public API
       const response = await fetch(
         `https://unstop.com/api/public/opportunity/search-result?opportunity=jobs&page=${pageNum}&per_page=50&oppstatus=open&quickApply=true`
       );
@@ -112,6 +137,7 @@ const JobList = () => {
         setHasMore(false);
       }
 
+      // 🔍 Local Filtering (matches your previous logic)
       if (searchQuery.trim() !== "") {
         const lowerTerm = searchQuery.toLowerCase();
         rawData = rawData.filter((item: any) => {
@@ -155,63 +181,92 @@ const JobList = () => {
     if (url) Linking.openURL(url);
   }, []);
 
-  // --- 2. MEMOIZED RENDER ITEM ---
   const renderItem = useCallback(({ item }: { item: any }) => (
     <JobCard item={item} onPress={handleLinkPress} />
   ), [handleLinkPress]);
 
   const renderFooter = () => {
     if (!loading) return <View className="h-12" />;
-    return <View className="py-6 items-center"><ActivityIndicator size="small" color="#4F46E5" /></View>;
+    return (
+      <View className="py-6 items-center">
+        <ActivityIndicator size="small" color="#ec4899" />
+      </View>
+    );
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      
-      <View className="bg-white px-4 pt-4 pb-4 border-b border-gray-100 z-10 shadow-sm">
-        <Text className="text-2xl font-bold text-gray-900 mb-4">🚀 Find Jobs</Text>
-        
-        <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-3">
-            <Ionicons name="search" size={20} color="#9CA3AF" />
-            <TextInput 
-                placeholder="Search jobs (e.g. SDE, Manager)..." 
-                className="flex-1 ml-2 text-gray-800 font-medium"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                onSubmitEditing={onSearchSubmit}
-                returnKeyType="search"
-            />
-        </View>
-      </View>
-
-      <FlatList
-        data={jobs}
-        keyExtractor={(item, index) => item.id ? item.id.toString() : `fallback-${index}`}
-        renderItem={renderItem}
-        
-        // --- 3. PERFORMANCE OPTIMIZATIONS ---
-        initialNumToRender={5}
-        maxToRenderPerBatch={5}
-        windowSize={5}
-        removeClippedSubviews={true} 
-        updateCellsBatchingPeriod={50}
-
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={renderFooter}
-        contentContainerClassName="pt-4 pb-10"
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-            !loading ? (
-                <View className="items-center justify-center mt-20">
-                    <Ionicons name="briefcase-outline" size={48} color="#D1D5DB" />
-                    <Text className="text-gray-500 mt-4 text-lg">No jobs found.</Text>
-                    <Text className="text-gray-400 text-sm">Try a different search term.</Text>
-                </View>
-            ) : null
-        }
+    <View className="flex-1 bg-black">
+      {/* 🌸 BACKGROUND 🌸 */}
+      <Image source={{ uri: BG_IMAGE }} className="absolute w-full h-full opacity-50" />
+      <LinearGradient 
+        colors={['rgba(236, 72, 153, 0.40)', 'rgba(0,0,0,0.85)', '#000000']} 
+        className="absolute w-full h-full" 
       />
-    </SafeAreaView>
+
+      <SafeAreaView className="flex-1 px-2">
+        
+        {/* Header Title */}
+        <View className="px-5 pt-4 pb-2">
+            <Text className="text-white text-3xl font-black shadow-lg">Find Jobs 🚀</Text>
+            <Text className="text-gray-300 text-sm mt-1 font-medium">
+                Explore full-time roles and contracts.
+            </Text>
+        </View>
+
+        {/* 🔍 Search Bar */}
+        <View className="mx-5 mt-4 mb-2">
+            <View className="flex-row items-center bg-[#1a1a1a]/90 rounded-2xl px-4 border border-white/10 shadow-md">
+                <Ionicons name="search" size={20} color="#9ca3af" />
+                <TextInput 
+                    placeholder="Search jobs (e.g. SDE, Manager)..."
+                    placeholderTextColor="#6b7280"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    onSubmitEditing={onSearchSubmit}
+                    returnKeyType="search"
+                    className="flex-1 ml-3 text-white text-base font-medium"
+                />
+                {searchQuery.length > 0 && (
+                    <TouchableOpacity onPress={() => { setSearchQuery(""); onSearchSubmit(); }}>
+                        <Ionicons name="close-circle" size={20} color="#6b7280" />
+                    </TouchableOpacity>
+                )}
+            </View>
+        </View>
+
+        {/* List */}
+        <FlatList
+            data={jobs}
+            keyExtractor={(item, index) => item.id ? item.id.toString() : `fallback-${index}`}
+            renderItem={renderItem}
+            
+            // Performance Props
+            initialNumToRender={5}
+            maxToRenderPerBatch={5}
+            windowSize={5}
+            removeClippedSubviews={true} 
+            updateCellsBatchingPeriod={50}
+
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={renderFooter}
+            
+            contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
+            showsVerticalScrollIndicator={false}
+            
+            ListEmptyComponent={
+                !loading ? (
+                    <View className="items-center mt-20">
+                        <Ionicons name="briefcase-outline" size={60} color="#333" />
+                        <Text className="text-gray-500 mt-4 text-center px-10">
+                            {searchQuery ? "No jobs found matching your search." : "No jobs available right now."}
+                        </Text>
+                    </View>
+                ) : null
+            }
+        />
+      </SafeAreaView>
+    </View>
   );
 };
 

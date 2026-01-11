@@ -1,4 +1,5 @@
 import 'react-native-gesture-handler';
+import 'react-native-get-random-values';
 import React from "react";
 import './context/axiosConfig';
 import { NavigationContainer } from "@react-navigation/native";
@@ -52,6 +53,15 @@ import WorkshopList from 'components/opportunity/WorkshopList';
 import InterviewSetup from "./components/interview/InterviewSetup";
 import ActiveInterview from "./components/interview/ActiveInterview";
 
+// Find Teammate
+import FindTeammate from "./components/FindTeammate";
+
+// New Features
+import BunkOMeter from "./components/newFeatures/BunkOMeter";
+import VibeSelector from "./components/newFeatures/VibeSelector";
+import TwelveAMHomeCard from "./components/newFeatures/TwelveAMHomeCard";
+import TwelveAMClub from "./components/newFeatures/TwelveAMClub";
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator();
 
@@ -99,6 +109,11 @@ export type RootStackParamList = {
   CommentsModal: undefined;
   InterviewSetup: undefined;
   ActiveInterview: undefined;
+  BunkOMeter: undefined;
+  VibeSelector: undefined;
+  TwelveAMHomeCard: undefined;
+  TwelveAMClub: undefined;
+  FindTeammate: undefined;
 };
 
 function HomeDrawer() {
@@ -142,7 +157,7 @@ function AuthStack() {
 
 function AppStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false, animation: "simple_push" }}>
       <Stack.Screen name="Tabs" component={HomeDrawer} />
       <Stack.Screen name="Profile" component={Profile} />
       <Stack.Screen name="EditProfile" component={EditProfile} />
@@ -169,6 +184,11 @@ function AppStack() {
       <Stack.Screen name="WorkshopList" component={WorkshopList} />
       <Stack.Screen name="InterviewSetup" component={InterviewSetup} />
       <Stack.Screen name="ActiveInterview" component={ActiveInterview} />
+      <Stack.Screen name="BunkOMeter" component={BunkOMeter} />
+      <Stack.Screen name="VibeSelector" component={VibeSelector} />
+      <Stack.Screen name="TwelveAMHomeCard" component={TwelveAMHomeCard} />
+      <Stack.Screen name="TwelveAMClub" component={TwelveAMClub} />
+      <Stack.Screen name="FindTeammate" component={FindTeammate} />
     </Stack.Navigator>
   );
 }

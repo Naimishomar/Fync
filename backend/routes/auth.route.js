@@ -1,5 +1,6 @@
 import express from 'express';
 import { login, register, updateUser, getProfile, getUserProfile, followUser, unfollowUser, getFollowers, getFollowing, sendOTP, logout, refreshToken, getUserProfileByName, verifyEmailOTP } from '../controllers/auth.controller.js';
+import { getDevelopers } from '../controllers/developer.controller.js'
 import { otpLimiter } from '../middlewares/otpLimiter.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { upload } from '../utils/cloudinary.js';
@@ -20,6 +21,9 @@ router.post('/unfollow/:id', authMiddleware, unfollowUser);
 router.get('/followers/:id', authMiddleware, getFollowers);
 router.get('/following/:id', authMiddleware, getFollowing);
 router.get('/logout', authMiddleware, logout);
+
+//Developer Routes
+router.get('/find-team', authMiddleware, getDevelopers);
 
 
 export default router; 

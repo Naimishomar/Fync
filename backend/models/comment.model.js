@@ -18,9 +18,15 @@ const commentSchema = new mongoose.Schema({
   postType: {
     type: String,
     required: true,
-    enum: ['Post', 'Shorts', 'FundingProject']
+    enum: ['Post', 'Shorts', 'FundingProject', 'Confession']
+  },
+  expiresAt: {
+    type: Date,
+    default: null,
   }
 },{timestamps:true});
+
+commentSchema.index({ createdAt: 1 }, {expiresAfterSeconds: 0});
 
 const Comment = mongoose.model("Comment", commentSchema);
 export default Comment;

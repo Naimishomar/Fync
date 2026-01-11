@@ -15,6 +15,7 @@ import { useAuth } from '../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
+import RefreshableScreen  from './RefreshableScreen';
 
 const { width } = Dimensions.get('window');
 const COLUMN_SIZE = width / 3;
