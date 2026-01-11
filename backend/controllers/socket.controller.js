@@ -2,6 +2,7 @@ import Message from "../models/chat.model.js";
 import Conversation from "../models/conversation.model.js";
 import Room from "../models/quiz/room.model.js";
 import Submission from "../models/quiz/submission.model.js";
+import NightMessage from "../models/newFeatures/nightChat.model.js";
 import redisClient from "../utils/redis.js";
 import { generateQuestions } from "../utils/gemini.js";
 import { nanoid } from "nanoid";
@@ -14,6 +15,8 @@ const calculateScore = (userAnswers, correctQuestions) => {
   });
   return score;
 };
+
+let videoUsers = {};
 
 export const socketController = (io) => {
   io.on("connection", (socket) => {
@@ -76,25 +79,19 @@ export const socketController = (io) => {
 
     socket.on("join_custom_room", async ({ roomId, userId }) => {
         try {
-            console.log(`User ${userId} joining room ${roomId}`);
-            
             const room = await Room.findOne({ roomId });
             if (!room) {
                 socket.emit("error", "Room not found");
                 return;
             }
 
-            // 🛑 FIX: CHECK IF ALREADY ATTEMPTED
             const existingSubmission = await Submission.findOne({ roomId, user: userId });
             
             if (existingSubmission) {
-                console.log(`User ${userId} already attempted room ${roomId}`);
-                // Tell frontend to redirect to Leaderboard immediately
                 socket.emit("already_attempted", { roomId });
-                return; // Stop execution here!
+                return; 
             }
 
-            // A. Check Time Logic
             const now = new Date();
             const startTime = new Date(room.startTime);
             const endTime = new Date(startTime.getTime() + room.duration * 60000);
@@ -104,21 +101,16 @@ export const socketController = (io) => {
                 return;
             }
 
-            // B. Join Socket Room
             socket.join(roomId);
 
-            // C. Start / Schedule Quiz
             const delay = startTime.getTime() - now.getTime();
             
             if (delay <= 0) {
-                // Start Immediately
                 socket.emit("start_quiz", { 
                     questions: room.questions, 
                     endTime: endTime.toISOString() 
                 });
             } else {
-                // Wait for start
-                console.log(`Quiz starts in ${delay/1000} seconds`);
                 setTimeout(() => {
                     io.to(roomId).emit("start_quiz", { 
                         questions: room.questions, 
@@ -135,7 +127,6 @@ export const socketController = (io) => {
         try {
             const exists = await Submission.exists({ roomId, user: userId });
             if (exists) {
-                console.log("Duplicate submission rejected");
                 return; 
             }
             const room = await Room.findOne({ roomId });
@@ -143,7 +134,6 @@ export const socketController = (io) => {
 
             const score = calculateScore(answers, room.questions);
 
-            // Upsert submission
             await Submission.findOneAndUpdate(
                 { roomId, user: userId },
                 { 
@@ -164,15 +154,12 @@ export const socketController = (io) => {
       const queueKey = `queue:${domain}`;
       const userId = user._id;
 
-      // Loop until we find a valid opponent or the queue is empty
       let opponentFound = false;
       
       while (!opponentFound) {
-        // 1. Check Redis for waiting user
         const opponentString = await redisClient.rPop(queueKey);
 
         if (!opponentString) {
-            // Queue is empty, add self and stop
             const userData = JSON.stringify({ 
                 userId: user._id, 
                 socketId: socket.id,
@@ -186,40 +173,29 @@ export const socketController = (io) => {
 
         const opponent = JSON.parse(opponentString);
 
-        // 2. Prevent self-match (if user clicked find twice quickly)
         if (opponent.userId === userId) {
-             // Put it back and continue (or just discard if it's stale)
              await redisClient.lPush(queueKey, opponentString);
              return;
         }
 
-        // 3. CHECK IF OPPONENT IS ONLINE [CRITICAL FIX]
         const opponentSocket = io.sockets.sockets.get(opponent.socketId);
 
         if (!opponentSocket) {
-            console.log(`Opponent ${opponent.username} is offline. Discarding and searching next...`);
-            // Opponent is gone. Loop continues to find the next person.
             continue; 
         }
 
-        // --- MATCH FOUND & VALID ---
         opponentFound = true;
         const matchRoomId = `match:${nanoid(6)}`;
 
-        // Join Rooms
         opponentSocket.join(matchRoomId);
         socket.join(matchRoomId);
 
-        // Notify "Preparing..."
         io.to(matchRoomId).emit("match_preparing");
 
-        // Generate Data
         const questions = await generateQuestions(domain);
         
-        // Calculate End Time (Now + 5 mins)
         const endTime = new Date(Date.now() + 5 * 60000).toISOString();
 
-        // Store State in Redis
         const matchData = {
             questions,
             participants: {
@@ -229,7 +205,6 @@ export const socketController = (io) => {
         };
         await redisClient.set(matchRoomId, JSON.stringify(matchData), { EX: 900 });
 
-        // EMIT TO USER
         socket.emit("match_found", {
           matchRoomId,
           questions,
@@ -241,7 +216,6 @@ export const socketController = (io) => {
           }
         });
 
-        // EMIT TO OPPONENT
         opponentSocket.emit("match_found", {
             matchRoomId,
             questions,
@@ -255,7 +229,6 @@ export const socketController = (io) => {
       }
     });
 
-    // --- SUBMIT 1v1 (Unchanged logic, just ensure imports match) ---
     socket.on("submit_1v1", async ({ matchRoomId, answers, userId }) => {
         try {
             const dataString = await redisClient.get(matchRoomId);
@@ -264,7 +237,6 @@ export const socketController = (io) => {
             const match = JSON.parse(dataString);
             const score = calculateScore(answers, match.questions);
             
-            // Check if participant exists to prevent crashes
             if (match.participants[userId]) {
                 match.participants[userId].score = score;
             }
@@ -272,12 +244,10 @@ export const socketController = (io) => {
             const participantIds = Object.keys(match.participants);
             const opponentId = participantIds.find(id => id !== userId);
             
-            // Safety Check: Ensure opponent exists in data
             if (!opponentId) return;
             const opponentData = match.participants[opponentId];
 
             if (opponentData && opponentData.score !== null) {
-                // BOTH FINISHED
                 const myScore = score;
                 const opScore = opponentData.score;
 
@@ -294,7 +264,6 @@ export const socketController = (io) => {
                     message: result === "WIN" ? "You Won! 🎉" : result === "LOSE" ? "You Lost 😢" : "It's a Tie! 🤝"
                 });
 
-                // Safety Check: Ensure opponent socket is still connected
                 if(opponentData.socketId) {
                     io.to(opponentData.socketId).emit("1v1_result", { 
                         result: opResult, 
@@ -305,7 +274,6 @@ export const socketController = (io) => {
                 }
                 await redisClient.del(matchRoomId);
             } else {
-                // WAIT
                 await redisClient.set(matchRoomId, JSON.stringify(match), { EX: 900 });
                 socket.emit("waiting_for_opponent");
             }
@@ -314,8 +282,88 @@ export const socketController = (io) => {
         }
     });
 
+// --- 🌙 THE 12 AM CLUB LOGIC ---
+
+    const checkClubStatus = () => {
+      const now = new Date();
+      const hour = now.getHours(); 
+      const isOpen = hour >= 0 && hour < 6; // 00:00 to 05:59
+      
+      return { isOpen, hour };
+    };
+
+    socket.on("join_night_club", async () => {
+      const { isOpen, hour } = checkClubStatus();
+
+      if (!isOpen) {
+        // Calculate time until next 12 AM
+        const now = new Date();
+        const nextMidnight = new Date(now);
+        nextMidnight.setHours(24, 0, 0, 0);
+        const msUntilOpen = nextMidnight - now;
+
+        socket.emit("night_club_error", { 
+          message: "The Club is closed. The bouncer will not let you in.",
+          opensIn: msUntilOpen, // Send milliseconds so frontend can show countdown
+          status: "LOCKED" 
+        });
+        return;
+      }
+
+      const roomId = "night_club_global"; // Single global room
+      socket.join(roomId);
+
+      // Load ephemeral history (only what hasn't expired yet)
+      const history = await NightMessage.find()
+        .sort({ createdAt: 1 })
+        .populate("sender", "name username avatar")
+        .limit(100);
+
+      socket.emit("night_club_joined", { 
+        history, 
+        message: "Welcome to the 12 AM Club. What happens here, stays here.",
+        closesAt: "06:00 AM" 
+      });
+    });
+
+    socket.on("send_night_message", async ({ senderId, text, tempId }) => {
+      const { isOpen } = checkClubStatus();
+
+      if (!isOpen) {
+        socket.emit("night_club_ended", { message: "The sun is up. Chat deleted." });
+        socket.leave("night_club_global");
+        return;
+      }
+
+      if (!senderId || !text?.trim()) return;
+
+      try {
+        let nightMsg = await NightMessage.create({
+          sender: senderId,
+          message: text.trim()
+        });
+        nightMsg = await nightMsg.populate("sender", "name username avatar");
+        let msgObj = nightMsg.toObject();
+        if (tempId) {
+            msgObj.tempId = tempId;
+        }
+        io.to("night_club_global").emit("new_night_message", msgObj);
+
+      } catch (err) {
+        console.error("Night chat error:", err);
+      }
+    });
+
+    // --- END 12 AM CLUB LOGIC ---
+
     socket.on("disconnect", () => {
       console.log("Socket disconnected:", socket.id);
+      
+      const userId = Object.keys(videoUsers).find(key => videoUsers[key].socketId === socket.id);
+      if (userId) {
+          delete videoUsers[userId];
+          io.emit("video_users_update", Object.values(videoUsers));
+      }
     });
   });
 };

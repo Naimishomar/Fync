@@ -146,13 +146,23 @@ const QuizHome = () => {
                     onPress={() => navigation.navigate("InterviewSetup")}
                 />
 
+                {/* --- VIDEO LOBBY --- */}
+                <CyberCard
+                    title="Video Lobby"
+                    subtitle="HOST A CALL"
+                    neonColor="#22d3ee"
+                    iconName="videocam-outline"
+                    onPress={() => navigation.navigate("VideoLobby")}
+                />
             </View>
+
 
             {/* --- BOTTOM DECORATION --- */}
             <View className="items-center mb-6 opacity-30">
                 <Text className="text-white font-mono text-[10px]">SYSTEM ONLINE • V.2.0.4</Text>
                 <View className="w-24 h-1 bg-gray-700 mt-2 rounded-full" />
             </View>
+
 
         </SafeAreaView>
       </LinearGradient>

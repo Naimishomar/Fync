@@ -1,12 +1,13 @@
-import React, { useState } from "react";
-import { ScrollView, RefreshControl } from "react-native";
+import React, { useState, ReactNode } from "react";
+import { ScrollView, RefreshControl, ViewStyle, StyleProp } from "react-native";
 
 type Props = {
   onRefresh: () => Promise<void> | void;
-  children: React.ReactNode;
+  children: ReactNode;
+  style?: StyleProp<ViewStyle>;
 };
 
-const RefreshableScreen = ({ onRefresh, children }: Props) => {
+const RefreshableScreen = ({ onRefresh, children, style }: Props) => {
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = async () => {
@@ -20,11 +21,15 @@ const RefreshableScreen = ({ onRefresh, children }: Props) => {
 
   return (
     <ScrollView
+      contentContainerStyle={{ flexGrow: 1 }}
+      style={style}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
           onRefresh={handleRefresh}
-          colors={["#000"]}
+          colors={["#ffffff"]}
+          tintColor="#ffffff"
+          progressBackgroundColor="#000"
         />
       }
       showsVerticalScrollIndicator={false}

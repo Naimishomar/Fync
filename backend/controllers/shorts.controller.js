@@ -176,8 +176,7 @@ export const getAllComments = async (req, res) => {
     if (!comments) {
       return res.status(404).json({ success: false, message: "No comments" });
     }
-    const totalComments = comments.length;
-    return res.status(200).json({ success: true, message: "Comments fetched successfully", comments, totalComments });
+    return res.status(200).json({ success: true, message: "Comments fetched successfully", comments, totalComments: comments.length });
   } catch (error) {
     console.log("Internal server error", error);
     return res.status(500).json({success: false,message: "Internal server error",});
