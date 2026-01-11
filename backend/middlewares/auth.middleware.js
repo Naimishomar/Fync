@@ -3,23 +3,29 @@ import User from "../models/user.model.js";
 
 export const authMiddleware = async (req, res, next) => {
   try {
-    let token = null;
-    if (req.headers.authorization?.startsWith("Bearer ")) {
-      token = req.headers.authorization.split(" ")[1];
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        message: "No token provided",
+      });
     }
-    if (!token && req.cookies?.token) {
-      token = req.cookies.token;
-    }
-    if (!token) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    const token = authHeader.split(" ")[1];
+    if (!token || token === "undefined" || token === "null") {
+      return res.status(401).json({
+        success: false,
+        message: "Malformed token",
+      });
     }
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded) {
-      return res.status(401).json({ success: false, message: "Invalid token" });
-    }
     const user = await User.findById(decoded.id);
-    if (!user) {
-      return res.status(401).json({ success: false, message: "Invalid token" });
+    if(!user){
+      return res.status(401).json({
+        success: false,
+        message: "User not found",
+      });
     }
     req.user = {
       id: user._id,

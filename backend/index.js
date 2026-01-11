@@ -11,7 +11,20 @@ import cafeRoute from './routes/cafe.route.js';
 import paymentRoute from './routes/payment.route.js';
 import collaborationRoute from './routes/collaboration.route.js';
 import shortRoute from './routes/short.route.js';
+import fundingRoute from './routes/funding.route.js';
+import quizRoute from './routes/quiz.route.js';
+import interviewRoute from './routes/interview.route.js';
 import { socketController } from './controllers/socket.controller.js';
+import { rateLimit } from 'express-rate-limit';
+import { logout } from './controllers/auth.controller.js';
+
+const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 100,
+  statusCode: 429,
+  message: "Too many requests from this IP, please try again after an hour",
+  handler: logout,
+});
 
 dotenv.config({quiet: true});
 const app = express();
@@ -22,10 +35,16 @@ const io = new Server(server, {
     cors: { origin: ["http://localhost:5173"], credentials: true }
 });
 
+app.use(limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use("/receipts", express.static("receipts"));
+
+app.use((req, res, next) => {
+  console.log("REQ:", req.method, req.url);
+  next();
+});
 
 app.use('/user', authRoute);
 app.use('/post', postRoute);
@@ -34,6 +53,12 @@ app.use('/collaboration', collaborationRoute);
 app.use('/chat', chatRoute);
 app.use('/payment', paymentRoute);
 app.use('/shorts', shortRoute);
+app.use('/funding', fundingRoute);
+app.use('/quiz', quizRoute);
+app.use('/interview', interviewRoute);
+
+
+
 socketController(io);
 
 app.get('/', (req, res) => {
@@ -41,6 +66,6 @@ app.get('/', (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log('Server is running on port 3000🚀');
+  console.log(`Server is running on port ${PORT}🚀`);
   connectDB();
 });

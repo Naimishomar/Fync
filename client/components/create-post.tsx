@@ -3,29 +3,20 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   Image,
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome6 } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
-
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-type RootStackParamList = {
-  Home1: undefined;
-};
+import axios from '../context/axiosConfig';
 
 function CreatePost() {
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const openGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -51,102 +42,98 @@ function CreatePost() {
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    const token = await AsyncStorage.getItem('token');
     try {
       const formData = new FormData();
       formData.append('description', description);
+
+      const getMimeType = (uri: string) => {
+        if (uri.endsWith(".png")) return "image/png";
+        if (uri.endsWith(".jpg") || uri.endsWith(".jpeg")) return "image/jpeg";
+        return "image/jpeg";
+      };
+
       images.forEach((uri, index) => {
-        const filename = uri.split('/').pop() || `image_${index}.jpg`;
-        const type = `image/${filename.split('.').pop()}`;
-        formData.append('image', {
+        const filename = uri.split("/").pop() || `image_${index}.jpg`;
+
+        formData.append("image", {
           uri,
           name: filename,
-          type,
+          type: getMimeType(uri),
         } as any);
       });
-      const response = await fetch('http://192.168.28.164:3000/post/create', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      if (data.success) {
-        Toast.show({
-          type: 'success',
-          text1: 'Posted successfully!',
+
+      const res = await axios.post('/post/create', 
+        formData,{
+          headers:{
+            'Content-Type': 'multipart/form-data'
+          }
         });
-        navigation.navigate('Home1');
+
+      if (res.data.success) {
+        Toast.show({ type: 'success', text1: 'Posted successfully!' });
+        setDescription('');
+        setImages([]);
       } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Error',
-          text2: data.message,
-        });
+        Toast.show({ type: 'error', text1: res.data.message });
       }
     } catch (error) {
-      console.log('Error uploading', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to upload',
-      });
+      console.log('Upload failed', error);
+      console.log(error?.response?.data?.message);
+      Toast.show({ type: 'error', text1: 'Failed to upload' });
     } finally {
       setIsLoading(false);
     }
   };
 
+
   return (
-    <SafeAreaView className="h-screen w-full bg-black p-2 text-white">
-      <Text className="p-4 text-3xl text-white">Create Post</Text>
+    <View className="mx-3 my-4 rounded-xl bg-white/5 p-3 border border-pink-300">
+      <TextInput
+        placeholder="Share your thoughts..."
+        placeholderTextColor="#9ca3af"
+        value={description}
+        onChangeText={setDescription}
+        multiline
+        className="text-white text-base"
+      />
 
-      <View className="mt-2 rounded-xl border border-pink-300 p-2">
-        <TextInput
-          className="text-md min-h-56 rounded-xl text-pink-300 placeholder:text-white"
-          placeholder="Share your thoughts..."
-          multiline
-          textAlignVertical="top"
-          value={description}
-          onChangeText={setDescription}
-        />
-
-        <View className="mx-3 my-2 flex-row items-center gap-5">
-          <TouchableOpacity onPress={openGallery}>
-            <FontAwesome6 name="image" size={24} color="white" />
-          </TouchableOpacity>
-          <FontAwesome6 name="globe" size={22} color="white" />
+      <View className="mt-3 flex-row items-center justify-between">
+        <View className="flex-row gap-5">
+          <Pressable onPress={openGallery}>
+            <FontAwesome6 name="image" size={20} color="white" />
+          </Pressable>
+          {/* <FontAwesome6 name="globe" size={18} color="white" /> */}
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {images.map((uri, index) => (
-            <View key={index} className="relative mr-2">
-              <Image source={{ uri }} className="h-24 w-24 rounded-lg" />
+        <Pressable
+          onPress={handleSubmit}
+          disabled={isLoading}
+          className="rounded-full bg-pink-400 px-4 py-1"
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#000" />
+          ) : (
+            <Text className="font-semibold text-black">Post</Text>
+          )}
+        </Pressable>
+      </View>
 
-              <TouchableOpacity
+      {images.length > 0 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
+          {images.map((uri, index) => (
+            <View key={index} className="mr-2 relative">
+              <Image source={{ uri }} className="h-20 w-20 rounded-lg" />
+              <Pressable
                 onPress={() => removeImage(index)}
-                className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-pink-400">
-                <Text className="text-xs text-white">✕</Text>
-              </TouchableOpacity>
+                className="absolute top-1 right-1 bg-black/70 h-5 w-5 rounded-full items-center justify-center"
+              >
+                <Text className="text-white text-xs">✕</Text>
+              </Pressable>
             </View>
           ))}
         </ScrollView>
-      </View>
-
-      <View className="mt-3 flex-row items-center justify-end gap-4">
-        <TouchableOpacity className="rounded-full border border-pink-300 px-4 py-2">
-          <Text className="text-md text-white">Save Draft</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity className="rounded-full bg-pink-300 px-8 py-2" onPress={handleSubmit}>
-          {isLoading ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <Text className="text-md text-white">Post</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      )}
+    </View>
   );
 }
 

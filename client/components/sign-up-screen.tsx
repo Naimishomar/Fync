@@ -1,156 +1,228 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  Image,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 import Checkbox from 'expo-checkbox';
-import { Ionicons, AntDesign } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../App';
+import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
-
-type SignupScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Signup'>;
+import { useNavigation } from '@react-navigation/native';
+// @ts-ignore
+import loginImage from '../assets/loginImage.png';
+import axios from '../context/axiosConfig';
 
 export default function SignUpScreen() {
-  const [email, setEmail] = useState<string>('');
-  const [username, setUsername] = useState<string>('');
-  const [phoneNumber, setPhoneNumber] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [otp, setOtp] = useState<string>('');
-  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [agreeTerms, setAgreeTerms] = useState<boolean>(false);
   const navigation = useNavigation<any>();
 
-  const sendOtpToEmail = async () => {
-    if (!email || !username || !phoneNumber || !password) {
-      Toast.show({
-        type: 'error',
-        text1: 'Missing Fields',
-        text2: 'All fiels are required',
-      });
-      return;
-    }
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
 
-    const res = await fetch('http://192.168.28.164:3000/user/send-email-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, username }),
+const sendOtpToEmail = async () => {
+  if (!email || !username || !phoneNumber || !password) {
+    Toast.show({
+      type: 'error',
+      text1: 'Missing Fields',
+      text2: 'All fields are required',
+    });
+    return;
+  }
+
+  try {
+    const res = await axios.post('/user/send-email-otp', {
+      email,
+      username,
+      mobileNumber: phoneNumber,
     });
 
-    const data = await res.json();
-
-    if (data.success) {
+    if (res.data.success) {
       setOtpSent(true);
       Toast.show({
         type: 'success',
-        text1: 'OTP Sent!',
+        text1: 'OTP Sent',
         text2: 'Check your email',
       });
     } else {
       Toast.show({
         type: 'error',
         text1: 'Failed',
-        text2: data.message,
+        text2: res.data.message,
       });
     }
-  };
+  } catch (error : any) {
+    console.error("Send OTP Error", error);
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: error.response?.data?.message || 'Failed to send OTP',
+    });
+  }
+};
+
+const verifyOtpAndProceed = async () => {
+  try {
+    const res = await axios.post('/user/verify-email-otp', {
+      email,
+      otp,
+    });
+
+    if (res.data.success) {
+      Toast.show({
+        type: 'success',
+        text1: 'OTP Verified',
+      });
+
+      navigation.navigate('ProfileSetup1', {
+        email,
+        username,
+        phoneNumber,
+        password,
+      });
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid OTP',
+        text2: res.data.message,
+      });
+    }
+  } catch (error : any) {
+    console.error("Verify OTP Error", error);
+    Toast.show({
+      type: 'error',
+      text1: 'Verification Failed',
+      text2: error.response?.data?.message || 'Invalid OTP or Server Error',
+    });
+  }
+};
 
   return (
-    <View className="flex-1 justify-center bg-transparent px-8">
-      <View className="h-16" />
-
-      <Image
-        source={require('../assets/logo.png')}
-        className="mb-5 h-14 w-28 self-center"
-        resizeMode="contain"
-      />
-
-      <View className="flex-col gap-3">
-        <TextInput
-          className="w-full rounded-lg border border-white p-4 text-base text-pink-300"
-          placeholder="Email id"
-          placeholderTextColor="#A1A1A1"
-          value={email}
-          onChangeText={setEmail}
-        />
-        <TextInput
-          className="w-full rounded-lg border border-white p-4 text-base text-pink-300"
-          placeholder="Username"
-          placeholderTextColor="#A1A1A1"
-          value={username}
-          onChangeText={setUsername}
-        />
-        <TextInput
-          className="w-full rounded-lg border border-white p-4 text-base text-pink-300"
-          placeholder="Phone Number"
-          placeholderTextColor="#A1A1A1"
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-        />
-        <View className="w-full flex-row items-center rounded-lg border border-white px-3 py-1">
-          <TextInput
-            className="flex-1 text-pink-300"
-            placeholder="Password"
-            placeholderTextColor="#A1A1A1"
-            secureTextEntry={!showConfirmPassword}
-            value={password}
-            onChangeText={setPassword}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View className="flex-1 bg-[#F3F4F6]">
+        {/* Background */}
+        <ScrollView
+          contentContainerStyle={{ padding: 16 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Image
+            source={loginImage}
+            className="w-full rounded-2xl"
+            resizeMode="cover"
           />
-          <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-            <Ionicons name={showConfirmPassword ? 'eye-off' : 'eye'} size={22} color="#A1A1A1" />
-          </TouchableOpacity>
-        </View>
-        {otpSent && (
-          <TextInput
-            className="w-full rounded-lg border border-white p-4 text-base text-pink-300"
-            placeholder="Enter your OTP"
-            placeholderTextColor="#A1A1A1"
-            value={otp}
-            onChangeText={setOtp}
-          />
-        )}
-        <View className="mb-5 flex-row items-center">
-          <Checkbox
-            value={agreeTerms}
-            onValueChange={setAgreeTerms}
-            color={agreeTerms ? '#fbb6ce' : undefined}
-          />
-          <Text className="ml-2 text-white">I agree to the Terms & Conditions</Text>
-        </View>
+          <View className="h-56" />
+        </ScrollView>
+
+        {/* Signup Sheet */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+          className="absolute bottom-0 w-full"
+        >
+          <ScrollView keyboardShouldPersistTaps="handled">
+            <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-16">
+              <Image source={require('../assets/logo.png')} className="h-14 w-28 self-center" style={{ tintColor: '#000' }} resizeMode='cover' />
+              <Text className="text-3xl font-bold mb-6">Sign Up</Text>
+
+              <TextInput
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-4"
+                placeholder="Email"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+
+              <TextInput
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-4"
+                placeholder="Username"
+                value={username}
+                onChangeText={setUsername}
+              />
+
+              <TextInput
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-4"
+                placeholder="Phone Number"
+                keyboardType="phone-pad"
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
+              />
+
+              <View className="mb-4 flex-row items-center rounded-xl border border-gray-300 px-4">
+                <TextInput
+                  className="flex-1 py-4"
+                  placeholder="Password"
+                  secureTextEntry={!passwordVisible}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <Pressable onPress={() => setPasswordVisible(!passwordVisible)}>
+                  <Ionicons
+                    name={passwordVisible ? 'eye-off' : 'eye'}
+                    size={22}
+                    color="#9CA3AF"
+                  />
+                </Pressable>
+              </View>
+
+              {otpSent && (
+                <TextInput
+                  className="mb-4 rounded-xl border border-gray-300 px-4 py-4"
+                  placeholder="Enter OTP"
+                  value={otp}
+                  onChangeText={setOtp}
+                />
+              )}
+
+              <View className="mb-6 flex-row items-center">
+                <Checkbox value={agreeTerms} onValueChange={setAgreeTerms} />
+                <Text className="ml-2 text-gray-600">
+                  I agree to the Terms & Conditions
+                </Text>
+              </View>
+
+              {!otpSent ? (
+                <Pressable
+                  className="rounded-full bg-black py-4 items-center"
+                  onPress={sendOtpToEmail}
+                >
+                  <Text className="text-white text-lg font-semibold">
+                    Send OTP
+                  </Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  className="rounded-full bg-black py-4 items-center"
+                  onPress={verifyOtpAndProceed}
+                >
+                  <Text className="text-white text-lg font-semibold">
+                    Verify & Continue
+                  </Text>
+                </Pressable>
+              )}
+
+              <View className="mt-6 flex-row justify-center">
+                <Text className="text-gray-600">Already have an account? </Text>
+                <Pressable onPress={() => navigation.navigate('Login')}>
+                  <Text className="font-semibold text-black">Login</Text>
+                </Pressable>
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </View>
-
-      {!otpSent ? (
-        <TouchableOpacity
-          className="items-center rounded-lg bg-pink-300 py-4"
-          onPress={sendOtpToEmail}>
-          <Text className="text-base font-semibold text-white">Send OTP</Text>
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity
-          className="items-center rounded-lg bg-pink-300 py-4"
-          onPress={() =>
-            navigation.navigate('ProfileSetup1', { email, username, phoneNumber, password, otp })
-          }>
-          <Text className="text-base font-semibold text-white">Sign Up</Text>
-        </TouchableOpacity>
-      )}
-
-      <View className="my-7 flex-row items-center">
-        <View className="h-px flex-1 bg-white" />
-        <Text className="mx-3 text-white">OR</Text>
-        <View className="h-px flex-1 bg-white" />
-      </View>
-
-      <TouchableOpacity className="flex-row items-center justify-center rounded-full border border-white py-3">
-        <AntDesign name="google" size={20} color="white" />
-        <Text className="ml-3 text-base font-medium text-white">Sign up with Google</Text>
-      </TouchableOpacity>
-
-      <View className="mt-6 flex-row justify-center">
-        <Text className="text-white">Already have an account? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text className="font-semibold text-white underline">Login</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 }

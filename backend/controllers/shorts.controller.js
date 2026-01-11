@@ -1,9 +1,10 @@
 import express from 'express';
 import Shorts from '../models/shorts.model.js';
+import Comment from '../models/comment.model.js';
 
 export const createShorts = async(req,res)=>{
     try {
-        const { title, description} = req.body;
+        const { title, description } = req.body;
         if(!title || !description){
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
@@ -34,6 +35,16 @@ export const fetchShorts = async(req,res)=>{
         .skip(skip)
         .limit(limit)
         .populate("user", "name username avatar");
+
+        const shortsWithCount = await Promise.all(
+        shorts.map(async (s) => {
+            const count = await Comment.countDocuments({
+            post: s._id,
+            postType: "Shorts",
+            });
+            return { ...s, commentsCount: count };
+        })
+        );
         return res.status(200).json({ success: true, message: "Shorts fetched successfully", shorts });
     } catch (error) {
         console.log("Internal server error", error);
@@ -146,7 +157,8 @@ export const addComment = async(req,res)=>{
         const comment = await Comment.create({
             text,
             commentor: req.user.id,
-            post: req.params.id
+            post: req.params.id,
+            postType: "Shorts"
         })
         const commenterDetails = await Comment.findById(comment._id).populate("commentor", "name avatar username");
         return res.status(200).json({ success: true, message: "Comment created successfully", comment, commenterDetails });
@@ -156,22 +168,67 @@ export const addComment = async(req,res)=>{
     }
 }
 
-export const deleteComment = async (req, res) => {
-    try {
-        const commentOnShort = await Comment.findOne({ post: req.params.id, commentor: req.user.id });
-        if(req.user.id !== commentOnShort.commentor){
-            return res.status(403).json({ success: false, message: "Not authorized" });
-        }
-        if (!commentOnShort) {
-            return res.status(404).json({ success: false, message: "Comment not found" });
-        }
-        await Comment.findByIdAndDelete(req.params.id);
-        return res.status(200).json({ success: true, message: "Comment deleted successfully" });
-    } catch (error) {
-        console.log("Internal server error", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+export const getAllComments = async (req, res) => {
+  try {
+    const comments = await Comment.find({ post: req.params.id, postType: "Shorts" })
+      .sort({ createdAt: -1 })
+      .populate("commentor", "name avatar username");
+    if (!comments) {
+      return res.status(404).json({ success: false, message: "No comments" });
     }
-}
+    const totalComments = comments.length;
+    return res.status(200).json({ success: true, message: "Comments fetched successfully", comments, totalComments });
+  } catch (error) {
+    console.log("Internal server error", error);
+    return res.status(500).json({success: false,message: "Internal server error",});
+  }
+};
+
+export const updateComment = async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) {
+      return res.status(400).json({ success: false, message: "Text required" });
+    }
+    const comment = await Comment.findById(req.params.id);
+    if (!comment) {
+      return res.status(404).json({ success: false, message: "Comment not found" });
+    }
+    if (comment.commentor.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+    comment.text = text;
+    await comment.save();
+    const updated = await Comment.findById(comment._id).populate(
+      "commentor",
+      "name avatar username"
+    );
+    return res.status(200).json({
+      success: true,
+      message: "Comment updated",
+      comment: updated,
+    });
+  } catch (error) {
+    console.log("Update comment error", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const deleteComment = async (req, res) => {
+  try {
+    const comment = await Comment.find({post:req.params.id, postType: "Shorts"});
+    if (!comment) {
+      return res.status(404).json({ success: false, message: "Comment not found" });
+    }
+    if (comment.commentor.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+    await Comment.findOneAndDelete({post:req.params.id});
+    return res.status(200).json({ success: true, message: "Comment deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
 
 export const viewsInShort = async(req,res)=>{
     try {
@@ -195,3 +252,15 @@ export const viewsInShort = async(req,res)=>{
         return res.status(500).json({ success: false, message: "Internal server error" });        
     }
 }
+
+export const getShortsByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const shorts = await Shorts.find({ user: userId })
+      .sort({ createdAt: -1 });
+    return res.status(200).json({ success: true, shorts });
+  } catch (error) {
+    console.log("Error fetching user shorts:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
