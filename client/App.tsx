@@ -61,6 +61,11 @@ import BunkOMeter from "./components/newFeatures/BunkOMeter";
 import VibeSelector from "./components/newFeatures/VibeSelector";
 import TwelveAMHomeCard from "./components/newFeatures/TwelveAMHomeCard";
 import TwelveAMClub from "./components/newFeatures/TwelveAMClub";
+import ConfessionFeed from 'components/newFeatures/ConfessionFeed';
+import NineAmConfession from 'components/newFeatures/NineAmConfession';
+
+// Notification
+import Notification from "./components/Notification";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator();
@@ -114,6 +119,9 @@ export type RootStackParamList = {
   TwelveAMHomeCard: undefined;
   TwelveAMClub: undefined;
   FindTeammate: undefined;
+  ConfessionFeed: undefined;
+  Notification: undefined;
+  NineAmConfession: undefined;
 };
 
 function HomeDrawer() {
@@ -189,6 +197,9 @@ function AppStack() {
       <Stack.Screen name="TwelveAMHomeCard" component={TwelveAMHomeCard} />
       <Stack.Screen name="TwelveAMClub" component={TwelveAMClub} />
       <Stack.Screen name="FindTeammate" component={FindTeammate} />
+      <Stack.Screen name="ConfessionFeed" component={ConfessionFeed} />
+      <Stack.Screen name="Notification" component={Notification} />
+      <Stack.Screen name="NineAmConfession" component={NineAmConfession} />
     </Stack.Navigator>
   );
 }

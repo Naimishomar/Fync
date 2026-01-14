@@ -2,6 +2,7 @@ import express from 'express';
 import Post from '../models/post.model.js';
 import Comment from '../models/comment.model.js';
 import User from '../models/user.model.js';
+import Notification from '../models/notification.model.js';
 
 export const createPost = async(req,res)=>{
     try {
@@ -135,6 +136,22 @@ export const likePost = async (req, res) => {
         },
         { new: true }
       );
+        if (post.user.toString() !== req.user.id.toString()) {
+            const existing = await Notification.findOne({
+                recipient: post.user,
+                sender: req.user.id,
+                type: 'like',
+                post: post._id
+            });
+            if (!existing) {
+                await Notification.create({
+                    recipient: post.user,
+                    sender: req.user.id,
+                    type: 'like',
+                    post: post._id
+                });
+            }
+        }
       return res.status(200).json({ success: true, message: "Post liked successfully",post: updatedPost});
     }
   } catch (error) {
@@ -165,6 +182,31 @@ export const addComment = async(req,res)=>{
                 postType: "Post"
             })
             const commenterDetails = await Comment.findById(comment._id).populate("commentor", "name avatar username");
+            if (post.user.toString() !== req.user.id.toString()) {
+                await Notification.create({
+                    recipient: post.user,
+                    sender: req.user.id,
+                    type: 'comment',
+                    post: post._id,
+                    commentText: text
+                });
+            }
+            const mentionedUsers = text.match(/@\w+/g);
+            if (mentionedUsers) {
+                for (const tag of mentionedUsers) {
+                    const username = tag.substring(1);
+                    const taggedUser = await User.findOne({ username });
+                    if (taggedUser && taggedUser._id.toString() !== req.user.id.toString()) {
+                        await Notification.create({
+                            recipient: taggedUser._id,
+                            sender: req.user.id,
+                            type: 'tag',
+                            post: post._id,
+                            commentText: text
+                        });
+                    }
+                }
+            }
             return res.status(200).json({ success: true, message: 'Comment created successfully', comment, commenterDetails });
         }
     } catch (error) {

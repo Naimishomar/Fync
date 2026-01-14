@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { customAlphabet } from 'nanoid';
 import sendMail from '../utils/emailOtp.js';
 import OTP from '../models/otp.model.js';
+import Notification from '../models/notification.model.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/token.js';
 // import {sendPhoneOTP, verifyPhoneOTP } from '../utils/phoneOtp.js';
 
@@ -276,6 +277,13 @@ export const followUser = async (req, res) => {
       currentUserId,
       { $addToSet: { following: targetUserId } }
     );
+    if (targetUserId.toString() !== req.user.id.toString()) {
+        await Notification.create({
+            recipient: targetUserId,
+            sender: req.user.id,
+            type: 'follow'
+        });
+    }
     return res.status(200).json({
       success: true,
       message: `You are now following ${targetUser.username}`,
