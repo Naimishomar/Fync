@@ -22,6 +22,7 @@ import { logout } from './controllers/auth.controller.js';
 
 import { socketController } from './controllers/socket.controller.js';
 import { lotterySocketController } from './socket/9pmConfession.socket.js';
+import { setupSocket } from './socket/videoLobby.js' 
 
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000,
@@ -67,6 +68,7 @@ app.use('/leaderboard', codingRoute);
 
 socketController(io);
 lotterySocketController(io);
+setupSocket(io);
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
