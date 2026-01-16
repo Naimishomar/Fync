@@ -215,6 +215,30 @@ export default function CustomSidebar(props: any) {
                 <Ionicons name="people-outline" size={24} color="#f9a8d4" />
                 <Text className="text-white text-lg ml-4 font-medium">Find Teammate</Text>
             </Pressable>
+
+            {/* 7. Confession Feed */}
+            <Pressable 
+            onPress={() => props.navigation.navigate('ConfessionFeed')}
+            className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800">
+                <Ionicons name="chatbubble-ellipses-outline" size={24} color="#f9a8d4" />
+                <Text className="text-white text-lg ml-4 font-medium">Confession Feed</Text>
+            </Pressable>
+
+            {/* 8. 9AM Confession */}
+            <Pressable 
+            onPress={() => props.navigation.navigate('NineAmConfession')}
+            className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800">
+                <Ionicons name="flashlight-outline" size={24} color="#f9a8d4" />
+                <Text className="text-white text-lg ml-4 font-medium">9AM Confession</Text> 
+            </Pressable>
+
+            {/* 9. Coding Leaderboard */}
+            <Pressable 
+            onPress={() => props.navigation.navigate('CodingLeaderboard')}
+            className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800">
+                <Ionicons name="code-slash-outline" size={24} color="#f9a8d4" />
+                <Text className="text-white text-lg ml-4 font-medium">Coding Leaderboard</Text>
+            </Pressable>
         </View>
       </DrawerContentScrollView>
 

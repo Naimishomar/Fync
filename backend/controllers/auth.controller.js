@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { customAlphabet } from 'nanoid';
 import sendMail from '../utils/emailOtp.js';
 import OTP from '../models/otp.model.js';
+import Notification from '../models/notification.model.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/token.js';
 // import {sendPhoneOTP, verifyPhoneOTP } from '../utils/phoneOtp.js';
 
@@ -168,7 +169,7 @@ export const login = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const { about, skills, experience, interest, hobbies, github_id, linkedIn_id } = req.body;
+    const { about, skills, experience, interest, hobbies, github_id, linkedIn_id, leetcode, gfg } = req.body;
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
@@ -194,6 +195,8 @@ export const updateUser = async (req, res) => {
           ...(linkedIn_id && { linkedIn_id }),
           ...(avatarUrl && { avatar: avatarUrl }),
           ...(bannerUrl && { banner: bannerUrl }),
+          ...(leetcode && { "codingProfiles.leetcode": leetcode }),
+          ...(gfg && { "codingProfiles.gfg": gfg }),
         },
       },
       { new: true, runValidators: true }
@@ -276,6 +279,13 @@ export const followUser = async (req, res) => {
       currentUserId,
       { $addToSet: { following: targetUserId } }
     );
+    if (targetUserId.toString() !== req.user.id.toString()) {
+        await Notification.create({
+            recipient: targetUserId,
+            sender: req.user.id,
+            type: 'follow'
+        });
+    }
     return res.status(200).json({
       success: true,
       message: `You are now following ${targetUser.username}`,

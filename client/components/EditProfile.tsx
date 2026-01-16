@@ -7,11 +7,10 @@ import {
   Pressable,
   ScrollView,
   ActivityIndicator,
-  Platform,
-  Alert
+  Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/auth.context';
@@ -31,16 +30,19 @@ export default function EditProfile() {
   const [experience, setExperience] = useState(user?.experience || '');
   
   // --- Arrays / Tags ---
-  // Ensure we start with an array. If backend returns undefined, default to []
   const [skills, setSkills] = useState<string[]>(user?.skills || []);
   const [skillInput, setSkillInput] = useState('');
 
-  const [hobbies, setHobbies] = useState(user?.hobbies || ''); // Treating as string for simplicity, or can be tags too
+  const [hobbies, setHobbies] = useState(user?.hobbies || '');
   const [interest, setInterest] = useState(user?.interest || '');
 
   // --- Social Links ---
   const [githubId, setGithubId] = useState(user?.github_id || '');
   const [linkedinId, setLinkedinId] = useState(user?.linkedIn_id || '');
+  
+  // --- Coding Profiles (New) ---
+  const [leetcodeId, setLeetcodeId] = useState(user?.codingProfiles?.leetcode || '');
+  const [gfgId, setGfgId] = useState(user?.codingProfiles?.gfg || '');
 
   // --- Images ---
   const [avatar, setAvatar] = useState(user?.avatar || null);
@@ -53,7 +55,7 @@ export default function EditProfile() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: type === 'avatar' ? [1, 1] : [16, 9], // Aspect ratio for banner
+      aspect: type === 'avatar' ? [1, 1] : [16, 9],
       quality: 0.5,
     });
 
@@ -70,13 +72,12 @@ export default function EditProfile() {
 
   // --- SKILL TAG LOGIC ---
   const handleSkillInput = (text: string) => {
-    // Check if the last character typed is a comma
     if (text.endsWith(',')) {
-      const newSkill = text.slice(0, -1).trim(); // Remove comma and whitespace
+      const newSkill = text.slice(0, -1).trim();
       if (newSkill.length > 0 && !skills.includes(newSkill)) {
         setSkills([...skills, newSkill]);
       }
-      setSkillInput(''); // Clear input
+      setSkillInput('');
     } else {
       setSkillInput(text);
     }
@@ -100,14 +101,12 @@ export default function EditProfile() {
       formData.append('hobbies', hobbies);
       formData.append('github_id', githubId);
       formData.append('linkedIn_id', linkedinId);
+      formData.append('leetcode', leetcodeId);
+      formData.append('gfg', gfgId);
 
-      // Append Skills Array (Backend expects array or multiple fields)
-      // Most Multer configs handle arrays if you append multiple times with same key
       skills.forEach((skill) => {
         formData.append('skills', skill); 
       });
-      // Fallback: If backend expects a JSON string for array
-      // formData.append('skills', JSON.stringify(skills));
 
       // Append Avatar
       if (newAvatar) {
@@ -165,7 +164,7 @@ export default function EditProfile() {
         </Pressable>
       </View>
 
-      <ScrollView className="p-4">
+      <ScrollView className="p-4" showsVerticalScrollIndicator={false}>
         
         {/* --- Banner Image --- */}
         <Pressable onPress={() => pickImage('banner')} className="mb-6">
@@ -178,7 +177,6 @@ export default function EditProfile() {
                         <Text className="text-gray-400 text-xs mt-1">Tap to add banner</Text>
                     </View>
                 )}
-                {/* Overlay Icon */}
                 <View className="absolute bg-black/40 p-2 rounded-full">
                     <Ionicons name="camera-outline" size={20} color="white" />
                 </View>
@@ -202,11 +200,9 @@ export default function EditProfile() {
         {/* --- Form Fields --- */}
         <View className="space-y-5 pb-10">
           
-          {/* Name & Username */}
           <InputGroup label="Name" value={name} onChange={setName} placeholder="Your Name" />
           <InputGroup label="Username" value={username} onChange={setUsername} placeholder="username" />
           
-          {/* Bio & About */}
           <InputGroup label="Bio" value={bio} onChange={setBio} placeholder="Short bio..." multiline />
           <InputGroup label="About" value={about} onChange={setAbout} placeholder="Tell us more about yourself..." multiline />
 
@@ -214,7 +210,6 @@ export default function EditProfile() {
           <View>
             <Text className="text-gray-400 text-sm mb-2 ml-1">Skills (Type & comma to add)</Text>
             <View className="bg-gray-900 rounded-xl p-3 flex-row flex-wrap gap-2 border border-gray-800">
-               {/* Render Tags */}
                {skills.map((skill, index) => (
                    <View key={index} className="bg-blue-900/50 border border-blue-500/30 px-3 py-1.5 rounded-full flex-row items-center">
                        <Text className="text-blue-100 font-medium mr-1">{skill}</Text>
@@ -223,7 +218,6 @@ export default function EditProfile() {
                        </Pressable>
                    </View>
                ))}
-               {/* Input Field */}
                <TextInput
                   value={skillInput}
                   onChangeText={handleSkillInput}
@@ -234,36 +228,70 @@ export default function EditProfile() {
             </View>
           </View>
 
-          {/* Experience */}
           <InputGroup label="Experience" value={experience} onChange={setExperience} placeholder="e.g. SDE at Google" />
-
-          {/* Interests & Hobbies */}
           <InputGroup label="Interests" value={interest} onChange={setInterest} placeholder="e.g. AI, Web3, Cycling" />
           <InputGroup label="Hobbies" value={hobbies} onChange={setHobbies} placeholder="Reading, Gaming..." />
 
-          {/* Social Links */}
-          <View className="pt-4 border-t border-gray-800">
-              <Text className="text-gray-300 font-bold mb-3 text-lg">Social Links</Text>
+          {/* --- Social & Coding Links --- */}
+          <View className="pt-4 border-t border-gray-800 mt-2">
+              <Text className="text-gray-300 font-bold mb-4 text-lg">Social & Coding Profiles</Text>
               
+              {/* GitHub */}
               <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800 mb-3">
                   <Ionicons name="logo-github" size={24} color="white" />
                   <TextInput
                     value={githubId}
                     onChangeText={setGithubId}
-                    placeholder="Github Profile URL / ID"
+                    placeholder="Github Username"
                     placeholderTextColor="#666"
-                    className="flex-1 text-white p-3 ml-2"
+                    className="flex-1 text-white p-3.5 ml-2"
                   />
               </View>
 
-              <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800">
+              {/* LinkedIn */}
+              <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800 mb-3">
                   <Ionicons name="logo-linkedin" size={24} color="#0077b5" />
                   <TextInput
                     value={linkedinId}
                     onChangeText={setLinkedinId}
-                    placeholder="LinkedIn Profile URL / ID"
+                    placeholder="LinkedIn Profile URL"
                     placeholderTextColor="#666"
-                    className="flex-1 text-white p-3 ml-2"
+                    className="flex-1 text-white p-3.5 ml-2"
+                  />
+              </View>
+
+              {/* LeetCode */}
+              <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800 mb-3">
+                  <Image 
+                    source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png" }} 
+                    width={16} height={16}
+                    className="w-6 h-6"
+                    style={{ tintColor: '#facc15' }}
+                    resizeMode="contain"
+                  />
+                  <TextInput
+                    value={leetcodeId}
+                    onChangeText={setLeetcodeId}
+                    placeholder="LeetCode Username"
+                    placeholderTextColor="#666"
+                    className="flex-1 text-white p-3.5 ml-2"
+                  />
+              </View>
+
+              {/* GeeksForGeeks */}
+              <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800 mb-3">
+                  <Image 
+                    source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/4/43/GeeksforGeeks.svg" }} 
+                    width={6} height={6}
+                    className="w-6 h-6"
+                    resizeMode="contain"
+                  />
+                  <TextInput
+                    value={gfgId}
+                    onChangeText={setGfgId}
+                    placeholder="GeeksforGeeks Username"
+                    placeholderTextColor="#666"
+                    className="flex-1 text-white p-3.5 ml-2"
                   />
               </View>
           </View>

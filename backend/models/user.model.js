@@ -100,6 +100,44 @@ const userSchema = new mongoose.Schema({
     experience:{
         type: String
     },
+    codingProfiles: {
+        leetcode: { 
+            type: String, 
+            default: null 
+        },
+        gfg: { 
+            type: String, 
+            default: null 
+        } 
+    },
+    codingStats: {
+        totalSolved: { 
+            type: Number, 
+            default: 0 
+        },
+        leetcodeSolved: { 
+            type: Number, 
+            default: 0 
+        },
+        gfgSolved: { 
+            type: Number, 
+            default: 0 
+        },
+        lastUpdated: { 
+            type: Date, 
+            default: Date.now 
+        }
+    },
+    weeklyStats: {
+        startOfWeekScore: { 
+            type: Number, 
+            default: 0 
+        },
+        questionsThisWeek: { 
+            type: Number, 
+            default: 0 
+        }
+    }
 },{timestamps:true});
 
 const User = mongoose.model('User', userSchema);

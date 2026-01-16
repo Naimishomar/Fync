@@ -5,11 +5,11 @@ const router = express.Router();
 
 router.post("/create", authMiddleware, createConfession);
 router.get("/get", authMiddleware, getConfession);
-router.post("/like", authMiddleware, likeAndUnlikeConfession);
-router.post("/comment", authMiddleware, createConfessionComment);
-router.get("/comments/all", authMiddleware, getConfessionComments);
+router.post("/like/:confessionId", authMiddleware, likeAndUnlikeConfession);
+router.post("/comment/:confessionId", authMiddleware, createConfessionComment);
+router.get("/comments/:confessionId", authMiddleware, getConfessionComments);
 router.delete("/delete/:confessionId", authMiddleware, deleteConfession);
-router.post("/report", authMiddleware, reportConfession);
+router.post("/report/:confessionId", authMiddleware, reportConfession);
 
 
 export default router;

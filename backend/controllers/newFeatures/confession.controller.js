@@ -1,6 +1,6 @@
-import { tryCatch } from "bullmq";
 import Confession from "../../models/newFeatures/confession.model.js";
 import ConfessionReport from "../../models/newFeatures/confessionReport.model.js";
+import Comment from "../../models/comment.model.js";
 
 export const createConfession = async(req,res)=>{
     try {
@@ -26,7 +26,7 @@ export const createConfession = async(req,res)=>{
 
 export const getConfession = async(req,res)=>{
     try {
-        const confession = await Confession.find({ collegeName: req.user.college });
+        const confession = await Confession.find({ collegeName: req.user.college }).populate("senderId", "username");
         if(!confession){
             return res.status(404).json({message: "No confessions found", success: false});
         }

@@ -1,6 +1,7 @@
 import express from 'express';
 import Shorts from '../models/shorts.model.js';
 import Comment from '../models/comment.model.js';
+import Notification from '../models/notification.model.js';
 
 export const createShorts = async(req,res)=>{
     try {
@@ -136,6 +137,22 @@ export const likeAndUnlikeShort = async(req,res)=>{
                 },
                 { new: true }
             );
+            if (short.user.toString() !== req.user.id.toString()) {
+                const existing = await Notification.findOne({
+                    recipient: short.user,
+                    sender: req.user.id,
+                    type: 'story_like',
+                    shorts: short._id
+                });
+                if (!existing) {
+                    await Notification.create({
+                        recipient: short.user,
+                        sender: req.user.id,
+                        type: 'story_like',
+                        shorts: short._id
+                    });
+                }
+            }
             return res.status(200).json({ success: true, message: "Short liked successfully", short: updatedShort });
         }
     } catch (error) {
@@ -161,6 +178,15 @@ export const addComment = async(req,res)=>{
             postType: "Shorts"
         })
         const commenterDetails = await Comment.findById(comment._id).populate("commentor", "name avatar username");
+        if (short.user.toString() !== req.user.id.toString()) {
+            await Notification.create({
+                recipient: short.user,
+                sender: req.user.id,
+                type: 'story_comment',
+                shorts: short._id,
+                commentText: text
+            });
+        }
         return res.status(200).json({ success: true, message: "Comment created successfully", comment, commenterDetails });
     } catch (error) {
         console.log("Internal server error", error);

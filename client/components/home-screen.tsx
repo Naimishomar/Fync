@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -14,7 +14,7 @@ import {
   RefreshControl 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/auth.context';
 import CreatePost from './create-post'; 
 import axios from '../context/axiosConfig';
@@ -300,6 +300,7 @@ export default function HomeScreen() {
   const [activeTab, setActiveTab] = useState<'forYou' | 'following'>('forYou');
   const [feed, setFeed] = useState<Post[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { user } = useAuth();
 
   // Modal State
@@ -317,6 +318,22 @@ export default function HomeScreen() {
       console.log('Failed to load feed', error);
     }
   };
+
+  useFocusEffect(
+      useCallback(() => {
+        const getCount = async () => {
+          try {
+            const res = await axios.get('/notifications/count');
+            if (res.data.success) {
+              setUnreadCount(res.data.count);
+            }
+          } catch (error) {
+            console.log("Badge Error:", error);
+          }
+        };
+        getCount();
+      }, [])
+    );
 
   useEffect(() => {
     if (user) {
@@ -370,8 +387,19 @@ export default function HomeScreen() {
         <Pressable onPress={()=> navigation.navigate('SearchScreen')}>
           <Ionicons name="search-outline" size={26} color="white"/>
         </Pressable>
-        <Pressable>
-          <Ionicons name="heart-outline" size={26} color="white" />
+        <Pressable onPress={()=> navigation.navigate('Notification')}>
+          {/* <Text className="text-white absolute top-0 right-0 bg-pink-600 h-4 w-4 px-2 py-1 rounded-full">{unreadCount}</Text> */}
+          <View>
+            <Ionicons name="heart-outline" size={26} color="white" />
+            {unreadCount > 0 && (
+              <View className="absolute -top-1 -right-1 bg-pink-500 rounded-full w-4 h-4 justify-center items-center border border-black">
+                <Text className="text-white text-xs font-light">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </Text>
+              </View>
+            )}
+          </View>
+          {/* <Ionicons name="notifications-outline" size={26} color="white" /> */}
         </Pressable>
         <Pressable onPress={()=> navigation.navigate('ChatList')}>
           <Ionicons name="chatbubble-ellipses-outline" size={26} color="white" />

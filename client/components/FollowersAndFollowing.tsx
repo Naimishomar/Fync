@@ -27,7 +27,6 @@ const FollowersAndFollowing = () => {
   const { userId, type } = route.params; // type is "followers" or "following"
 
   const { user: currentUser } = useAuth();
-  // 1. FIX: Ensure myId is a string, fallback to empty if user not loaded
   const myId = currentUser?._id || "";
 
   const [users, setUsers] = useState<User[]>([]);
@@ -50,7 +49,7 @@ const FollowersAndFollowing = () => {
       const res = await axios.get(`/user/${endpoint}/${userId}`);
       
       if (res.data.success) {
-        // Ensure we handle the response key correctly based on type
+        // Handle response key dynamically
         const list = type === "followers" ? res.data.followers : res.data.following;
         setUsers(list || []);
       }
@@ -62,7 +61,6 @@ const FollowersAndFollowing = () => {
   };
 
   const toggleFollow = async (targetId: string, isFollowing: boolean) => {
-    // Prevent following yourself or if not logged in
     if (!myId || targetId === myId) return;
 
     try {
@@ -71,11 +69,10 @@ const FollowersAndFollowing = () => {
         prev.map((u) => {
           if (u._id !== targetId) return u;
 
-          // 2. FIX: Safely update followers array
           const currentFollowers = u.followers || [];
           const updatedFollowers = isFollowing
-            ? currentFollowers.filter((id) => id !== myId) // Remove ID
-            : [...currentFollowers, myId]; // Add ID
+            ? currentFollowers.filter((id) => id !== myId)
+            : [...currentFollowers, myId];
 
           return { ...u, followers: updatedFollowers };
         })
@@ -85,19 +82,18 @@ const FollowersAndFollowing = () => {
       await axios.post(isFollowing ? `/user/unfollow/${targetId}` : `/user/follow/${targetId}`);
     } catch (err) {
       console.log("Follow error", err);
-      // Optional: Revert state here if API fails
     }
   };
 
   const renderItem = ({ item }: { item: User }) => {
     const isMe = item._id === myId;
-    // 3. FIX: Safe check for includes
     const isFollowing = (item.followers || []).includes(myId);
 
     return (
       <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-900">
         <Pressable
-          onPress={() => navigation.push("PublicProfile", { userId: item._id })}
+          // ✅ FIX: Pass the 'user' object so PublicProfile receives it correctly
+          onPress={() => navigation.push("PublicProfile", { user: item })}
           className="flex-row items-center flex-1"
         >
           <Image

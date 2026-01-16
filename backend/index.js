@@ -15,9 +15,14 @@ import fundingRoute from './routes/funding.route.js';
 import quizRoute from './routes/quiz.route.js';
 import interviewRoute from './routes/interview.route.js';
 import confessionRoute from './routes/confession.route.js';
-import { socketController } from './controllers/socket.controller.js';
+import notificationRoute from './routes/notification.route.js';
+import codingRoute from './routes/coding.route.js';
 import { rateLimit } from 'express-rate-limit';
 import { logout } from './controllers/auth.controller.js';
+
+import { socketController } from './controllers/socket.controller.js';
+import { lotterySocketController } from './socket/9pmConfession.socket.js';
+import { setupSocket } from './socket/videoLobby.js' 
 
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000,
@@ -58,10 +63,12 @@ app.use('/funding', fundingRoute);
 app.use('/quiz', quizRoute);
 app.use('/interview', interviewRoute);
 app.use('/confession', confessionRoute);
-
-
+app.use('/notifications', notificationRoute);
+app.use('/leaderboard', codingRoute);
 
 socketController(io);
+lotterySocketController(io);
+setupSocket(io);
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
