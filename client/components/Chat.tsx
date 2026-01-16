@@ -16,7 +16,7 @@ import { useAuth } from "../context/auth.context";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 
-const socket = io("http://192.168.28.195:3000");
+const socket = io("http://192.168.28.20:3000");
 
 const Chat = ({ route, navigation }) => {
   const conversationId = route?.params?.conversationId;

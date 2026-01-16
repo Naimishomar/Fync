@@ -63,6 +63,7 @@ import TwelveAMHomeCard from "./components/newFeatures/TwelveAMHomeCard";
 import TwelveAMClub from "./components/newFeatures/TwelveAMClub";
 import ConfessionFeed from 'components/newFeatures/ConfessionFeed';
 import NineAmConfession from 'components/newFeatures/NineAmConfession';
+import CodingLeaderboard from 'components/newFeatures/CodingLeaderboard';
 
 // Notification
 import Notification from "./components/Notification";
@@ -122,6 +123,7 @@ export type RootStackParamList = {
   ConfessionFeed: undefined;
   Notification: undefined;
   NineAmConfession: undefined;
+  CodingLeaderboard: undefined;
 };
 
 function HomeDrawer() {
@@ -200,6 +202,7 @@ function AppStack() {
       <Stack.Screen name="ConfessionFeed" component={ConfessionFeed} />
       <Stack.Screen name="Notification" component={Notification} />
       <Stack.Screen name="NineAmConfession" component={NineAmConfession} />
+      <Stack.Screen name="CodingLeaderboard" component={CodingLeaderboard} />
     </Stack.Navigator>
   );
 }

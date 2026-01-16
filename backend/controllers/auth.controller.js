@@ -169,7 +169,7 @@ export const login = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const { about, skills, experience, interest, hobbies, github_id, linkedIn_id } = req.body;
+    const { about, skills, experience, interest, hobbies, github_id, linkedIn_id, leetcode, gfg } = req.body;
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
@@ -195,6 +195,8 @@ export const updateUser = async (req, res) => {
           ...(linkedIn_id && { linkedIn_id }),
           ...(avatarUrl && { avatar: avatarUrl }),
           ...(bannerUrl && { banner: bannerUrl }),
+          ...(leetcode && { "codingProfiles.leetcode": leetcode }),
+          ...(gfg && { "codingProfiles.gfg": gfg }),
         },
       },
       { new: true, runValidators: true }
