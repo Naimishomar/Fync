@@ -1,7 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = "http://10.21.70.187:3000";
+const API_URL = "https://fync-backend-ptoy.onrender.com";
 
 axios.defaults.baseURL = API_URL;
 
