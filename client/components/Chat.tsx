@@ -22,7 +22,7 @@ import ZegoUIKitPrebuiltCallService, {
 } from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import * as ZIM from 'zego-zim-react-native';
 
-const socket = io("http://10.21.70.187:3000");
+const socket = io("https://fync-backend-ptoy.onrender.com");
 
 // Use your actual keys here
 const APP_ID = 1870753423; 
