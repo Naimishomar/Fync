@@ -127,7 +127,7 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
     return (
         <Modal visible={isVisible} animationType="fade" transparent={true} onRequestClose={onClose}>
              <View className="flex-1 bg-black/90 justify-center p-4">
-                <View className="bg-gray-900 rounded-2xl overflow-hidden max-h-[85%] w-full">
+                <View className="bg-gray-900 rounded-2xl overflow-hidden max-h-[85%] w-full border border-gray-800">
                     <ScrollView>
                         <Image source={{ uri: product.product_image[0] }} className="w-full h-72 bg-gray-800" resizeMode="cover" />
                         
@@ -177,10 +177,11 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
 
                     {!isOwner && (
                          <View className="p-4 bg-black border-t border-gray-800">
-                            <TouchableOpacity className="bg-green-600 w-full py-4 rounded-xl items-center flex-row justify-center gap-2">
-                                <Ionicons name="logo-whatsapp" size={20} color="white" />
+                            <Pressable className="bg-pink-400 w-full py-4 rounded-xl items-center flex-row justify-center gap-2"
+                                    onPress={() => navigation.navigate("Chat", { conversationId: product.seller?._id })}>
+                                <Ionicons name="chatbubbles-outline" size={20} color="white" />
                                 <Text className="text-white font-bold text-lg">Contact Seller</Text>
-                            </TouchableOpacity>
+                            </Pressable>
                          </View>
                     )}
                 </View>

@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import socket from '../../utils/socket'; 
 import ZegoUIKitPrebuiltCallService, { 
-  ZegoSendCallInvitationButton 
+  ZegoSendCallInvitationButton,
 } from '@zegocloud/zego-uikit-prebuilt-call-rn';
 import * as ZIM from 'zego-zim-react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
