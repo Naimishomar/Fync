@@ -173,11 +173,18 @@ useEffect(() => {
 
   // --- GRID RENDERER ---
   const renderGridItem = ({ item }: { item: any, index: number }) => {
-    const isVideo = activeTab === 'shorts';
+const isVideo = activeTab === 'shorts'; // Check active tab
     return (
       <Pressable 
         style={{ width: width / 3, height: isVideo ? width / 3 * 1.5 : width / 3, padding: 1 }}
-        onPress={() => openItem(item)}
+        onPress={() => {
+            // FIX: Conditionally pass shortId or postId
+            if (isVideo) {
+                navigation.navigate('IndividualPostOrShort', { shortId: item._id });
+            } else {
+                navigation.navigate('IndividualPostOrShort', { postId: item._id });
+            }
+        }}
         className="relative border border-black/50"
       >
         {isVideo ? (

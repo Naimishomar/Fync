@@ -1,5 +1,5 @@
 import express from 'express';
-import { addComment, createShorts, deleteComment, deleteShort, fetchShorts, getAllComments, getShortsByUserId, getYourShorts, likeAndUnlikeShort, updateComment, updateShort, viewsInShort } from '../controllers/shorts.controller.js';
+import { addComment, createShorts, deleteComment, deleteShort, fetchShorts, getAllComments, getShortByShortId, getShortsByUserId, getYourShorts, likeAndUnlikeShort, updateComment, updateShort, viewsInShort } from '../controllers/shorts.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { videoUpload } from '../utils/cloudinary.js';
 const router = express.Router();
@@ -16,5 +16,6 @@ router.post("/comment/update/:id", authMiddleware, updateComment);
 router.post('/comment/delete/:id', authMiddleware, deleteComment);
 router.get('/view/:id', authMiddleware, viewsInShort);
 router.get("/feed/:userId", authMiddleware, getShortsByUserId);
+router.get('/individual/:shortId', authMiddleware, getShortByShortId);
 
 export default router;

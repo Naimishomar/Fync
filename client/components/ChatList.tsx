@@ -15,7 +15,7 @@ import { useAuth } from "../context/auth.context";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const ChatList = ({ navigation }) => {
+const ChatList = ({ navigation } : any) => {
   const { user } = useAuth();
 
   const [conversations, setConversations] = useState<any[]>([]);
@@ -106,7 +106,6 @@ const ChatList = ({ navigation }) => {
 
     return (
       <Pressable
-        activeOpacity={0.7}
         className="flex-row items-center px-4 py-4 mb-1"
         onPress={() =>
           navigation.navigate("Chat", { conversationId: item._id })

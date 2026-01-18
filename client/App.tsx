@@ -68,6 +68,10 @@ import CodingLeaderboard from './components/newFeatures/CodingLeaderboard';
 
 // import VideoLobby from 'components/newFeatures/VideoLobby';
 import VideoLobby from './components/newFeatures/VideoLobby';
+import { 
+  ZegoUIKitPrebuiltCallWaitingScreen, 
+  ZegoUIKitPrebuiltCallInCallScreen 
+} from '@zegocloud/zego-uikit-prebuilt-call-rn';
 
 // Notification
 import Notification from "./components/Notification";
@@ -144,6 +148,8 @@ export type RootStackParamList = {
   VideoLobby: { myUserId: string, myUserName: string };
   IndividualPostOrShort: { postId: string };
   MarketplaceScreen: undefined;
+  ZegoUIKitPrebuiltCallWaitingScreen: undefined;
+  ZegoUIKitPrebuiltCallInCallScreen: undefined;
 };
 
 function HomeDrawer() {
@@ -186,6 +192,8 @@ function AuthStack() {
 }
 
 function AppStack() {
+console.log("Waiting Screen:", ZegoUIKitPrebuiltCallWaitingScreen);
+  console.log("InCall Screen:", ZegoUIKitPrebuiltCallInCallScreen);
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: "simple_push" }}>
       <Stack.Screen name="SplashScreen" component={SplashScreen} />
@@ -229,6 +237,18 @@ function AppStack() {
       <Stack.Screen name="VideoLobby" component={VideoLobby} />
       <Stack.Screen name="IndividualPostOrShort" component={IndividualPostOrShort} />
       <Stack.Screen name="MarketplaceScreen" component={MarketplaceScreen} />
+<Stack.Screen 
+        options={{ headerShown: false }}
+        // DO NOT CHANGE THE NAME
+        name="ZegoUIKitPrebuiltCallWaitingScreen"
+        component={ZegoUIKitPrebuiltCallWaitingScreen}
+      />
+      <Stack.Screen 
+        options={{ headerShown: false }}
+        // DO NOT CHANGE THE NAME
+        name="ZegoUIKitPrebuiltCallInCallScreen"
+        component={ZegoUIKitPrebuiltCallInCallScreen}
+      />
     </Stack.Navigator>
   );
 }

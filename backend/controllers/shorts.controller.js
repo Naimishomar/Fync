@@ -289,3 +289,17 @@ export const getShortsByUserId = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+export const getShortByShortId = async (req,res)=>{
+    try {
+        const { shortId } = req.params;
+        const short = await Shorts.findById(shortId).populate("user", "name username avatar").populate("comments");
+        if(!short){
+            return res.status(404).json({ success: false, message: "Short not found" });
+        }
+        return res.status(200).json({ success: true, message: "Short fetched successfully", short });
+    } catch (error) {
+        console.log("Error fetching user shorts:", error);
+        return res.status(500).json({ success: false, message: "Server error" });    
+    }
+};
