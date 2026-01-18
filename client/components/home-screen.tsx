@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -11,7 +11,8 @@ import {
   KeyboardAvoidingView, 
   Platform, 
   ActivityIndicator,
-  RefreshControl 
+  RefreshControl,
+  Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -38,12 +39,11 @@ interface Post {
   likes: number;
   liked_by: string[]; 
   comments: any[];
-  commentCount?: number; // Added optional field for robustness
+  commentCount?: number; 
   college?: string;
 }
 
 // --- SUB-COMPONENT: COMMENTS MODAL ---
-// Added onCommentAdded prop
 const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded }: any) => {
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -52,16 +52,20 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
 
   useEffect(() => {
     if (isVisible && postId) {
-      setLoading(true);
       fetchComments();
     }
   }, [isVisible, postId]);
 
   const fetchComments = async () => {
+    setLoading(true);
     try {
       const res = await axios.get(`/post/comment/${postId}`);
       if (res.data.success) {
-        setComments(res.data.comments);
+        // Sort Newest First
+        const sortedComments = res.data.comments.sort((a: any, b: any) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setComments(sortedComments);
       }
     } catch (error) {
       console.log("Error loading comments", error);
@@ -78,7 +82,7 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
       if (res.data.success) {
         const addedComment = res.data.comment;
         
-        // Manual population if backend doesn't return it populated
+        // Manual population
         if (!addedComment.commentor) {
             addedComment.commentor = {
                 _id: currentUser._id,
@@ -87,17 +91,16 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
             };
         }
         
-        // 1. Update Modal State
         setComments([addedComment, ...comments]); 
         setNewComment('');
 
-        // 2. Notify Parent (HomeScreen) to update Feed State
         if (onCommentAdded) {
             onCommentAdded(postId, addedComment);
         }
       }
     } catch (error) {
       console.log("Error posting comment", error);
+      Alert.alert("Error", "Could not post comment");
     } finally {
       setPosting(false);
     }
@@ -186,7 +189,6 @@ const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser
   const [resizeMode, setResizeMode] = useState(false);
   const navigation = useNavigation<any>();
 
-  // Calculate comment count safely
   const displayCommentCount = item.commentCount || item.comments?.length || 0;
 
   const handleLike = async () => {
@@ -298,8 +300,15 @@ export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const [profileImage, setProfileImage] = useState<string | undefined>('');
   const [activeTab, setActiveTab] = useState<'forYou' | 'following'>('forYou');
+  
+  // PAGINATION STATES
   const [feed, setFeed] = useState<Post[]>([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
   const [unreadCount, setUnreadCount] = useState(0);
   const { user } = useAuth();
 
@@ -307,18 +316,80 @@ export default function HomeScreen() {
   const [isCommentModalVisible, setCommentModalVisible] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
-  const getFeed = async () => {
+  // --- FETCH FEED (Logic for Pagination) ---
+  const fetchFeed = async (pageNum: number, shouldRefresh = false) => {
+    // Prevent fetching if we are already loading or if there's no more data (unless refreshing)
+    if (!hasMore && !shouldRefresh && pageNum !== 1) return;
+
+    if (pageNum === 1) setLoading(true);
+    if (pageNum > 1) setLoadingMore(true);
+
     try {
-      const endpoint = activeTab === 'forYou' ? '/post/feed' : '/post/feed/followers'; 
+      const endpoint = activeTab === 'forYou' 
+        ? `/post/feed?page=${pageNum}&limit=10` 
+        : `/post/feed/followers?page=${pageNum}&limit=10`;
+      
       const res = await axios.get(endpoint);
+      
       if (res.data.success) {
-        setFeed(res.data.posts);
+        const newPosts = res.data.posts;
+
+        if (shouldRefresh || pageNum === 1) {
+            setFeed(newPosts);
+        } else {
+            // Filter duplicates just in case
+            setFeed(prev => {
+                const existingIds = new Set(prev.map(p => p._id));
+                const uniqueNewPosts = newPosts.filter((p: Post) => !existingIds.has(p._id));
+                return [...prev, ...uniqueNewPosts];
+            });
+        }
+
+        // If we got fewer posts than limit, we reached the end
+        if (newPosts.length < 10) {
+            setHasMore(false);
+        } else {
+            setHasMore(true);
+        }
       }
     } catch (error) {
       console.log('Failed to load feed', error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+      setRefreshing(false);
     }
   };
 
+  // Initial Load & Tab Switch
+  useEffect(() => {
+    if (user) {
+      setProfileImage(user.avatar);
+      // Reset State
+      setPage(1);
+      setHasMore(true);
+      fetchFeed(1, true);
+    }
+  }, [user, activeTab]);
+
+  // Handle Pull-to-Refresh
+  const onRefresh = async () => {
+    setRefreshing(true);
+    setPage(1);
+    setHasMore(true);
+    await fetchFeed(1, true);
+  };
+
+  // Handle Load More (Infinite Scroll)
+  const loadMore = () => {
+    if (!loadingMore && hasMore && !loading) {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchFeed(nextPage);
+    }
+  };
+
+  // Fetch Notification Count
   useFocusEffect(
       useCallback(() => {
         const getCount = async () => {
@@ -335,30 +406,16 @@ export default function HomeScreen() {
       }, [])
     );
 
-  useEffect(() => {
-    if (user) {
-      setProfileImage(user.avatar);
-    }
-    getFeed();
-  }, [user, activeTab]);
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await getFeed();
-    setRefreshing(false);
-  };
-
   const handleOpenComments = (postId: string) => {
     setSelectedPostId(postId);
     setCommentModalVisible(true);
   };
 
-  // --- NEW FUNCTION: Update feed state when comment is added in modal ---
+  // Update feed state when comment is added in modal
   const handleCommentAddedInModal = (postId: string, newComment: any) => {
     setFeed((currentFeed) => 
       currentFeed.map((post) => {
         if (post._id === postId) {
-          // Increment comment count and add new comment object to array
           const currentCount = post.commentCount || post.comments?.length || 0;
           return {
             ...post,
@@ -388,7 +445,6 @@ export default function HomeScreen() {
           <Ionicons name="search-outline" size={26} color="white"/>
         </Pressable>
         <Pressable onPress={()=> navigation.navigate('Notification')}>
-          {/* <Text className="text-white absolute top-0 right-0 bg-pink-600 h-4 w-4 px-2 py-1 rounded-full">{unreadCount}</Text> */}
           <View>
             <Ionicons name="heart-outline" size={26} color="white" />
             {unreadCount > 0 && (
@@ -399,7 +455,6 @@ export default function HomeScreen() {
               </View>
             )}
           </View>
-          {/* <Ionicons name="notifications-outline" size={26} color="white" /> */}
         </Pressable>
         <Pressable onPress={()=> navigation.navigate('ChatList')}>
           <Ionicons name="chatbubble-ellipses-outline" size={26} color="white" />
@@ -429,6 +484,15 @@ export default function HomeScreen() {
     </View>
   );
 
+  const renderFooter = () => {
+    if (!loadingMore) return <View className="h-20" />;
+    return (
+      <View className="py-4 h-20">
+        <ActivityIndicator size="small" color="#fff" />
+      </View>
+    );
+  };
+
   return (
     <View className="flex-1 bg-black">
       {renderHeader()}
@@ -446,7 +510,7 @@ export default function HomeScreen() {
         ListHeaderComponent={
           <View>
             {renderTabBar()}
-            <View className="bg-black py-2">
+            <View className="bg-black">
                 <CreatePost /> 
             </View>
           </View>
@@ -454,8 +518,14 @@ export default function HomeScreen() {
         refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
         }
+        
+        // PAGINATION PROPS
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5} 
+        ListFooterComponent={renderFooter}
+
         ListEmptyComponent={
-            !refreshing ? (
+            !loading && !refreshing ? (
                 <View className="mt-20 flex-1 items-center px-4">
                     <Image source={no_post} className="h-48 w-[80%]" resizeMode="contain" />
                     <Text className="text-xl font-bold text-white mt-4">Welcome to Fync!</Text>
@@ -475,7 +545,7 @@ export default function HomeScreen() {
         postId={selectedPostId}
         currentUser={user}
         onClose={() => setCommentModalVisible(false)}
-        onCommentAdded={handleCommentAddedInModal} // <--- Passed callback here
+        onCommentAdded={handleCommentAddedInModal} 
       />
     </View>
   );

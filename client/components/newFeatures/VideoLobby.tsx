@@ -1,166 +1,172 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  View, Text, FlatList, TouchableOpacity, Modal, Alert 
+  View, 
+  Text, 
+  FlatList, 
+  TouchableOpacity, 
+  Alert, 
+  StyleSheet, 
+  SafeAreaView, 
+  ActivityIndicator,
+  Platform // ✅ Import Platform
 } from 'react-native';
-import JitsiMeet, { JitsiMeetEvents } from 'react-native-jitsi-meet'; 
-import socket from '../../utils/socket';
+import socket from '../../utils/socket'; 
+import ZegoUIKitPrebuiltCallService, { 
+  ZegoSendCallInvitationButton 
+} from '@zegocloud/zego-uikit-prebuilt-call-rn';
+import * as ZIM from 'zego-zim-react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../App';
 
-export default function NativeVideoLobby({ myUserId }: { myUserId: string }) {
+// 🔥 FIX 1: Polyfill Platform globally for any Zego dependency that forgot to import it
+if (Platform) {
+    (global as any).Platform = Platform;
+}
+
+type Props = NativeStackScreenProps<RootStackParamList, 'VideoLobby'>;
+
+const APP_ID = 1870753423; 
+const APP_SIGN = "0c687e01e1e38767ccdd1fa77993629c0fc3a6392df1e6175cce7d3cc36e76c7";
+
+export default function VideoLobby({ route, navigation }: Props) {
+  const myUserId = route.params?.myUserId || ""; 
+  const myUserName = route.params?.myUserName || "Unknown User";
+  
   const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
-  const [incomingCall, setIncomingCall] = useState<any>(null); // { callerId, roomId }
+  const [isZegoReady, setIsZegoReady] = useState(false);
 
   useEffect(() => {
-    // 1. Connect & Join Redis Lobby
+    // Safety check
+    if (!myUserId) {
+        Alert.alert("Error", "User ID is missing.");
+        navigation.goBack();
+        return;
+    }
+
+    // 1. Initialize Zego
+    initZego();
+
+    // 2. Connect Socket
     if (!socket.connected) socket.connect();
     socket.emit("join-lobby", myUserId);
 
-    // 2. Receive Real-Time Updates
     socket.on("update-user-list", (users: any) => {
-      // Show everyone except myself
+      // Filter out myself
       setOnlineUsers(users.filter((u: any) => u.userId !== myUserId));
     });
 
-    // 3. Handle Incoming Call (Ringing)
-    socket.on("incoming-call", ({ callerId, roomId }: any) => {
-      setIncomingCall({ callerId, roomId });
-    });
-
-    // 4. Handle Accepted Call (Start Video)
-    socket.on("call-accepted", ({ roomId }: any) => {
-      launchNativeJitsi(roomId);
-    });
-
-    // 5. Handle Busy
-    socket.on("call-busy", () => Alert.alert("Busy", "That user is currently in another call."));
-
-    // Jitsi Event Listeners
-    const endCallListener = JitsiMeetEvents.addListener('conferenceTerminated', () => {
-        socket.emit("end-call", { userId: myUserId });
-    });
-
     return () => {
+      // Cleanup
+      socket.emit("leave-lobby", myUserId);
       socket.off("update-user-list");
-      socket.off("incoming-call");
-      socket.off("call-accepted");
-      socket.off("call-busy");
-      endCallListener.remove(); 
+      
+      // 🔥 FIX 2: Always uninit when leaving the screen
+      ZegoUIKitPrebuiltCallService.uninit();
     };
-  }, []);
+  }, [myUserId]); 
 
-  // --- ACTIONS ---
+const initZego = async () => {
+    try {
+      await ZegoUIKitPrebuiltCallService.uninit();
 
-  const startCall = (targetUserId: string) => {
-    socket.emit("call-user", { callerId: myUserId, targetUserId });
-  };
-
-  const answerCall = () => {
-    if (!incomingCall) return;
-    
-    // Notify server to mark us as busy
-    socket.emit("accept-call", { 
-        callerId: incomingCall.callerId, 
-        acceptorId: myUserId, 
-        roomId: incomingCall.roomId 
-    });
-
-    launchNativeJitsi(incomingCall.roomId);
-    setIncomingCall(null);
-  };
-
-  const declineCall = () => {
-    setIncomingCall(null);
-    // Optional: Emit "reject-call" to server
-  };
-
-  // --- NATIVE JITSI LAUNCHER ---
-  const launchNativeJitsi = (roomId: string) => {
-    const url = `https://meet.jit.si/${roomId}`;
-    
-    setTimeout(() => {
-        JitsiMeet.call(url, {
-            userInfo: { 
-                displayName: myUserId, 
-                email: "user@fync.com" 
-            },
-            meetOptions: {
-                videoMuted: false,
-                audioMuted: false
+      await ZegoUIKitPrebuiltCallService.init(
+        APP_ID,
+        APP_SIGN,
+        myUserId,
+        myUserName,
+        [ZIM],
+        {      
+          onCallInvitationEvent: (event: any, data: any) => {
+            console.log("ZEGO EVENT:", event);
+            if (event === 'OutgoingCallAccepted' || event === 'IncomingCallAccepted') {
+              socket.emit('set-status', { userId: myUserId, status: 'busy' });
             }
-        });
-    }, 500);
+            if (event === 'CallEnded' || event === 'OutgoingCallRejected') {
+              socket.emit('set-status', { userId: myUserId, status: 'available' });
+            }
+          }
+        }
+      );
+      setIsZegoReady(true);
+      console.log("✅ Zego Service Initialized");
+    } catch (error) {
+      console.error("❌ Zego Init Error:", error);
+    }
+  };
+
+  const renderUser = ({ item }: { item: any }) => {
+    const isBusy = item.status === 'busy';
+
+    return (
+      <View style={styles.card}>
+        <View>
+          <Text style={styles.userName}>{item.userId}</Text>
+          <View style={styles.statusRow}>
+            <View style={[styles.dot, { backgroundColor: isBusy ? 'red' : '#22c55e' }]} />
+            <Text style={styles.statusText}>{isBusy ? "In a Call" : "Online"}</Text>
+          </View>
+        </View>
+
+        {isBusy ? (
+          <TouchableOpacity 
+            style={[styles.btn, { backgroundColor: '#374151' }]} 
+            onPress={() => Alert.alert("Busy", "User is currently in another call.")}
+          >
+            <Text style={styles.btnText}>Busy</Text>
+          </TouchableOpacity>
+        ) : (
+          // Only show call button if Zego is ready
+          isZegoReady ? (
+            <ZegoSendCallInvitationButton
+              invitees={[{ userID: item.userId, userName: item.userId }]}
+              isVideoCall={true}
+              resourceID={"zego_call"} 
+              backgroundColor={'#2563eb'}
+              textColor={'#fff'}
+              width={100}
+              height={40}
+              borderRadius={8}
+              text={"Video Call"}
+              onPressed={(errorCode: any, errorMessage: any) => {
+                  if(errorCode) {
+                      console.error("Call Failed:", errorMessage);
+                      Alert.alert("Call Error", errorMessage);
+                  }
+              }}
+            />
+          ) : (
+            <ActivityIndicator color="#2563eb" />
+          )
+        )}
+      </View>
+    );
   };
 
   return (
-    <View className="flex-1 bg-black p-5">
-      <Text className="text-white text-2xl font-bold mb-5">
-        Lobby <Text className="text-blue-500">({onlineUsers.length} Online)</Text>
-      </Text>
-
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.header}>Lobby ({onlineUsers.length} Online)</Text>
       <FlatList
         data={onlineUsers}
         keyExtractor={(item) => item.userId}
-        renderItem={({ item }) => (
-          <View className="flex-row justify-between items-center bg-gray-800 p-4 rounded-xl mb-3 border border-white/10">
-            <View>
-                <Text className="text-white text-base font-bold">{item.userId}</Text>
-                <View className="flex-row items-center mt-1">
-                    <View className={`w-2 h-2 rounded-full mr-2 ${item.status === 'busy' ? 'bg-red-500' : 'bg-green-500'}`} />
-                    <Text className={item.status === 'busy' ? 'text-red-400 text-xs' : 'text-green-400 text-xs'}>
-                        {item.status === 'busy' ? 'Busy' : 'Available'}
-                    </Text>
-                </View>
-            </View>
-
-            {item.status === 'available' ? (
-                <TouchableOpacity 
-                    className="bg-blue-600 px-4 py-2 rounded-lg active:bg-blue-700"
-                    onPress={() => startCall(item.userId)}
-                >
-                    <Text className="text-white font-bold text-sm">Video Call</Text>
-                </TouchableOpacity>
-            ) : (
-                <View className="bg-red-500/20 px-3 py-1.5 rounded-lg border border-red-500/30">
-                    <Text className="text-red-500 font-bold text-xs">In Call</Text>
-                </View>
-            )}
-          </View>
-        )}
+        renderItem={renderUser}
         ListEmptyComponent={
-            <Text className="text-gray-500 text-center mt-10 italic">No other users online.</Text>
+            <Text style={{color: '#666', textAlign: 'center', marginTop: 20}}>
+                No one else is online right now.
+            </Text>
         }
       />
-
-      {/* --- INCOMING CALL MODAL --- */}
-      <Modal visible={!!incomingCall} transparent animationType="fade">
-        <View className="flex-1 bg-black/80 justify-center items-center">
-          <View className="w-[85%] bg-gray-900 p-6 rounded-3xl border border-white/10 items-center shadow-lg shadow-black">
-            <View className="w-16 h-16 bg-blue-500/20 rounded-full items-center justify-center mb-4">
-                <Text className="text-3xl">📞</Text>
-            </View>
-            
-            <Text className="text-white text-xl font-bold mb-2">Incoming Call</Text>
-            <Text className="text-gray-400 mb-8 text-center">
-              <Text className="text-white font-bold">{incomingCall?.callerId}</Text> is requesting a video call.
-            </Text>
-            
-            <View className="flex-row w-full gap-4 justify-center">
-                <TouchableOpacity 
-                    onPress={declineCall} 
-                    className="bg-red-500/20 py-3 px-8 rounded-full border border-red-500/50 active:bg-red-500/40"
-                >
-                    <Text className="text-red-500 font-bold text-base">Decline</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                    onPress={answerCall} 
-                    className="bg-green-500 py-3 px-8 rounded-full shadow-lg shadow-green-500/30 active:bg-green-600"
-                >
-                    <Text className="text-white font-bold text-base">Accept</Text>
-                </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#000', padding: 20 },
+  header: { color: '#fff', fontSize: 24, fontWeight: 'bold', marginBottom: 20, marginTop: Platform.OS === 'android' ? 40 : 0 },
+  card: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1f2937', padding: 15, borderRadius: 12, marginBottom: 10 },
+  userName: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  statusRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  dot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
+  statusText: { color: '#9ca3af', fontSize: 12 },
+  btn: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 },
+  btnText: { color: '#9ca3af', fontWeight: 'bold' }
+});

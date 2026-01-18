@@ -290,8 +290,8 @@ export default function CodingLeaderboard() {
                                         <Text className="text-yellow-400 text-xs font-bold">Med</Text>
                                         <Text className="text-white text-xs font-bold">{lcData.solved?.mediumSolved || 0}</Text>
                                     </View>
-                                    <View className="flex-row justify-between bg-red-500/10 px-3 py-2 rounded-xl border border-red-500/20">
-                                        <Text className="text-red-500 text-xs font-bold">Hard</Text>
+                                    <View className="flex-row justify-between bg-red-400 px-3 py-2 rounded-xl border border-red-500/20">
+                                        <Text className="text-red-400 text-xs font-bold">Hard</Text>
                                         <Text className="text-white text-xs font-bold">{lcData.solved?.hardSolved || 0}</Text>
                                     </View>
                                 </View>

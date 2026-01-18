@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "client",
-    "slug": "client",
+    "name": "Fync",
+    "slug": "fync-app",
     "version": "1.0.0",
+    "icon": "./assets/square_logo.png",
     "experiments": {
       "tsconfigPaths": true
     },
@@ -18,7 +19,9 @@
         {
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone for interview answers."
         }
-      ]
+      ],
+      "expo-font",
+      "expo-router"
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -34,7 +37,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/square_logo.png",
+        "backgroundColor": "#000"
       },
       "package": "com.anonymous.client"
     }

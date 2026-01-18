@@ -248,7 +248,9 @@ function Profile() {
 
   // --- GRID RENDERER ---
   const renderGridItem = ({ item, isShort }: { item: any, isShort?: boolean }) => (
-    <Pressable className="border border-black relative" style={{ width: COLUMN_SIZE, height: isShort ? COLUMN_SIZE * 1.5 : COLUMN_SIZE }}>
+    <Pressable onPress={() => {
+      navigation.navigate('IndividualPostOrShort', { postId: item._id });
+      }} className="border border-black relative" style={{ width: COLUMN_SIZE, height: isShort ? COLUMN_SIZE * 1.5 : COLUMN_SIZE }}>
       {(item.image && item.image.length > 0) || item.thumbnail || item.video ? (
         <Image 
             source={{ uri: isShort ? (item.thumbnail || 'https://via.placeholder.com/150/000000/FFFFFF/?text=Short') : item.image[0] }} 
@@ -307,7 +309,7 @@ function Profile() {
                 return renderGridItem({ item: item as PostType, isShort: false });
             }
             if (activeTab === 'list') {
-                return renderGridItem({ item: item as ShortType, isShort: true });
+                return renderGridItem({ item: item as unknown as ShortType, isShort: true });
             }
             return null;
         }}
