@@ -12,7 +12,8 @@ import {
   Platform, 
   ActivityIndicator,
   RefreshControl,
-  Alert
+  Alert,
+  ViewToken
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -43,7 +44,7 @@ interface Post {
   college?: string;
 }
 
-// --- SUB-COMPONENT: COMMENTS MODAL ---
+// --- COMMENTS MODAL (Kept same as your code) ---
 const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded }: any) => {
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -61,7 +62,6 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
     try {
       const res = await axios.get(`/post/comment/${postId}`);
       if (res.data.success) {
-        // Sort Newest First
         const sortedComments = res.data.comments.sort((a: any, b: any) => 
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
@@ -81,8 +81,6 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
       const res = await axios.post(`/post/comment/${postId}`, { text: newComment });
       if (res.data.success) {
         const addedComment = res.data.comment;
-        
-        // Manual population
         if (!addedComment.commentor) {
             addedComment.commentor = {
                 _id: currentUser._id,
@@ -90,10 +88,8 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
                 avatar: currentUser.avatar
             };
         }
-        
         setComments([addedComment, ...comments]); 
         setNewComment('');
-
         if (onCommentAdded) {
             onCommentAdded(postId, addedComment);
         }
@@ -126,8 +122,6 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
     <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={onClose}>
       <View className="flex-1 justify-end bg-black/60">
         <View className="bg-black h-[75%] rounded-t-3xl w-full">
-          
-          {/* Header */}
           <View className="flex-row justify-center items-center py-4 border-b border-gray-900">
             <View className="w-12 h-1 bg-gray-700 rounded-full absolute top-2 self-center" />
             <Text className="text-white font-bold text-base">Comments</Text>
@@ -135,8 +129,6 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
                <Ionicons name="close" size={24} color="white" />
             </Pressable>
           </View>
-
-          {/* Comment List */}
           {loading ? (
             <ActivityIndicator size="large" color="#fff" className="mt-10" />
           ) : (
@@ -145,13 +137,9 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
               renderItem={renderCommentItem}
               keyExtractor={(item) => item._id}
               contentContainerStyle={{ paddingBottom: 100 }}
-              ListEmptyComponent={
-                <Text className="text-gray-500 text-center mt-10">No comments yet.</Text>
-              }
+              ListEmptyComponent={<Text className="text-gray-500 text-center mt-10">No comments yet.</Text>}
             />
           )}
-
-          {/* Input Area */}
           <KeyboardAvoidingView 
             behavior={Platform.OS === "ios" ? "padding" : "height"} 
             className="absolute bottom-0 w-full bg-gray-900 border-t border-gray-800 px-4 py-3 flex-row items-center"
@@ -168,36 +156,31 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
                 className="flex-1 text-white bg-black rounded-full px-4 py-3 mr-3"
             />
             <Pressable onPress={handlePostComment} disabled={posting || !newComment.trim()}>
-                {posting ? (
-                    <ActivityIndicator size="small" color="#3b82f6" />
-                ) : (
-                    <Text className={`font-bold ${!newComment.trim() ? 'text-gray-600' : 'text-blue-500'}`}>Post</Text>
-                )}
+                {posting ? <ActivityIndicator size="small" color="#3b82f6" /> : <Text className={`font-bold ${!newComment.trim() ? 'text-gray-600' : 'text-blue-500'}`}>Post</Text>}
             </Pressable>
           </KeyboardAvoidingView>
-
         </View>
       </View>
     </Modal>
   );
 };
 
-// --- SUB-COMPONENT: POST ITEM ---
+// --- UPDATED SUB-COMPONENT: POST ITEM (With Carousel) ---
 const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser: any, openComments: (id: string) => void }) => {
   const [liked, setLiked] = useState(item.liked_by.includes(currentUser?._id));
   const [likeCount, setLikeCount] = useState(item.likes);
   const [resizeMode, setResizeMode] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0); // Track current image index
   const navigation = useNavigation<any>();
 
   const displayCommentCount = item.commentCount || item.comments?.length || 0;
+  const images = item.image || [];
 
   const handleLike = async () => {
     const previousState = liked;
     const previousCount = likeCount;
-    
     setLiked(!previousState);
     setLikeCount(previousState ? previousCount - 1 : previousCount + 1);
-
     try {
       await axios.post(`/post/like/${item._id}`);
     } catch (error) {
@@ -206,6 +189,17 @@ const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser
       setLikeCount(previousCount);
     }
   };
+
+  // Logic to track which image is currently visible
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    if (viewableItems.length > 0 && viewableItems[0].index !== null) {
+      setActiveIndex(viewableItems[0].index);
+    }
+  }).current;
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50, // Item is considered visible if 50% is shown
+  }).current;
 
   const timeAgo = (dateString: string) => {
     const seconds = Math.floor((new Date().getTime() - new Date(dateString).getTime()) / 1000);
@@ -225,7 +219,6 @@ const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser
         <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })}>
           <View className="flex-row items-center">
               <Image source={{ uri: item.user?.avatar || `https://ui-avatars.com/api/?name=${item.user?.username}` }} className="w-9 h-9 rounded-full border border-gray-800" />
-
             <View className="ml-3">
               <Text className="text-white font-bold text-sm">{item.user?.username || "Unknown"}</Text>
               {item.college && <Text className="text-gray-500 text-[10px] uppercase tracking-wide">{item.college}</Text>}
@@ -235,16 +228,36 @@ const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser
         <Ionicons name="ellipsis-horizontal" size={20} color="gray" />
       </View>
 
-      {/* Post Image */}
-      <Pressable onPress={()=> setResizeMode(prev => !prev)}>
-        {item.image && item.image.length > 0 && (
-          <Image 
-              source={{ uri: item.image[0] }} 
-              style={{ width: width, height: width, borderRadius: 5 }} 
-              resizeMode={resizeMode ? "contain" : "cover"}
-          />
+      {/* --- CAROUSEL IMAGE SECTION --- */}
+      <View>
+        <FlatList 
+            data={images}
+            keyExtractor={(url, index) => `${item._id}-img-${index}`}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
+            renderItem={({ item: imageUrl }) => (
+                <Pressable onPress={() => setResizeMode(prev => !prev)}>
+                    <Image 
+                        source={{ uri: imageUrl }} 
+                        style={{ width: width, height: width, borderRadius: 5 }} 
+                        resizeMode={resizeMode ? "contain" : "cover"}
+                    />
+                </Pressable>
+            )}
+        />
+        
+        {/* Image Counter (e.g., 1/3) - Only show if more than 1 image */}
+        {images.length > 1 && (
+            <View className="absolute top-3 right-3 bg-black/60 px-3 py-1 rounded-full border border-white/10">
+                <Text className="text-white text-xs font-bold">
+                    {activeIndex + 1}/{images.length}
+                </Text>
+            </View>
         )}
-      </Pressable>
+      </View>
 
       {/* Caption */}
       <View className="px-3 pt-1 mt-2">
@@ -263,16 +276,12 @@ const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser
                 color={liked ? "#ff3040" : "white"} 
             />
         </Pressable>
-        
         <Pressable onPress={() => openComments(item._id)}>
             <Ionicons name="chatbubble-outline" size={26} color="white" />
         </Pressable>
-        
         <Pressable>
             <Ionicons name="paper-plane-outline" size={26} color="white" style={{ transform: [{ rotate: '-0deg' }], marginTop: -3 }} />
         </Pressable>
-        
-        <View className="flex-1" />
       </View>
 
       {/* Likes */}
@@ -301,7 +310,6 @@ export default function HomeScreen() {
   const [profileImage, setProfileImage] = useState<string | undefined>('');
   const [activeTab, setActiveTab] = useState<'forYou' | 'following'>('forYou');
   
-  // PAGINATION STATES
   const [feed, setFeed] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -312,13 +320,10 @@ export default function HomeScreen() {
   const [unreadCount, setUnreadCount] = useState(0);
   const { user } = useAuth();
 
-  // Modal State
   const [isCommentModalVisible, setCommentModalVisible] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
-  // --- FETCH FEED (Logic for Pagination) ---
   const fetchFeed = async (pageNum: number, shouldRefresh = false) => {
-    // Prevent fetching if we are already loading or if there's no more data (unless refreshing)
     if (!hasMore && !shouldRefresh && pageNum !== 1) return;
 
     if (pageNum === 1) setLoading(true);
@@ -337,7 +342,6 @@ export default function HomeScreen() {
         if (shouldRefresh || pageNum === 1) {
             setFeed(newPosts);
         } else {
-            // Filter duplicates just in case
             setFeed(prev => {
                 const existingIds = new Set(prev.map(p => p._id));
                 const uniqueNewPosts = newPosts.filter((p: Post) => !existingIds.has(p._id));
@@ -345,7 +349,6 @@ export default function HomeScreen() {
             });
         }
 
-        // If we got fewer posts than limit, we reached the end
         if (newPosts.length < 10) {
             setHasMore(false);
         } else {
@@ -361,18 +364,15 @@ export default function HomeScreen() {
     }
   };
 
-  // Initial Load & Tab Switch
   useEffect(() => {
     if (user) {
       setProfileImage(user.avatar);
-      // Reset State
       setPage(1);
       setHasMore(true);
       fetchFeed(1, true);
     }
   }, [user, activeTab]);
 
-  // Handle Pull-to-Refresh
   const onRefresh = async () => {
     setRefreshing(true);
     setPage(1);
@@ -380,7 +380,6 @@ export default function HomeScreen() {
     await fetchFeed(1, true);
   };
 
-  // Handle Load More (Infinite Scroll)
   const loadMore = () => {
     if (!loadingMore && hasMore && !loading) {
         const nextPage = page + 1;
@@ -389,7 +388,6 @@ export default function HomeScreen() {
     }
   };
 
-  // Fetch Notification Count
   useFocusEffect(
       useCallback(() => {
         const getCount = async () => {
@@ -411,7 +409,6 @@ export default function HomeScreen() {
     setCommentModalVisible(true);
   };
 
-  // Update feed state when comment is added in modal
   const handleCommentAddedInModal = (postId: string, newComment: any) => {
     setFeed((currentFeed) => 
       currentFeed.map((post) => {
@@ -510,7 +507,7 @@ export default function HomeScreen() {
         ListHeaderComponent={
           <View>
             {renderTabBar()}
-            <View className="bg-black">
+            <View className="bg-black py-2">
                 <CreatePost /> 
             </View>
           </View>
@@ -518,12 +515,9 @@ export default function HomeScreen() {
         refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
         }
-        
-        // PAGINATION PROPS
         onEndReached={loadMore}
         onEndReachedThreshold={0.5} 
         ListFooterComponent={renderFooter}
-
         ListEmptyComponent={
             !loading && !refreshing ? (
                 <View className="mt-20 flex-1 items-center px-4">
@@ -539,7 +533,6 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       />
 
-      {/* Comments Modal with Callback */}
       <CommentsModal 
         isVisible={isCommentModalVisible}
         postId={selectedPostId}

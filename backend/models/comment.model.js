@@ -18,7 +18,7 @@ const commentSchema = new mongoose.Schema({
   postType: {
     type: String,
     required: true,
-    enum: ['Post', 'Shorts', 'FundingProject', 'Confession']
+    enum: ['Post', 'Shorts', 'FundingProject', 'Confession', 'Notice']
   },
   expiresAt: {
     type: Date,

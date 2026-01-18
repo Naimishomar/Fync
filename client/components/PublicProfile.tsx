@@ -171,14 +171,13 @@ useEffect(() => {
     setModalVisible(true);
   };
 
-  // --- GRID RENDERER ---
-  const renderGridItem = ({ item }: { item: any, index: number }) => {
-const isVideo = activeTab === 'shorts'; // Check active tab
+// --- GRID RENDERER ---
+  const renderGridItem = ({ item, index }: { item: any, index: number }) => {
+    const isVideo = activeTab === 'shorts'; 
     return (
       <Pressable 
         style={{ width: width / 3, height: isVideo ? width / 3 * 1.5 : width / 3, padding: 1 }}
         onPress={() => {
-            // FIX: Conditionally pass shortId or postId
             if (isVideo) {
                 navigation.navigate('IndividualPostOrShort', { shortId: item._id });
             } else {
@@ -196,11 +195,21 @@ const isVideo = activeTab === 'shorts'; // Check active tab
                 </Text>
             </View>
         ) : (
-            <Image 
-                source={{ uri: item.image?.[0] }} 
-                className="flex-1 bg-gray-800"
-                resizeMode="cover"
-            />
+            <>
+                <Image 
+                    source={{ uri: item.image?.[0] }} 
+                    className="flex-1 bg-gray-800"
+                    resizeMode="cover"
+                />
+                
+                {/* --- MULTIPLE IMAGES INDICATOR (ADDED) --- */}
+                {item.image && item.image.length > 1 && (
+                    <View className="absolute top-2 right-2 bg-black/50 px-2 py-1 rounded-full flex-row items-center gap-1">
+                        <Ionicons name="copy-outline" size={10} color="white" />
+                        <Text className="text-white text-[10px] font-bold">{item.image.length}</Text>
+                    </View>
+                )}
+            </>
         )}
       </Pressable>
     );

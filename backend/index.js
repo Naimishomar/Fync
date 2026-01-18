@@ -18,6 +18,8 @@ import confessionRoute from './routes/confession.route.js';
 import notificationRoute from './routes/notification.route.js';
 import codingRoute from './routes/coding.route.js';
 import OLXRoute from './routes/olx.route.js';
+import LostAndFoundRoute from './routes/lostAndFound.route.js';
+import noticeRoute from './routes/notice.route.js';
 import { rateLimit } from 'express-rate-limit';
 import { logout } from './controllers/auth.controller.js';
 
@@ -67,6 +69,8 @@ app.use('/confession', confessionRoute);
 app.use('/notifications', notificationRoute);
 app.use('/leaderboard', codingRoute);
 app.use('/olx', OLXRoute);
+app.use('/lostAndFound', LostAndFoundRoute);
+app.use('/notice', noticeRoute);
 
 socketController(io);
 lotterySocketController(io);

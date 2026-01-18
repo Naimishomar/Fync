@@ -28,7 +28,7 @@ try {
     cloudinary,
     params: {
       folder: "avatar",
-      resource_type: "raw",
+      resource_type: "auto",
       allowed_formats: ["jpg", "jpeg", "png", "pdf"],
     },
   });

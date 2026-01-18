@@ -85,6 +85,8 @@ import PDFViewerScreen from './components/studyMaterial/PDFViewerScreen';
 
 // OLX
 import MarketplaceScreen from 'components/olx/MarketplaceScreen';
+import LostAndFound from './components/LostAndFound';
+import NoticeBoard from 'components/NoticeBoard';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator();
@@ -150,6 +152,8 @@ export type RootStackParamList = {
   MarketplaceScreen: undefined;
   ZegoUIKitPrebuiltCallWaitingScreen: undefined;
   ZegoUIKitPrebuiltCallInCallScreen: undefined;
+  LostAndFound: undefined;
+  NoticeBoard: undefined;
 };
 
 function HomeDrawer() {
@@ -237,6 +241,8 @@ console.log("Waiting Screen:", ZegoUIKitPrebuiltCallWaitingScreen);
       <Stack.Screen name="VideoLobby" component={VideoLobby} />
       <Stack.Screen name="IndividualPostOrShort" component={IndividualPostOrShort} />
       <Stack.Screen name="MarketplaceScreen" component={MarketplaceScreen} />
+      <Stack.Screen name="LostAndFound" component={LostAndFound} />
+      <Stack.Screen name="NoticeBoard" component={NoticeBoard} />
 <Stack.Screen 
         options={{ headerShown: false }}
         // DO NOT CHANGE THE NAME
