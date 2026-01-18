@@ -37,17 +37,18 @@ import { AuthProvider, useAuth } from "./context/auth.context";
 import { View, ActivityIndicator } from "react-native";
 
 // Quiz & Opportunities
-import CreateRoom from "components/quiz/CreateRoom";
+import CreateRoom from "./components/quiz/CreateRoom";
 import JoinRoomInput from "./components/quiz/JoinRoomInput";
 import WaitingRoom from "./components/quiz/WaitingRoom";
 import OneVsOneSetup from "./components/quiz/OneVsOneSetup";
 import QuizScreen from "./components/quiz/QuizScreen";
-import QuizHome from "components/quiz/QuizHome";
+import QuizHome from "./components/quiz/QuizHome";
 import LeaderboardScreen from "./components/quiz/LeaderboardScreen";
 import HackathonList from "components/opportunity/HackathonList";
-import InternshipList from "components/opportunity/InternshipList";
-import JobList from "components/opportunity/JobList";
-import WorkshopList from 'components/opportunity/WorkshopList';
+import InternshipList from "./components/opportunity/InternshipList";
+import JobList from "./components/opportunity/JobList";
+import WorkshopList from './components/opportunity/WorkshopList';
+import IndividualPostOrShort from 'components/IndividualPostOrShort';
 
 //Interview
 import InterviewSetup from "./components/interview/InterviewSetup";
@@ -61,13 +62,25 @@ import BunkOMeter from "./components/newFeatures/BunkOMeter";
 import VibeSelector from "./components/newFeatures/VibeSelector";
 import TwelveAMHomeCard from "./components/newFeatures/TwelveAMHomeCard";
 import TwelveAMClub from "./components/newFeatures/TwelveAMClub";
-import ConfessionFeed from 'components/newFeatures/ConfessionFeed';
-import NineAmConfession from 'components/newFeatures/NineAmConfession';
-import CodingLeaderboard from 'components/newFeatures/CodingLeaderboard';
-import VideoLobby from 'components/newFeatures/VideoLobby';
+import ConfessionFeed from './components/newFeatures/ConfessionFeed';
+import NineAmConfession from './components/newFeatures/NineAmConfession';
+import CodingLeaderboard from './components/newFeatures/CodingLeaderboard';
+
+// import VideoLobby from 'components/newFeatures/VideoLobby';
+import VideoLobby from './components/newFeatures/VideoLobby';
 
 // Notification
 import Notification from "./components/Notification";
+
+//SplashScreen
+import SplashScreen from "./components/SplashScreen";
+
+// Study Material
+import DriveFolderScreen from './components/studyMaterial/DriveFolderScreen';
+import PDFViewerScreen from './components/studyMaterial/PDFViewerScreen';
+
+// OLX
+import MarketplaceScreen from 'components/olx/MarketplaceScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator();
@@ -80,6 +93,7 @@ export interface Question {
 
 export type RootStackParamList = {
   Tabs: undefined; 
+  SplashScreen: undefined;
   Login: undefined;
   Signup: undefined;
   ProfileSetup1: { email: any; username: any; phoneNumber: any; password: any;};
@@ -125,7 +139,11 @@ export type RootStackParamList = {
   Notification: undefined;
   NineAmConfession: undefined;
   CodingLeaderboard: undefined;
-  VideoLobby: undefined;
+  DriveFolderScreen: undefined;
+  PDFViewerScreen: undefined;
+  VideoLobby: { myUserId: string, myUserName: string };
+  IndividualPostOrShort: { postId: string };
+  MarketplaceScreen: undefined;
 };
 
 function HomeDrawer() {
@@ -170,6 +188,7 @@ function AuthStack() {
 function AppStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: "simple_push" }}>
+      <Stack.Screen name="SplashScreen" component={SplashScreen} />
       <Stack.Screen name="Tabs" component={HomeDrawer} />
       <Stack.Screen name="Profile" component={Profile} />
       <Stack.Screen name="EditProfile" component={EditProfile} />
@@ -205,7 +224,11 @@ function AppStack() {
       <Stack.Screen name="Notification" component={Notification} />
       <Stack.Screen name="NineAmConfession" component={NineAmConfession} />
       <Stack.Screen name="CodingLeaderboard" component={CodingLeaderboard} />
+      <Stack.Screen name="DriveFolderScreen" component={DriveFolderScreen} />
+      <Stack.Screen name="PDFViewerScreen" component={PDFViewerScreen} />
       <Stack.Screen name="VideoLobby" component={VideoLobby} />
+      <Stack.Screen name="IndividualPostOrShort" component={IndividualPostOrShort} />
+      <Stack.Screen name="MarketplaceScreen" component={MarketplaceScreen} />
     </Stack.Navigator>
   );
 }

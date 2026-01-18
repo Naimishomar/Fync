@@ -285,6 +285,9 @@ export const updateComment = async (req, res) => {
 
 export const getFeed = async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
         const posts = await Post.find({ college: req.user.college })
         .populate("user", "name username avatar")
         .populate({
@@ -293,7 +296,10 @@ export const getFeed = async (req, res) => {
                 path: "commentor",
                 select: "name avatar username"
             }
-        }).sort({ createdAt: -1 });
+        })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
         return res.status(200).json({ success: true, message: "Feed fetched successfully", posts});
     } catch (error) {
         console.log("Internal server error", error);
@@ -311,7 +317,7 @@ export const getFollowingPosts = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
     const skip = (page - 1) * limit;
-
+    const followingList = user.following;
     const posts = await Post.find({ user: { $in: followingList } })
     .sort({ createdAt: -1 })
     .skip(skip)
@@ -337,3 +343,20 @@ export const getPostsByUserId = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+export const getPostByPostId = async(req,res)=>{
+    try {
+       const { postId } = req.params;
+       if(!postId){
+           return res.status(400).json({ success: false, message: 'POST ID is required' });
+       }
+       const post = await Post.findById(postId).populate("user", "name username avatar").populate("comments");
+       if(!post){
+           return res.status(404).json({ success: false, message: 'Post not found' });
+       }
+       return res.status(200).json({ success: true, message: 'Post fetched successfully', post });
+    } catch (error) {
+        console.log("Error fetching post:", error);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+}

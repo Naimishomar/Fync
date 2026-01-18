@@ -178,12 +178,6 @@ export default function CustomSidebar(props: any) {
                 <Text className="text-white text-lg ml-4 font-medium">Messages</Text>
             </Pressable>
 
-            {/* 5. Video Calls */}
-            <Pressable className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800">
-                <Ionicons name="videocam-outline" size={24} color="#f9a8d4" /> 
-                <Text className="text-white text-lg ml-4 font-medium">Video Calls</Text>
-            </Pressable>
-
             {/* 5. Bunk O Meter */}
             <Pressable 
             onPress={() => props.navigation.navigate('BunkOMeter')}
@@ -239,6 +233,44 @@ export default function CustomSidebar(props: any) {
                 <Ionicons name="code-slash-outline" size={24} color="#f9a8d4" />
                 <Text className="text-white text-lg ml-4 font-medium">Coding Leaderboard</Text>
             </Pressable>
+
+            {/*10. Drive */}
+            <Pressable 
+            onPress={() => props.navigation.navigate('DriveFolderScreen', { folderId: '1iebOEYcCJKexGpo8TbRs6BxqUZ8zDjMr', title: 'B.Tech' })}
+            className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800">
+                <Ionicons name="folder-outline" size={24} color="#f9a8d4" />
+                <Text className="text-white text-lg ml-4 font-medium">Study Material</Text>
+            </Pressable>
+
+            {/* 11. Video Lobby */}
+            <Pressable 
+                onPress={() => {
+                    const userId = user?._id || user?.id;
+                    const userName = user?.name || user?.username || "Fync User";
+                    if (!userId) {
+                        alert("User data not loaded yet. Please wait or re-login.");
+                        return;
+                    }
+                    props.navigation.navigate('VideoLobby', { 
+                        myUserId: userId, 
+                        myUserName: userName 
+                    });
+                }}
+                className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+            >
+                <Ionicons name="videocam-outline" size={24} color="#f9a8d4" />
+                <Text className="text-white text-lg ml-4 font-medium">Video Lobby</Text>
+            </Pressable>
+
+            {/* 10. Marketplace */}
+            <Pressable 
+                onPress={() => props.navigation.navigate('MarketplaceScreen')}
+                className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+            >
+                <Ionicons name="cart-outline" size={24} color="#f9a8d4" />
+                <Text className="text-white text-lg ml-4 font-medium">Marketplace</Text>
+            </Pressable>
+
         </View>
       </DrawerContentScrollView>
 

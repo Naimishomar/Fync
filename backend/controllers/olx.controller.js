@@ -109,7 +109,9 @@ export const deleteProduct = async(req,res)=>{
 
 export const getAllProducts = async(req,res)=>{
     try {
-        const products = await OLX.find({ college: req.user.college });
+        const products = await OLX.find({ college: req.user.college })
+        .populate("seller", "name avatar username")
+        .sort({ createdAt: -1 })
         if(!products){
             return res.status(404).json({ success: false, message: 'Products not found' });
         }
@@ -126,7 +128,7 @@ export const detailsOfParticularProduct = async(req,res)=>{
         if(!product_id){
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
-        const product = await OLX.findById(product_id);
+        const product = await OLX.findById(product_id).populate("seller", "name avatar username");
         if(!product){
             return res.status(404).json({ success: false, message: 'Product not found' });
         }

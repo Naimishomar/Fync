@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE = "https://leetcode-api-c7gs.onrender.com";
+const API_BASE = process.env.LEETCODE_API;
 
 export const fetchLeetCodeStats = async (username) => {
     if (!username) return null;

@@ -16,9 +16,9 @@ import { useAuth } from "../context/auth.context";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 
-const socket = io("http://10.21.96.28:3000");
+const socket = io("http://10.21.70.187:3000");
 
-const Chat = ({ route, navigation }) => {
+const Chat = ({ route, navigation } : any) => {
   const conversationId = route?.params?.conversationId;
   const { user } = useAuth();
 
@@ -141,16 +141,32 @@ const Chat = ({ route, navigation }) => {
       item.sender?._id === user._id;
 
     return (
-      <View
-        className={`max-w-[75%] px-4 py-2 my-1 rounded-2xl ${
-          isMe
-            ? "self-end bg-blue-500"
-            : "self-start bg-gray-200"
-        }`}
-      >
-        <Text className={isMe ? "text-white" : "text-black"}>
-          {item.message}
-        </Text>
+      <View className={`flex-row w-full ${isMe ? "justify-end" : "justify-start"} items-center py-1`}>
+        {isMe ? (
+          <>
+            <View className="max-w-[75%] px-4 py-2 rounded-3xl bg-blue-500">
+              <Text className="text-white">{item.message}</Text>
+            </View>
+            <Image
+              source={{
+                uri: item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}&background=random&color=fff`,
+              }}
+              className="h-6 w-6 rounded-full ml-2"
+            />
+          </>
+        ) : (
+          <>
+            <Image
+              source={{
+                uri: item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}&background=random&color=fff`,
+              }}
+              className="h-6 w-6 rounded-full mr-2"
+            />
+            <View className="max-w-[75%] px-4 py-2 rounded-3xl bg-gray-200">
+              <Text className="text-black">{item.message}</Text>
+            </View>
+          </>
+        )}
       </View>
     );
   };
