@@ -1,17 +1,5 @@
 import express from 'express';
 import Outing from '../../models/collaboration/outing.model.js';
-// import cron from 'node-cron';
-
-// cron.schedule('* * * * *', async () => {
-//   const now = new Date();
-//   try {
-//     const result = await Outing.deleteMany({ outingDate: { $lte: now } });
-//     console.log(`Deleted ${result.deletedCount} past outings`);
-//   } catch (err) {
-//     console.error(err);
-//   }
-// });
-
 
 export const addOuting = async (req, res) => {
   try {
@@ -21,7 +9,7 @@ export const addOuting = async (req, res) => {
     }
     const outingDate = new Date(date);
     const [hours, minutes] = time.split(":").map(Number);
-    outingDate.setHours(hours, minutes);
+    outingDate.setHours(hours, minutes, 0, 0);
 
     const startOfDay = new Date(date);
     startOfDay.setHours(0,0,0,0);

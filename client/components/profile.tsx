@@ -15,7 +15,6 @@ import { useAuth } from '../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
-import RefreshableScreen  from './RefreshableScreen';
 
 const { width } = Dimensions.get('window');
 const COLUMN_SIZE = width / 3;
@@ -248,16 +247,15 @@ function Profile() {
 
   // --- GRID RENDERER ---
   const renderGridItem = ({ item, isShort }: { item: any, isShort?: boolean }) => (
-      <Pressable onPress={() => {
-              if (isShort) {
-                  navigation.navigate('IndividualPostOrShort', { shortId: item._id });
-              } else {
-                  navigation.navigate('IndividualPostOrShort', { postId: item._id });
-              }
-            }}
-          className="border border-black relative" 
-          style={{ width: COLUMN_SIZE, height: isShort ? COLUMN_SIZE * 1.5 : COLUMN_SIZE }}
-      >
+    <Pressable onPress={() => {
+      if (isShort) {
+          navigation.navigate('IndividualPostOrShort', { shortId: item._id });
+      } else {
+          navigation.navigate('IndividualPostOrShort', { postId: item._id });
+      }
+      }} className="border border-black relative" style={{ width: COLUMN_SIZE, height: isShort ? COLUMN_SIZE * 1.5 : COLUMN_SIZE }}>
+      
+      {/* Thumbnail / Image */}
       {(item.image && item.image.length > 0) || item.thumbnail || item.video ? (
         <Image 
             source={{ uri: isShort ? (item.thumbnail || 'https://via.placeholder.com/150/000000/FFFFFF/?text=Short') : item.image[0] }} 
@@ -269,6 +267,16 @@ function Profile() {
            <Text className="text-gray-500 text-xs p-2 text-center" numberOfLines={3}>{item.title}</Text>
         </View>
       )}
+
+      {/* --- MULTIPLE IMAGES INDICATOR (LIKE INSTA) --- */}
+      {!isShort && item.image && item.image.length > 1 && (
+        <View className="absolute top-2 right-2 bg-black/50 px-2 py-1 rounded-full flex-row items-center gap-1">
+            <Ionicons name="copy-outline" size={12} color="white" />
+            <Text className="text-white text-[10px] font-bold">{item.image.length}</Text>
+        </View>
+      )}
+
+      {/* Shorts Overlay */}
       {isShort && (
           <View className="absolute inset-0 items-center justify-center bg-black/20">
               <Ionicons name="play-outline" size={32} color="white" />
@@ -283,8 +291,6 @@ function Profile() {
       {renderHeader()}
       
       <FlatList
-        // FIX: Use activeTab as key to force re-render when switching tabs
-        // This prevents "changing numColumns on the fly" error
         key={activeTab} 
         
         data={
@@ -294,7 +300,6 @@ function Profile() {
         }
         keyExtractor={(item, index) => (typeof item === 'string' ? item : item._id)}
         
-        // Dynamic columns based on tab
         numColumns={activeTab === 'tags' ? 1 : 3} 
         
         refreshControl={

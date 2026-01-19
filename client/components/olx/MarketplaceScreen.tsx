@@ -226,7 +226,7 @@ const MarketplaceScreen = () => {
         {
             text: "Delete", style: "destructive", onPress: async () => {
                 try {
-                    await axios.delete(`/olx/${id}`);
+                    await axios.post(`/olx/delete/${id}`);
                     setProducts(prev => prev.filter(p => p._id !== id));
                     setSelectedProduct(null); 
                 } catch (error) {

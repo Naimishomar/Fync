@@ -5,11 +5,11 @@ import {
   FlatList, 
   TouchableOpacity, 
   Alert, 
-  StyleSheet, 
-  SafeAreaView, 
+  StyleSheet,
   ActivityIndicator,
   Platform // ✅ Import Platform
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import socket from '../../utils/socket'; 
 import ZegoUIKitPrebuiltCallService, { 
   ZegoSendCallInvitationButton,
@@ -35,35 +35,23 @@ export default function VideoLobby({ route, navigation }: Props) {
   const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
   const [isZegoReady, setIsZegoReady] = useState(false);
 
-  useEffect(() => {
-    // Safety check
-    if (!myUserId) {
-        Alert.alert("Error", "User ID is missing.");
-        navigation.goBack();
-        return;
-    }
-
-    // 1. Initialize Zego
-    initZego();
-
-    // 2. Connect Socket
-    if (!socket.connected) socket.connect();
-    socket.emit("join-lobby", myUserId);
-
-    socket.on("update-user-list", (users: any) => {
-      // Filter out myself
-      setOnlineUsers(users.filter((u: any) => u.userId !== myUserId));
-    });
-
-    return () => {
-      // Cleanup
-      socket.emit("leave-lobby", myUserId);
-      socket.off("update-user-list");
-      
-      // 🔥 FIX 2: Always uninit when leaving the screen
-      ZegoUIKitPrebuiltCallService.uninit();
-    };
-  }, [myUserId]); 
+useEffect(() => {
+  if (!myUserId) {
+    Alert.alert("Error", "User ID is missing.");
+    navigation.goBack();
+    return;
+  }
+  if (!socket.connected) socket.connect();
+  socket.emit("join-lobby", myUserId);
+  socket.on("update-user-list", (users: any) => {
+    setOnlineUsers(users.filter((u: any) => u.userId !== myUserId));
+  });
+  setIsZegoReady(true); 
+  return () => {
+    socket.emit("leave-lobby", myUserId);
+    socket.off("update-user-list");
+  };
+}, [myUserId]);
 
 const initZego = async () => {
     try {
@@ -160,8 +148,8 @@ const initZego = async () => {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000', padding: 20 },
-  header: { color: '#fff', fontSize: 24, fontWeight: 'bold', marginBottom: 20, marginTop: Platform.OS === 'android' ? 40 : 0 },
+  container: { flex: 1, backgroundColor: '#000', padding: 10 },
+  header: { color: '#fff', fontSize: 24, fontWeight: 'bold', marginBottom: 20, marginTop: Platform.OS === 'android' ? 10 : 0 },
   card: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1f2937', padding: 15, borderRadius: 12, marginBottom: 10 },
   userName: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   statusRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },

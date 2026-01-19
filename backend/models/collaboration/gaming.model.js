@@ -38,8 +38,16 @@ const gamingSchema = new mongoose.Schema({
     college:{
         type: String,
         required:true
-    }
+    },
+    comments: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Comment",
+        },
+    ],
 },{timestamps:true});
+
+gamingSchema.index({ gamingDate: 1 }, { expireAfterSeconds: 0 });
 
 const Gaming = mongoose.model('Gaming', gamingSchema);  
 export default Gaming;
