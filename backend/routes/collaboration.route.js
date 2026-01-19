@@ -1,7 +1,6 @@
 import express from 'express';
 import { addGames, getAllGames, getYourGames, deleteGames, joinGames } from '../controllers/collaboration/gaming.controller.js';
-import { addOuting, getAllOutings, getYourOuting, deleteOuting, joinOuting } from '../controllers/collaboration/outing.controller.js';
-import { findTeamMembers } from '../controllers/collaboration/teamMaking.controller.js';    
+import { addOuting, getAllOutings, getYourOuting, deleteOuting, joinOuting } from '../controllers/collaboration/outing.controller.js'; 
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 const router = express.Router();
 
@@ -16,7 +15,5 @@ router.get('/outings', authMiddleware, getAllOutings);
 router.get('/outings/your', authMiddleware, getYourOuting);
 router.delete('/outings/:id', authMiddleware, deleteOuting);
 router.post('/outings/:id/join', authMiddleware, joinOuting);
-
-router.post('/find/teamMembers', authMiddleware, findTeamMembers);
 
 export default router;

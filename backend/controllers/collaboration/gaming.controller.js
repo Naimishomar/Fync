@@ -1,16 +1,5 @@
 import express from 'express';
 import Gaming from '../../models/collaboration/gaming.model.js';
-// import cron from 'node-cron';
-
-// cron.schedule('* * * * *', async () => {
-//   const now = new Date();
-//   try {
-//     const result = await Gaming.deleteMany({ gamingDate: { $lte: now } });
-//     console.log(`Deleted ${result.deletedCount} past gamings`);
-//   } catch (err) {
-//     console.error(err);
-//   }
-// });
 
 export const addGames = async (req, res) => {
   try {
@@ -20,7 +9,7 @@ export const addGames = async (req, res) => {
     }
     const gamingDate = new Date(date);
     const [hours, minutes] = time.split(":").map(Number);
-    gamingDate.setHours(hours, minutes);
+    gamingDate.setHours(hours, minutes, 0, 0);
 
     const startOfDay = new Date(date);
     startOfDay.setHours(0,0,0,0);
@@ -46,6 +35,7 @@ export const addGames = async (req, res) => {
       gamingDate,
       venue,
       admin: req.user.id,
+      team_size,
       college: req.user.college
     });
 

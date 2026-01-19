@@ -156,18 +156,10 @@ const CollaborationScreen = () => {
         setCommentModalVisible(true);
         setCommentsLoading(true);
         try {
-            // Assuming you add these generic comment routes to backend or reuse Notice logic
-            // For now, let's assume a generic route or specific collaboration route
-            // Replace '/collaboration/comment/all' with actual route if you create one, 
-            // OR use the 'comments' array directly if populated in fetchData (simpler for this example)
-            
-            // If backend populates comments:
             const item = data.find(i => i._id === id);
             if (item && item.comments) {
-                // If comments are fully populated objects
                 setCommentsList(item.comments); 
             } else {
-                // Fetch if not populated
                 const type = tab === 'games' ? 'games' : 'outings';
                 const res = await axios.get(`/collaboration/${type}/comment/all/${id}`); 
                 setCommentsList(res.data.comments || []);

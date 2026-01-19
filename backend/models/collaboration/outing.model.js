@@ -30,8 +30,16 @@ const outingSchema = new mongoose.Schema({
     college:{
         type: String,
         required:true
-    }
+    },
+    comments: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Comment",
+        },
+    ],
 }, {timestamps: true})
+
+outingSchema.index({ outingDate: 1 }, { expireAfterSeconds: 0 });
 
 const Outing = mongoose.model('Outing', outingSchema);
 export default Outing;
