@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
-import React, { useEffect } from "react";
+import React from "react";
 import './context/axiosConfig';
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -21,11 +21,11 @@ import Profile from "./components/profile";
 import EditProfile from "./components/EditProfile";
 import CreatePost from "./components/create-post";
 import Shorts from "./components/Shorts";
-import SearchScreen from "components/SearchScreen";
-import ChatList from "components/ChatList";
-import PublicProfile from "components/PublicProfile";
-import Chat from "components/Chat";
-import FollowersAndFollowing from "components/FollowersAndFollowing";
+import SearchScreen from "./components/SearchScreen";
+import ChatList from "./components/ChatList";
+import PublicProfile from "./components/PublicProfile";
+import Chat from "./components/Chat";
+import FollowersAndFollowing from "./components/FollowersAndFollowing";
 
 // Utils
 import RazorpayWebView from "./utils/RazorpayWebView";
@@ -34,7 +34,7 @@ import ReceiptWebview from "./utils/ReceiptWebview";
 
 // Context
 import { AuthProvider, useAuth } from "./context/auth.context";
-import { View, ActivityIndicator, Image, Platform } from "react-native";
+import { View, ActivityIndicator } from "react-native";
 
 // Quiz & Opportunities
 import CreateRoom from "./components/quiz/CreateRoom";
@@ -65,12 +65,8 @@ import TwelveAMClub from "./components/newFeatures/TwelveAMClub";
 import ConfessionFeed from './components/newFeatures/ConfessionFeed';
 import NineAmConfession from './components/newFeatures/NineAmConfession';
 import CodingLeaderboard from './components/newFeatures/CodingLeaderboard';
-
-// import VideoLobby from 'components/newFeatures/VideoLobby';
+import Map from './components/newFeatures/Map';
 import VideoLobby from './components/newFeatures/VideoLobby';
-import {  ZegoUIKitPrebuiltCallWaitingScreen,  ZegoUIKitPrebuiltCallInCallScreen } from '@zegocloud/zego-uikit-prebuilt-call-rn';
-import ZegoUIKitPrebuiltCallService from '@zegocloud/zego-uikit-prebuilt-call-rn';
-import * as ZIM from 'zego-zim-react-native'
 
 // Notification
 import Notification from "./components/Notification";
@@ -157,6 +153,7 @@ export type RootStackParamList = {
   LostAndFound: undefined;
   NoticeBoard: undefined;
   CollaborationScreen: undefined;
+  Map: undefined;
 };
 
 function HomeDrawer() {
@@ -199,8 +196,6 @@ function AuthStack() {
 }
 
 function AppStack() {
-console.log("Waiting Screen:", ZegoUIKitPrebuiltCallWaitingScreen);
-  console.log("InCall Screen:", ZegoUIKitPrebuiltCallInCallScreen);
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: "simple_push" }}>
       <Stack.Screen name="SplashScreen" component={SplashScreen} />
@@ -246,51 +241,10 @@ console.log("Waiting Screen:", ZegoUIKitPrebuiltCallWaitingScreen);
       <Stack.Screen name="MarketplaceScreen" component={MarketplaceScreen} />
       <Stack.Screen name="LostAndFound" component={LostAndFound} />
       <Stack.Screen name="NoticeBoard" component={NoticeBoard} />
-      <Stack.Screen  options={{ headerShown: false }} name="ZegoUIKitPrebuiltCallWaitingScreen" component={ZegoUIKitPrebuiltCallWaitingScreen} />
-      <Stack.Screen options={{ headerShown: false }} name="ZegoUIKitPrebuiltCallInCallScreen"component={ZegoUIKitPrebuiltCallInCallScreen}/>
       <Stack.Screen name="CollaborationScreen" component={CollaborationScreen} />
+      <Stack.Screen name="Map" component={Map} />
     </Stack.Navigator>
   );
-}
-
-// Inside App.tsx
-function ZegoWrapper({ children }: { children: React.ReactNode }) {
-  const { user, isLoggedIn } = useAuth();
-
-  useEffect(() => {
-    if (isLoggedIn && user) {
-      ZegoUIKitPrebuiltCallService.init(
-        1870753423, 
-        "0c687e01e1e38767ccdd1fa77993629c0fc3a6392df1e6175cce7d3cc36e76c7",
-        user._id, 
-        user.name || user.username || "User",
-        [ZIM],
-        {
-          ringtoneConfig: {
-            incomingCallFileName: 'zego_incoming.mp3',
-            outgoingCallFileName: 'zego_outgoing.mp3',
-          },
-          // This shows the Avatar on the actual Calling Screen
-          avatarBuilder: ({userInfo}: any) => {
-            return (
-              <View style={{width: '100%', height: '100%', backgroundColor: '#000'}}>
-                <Image 
-                  style={{width: '100%', height: '100%'}}
-                  resizeMode="cover"
-                  source={{ uri: `https://ui-avatars.com/api/?name=${userInfo.userName}&background=random&size=500` }}
-                />
-              </View>
-            );
-          },
-        }
-      );
-    }
-    return () => {
-      ZegoUIKitPrebuiltCallService.uninit();
-    };
-  }, [isLoggedIn, user?._id]);
-
-  return <>{children}</>;
 }
 
 function RootNavigator() {
@@ -307,9 +261,7 @@ function RootNavigator() {
   return (
     <NavigationContainer>
       {isLoggedIn ? (
-        <ZegoWrapper>
           <AppStack />
-        </ZegoWrapper>
       ) : (
         <AuthStack />
       )}

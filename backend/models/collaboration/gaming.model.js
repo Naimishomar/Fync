@@ -21,7 +21,6 @@ const gamingSchema = new mongoose.Schema({
     gamingDate: { 
         type: Date, 
         required: true, 
-        index: true 
     },
     venue:{
         type:String,

@@ -20,6 +20,7 @@ import codingRoute from './routes/coding.route.js';
 import OLXRoute from './routes/olx.route.js';
 import LostAndFoundRoute from './routes/lostAndFound.route.js';
 import noticeRoute from './routes/notice.route.js';
+import mapRoute from './routes/map.route.js';
 import { rateLimit } from 'express-rate-limit';
 import { logout } from './controllers/auth.controller.js';
 
@@ -71,6 +72,7 @@ app.use('/leaderboard', codingRoute);
 app.use('/olx', OLXRoute);
 app.use('/lostAndFound', LostAndFoundRoute);
 app.use('/notice', noticeRoute);
+app.use('/map', mapRoute);
 
 socketController(io);
 lotterySocketController(io);
