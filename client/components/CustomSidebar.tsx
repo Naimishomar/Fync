@@ -298,6 +298,15 @@ export default function CustomSidebar(props: any) {
                 <Text className="text-white text-lg ml-4 font-medium">Collaboration</Text>
             </Pressable>
 
+            {/* 14. Map */}
+            <Pressable 
+                onPress={() => props.navigation.navigate('Map')}
+                className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+            >
+                <Ionicons name="locate-outline" size={24} color="#f9a8d4" />
+                <Text className="text-white text-lg ml-4 font-medium">Locate the crowd</Text>
+            </Pressable>
+
         </View>
       </DrawerContentScrollView>
 

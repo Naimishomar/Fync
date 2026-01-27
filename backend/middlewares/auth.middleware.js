@@ -34,6 +34,7 @@ export const authMiddleware = async (req, res, next) => {
       username: user.username,
       mobileNumber: user.mobileNumber,
       college: user.college,
+      avatar: user.avatar
     };
     next();
   } catch (error) {

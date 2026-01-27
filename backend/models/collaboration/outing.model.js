@@ -21,7 +21,6 @@ const outingSchema = new mongoose.Schema({
     outingDate: { 
         type: Date, 
         required: true, 
-        index: true 
     },
     users: [{
         type: mongoose.Schema.Types.ObjectId,

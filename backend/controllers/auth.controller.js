@@ -101,18 +101,7 @@ export const verifyEmailOTP = async (req, res) => {
 
 export const register = async (req, res) => {
   try {
-    const {
-      email,
-      username,
-      mobileNumber,
-      password,
-      name,
-      dob,
-      college,
-      year,
-      gender,
-      major,
-    } = req.body;
+    const { email, username, mobileNumber, password, name, dob, college, year, gender, major } = req.body;
     if (!email || !username || !mobileNumber || !password || !name || !dob || !college || !year || !gender || !major) {
       return res.status(400).json({ success: false,message: "Missing required fields"});
     }
@@ -384,5 +373,61 @@ export const refreshToken = async (req, res) => {
     res.json({ success: true, token: newAccessToken });
   } catch {
     res.status(401).json({ success: false });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    await OTP.deleteMany({ email, purpose: "reset-password" });
+    const otp = customAlphabet("1234567890", 6)();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+    await sendMail(email, otp, user.username);
+    await OTP.create({
+      email,
+      otp: hashedOtp,
+      purpose: "reset-password"
+    });
+    return res.status(200).json({ success: true, message: "OTP sent successfully"});
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const verifyResetPassword = async (req, res) => {
+  try {
+    const { email, otp, password } = req.body;
+    if (!email || !otp || !password) {
+      return res.status(400).json({ success: false, message: "Email, OTP and password are required" });
+    }
+    if (password.length < 5) {
+      return res.status(400).json({ success: false, message: "Password must be at least 5 characters long"});
+    }
+    const otpDoc = await OTP.findOne({email, purpose: "reset-password"});
+    if (!otpDoc) {
+      return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
+    }
+    const isValidOtp = await bcrypt.compare(otp, otpDoc.otp);
+    if (!isValidOtp) {
+      return res.status(400).json({ success: false, message: "Invalid or expired OTP"});
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await User.findOneAndUpdate(
+      { email },
+      { password: hashedPassword }
+    );
+    await OTP.deleteMany({ email, purpose: "reset-password" });
+    return res.status(200).json({ success: true, message: "Password reset successfully"});
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
