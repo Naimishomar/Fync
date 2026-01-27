@@ -1,5 +1,5 @@
 import express from 'express';
-import { login, register, updateUser, getProfile, getUserProfile, followUser, unfollowUser, getFollowers, getFollowing, sendOTP, logout, refreshToken, getUserProfileByName, verifyEmailOTP } from '../controllers/auth.controller.js';
+import { login, register, updateUser, getProfile, getUserProfile, followUser, unfollowUser, getFollowers, getFollowing, sendOTP, logout, refreshToken, getUserProfileByName, verifyEmailOTP, resetPassword, verifyResetPassword } from '../controllers/auth.controller.js';
 import { getDevelopers } from '../controllers/developer.controller.js'
 import { otpLimiter } from '../middlewares/otpLimiter.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
@@ -9,6 +9,8 @@ const router = express.Router();
 router.post('/send-email-otp', otpLimiter, sendOTP);
 // router.post('/send-phone-otp', sendnumberOTP);
 router.post('/verify-email-otp', verifyEmailOTP);
+router.post('/reset-password', resetPassword);
+router.post('/verify-reset-password', verifyResetPassword);
 router.post('/register', upload.single('avatar'), register);
 router.post('/refresh-token', refreshToken);
 router.post('/login', login);

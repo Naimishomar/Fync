@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { useAuth } from 'context/auth.context';
 import { useNavigation } from '@react-navigation/native';
+//@ts-ignore
 import loginImage from '../assets/loginImage.png';
 
 export default function LoginScreen() {
@@ -113,6 +114,12 @@ export default function LoginScreen() {
                   />
                 </Pressable>
               </View>
+
+              <Pressable className='justify-end' onPress={()=> navigation.navigate('ForgotPassword' , {
+                email
+              })}>
+                <Text className='font-semibold text-red-400'>Forgot Password?</Text>
+              </Pressable>
 
               {isLoading ? 
                 <Pressable className="rounded-full bg-black py-4 items-center">
