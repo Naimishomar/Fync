@@ -1,11 +1,10 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = "http://192.168.28.139:3000";
+const API_URL = "http://10.21.124.155:3000";
 
 axios.defaults.baseURL = API_URL;
 
-// Attach access token on every request (if exists)
 axios.interceptors.request.use(
   async config => {
     const token = await AsyncStorage.getItem("accessToken");
@@ -17,7 +16,6 @@ axios.interceptors.request.use(
   error => Promise.reject(error)
 );
 
-// Handle token refresh automatically
 axios.interceptors.response.use(
   response => response,
   async error => {

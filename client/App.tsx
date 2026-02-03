@@ -66,7 +66,7 @@ import ConfessionFeed from './components/newFeatures/ConfessionFeed';
 import NineAmConfession from './components/newFeatures/NineAmConfession';
 import CodingLeaderboard from './components/newFeatures/CodingLeaderboard';
 import Map from './components/newFeatures/Map';
-import VideoLobby from './components/newFeatures/VideoLobby';
+// import VideoLobby from './components/newFeatures/VideoLobby';/
 
 // Notification
 import Notification from "./components/Notification";
@@ -236,7 +236,7 @@ function AppStack() {
       <Stack.Screen name="CodingLeaderboard" component={CodingLeaderboard} />
       <Stack.Screen name="DriveFolderScreen" component={DriveFolderScreen} />
       <Stack.Screen name="PDFViewerScreen" component={PDFViewerScreen} />
-      <Stack.Screen name="VideoLobby" component={VideoLobby} />
+      {/* <Stack.Screen name="VideoLobby" component={VideoLobby} /> */}
       <Stack.Screen name="IndividualPostOrShort" component={IndividualPostOrShort} />
       <Stack.Screen name="MarketplaceScreen" component={MarketplaceScreen} />
       <Stack.Screen name="LostAndFound" component={LostAndFound} />
