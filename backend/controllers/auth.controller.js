@@ -347,8 +347,6 @@ export const logout = async(req,res)=>{
     user.refreshToken = null;
     await user.save();
     return res.status(200).json({ success: true, message: "User logged out successfully" });
-    
-    
   } catch (error) {
     console.log("Internal server error", error);
     return res.status(500).json({ success: false, message: "Internal server error" });

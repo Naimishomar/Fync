@@ -97,7 +97,7 @@ export default function LoginScreen() {
                 autoCapitalize="none"
               />
 
-              <View className="mb-6 flex-row items-center rounded-xl border border-gray-300 px-4">
+              <View className="flex-row items-center rounded-xl border border-gray-300 px-4">
                 <TextInput
                   className="flex-1 py-4 text-base"
                   placeholder="Password"
@@ -115,10 +115,10 @@ export default function LoginScreen() {
                 </Pressable>
               </View>
 
-              <Pressable className='justify-end' onPress={()=> navigation.navigate('ForgotPassword' , {
+              <Pressable className='items-end mb-6 mt-1' onPress={()=> navigation.navigate('ForgotPassword' , {
                 email
               })}>
-                <Text className='font-semibold text-red-400'>Forgot Password?</Text>
+                <Text className='text-red-400'>Forgot Password?</Text>
               </Pressable>
 
               {isLoading ? 

@@ -79,7 +79,7 @@ lotterySocketController(io);
 setupSocket(io);
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send('Fync never gets down!🚀');
 });
 
 server.listen(PORT, () => {

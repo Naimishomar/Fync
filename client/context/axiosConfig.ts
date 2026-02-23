@@ -1,8 +1,8 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
-const API_URL = "http://10.21.124.155:3000";
-
+const API_URL = BACKEND_URL;
 axios.defaults.baseURL = API_URL;
 
 axios.interceptors.request.use(

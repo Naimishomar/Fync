@@ -73,6 +73,14 @@ export const socketController = (io) => {
       }
     });
 
+    socket.on("typing", ({ conversationId, userId }) => {
+      socket.to(conversationId).emit("userTyping", { userId });
+    });
+
+    socket.on("stopTyping", ({ conversationId, userId }) => {
+      socket.to(conversationId).emit("userStopTyping", { userId });
+    });
+
     socket.on("watch_leaderboard", ({ roomId }) => {
         socket.join(roomId);
     });

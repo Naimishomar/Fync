@@ -15,15 +15,17 @@ const fundingProjectSchema = new mongoose.Schema({
     },
     image:{
         type: [String],
+        required: false,
         default: []
     },
     video:{
         type: String,
-        required: true
+        required: false,
+        default: ""
     },
     deployed_url:{
         type: String,
-        required: true
+        required: false
     },
     github_url:{
         type: String

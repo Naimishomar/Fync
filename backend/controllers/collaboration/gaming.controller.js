@@ -52,7 +52,9 @@ export const addGames = async (req, res) => {
 
 export const getAllGames = async (req, res) => {
   try {
-    const gamings = await Gaming.find({ college: req.user.college });
+    const gamings = await Gaming.find({ college: req.user.college })
+    .populate("admin", "name username avatar")
+    .populate("users", "name username avatar");
     if (!gamings) {
       return res.status(404).json({ success: false, message: 'Gamings not found' });
     }
@@ -95,7 +97,7 @@ export const deleteGames = async (req, res) => {
 
 export const joinGames = async(req,res)=>{
     try {
-        const {gaming_id} = req.params;
+        const gaming_id = req.params.id;
         if(!gaming_id){
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
@@ -122,3 +124,25 @@ export const joinGames = async(req,res)=>{
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
+
+export const leaveGames = async (req, res) => {
+  try {
+    const gaming_id = req.params.id;
+    const gaming = await Gaming.findById(gaming_id);
+    if (!gaming) {
+      return res.status(404).json({success: false, message: "Gaming not found"});
+    }
+    if (!gaming.users.some(u => u.toString() === req.user.id)) {
+      return res.status(400).json({ success: false, message: "You are not in this game"});
+    }
+    const updated = await Gaming.findByIdAndUpdate(
+      gaming_id,
+      { $pull: { users: req.user.id } },
+      { new: true }
+    ).populate("users", "name username avatar");
+    return res.status(200).json({ success: true, message: "Left game successfully",gaming: updated});
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Internal server error"});
+  }
+};

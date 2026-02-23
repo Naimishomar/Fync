@@ -12,7 +12,7 @@ const Tab = createBottomTabNavigator();
 export default function TabLayout() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
+      screenOptions={({ route }: any) => ({
         headerShown: false,
         tabBarStyle: {
           position: "absolute",
@@ -31,7 +31,7 @@ export default function TabLayout() {
 
         tabBarShowLabel: false,
 
-        tabBarIcon: ({ color, focused }) => {
+        tabBarIcon: ({ color, focused }: any) => {
           let iconName: any = "home";
 
           if (route.name === "Home") iconName = "home";

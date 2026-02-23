@@ -1,62 +1,28 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Alert } from "react-native";
+import { View, StyleSheet } from "react-native";
 import MapView, { Heatmap } from "react-native-maps";
 import * as Location from "expo-location";
-import * as TaskManager from "expo-task-manager";
 import axios from "../../context/axiosConfig";
-
-interface HeatmapPoint {
-  latitude: number;
-  longitude: number;
-  weight?: number;
-}
-
-interface HeatmapProps {
-  points: HeatmapPoint[];
-  radius?: number;
-  opacity?: number;
-  gradient?: {
-    colors: string[];
-    startPoints: number[];
-    colorMapSize: number;
-  };
-}
-
-const TypedHeatmap = Heatmap as unknown as React.ComponentType<HeatmapProps>;
-
-const LOCATION_TASK_NAME = "BACKGROUND_LOCATION_TASK";
-
-TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
-  if (error) return;
-  const { locations } = data as any;
-  if (!locations || locations.length === 0) return;
-
-  const { latitude, longitude } = locations[0].coords;
-
-  try {
-    await axios.post("/map/location", {
-      lat: latitude,
-      lng: longitude
-    });
-  } catch (err : any) {
-    Alert.alert("Error", "Check your internet connection.", err);
-  }
-});
+import { LOCATION_TASK_NAME } from "../../utils/backgroundLocation.task";
 
 export default function Map() {
   const [heatPoints, setHeatPoints] = useState<any[]>([]);
 
+  // 🔥 AUTO START LOCATION TRACKING
   useEffect(() => {
     (async () => {
       const fg = await Location.requestForegroundPermissionsAsync();
       const bg = await Location.requestBackgroundPermissionsAsync();
 
-      if (fg.status !== "granted" || bg.status !== "granted") return;
+      if (fg.status !== "granted" || bg.status !== "granted") {
+        console.log("Location permission denied");
+        return;
+      }
 
-      const running =
+      const isRunning =
         await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
 
-      if (!running) {
+      if (!isRunning) {
         await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
           accuracy: Location.Accuracy.Balanced,
           timeInterval: 30000,
@@ -64,26 +30,27 @@ export default function Map() {
           showsBackgroundLocationIndicator: true,
           foregroundService: {
             notificationTitle: "Campus Heatmap",
-            notificationBody: "Tracking location for crowd density"
+            notificationBody: "Tracking crowd density"
           }
         });
       }
     })();
   }, []);
 
+  // 🔁 FETCH HEATMAP DATA
   useEffect(() => {
     const fetchHeatmap = async () => {
       try {
-        const res = await axios.get("map/heatmap");
+        const res = await axios.get("/map/heatmap");
         setHeatPoints(
           res.data.map((p: any) => ({
-            latitude: p.lat,
-            longitude: p.lng,
-            weight: p.count
+            latitude: Number(p.lat),
+            longitude: Number(p.lng),
+            weight: Number(p.count)
           }))
         );
-      } catch (err: any) {
-        Alert.alert("Error", "Check your internet connection.", err);
+      } catch (err) {
+        console.log("Heatmap fetch failed");
       }
     };
 
@@ -96,26 +63,27 @@ export default function Map() {
     <View style={styles.container}>
       <MapView
         style={StyleSheet.absoluteFillObject}
-        initialRegion={{
-          latitude: 12.9716,   // change to your campus center
-          longitude: 77.5946,
-          latitudeDelta: 0.004,
-          longitudeDelta: 0.004
-        }}
         showsUserLocation
+        initialRegion={{
+          latitude: 28.7529,
+          longitude: 77.4976,
+          latitudeDelta: 0.02,
+          longitudeDelta: 0.02
+        }}
+
       >
-        <TypedHeatmap
-          points={heatPoints}
-          radius={45}
-          opacity={0.8}
-        />
+        {heatPoints.length > 0 && (
+          <Heatmap
+            points={heatPoints}
+            radius={45}
+            opacity={0.8}
+          />
+        )}
       </MapView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1
-  }
+  container: { flex: 1 }
 });

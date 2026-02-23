@@ -1,6 +1,24 @@
-import express from "express";
 import FundingProject from "../models/funding.model.js";
 import User from "../models/user.model.js";
+import Comment from "../models/comment.model.js";
+import { cloudinary } from "../utils/cloudinary.js";
+
+const getCloudinaryPublicId = (url) => {
+    try {
+        if (!url || typeof url !== 'string' || !url.includes('cloudinary.com')) return null;
+        
+        // This regex safely extracts the folder and filename regardless of versions
+        // Example: https://.../upload/v12345/folder/filename.jpg -> folder/filename
+        const matches = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-z0-9]+$/i);
+        if (matches && matches[1]) {
+            return matches[1]; 
+        }
+        return null;
+    } catch (error) {
+        console.error("Cloudinary ID Parse Error:", error);
+        return null;
+    }
+};
 
 export const createFundingPost = async (req, res) => {
   try {
@@ -10,39 +28,30 @@ export const createFundingPost = async (req, res) => {
     }
     let image = [];
     let video = "";
-    if (req.files?.image) {
-      image = req.files.image.map(f => f.path);
-    }
-    if (req.files?.video?.[0]) {
-    video = req.files.video[0].path;
-    }
+    if (req.files?.image) image = req.files.image.map(f => f.path);
+    if (req.files?.video?.[0]) video = req.files.video[0].path;
+
     if (image.length === 0 && !video) {
       return res.status(400).json({ message: "At least one image or video required" });
     }
+
     const project = await FundingProject.create({
       user: req.user.id,
-      title,
-      description,
-      image,
-      video,
-      deployed_url,
-      github_url,
-      likes: 0,
-      liked_by: [],
-      comments: [],
+      title, description, image, video, deployed_url, github_url,
+      likes: 0, liked_by: [], comments: [],
     });
-    res.status(201).json({ success: true, message: "Funding project created successfully", project});
+    res.status(201).json({ success: true, message: "Project created", project});
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 
 export const getAllProjects = async(req,res)=>{
     try {
-        const { page } = req.query;
-        const limit = 5;
+        const { page = 1 } = req.query;
+        const limit = 15; // Increased limit for better feed experience
         const skip = (page - 1) * limit;
         const projects = await FundingProject.find()
         .sort({ createdAt: -1 })
@@ -72,42 +81,62 @@ export const getYourProjects = async(req,res)=>{
     }
 }
 
-export const updateProject = async(req,res)=>{
+export const updateProject = async(req, res) => {
     try {
         const project = await FundingProject.findById(req.params.id);
-        if(!project){
-            return res.status(404).json({ success: false, message: "Project not found" });
-        }
-        if(project.user.toString() !== req.user.id){
+        if(!project) return res.status(404).json({ success: false, message: "Project not found" });
+        
+        // Ensure user ID matches safely
+        const userId = req.user.id || req.user._id;
+        if(project.user.toString() !== userId.toString()) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
-        else{
-            let image = [];
-            let video = "";
-            if (req.files && Array.isArray(req.files)) {
-                image = req.files.map(file => file.path);
+
+        let newImages = undefined;
+        let newVideo = undefined;
+
+        // If new images uploaded, delete old images from Cloudinary SAFELY
+        if (req.files?.image && req.files.image.length > 0) {
+            newImages = req.files.image.map(f => f.path);
+            if (project.image && Array.isArray(project.image)) {
+                for (let imgUrl of project.image) {
+                    try {
+                        const pubId = getCloudinaryPublicId(imgUrl);
+                        if (pubId) await cloudinary.uploader.destroy(pubId, { resource_type: "image" });
+                    } catch (cloudinaryErr) { console.error("Cloudinary Update Error (Image):", cloudinaryErr); }
+                }
             }
-            if (req.file) {
-                video = req.file.path;
-            }
-            const updatedProject = await FundingProject.findByIdAndUpdate(
-                req.params.id,
-                {
-                    $set: {
-                        ...(req.body.title && { title: req.body.title }),
-                        ...(req.body.description && { description: req.body.description }),
-                        ...(image.length > 0 && { image }),
-                        ...(video && { video }),
-                        ...(req.body.deployed_url && { deployed_url: req.body.deployed_url }),
-                        ...(req.body.github_url && { github_url: req.body.github_url }),
-                    },
-                },
-                { new: true, runValidators: true }
-            ).populate("user");
-            return res.status(200).json({ success: true, message: "Project updated successfully", project: updatedProject });
         }
+
+        // If new video uploaded, delete old video from Cloudinary SAFELY
+        if (req.files?.video && req.files.video.length > 0) {
+            newVideo = req.files.video[0].path;
+            if (project.video) {
+                try {
+                    const pubId = getCloudinaryPublicId(project.video);
+                    if (pubId) await cloudinary.uploader.destroy(pubId, { resource_type: "video" });
+                } catch (cloudinaryErr) { console.error("Cloudinary Update Error (Video):", cloudinaryErr); }
+            }
+        }
+
+        const updatedProject = await FundingProject.findByIdAndUpdate(
+            req.params.id,
+            {
+                $set: {
+                    ...(req.body.title && { title: req.body.title }),
+                    ...(req.body.description && { description: req.body.description }),
+                    ...(newImages !== undefined && { image: newImages }),
+                    ...(newVideo !== undefined && { video: newVideo }),
+                    ...(req.body.deployed_url && { deployed_url: req.body.deployed_url }),
+                    ...(req.body.github_url !== undefined && { github_url: req.body.github_url }),
+                },
+            },
+            { new: true }
+        ).populate("user");
+        
+        return res.status(200).json({ success: true, message: "Project updated successfully", project: updatedProject });
     } catch (error) {
-       console.log("Internal server error", error);
+       console.log("Update error", error);
        return res.status(500).json({ success: false, message: "Internal server error" });  
     }
 }
@@ -203,3 +232,53 @@ export const deleteComment = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
+
+export const deleteFundingProject = async(req, res) => {
+    try {
+        const project = await FundingProject.findById(req.params.id);
+        if(!project) return res.status(404).json({ success: false, message: "Project not found" });
+        
+        // Ensure user ID matches safely
+        const userId = req.user.id || req.user._id;
+        if(project.user.toString() !== userId.toString()) {
+            return res.status(403).json({ success: false, message: "Not authorized" });
+        }
+
+        // DELETE FILES FROM CLOUDINARY WITH TRY-CATCH TO PREVENT CRASHES
+        if (project.image && Array.isArray(project.image)) {
+            for (let imgUrl of project.image) {
+                try {
+                    const pubId = getCloudinaryPublicId(imgUrl);
+                    if (pubId) {
+                        await cloudinary.uploader.destroy(pubId, { resource_type: "image" });
+                    }
+                } catch (cloudinaryErr) {
+                    console.error("Cloudinary Delete Error (Image):", cloudinaryErr);
+                }
+            }
+        }
+
+        if (project.video) {
+            try {
+                const pubId = getCloudinaryPublicId(project.video);
+                if (pubId) {
+                    await cloudinary.uploader.destroy(pubId, { resource_type: "video" });
+                }
+            } catch (cloudinaryErr) {
+                console.error("Cloudinary Delete Error (Video):", cloudinaryErr);
+            }
+        }
+
+        // Proceed to delete the project from MongoDB even if Cloudinary fails
+        await FundingProject.findByIdAndDelete(req.params.id);
+        
+        // Also delete associated comments to keep the database clean
+        await Comment.deleteMany({ post: req.params.id, postType: "FundingProject" });
+
+        return res.status(200).json({ success: true, message: "Project deleted successfully" });
+    } catch (error) {
+        console.log("Delete error", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+}

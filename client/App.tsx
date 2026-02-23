@@ -258,22 +258,16 @@ function RootNavigator() {
     );
   }
 
-  return (
-    <NavigationContainer>
-      {isLoggedIn ? (
-          <AppStack />
-      ) : (
-        <AuthStack />
-      )}
-    </NavigationContainer>
-  );
+  return isLoggedIn ? <AppStack /> : <AuthStack />;
 }
 
 export default function App() {
   return (
-    <AuthProvider>
+    <NavigationContainer>
+      <AuthProvider>
         <RootNavigator />
         <Toast position="top" />
-    </AuthProvider>
+      </AuthProvider>
+    </NavigationContainer>
   );
 }

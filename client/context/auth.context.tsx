@@ -14,20 +14,21 @@ export const AuthProvider = ({ children }: any) => {
   };
 
   const login = async (email: string, password: string) => {
-    const res = await axios.post("/user/login", { email, password });
-
-    const { token, refreshToken } = res.data;
-
-    if (!token || !refreshToken) {
-      throw new Error("Invalid auth response");
+    try {
+      const res = await axios.post("/user/login", { email, password });
+      const { token, refreshToken, user } = res.data;
+      if (!token || !refreshToken) {
+        throw new Error("Invalid auth response");
+      }
+      await AsyncStorage.multiSet([
+        ["accessToken", token],
+        ["refreshToken", refreshToken],
+      ]);
+      setUser(user);
+    } catch (err : any) {
+      console.log("LOGIN ERROR:", err?.response?.data || err.message);
+      throw err;
     }
-
-    await AsyncStorage.multiSet([
-      ["accessToken", res.data.token],
-      ["refreshToken", res.data.refreshToken],
-    ]);
-
-    setUser(res.data.user);
   };
 
   // Restore session on app start
@@ -45,7 +46,7 @@ export const AuthProvider = ({ children }: any) => {
         const res = await axios.get("/user/profile");
         setUser(res.data.user);
       } catch (error) {
-        // Only logout if refresh ALSO failed
+        console.log(error);
         await logout();
       } finally {
         setLoading(false);

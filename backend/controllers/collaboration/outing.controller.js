@@ -50,7 +50,9 @@ export const addOuting = async (req, res) => {
 
 export const getAllOutings = async (req, res) => {
   try {
-    const outings = await Outing.find({ college: req.user.college });
+    const outings = await Outing.find({ college: req.user.college })
+    .populate("admin", "name username avatar")
+    .populate("users", "name username avatar");
     if (!outings) {
       return res.status(404).json({ success: false, message: 'Outings not found' });
     }
@@ -77,6 +79,7 @@ export const getYourOuting = async (req, res) => {
 export const deleteOuting = async (req, res) => {
   try {
     const outing = await Outing.findById(req.params.id);
+    
     if (!outing) {
       return res.status(404).json({ success: false, message: 'Outing not found' });
     }
@@ -84,6 +87,7 @@ export const deleteOuting = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
     const deletedOuting = await Outing.findByIdAndDelete(req.params.id);
+    console.log("Outing hai bhai");
     return res.status(200).json({ success: true, message: 'Outing deleted successfully', outing: deletedOuting });
   } catch (error) {
     console.error("Internal server error", error);
@@ -92,7 +96,7 @@ export const deleteOuting = async (req, res) => {
 };
 
 export const joinOuting = async(req,res)=>{
-    const {outing_id} = req.params;
+    const outing_id = req.params.id;
     if(!outing_id){
         return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
@@ -112,3 +116,25 @@ export const joinOuting = async(req,res)=>{
         return res.status(200).json({ success: true, message: 'You joined the outing successfully', outing: updatedOuting });
     }
 }
+
+export const leaveOuting = async (req, res) => {
+  try {
+    const outing_id = req.params.id;
+    const outing = await Outing.findById(outing_id);
+    if (!outing) {
+      return res.status(404).json({success: false, message: "Outing not found"});
+    }
+    if (!outing.users.some(u => u.toString() === req.user.id)) {
+      return res.status(400).json({ success: false, message: "You are not in this outing"});
+    }
+    const updated = await Outing.findByIdAndUpdate(
+      outing_id,
+      { $pull: { users: req.user.id } },
+      { new: true }
+    ).populate("users", "name username avatar");
+    return res.status(200).json({ success: true, message: "Left outing successfully",outing: updated});
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Internal server error"});
+  }
+};
