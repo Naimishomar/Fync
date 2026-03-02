@@ -1,5 +1,6 @@
 import express from 'express';
 import Gaming from '../../models/collaboration/gaming.model.js';
+import mongoose from 'mongoose';
 
 export const addGames = async (req, res) => {
   try {
@@ -52,7 +53,9 @@ export const addGames = async (req, res) => {
 
 export const getAllGames = async (req, res) => {
   try {
-    const gamings = await Gaming.find({ college: req.user.college });
+    const gamings = await Gaming.find({ college: req.user.college })
+    .populate("admin", "name username avatar")
+    .populate("users", "name username avatar");
     if (!gamings) {
       return res.status(404).json({ success: false, message: 'Gamings not found' });
     }
@@ -95,30 +98,52 @@ export const deleteGames = async (req, res) => {
 
 export const joinGames = async(req,res)=>{
     try {
-        const {gaming_id} = req.params;
-        if(!gaming_id){
-            return res.status(400).json({ success: false, message: 'Missing required fields' });
-        }
+        const gaming_id = req.params.id;
+        const userId = req.user._id || req.user.id; // Safely get ID
+
         const gaming = await Gaming.findById(gaming_id);
-        if(!gaming){
-            return res.status(404).json({ success: false, message: 'Gaming not found' });
-        }
+        if(!gaming) return res.status(404).json({ success: false, message: 'Gaming not found' });
+        
         if (gaming.users.length >= gaming.team_size) {
             return res.status(400).json({ success: false, message: 'Team size is full' });
         }
-        if (gaming.users.some(u => u.toString() === req.user.id)) {
-            return res.status(400).json({ success: false, message: 'You are already in this gaming' });
+        
+        if (gaming.users.some(u => u.toString() === userId.toString())) {
+            return res.status(400).json({ success: false, message: 'You are already in this game' });
         }
-        else{
-            const updatedGaming = await Gaming.findByIdAndUpdate(gaming_id, {
-                $push: {
-                    users: req.user.id
-                }
-            }, { new: true });
-            return res.status(200).json({ success: true, message: 'You joined the gaming successfully', gaming: updatedGaming });
-        }
+
+        const updatedGaming = await Gaming.findByIdAndUpdate(
+            gaming_id, 
+            { $push: { users: userId } }, 
+            { new: true }
+        ).populate("users", "name username avatar"); // Ensure we return populated data!
+
+        return res.status(200).json({ success: true, message: 'Joined successfully', gaming: updatedGaming });
     } catch (error) {
-        console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
+
+export const leaveGames = async (req, res) => {
+  try {
+    const gaming_id = req.params.id;
+    const userId = req.user._id || req.user.id;
+
+    const gaming = await Gaming.findById(gaming_id);
+    if (!gaming) return res.status(404).json({success: false, message: "Gaming not found"});
+
+    if (!gaming.users.some(u => u.toString() === userId.toString())) {
+      return res.status(400).json({ success: false, message: "You are not in this game"});
+    }
+
+    const updated = await Gaming.findByIdAndUpdate(
+      gaming_id,
+      { $pull: { users: new mongoose.Types.ObjectId(req.user.id) } },
+      { new: true }
+    ).populate("users", "name username avatar"); // Ensure we return populated data!
+
+    return res.status(200).json({ success: true, message: "Left game successfully", gaming: updated});
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Internal server error"});
+  }
+};

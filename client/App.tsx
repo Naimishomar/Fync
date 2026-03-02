@@ -1,12 +1,19 @@
 import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 import React from "react";
-import './context/axiosConfig';
-import { NavigationContainer } from "@react-navigation/native";
+import { View, ActivityIndicator, Image } from "react-native";
+import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import Toast from "react-native-toast-message";
+
+import './context/axiosConfig';
+//@ts-ignore
 import "./global.css";
+
+// Context
+import { AuthProvider, useAuth } from "./context/auth.context";
 
 // Auth Components
 import LoginScreen from "./components/login-screen";
@@ -32,10 +39,6 @@ import RazorpayWebView from "./utils/RazorpayWebView";
 import PaymentVerify from "./utils/PaymentVerify";
 import ReceiptWebview from "./utils/ReceiptWebview";
 
-// Context
-import { AuthProvider, useAuth } from "./context/auth.context";
-import { View, ActivityIndicator } from "react-native";
-
 // Quiz & Opportunities
 import CreateRoom from "./components/quiz/CreateRoom";
 import JoinRoomInput from "./components/quiz/JoinRoomInput";
@@ -44,11 +47,11 @@ import OneVsOneSetup from "./components/quiz/OneVsOneSetup";
 import QuizScreen from "./components/quiz/QuizScreen";
 import QuizHome from "./components/quiz/QuizHome";
 import LeaderboardScreen from "./components/quiz/LeaderboardScreen";
-import HackathonList from "components/opportunity/HackathonList";
+import HackathonList from "./components/opportunity/HackathonList";
 import InternshipList from "./components/opportunity/InternshipList";
 import JobList from "./components/opportunity/JobList";
 import WorkshopList from './components/opportunity/WorkshopList';
-import IndividualPostOrShort from 'components/IndividualPostOrShort';
+import IndividualPostOrShort from './components/IndividualPostOrShort';
 
 //Interview
 import InterviewSetup from "./components/interview/InterviewSetup";
@@ -66,7 +69,10 @@ import ConfessionFeed from './components/newFeatures/ConfessionFeed';
 import NineAmConfession from './components/newFeatures/NineAmConfession';
 import CodingLeaderboard from './components/newFeatures/CodingLeaderboard';
 import Map from './components/newFeatures/Map';
-import VideoLobby from './components/newFeatures/VideoLobby';
+import LateNightFood from 'components/newFeatures/LateNightFood';
+import CampusTravel from 'components/newFeatures/CampusTravel';
+import StudyAssistant from 'components/newFeatures/StudyAssistant';
+// import VideoLobby from './components/newFeatures/VideoLobby';
 
 // Notification
 import Notification from "./components/Notification";
@@ -78,13 +84,22 @@ import SplashScreen from "./components/SplashScreen";
 import DriveFolderScreen from './components/studyMaterial/DriveFolderScreen';
 import PDFViewerScreen from './components/studyMaterial/PDFViewerScreen';
 
-// OLX
-import MarketplaceScreen from 'components/olx/MarketplaceScreen';
+// OLX & Notice Board
+import MarketplaceScreen from './components/olx/MarketplaceScreen';
 import LostAndFound from './components/LostAndFound';
-import NoticeBoard from 'components/NoticeBoard';
+import NoticeBoard from './components/NoticeBoard';
 
 // Collaboration
 import CollaborationScreen from './components/collaboration/CollaborationScreen';
+
+// Paid Gigs
+import PaidGigs from './components/PaidGigs';
+import CreateShorts from 'components/CreateShorts';
+
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false,
+});
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator();
@@ -154,6 +169,11 @@ export type RootStackParamList = {
   NoticeBoard: undefined;
   CollaborationScreen: undefined;
   Map: undefined;
+  PaidGigs: undefined;
+  LateNightFood: undefined;
+  CampusTravel: undefined;
+  StudyAssistant: undefined;
+  CreateShorts: undefined;
 };
 
 function HomeDrawer() {
@@ -203,6 +223,7 @@ function AppStack() {
       <Stack.Screen name="Profile" component={Profile} />
       <Stack.Screen name="EditProfile" component={EditProfile} />
       <Stack.Screen name="CreatePost" component={CreatePost} />
+      <Stack.Screen name="CreateShorts" component={CreateShorts} />
       <Stack.Screen name="RazorpayWebView" component={RazorpayWebView} />
       <Stack.Screen name="PaymentVerify" component={PaymentVerify} />
       <Stack.Screen name="ReceiptWebview" component={ReceiptWebview} />
@@ -236,13 +257,17 @@ function AppStack() {
       <Stack.Screen name="CodingLeaderboard" component={CodingLeaderboard} />
       <Stack.Screen name="DriveFolderScreen" component={DriveFolderScreen} />
       <Stack.Screen name="PDFViewerScreen" component={PDFViewerScreen} />
-      <Stack.Screen name="VideoLobby" component={VideoLobby} />
       <Stack.Screen name="IndividualPostOrShort" component={IndividualPostOrShort} />
       <Stack.Screen name="MarketplaceScreen" component={MarketplaceScreen} />
       <Stack.Screen name="LostAndFound" component={LostAndFound} />
       <Stack.Screen name="NoticeBoard" component={NoticeBoard} />
       <Stack.Screen name="CollaborationScreen" component={CollaborationScreen} />
       <Stack.Screen name="Map" component={Map} />
+      <Stack.Screen name="PaidGigs" component={PaidGigs} />
+      <Stack.Screen name="LateNightFood" component={LateNightFood} />
+      <Stack.Screen name="CampusTravel" component={CampusTravel} />
+      <Stack.Screen name="StudyAssistant" component={StudyAssistant} />
+      {/* <Stack.Screen name="VideoLobby" component={VideoLobby} /> */}
     </Stack.Navigator>
   );
 }
@@ -253,27 +278,24 @@ function RootNavigator() {
   if (loading) {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#000" }}>
+        <Image source={require('./assets/logo.png')} className='w-56 h-28 object-contain' />
         <ActivityIndicator size="large" color="#fff" />
       </View>
     );
   }
 
-  return (
-    <NavigationContainer>
-      {isLoggedIn ? (
-          <AppStack />
-      ) : (
-        <AuthStack />
-      )}
-    </NavigationContainer>
-  );
+  return isLoggedIn ? <AppStack /> : <AuthStack />;
 }
 
+export const navigationRef = createNavigationContainerRef<RootStackParamList>();
+ 
 export default function App() {
   return (
-    <AuthProvider>
+    <NavigationContainer ref={navigationRef}> 
+      <AuthProvider>
         <RootNavigator />
         <Toast position="top" />
-    </AuthProvider>
+      </AuthProvider>
+    </NavigationContainer>
   );
 }

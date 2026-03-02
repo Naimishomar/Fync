@@ -307,6 +307,42 @@ export default function CustomSidebar(props: any) {
                 <Text className="text-white text-lg ml-4 font-medium">Locate the crowd</Text>
             </Pressable>
 
+            {/* 15. Paid Gigs */}
+            <Pressable 
+                onPress={() => props.navigation.navigate('PaidGigs')}
+                className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+            >
+                <Ionicons name="cash-outline" size={24} color="#f9a8d4" />
+                <Text className="text-white text-lg ml-4 font-medium">Paid Gigs</Text>
+            </Pressable>
+
+            {/* 16. Late Night Food */}
+            <Pressable 
+                onPress={() => props.navigation.navigate('LateNightFood')}
+                className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+            >
+                <Ionicons name="restaurant-outline" size={24} color="#f9a8d4" />
+                <Text className="text-white text-lg ml-4 font-medium">Late Night Food</Text>
+            </Pressable>
+
+            {/* 17. Campus Travel */}
+            <Pressable 
+                onPress={() => props.navigation.navigate('CampusTravel')}
+                className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+            >
+                <Ionicons name="car-outline" size={24} color="#f9a8d4" />
+                <Text className="text-white text-lg ml-4 font-medium">Campus Travel</Text>
+            </Pressable>
+
+            {/* 18. Study Assistant */}
+            <Pressable 
+                onPress={() => props.navigation.navigate('StudyAssistant')}
+                className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+            >
+                <Ionicons name="book-outline" size={24} color="#f9a8d4" />
+                <Text className="text-white text-lg ml-4 font-medium">Study Assistant</Text>
+            </Pressable>
+
         </View>
       </DrawerContentScrollView>
 

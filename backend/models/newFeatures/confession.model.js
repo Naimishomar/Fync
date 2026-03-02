@@ -21,10 +21,13 @@ const confessionSchema = new mongoose.Schema({
     isBanned:{
         type: Boolean,
         default: false,
-    }
+    },
+    createdAt:{
+        type: Date,
+        default: Date.now,
+        expires: 60 * 60 * 24 * 7,
+    },
 }, {timestamps: true});
-
-confessionSchema.index({ expiresAt: 1 }, {expiresAfterSeconds: 60 * 60 * 24 * 7});
 
 const Confession = mongoose.model("Confession", confessionSchema);
 export default Confession;

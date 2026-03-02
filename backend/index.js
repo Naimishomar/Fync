@@ -21,6 +21,8 @@ import OLXRoute from './routes/olx.route.js';
 import LostAndFoundRoute from './routes/lostAndFound.route.js';
 import noticeRoute from './routes/notice.route.js';
 import mapRoute from './routes/map.route.js';
+import paidGigsRoute from './routes/paidGigs.route.js';
+import AiIntelligenceRoute from './routes/aiItelligence.route.js';
 import { rateLimit } from 'express-rate-limit';
 import { logout } from './controllers/auth.controller.js';
 
@@ -73,13 +75,15 @@ app.use('/olx', OLXRoute);
 app.use('/lostAndFound', LostAndFoundRoute);
 app.use('/notice', noticeRoute);
 app.use('/map', mapRoute);
+app.use('/gigs', paidGigsRoute);
+app.use('/api', AiIntelligenceRoute);
 
 socketController(io);
 lotterySocketController(io);
 setupSocket(io);
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send('Fync never gets down!🚀');
 });
 
 server.listen(PORT, () => {

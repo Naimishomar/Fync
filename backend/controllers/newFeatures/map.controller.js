@@ -3,10 +3,16 @@ import Map from "../../models/newFeatures/map.model.js";
 export const saveLocation = async (req, res) => {
     try {
         const { lat, lng } = req.body;
-        const map = await Map.create({
-            college: req.user.college,
-            lat: Number(lat.toFixed(4)),
-            lng: Number(lng.toFixed(4))
+        const latNum = Number(lat);
+        const lngNum = Number(lng);
+
+        if (isNaN(latNum) || isNaN(lngNum)) {
+        return res.status(400).json({ success: false, message: "Invalid coordinates" });
+        }
+        await Map.create({
+        college: req.user.college,
+        lat: Number(latNum.toFixed(4)),
+        lng: Number(lngNum.toFixed(4))
         });
         return res.status(200).json({ success: true, message: "Location saved successfully." });
     } catch (error) {

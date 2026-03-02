@@ -140,7 +140,7 @@ export default function FindTeammate() {
         </View>
         
         {/* Social Icons */}
-        <View className="flex-row space-x-3">
+        <View className="flex-row gap-3">
             {item.github_id && (
                 <TouchableOpacity onPress={() => openLink(item.github_id)}>
                     <FontAwesome name="github" size={20} color="white" />

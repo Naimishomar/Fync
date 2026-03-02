@@ -78,7 +78,7 @@ function CreatePost() {
       }
     } catch (error) {
       console.log('Upload failed', error);
-      console.log(error?.response?.data?.message);
+      console.log(error);
       Toast.show({ type: 'error', text1: 'Failed to upload' });
     } finally {
       setIsLoading(false);

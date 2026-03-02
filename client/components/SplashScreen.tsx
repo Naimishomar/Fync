@@ -1,9 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { Image, Text, Animated } from 'react-native';
+import { Animated } from 'react-native';
+//@ts-ignore
 import LogoImage from '../assets/logo.png';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function SplashScreen({ navigation }) {
+export default function SplashScreen({ navigation }: any) {
   const logoX = useRef(new Animated.Value(-200)).current;
   const textX = useRef(new Animated.Value(-200)).current;
 
@@ -26,7 +27,7 @@ export default function SplashScreen({ navigation }) {
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, []);
+  },[]);
 
   return (
     <SafeAreaView className="flex-1 bg-black justify-center items-center">

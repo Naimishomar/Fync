@@ -1,194 +1,243 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  TextInput,
-  ActivityIndicator,
-  // useWindowDimensions,
+import React, { useState, useEffect } from "react";
+import { 
+  View, Text, Pressable, TextInput, FlatList, Image, 
+  Dimensions, ActivityIndicator, KeyboardAvoidingView, Platform, 
+  TouchableOpacity
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Video, ResizeMode } from "expo-av";
-import * as ImagePicker from "expo-image-picker";
+import * as MediaLibrary from 'expo-media-library';
 import { Ionicons } from "@expo/vector-icons";
-import Toast from "react-native-toast-message";
+import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import axios from "../context/axiosConfig";
 
-const CreateShorts = () => {
-  // const { width, height } = useWindowDimensions();
-  const navigation = useNavigation<any>();
+const { width, height } = Dimensions.get("window");
+const COLUMN_COUNT = 4;
+const ITEM_SIZE = width / COLUMN_COUNT;
 
-  const [videoUri, setVideoUri] = useState<string | null>(null);
+const CreateShorts = () => {
+  const navigation = useNavigation<any>();
+  
+  // States
+  const [assets, setAssets] = useState<MediaLibrary.Asset[]>([]);
+  const [selectedAsset, setSelectedAsset] = useState<MediaLibrary.Asset | null>(null);
+  const [step, setStep] = useState<'pick' | 'details'>('pick');
+  
+  // Upload States
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
-  /* ---------------- PICK VIDEO ---------------- */
-  const pickVideo = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Toast.show({ type: "error", text1: "Permission required" });
-      return;
-    }
+  useEffect(() => {
+    getVideos();
+  }, []);
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-      quality: 1,
+  const getVideos = async () => {
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+    if (status !== 'granted') return navigation.goBack();
+
+    const { assets } = await MediaLibrary.getAssetsAsync({
+      mediaType: 'video',
+      sortBy: ['creationTime'],
+      first: 50,
     });
+    setAssets(assets);
+    if (assets.length > 0) setSelectedAsset(assets[0]);
+  };
 
-    if (!result.canceled) {
-      setVideoUri(result.assets[0].uri);
+  const handleUpload = async () => {
+    if (!selectedAsset || !title.trim()) return;
+    setLoading(true);
+    
+    try {
+      // We need the actual URI for the file
+      const info = await MediaLibrary.getAssetInfoAsync(selectedAsset);
+      const uri = info.localUri || info.uri;
+
+      const formData = new FormData();
+      formData.append("title", title.trim());
+      formData.append("description", description.trim());
+      formData.append("video", {
+        uri,
+        name: `short_${Date.now()}.mp4`,
+        type: "video/mp4",
+      } as any);
+
+      await axios.post("/shorts/create", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      navigation.navigate("Shorts");
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  /* ---------------- UPLOAD SHORT ---------------- */
-const uploadShort = async () => {
-  if (!videoUri || !title || !description) {
-    Toast.show({ type: "error", text1: "All fields are required" });
-    return;
-  }
+  if (step === 'pick') {
+    return (
+      <SafeAreaView className="flex-1 bg-black">
+        {/* Header */}
+        <View className="flex-row items-center justify-between px-4 py-3">
+          <Pressable onPress={() => navigation.goBack()}>
+            <Ionicons name="close" size={28} color="white" />
+          </Pressable>
+          <Text className="text-white font-bold text-lg">New Short</Text>
+          <Pressable onPress={() => setStep('details')}>
+            <Text className="text-pink-600 font-bold text-lg">Next</Text>
+          </Pressable>
+        </View>
 
-  setLoading(true);
-
-  try {
-    const formData = new FormData();
-    formData.append("title", title.trim());
-    formData.append("description", description.trim());
-
-    const filename = videoUri.split("/").pop() || "short.mp4";
-
-    formData.append("video", {
-      uri: videoUri,
-      name: filename,
-      type: "video/mp4",
-    } as any);
-
-    const res = await axios.post("/shorts/create",
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-
-    if (res.data.success) {
-      Toast.show({ type: "success", text1: "Short uploaded!" });
-      setTitle('');
-      setDescription('');
-      setVideoUri(null);
-      navigation.goBack();
-    } else {
-      Toast.show({ type: "error", text1: res.data.message });
-    }
-  } catch (err) {
-    console.log(err);
-    Toast.show({ type: "error", text1: "Upload failed" });
-  } finally {
-    setLoading(false);
-  }
-};
-
-return (
-  <SafeAreaView className="flex-1 bg-white">
-    {/* HEADER */}
-    <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
-      <Pressable onPress={() => navigation.goBack()}>
-        <Ionicons name="close" size={26} color="#111827" />
-      </Pressable>
-
-      <Text className="text-gray-900 text-lg font-semibold">
-        Create Short
-      </Text>
-
-      <View style={{ width: 26 }} />
-    </View>
-
-    {/* CONTENT */}
-    <View className="flex-1 px-4">
-      {/* VIDEO PREVIEW / PICKER */}
-      <View className="mt-4 h-[60%] w-full rounded-2xl bg-gray-100 overflow-hidden border border-gray-200">
-        {!videoUri ? (
-          <View className="flex-1 items-center justify-center">
-            {/* ONLY ICON IS TOUCHABLE */}
-            <Pressable
-              onPress={pickVideo}
-              activeOpacity={0.7}
-              className="bg-gray-200 w-40 h-40 rounded-full items-center justify-center"
-            >
-              <Ionicons name="videocam-outline" size={44} color="#374151" />
-            </Pressable>
-
-            <Text className="text-gray-500 mt-4 text-md">
-              Select a video
-            </Text>
-          </View>
-        ) : (
-          <View className="flex-1">
+        {/* Big Preview */}
+        <View style={{ width: width, height: width * (16 / 9), maxHeight: height * 0.45 }}>
+          {selectedAsset && (
             <Video
-              source={{ uri: videoUri }}
-              style={{ width: "100%", height: "100%" }}
+              source={{ uri: selectedAsset.uri }}
+              style={{ flex: 1 }}
               resizeMode={ResizeMode.COVER}
-              useNativeControls
+              shouldPlay
               isLooping
+              isMuted
             />
+          )}
+        </View>
 
-            {/* REMOVE VIDEO BUTTON */}
-            <Pressable
-              onPress={() => setVideoUri(null)}
-              className="absolute top-3 right-3 bg-white/90 h-8 w-8 rounded-full items-center justify-center shadow"
-            >
-              <Ionicons name="close" size={16} color="#111827" />
-            </Pressable>
+        {/* Gallery Grid */}
+        <View className="flex-1 bg-zinc-900 mt-1">
+          <View className="px-4 py-3 bg-black flex-row justify-between items-center">
+            <Text className="text-white font-bold">Recent Videos</Text>
+            <Ionicons name="camera" size={20} color="white" />
           </View>
-        )}
-      </View>
+          
+          <FlatList
+            data={assets}
+            numColumns={COLUMN_COUNT}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <Pressable 
+                onPress={() => setSelectedAsset(item)}
+                style={{ width: ITEM_SIZE, height: ITEM_SIZE, padding: 1 }}
+              >
+                <Image 
+                  source={{ uri: item.uri }} 
+                  style={{ flex: 1, opacity: selectedAsset?.id === item.id ? 0.5 : 1 }} 
+                />
+                <View className="absolute bottom-1 right-1">
+                    <Text className="text-white text-[10px] bg-black/50 px-1 rounded">
+                        {Math.floor(item.duration / 60)}:{Math.round(item.duration % 60).toString().padStart(2, '0')}
+                    </Text>
+                </View>
+              </Pressable>
+            )}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-      {/* TITLE */}
-        <TextInput
-            placeholder="Title"
-            placeholderTextColor="#9ca3af"
-            value={title}
-            onChangeText={setTitle}
-            className="mt-5 text-gray-900 text-base border border-pink-300 rounded-xl p-3"
-        />
+  // --- DETAILS STEP (SAME AS YOUR GLASSMORPHISM UI) ---
+return (
+  <View className="flex-1 bg-black">
+    <Video
+      source={{ uri: selectedAsset?.uri }}
+      style={{ position: "absolute", width: width, height: height }}
+      resizeMode={ResizeMode.COVER}
+      shouldPlay
+      isLooping
+    />
+    {/* Gradient overlay for better readability over video */}
+    <LinearGradient
+      colors={['transparent', 'rgba(0,0,0,0.8)']}
+      className="absolute inset-0"
+    />
 
-      {/* DESCRIPTION */}
-        <TextInput
-        placeholder="Description"
-        placeholderTextColor="#9ca3af"
-        value={description}
-        onChangeText={setDescription}
-        multiline
-        textAlignVertical="top"
-        className="mt-4 text-gray-900 text-base min-h-[80px] border border-pink-300 rounded-xl p-3"
-        />
-    </View>
-
-    {/* FOOTER */}
-    <View className="px-4 py-4 border-t border-gray-200 mb-14">
-      <Pressable
-        onPress={uploadShort}
-        disabled={loading}
-        className={`h-12 rounded-full items-center justify-center ${
-          loading
-            ? "bg-pink-300/60"
-            : "bg-pink-400"
-        }`}
+    <SafeAreaView className="flex-1">
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"} 
+        className="flex-1"
       >
-        {loading ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text className="text-white font-semibold text-base">
-            Upload Short
+        {/* Top Navigation */}
+        <View className="flex-row items-center justify-between px-6">
+          <Pressable 
+            onPress={() => setStep('pick')} 
+            className="bg-black/40 p-2 rounded-2xl border border-white/10"
+          >
+            <Ionicons name="chevron-back" size={24} color="white" />
+          </Pressable>
+          <Text className="text-pink-600 font-black uppercase tracking-widest text-sm">
+            Finalize Post
           </Text>
-        )}
-      </Pressable>
-    </View>
-  </SafeAreaView>
-);
+          <View className="w-10" />
+        </View>
 
+        {/* Content Area */}
+        <View className="flex-1 justify-end pb-12 px-3">
+          {/* Main Glass Container */}
+          <View 
+            className="bg-black/50 rounded-2xl p-6 border border-pink-600 shadow-2xl"
+            style={{ shadowColor: '#000', shadowRadius: 20, shadowOpacity: 0.5 }}
+          >
+            <Text className="text-pink-500 font-bold mb-4 ml-1 text-xs uppercase tracking-[2px]">
+              Short Details
+            </Text>
+
+            {/* Aesthetic Title Input */}
+            <View className="bg-white/5 rounded-xl border border-pink-600 px-4 mb-4">
+              <TextInput
+                placeholder="Title"
+                placeholderTextColor="#999"
+                value={title}
+                onChangeText={setTitle}
+                className="text-pink-600 text-sm"
+              />
+            </View>
+
+            {/* Aesthetic Description Input */}
+            <View className="bg-white/5 rounded-xl border border-pink-600 px-4 mb-8">
+              <TextInput
+                placeholder="What's this short about?..."
+                placeholderTextColor="#777"
+                value={description}
+                onChangeText={setDescription}
+                multiline
+                className="text-pink-600 text-sm min-h-[80px]"
+                style={{ textAlignVertical: 'top' }}
+              />
+            </View>
+
+            {/* Share Button with Neon Pink Style */}
+            <TouchableOpacity 
+              onPress={handleUpload} 
+              disabled={loading}
+              activeOpacity={0.8}
+              style={{
+                shadowColor: '#db2777', // pink-600
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.4,
+                shadowRadius: 10,
+                elevation: 8
+              }}
+            >
+              <View className="bg-pink-600 h-16 rounded-xl items-center justify-center flex-row">
+                {loading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <>
+                    <Text className="text-white font-black uppercase tracking-widest mr-2">
+                      Share Short
+                    </Text>
+                    <Ionicons name="rocket" size={20} color="white" />
+                  </>
+                )}
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  </View>
+);
 };
 
 export default CreateShorts;

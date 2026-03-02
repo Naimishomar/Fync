@@ -22,6 +22,7 @@ import CreatePost from './create-post';
 import axios from '../context/axiosConfig';
 // @ts-ignore
 import no_post from '../assets/no_post.png';
+import AdCarousel from './AdCarousel';
 
 const { width } = Dimensions.get('window');
 
@@ -44,7 +45,7 @@ interface Post {
   college?: string;
 }
 
-// --- COMMENTS MODAL (Kept same as your code) ---
+// --- COMMENTS MODAL ---
 const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded }: any) => {
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -165,12 +166,17 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
   );
 };
 
-// --- UPDATED SUB-COMPONENT: POST ITEM (With Carousel) ---
+// --- UPDATED SUB-COMPONENT: POST ITEM (With Carousel & Show More) ---
 const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser: any, openComments: (id: string) => void }) => {
   const [liked, setLiked] = useState(item.liked_by.includes(currentUser?._id));
   const [likeCount, setLikeCount] = useState(item.likes);
   const [resizeMode, setResizeMode] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0); // Track current image index
+  const [activeIndex, setActiveIndex] = useState(0); 
+  
+  // 🔥 New state for "show more / less" functionality
+  const [isExpanded, setIsExpanded] = useState(false);
+  const MAX_CHAR_LIMIT = 150; // Threshold before "show more" appears
+
   const navigation = useNavigation<any>();
 
   const displayCommentCount = item.commentCount || item.comments?.length || 0;
@@ -190,7 +196,6 @@ const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser
     }
   };
 
-  // Logic to track which image is currently visible
   const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
     if (viewableItems.length > 0 && viewableItems[0].index !== null) {
       setActiveIndex(viewableItems[0].index);
@@ -198,7 +203,7 @@ const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser
   }).current;
 
   const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 50, // Item is considered visible if 50% is shown
+    itemVisiblePercentThreshold: 50, 
   }).current;
 
   const timeAgo = (dateString: string) => {
@@ -249,7 +254,7 @@ const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser
             )}
         />
         
-        {/* Image Counter (e.g., 1/3) - Only show if more than 1 image */}
+        {/* Image Counter */}
         {images.length > 1 && (
             <View className="absolute top-3 right-3 bg-black/60 px-3 py-1 rounded-full border border-white/10">
                 <Text className="text-white text-xs font-bold">
@@ -259,11 +264,26 @@ const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser
         )}
       </View>
 
-      {/* Caption */}
+      {/* Caption with Show More / Show Less */}
       <View className="px-3 pt-1 mt-2">
         <Text className="text-white text-sm leading-5">
-            <Text className="font-bold text-gray-300">{item.user?.username} </Text>
-            {item.description}
+            <Text className="font-bold text-pink-300">{item.user?.username} </Text>
+            
+            {/* Logic for Truncation */}
+            {item.description?.length > MAX_CHAR_LIMIT && !isExpanded 
+                ? `${item.description.substring(0, MAX_CHAR_LIMIT)}...` 
+                : item.description
+            }
+            
+            {/* Toggle Button */}
+            {item.description?.length > MAX_CHAR_LIMIT && (
+                <Text 
+                    onPress={() => setIsExpanded(!isExpanded)} 
+                    className="text-gray-500"
+                >
+                    {isExpanded ? " show less" : " show more"}
+                </Text>
+            )}
         </Text>
       </View>
 
@@ -285,18 +305,9 @@ const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser
       </View>
 
       {/* Likes */}
-      <View className="px-3 pt-2">
+      <View className="px-3">
         <Text className="text-gray-500 font-bold text-sm">{likeCount > 0 ? `${likeCount} likes` : 'Be the first to like'}</Text>
       </View>
-
-      {/* View Comments Link */}
-      <Pressable className="px-2 pt-3 pb-1 border-b border-gray-900 mx-3" onPress={() => openComments(item._id)}>
-        <Text className="text-gray-500 text-sm">
-            {displayCommentCount > 0 
-                ? `View all ${displayCommentCount} comments` 
-                : "Add a comment..."}
-        </Text>
-      </Pressable>
 
       {/* Time */}
       <Text className="px-3 pt-1 text-gray-600 text-xs uppercase">{timeAgo(item.createdAt)} Ago</Text>
@@ -508,6 +519,7 @@ export default function HomeScreen() {
           <View>
             {renderTabBar()}
             <View className="bg-black py-2">
+                <AdCarousel />
                 <CreatePost /> 
             </View>
           </View>

@@ -1,6 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, Pressable, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { 
+  View, Text, FlatList, Image, Pressable, ActivityIndicator, Alert, 
+  TouchableOpacity, Animated, Easing 
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { RootStackParamList } from '../../App';
 import axios from '../../context/axiosConfig';
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -19,32 +24,29 @@ const LeaderboardScreen = () => {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
 
+  // Animation value for the refresh icon
+  const spinAnim = useRef(new Animated.Value(0)).current;
+
   // 2. SETUP REAL-TIME LISTENERS
   useEffect(() => {
-    // Initial Fetch
     fetchLeaderboard();
 
-    // Join the socket room as a "watcher"
     socket.emit("watch_leaderboard", { roomId });
 
-    // Listen for updates from backend
     const onUpdate = () => {
         console.log("🔔 New submission received! Refreshing...");
-        fetchLeaderboard(); // Auto-refresh data
+        fetchLeaderboard(); 
     };
 
     socket.on("leaderboard_updated", onUpdate);
 
-    // Cleanup listeners when leaving screen
     return () => {
         socket.off("leaderboard_updated", onUpdate);
-        // Optional: Leave room logic if needed, but socket disconnect handles it usually
     };
   }, [roomId]);
 
   const fetchLeaderboard = async () => {
     try {
-      // Don't set loading=true here to avoid screen flickering on updates
       const res = await axios.get(`/quiz/leaderboard/${roomId}`);
       setLeaders(res.data);
     } catch (err) {
@@ -54,41 +56,66 @@ const LeaderboardScreen = () => {
     }
   };
 
+  // Animated Refresh Handler
+  const handleManualRefresh = async () => {
+    // Start spinning animation
+    Animated.loop(
+      Animated.timing(spinAnim, {
+        toValue: 1,
+        duration: 800,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+
+    await fetchLeaderboard();
+
+    // Stop animation when done
+    spinAnim.stopAnimation();
+    spinAnim.setValue(0);
+  };
+
+  // Interpolate rotation value
+  const spin = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg']
+  });
+
   const downloadPDF = async () => {
     if (leaders.length === 0) {
       return Alert.alert("Empty", "No data to download.");
     }
     setDownloading(true);
     try {
-      // 1. Generate Table Rows HTML
       const tableRows = leaders.map((item, index) => `
         <tr>
-          <td style="text-align: center;">${index + 1}</td>
+          <td style="text-align: center; color: #374151; font-weight: bold;">${index + 1}</td>
           <td>
-             <div style="font-weight: bold;">${item.user?.name || "Unknown"}</div>
-             <div style="font-size: 10px; color: #666;">@${item.user?.username || "unknown"}</div>
+             <div style="font-weight: bold; color: #111827;">${item.user?.name || "Unknown"}</div>
+             <div style="font-size: 11px; color: #6b7280;">@${item.user?.username || "unknown"}</div>
           </td>
-          <td style="text-align: center; font-weight: bold; font-size: 16px;">${item.score}</td>
+          <td style="text-align: center; font-weight: 900; font-size: 16px; color: #ec4899;">${item.score}</td>
         </tr>
       `).join('');
 
+      // Formatted PDF for light mode printing (since PDFs are usually printed on white paper)
       const html = `
         <html>
           <head>
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
             <style>
-              body { font-family: 'Helvetica', sans-serif; padding: 40px; }
-              h1 { text-align: center; color: #4F46E5; margin-bottom: 5px; }
+              body { font-family: 'Helvetica', sans-serif; padding: 40px; background: #ffffff; }
+              h1 { text-align: center; color: #ec4899; margin-bottom: 5px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px;}
               h3 { text-align: center; color: #6b7280; font-weight: normal; margin-top: 0; }
-              table { width: 100%; border-collapse: collapse; margin-top: 30px; border-radius: 8px; overflow: hidden; }
-              th, td { border: 1px solid #e5e7eb; padding: 12px 15px; text-align: left; }
-              th { background-color: #f3f4f6; color: #374151; font-weight: bold; text-transform: uppercase; font-size: 12px; }
-              tr:nth-child(even) { background-color: #f9fafb; }
+              table { width: 100%; border-collapse: collapse; margin-top: 30px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+              th, td { border-bottom: 1px solid #e5e7eb; padding: 16px 20px; text-align: left; }
+              th { background-color: #111827; color: #ffffff; font-weight: bold; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;}
+              tr:last-child td { border-bottom: none; }
               .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #9ca3af; }
             </style>
           </head>
           <body>
-            <h1>🏆 Leaderboard Results</h1>
+            <h1>Leaderboard Results</h1>
             <h3>Room ID: ${roomId}</h3>
             
             <table>
@@ -111,10 +138,7 @@ const LeaderboardScreen = () => {
         </html>
       `;
 
-      // 3. Generate PDF File
       const { uri } = await Print.printToFileAsync({ html });
-      
-      // 4. Share/Save File
       await shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
 
     } catch (error) {
@@ -125,80 +149,123 @@ const LeaderboardScreen = () => {
     }
   };
 
-  const renderItem = ({ item, index }: { item: any; index: number }) => (
-    <View className="flex-row items-center bg-white p-4 mb-2 rounded-xl shadow-sm border border-gray-100">
-      <Text className={`text-lg font-bold w-8 ${index < 3 ? 'text-yellow-600' : 'text-gray-500'}`}>
-        #{index + 1}
-      </Text>
-      
-      <View className="w-10 h-10 bg-gray-200 rounded-full mr-3 justify-center items-center overflow-hidden">
-        {item.user?.avatar ? (
-          <Image source={{ uri: item.user.avatar }} className="w-full h-full" />
-        ) : (
-          <Text className="font-bold text-gray-500">{item.user?.username?.[0]?.toUpperCase()}</Text>
-        )}
-      </View>
+  const renderItem = ({ item, index }: { item: any; index: number }) => {
+    // Styling for Top 3 Ranks
+    let rankColor = 'text-gray-500';
+    let iconColor = '#6b7280';
+    if (index === 0) { rankColor = 'text-yellow-400'; iconColor = '#facc15'; } // Gold
+    else if (index === 1) { rankColor = 'text-gray-300'; iconColor = '#d1d5db'; } // Silver
+    else if (index === 2) { rankColor = 'text-orange-400'; iconColor = '#fb923c'; } // Bronze
 
-      <Text className="flex-1 font-semibold text-gray-800 text-lg">
-        {item.user?.name || item.user?.username || "Unknown"}
-      </Text>
+    return (
+      <View className="flex-row items-center bg-[#1e1e1e]/80 p-4 mb-3 mx-6 rounded-2xl border border-white/10 shadow-lg">
+        {/* Rank */}
+        <View className="w-10 items-center justify-center mr-2">
+           {index < 3 ? (
+               <Ionicons name="trophy" size={24} color={iconColor} />
+           ) : (
+               <Text className={`text-lg font-bold ${rankColor}`}>#{index + 1}</Text>
+           )}
+        </View>
+        
+        {/* Avatar */}
+        <View className="w-12 h-12 bg-gray-800 rounded-full mr-4 border border-white/10 justify-center items-center overflow-hidden">
+          {item.user?.avatar ? (
+            <Image source={{ uri: item.user.avatar }} className="w-full h-full" />
+          ) : (
+            <Text className="font-bold text-gray-400 text-lg">{item.user?.username?.[0]?.toUpperCase()}</Text>
+          )}
+        </View>
 
-      <View className="bg-blue-100 px-3 py-1 rounded-full">
-        <Text className="font-bold text-blue-700">{item.score} pts</Text>
+        {/* User Info */}
+        <View className="flex-1">
+            <Text className="font-bold text-white text-base" numberOfLines={1}>
+            {item.user?.name || item.user?.username || "Unknown"}
+            </Text>
+            <Text className="text-xs text-gray-500">@{item.user?.username}</Text>
+        </View>
+
+        {/* Score Badge */}
+        <View className="bg-pink-500/20 px-3 py-1.5 rounded-full border border-pink-500/30">
+          <Text className="font-black text-pink-500">{item.score} <Text className="font-medium text-[10px]">pts</Text></Text>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
-    <View className="flex-1 bg-gray-50 pt-10 px-4">
-      {/* HEADER */}
-      <View className="flex-row items-center justify-between mb-6">
-        <Pressable onPress={() => navigation.navigate("Tabs")}>
-          <Ionicons name="home" size={24} color="black" />
-        </Pressable>
-        
-        <Text className="text-2xl font-bold text-center">🏆 Leaderboard</Text>
-        
-        {/* ACTION BUTTONS */}
-        <View className="flex-row gap-4">
-            {/* Manual Refresh (Optional now, but good to keep) */}
-            <Pressable onPress={fetchLeaderboard}>
-                <Ionicons name="refresh" size={24} color="#4F46E5" />
-            </Pressable>
+    <View className="flex-1 bg-black">
+      {/* Background Gradient */}
+      <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
 
-            <Pressable onPress={downloadPDF} disabled={downloading}>
+      <SafeAreaView className="flex-1">
+        {/* HEADER */}
+        <View className="flex-row items-center justify-between px-6 pt-4 mb-2">
+          <TouchableOpacity 
+            onPress={() => navigation.navigate("Tabs")}
+            className="p-2 bg-white/10 rounded-full border border-white/10"
+          >
+            <Ionicons name="home" size={20} color="white" />
+          </TouchableOpacity>
+          
+          <Text className="text-2xl font-black italic text-white tracking-tighter">
+             LEADER<Text className="text-pink-500">BOARD</Text> 🏆
+          </Text>
+          
+          {/* ACTION BUTTONS */}
+          <View className="flex-row items-center gap-3">
+            {/* Animated Refresh Button */}
+            <TouchableOpacity onPress={handleManualRefresh} className="p-2 bg-white/10 rounded-full border border-white/10">
+                <Animated.View style={{ transform: [{ rotate: spin }] }}>
+                    <Ionicons name="refresh" size={20} color="white" />
+                </Animated.View>
+            </TouchableOpacity>
+
+            {/* Download Button */}
+            <TouchableOpacity onPress={downloadPDF} disabled={downloading} className="p-2 bg-pink-600 rounded-full border border-pink-500/50">
                 {downloading ? (
-                    <ActivityIndicator size="small" color="#4F46E5" />
+                    <ActivityIndicator size="small" color="white" />
                 ) : (
-                    <Ionicons name="cloud-download-outline" size={28} color="#4F46E5" />
+                    <Ionicons name="cloud-download-outline" size={20} color="white" />
                 )}
-            </Pressable>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      <Text className="text-xl font-bold text-center mb-4 text-gray-600">Room: {roomId}</Text>
-
-      {/* Show user's own score only if they played */}
-      {myScore !== undefined && (
-        <View className="bg-purple-600 p-6 rounded-2xl mb-6 shadow-lg">
-          <Text className="text-white text-center font-bold text-lg mb-1">Your Score</Text>
-          <Text className="text-white text-center text-4xl font-extrabold">{myScore}</Text>
+        {/* Room ID Badge */}
+        <View className="items-center mb-6">
+            <View className="bg-[#2a2a2a] px-4 py-1.5 rounded-full border border-white/10">
+                <Text className="text-xs font-bold text-gray-400 tracking-widest uppercase">Room: <Text className="text-white">{roomId}</Text></Text>
+            </View>
         </View>
-      )}
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#4F46E5" className="mt-10" />
-      ) : (
-        <FlatList
-          data={leaders}
-          keyExtractor={(item) => item._id}
-          renderItem={renderItem}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <Text className="text-center text-gray-500 mt-10">Waiting for submissions...</Text>
-          }
-        />
-      )}
+        {/* User's Own Score Card (If played) */}
+        {myScore !== undefined && (
+          <View className="mx-6 bg-pink-600/20 p-6 rounded-3xl mb-6 border border-pink-500/50 items-center shadow-lg">
+            <Text className="text-pink-200 font-bold text-xs uppercase tracking-widest mb-1">Your Final Score</Text>
+            <Text className="text-white text-5xl font-black italic">{myScore}</Text>
+          </View>
+        )}
+
+        {/* Leaderboard List */}
+        {loading ? (
+          <ActivityIndicator size="large" color="#ec4899" className="mt-20" />
+        ) : (
+          <FlatList
+            data={leaders}
+            keyExtractor={(item) => item._id}
+            renderItem={renderItem}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            ListEmptyComponent={
+              <View className="items-center justify-center mt-20 opacity-50">
+                  <Ionicons name="hourglass-outline" size={48} color="gray" />
+                  <Text className="text-center text-gray-400 mt-4 font-bold text-lg">Waiting for challengers...</Text>
+              </View>
+            }
+          />
+        )}
+      </SafeAreaView>
     </View>
   );
 };

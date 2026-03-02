@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
-  Alert,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import io from "socket.io-client";
@@ -16,19 +15,10 @@ import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// --- ZEGO IMPORTS ---
-import ZegoUIKitPrebuiltCallService, { 
-  ZegoSendCallInvitationButton 
-} from '@zegocloud/zego-uikit-prebuilt-call-rn';
-import * as ZIM from 'zego-zim-react-native';
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+const socket = io(BACKEND_URL);
 
-const socket = io("http://192.168.28.139:3000");
-
-// Use your actual keys here
-const APP_ID = 1870753423; 
-const APP_SIGN = "0c687e01e1e38767ccdd1fa77993629c0fc3a6392df1e6175cce7d3cc36e76c7";
-
-const Chat = ({ route, navigation } : any) => {
+const Chat = ({ route, navigation }: any) => {
   const conversationId = route?.params?.conversationId;
   const { user } = useAuth();
 
@@ -36,12 +26,13 @@ const Chat = ({ route, navigation } : any) => {
   const [text, setText] = useState("");
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
-
   const [otherUser, setOtherUser] = useState<any>(null);
-  
-  // Zego State
-  const [isZegoReady, setIsZegoReady] = useState(false);
 
+  // ✅ NEW STATES
+  const [isTyping, setIsTyping] = useState(false);
+  const [seen, setSeen] = useState(false);
+
+  const typingTimeout = useRef<any>(null);
   const flatListRef = useRef<FlatList>(null);
 
   /* ---------- SAFETY ---------- */
@@ -53,54 +44,21 @@ const Chat = ({ route, navigation } : any) => {
     );
   }
 
-  /* ---------- 1. INIT ZEGO SERVICE ---------- */
-  // We initialize here so you can call directly without going to VideoLobby first
-  useEffect(() => {
-    const initZego = async () => {
-      try {
-        await ZegoUIKitPrebuiltCallService.init(
-          APP_ID,
-          APP_SIGN,
-          user._id, // My User ID
-          user.username || user.name, // My Name
-          [ZIM],
-          {
-            onCallInvitationEvent: (event: any, data: any) => {
-               // Optional: Handle custom socket status updates here if needed
-            }
-          }
-        );
-        setIsZegoReady(true);
-        console.log("Chat: Zego Service Initialized");
-      } catch (error) {
-        console.error("Chat: Zego Init Error", error);
-      }
-    };
-
-    initZego();
-
-    // Cleanup when leaving Chat (Optional: depending on if you want to receive calls globally)
-    // For now, we keep it active or uninit if you prefer strict cleanup
-    return () => {
-        // ZegoUIKitPrebuiltCallService.uninit(); 
-    };
-  }, []);
-
-  /* ---------- FETCH CONVERSATION USER ---------- */
+  /* ---------- FETCH USER ---------- */
   const fetchConversationUser = async () => {
     try {
-        const res = await axios.get(`/chat/conversations`);
-        const convo = res.data.conversations.find(
-          (c: any) => c._id === conversationId
-        );
-    
-        const other = convo?.participants.find(
-          (p: any) => p._id !== user._id
-        );
-    
-        setOtherUser(other);
+      const res = await axios.get(`/chat/conversations`);
+      const convo = res.data.conversations.find(
+        (c: any) => c._id === conversationId
+      );
+
+      const other = convo?.participants.find(
+        (p: any) => p._id !== user._id
+      );
+
+      setOtherUser(other);
     } catch (e) {
-        console.log("Error fetching convo user", e);
+      console.log("Error fetching convo user", e);
     }
   };
 
@@ -110,7 +68,7 @@ const Chat = ({ route, navigation } : any) => {
       new Date(a.createdAt).getTime()
   );
 
-  /* ---------- SOCKET ---------- */
+  /* ---------- SOCKET INIT ---------- */
   useEffect(() => {
     fetchConversationUser();
 
@@ -125,35 +83,44 @@ const Chat = ({ route, navigation } : any) => {
       if (
         msg.sender === user._id ||
         msg.sender?._id === user._id
-      ) {
-        return;
-      }
+      ) return;
 
       setMessages((prev) => [msg, ...prev]);
     });
+
+    // ✅ typing listeners
+    socket.on("userTyping", () => setIsTyping(true));
+    socket.on("userStopTyping", () => setIsTyping(false));
+
+    // ✅ seen listener
+    socket.on("messagesSeen", () => setSeen(true));
 
     loadMessages();
 
     return () => {
       socket.off("newMessage");
+      socket.off("userTyping");
+      socket.off("userStopTyping");
+      socket.off("messagesSeen");
     };
   }, [conversationId]);
 
-  /* ---------- LOAD OLDER ---------- */
+  /* ---------- LOAD ---------- */
   const loadMessages = async () => {
     if (loadingMore) return;
     setLoadingMore(true);
 
     try {
-        const res = await axios.get(
-          `/chat/${conversationId}/messages?page=${page}`
-        );
-        setMessages((prev) => [...prev, ...res.data.messages]);
-        setPage((prev) => prev + 1);
+      const res = await axios.get(
+        `/chat/${conversationId}/messages?page=${page}`
+      );
+
+      setMessages((prev) => [...prev, ...res.data.messages]);
+      setPage((prev) => prev + 1);
     } catch (error) {
-        console.log("Error loading messages", error);
+      console.log("Error loading messages", error);
     } finally {
-        setLoadingMore(false);
+      setLoadingMore(false);
     }
   };
 
@@ -177,14 +144,41 @@ const Chat = ({ route, navigation } : any) => {
       text,
     });
 
+    // stop typing when sent
+    socket.emit("stopTyping", {
+      conversationId,
+      userId: user._id,
+    });
+
     setText("");
   };
 
+  /* ---------- TYPING ---------- */
+  const handleTyping = (value: string) => {
+    setText(value);
+
+    socket.emit("typing", {
+      conversationId,
+      userId: user._id,
+    });
+
+    clearTimeout(typingTimeout.current);
+
+    typingTimeout.current = setTimeout(() => {
+      socket.emit("stopTyping", {
+        conversationId,
+        userId: user._id,
+      });
+    }, 1000);
+  };
+
   /* ---------- MESSAGE UI ---------- */
-  const renderItem = ({ item }: any) => {
+  const renderItem = ({ item, index }: any) => {
     const isMe =
       item.sender === user._id ||
       item.sender?._id === user._id;
+
+    const isLastMessage = index === 0;
 
     return (
       <View className={`flex-row w-full ${isMe ? "justify-end" : "justify-start"} items-center py-1`}>
@@ -223,69 +217,45 @@ const Chat = ({ route, navigation } : any) => {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1"
       >
-        {/* ---------- HEADER ---------- */}
+        {/* HEADER — unchanged */}
         <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 bg-white">
           <View className="flex-row items-center">
-              <Pressable onPress={() => navigation.goBack()}>
-                <Ionicons name="arrow-back" size={24} color="black" />
+            <Pressable onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={24} color="black" />
+            </Pressable>
+
+            {otherUser && (
+              <Pressable
+                className="flex-row items-center ml-4"
+                onPress={() =>
+                  navigation.navigate("PublicProfile", {
+                    user: otherUser,
+                  })
+                }
+              >
+                <Image
+                  source={{
+                    uri:
+                      otherUser.avatar ||
+                      `https://ui-avatars.com/api/?name=${otherUser.username}`,
+                  }}
+                  className="h-10 w-10 rounded-full"
+                />
+
+                <View className="ml-3">
+                  <Text className="font-semibold text-base">
+                    {otherUser.name}
+                  </Text>
+                  <Text className="text-xs text-gray-500">
+                    @{otherUser.username}
+                  </Text>
+                </View>
               </Pressable>
-
-              {otherUser && (
-                <Pressable
-                  className="flex-row items-center ml-4"
-                  onPress={() =>
-                    navigation.navigate("PublicProfile", {
-                      user: otherUser,
-                    })
-                  }
-                >
-                  <Image
-                    source={{ uri: otherUser.avatar || `https://ui-avatars.com/api/?name=${otherUser.username}&background=random&color=fff` }}
-                    className="h-10 w-10 rounded-full"
-                  />
-
-                  <View className="ml-3">
-                    <Text className="font-semibold text-base">
-                      {otherUser.name}
-                    </Text>
-                    <Text className="text-xs text-gray-500">
-                      @{otherUser.username}
-                    </Text>
-                  </View>
-                </Pressable>
-              )}
+            )}
           </View>
-
-          {/* 2. VIDEO CALL BUTTON */}
-          {otherUser && isZegoReady ? (
-             <ZegoSendCallInvitationButton 
-                invitees={[{ userID: otherUser._id, userName: otherUser.name || otherUser.username }]}
-                isVideoCall={true}
-                resourceID={"zego_call"} // Ensure this matches your Zego Console config
-                backgroundColor={'transparent'} // Transparent so we only see icon
-                width={40}
-                height={40}
-                borderRadius={20}
-                icon={null} // You can pass a custom icon image source here if you want
-                // We use a child component to render our own Ionicons
-                renderCustomView={() => (
-                    <Ionicons name="videocam" size={28} color="#2563eb" />
-                )}
-                onPressed={(errorCode: any, errorMessage: any) => {
-                    if (errorCode) {
-                        Alert.alert("Call Error", errorMessage);
-                    }
-                }}
-             />
-          ) : (
-             <View className="w-10 h-10 justify-center items-center">
-                 {/* Placeholder while loading or if user missing */}
-                 <Ionicons name="videocam-outline" size={28} color="#ccc" />
-             </View>
-          )}
         </View>
 
-        {/* ---------- MESSAGES ---------- */}
+        {/* MESSAGES */}
         <FlatList
           ref={flatListRef}
           data={sortedMessages}
@@ -297,11 +267,20 @@ const Chat = ({ route, navigation } : any) => {
           showsVerticalScrollIndicator={false}
         />
 
-        {/* ---------- INPUT ---------- */}
+        {/* ✅ typing indicator */}
+        {isTyping && (
+          <>
+          <Text className="px-4 pb-1 text-gray-500 text-sm">
+            typing...
+          </Text>
+          </>
+        )}
+
+        {/* INPUT — unchanged */}
         <View className="flex-row items-center px-3 py-2 border-t border-gray-200 bg-white">
           <TextInput
             value={text}
-            onChangeText={setText}
+            onChangeText={handleTyping}
             placeholder="Message..."
             className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-base"
           />

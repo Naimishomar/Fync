@@ -1,5 +1,6 @@
 import axios from "axios";
-
+import dotenv from "dotenv";
+dotenv.config({quiet: true});
 const API_BASE = process.env.LEETCODE_API;
 
 export const fetchLeetCodeStats = async (username) => {

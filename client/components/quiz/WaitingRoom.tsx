@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Alert } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, Alert, Animated, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import socket from '../../utils/socket'; 
@@ -12,7 +15,29 @@ const WaitingRoom: React.FC<Props> = ({ route, navigation }) => {
   const { user } = useAuth();
   
   const [status, setStatus] = useState<string>("Connecting...");
-  const [countDown, setCountDown] = useState<string>("--:--");
+  const [timeString, setTimeString] = useState<string>("--:--");
+  const [isStarting, setIsStarting] = useState<boolean>(false);
+
+  // Breathing animation value
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // Pulse Animation Effect
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.05,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        })
+      ])
+    ).start();
+  }, [pulseAnim]);
 
   useEffect(() => {
     if (!user) return;
@@ -59,28 +84,79 @@ const WaitingRoom: React.FC<Props> = ({ route, navigation }) => {
         const diff = target - now;
 
         if (diff <= 0) {
-            setCountDown("Starting...");
+            setTimeString("STARTING...");
+            setIsStarting(true);
             clearInterval(interval);
         } else {
             const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             const s = Math.floor((diff % (1000 * 60)) / 1000);
-            setCountDown(`Starts in: ${m}m ${s}s`);
+            // Format as MM:SS
+            setTimeString(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
         }
     }, 1000);
     return () => clearInterval(interval);
   }, [startTime]);
 
   return (
-    <View className="flex-1 justify-center items-center bg-white p-6">
-      <Text className="text-3xl font-bold mb-4">{roomId}</Text>
-      <View className="bg-blue-50 p-10 rounded-full w-64 h-64 justify-center items-center">
-        <Text className="text-2xl font-bold text-blue-600 text-center">
-          {countDown}
-        </Text>
-      </View>
-      <Text className="mt-8 text-gray-500 text-center">
-        Do not close this app.
-      </Text>
+    <View className="flex-1 bg-black">
+      {/* Background Gradient */}
+      <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
+
+      <SafeAreaView className="flex-1 justify-between px-6 pb-10">
+        
+        {/* HEADER */}
+        <View className="flex-row items-center justify-between pt-4">
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            className="p-2 bg-white/10 rounded-full border border-white/10"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="close" size={24} color="white" />
+          </TouchableOpacity>
+          <Text className="text-white text-2xl font-black italic tracking-tighter">
+            THE <Text className="text-pink-500">LOBBY</Text> ⏳
+          </Text>
+          <View style={{ width: 40 }} /> {/* Spacer for centering */}
+        </View>
+
+        {/* MAIN CONTENT */}
+        <View className="items-center">
+          
+          {/* Room ID Badge */}
+          <View className="bg-[#2a2a2a] px-6 py-2 rounded-full border border-white/10 mb-10 flex-row items-center shadow-lg">
+             <Ionicons name="keypad" size={16} color="#9ca3af" className="mr-2" />
+             <Text className="text-gray-400 font-bold tracking-widest ml-2">ROOM: <Text className="text-white">{roomId}</Text></Text>
+          </View>
+
+          {/* Pulsing Timer Circle */}
+          <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+            <View className={`w-64 h-64 rounded-full border-4 items-center justify-center shadow-2xl ${
+                isStarting ? 'border-green-400 bg-green-500/20 shadow-green-500/50' : 'border-pink-500 bg-pink-500/10 shadow-pink-500/50'
+            }`}>
+              {!isStarting && (
+                  <Text className="text-pink-300 font-bold text-sm tracking-widest uppercase mb-2">Starts In</Text>
+              )}
+              <Text className={`font-black tracking-widest ${isStarting ? 'text-green-400 text-3xl' : 'text-white text-6xl'}`}>
+                {timeString}
+              </Text>
+            </View>
+          </Animated.View>
+
+          <Text className="text-gray-400 text-lg font-medium mt-12 text-center px-4">
+            {isStarting ? "Prepare for battle!" : "Waiting for the host to start the match..."}
+          </Text>
+
+        </View>
+
+        {/* FOOTER WARNING */}
+        <View className="bg-[#1e1e1e]/80 border border-red-500/30 p-4 rounded-2xl flex-row items-center">
+          <Ionicons name="warning-outline" size={24} color="#ef4444" />
+          <Text className="text-gray-300 ml-3 flex-1 text-xs leading-5">
+            <Text className="font-bold text-red-400">Do not close the app.</Text> Leaving this screen will disconnect you from the lobby.
+          </Text>
+        </View>
+
+      </SafeAreaView>
     </View>
   );
 };
