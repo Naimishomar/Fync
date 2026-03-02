@@ -3,14 +3,15 @@ import {
   View,
   Text,
   TextInput,
-  Pressable,
   ScrollView,
   Alert,
   Clipboard,
-  Platform, // Import Platform
+  Platform,
+  TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-// Import DateTimePickerAndroid for Android support
+import { LinearGradient } from "expo-linear-gradient"; // Added LinearGradient
 import DateTimePicker, { DateTimePickerAndroid, DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
@@ -28,9 +29,7 @@ const CreateRoom = () => {
   const [duration, setDuration] = useState<string>("10");
   const [startTime, setStartTime] = useState<Date>(new Date());
   
-  // Only used for iOS to show/hide the modal
   const [showIOSPicker, setShowIOSPicker] = useState<boolean>(false);
-  
   const [loading, setLoading] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([
     { question: "", options: ["", "", "", ""], correctAnswer: 0 },
@@ -56,8 +55,7 @@ const CreateRoom = () => {
     setQuestions(copy);
   };
 
-  /* --- DATE TIME PICKER HANDLER (FIXED) --- */
-  
+  /* --- DATE TIME PICKER HANDLER --- */
   const handleDatePress = () => {
     if (Platform.OS === 'android') {
       showAndroidDatePicker();
@@ -67,12 +65,10 @@ const CreateRoom = () => {
   };
 
   const showAndroidDatePicker = () => {
-    // 1. Open Date Picker
     DateTimePickerAndroid.open({
       value: startTime,
       onChange: (event, date) => {
         if (event.type === 'set' && date) {
-          // 2. Once Date is picked, Open Time Picker
           showAndroidTimePicker(date);
         }
       },
@@ -82,10 +78,9 @@ const CreateRoom = () => {
 
   const showAndroidTimePicker = (selectedDate: Date) => {
     DateTimePickerAndroid.open({
-      value: selectedDate, // Start with the date we just picked
+      value: selectedDate,
       onChange: (event, time) => {
         if (event.type === 'set' && time) {
-          // 3. Combine Date and Time
           const finalDate = new Date(selectedDate);
           finalDate.setHours(time.getHours());
           finalDate.setMinutes(time.getMinutes());
@@ -97,9 +92,6 @@ const CreateRoom = () => {
   };
 
   const onIOSChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    // On iOS we can just close it or keep it open. 
-    // Usually, we keep it open and let user click "Done" or click outside, 
-    // but here we just update state live.
     if (selectedDate) {
       setStartTime(selectedDate);
     }
@@ -125,11 +117,11 @@ const CreateRoom = () => {
       const newRoomId = res.data.roomId;
 
       Alert.alert(
-        "Room Created Successfully! 🎉",
-        `Here is your Room ID: ${newRoomId}\n\nShare this code with participants.`,
+        "Room Created! 🎉",
+        `Room ID: ${newRoomId}\nShare this with participants.`,
         [
           {
-            text: "Copy & Exit",
+            text: "Copy & Enter",
             onPress: () => {
               Clipboard.setString(newRoomId); 
               navigation.replace("LeaderboardScreen", { roomId: newRoomId });
@@ -146,147 +138,192 @@ const CreateRoom = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="px-4 pb-10" showsVerticalScrollIndicator={false}>
-        <Text className="text-2xl font-bold mt-4 mb-4 text-gray-800">Design Quiz Room</Text>
+    <View className="flex-1 bg-black">
+      {/* Background Gradient */}
+      <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
 
-        {/* DOMAIN SELECTION */}
-        <Text className="font-semibold mb-2 text-gray-600">Select Domain</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
-          {DOMAINS.map((d) => (
-            <Pressable
-              key={d}
-              onPress={() => setDomain(d)}
-              className={`px-4 py-2 mr-2 rounded-full ${
-                domain === d ? "bg-blue-600" : "bg-gray-200"
-              }`}
-            >
-              <Text className={`${domain === d ? "text-white" : "text-gray-800"}`}>
-                {d}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
-
-        {/* SETTINGS */}
-        <View className="space-y-4">
-          <View>
-            <Text className="font-semibold text-gray-600">Max Members</Text>
-            <TextInput
-              value={maxMembers}
-              onChangeText={setMaxMembers}
-              keyboardType="numeric"
-              className="border border-gray-300 p-3 rounded-lg mt-1 bg-gray-50 text-black"
-            />
-          </View>
-
-          <View>
-            <Text className="font-semibold text-gray-600">Duration (minutes)</Text>
-            <TextInput
-              value={duration}
-              onChangeText={setDuration}
-              keyboardType="numeric"
-              className="border border-gray-300 p-3 rounded-lg mt-1 bg-gray-50 text-black"
-            />
-          </View>
-
-          {/* DATE PICKER BUTTON */}
-          <View>
-             <Text className="font-semibold text-gray-600 mb-1">Start Time</Text>
-             <Pressable
-                onPress={handleDatePress}
-                className="bg-blue-50 p-4 rounded-lg border border-blue-100 flex-row items-center justify-between"
-             >
-                <Text className="text-blue-800 font-semibold text-lg">
-                  {startTime.toLocaleString([], { 
-                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
-                  })}
-                </Text>
-                <Ionicons name="calendar" size={20} color="#1e40af" />
-             </Pressable>
-          </View>
-
-          {/* iOS ONLY PICKER */}
-          {Platform.OS === 'ios' && showIOSPicker && (
-             <View className="bg-gray-100 rounded-xl mt-2 p-2">
-                <View className="flex-row justify-end border-b border-gray-300 pb-2 mb-2">
-                   <Pressable onPress={() => setShowIOSPicker(false)}>
-                      <Text className="text-blue-600 font-bold text-lg px-4">Done</Text>
-                   </Pressable>
-                </View>
-                <DateTimePicker
-                  value={startTime}
-                  minimumDate={new Date()}
-                  mode="datetime"
-                  display="spinner"
-                  onChange={onIOSChange}
-                  textColor="black"
-                />
-             </View>
-          )}
+      <SafeAreaView className="flex-1">
+        {/* Header with Back Button */}
+        <View className="flex-row items-center px-6 pt-4 mb-4">
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            className="p-2 bg-white/10 rounded-full mr-4 border border-white/10"
+          >
+            <Ionicons name="chevron-back" size={24} color="white" />
+          </TouchableOpacity>
+          <Text className="text-white text-3xl font-black italic tracking-tighter">
+            ROOM <Text className="text-pink-500">BUILDER</Text> 🛠️
+          </Text>
         </View>
 
-        {/* QUESTIONS EDITOR */}
-        <Text className="text-xl font-bold mt-8 mb-4 text-gray-800">Questions</Text>
-
-        {questions.map((q, qIndex) => (
-          <View key={qIndex} className="border border-gray-200 rounded-xl p-4 mb-6 shadow-sm bg-gray-50">
-            <Text className="font-semibold mb-2 text-lg">Question {qIndex + 1}</Text>
-
-            <TextInput
-              placeholder="Enter your question here..."
-              value={q.question}
-              onChangeText={(t) => updateQuestion(qIndex, "question", t)}
-              className="border border-gray-300 p-3 rounded-lg mb-4 bg-white text-black"
-              multiline
-            />
-
-            {q.options.map((opt, i) => (
-              <Pressable
-                key={i}
-                onPress={() => updateQuestion(qIndex, "correctAnswer", i)}
-                className="flex-row items-center mb-3"
+        <ScrollView className="px-6 pb-10" showsVerticalScrollIndicator={false}>
+          
+          {/* DOMAIN SELECTION */}
+          <Text className="text-gray-400 font-bold mb-3 text-xs uppercase tracking-wider">Select Domain</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
+            {DOMAINS.map((d) => (
+              <TouchableOpacity
+                key={d}
+                onPress={() => setDomain(d)}
+                className={`px-5 py-2.5 mr-3 rounded-full border transition-all ${
+                  domain === d 
+                    ? "bg-pink-600/20 border-pink-500" 
+                    : "bg-[#2a2a2a] border-white/5"
+                }`}
               >
-                <View
-                  className={`w-6 h-6 mr-3 rounded-full border-2 items-center justify-center ${
-                    q.correctAnswer === i ? "bg-blue-600 border-blue-600" : "border-gray-400 bg-white"
-                  }`}
-                >
-                    {q.correctAnswer === i && <View className="w-2.5 h-2.5 bg-white rounded-full" />}
-                </View>
-
-                <TextInput
-                  value={opt}
-                  placeholder={`Option ${i + 1}`}
-                  onChangeText={(text) => updateOption(qIndex, i, text)}
-                  className={`border p-3 rounded-lg flex-1 bg-white text-black ${
-                      q.correctAnswer === i ? "border-blue-500 bg-blue-50" : "border-gray-300"
-                  }`}
-                />
-              </Pressable>
+                <Text className={`font-bold ${domain === d ? "text-white" : "text-gray-400"}`}>
+                  {d}
+                </Text>
+              </TouchableOpacity>
             ))}
+          </ScrollView>
+
+          {/* SETTINGS CARD */}
+          <View className="bg-[#1e1e1e]/80 rounded-3xl p-5 border border-white/10 mb-8 shadow-2xl">
+            <Text className="text-gray-400 font-bold mb-4 text-xs uppercase tracking-wider">Room Configuration</Text>
+            
+            <View className="mb-4">
+              <Text className="text-gray-300 font-semibold mb-2 ml-1">Max Members</Text>
+              <TextInput
+                value={maxMembers}
+                onChangeText={setMaxMembers}
+                keyboardType="numeric"
+                placeholderTextColor="#666"
+                className="border border-white/10 p-4 rounded-xl bg-[#2a2a2a] text-white font-medium"
+              />
+            </View>
+
+            <View className="mb-4">
+              <Text className="text-gray-300 font-semibold mb-2 ml-1">Duration (minutes)</Text>
+              <TextInput
+                value={duration}
+                onChangeText={setDuration}
+                keyboardType="numeric"
+                placeholderTextColor="#666"
+                className="border border-white/10 p-4 rounded-xl bg-[#2a2a2a] text-white font-medium"
+              />
+            </View>
+
+            {/* DATE PICKER BUTTON */}
+            <View>
+               <Text className="text-gray-300 font-semibold mb-2 ml-1">Start Time</Text>
+               <TouchableOpacity
+                  onPress={handleDatePress}
+                  className="bg-[#2a2a2a] p-4 rounded-xl border border-white/10 flex-row items-center justify-between"
+               >
+                  <Text className="text-white font-semibold text-base">
+                    {startTime.toLocaleString([], { 
+                      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                    })}
+                  </Text>
+                  <Ionicons name="calendar" size={20} color="#ec4899" />
+               </TouchableOpacity>
+            </View>
+
+            {/* iOS ONLY PICKER */}
+            {Platform.OS === 'ios' && showIOSPicker && (
+               <View className="bg-[#2a2a2a] rounded-xl mt-3 p-2 border border-white/10">
+                  <View className="flex-row justify-end border-b border-white/10 pb-2 mb-2">
+                     <TouchableOpacity onPress={() => setShowIOSPicker(false)}>
+                        <Text className="text-pink-500 font-bold text-lg px-4">Done</Text>
+                     </TouchableOpacity>
+                  </View>
+                  <DateTimePicker
+                    value={startTime}
+                    minimumDate={new Date()}
+                    mode="datetime"
+                    display="spinner"
+                    onChange={onIOSChange}
+                    textColor="white" // Force white text for dark mode
+                    themeVariant="dark" // Ensures the picker respects dark theme
+                  />
+               </View>
+            )}
           </View>
-        ))}
 
-        <Pressable
-          onPress={addQuestion}
-          className="flex-row items-center justify-center gap-2 py-4 border-2 border-dashed border-gray-300 rounded-xl mb-8 bg-gray-50"
-        >
-          <Ionicons name="add-circle" size={24} color="#4b5563" />
-          <Text className="font-bold text-gray-600 text-lg">Add Question</Text>
-        </Pressable>
+          {/* QUESTIONS EDITOR */}
+          <Text className="text-gray-400 font-bold mb-4 text-xs uppercase tracking-wider">Quiz Questions ({questions.length})</Text>
 
-        <Pressable
-          onPress={submitRoom}
-          disabled={loading}
-          className={`py-4 rounded-xl mb-12 shadow-md ${loading ? 'bg-blue-400' : 'bg-blue-600'}`}
-        >
-          <Text className="text-white text-center font-bold text-lg">
-            {loading ? "Creating..." : "Save & Create Room"}
-          </Text>
-        </Pressable>
-      </ScrollView>
-    </SafeAreaView>
+          {questions.map((q, qIndex) => (
+            <View key={qIndex} className="bg-[#1e1e1e]/80 border border-white/10 rounded-3xl p-5 mb-6 shadow-2xl">
+              <View className="flex-row justify-between items-center mb-4">
+                <Text className="font-bold text-white text-lg">Question {qIndex + 1}</Text>
+                {questions.length > 1 && (
+                  <TouchableOpacity onPress={() => setQuestions(questions.filter((_, i) => i !== qIndex))}>
+                     <Ionicons name="trash" size={20} color="#ef4444" />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <TextInput
+                placeholder="Enter your question here..."
+                placeholderTextColor="#666"
+                value={q.question}
+                onChangeText={(t) => updateQuestion(qIndex, "question", t)}
+                className="border border-white/10 p-4 rounded-xl mb-4 bg-[#2a2a2a] text-white font-medium min-h-[80px]"
+                multiline
+                textAlignVertical="top"
+              />
+
+              {q.options.map((opt, i) => (
+                <TouchableOpacity
+                  key={i}
+                  onPress={() => updateQuestion(qIndex, "correctAnswer", i)}
+                  activeOpacity={0.8}
+                  className="flex-row items-center mb-3"
+                >
+                  <View
+                    className={`w-6 h-6 mr-3 rounded-full border-2 items-center justify-center ${
+                      q.correctAnswer === i ? "bg-pink-500/20 border-pink-500" : "border-gray-500 bg-[#2a2a2a]"
+                    }`}
+                  >
+                      {q.correctAnswer === i && <View className="w-2.5 h-2.5 bg-pink-500 rounded-full" />}
+                  </View>
+
+                  <TextInput
+                    value={opt}
+                    placeholder={`Option ${i + 1}`}
+                    placeholderTextColor="#666"
+                    onChangeText={(text) => updateOption(qIndex, i, text)}
+                    className={`border p-3.5 rounded-xl flex-1 bg-[#2a2a2a] text-white font-medium ${
+                        q.correctAnswer === i ? "border-pink-500/50" : "border-white/5"
+                    }`}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+          ))}
+
+          {/* ADD QUESTION BUTTON */}
+          <TouchableOpacity
+            onPress={addQuestion}
+            className="flex-row items-center justify-center gap-2 py-4 border-2 border-dashed border-white/20 rounded-2xl mb-8 bg-[#1e1e1e]/50"
+          >
+            <Ionicons name="add-circle" size={24} color="#ec4899" />
+            <Text className="font-bold text-gray-300 text-lg">Add Next Question</Text>
+          </TouchableOpacity>
+
+          {/* SUBMIT BUTTON */}
+          <TouchableOpacity
+            onPress={submitRoom}
+            disabled={loading}
+            className={`py-5 rounded-2xl mb-12 shadow-lg flex-row justify-center items-center ${
+              loading ? 'bg-pink-600/50 border-pink-500/30' : 'bg-pink-600 border-pink-500/50'
+            } border`}
+          >
+            {loading ? (
+               <ActivityIndicator color="white" />
+            ) : (
+               <>
+                 <Text className="text-white text-center font-black text-xl mr-2 tracking-widest">CREATE ROOM</Text>
+                 <Ionicons name="rocket" size={20} color="white" />
+               </>
+            )}
+          </TouchableOpacity>
+
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 };
 

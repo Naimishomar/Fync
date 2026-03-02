@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View, Text, FlatList, Image, Pressable, TextInput, Modal,
   Dimensions, Alert, ScrollView, ActivityIndicator,
@@ -10,6 +10,7 @@ import { BlurView } from "expo-blur";
 import { Video } from "expo-av";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from "@react-navigation/native";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 
@@ -51,14 +52,16 @@ const ProjectCard = ({
   toggleLike, 
   openComments, 
   openEditModal, 
-  handleDeleteProject 
+  handleDeleteProject,
+  navigation 
 }: { 
-  item: Project, 
-  userId: string | undefined, 
-  toggleLike: (p: Project) => void, 
-  openComments: (id: string) => void, 
-  openEditModal: (p: Project) => void, 
-  handleDeleteProject: (id: string) => void 
+  item: Project;
+  userId: string | undefined;
+  toggleLike: (p: Project) => void;
+  openComments: (id: string) => void;
+  openEditModal: (p: Project) => void;
+  handleDeleteProject: (id: string) => void;
+  navigation: any;
 }) => {
   const isLiked = item.liked_by.includes(userId || "");
   const isOwner = item.user._id === userId || (item.user as any).id === userId;
@@ -75,11 +78,11 @@ const ProjectCard = ({
   // Read More State
   const [isExpanded, setIsExpanded] = useState(false);
   const words = item.description ? item.description.split(" ") : [];
-  const isLong = words.length > 100;
+  const isLong = words.length > 25; // Adjusted to 25 words for better mobile formatting (approx 100-150 chars)
   
   const displayDescription = isExpanded || !isLong 
     ? item.description 
-    : words.slice(0, 100).join(" ") + "...";
+    : words.slice(0, 25).join(" ") + "...";
 
   return (
     <View className="mx-4 mb-5 rounded-2xl bg-[#1e1e1e]/90 border border-white/10 overflow-hidden">
@@ -105,7 +108,7 @@ const ProjectCard = ({
 
       {/* Media Slider */}
       {item.video ? (
-        <Video source={{ uri: item.video }} style={{ height: 260, width: '100%' }} useNativeControls resizeMode="cover" />
+        <Video source={{ uri: item.video.replace(/^http:\/\//i, 'https://') }} style={{ height: 260, width: '100%' }} useNativeControls resizeMode="cover" />
       ) : item.image && item.image.length > 0 ? (
         <View>
           <FlatList 
@@ -115,15 +118,19 @@ const ProjectCard = ({
             showsHorizontalScrollIndicator={false} 
             pagingEnabled 
             onScroll={handleScroll}
-            scrollEventThrottle={16} // smooth scrolling event
-            renderItem={({ item: imgUri }) => (
-              <Image 
-                source={{ uri: imgUri }} 
-                style={{ width: CARD_WIDTH, height: 260 }} 
-                resizeMode="cover" 
-                className="bg-gray-800" 
-              />
-            )}
+            scrollEventThrottle={16}
+            renderItem={({ item: imgUri }) => {
+              // Fix for Android blank images (forces HTTPS)
+              const secureUrl = imgUri ? imgUri.replace(/^http:\/\//i, 'https://') : '';
+              return (
+                <Image 
+                  source={{ uri: secureUrl }} 
+                  style={{ width: CARD_WIDTH, height: 260 }} 
+                  resizeMode="cover" 
+                  className="bg-gray-800" 
+                />
+              );
+            }}
           />
           {/* Instagram-style Image Counter */}
           {item.image.length > 1 && (
@@ -151,35 +158,47 @@ const ProjectCard = ({
         </Text>
         
         <View className="flex-row items-center justify-between mb-3 border-b border-white/5 pb-3">
-           <View className="flex-row items-center gap-4">
+           <View className="flex-row items-center gap-3">
              <Pressable onPress={() => toggleLike(item)} className="flex-row items-center">
                <Ionicons name={isLiked ? "heart" : "heart-outline"} size={24} color={isLiked ? "#ec4899" : "white"} />
-               <Text className="ml-2 text-gray-300 font-medium">{item.likes}</Text>
+               <Text className="ml-1 text-gray-300 font-medium">{item.likes}</Text>
              </Pressable>
-             <Pressable onPress={() => openComments(item._id)} className="flex-row items-center">
+             
+             <Pressable onPress={() => openComments(item._id)} className="flex-row items-center ml-2">
                <Ionicons name="chatbubble-outline" size={22} color="white" />
              </Pressable>
+
+             {/* Contact Founder Button */}
+             {!isOwner && (
+                 <TouchableOpacity 
+                    onPress={() => navigation.navigate("PublicProfile", { user: item.user })}
+                    className="flex-row items-center bg-pink-500 px-3 py-1.5 rounded-full border border-white/10 ml-2"
+                 >
+                    <Ionicons name="person-circle-outline" size={16} color="#fff" />
+                    <Text className="text-gray-300 text-[10px] font-bold ml-1 uppercase tracking-wider">Contact</Text>
+                 </TouchableOpacity>
+             )}
            </View>
            
-            <View className="flex-row gap-3">
-                {item.github_url && (
-                    <TouchableOpacity 
-                        onPress={() => Linking.openURL(item.github_url as string)}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} // Makes it easier to tap
-                    >
-                        <Ionicons name="logo-github" size={22} color="gray" />
-                    </TouchableOpacity>
-                )}
-                
-                {item.deployed_url && (
-                    <TouchableOpacity 
-                        onPress={() => Linking.openURL(item.deployed_url as string)}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
-                        <Ionicons name="link-outline" size={22} color="gray" />
-                    </TouchableOpacity>
-                )}
-            </View>
+           {/* Clickable Links */}
+           <View className="flex-row gap-3">
+               {item.github_url && (
+                   <TouchableOpacity 
+                       onPress={() => Linking.openURL(item.github_url as string)} 
+                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                   >
+                       <Ionicons name="logo-github" size={22} color="white" />
+                   </TouchableOpacity>
+               )}
+               {item.deployed_url && (
+                   <TouchableOpacity 
+                       onPress={() => Linking.openURL(item.deployed_url as string)} 
+                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                   >
+                       <Ionicons name="link-outline" size={22} color="skyblue" />
+                   </TouchableOpacity>
+               )}
+           </View>
         </View>
       </View>
     </View>
@@ -191,6 +210,7 @@ const ProjectCard = ({
 export default function FundingFeed() {
   const { user } = useAuth();
   const userId = user?.id || user?._id;
+  const navigation = useNavigation<any>();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -394,7 +414,7 @@ export default function FundingFeed() {
       <SafeAreaView className="flex-1">
         <View className="px-6 pt-4 mb-4 flex-row justify-between items-center">
           <View>
-            <Text className="text-white text-3xl font-black italic tracking-tighter">PROJECT<Text className="text-pink-500">FEED</Text></Text>
+            <Text className="text-white text-3xl font-black italic tracking-tighter">PROJECT<Text className="text-pink-500">FEED</Text> 🚀</Text>
           </View>
           <TouchableOpacity onPress={openCreateModal} className="p-3 rounded-full border border-pink-500 bg-pink-500/20">
             <Ionicons name="add" size={20} color="white" />
@@ -414,6 +434,7 @@ export default function FundingFeed() {
                     openComments={openComments}
                     openEditModal={openEditModal}
                     handleDeleteProject={handleDeleteProject}
+                    navigation={navigation}
                  />
               )}
               keyExtractor={(item) => item._id}
@@ -500,14 +521,14 @@ export default function FundingFeed() {
                         <View className="mb-3 opacity-60">
                            <Text className="text-white text-xs mb-2">Current Images:</Text>
                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                             {oldImages.map((uri, idx) => <Image key={idx} source={{ uri }} className="h-20 w-20 rounded-lg bg-gray-800 mr-2" />)}
+                             {oldImages.map((uri, idx) => <Image key={idx} source={{ uri: uri.replace(/^http:\/\//i, 'https://') }} className="h-20 w-20 rounded-lg bg-gray-800 mr-2" />)}
                            </ScrollView>
                         </View>
                     )}
                     {images.length === 0 && !video && oldVideo && (
                         <View className="mb-3 opacity-60">
                            <Text className="text-white text-xs mb-2">Current Video:</Text>
-                           <Video source={{ uri: oldVideo }} style={{ height: 150, width: '100%', borderRadius: 10 }} />
+                           <Video source={{ uri: oldVideo.replace(/^http:\/\//i, 'https://') }} style={{ height: 150, width: '100%', borderRadius: 10 }} />
                         </View>
                     )}
                 </View>

@@ -1,10 +1,11 @@
-import { View, Text, TextInput, FlatList, Pressable, Image, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, FlatList, Image, ActivityIndicator, TouchableOpacity } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface User {
   _id: string;
@@ -51,10 +52,10 @@ const SearchScreen = () => {
   };
 
   const handleUserPress = async (user: User) => {
-    const updated = [user,...recentSearches.filter((item) => item._id !== user._id),].slice(0, 10);
+    const updated = [user, ...recentSearches.filter((item) => item._id !== user._id)].slice(0, 10);
     setRecentSearches(updated);
     await AsyncStorage.setItem("recentSearches", JSON.stringify(updated));
-    navigation.navigate("PublicProfile", { user });
+    navigation.navigate("PublicProfile", { userId: user._id }); // Assuming PublicProfile takes userId like your other screens
   };
 
   const removeItem = async (userId: string) => {
@@ -86,89 +87,132 @@ const SearchScreen = () => {
   };
 
   const renderUserItem = ({ item, isRecent }: { item: User; isRecent: boolean }) => (
-    <Pressable 
+    <TouchableOpacity 
       onPress={() => handleUserPress(item)}
-      className="flex-row items-center justify-between py-3 border-b border-gray-100"
+      activeOpacity={0.8}
+      className="flex-row items-center justify-between p-4 mb-3 mx-6 bg-[#1e1e1e]/80 rounded-2xl border border-white/10 shadow-lg"
     >
       <View className="flex-row items-center flex-1">
-        <Image 
-          source={{ uri: item.avatar || `https://ui-avatars.com/api/?name=${item.username}&background=random&color=fff` }}
-          className="w-12 h-12 rounded-full bg-gray-200"
-        />
+        <View className="w-12 h-12 rounded-full bg-gray-800 border border-white/10 justify-center items-center overflow-hidden">
+            <Image 
+            source={{ uri: item.avatar || `https://ui-avatars.com/api/?name=${item.username}&background=random&color=fff` }}
+            className="w-full h-full"
+            />
+        </View>
         
-        <View className="ml-3">
-          <Text className="text-base font-semibold text-black">
+        <View className="ml-4">
+          <Text className="text-base font-bold text-white">
             {item.username}
           </Text>
-          <Text className="text-sm text-gray-500">
+          <Text className="text-xs text-gray-400 mt-0.5">
             {item.name}
           </Text>
         </View>
       </View>
 
       {isRecent && (
-        <Pressable onPress={() => removeItem(item._id)}>
-          <Ionicons name="close" size={18} color="#555" />
-        </Pressable>
+        <TouchableOpacity 
+            onPress={() => removeItem(item._id)}
+            className="p-2 bg-black/40 rounded-full"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="close" size={16} color="#9ca3af" />
+        </TouchableOpacity>
       )}
-    </Pressable>
+    </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white px-4">
-      <Ionicons name="arrow-back" size={24} color="black" onPress={()=> navigation.goBack()} />
-      <View className="flex-row items-center bg-gray-100 rounded-full px-3 mt-2">
-        <Ionicons name="search" size={20} color="#888" />
-        <TextInput
-          className="flex-1 ml-2 text-base text-black"
-          placeholder="Search"
-          placeholderTextColor="#888"
-          value={query}
-          onChangeText={setQuery}
-          autoCapitalize="none"
-        />
-        {loading && <ActivityIndicator size="small" color="#888" />}
-        <Ionicons name="close" size={20} color="#888" onPress={()=> setQuery("")} />
-      </View>
+    <View className="flex-1 bg-black">
+      {/* Background Gradient */}
+      <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
 
-      {query.length > 0 ? (
-        <FlatList
-          data={searchResults}
-          keyExtractor={(item) => item._id}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => renderUserItem({ item, isRecent: false })}
-          ListEmptyComponent={
-            !loading ? (
-              <Text className="text-center text-gray-400 mt-12">
-                No users found
-              </Text>
-            ) : null
-          }
-        />
-      ) : (
-        <>
-          <View className="flex-row justify-between items-center mt-6 mb-3">
-            <Text className="text-base font-semibold text-black">Recent</Text>
-            {recentSearches.length > 0 && (
-              <Pressable onPress={clearAll}>
-                <Text className="text-sm text-blue-500">Clear all</Text>
-              </Pressable>
-            )}
-          </View>
+      <SafeAreaView className="flex-1">
+        
+        {/* HEADER */}
+        <View className="flex-row items-center px-6 pt-4 mb-6">
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            className="p-2 bg-white/10 rounded-full mr-4 border border-white/10"
+          >
+            <Ionicons name="chevron-back" size={24} color="white" />
+          </TouchableOpacity>
+          <Text className="text-white text-3xl font-black italic tracking-tighter">
+            USER <Text className="text-pink-500">SEARCH</Text> 🔍
+          </Text>
+        </View>
 
+        {/* SEARCH BAR */}
+        <View className="px-6 mb-4">
+            <View className="flex-row items-center bg-[#2a2a2a] rounded-2xl px-4 py-3.5 border border-white/10 shadow-lg">
+                <Ionicons name="search" size={20} color="#ec4899" />
+                <TextInput
+                    className="flex-1 ml-3 text-base text-white font-medium"
+                    placeholder="Search for developers..."
+                    placeholderTextColor="#6b7280"
+                    value={query}
+                    onChangeText={setQuery}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                />
+                {loading && <ActivityIndicator size="small" color="#ec4899" className="mr-2" />}
+                {query.length > 0 && (
+                    <TouchableOpacity onPress={() => setQuery("")} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                        <Ionicons name="close-circle" size={20} color="#6b7280" />
+                    </TouchableOpacity>
+                )}
+            </View>
+        </View>
+
+        {/* LIST RENDER */}
+        {query.length > 0 ? (
           <FlatList
-            data={recentSearches}
+            data={searchResults}
             keyExtractor={(item) => item._id}
-            renderItem={({ item }) => renderUserItem({ item, isRecent: true })}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => renderUserItem({ item, isRecent: false })}
+            contentContainerStyle={{ paddingBottom: 20 }}
             ListEmptyComponent={
-              <Text className="text-center text-gray-400 mt-12">
-                No recent searches
-              </Text>
+              !loading ? (
+                <View className="items-center mt-12 opacity-50">
+                    <Ionicons name="search-outline" size={48} color="gray" />
+                    <Text className="text-center text-gray-400 mt-4 font-bold">
+                    No users found
+                    </Text>
+                </View>
+              ) : null
             }
           />
-        </>
-      )}
-    </SafeAreaView>
+        ) : (
+          <>
+            <View className="flex-row justify-between items-center px-6 mt-4 mb-4">
+              <Text className="text-xs font-bold text-gray-400 uppercase tracking-widest">Recent Searches</Text>
+              {recentSearches.length > 0 && (
+                <TouchableOpacity onPress={clearAll}>
+                  <Text className="text-xs font-bold text-pink-500 uppercase tracking-widest">Clear All</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <FlatList
+              data={recentSearches}
+              keyExtractor={(item) => item._id}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => renderUserItem({ item, isRecent: true })}
+              contentContainerStyle={{ paddingBottom: 20 }}
+              ListEmptyComponent={
+                <View className="items-center mt-12 opacity-50">
+                    <Ionicons name="time-outline" size={48} color="gray" />
+                    <Text className="text-center text-gray-400 mt-4 font-bold">
+                    No recent searches
+                    </Text>
+                </View>
+              }
+            />
+          </>
+        )}
+      </SafeAreaView>
+    </View>
   );
 };
 

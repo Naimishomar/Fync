@@ -19,21 +19,16 @@ interface User {
 
 interface ActivityItem {
     _id: string;
-    // Common
     date: string;
     time: string;
-    users: string[]; // Array of User IDs
+    users: any[]; 
     admin: User;
     college: string;
     comments: any[]; 
-    
-    // Game Specific
     game_name?: string;
     venue?: string;
     team_size?: number;
     gamingDate?: string;
-
-    // Outing Specific
     destination?: string;
     outingDate?: string;
 }
@@ -45,17 +40,15 @@ const CollaborationScreen = () => {
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
-    // --- MODAL STATES ---
-    // 1. Create Modal
+    // Modals
     const [createModalVisible, setCreateModalVisible] = useState(false);
-    const [newName, setNewName] = useState(""); // Game Name or Destination
-    const [newVenue, setNewVenue] = useState(""); // Venue (Games only)
-    const [newTeamSize, setNewTeamSize] = useState(""); // Team Size (Games only)
-    const [newDate, setNewDate] = useState(""); // YYYY-MM-DD
-    const [newTime, setNewTime] = useState(""); // HH:MM
+    const [newName, setNewName] = useState(""); 
+    const [newVenue, setNewVenue] = useState(""); 
+    const [newTeamSize, setNewTeamSize] = useState(""); 
+    const [newDate, setNewDate] = useState(""); 
+    const [newTime, setNewTime] = useState(""); 
     const [creating, setCreating] = useState(false);
 
-    // 2. Comments Modal
     const [commentModalVisible, setCommentModalVisible] = useState(false);
     const [activeActivityId, setActiveActivityId] = useState<string | null>(null);
     const [commentsList, setCommentsList] = useState<any[]>([]);
@@ -64,7 +57,6 @@ const CollaborationScreen = () => {
 
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
-    // --- FETCH DATA ---
     const fetchData = async () => {
         try {
             const endpoint = tab === 'games' ? '/collaboration/games' : '/collaboration/outings';
@@ -115,7 +107,6 @@ const CollaborationScreen = () => {
         fetchData();
     };
 
-    // --- CREATE ACTIVITY ---
     const handleCreate = async () => {
         if (!newName || !newDate || !newTime) {
             Alert.alert("Error", "Please fill all required fields");
@@ -153,28 +144,25 @@ const CollaborationScreen = () => {
     };
 
     const handleJoin = async (item: any) => {
-    const isJoined = item.users.some(
-        (u: any) => u._id === user._id || u === user._id
-    );
+        // FIXED: Check object IDs because users array is populated
+        const isJoined = item.users?.some((u: any) => (u._id || u) === user?._id);
 
-    try {
-        const endpoint =
-        tab === "games"
-            ? `/collaboration/games/${item._id}/${isJoined ? "leave" : "join"}`
-            : `/collaboration/outings/${item._id}/${isJoined ? "leave" : "join"}`;
+        try {
+            const endpoint =
+            tab === "games"
+                ? `/collaboration/games/${item._id}/${isJoined ? "leave" : "join"}`
+                : `/collaboration/outings/${item._id}/${isJoined ? "leave" : "join"}`;
 
-        const res = await axios.post(endpoint);
+            const res = await axios.post(endpoint);
 
-        if (res.data.success) {
-        fetchData();
+            if (res.data.success) {
+                fetchData();
+            }
+        } catch (err: any) {
+            Alert.alert("Error", err.response?.data?.message || "Action failed");
         }
-    } catch (err: any) {
-        Alert.alert("Error", err.response?.data?.message || "Action failed");
-    }
     };
 
-
-    // --- COMMENTS ---
     const handleOpenComments = async (id: string) => {
         setActiveActivityId(id);
         setCommentModalVisible(true);
@@ -213,11 +201,10 @@ const CollaborationScreen = () => {
                 ));
             }
         } catch (error : any) {
-            Alert.alert("Error", "Failed to post comment", error);
+            Alert.alert("Error", "Failed to post comment");
         }
     };
 
-    // 🔥 HOST DELETE
     const handleDelete = async (item: ActivityItem) => {
     try {
         const endpoint =
@@ -253,9 +240,10 @@ const CollaborationScreen = () => {
     };
 
 
-    // --- RENDER CARD ---
     const renderItem = ({ item }: { item: ActivityItem }) => {
-        const isJoined = item.users?.includes(user?._id);
+        // FIXED: Use .some() to check object IDs because users array is populated
+        const isJoined = item.users?.some((u: any) => (u._id || u) === user?._id);
+
         const dateObj = new Date(item.date);
         const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
@@ -328,7 +316,7 @@ const CollaborationScreen = () => {
                         </Text>
                         ) : (
                         item.users.map((u: any) => (
-                            <View key={u._id || u} className="flex-row items-center">
+                            <View key={u._id || u} className="flex-row items-center mt-2">
                                 <Image source={{ uri:u.avatar ||`https://ui-avatars.com/api/?name=${u.username || "User"}`}} className="w-6 h-6 rounded-full mr-2"/>
                                 <Text className="text-gray-300 text-sm">
                                     {u.name || "User"}
@@ -344,7 +332,7 @@ const CollaborationScreen = () => {
                 <View className="flex-row border-t border-gray-800">
                     <TouchableOpacity 
                         onPress={() => handleJoin(item)}
-                        className={`flex-1 py-3 items-center justify-center ${isJoined ? 'bg-gray-800' : (tab === 'games' ? 'bg-pink-600' : 'bg-blue-600')}`}
+                        className={`flex-1 py-3 items-center justify-center ${isJoined ? 'bg-red-700' : (tab === 'games' ? 'bg-pink-600' : 'bg-blue-600')}`}
                     >
                         <Text className={`font-bold ${isJoined ? 'text-gray-400' : 'text-white'}`}>
                             {isJoined ? "Leave" : "Join Now"}

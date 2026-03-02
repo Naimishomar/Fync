@@ -29,7 +29,7 @@ export const createShorts = async(req,res)=>{
 export const fetchShorts = async(req,res)=>{
     try {
         const { page } = req.query;
-        const limit = 5;
+        const limit = 10;
         const skip = (page - 1) * limit;
         const shorts = await Shorts.find()
         .sort({ createdAt: -1 })

@@ -4,18 +4,20 @@ import {
   Text,
   FlatList,
   Image,
-  Pressable,
   TextInput,
   ActivityIndicator,
-  StatusBar
+  StatusBar,
+  TouchableOpacity
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 
-const ChatList = ({ navigation } : any) => {
+const ChatList = () => {
+  const navigation = useNavigation<any>();
   const { user } = useAuth();
 
   const [conversations, setConversations] = useState<any[]>([]);
@@ -37,7 +39,7 @@ const ChatList = ({ navigation } : any) => {
       const res = await axios.get("/chat/conversations");
       setConversations(res.data.conversations || []);
     } catch (e) {
-      console.log("Error loading chats",e);
+      console.log("Error loading chats", e);
     } finally {
       setLoading(false);
     }
@@ -53,7 +55,7 @@ const ChatList = ({ navigation } : any) => {
       const res = await axios.get(`/chat/search?q=${text.trim()}`);
       setResults(res.data.users || []);
     } catch (e) {
-      console.log("Search error",e);
+      console.log("Search error", e);
     }
   };
 
@@ -83,7 +85,7 @@ const ChatList = ({ navigation } : any) => {
       setSearch("");
       setResults([]);
     } catch (e) {
-      console.log("Start chat error",e);
+      console.log("Start chat error", e);
     }
   };
 
@@ -105,140 +107,151 @@ const ChatList = ({ navigation } : any) => {
     const isLastMsgMine = item.lastMessage?.sender === user._id;
 
     return (
-      <Pressable
-        className="flex-row items-center px-4 py-4 mb-1"
-        onPress={() =>
-          navigation.navigate("Chat", { conversationId: item._id })
-        }
+      <TouchableOpacity
+        className="flex-row items-center px-6 py-4 border-b border-white/5"
+        onPress={() => navigation.navigate("Chat", { conversationId: item._id })}
+        activeOpacity={0.7}
       >
         <View className="relative">
-            <Image
-            source={{
-                uri: otherUser?.avatar?.trim() || `https://ui-avatars.com/api/?name=${otherUser?.username}&background=random&color=fff`,
-            }}
-            className="h-14 w-14 rounded-full border border-gray-800"
-            />
+            <View className="h-14 w-14 rounded-full border border-white/10 bg-gray-800 justify-center items-center overflow-hidden">
+                <Image
+                    source={{ uri: otherUser?.avatar?.trim() || `https://ui-avatars.com/api/?name=${otherUser?.username}&background=random&color=fff` }}
+                    className="h-full w-full"
+                />
+            </View>
         </View>
 
         <View className="ml-4 flex-1 justify-center">
-          <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center justify-between mb-1">
             <Text className="font-bold text-base text-white">
               {otherUser?.username || "Unknown"}
             </Text>
-            <Text className="text-xs text-gray-500 font-medium">
+            <Text className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
               {formatTime(item.updatedAt || new Date())}
             </Text>
           </View>
 
-          <View className="flex-row items-center justify-between mt-1">
+          <View className="flex-row items-center justify-between">
             <Text
-              className={`flex-1 text-sm mr-4 ${unread > 0 ? 'text-white font-semibold' : 'text-gray-400'}`}
+              className={`flex-1 text-sm mr-4 ${unread > 0 ? 'text-white font-bold' : 'text-gray-400'}`}
               numberOfLines={1}
             >
               {isLastMsgMine ? "You: " : ""}{item.lastMessage?.message || "Started a chat"}
             </Text>
 
             {unread > 0 && (
-              <View className="bg-blue-500 min-w-[20px] h-5 px-1.5 flex justify-center items-center rounded-full">
-                <Text className="text-white text-[10px] font-bold text-center">
+              <View className="bg-pink-600 min-w-[20px] h-5 px-1.5 flex justify-center items-center rounded-full border border-pink-500/50 shadow-lg shadow-pink-500/50">
+                <Text className="text-white text-[10px] font-black text-center">
                   {unread > 9 ? '9+' : unread}
                 </Text>
               </View>
             )}
           </View>
         </View>
-      </Pressable>
+      </TouchableOpacity>
     );
   };
 
   const renderUser = ({ item }: any) => (
-    <Pressable
-      className="flex-row items-center px-4 py-3"
+    <TouchableOpacity
+      className="flex-row items-center px-6 py-4 border-b border-white/5"
       onPress={() => startChat(item)}
+      activeOpacity={0.7}
     >
-      <Image
-        source={{
-          uri: item.avatar?.trim() || `https://ui-avatars.com/api/?name=${item.username}&background=random&color=fff`,
-        }}
-        className="h-12 w-12 rounded-full border border-gray-800"
-      />
-      <View className="ml-4 flex-1 border-b border-gray-900 pb-3">
+      <View className="h-12 w-12 rounded-full border border-white/10 bg-gray-800 justify-center items-center overflow-hidden">
+          <Image
+            source={{ uri: item.avatar?.trim() || `https://ui-avatars.com/api/?name=${item.username}&background=random&color=fff` }}
+            className="h-full w-full"
+          />
+      </View>
+      <View className="ml-4 flex-1">
         <Text className="font-bold text-white text-base">
           {item.username}
         </Text>
-        <Text className="text-gray-500 text-sm">
+        <Text className="text-gray-500 text-sm mt-0.5">
           {item.name}
         </Text>
       </View>
-    </Pressable>
+      <Ionicons name="chatbubble-ellipses-outline" size={20} color="#ec4899" />
+    </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
+    <View className="flex-1 bg-black">
       <StatusBar barStyle="light-content" />
       
-      {/* HEADER */}
-      <View className="px-4 py-2 mb-2 flex-row gap-1 items-center">
-        <Pressable  className="p-2" onPress={() => {navigation.goBack()}}>
-            <Ionicons name="arrow-back-outline" size={24} color="#fff" />
-        </Pressable>
-        <Text className="text-3xl font-bold text-white">
-          Messages
-        </Text>
-      </View>
+      {/* Background Gradient */}
+      <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
 
-      {/* SEARCH BAR */}
-      <View className="px-4 mb-4">
-        <View className="flex-row items-center bg-gray-900 rounded-xl px-4 border border-gray-800">
-          <Ionicons name="search" size={20} color="#6b7280" />
-          <TextInput
-            value={search}
-            onChangeText={handleSearchChange} // 4. Use the new handler
-            placeholder="Search friends..."
-            placeholderTextColor="#6b7280"
-            className="ml-3 flex-1 text-base text-white"
-            autoCapitalize="none"
-          />
-          {search.length > 0 && (
-            <Pressable onPress={() => handleSearchChange("")}>
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
-            </Pressable>
-          )}
+      <SafeAreaView className="flex-1">
+        
+        {/* HEADER */}
+        <View className="flex-row items-center px-6 pt-4 mb-6">
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            className="p-2 bg-white/10 rounded-full mr-4 border border-white/10"
+          >
+            <Ionicons name="chevron-back" size={24} color="white" />
+          </TouchableOpacity>
+          <Text className="text-white text-3xl font-black italic tracking-tighter">
+            DIRECT<Text className="text-pink-500">MESSAGES</Text> 💬
+          </Text>
         </View>
-      </View>
 
-      {/* LIST CONTENT */}
-      {loading ? (
-          <View className="flex-1 justify-center items-center">
-              <ActivityIndicator size="large" color="#3b82f6" />
+        {/* SEARCH BAR */}
+        <View className="px-6 mb-4">
+          <View className="flex-row items-center bg-[#2a2a2a] rounded-2xl px-4 py-3.5 border border-white/10 shadow-lg">
+            <Ionicons name="search" size={20} color="#ec4899" />
+            <TextInput
+              value={search}
+              onChangeText={handleSearchChange}
+              placeholder="Search friends..."
+              placeholderTextColor="#6b7280"
+              className="ml-3 flex-1 text-base text-white font-medium"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {search.length > 0 && (
+              <TouchableOpacity onPress={() => handleSearchChange("")} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Ionicons name="close-circle" size={20} color="#6b7280" />
+              </TouchableOpacity>
+            )}
           </View>
-      ) : (
-          <FlatList
-            data={search.length > 0 ? results : conversations}
-            keyExtractor={(item) => item._id}
-            renderItem={search.length > 0 ? renderUser : renderConversation}
-            contentContainerStyle={{ paddingBottom: 20 }}
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={
-              <View className="flex-1 items-center justify-center mt-20 opacity-50">
-                <Ionicons 
-                    name={search.length > 0 ? "person-remove-outline" : "chatbubbles-outline"} 
-                    size={64} 
-                    color="gray" 
-                />
-                <Text className="text-center text-gray-500 mt-4 text-lg font-medium">
-                  {search.length > 0
-                    ? "No users found"
-                    : "No conversations yet"}
-                </Text>
-                {search.length === 0 && (
-                    <Text className="text-gray-600 text-sm mt-2">Start searching to chat!</Text>
-                )}
-              </View>
-            }
-          />
-      )}
-    </SafeAreaView>
+        </View>
+
+        {/* LIST CONTENT */}
+        {loading ? (
+            <View className="flex-1 justify-center items-center">
+                <ActivityIndicator size="large" color="#ec4899" />
+            </View>
+        ) : (
+            <FlatList
+              data={search.length > 0 ? results : conversations}
+              keyExtractor={(item) => item._id}
+              renderItem={search.length > 0 ? renderUser : renderConversation}
+              contentContainerStyle={{ paddingBottom: 20 }}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={
+                <View className="flex-1 items-center justify-center mt-20 opacity-50">
+                  <Ionicons 
+                      name={search.length > 0 ? "person-remove-outline" : "chatbubbles-outline"} 
+                      size={64} 
+                      color="gray" 
+                  />
+                  <Text className="text-center text-gray-400 mt-4 text-lg font-bold">
+                    {search.length > 0
+                      ? "No users found"
+                      : "No conversations yet"}
+                  </Text>
+                  {search.length === 0 && (
+                      <Text className="text-gray-500 text-sm mt-2 font-medium">Start searching to chat!</Text>
+                  )}
+                </View>
+              }
+            />
+        )}
+      </SafeAreaView>
+    </View>
   );
 };
 

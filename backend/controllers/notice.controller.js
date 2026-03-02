@@ -59,12 +59,15 @@ export const createGlobalNotice = async(req,res)=>{
     }
 }
 
-export const getGlobalNotices = async(req,res)=>{
+export const getGlobalNotices = async (req, res) => {
     try {
         const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
         const user = await User.findOne({ email: ADMIN_EMAIL });
+        if (!user) {
+            return res.status(200).json({ success: true, message: "No admin configured", notices: [] });
+        }
         const notices = await Notice.find({ user: user._id }).populate("user", "name avatar username");
-        if(!notices){
+        if (!notices) {
             return res.status(404).json({ success: false, message: "No notices" });
         }
         return res.status(200).json({ success: true, message: "Notices fetched successfully", notices });

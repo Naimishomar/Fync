@@ -1,18 +1,11 @@
-import fs from 'fs';
 import { GoogleGenAI } from "@google/genai"; 
 import InterviewSession from '../models/interview.model.js'; 
 import { cloudinary } from '../utils/cloudinary.js';
-
-// --- V2 IMPORT STYLE ---
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const { PDFParse } = require('pdf-parse'); // Destructuring as requested
-// -----------------------
-
-// Initialize the new Client
+const { PDFParse } = require('pdf-parse');
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// 1. START INTERVIEW
 export const startInterview = async (req, res) => {
     try {
         console.log("🔹 Request received at /start");
@@ -23,29 +16,18 @@ export const startInterview = async (req, res) => {
             return res.status(400).json({ message: "Resume file is required." });
         }
 
-        // --- NEW V2 PDF PARSING ---
         let resumeText = "";
         try {
             console.log("🔹 processing PDF with PDFParse V2...");
-            
-            // Using the syntax from your documentation:
-            // Pass the Cloudinary URL directly to the parser
             const parser = new PDFParse({ url: req.file.path });
-            
             const pdfResult = await parser.getText();
-            
-            // Extract text
             resumeText = pdfResult.text.substring(0, 3000); 
             console.log("✅ PDF Parsed successfully");
 
         } catch (pdfError) {
             console.error("⚠️ PDF Parsing Failed:", pdfError.message);
-            // Fallback
             resumeText = `Candidate applying for ${domain} with ${experience} years experience.`;
         }
-        // ---------------------------
-
-        // --- AI Generation ---
         const systemPrompt = `You are a technical interviewer for a ${domain} role. 
         Candidate Exp: ${experience} years.
         Resume Context: ${resumeText}.
@@ -70,7 +52,6 @@ export const startInterview = async (req, res) => {
         const firstQuestion = result.text;
         console.log("✅ Gemini Responded");
 
-        // --- Save Session ---
         const session = await InterviewSession.create({
             user: req.user.id,
             domain,
@@ -92,7 +73,6 @@ export const startInterview = async (req, res) => {
     }
 };
 
-// 2. PROCESS ANSWER
 export const processAnswer = async (req, res) => {
     try {
         const { sessionId } = req.body;
@@ -133,6 +113,10 @@ export const endInterview = async (req, res) => {
         const { sessionId } = req.body;
         const session = await InterviewSession.findById(sessionId);
 
+        if (!session) {
+            return res.status(404).json({ success: false, message: "Session not found" });
+        }
+
         const reportPrompt = `
         The interview is over. Based on this history: ${JSON.stringify(session.history)}
         
@@ -155,37 +139,24 @@ export const endInterview = async (req, res) => {
 
         let reportText = result.text.replace(/```json|```/g, '').trim();
         const report = JSON.parse(reportText);
-        
-        // 2. Cleanup Cloudinary
         try {
-            if (session.audioPublicIds.length > 0) {
+            if (session.audioPublicIds && session.audioPublicIds.length > 0) {
                 await cloudinary.api.delete_resources(session.audioPublicIds, { resource_type: 'raw' });
+                await cloudinary.api.delete_resources(session.audioPublicIds, { resource_type: 'video' });
             }
             if (session.resumePublicId) {
-                // Delete raw (PDF)
                 await cloudinary.api.delete_resources([session.resumePublicId], { resource_type: 'raw' });
-                // Attempt delete image (just in case it was stored as image)
                 await cloudinary.api.delete_resources([session.resumePublicId], { resource_type: 'image' });
             }
+            console.log("✅ Cloudinary files deleted successfully.");
         } catch (e) { 
-            console.log("Cleanup warning:", e.message); 
+            console.log("⚠️ Cloudinary cleanup warning:", e.message); 
         }
-
-        // 3. Update & Save Session
-        session.status = 'completed';
-        session.report = report;
-        
-        // It is now safe to clear these because schema is not required
-        session.audioPublicIds = [];
-        session.resumePublicId = ""; 
-        
-        await session.save();
-
+        await InterviewSession.findByIdAndDelete(sessionId);
+        console.log(`✅ MongoDB Session ${sessionId} deleted successfully.`);
         res.json({ success: true, report });
-
     } catch (error) {
         console.error("❌ REPORT ERROR:", error);
-        // Even if report generation fails, try to return something so app doesn't hang
         res.status(500).json({ success: false, message: "Failed to generate report" });
     }
 };
