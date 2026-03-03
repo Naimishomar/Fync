@@ -3,7 +3,7 @@ import redisClient from "../utils/redis.js";
 const LOBBY_SET = "lobby:users";
 const USER_PREFIX = "user:";
 
-export const setupSocket = (io) => {
+export const setupVideoSocket = (io) => {
   io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
 
