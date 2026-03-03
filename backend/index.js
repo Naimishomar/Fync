@@ -28,7 +28,8 @@ import { logout } from './controllers/auth.controller.js';
 
 import { socketController } from './controllers/socket.controller.js';
 import { lotterySocketController } from './socket/9pmConfession.socket.js';
-import { setupSocket } from './socket/videoLobby.js' 
+import { setupVideoSocket } from './socket/videoLobby.js' 
+import { setupMusicSocket } from './socket/musicSocket.js';
 
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000,
@@ -80,7 +81,8 @@ app.use('/api', AiIntelligenceRoute);
 
 socketController(io);
 lotterySocketController(io);
-setupSocket(io);
+setupVideoSocket(io);
+setupMusicSocket(io);
 
 app.get('/', (req, res) => {
   res.send('Fync never gets down!🚀');

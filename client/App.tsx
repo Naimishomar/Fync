@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
-import React from "react";
-import { View, ActivityIndicator, Image } from "react-native";
+import React, { useEffect } from "react";
+import { View, ActivityIndicator, Image, Alert } from "react-native";
 import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -72,6 +72,9 @@ import Map from './components/newFeatures/Map';
 import LateNightFood from 'components/newFeatures/LateNightFood';
 import CampusTravel from 'components/newFeatures/CampusTravel';
 import StudyAssistant from 'components/newFeatures/StudyAssistant';
+import GroupJamSetup from 'components/GroupSongs/GroupJamSetup';
+import GroupJamPlayer from 'components/GroupSongs/GroupJamPlayer';
+import socket from 'utils/socket';
 // import VideoLobby from './components/newFeatures/VideoLobby';
 
 // Notification
@@ -174,6 +177,8 @@ export type RootStackParamList = {
   CampusTravel: undefined;
   StudyAssistant: undefined;
   CreateShorts: undefined;
+  GroupJamSetup: undefined;
+  GroupJamPlayer: undefined;
 };
 
 function HomeDrawer() {
@@ -216,6 +221,36 @@ function AuthStack() {
 }
 
 function AppStack() {
+  useEffect(() => {
+    console.log("AppStack Socket Listener Mounted 👂 - Socket ID:", socket.id);
+
+    socket.on('incoming-jam', (data) => {
+      console.log("Invitation Received on Guest Phone!", data.host.username);
+      
+      Alert.alert(
+        "Squad Jam! 🔥",
+        `${data.host.username} is jamming to ${data.station.name}. Join?`,
+        [
+          { text: "No", style: "cancel" },
+          { 
+            text: "Join Sync", 
+            onPress: () => {
+              // 🔥 FIX: Use navigationRef instead of navigation
+              if (navigationRef.isReady()) {
+                navigationRef.navigate("GroupJamPlayer", data);
+              } else {
+                console.log("Navigation not ready yet");
+              }
+            } 
+          }
+        ]
+      );
+    });
+
+    return () => socket.off('incoming-jam');
+  }, []);
+
+
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: "simple_push" }}>
       <Stack.Screen name="SplashScreen" component={SplashScreen} />
@@ -267,6 +302,8 @@ function AppStack() {
       <Stack.Screen name="LateNightFood" component={LateNightFood} />
       <Stack.Screen name="CampusTravel" component={CampusTravel} />
       <Stack.Screen name="StudyAssistant" component={StudyAssistant} />
+      <Stack.Screen name="GroupJamSetup" component={GroupJamSetup} />
+      <Stack.Screen name="GroupJamPlayer" component={GroupJamPlayer} />
       {/* <Stack.Screen name="VideoLobby" component={VideoLobby} /> */}
     </Stack.Navigator>
   );
