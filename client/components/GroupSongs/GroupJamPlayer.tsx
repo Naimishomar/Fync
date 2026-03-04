@@ -1,10 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
-import { View, Text, TouchableOpacity, Image, ActivityIndicator, Alert, ScrollView } from "react-native";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { 
+  View, Text, TouchableOpacity, Image, ActivityIndicator, ScrollView, Modal, TextInput, FlatList, KeyboardAvoidingView, Platform } from "react-native";
 import { Audio } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import socket from "../../utils/socket";
 import { useAuth } from "../../context/auth.context";
+import axios from "../../context/axiosConfig";
 
 //@ts-ignore
 import FYNC_LOGO from '../../assets/logo.png';
@@ -15,79 +17,152 @@ export default function GroupJamPlayer({ route, navigation }: any) {
   
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [squad, setSquad] = useState<any[]>([]); // 🔥 Tracks joined people
+  const [squad, setSquad] = useState<any[]>([]);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [userQuery, setUserQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [invitedUsers, setInvitedUsers] = useState<Record<string, boolean>>({});
+  
   const soundRef = useRef<Audio.Sound | null>(null);
 
-  useEffect(() => {
-    if (roomId && authUser?._id) {
-      console.log("✅ Joining Room:", roomId);
-      
-      // 1. Join the room
-      socket.emit("join-room", { 
-        roomId, 
-        user: {
-          _id: authUser._id,
-          username: authUser.username,
-          avatar: authUser.avatar
-        } 
-      });
-
-      // 2. Listen for squad updates
-      socket.on("room-users", (users: any[]) => {
-        setSquad(users);
-      });
-
-      // 3. Listen for music sync
-      socket.on("track-update", async (data) => {
-        if (soundRef.current) {
-          data.isPlaying ? await soundRef.current.playAsync() : await soundRef.current.pauseAsync();
-          setIsPlaying(data.isPlaying);
-        }
-      });
-
-      setupAudio();
+  // --- 🛑 STOP AND LEAVE LOGIC ---
+  const stopAndLeave = useCallback(async () => {
+    console.log("Cleaning up Jam session...");
+    
+    // 1. Stop and Unload Audio Hardware
+    if (soundRef.current) {
+      try {
+        await soundRef.current.stopAsync();
+        await soundRef.current.unloadAsync();
+        soundRef.current = null;
+      } catch (e) {
+        console.log("Error unloading sound:", e);
+      }
     }
 
-    return () => {
-      soundRef.current?.unloadAsync();
-      socket.off("room-users");
-      socket.off("track-update");
-    };
+    // 2. Notify Server to remove from Squad List
+    if (authUser?._id) {
+      socket.emit("leave-room", { 
+        roomId, 
+        user: { _id: authUser._id, username: authUser.username, avatar: authUser.avatar } 
+      });
+    }
   }, [roomId, authUser]);
 
-  const setupAudio = async () => {
+  // --- 🎧 AUDIO SETUP ---
+  const setupAudio = useCallback(async () => {
     if (!station?.streamUrl) return;
     try {
       setLoading(true);
       await Audio.setAudioModeAsync({
         staysActiveInBackground: true,
         playsInSilentModeIOS: true,
-        shouldRouteThroughEarpieceAndroid: false,
+        playThroughEarpieceAndroid: false,
       });
 
       const { sound } = await Audio.Sound.createAsync(
-        { 
-          uri: station.streamUrl,
-          headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 13) Chrome/116.0.0.0 Mobile' }
-        },
+        { uri: station.streamUrl, headers: { 'User-Agent': 'Mozilla/5.0' } },
         { shouldPlay: true },
         (status) => { if (status.isLoaded) setIsPlaying(status.isPlaying); }
       );
-      
       soundRef.current = sound;
       setIsPlaying(true);
     } catch (e) {
-        // Fallback logic...
-        navigation.goBack();
+      console.error("Audio Load Error:", e);
+      navigation.goBack();
     } finally {
       setLoading(false);
     }
-  };
+  }, [station?.streamUrl, navigation]);
+
+  // --- 🔄 SYNC & SOCKET EFFECTS ---
+  useEffect(() => {
+    if (roomId && authUser?._id) {
+      const userPayload = {
+        _id: authUser._id,
+        username: authUser.username,
+        avatar: authUser.avatar
+      };
+
+      socket.emit("join-room", { roomId, user: userPayload });
+
+      socket.on("room-users", (users: any[]) => setSquad(users));
+
+      socket.on("track-update", async (data) => {
+        if (soundRef.current) {
+          try {
+            if (data.isPlaying) {
+              await soundRef.current.playAsync();
+            } else {
+              await soundRef.current.pauseAsync();
+            }
+            setIsPlaying(data.isPlaying);
+          } catch (error) {
+            console.log("Playback sync error:", error);
+          }
+        }
+      });
+
+      setupAudio();
+    }
+
+    // Capture hardware back button or swipe-back
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      stopAndLeave();
+    });
+
+    return () => {
+      socket.off("room-users");
+      socket.off("track-update");
+      unsubscribe();
+      stopAndLeave();
+    };
+  }, [roomId, authUser, setupAudio, stopAndLeave, navigation]);
 
   const togglePlay = () => {
     const nextState = !isPlaying;
     socket.emit("sync-music", { roomId, station, isPlaying: nextState });
     setIsPlaying(nextState);
+  };
+
+  // --- 📩 INVITE LOGIC ---
+  const searchUsers = async (q: string) => {
+    setUserQuery(q);
+    if (q.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    setSearching(true);
+    try {
+      const res = await axios.post("/user/search", { name: q.trim() });
+      if (res.data.success) setSearchResults(res.data.users);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const sendInvite = (targetUser: any) => {
+    if (targetUser._id === authUser?._id) return;
+    if (invitedUsers[targetUser._id]) return;
+
+    const jamData = {
+      roomId,
+      station,
+      host: { _id: authUser?._id, username: authUser?.username, avatar: authUser?.avatar }
+    };
+    
+    socket.emit("invite-squad", jamData);
+    
+    // Set 30s Cooldown
+    setInvitedUsers(prev => ({ ...prev, [targetUser._id]: true }));
+    setTimeout(() => {
+      setInvitedUsers(prev => {
+        const newState = { ...prev };
+        delete newState[targetUser._id];
+        return newState;
+      });
+    }, 30000);
   };
 
   return (
@@ -96,76 +171,66 @@ export default function GroupJamPlayer({ route, navigation }: any) {
       
       {/* HEADER */}
       <View className="flex-row justify-between items-center px-6 pt-14">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="bg-white/10 p-2 rounded-full">
-          <Ionicons name="chevron-down" size={24} color="white" />
+        <TouchableOpacity 
+          onPress={() => navigation.goBack()} 
+          className="bg-red-500/20 p-2 rounded-full border border-red-500/30"
+        >
+          <Ionicons name="exit-outline" size={24} color="#ef4444" />
         </TouchableOpacity>
         <Text className="text-white/50 font-bold uppercase text-[10px] tracking-[2px]">Fync Squad Jam</Text>
-        <TouchableOpacity className="bg-white/10 p-2 rounded-full">
-          <Ionicons name="share-outline" size={20} color="white" />
+        <TouchableOpacity 
+          onPress={() => setIsInviteModalOpen(true)}
+          className="bg-pink-500/20 p-2 rounded-full border border-pink-500/30"
+        >
+          <Ionicons name="person-add" size={20} color="#ec4899" />
         </TouchableOpacity>
       </View>
 
       <View className="flex-1 items-center justify-center px-8">
-        {/* ARTWORK WITH MUSIC-LIKE CARD */}
+        {/* ARTWORK CARD */}
         <View className="w-full aspect-square rounded-[40px] overflow-hidden shadow-2xl shadow-pink-500/20 border border-white/10">
-          <Image 
-            source={station.artwork ? { uri: station.artwork } : FYNC_LOGO} 
-            className="w-full h-full"
-            resizeMode="cover"
-          />
+          <Image source={station.artwork ? { uri: station.artwork } : FYNC_LOGO} className="w-full h-full" resizeMode="cover" />
         </View>
 
-        {/* TRACK INFO */}
+        {/* SONG INFO */}
         <View className="w-full mt-10 items-start">
-          <Text className="text-white text-3xl font-black tracking-tighter italic" numberOfLines={1}>
-            {station.name}
-          </Text>
+          <Text className="text-white text-3xl font-black tracking-tighter italic" numberOfLines={1}>{station.name}</Text>
           <Text className="text-pink-500 font-medium text-lg mt-1">Live Radio Stream</Text>
         </View>
 
-        {/* FAKE PROGRESS BAR (Visual Vibe) */}
+        {/* PROGRESS BAR VIBE */}
         <View className="w-full h-1 bg-white/10 rounded-full mt-8 overflow-hidden">
-          <View className="w-1/3 h-full bg-pink-500" />
-        </View>
-        <View className="flex-row justify-between w-full mt-2">
-          <Text className="text-white/30 text-[10px]">LIVE</Text>
-          <Text className="text-white/30 text-[10px]">STREAMING</Text>
+          <View className={`h-full bg-pink-500 ${isPlaying ? 'w-1/3' : 'w-0'}`} />
         </View>
 
         {/* CONTROLS */}
         <View className="flex-row items-center justify-between w-full mt-10 px-4">
           <Ionicons name="shuffle-outline" size={28} color="white" />
           <Ionicons name="play-skip-back" size={36} color="white" />
-          
           <TouchableOpacity 
             onPress={togglePlay} 
             disabled={loading}
-            className="w-20 h-20 bg-white rounded-full items-center justify-center"
+            activeOpacity={0.7}
+            className="w-24 h-24 bg-white rounded-full items-center justify-center shadow-2xl shadow-white/50"
           >
             {loading ? (
-              <ActivityIndicator color="#ec4899" />
+              <ActivityIndicator color="#ec4899" size="large" />
             ) : (
-              <Ionicons name={isPlaying ? "pause" : "play"} size={40} color="black" />
+              <Ionicons name={isPlaying ? "pause" : "play"} size={48} color="black" style={{ marginLeft: isPlaying ? 0 : 4 }} />
             )}
           </TouchableOpacity>
-
           <Ionicons name="play-skip-forward" size={36} color="white" />
           <Ionicons name="repeat-outline" size={28} color="white" />
         </View>
 
-        {/* SQUAD AVATARS SECTION */}
+        {/* SQUAD SECTION */}
         <View className="w-full mt-12 bg-white/5 p-4 rounded-3xl border border-white/5">
-          <Text className="text-white/40 font-bold uppercase text-[9px] tracking-widest mb-3 text-center">
-            Currently Jamming • {squad.length}
-          </Text>
+          <Text className="text-white/40 font-bold uppercase text-[9px] tracking-widest mb-3 text-center">Currently Jamming • {squad.length}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
             {squad.map((member, index) => (
               <View key={index} className="mr-3 items-center">
-                <View className="border-2 border-pink-500 rounded-full p-0.5">
-                    <Image 
-                      source={{ uri: member.avatar || `https://ui-avatars.com/api/?name=${member.username}` }} 
-                      className="w-10 h-10 rounded-full bg-zinc-800"
-                    />
+                <View className="border-2 border-pink-500 rounded-full p-0.5 shadow-lg shadow-pink-500/50">
+                  <Image source={{ uri: member.avatar || `https://ui-avatars.com/api/?name=${member.username}` }} className="w-10 h-10 rounded-full bg-zinc-800" />
                 </View>
                 <Text className="text-white/60 text-[8px] mt-1 font-bold">@{member.username}</Text>
               </View>
@@ -173,6 +238,74 @@ export default function GroupJamPlayer({ route, navigation }: any) {
           </ScrollView>
         </View>
       </View>
+
+      {/* INVITE MODAL */}
+      <Modal
+        visible={isInviteModalOpen}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsInviteModalOpen(false)}
+      >
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1 justify-end bg-black/80"
+        >
+          <View className="bg-zinc-900 rounded-t-[40px] h-[70%] p-6 border-t border-white/10">
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="text-white text-xl font-black uppercase italic">Invite Squad</Text>
+              <TouchableOpacity onPress={() => setIsInviteModalOpen(false)}>
+                <Ionicons name="close-circle" size={30} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <View className="bg-white/5 rounded-2xl flex-row items-center px-4 py-3 border border-white/10 mb-6">
+              <Ionicons name="search" size={20} color="#ec4899" />
+              <TextInput 
+                className="flex-1 ml-3 text-white font-medium" 
+                placeholder="Search friends..." 
+                placeholderTextColor="#555"
+                value={userQuery}
+                onChangeText={searchUsers}
+              />
+            </View>
+
+            {searching ? (
+              <ActivityIndicator color="#ec4899" />
+            ) : (
+              <FlatList
+                data={searchResults}
+                keyExtractor={(item) => item._id}
+                renderItem={({ item }) => {
+                  const isInvited = invitedUsers[item._id];
+                  const isSelf = item._id === authUser?._id;
+                  return (
+                    <View className="flex-row items-center justify-between p-4 mb-3 bg-white/5 rounded-2xl border border-white/5">
+                      <View className="flex-row items-center">
+                        <Image 
+                          source={{ uri: item.avatar || `https://ui-avatars.com/api/?name=${item.username}` }} 
+                          className="w-10 h-10 rounded-full mr-3" 
+                        />
+                        <Text className="text-white font-bold">{item.username} {isSelf && "(You)"}</Text>
+                      </View>
+                      {!isSelf && (
+                        <TouchableOpacity 
+                          onPress={() => sendInvite(item)}
+                          disabled={isInvited}
+                          className={`${isInvited ? 'bg-zinc-700' : 'bg-pink-500'} px-4 py-2 rounded-full`}
+                        >
+                          <Text className="text-white text-[10px] font-black uppercase">
+                            {isInvited ? 'Invited' : 'Invite'}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  );
+                }}
+              />
+            )}
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }

@@ -4,6 +4,9 @@ export const setupMusicSocket = (io) => {
   const pubClient = client.duplicate();
   const subClient = client.duplicate();
 
+  pubClient.on('error', (err) => console.error('Redis Pub Client Error:', err));
+  subClient.on('error', (err) => console.error('Redis Sub Client Error:', err));
+
   Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
     console.log("Redis Pub/Sub Ready for Group Jam 🚀");
     subClient.pSubscribe('room:*', (message, channel) => {
@@ -17,7 +20,7 @@ export const setupMusicSocket = (io) => {
 
     socket.on('invite-squad', (data) => {
         console.log("🔥 INVITE RECEIVED ON SERVER:", data.host.username);
-        io.emit('incoming-jam', data); 
+        socket.broadcast.emit('incoming-jam', data); 
     });
 
     socket.on('join-room', async ({ roomId, user }) => {
@@ -56,6 +59,24 @@ export const setupMusicSocket = (io) => {
     } catch (err) {
         console.error("Redis Sync Error:", err);
     }
+    });
+
+    const handleLeave = async (socket, roomId, user) => {
+        if (!roomId || !user) return;
+        const participantKey = `participants:${roomId}`;
+        await client.sRem(participantKey, JSON.stringify(user));
+        const members = await client.sMembers(participantKey);
+        io.to(roomId).emit('room-users', members.map(m => JSON.parse(m)));
+        socket.leave(roomId);
+        console.log(`${user.username} left room ${roomId}`);
+    };
+
+    socket.on('leave-room', async ({ roomId, user }) => {
+        await handleLeave(socket, roomId, user);
+    });
+
+    socket.on('disconnect', async () => {
+        console.log('User Disconnected 💨');
     });
   });
 };

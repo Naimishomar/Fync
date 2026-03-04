@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, FlatList, Image, useWindowDimensions } from "react-native";
 
 const AD_IMAGES = [
-  "https://assets.amazon.science/dims4/default/f7671f9/2147483647/strip/true/crop/1920x1008+0+36/resize/1200x630!/quality/90/?url=http%3A%2F%2Famazon-topics-brightspot.s3.amazonaws.com%2Fscience%2F38%2F85%2Faeb6c08f4768a06999974c8ad0e%2Famazonnovaaichallenge-dark-16x9.jpg",
+  "https://mercatusmantra.wordpress.com/wp-content/uploads/2023/01/blue-ecommerce-online-shopping-linkedin-banner.png",
   "https://blog.swiggy.com/wp-content/uploads/2023/10/Post-Order-Blog-Banner-1000x486.jpeg",
   "https://carousels-ads.swiggy.com/images/slider/2.jpg",
 ];
