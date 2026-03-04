@@ -34,14 +34,25 @@ const CreateShorts = () => {
   }, []);
 
   const getVideos = async () => {
-    const { status } = await MediaLibrary.requestPermissionsAsync();
-    if (status !== 'granted') return navigation.goBack();
+    const { status, canAskAgain } = await MediaLibrary.requestPermissionsAsync();
+    
+    if (status !== 'granted') {
+      if (canAskAgain) {
+        const { status: retryStatus } = await MediaLibrary.requestPermissionsAsync();
+        if (retryStatus !== 'granted') return navigation.goBack();
+      } else {
+        return navigation.goBack();
+      }
+    }
 
-    const { assets } = await MediaLibrary.getAssetsAsync({
-      mediaType: 'video',
+    const fetchParams: MediaLibrary.AssetsOptions = {
+      mediaType: ['video'], // Pass as an array
       sortBy: ['creationTime'],
       first: 50,
-    });
+    };
+
+    const { assets } = await MediaLibrary.getAssetsAsync(fetchParams);
+    console.log("Assets found:", assets.length); // Debug log to your terminal
     setAssets(assets);
     if (assets.length > 0) setSelectedAsset(assets[0]);
   };

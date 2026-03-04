@@ -45,6 +45,7 @@
     "expo-speech": "~14.0.8",
     "expo-status-bar": "~3.0.9",
     "expo-task-manager": "~14.0.9",
+    "expo-video": "^55.0.10",
     "i": "^0.3.7",
     "jwt-decode": "^4.0.0",
     "moment": "^2.30.1",

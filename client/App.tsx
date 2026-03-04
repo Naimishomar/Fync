@@ -141,7 +141,9 @@ export type RootStackParamList = {
   QuizScreen: { 
     questions: Question[]; 
     roomId: string; 
-    mode: 'custom' | '1v1' 
+    mode: 'custom' | '1v1' ;
+    endTime?: string;
+    opponent?: any;
   };
   LeaderboardScreen: { roomId: string, myScore?: number };
   HackathonList: undefined;

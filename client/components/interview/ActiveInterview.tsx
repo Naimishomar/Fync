@@ -10,202 +10,195 @@ export default function ActiveInterview() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   
-  // Safe destructuring
-  const { sessionId, firstQuestion = "Tell me about yourself.", duration = 5 } = route.params || {};
-
-  const [aiState, setAiState] = useState<'IDLE' | 'SPEAKING' | 'LISTENING' | 'PROCESSING'>('SPEAKING');
-  const [currentQuestion, setCurrentQuestion] = useState(firstQuestion);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [timeLeft, setTimeLeft] = useState(duration * 60);
-  
-  // Track if we have already cleaned up to prevent loops
+  // REFS
+  const recordingRef = useRef<Audio.Recording | null>(null);
+  const isProcessingRef = useRef(false); // Mutex lock to prevent race conditions
   const isEnded = useRef(false);
 
-  // 1. INTERCEPT BACK BUTTON / GESTURES
+  // PARAMS
+  const { sessionId, firstQuestion = "Tell me about yourself.", duration = 5 } = route.params || {};
+
+  // STATE
+  const [aiState, setAiState] = useState<'IDLE' | 'SPEAKING' | 'LISTENING' | 'PROCESSING'>('SPEAKING');
+  const [currentQuestion, setCurrentQuestion] = useState(firstQuestion);
+  const [timeLeft, setTimeLeft] = useState(duration * 60);
+
+  // 1. INTERCEPT BACK BUTTON
   useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-        // If normally ending (timer 0 or manual end confirmed), let it pass
-        if (isEnded.current) {
-            return;
-        }
+    const unsubscribe = navigation.addListener('beforeRemove', (e: any) => {
+      if (isEnded.current) return;
+      e.preventDefault();
 
-        // Prevent default behavior of leaving the screen
-        e.preventDefault();
-
-        // Prompt the user
-        Alert.alert(
-            "End Interview?",
-            "Leaving now will end the session and delete your progress.",
-            [
-                { text: "Stay", style: "cancel", onPress: () => {} },
-                { 
-                    text: "End Session", 
-                    style: 'destructive', 
-                    onPress: async () => {
-                        // User confirmed exit
-                        await cleanupAndExit();
-                        // Retry the navigation action
-                        navigation.dispatch(e.data.action);
-                    } 
-                }
-            ]
-        );
+      Alert.alert(
+        "End Interview?",
+        "Leaving now will end the session and delete your progress.",
+        [
+          { text: "Stay", style: "cancel" },
+          { 
+            text: "End Session", 
+            style: 'destructive', 
+            onPress: async () => {
+              await cleanupAndExit();
+              navigation.dispatch(e.data.action);
+            } 
+          }
+        ]
+      );
     });
-
     return unsubscribe;
   }, [navigation, sessionId]);
 
-  // 2. TIMER LOGIC
+  // 2. TIMER & INITIAL SPEECH
   useEffect(() => {
     if (!sessionId) {
-        Alert.alert("Error", "Session ID missing.");
-        navigation.goBack();
-        return;
+      Alert.alert("Error", "Session ID missing.");
+      navigation.goBack();
+      return;
     }
 
     speak(currentQuestion);
     
     const timer = setInterval(() => {
-        setTimeLeft((prev) => {
-            if (prev <= 1) {
-                clearInterval(timer);
-                cleanupAndExit(); // Auto-end when time is up
-                return 0;
-            }
-            return prev - 1;
-        });
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          cleanupAndExit();
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
 
     return () => {
-        clearInterval(timer);
-        Speech.stop(); 
+      clearInterval(timer);
+      Speech.stop(); 
+      // Force cleanup of recorder hardware on unmount
+      if (recordingRef.current) {
+        recordingRef.current.stopAndUnloadAsync().catch(() => {});
+      }
     };
   }, []);
 
-  // --- CLEANUP FUNCTION (Calls Backend to Delete Files) ---
   const cleanupAndExit = async () => {
-      if (isEnded.current) return;
-      isEnded.current = true; // Mark as done
+    if (isEnded.current) return;
+    isEnded.current = true;
 
-      Speech.stop();
-      setAiState('PROCESSING');
+    Speech.stop();
+    setAiState('PROCESSING');
 
-      try {
-          if (sessionId) {
-              console.log("Ending session and cleaning up Cloudinary files...");
-              const res = await axios.post('/interview/end', { sessionId });
-              
-              if (res.data.success) {
-                  Alert.alert("Interview Completed", "Your files have been cleaned up and report generated.");
-                  // Note: Navigation back happens automatically if triggered by 'beforeRemove'
-                  // If triggered by Timer or Button, we navigate manually:
-                  if (navigation.isFocused()) {
-                      navigation.goBack();
-                  }
-              }
-          }
-      } catch (error) {
-          console.log("Error ending session", error);
-          // Force exit even if backend fails
-          if (navigation.isFocused()) navigation.goBack();
+    try {
+      if (sessionId) {
+        await axios.post('/interview/end', { sessionId });
+        if (navigation.isFocused()) {
+          navigation.goBack();
+        }
       }
+    } catch (error) {
+      if (navigation.isFocused()) navigation.goBack();
+    }
   };
 
   const speak = (text: string) => {
     setAiState('SPEAKING');
     Speech.speak(text, {
       language: 'en-US',
-      pitch: 1.0,
-      rate: 1.0, 
       onDone: () => setAiState('IDLE'),
       onError: () => setAiState('IDLE')
     });
   };
 
-const startRecording = async () => {
+  // 3. START RECORDING (With Mutex Lock)
+  const startRecording = async () => {
+    if (isProcessingRef.current) return;
+    isProcessingRef.current = true;
+
     try {
-      // 1. SAFETY CHECK: Unload any stuck recording before starting new one
-      if (recording) {
-          try {
-              await recording.stopAndUnloadAsync();
-          } catch (cleanupErr) {
-              // Ignore errors during cleanup, just proceed
-              console.log("Cleanup warning:", cleanupErr);
-          }
-          setRecording(null);
+      // Force cleanup existing objects
+      if (recordingRef.current) {
+        try {
+          await recordingRef.current.stopAndUnloadAsync();
+        } catch (e) {}
+        recordingRef.current = null;
       }
 
-      // 2. Request Permissions
       const perm = await Audio.requestPermissionsAsync();
       if (perm.status !== 'granted') {
-          Alert.alert("Permission Denied", "Microphone access is required.");
-          return;
+        Alert.alert("Permission Denied", "Microphone access is required.");
+        isProcessingRef.current = false;
+        return;
       }
 
-      // 3. Set Mode
       await Audio.setAudioModeAsync({ 
-          allowsRecordingIOS: true, 
-          playsInSilentModeIOS: true 
+        allowsRecordingIOS: true, 
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
       });
-      const { recording: newRecording } = await Audio.Recording.createAsync(
-         Audio.RecordingOptionsPresets.HIGH_QUALITY
-      );
-      
-      setRecording(newRecording);
+
       setAiState('LISTENING');
 
+      const { recording: newRecording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      
+      recordingRef.current = newRecording;
     } catch (err) {
       console.error('Failed to start recording', err);
       setAiState('IDLE');
-      setRecording(null);
+    } finally {
+      isProcessingRef.current = false;
     }
   };
 
+  // 4. STOP RECORDING (Safety Checks)
   const stopRecordingAndSend = async () => {
-    if (!recording) return;
+    // If startRecording is still running, we wait
+    if (isProcessingRef.current) return;
+
+    const currentRecording = recordingRef.current;
+    if (!currentRecording) {
+      setAiState('IDLE');
+      return;
+    }
+
+    isProcessingRef.current = true;
     setAiState('PROCESSING');
     
     try {
-        await recording.stopAndUnloadAsync();
-        const uri = recording.getURI();
-        setRecording(null);
+      const status = await currentRecording.getStatusAsync();
+      if (status.canRecord) {
+        await currentRecording.stopAndUnloadAsync();
+      }
 
-        if (!uri) return;
+      const uri = currentRecording.getURI();
+      recordingRef.current = null; // Clear ref immediately
 
-        const formData = new FormData();
-        formData.append('audio', {
-            uri,
-            type: 'audio/mp3', 
-            name: 'answer.mp3'
-        } as any);
-        formData.append('sessionId', sessionId);
-
-        const res = await axios.post('/interview/answer', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
-
-        if (res.data.success) {
-            setCurrentQuestion(res.data.text);
-            speak(res.data.text);
-        }
-    } catch (err) {
-        console.log("Error sending answer", err);
+      if (!uri) {
         setAiState('IDLE');
-        Alert.alert("Error", "Could not send answer.");
-    }
-  };
+        return;
+      }
 
-  // Manual Button Press
-  const handleEndPress = () => {
-      // We manually trigger the alert, calling cleanupAndExit on confirm
-      Alert.alert(
-          "End Interview",
-          "Are you sure you want to finish early? All files will be deleted.",
-          [
-              { text: "Cancel", style: "cancel" },
-              { text: "End Interview", style: 'destructive', onPress: cleanupAndExit }
-          ]
-      );
+      const formData = new FormData();
+      formData.append('audio', {
+        uri,
+        type: 'audio/m4a', 
+        name: 'answer.m4a'
+      } as any);
+      formData.append('sessionId', sessionId);
+
+      const res = await axios.post('/interview/answer', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (res.data.success) {
+        setCurrentQuestion(res.data.text);
+        speak(res.data.text);
+      }
+    } catch (err) {
+      setAiState('IDLE');
+    } finally {
+      isProcessingRef.current = false;
+      recordingRef.current = null;
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -219,7 +212,6 @@ const startRecording = async () => {
       
       {/* Top Bar */}
       <View className="w-full flex-row justify-between items-center mt-4">
-        {/* Back Button (Trigger interception) */}
         <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="close" size={28} color="gray" />
         </TouchableOpacity>
@@ -230,8 +222,6 @@ const startRecording = async () => {
                 {formatTime(timeLeft)}
             </Text>
         </View>
-        
-        {/* Spacer for centering */}
         <View className="w-7" />
       </View>
 
@@ -270,7 +260,7 @@ const startRecording = async () => {
 
         <View className="flex-row items-center justify-center gap-10 w-full">
             <TouchableOpacity 
-                onPress={handleEndPress}
+                onPress={() => Alert.alert("End Interview", "Finish early?", [{text: "Cancel"}, {text: "End", onPress: cleanupAndExit}])}
                 className="w-16 h-16 rounded-full bg-red-900/50 items-center justify-center border border-red-500"
             >
                 <MaterialIcons name="call-end" size={28} color="#ef4444" />
@@ -281,16 +271,14 @@ const startRecording = async () => {
                 onPressIn={startRecording}
                 onPressOut={stopRecordingAndSend}
                 className={`w-24 h-24 rounded-full items-center justify-center shadow-lg
-                    ${aiState === 'LISTENING' ? 'bg-red-500 scale-110 shadow-red-500/50' : 
-                      aiState === 'SPEAKING' || aiState === 'PROCESSING' ? 'bg-gray-700 opacity-50' : 'bg-blue-600 shadow-blue-500/50'}`}
+                    ${aiState === 'LISTENING' ? 'bg-red-500 scale-110' : 
+                      aiState === 'SPEAKING' || aiState === 'PROCESSING' ? 'bg-gray-700 opacity-50' : 'bg-blue-600'}`}
             >
                 <Ionicons name={aiState === 'LISTENING' ? "mic" : "mic-outline"} size={40} color="white" />
             </TouchableOpacity>
-
             <View className="w-16 h-16" /> 
         </View>
       </View>
-
     </View>
   );
 }

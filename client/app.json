@@ -22,6 +22,14 @@
         }
       ],
       "expo-font",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow Fync to access your photos",
+          "videosPermission": "Allow Fync to access your videos",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "light",
