@@ -111,6 +111,7 @@ import PendingPaymentsScreen from './components/payAndSplit/PendingPaymentsScree
 import MonthlyAnalyticsScreen from './components/payAndSplit/MonthlyAnalyticsScreen';
 import GroupManagementScreen from './components/payAndSplit/GroupManagementScreen';
 import CreatedSplitsScreen from './components/payAndSplit/CreatedSplitsScreen';
+import SubscriptionGuard from './components/newFeatures/SubscriptionGuard';
 
 
 
@@ -359,7 +360,11 @@ function RootNavigator() {
     );
   }
 
-  return isLoggedIn ? <AppStack /> : <AuthStack />;
+  return isLoggedIn ? (
+    <SubscriptionGuard>
+      <AppStack />
+    </SubscriptionGuard>
+  ) : <AuthStack />;
 }
 
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();

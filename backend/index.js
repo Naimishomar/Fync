@@ -26,6 +26,7 @@ import paidGigsRoute from './routes/paidGigs.route.js';
 import AiIntelligenceRoute from './routes/aiItelligence.route.js';
 import splitRoute from './routes/split.route.js';
 import crushRoute from './routes/crush.routes.js';
+import subscriptionRoute from './routes/subscription.route.js';
 
 import { rateLimit } from 'express-rate-limit';
 import { logout } from './controllers/auth.controller.js';
@@ -37,7 +38,7 @@ import { setupMusicSocket } from './socket/musicSocket.js';
 
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000,
-  max: 100, 
+  max: 100,
   message: "Too many requests from this IP, please try again later",
 });
 
@@ -81,6 +82,7 @@ app.use('/gigs', paidGigsRoute);
 app.use('/api', AiIntelligenceRoute);
 app.use('/split', splitRoute);
 app.use('/crush', crushRoute);
+app.use('/subscription', subscriptionRoute);
 
 
 

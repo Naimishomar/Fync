@@ -2,6 +2,7 @@ import FundingProject from "../models/funding.model.js";
 import User from "../models/user.model.js";
 import Comment from "../models/comment.model.js";
 import { cloudinary } from "../utils/cloudinary.js";
+import crypto from 'crypto';
 
 const getCloudinaryPublicId = (url) => {
     try {
@@ -22,9 +23,24 @@ const getCloudinaryPublicId = (url) => {
 
 export const createFundingPost = async (req, res) => {
     try {
-        const { title, description, deployed_url, github_url } = req.body;
+        const { title, description, deployed_url, github_url, paymentRefId, razorpay_order_id, razorpay_signature } = req.body;
         if (!title || !description || !deployed_url) {
             return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        if (paymentRefId && razorpay_order_id && razorpay_signature) {
+            const body = razorpay_order_id + "|" + paymentRefId;
+            const expectedSignature = crypto
+                .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+                .update(body.toString())
+                .digest("hex");
+
+            if (expectedSignature !== razorpay_signature) {
+                return res.status(400).json({ success: false, message: "Invalid payment signature" });
+            }
+        } else if (!req.body.isEditing) {
+            // Require payment verification if it's a new post (not strictly defined by isEditing in body, but generally we need to secure this)
+            return res.status(400).json({ success: false, message: "Payment verification failed" });
         }
         let image = [];
         let video = "";
@@ -39,6 +55,7 @@ export const createFundingPost = async (req, res) => {
             user: req.user.id,
             title, description, image, video, deployed_url, github_url,
             likes: 0, liked_by: [], comments: [],
+            paymentRefId: paymentRefId || null
         });
         res.status(201).json({ success: true, message: "Project created", project });
     } catch (error) {

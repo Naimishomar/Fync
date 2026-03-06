@@ -7,6 +7,7 @@ import sendMail from '../utils/emailOtp.js';
 import OTP from '../models/otp.model.js';
 import Notification from '../models/notification.model.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/token.js';
+import { deleteFromCloudinary } from '../utils/cloudinary.js';
 // import {sendPhoneOTP, verifyPhoneOTP } from '../utils/phoneOtp.js';
 
 export const sendOTP = async (req, res) => {
@@ -190,9 +191,15 @@ export const updateUser = async (req, res) => {
     let avatarUrl = "";
     let bannerUrl = "";
     if (req.files?.avatar) {
+      if (user.avatar) {
+        await deleteFromCloudinary(user.avatar, "image");
+      }
       avatarUrl = req.files.avatar[0].path;
     }
     if (req.files?.banner) {
+      if (user.banner) {
+        await deleteFromCloudinary(user.banner, "image");
+      }
       bannerUrl = req.files.banner[0].path;
     }
     const updatedUser = await User.findByIdAndUpdate(

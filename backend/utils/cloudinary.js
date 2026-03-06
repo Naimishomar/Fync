@@ -10,6 +10,29 @@ let videoUpload;
 let audioUpload;
 let storyUpload;
 
+export const getCloudinaryPublicId = (url) => {
+  try {
+    if (!url || typeof url !== 'string' || !url.includes('cloudinary.com')) return null;
+    const matches = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-z0-9]+$/i);
+    if (matches && matches[1]) {
+      return matches[1];
+    }
+    return null;
+  } catch (error) {
+    return null;
+  }
+};
+
+export const deleteFromCloudinary = async (url, resourceType = "image") => {
+  try {
+    const pubId = getCloudinaryPublicId(url);
+    if (pubId) {
+      await cloudinary.uploader.destroy(pubId, { resource_type: resourceType });
+    }
+  } catch (error) {
+    console.error(`Cloudinary Delete Error (${resourceType}):`, error.message);
+  }
+};
 
 try {
   if (

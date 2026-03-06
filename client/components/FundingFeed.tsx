@@ -11,8 +11,10 @@ import { Video, ResizeMode } from "expo-av";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
+import { WebView } from "react-native-webview";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
+import { RAZORPAY_KEY_ID } from "../constants/keys";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width - 32; // Screen width minus mx-4 (16px * 2)
@@ -244,6 +246,9 @@ export default function FundingFeed() {
   const [commentModal, setCommentModal] = useState(false);
   const [commentsLoading, setCommentsLoading] = useState(false);
 
+  /* PAYMENT MODAL */
+  const [showPaymentParams, setShowPaymentParams] = useState<any>(null);
+
   /* ---------- FETCH PROJECTS ---------- */
   const fetchProjects = async (pageNum: number = 1, shouldAppend: boolean = false) => {
     if (pageNum > 1) setLoadingMore(true);
@@ -354,16 +359,7 @@ export default function FundingFeed() {
   };
 
   /* ---------- SUBMIT PROJECT ---------- */
-  const handleSubmitProject = async () => {
-    if (!title || !description || !deployedUrl) {
-      return Alert.alert("Missing fields", "Fill all required fields");
-    }
-
-    // Check if there is NO old media and NO new media
-    if (images.length === 0 && !video && oldImages.length === 0 && !oldVideo) {
-      return Alert.alert("Add media", "Add at least one image or video");
-    }
-
+  const handleFinalSubmit = async (paymentData?: { paymentRefId: string, razorpay_order_id: string, razorpay_signature: string }) => {
     setSubmitting(true);
     try {
       const formData = new FormData();
@@ -380,21 +376,116 @@ export default function FundingFeed() {
         formData.append("video", { uri: video.uri, name: "video.mp4", type: "video/mp4" } as any);
       }
 
+      if (paymentData) {
+        formData.append("paymentRefId", paymentData.paymentRefId);
+        formData.append("razorpay_order_id", paymentData.razorpay_order_id);
+        formData.append("razorpay_signature", paymentData.razorpay_signature);
+      } else if (!isEditing) {
+        // Just an extra check to make sure non-edited forms have this field to pass the backend check if we enforce it.
+        formData.append("isEditing", "false");
+      }
+
       if (isEditing && editingId) {
+        // Explicitly set isEditing to bypass payment check during updates
+        formData.append("isEditing", "true");
         await axios.post(`/funding/update/${editingId}`, formData, { headers: { "Content-Type": "multipart/form-data" } });
         Alert.alert("Success", "Project updated successfully");
       } else {
         await axios.post("/funding/create", formData, { headers: { "Content-Type": "multipart/form-data" } });
-        Alert.alert("Success", "Project created successfully");
+        Alert.alert("Success 🎉", "Project posted successfully!");
       }
 
       setModalVisible(false);
-      fetchProjects();
+      fetchProjects(1, false);
     } catch (error) {
       console.error("Submit error", error);
       Alert.alert("Error", "Failed to save project");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleInitiateProjectPost = async () => {
+    if (!title || !description || !deployedUrl) {
+      return Alert.alert("Missing fields", "Fill all required fields");
+    }
+
+    if (images.length === 0 && !video && oldImages.length === 0 && !oldVideo) {
+      return Alert.alert("Add media", "Add at least one image or video");
+    }
+
+    if (isEditing) {
+      // Just update directly without payment
+      handleFinalSubmit();
+    } else {
+      // Create Razorpay Order for ₹249
+      setSubmitting(true);
+      try {
+        const orderRes = await axios.post('/payment/api/order', {
+          amount: 249,
+        });
+        const currentOrder = orderRes.data;
+
+        const content = `
+        <html>
+        <body>
+            <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+            <script>
+            var options = {
+                key: "${RAZORPAY_KEY_ID}",
+                amount: "${currentOrder.amount}",
+                currency: "INR",
+                name: "Fync",
+                description: "Post Startup Project Fee",
+                order_id: "${currentOrder.id}",
+                prefill: {
+                    name: "${user?.name || ''}",
+                    email: "${user?.email || ''}",
+                    contact: "${user?.mobileNumber || ''}"
+                },
+                theme: { color: "#ec4899" },
+                handler: function (response) {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                        event: "SUCCESS",
+                        data: response
+                    }));
+                },
+                modal: {
+                    ondismiss: function () {
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            event: "FAILED"
+                        }));
+                    }
+                }
+            };
+            var rzp1 = new Razorpay(options);
+            rzp1.open();
+            </script>
+        </body>
+        </html>
+        `;
+        setShowPaymentParams({ html: content });
+      } catch (err) {
+        console.error("Order error", err);
+        Alert.alert("Oops!", "Could not initiate payment.");
+      } finally {
+        setSubmitting(false);
+      }
+    }
+  };
+
+  const handleWebViewMessage = (event: any) => {
+    const msg = JSON.parse(event.nativeEvent.data);
+    if (msg.event === "SUCCESS") {
+      setShowPaymentParams(null);
+      handleFinalSubmit({
+        paymentRefId: msg.data.razorpay_payment_id,
+        razorpay_order_id: msg.data.razorpay_order_id,
+        razorpay_signature: msg.data.razorpay_signature
+      });
+    } else {
+      setShowPaymentParams(null);
+      Alert.alert("Payment Cancelled", "Payment is required to post a project.");
     }
   };
 
@@ -583,8 +674,8 @@ export default function FundingFeed() {
                   )}
                 </View>
 
-                <TouchableOpacity onPress={handleSubmitProject} disabled={submitting} className={`py-4 rounded-xl items-center shadow-lg border border-pink-500/30 mb-8 ${submitting ? 'bg-pink-600/50' : 'bg-pink-600'}`}>
-                  {submitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-bold text-lg">{isEditing ? "Update Project" : "Post Project"}</Text>}
+                <TouchableOpacity onPress={handleInitiateProjectPost} disabled={submitting} className={`py-4 rounded-xl items-center shadow-lg border border-pink-500/30 mb-8 ${submitting ? 'bg-pink-600/50' : 'bg-pink-600'}`}>
+                  {submitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-bold text-lg">{isEditing ? "Update Project" : "Post Project for ₹249"}</Text>}
                 </TouchableOpacity>
               </ScrollView>
             </View>
@@ -627,6 +718,30 @@ export default function FundingFeed() {
               </KeyboardAvoidingView>
             </View>
           </BlurView>
+        </Modal>
+
+        {/* PAYMENT MODAL */}
+        <Modal visible={!!showPaymentParams} animationType="slide" transparent={false} onRequestClose={() => setShowPaymentParams(null)}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
+            <View className="flex-row items-center justify-between p-4 border-b border-gray-900 bg-black">
+              <Text className="text-white font-bold text-lg">Secure Payment</Text>
+              <Pressable onPress={() => { setShowPaymentParams(null); Alert.alert('Cancelled', 'Payment is required to post your startup.'); }}>
+                <Ionicons name="close" size={24} color="white" />
+              </Pressable>
+            </View>
+            {showPaymentParams?.html ? (
+              <WebView
+                source={{ html: showPaymentParams.html }}
+                originWhitelist={["*"]}
+                onMessage={handleWebViewMessage}
+                style={{ flex: 1, backgroundColor: '#000' }}
+              />
+            ) : (
+              <View className="flex-1 bg-black justify-center items-center">
+                <ActivityIndicator size="large" color="#ec4899" />
+              </View>
+            )}
+          </SafeAreaView>
         </Modal>
 
       </SafeAreaView>

@@ -2,6 +2,7 @@ import Notice from "../models/notice.model.js";
 import Comment from "../models/comment.model.js";
 import { tryCatch } from "bullmq";
 import User from "../models/user.model.js";
+import { deleteFromCloudinary } from "../utils/cloudinary.js";
 
 export const createNotice = async (req, res) => {
     try {
@@ -133,6 +134,11 @@ export const deleteNotice = async (req, res) => {
         if (notice.user.toString() !== req.user.id.toString()) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
+        if (notice.image && Array.isArray(notice.image)) {
+            for (let imgUrl of notice.image) {
+                await deleteFromCloudinary(imgUrl, "image");
+            }
+        }
         await Notice.findByIdAndDelete(req.params.id);
         return res.status(200).json({ success: true, message: "Notice deleted successfully", notice });
     } catch (error) {
@@ -151,8 +157,13 @@ export const UpdateNotice = async (req, res) => {
         if (notice.user.toString() !== req.user.id.toString()) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
-        let noticeImage = "";
+        let noticeImage = notice.image;
         if (req.files && req.files.length > 0) {
+            if (notice.image && Array.isArray(notice.image)) {
+                for (let imgUrl of notice.image) {
+                    await deleteFromCloudinary(imgUrl, "image");
+                }
+            }
             noticeImage = req.files.map(file => file.path);
         }
         notice.title = title;

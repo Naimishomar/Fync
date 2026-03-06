@@ -1,16 +1,17 @@
 import express from 'express';
 import OLX from '../models/olx.model.js';
 import User from '../models/user.model.js';
+import { deleteFromCloudinary } from '../utils/cloudinary.js';
 
-export const sellProduct = async(req,res)=>{
+export const sellProduct = async (req, res) => {
     try {
         const { product_name, product_description, product_type, price } = req.body;
-        if(!product_name || !product_description || !product_type || !price){
+        if (!product_name || !product_description || !product_type || !price) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
-        else{
+        else {
             const user = await User.findById(req.user.id);
-            if(!user){
+            if (!user) {
                 return res.status(400).json({ success: false, message: 'User not found' });
             }
             let product_image = [];
@@ -43,8 +44,8 @@ export const listedProductsByUser = async (req, res) => {
             return res.status(404).json({ success: false, message: "User not found, please login" });
         }
         const products = await OLX.find({ seller: req.user.id })
-        .populate("seller", "name avatar username")
-        .populate("buyer", "name avatar username");
+            .populate("seller", "name avatar username")
+            .populate("buyer", "name avatar username");
         return res.status(200).json({ success: true, message: "Products fetched successfully", products });
     } catch (error) {
         console.log("Internal server error", error);
@@ -52,7 +53,7 @@ export const listedProductsByUser = async (req, res) => {
     }
 };
 
-export const updateProduct = async(req,res)=>{
+export const updateProduct = async (req, res) => {
     try {
         const { product_name, product_description, product_type, price } = req.body;
         const product = await OLX.findById(req.params.id);
@@ -62,10 +63,15 @@ export const updateProduct = async(req,res)=>{
         if (product.seller.toString() !== req.user.id) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
-        else{
+        else {
             let product_image = [];
             if (req.files && req.files.length > 0) {
                 product_image = req.files.map(file => file.path);
+                if (product.product_image && Array.isArray(product.product_image)) {
+                    for (let imgUrl of product.product_image) {
+                        await deleteFromCloudinary(imgUrl, "image");
+                    }
+                }
             }
             const updatedProduct = await OLX.findByIdAndUpdate(
                 req.params.id,
@@ -83,12 +89,12 @@ export const updateProduct = async(req,res)=>{
             return res.status(200).json({ success: true, message: "Product updated successfully", product: updatedProduct });
         }
     } catch (error) {
-       console.log("Internal server error", error);
-       return res.status(500).json({ success: false, message: "Internal server error" });  
+        console.log("Internal server error", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 
-export const deleteProduct = async(req,res)=>{
+export const deleteProduct = async (req, res) => {
     try {
         const product = await OLX.findById(req.params.id);
         if (!product) {
@@ -97,7 +103,12 @@ export const deleteProduct = async(req,res)=>{
         if (product.seller.toString() !== req.user.id) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
-        else{
+        else {
+            if (product.product_image && Array.isArray(product.product_image)) {
+                for (let imgUrl of product.product_image) {
+                    await deleteFromCloudinary(imgUrl, "image");
+                }
+            }
             const deletedProduct = await OLX.findByIdAndDelete(req.params.id);
             return res.status(200).json({ success: true, message: "Product deleted successfully", product: deletedProduct });
         }
@@ -105,14 +116,14 @@ export const deleteProduct = async(req,res)=>{
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
-} 
+}
 
-export const getAllProducts = async(req,res)=>{
+export const getAllProducts = async (req, res) => {
     try {
         const products = await OLX.find({ college: req.user.college })
-        .populate("seller", "name avatar username")
-        .sort({ createdAt: -1 })
-        if(!products){
+            .populate("seller", "name avatar username")
+            .sort({ createdAt: -1 })
+        if (!products) {
             return res.status(404).json({ success: false, message: 'Products not found' });
         }
         return res.status(200).json({ success: true, message: 'Products fetched successfully', products });
@@ -122,14 +133,14 @@ export const getAllProducts = async(req,res)=>{
     }
 }
 
-export const detailsOfParticularProduct = async(req,res)=>{
+export const detailsOfParticularProduct = async (req, res) => {
     try {
-        const {product_id} = req.params;
-        if(!product_id){
+        const { product_id } = req.params;
+        if (!product_id) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
         const product = await OLX.findById(product_id).populate("seller", "name avatar username");
-        if(!product){
+        if (!product) {
             return res.status(404).json({ success: false, message: 'Product not found' });
         }
         return res.status(200).json({ success: true, message: 'Product fetched successfully', product });

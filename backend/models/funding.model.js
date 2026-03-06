@@ -1,33 +1,33 @@
 import mongoose from "mongoose";
 
 const fundingProjectSchema = new mongoose.Schema({
-    user:{
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
     },
-    title:{
+    title: {
         type: String,
         required: true
     },
-    description:{
+    description: {
         type: String,
         required: true
     },
-    image:{
+    image: {
         type: [String],
         required: false,
         default: []
     },
-    video:{
+    video: {
         type: String,
         required: false,
         default: ""
     },
-    deployed_url:{
+    deployed_url: {
         type: String,
         required: false
     },
-    github_url:{
+    github_url: {
         type: String
     },
     likes: {
@@ -35,24 +35,28 @@ const fundingProjectSchema = new mongoose.Schema({
         default: 0,
         required: true,
     },
-    liked_by:{
+    liked_by: {
         type: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            index: true,
-        },
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
+                index: true,
+            },
         ],
         default: [],
     },
-    comments:{
+    comments: {
         type: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Comment",
-        },
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Comment",
+            },
         ],
         default: [],
+    },
+    paymentRefId: {
+        type: String,
+        required: false
     }
 })
 

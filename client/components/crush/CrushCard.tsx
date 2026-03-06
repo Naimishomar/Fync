@@ -12,13 +12,13 @@ interface CrushCardProps {
 
 const CrushCard = ({ onPress, crushCount, onCheckNearby, isChecking }: CrushCardProps) => {
     return (
-        <View className="mx-4 my-2">
+        <View className="my-2">
             <Pressable onPress={onPress}>
                 <LinearGradient
                     colors={['#ff3b82', '#ff8b3b']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
-                    className="p-5 rounded-3xl flex-row items-center justify-between shadow-xl"
+                    className="p-5 rounded-2xl flex-row items-center justify-between shadow-xl"
                 >
                     <View className="flex-row items-center flex-1">
                         <View className="bg-white/20 p-3 rounded-full mr-4">

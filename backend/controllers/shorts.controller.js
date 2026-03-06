@@ -2,6 +2,7 @@ import express from 'express';
 import Shorts from '../models/shorts.model.js';
 import Comment from '../models/comment.model.js';
 import Notification from '../models/notification.model.js';
+import { deleteFromCloudinary } from '../utils/cloudinary.js';
 
 export const createShorts = async (req, res) => {
     try {
@@ -101,6 +102,10 @@ export const deleteShort = async (req, res) => {
         if (short.user.toString() !== req.user.id) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
+        if (short.video) {
+            await deleteFromCloudinary(short.video, "video");
+        }
+        await Comment.deleteMany({ post: req.params.id, postType: "Shorts" });
         const deletedShort = await Shorts.findByIdAndDelete(req.params.id);
         return res.status(200).json({ success: true, message: "Short deleted successfully", short: deletedShort });
     } catch (error) {
