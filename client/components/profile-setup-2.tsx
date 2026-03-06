@@ -17,8 +17,13 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
 import { useAuth } from 'context/auth.context';
+//@ts-ignore
 import loginImage from '../assets/loginImage.png';
 import axios from '../context/axiosConfig';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Device from "expo-device";
+
+
 
 type ProfileSetup2NavigationProp =
   NativeStackNavigationProp<RootStackParamList, 'ProfileSetup2'>;
@@ -51,7 +56,7 @@ export default function ProfileSetup2() {
     }
   };
 
-const submitRegistration = async () => {
+  const submitRegistration = async () => {
     try {
       const formData = new FormData();
 
@@ -59,7 +64,18 @@ const submitRegistration = async () => {
       formData.append('username', route.params.username);
       formData.append('mobileNumber', route.params.phoneNumber);
       formData.append('password', route.params.password);
+
+      let deviceId = await AsyncStorage.getItem("deviceId");
+      if (!deviceId) {
+        deviceId = "device_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9);
+        await AsyncStorage.setItem("deviceId", deviceId);
+      }
+      formData.append('deviceId', deviceId);
+      formData.append('deviceModel', Device.modelName || "Unknown Device");
+
       formData.append('name', route.params.fullName);
+
+
       formData.append('dob', route.params.birthday);
       formData.append('college', route.params.college);
       formData.append('year', route.params.year);

@@ -89,7 +89,7 @@ export default function LoginScreen() {
 
               <TextInput
                 className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-base"
-                placeholder="Email"
+                placeholder="Email or username"
                 placeholderTextColor="#9CA3AF"
                 value={email}
                 onChangeText={setEmail}

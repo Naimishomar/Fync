@@ -13,13 +13,13 @@ export const sendOTP = async (req, res) => {
   try {
     console.log(req.body);
     const { email, username, mobileNumber } = req.body;
-    if (!email || !username|| !mobileNumber) {
+    if (!email || !username || !mobileNumber) {
       return res.status(400).json({
         success: false,
         message: "Email & username or mobile number are required"
       });
     }
-    const existingUser = await User.findOne({ $or: [{ email }, { username }, { mobileNumber }]});
+    const existingUser = await User.findOne({ $or: [{ email }, { username }, { mobileNumber }] });
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -101,13 +101,14 @@ export const verifyEmailOTP = async (req, res) => {
 
 export const register = async (req, res) => {
   try {
-    const { email, username, mobileNumber, password, name, dob, college, year, gender, major } = req.body;
+    const { email, username, mobileNumber, password, name, dob, college, year, gender, major, deviceId, deviceModel } = req.body;
+
     if (!email || !username || !mobileNumber || !password || !name || !dob || !college || !year || !gender || !major) {
-      return res.status(400).json({ success: false,message: "Missing required fields"});
+      return res.status(400).json({ success: false, message: "Missing required fields" });
     }
-    const existing = await User.findOne({ $or: [{ email }, { username }, { mobileNumber }]});
+    const existing = await User.findOne({ $or: [{ email }, { username }, { mobileNumber }] });
     if (existing) {
-      return res.status(400).json({success: false,message: "User already exists"});
+      return res.status(400).json({ success: false, message: "User already exists" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
@@ -121,10 +122,14 @@ export const register = async (req, res) => {
       year,
       gender,
       major,
+      deviceId: deviceId || null,
+      deviceModel: deviceModel || "another device",
       avatar: req.file?.path || ""
     });
-    const token = jwt.sign({ id: newUser._id },process.env.JWT_SECRET,{ expiresIn: "7d" });
-    return res.status(200).json({ success: true, message: "User registered successfully",token,user: newUser});
+
+
+    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    return res.status(200).json({ success: true, message: "User registered successfully", token, user: newUser });
   } catch (error) {
     console.error("Register Error:", error);
     return res.status(500).json({
@@ -136,8 +141,9 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ $or: [{ email }, { username: email }, { mobileNumber: email }],});
+    const { email, password, deviceId, deviceModel } = req.body;
+
+    const user = await User.findOne({ $or: [{ email }, { username: email }, { mobileNumber: email }], });
     if (!user) {
       return res.status(400).json({ success: false, message: "User not found" });
     }
@@ -145,12 +151,30 @@ export const login = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ success: false, message: "Invalid credentials" });
     }
+
+    // STRICT DEVICE BINDING CHECK
+    if (user.deviceId) {
+      if (!deviceId || user.deviceId !== deviceId) {
+        return res.status(400).json({
+          success: false,
+          message: `This account is already logged into ${user.deviceModel || 'another device'}. You cannot log in from multiple devices.`
+        });
+      }
+    }
+
+
+
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
+
     user.refreshToken = refreshToken;
+    if (deviceId) {
+      user.deviceId = deviceId;
+      user.deviceModel = deviceModel || "Unknown Device";
+    }
     await user.save();
 
-    res.status(200).json({ message:"Login successful", success: true, token: accessToken,refreshToken,user});
+    res.status(200).json({ message: "Login successful", success: true, token: accessToken, refreshToken, user });
   } catch (err) {
     res.status(500).json({ success: false });
   }
@@ -158,7 +182,7 @@ export const login = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const { about, skills, experience, interest, hobbies, github_id, linkedIn_id, leetcode, gfg } = req.body;
+    const { about, skills, experience, interest, hobbies, github_id, linkedIn_id, leetcode, gfg, upiId } = req.body;
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
@@ -186,12 +210,13 @@ export const updateUser = async (req, res) => {
           ...(bannerUrl && { banner: bannerUrl }),
           ...(leetcode && { "codingProfiles.leetcode": leetcode }),
           ...(gfg && { "codingProfiles.gfg": gfg }),
+          ...(upiId && { upiId }),
         },
       },
       { new: true, runValidators: true }
     ).select("-password");
 
-    return res.status(200).json({success: true, message: "User updated successfully", user: updatedUser});
+    return res.status(200).json({ success: true, message: "User updated successfully", user: updatedUser });
   } catch (error) {
     console.error("Update Error:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
@@ -219,31 +244,31 @@ export const getUserProfileByName = async (req, res) => {
       return res.status(200).json({ success: true, users: [] });
     };
     const searchRegex = new RegExp(name, "i");
-    const users = await User.find({ $or: [{ username: { $regex: searchRegex } },{ name: { $regex: searchRegex } }]})
-    .limit(10);
-    return res.status(200).json({ success: true, users: users});
+    const users = await User.find({ $or: [{ username: { $regex: searchRegex } }, { name: { $regex: searchRegex } }] })
+      .limit(10);
+    return res.status(200).json({ success: true, users: users });
   } catch (error) {
     console.log("Search error:", error);
-    return res.status(500).json({ success: false,  message: "Internal server error" });
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 
-export const getUserProfile = async (req,res)=>{
-    try {
-        const id = req.params.id;
-        if(!id){
-            return res.status(400).json({ success: false, message: 'Missing user identifier' });
-        }
-        const user = await User.findById(id);
-        if(!user){
-            return res.status(404).json({ success: false, message: 'User not found' });
-        }
-        return res.status(200).json({ success: true, message: 'User fetched successfully', user });
-    } catch (error) {
-        console.log("Internal server error", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });  
+export const getUserProfile = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) {
+      return res.status(400).json({ success: false, message: 'Missing user identifier' });
     }
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    return res.status(200).json({ success: true, message: 'User fetched successfully', user });
+  } catch (error) {
+    console.log("Internal server error", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
 }
 
 export const followUser = async (req, res) => {
@@ -269,11 +294,11 @@ export const followUser = async (req, res) => {
       { $addToSet: { following: targetUserId } }
     );
     if (targetUserId.toString() !== req.user.id.toString()) {
-        await Notification.create({
-            recipient: targetUserId,
-            sender: req.user.id,
-            type: 'follow'
-        });
+      await Notification.create({
+        recipient: targetUserId,
+        sender: req.user.id,
+        type: 'follow'
+      });
     }
     return res.status(200).json({
       success: true,
@@ -318,7 +343,7 @@ export const getFollowers = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).populate('followers', '-password');
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
-    
+
     return res.status(200).json({ success: true, followers: user.followers });
   } catch (error) {
     console.error("Get Followers Error:", error);
@@ -338,13 +363,15 @@ export const getFollowing = async (req, res) => {
   }
 };
 
-export const logout = async(req,res)=>{
+export const logout = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found, please login" });
     }
     user.refreshToken = null;
+    user.deviceId = null;
+    user.deviceModel = null;
     await user.save();
     return res.status(200).json({ success: true, message: "User logged out successfully" });
   } catch (error) {
@@ -353,13 +380,14 @@ export const logout = async(req,res)=>{
   }
 }
 
+
 export const refreshToken = async (req, res) => {
   try {
     const { refreshToken } = req.body;
     if (!refreshToken) {
       return res.status(401).json({ success: false });
     }
-    const decoded = jwt.verify(refreshToken,process.env.JWT_REFRESH_SECRET);
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
     const user = await User.findById(decoded.id);
     if (!user) {
       return res.status(401).json({
@@ -393,7 +421,7 @@ export const resetPassword = async (req, res) => {
       otp: hashedOtp,
       purpose: "reset-password"
     });
-    return res.status(200).json({ success: true, message: "OTP sent successfully"});
+    return res.status(200).json({ success: true, message: "OTP sent successfully" });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ success: false, message: "Internal server error" });
@@ -407,15 +435,15 @@ export const verifyResetPassword = async (req, res) => {
       return res.status(400).json({ success: false, message: "Email, OTP and password are required" });
     }
     if (password.length < 5) {
-      return res.status(400).json({ success: false, message: "Password must be at least 5 characters long"});
+      return res.status(400).json({ success: false, message: "Password must be at least 5 characters long" });
     }
-    const otpDoc = await OTP.findOne({email, purpose: "reset-password"});
+    const otpDoc = await OTP.findOne({ email, purpose: "reset-password" });
     if (!otpDoc) {
       return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
     }
     const isValidOtp = await bcrypt.compare(otp, otpDoc.otp);
     if (!isValidOtp) {
-      return res.status(400).json({ success: false, message: "Invalid or expired OTP"});
+      return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     await User.findOneAndUpdate(
@@ -423,7 +451,7 @@ export const verifyResetPassword = async (req, res) => {
       { password: hashedPassword }
     );
     await OTP.deleteMany({ email, purpose: "reset-password" });
-    return res.status(200).json({ success: true, message: "Password reset successfully"});
+    return res.status(200).json({ success: true, message: "Password reset successfully" });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ success: false, message: "Internal server error" });

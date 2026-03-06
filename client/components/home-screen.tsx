@@ -1,30 +1,36 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  Pressable, 
-  Image, 
-  Dimensions, 
-  FlatList, 
-  Modal, 
-  TextInput, 
-  KeyboardAvoidingView, 
-  Platform, 
+import {
+  View,
+  Text,
+  Pressable,
+  Image,
+  Dimensions,
+  FlatList,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
   ActivityIndicator,
   RefreshControl,
   Alert,
-  ViewToken
+  ViewToken,
+  TouchableOpacity,
+  DeviceEventEmitter
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/auth.context';
-import CreatePost from './create-post'; 
+import CreatePost from './create-post';
 import axios from '../context/axiosConfig';
 // @ts-ignore
 import no_post from '../assets/no_post.png';
 import AdCarousel from './AdCarousel';
+import { LinearGradient } from 'expo-linear-gradient';
+import CrushCard from './crush/CrushCard';
+import CrushInputModal from './crush/CrushInputModal';
 
 const { width } = Dimensions.get('window');
+
 
 // --- TYPES ---
 interface Post {
@@ -39,9 +45,9 @@ interface Post {
   image?: string[];
   description: string;
   likes: number;
-  liked_by: string[]; 
+  liked_by: string[];
   comments: any[];
-  commentCount?: number; 
+  commentCount?: number;
   college?: string;
 }
 
@@ -63,8 +69,8 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
     try {
       const res = await axios.get(`/post/comment/${postId}`);
       if (res.data.success) {
-        const sortedComments = res.data.comments.sort((a: any, b: any) => 
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        const sortedComments = res.data.comments.sort((a: any, b: any) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
         setComments(sortedComments);
       }
@@ -83,16 +89,16 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
       if (res.data.success) {
         const addedComment = res.data.comment;
         if (!addedComment.commentor) {
-            addedComment.commentor = {
-                _id: currentUser._id,
-                username: currentUser.username,
-                avatar: currentUser.avatar
-            };
+          addedComment.commentor = {
+            _id: currentUser._id,
+            username: currentUser.username,
+            avatar: currentUser.avatar
+          };
         }
-        setComments([addedComment, ...comments]); 
+        setComments([addedComment, ...comments]);
         setNewComment('');
         if (onCommentAdded) {
-            onCommentAdded(postId, addedComment);
+          onCommentAdded(postId, addedComment);
         }
       }
     } catch (error) {
@@ -105,14 +111,14 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
 
   const renderCommentItem = ({ item }: { item: any }) => (
     <View className="flex-row px-4 py-3 border-b border-gray-900">
-      <Image 
-        source={{ uri: item.commentor?.avatar || `https://ui-avatars.com/api/?name=${item.commentor?.username}` }} 
-        className="w-9 h-9 rounded-full bg-gray-800" 
+      <Image
+        source={{ uri: item.commentor?.avatar || `https://ui-avatars.com/api/?name=${item.commentor?.username}` }}
+        className="w-9 h-9 rounded-full bg-gray-800"
       />
       <View className="ml-3 flex-1">
         <View className="flex-row items-baseline mb-1">
-            <Text className="text-white font-bold text-sm mr-2">{item.commentor?.username}</Text>
-            <Text className="text-gray-500 text-xs">{new Date(item.createdAt).toLocaleDateString()}</Text>
+          <Text className="text-white font-bold text-sm mr-2">{item.commentor?.username}</Text>
+          <Text className="text-gray-500 text-xs">{new Date(item.createdAt).toLocaleDateString()}</Text>
         </View>
         <Text className="text-gray-300 text-sm leading-5">{item.text}</Text>
       </View>
@@ -127,7 +133,7 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
             <View className="w-12 h-1 bg-gray-700 rounded-full absolute top-2 self-center" />
             <Text className="text-white font-bold text-base">Comments</Text>
             <Pressable onPress={onClose} className="absolute right-4 p-1">
-               <Ionicons name="close" size={24} color="white" />
+              <Ionicons name="close" size={24} color="white" />
             </Pressable>
           </View>
           {loading ? (
@@ -141,23 +147,23 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
               ListEmptyComponent={<Text className="text-gray-500 text-center mt-10">No comments yet.</Text>}
             />
           )}
-          <KeyboardAvoidingView 
-            behavior={Platform.OS === "ios" ? "padding" : "height"} 
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
             className="absolute bottom-0 w-full bg-gray-900 border-t border-gray-800 px-4 py-3 flex-row items-center"
           >
-            <Image 
-                source={{ uri: currentUser?.avatar || `https://ui-avatars.com/api/?name=${currentUser?.username}` }} 
-                className="w-10 h-10 rounded-full mr-3" 
+            <Image
+              source={{ uri: currentUser?.avatar || `https://ui-avatars.com/api/?name=${currentUser?.username}` }}
+              className="w-10 h-10 rounded-full mr-3"
             />
             <TextInput
-                value={newComment}
-                onChangeText={setNewComment}
-                placeholder="Add a comment..."
-                placeholderTextColor="#888"
-                className="flex-1 text-white bg-black rounded-full px-4 py-3 mr-3"
+              value={newComment}
+              onChangeText={setNewComment}
+              placeholder="Add a comment..."
+              placeholderTextColor="#888"
+              className="flex-1 text-white bg-black rounded-full px-4 py-3 mr-3"
             />
             <Pressable onPress={handlePostComment} disabled={posting || !newComment.trim()}>
-                {posting ? <ActivityIndicator size="small" color="#3b82f6" /> : <Text className={`font-bold ${!newComment.trim() ? 'text-gray-600' : 'text-blue-500'}`}>Post</Text>}
+              {posting ? <ActivityIndicator size="small" color="#3b82f6" /> : <Text className={`font-bold ${!newComment.trim() ? 'text-gray-600' : 'text-blue-500'}`}>Post</Text>}
             </Pressable>
           </KeyboardAvoidingView>
         </View>
@@ -171,8 +177,8 @@ const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser
   const [liked, setLiked] = useState(item.liked_by.includes(currentUser?._id));
   const [likeCount, setLikeCount] = useState(item.likes);
   const [resizeMode, setResizeMode] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0); 
-  
+  const [activeIndex, setActiveIndex] = useState(0);
+
   // 🔥 New state for "show more / less" functionality
   const [isExpanded, setIsExpanded] = useState(false);
   const MAX_CHAR_LIMIT = 150; // Threshold before "show more" appears
@@ -203,7 +209,7 @@ const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser
   }).current;
 
   const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 50, 
+    itemVisiblePercentThreshold: 50,
   }).current;
 
   const timeAgo = (dateString: string) => {
@@ -223,7 +229,7 @@ const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser
       <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })}>
           <View className="flex-row items-center">
-              <Image source={{ uri: item.user?.avatar || `https://ui-avatars.com/api/?name=${item.user?.username}` }} className="w-9 h-9 rounded-full border border-gray-800" />
+            <Image source={{ uri: item.user?.avatar || `https://ui-avatars.com/api/?name=${item.user?.username}` }} className="w-9 h-9 rounded-full border border-gray-800" />
             <View className="ml-3">
               <Text className="text-white font-bold text-sm">{item.user?.username || "Unknown"}</Text>
               {item.college && <Text className="text-gray-500 text-[10px] uppercase tracking-wide">{item.college}</Text>}
@@ -235,72 +241,72 @@ const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser
 
       {/* --- CAROUSEL IMAGE SECTION --- */}
       <View>
-        <FlatList 
-            data={images}
-            keyExtractor={(url, index) => `${item._id}-img-${index}`}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onViewableItemsChanged={onViewableItemsChanged}
-            viewabilityConfig={viewabilityConfig}
-            renderItem={({ item: imageUrl }) => (
-                <Pressable onPress={() => setResizeMode(prev => !prev)}>
-                    <Image 
-                        source={{ uri: imageUrl }} 
-                        style={{ width: width, height: width, borderRadius: 5 }} 
-                        resizeMode={resizeMode ? "contain" : "cover"}
-                    />
-                </Pressable>
-            )}
+        <FlatList
+          data={images}
+          keyExtractor={(url, index) => `${item._id}-img-${index}`}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
+          renderItem={({ item: imageUrl }) => (
+            <Pressable onPress={() => setResizeMode(prev => !prev)}>
+              <Image
+                source={{ uri: imageUrl }}
+                style={{ width: width, height: width, borderRadius: 5 }}
+                resizeMode={resizeMode ? "contain" : "cover"}
+              />
+            </Pressable>
+          )}
         />
-        
+
         {/* Image Counter */}
         {images.length > 1 && (
-            <View className="absolute top-3 right-3 bg-black/60 px-3 py-1 rounded-full border border-white/10">
-                <Text className="text-white text-xs font-bold">
-                    {activeIndex + 1}/{images.length}
-                </Text>
-            </View>
+          <View className="absolute top-3 right-3 bg-black/60 px-3 py-1 rounded-full border border-white/10">
+            <Text className="text-white text-xs font-bold">
+              {activeIndex + 1}/{images.length}
+            </Text>
+          </View>
         )}
       </View>
 
       {/* Caption with Show More / Show Less */}
       <View className="px-3 pt-1 mt-2">
         <Text className="text-white text-sm leading-5">
-            <Text className="font-bold text-pink-300">{item.user?.username} </Text>
-            
-            {/* Logic for Truncation */}
-            {item.description?.length > MAX_CHAR_LIMIT && !isExpanded 
-                ? `${item.description.substring(0, MAX_CHAR_LIMIT)}...` 
-                : item.description
-            }
-            
-            {/* Toggle Button */}
-            {item.description?.length > MAX_CHAR_LIMIT && (
-                <Text 
-                    onPress={() => setIsExpanded(!isExpanded)} 
-                    className="text-gray-500"
-                >
-                    {isExpanded ? " show less" : " show more"}
-                </Text>
-            )}
+          <Text className="font-bold text-pink-300">{item.user?.username} </Text>
+
+          {/* Logic for Truncation */}
+          {item.description?.length > MAX_CHAR_LIMIT && !isExpanded
+            ? `${item.description.substring(0, MAX_CHAR_LIMIT)}...`
+            : item.description
+          }
+
+          {/* Toggle Button */}
+          {item.description?.length > MAX_CHAR_LIMIT && (
+            <Text
+              onPress={() => setIsExpanded(!isExpanded)}
+              className="text-gray-500"
+            >
+              {isExpanded ? " show less" : " show more"}
+            </Text>
+          )}
         </Text>
       </View>
 
       {/* Action Bar */}
       <View className="flex-row items-center px-3 pt-2 gap-4">
         <Pressable onPress={handleLike}>
-            <Ionicons 
-                name={liked ? "heart" : "heart-outline"} 
-                size={28} 
-                color={liked ? "#ff3040" : "white"} 
-            />
+          <Ionicons
+            name={liked ? "heart" : "heart-outline"}
+            size={28}
+            color={liked ? "#ff3040" : "white"}
+          />
         </Pressable>
         <Pressable onPress={() => openComments(item._id)}>
-            <Ionicons name="chatbubble-outline" size={26} color="white" />
+          <Ionicons name="chatbubble-outline" size={26} color="white" />
         </Pressable>
         <Pressable>
-            <Ionicons name="paper-plane-outline" size={26} color="white" style={{ transform: [{ rotate: '-0deg' }], marginTop: -3 }} />
+          <Ionicons name="paper-plane-outline" size={26} color="white" style={{ transform: [{ rotate: '-0deg' }], marginTop: -3 }} />
         </Pressable>
       </View>
 
@@ -320,7 +326,7 @@ export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const [profileImage, setProfileImage] = useState<string | undefined>('');
   const [activeTab, setActiveTab] = useState<'forYou' | 'following'>('forYou');
-  
+
   const [feed, setFeed] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -334,6 +340,42 @@ export default function HomeScreen() {
   const [isCommentModalVisible, setCommentModalVisible] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
+  const [isCrushModalVisible, setCrushModalVisible] = useState(false);
+  const [crushCount, setCrushCount] = useState(0);
+  const [isCrushChecking, setIsCrushChecking] = useState(false);
+
+  const fetchCrushCount = async () => {
+    try {
+      const res = await axios.get('/crush/my-crushes');
+      if (res.data.success) {
+        setCrushCount(res.data.crushes.length);
+      }
+    } catch (err) {
+      console.log("Crush count error", err);
+    }
+  };
+
+  const handleCheckCrushNearby = () => {
+    if (isCrushChecking) return;
+    setIsCrushChecking(true);
+    DeviceEventEmitter.emit('manual-crush-check');
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchCrushCount();
+    }, [])
+  );
+
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('crush-scan-finished', () => {
+      setIsCrushChecking(false);
+    });
+    return () => {
+      if (sub) sub.remove();
+    };
+  }, []);
+
   const fetchFeed = async (pageNum: number, shouldRefresh = false) => {
     if (!hasMore && !shouldRefresh && pageNum !== 1) return;
 
@@ -341,29 +383,29 @@ export default function HomeScreen() {
     if (pageNum > 1) setLoadingMore(true);
 
     try {
-      const endpoint = activeTab === 'forYou' 
-        ? `/post/feed?page=${pageNum}&limit=10` 
+      const endpoint = activeTab === 'forYou'
+        ? `/post/feed?page=${pageNum}&limit=10`
         : `/post/feed/followers?page=${pageNum}&limit=10`;
-      
+
       const res = await axios.get(endpoint);
-      
+
       if (res.data.success) {
         const newPosts = res.data.posts;
 
         if (shouldRefresh || pageNum === 1) {
-            setFeed(newPosts);
+          setFeed(newPosts);
         } else {
-            setFeed(prev => {
-                const existingIds = new Set(prev.map(p => p._id));
-                const uniqueNewPosts = newPosts.filter((p: Post) => !existingIds.has(p._id));
-                return [...prev, ...uniqueNewPosts];
-            });
+          setFeed(prev => {
+            const existingIds = new Set(prev.map(p => p._id));
+            const uniqueNewPosts = newPosts.filter((p: Post) => !existingIds.has(p._id));
+            return [...prev, ...uniqueNewPosts];
+          });
         }
 
         if (newPosts.length < 10) {
-            setHasMore(false);
+          setHasMore(false);
         } else {
-            setHasMore(true);
+          setHasMore(true);
         }
       }
     } catch (error) {
@@ -393,27 +435,27 @@ export default function HomeScreen() {
 
   const loadMore = () => {
     if (!loadingMore && hasMore && !loading) {
-        const nextPage = page + 1;
-        setPage(nextPage);
-        fetchFeed(nextPage);
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchFeed(nextPage);
     }
   };
 
   useFocusEffect(
-      useCallback(() => {
-        const getCount = async () => {
-          try {
-            const res = await axios.get('/notifications/count');
-            if (res.data.success) {
-              setUnreadCount(res.data.count);
-            }
-          } catch (error) {
-            console.log("Badge Error:", error);
+    useCallback(() => {
+      const getCount = async () => {
+        try {
+          const res = await axios.get('/notifications/count');
+          if (res.data.success) {
+            setUnreadCount(res.data.count);
           }
-        };
-        getCount();
-      }, [])
-    );
+        } catch (error) {
+          console.log("Badge Error:", error);
+        }
+      };
+      getCount();
+    }, [])
+  );
 
   const handleOpenComments = (postId: string) => {
     setSelectedPostId(postId);
@@ -421,7 +463,7 @@ export default function HomeScreen() {
   };
 
   const handleCommentAddedInModal = (postId: string, newComment: any) => {
-    setFeed((currentFeed) => 
+    setFeed((currentFeed) =>
       currentFeed.map((post) => {
         if (post._id === postId) {
           const currentCount = post.commentCount || post.comments?.length || 0;
@@ -436,6 +478,8 @@ export default function HomeScreen() {
     );
   };
 
+
+
   const renderHeader = () => (
     <View className="flex-row items-center justify-between px-4 pt-10 pb-2 bg-black border-b border-gray-900/50">
       <View className="flex-row items-center">
@@ -448,11 +492,14 @@ export default function HomeScreen() {
         <Text className="text-2xl font-bold text-white tracking-tighter italic">Fync</Text>
       </View>
 
-      <View className="flex-row items-center gap-6">
-        <Pressable onPress={()=> navigation.navigate('SearchScreen')}>
-          <Ionicons name="search-outline" size={26} color="white"/>
+      <View className="flex-row items-center gap-5">
+        <Pressable onPress={() => navigation.navigate('PayAndSplitHome')}>
+          <Ionicons name="qr-code-outline" size={26} color="white" />
         </Pressable>
-        <Pressable onPress={()=> navigation.navigate('Notification')}>
+        <Pressable onPress={() => navigation.navigate('SearchScreen')}>
+          <Ionicons name="search-outline" size={26} color="white" />
+        </Pressable>
+        <Pressable onPress={() => navigation.navigate('Notification')}>
           <View>
             <Ionicons name="heart-outline" size={26} color="white" />
             {unreadCount > 0 && (
@@ -464,7 +511,7 @@ export default function HomeScreen() {
             )}
           </View>
         </Pressable>
-        <Pressable onPress={()=> navigation.navigate('ChatList')}>
+        <Pressable onPress={() => navigation.navigate('ChatList')}>
           <Ionicons name="chatbubble-ellipses-outline" size={26} color="white" />
         </Pressable>
       </View>
@@ -492,6 +539,7 @@ export default function HomeScreen() {
     </View>
   );
 
+
   const renderFooter = () => {
     if (!loadingMore) return <View className="h-20" />;
     return (
@@ -501,56 +549,72 @@ export default function HomeScreen() {
     );
   };
 
+
   return (
     <View className="flex-1 bg-black">
       {renderHeader()}
-      
+
       <FlatList
         data={feed}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-            <PostItem 
-                item={item} 
-                currentUser={user} 
-                openComments={handleOpenComments} 
-            />
+          <PostItem
+            item={item}
+            currentUser={user}
+            openComments={handleOpenComments}
+          />
         )}
         ListHeaderComponent={
           <View>
             {renderTabBar()}
             <View className="bg-black py-2">
-                <AdCarousel />
-                <CreatePost /> 
+              <AdCarousel />
+              <CrushCard
+                crushCount={crushCount}
+                onPress={() => setCrushModalVisible(true)}
+                onCheckNearby={handleCheckCrushNearby}
+                isChecking={isCrushChecking}
+              />
+              <CreatePost />
             </View>
           </View>
         }
+
         refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
         }
         onEndReached={loadMore}
-        onEndReachedThreshold={0.5} 
+        onEndReachedThreshold={0.5}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={
-            !loading && !refreshing ? (
-                <View className="mt-20 flex-1 items-center px-4">
-                    <Image source={no_post} className="h-48 w-[80%]" resizeMode="contain" />
-                    <Text className="text-xl font-bold text-white mt-4">Welcome to Fync!</Text>
-                    <Text className="text-gray-500 text-center mt-2 px-10">
-                        Your feed is empty. Start following people or create a post to see updates here.
-                    </Text>
-                </View>
-            ) : null
+          !loading && !refreshing ? (
+            <View className="mt-20 flex-1 items-center px-4">
+              <Image source={no_post} className="h-48 w-[80%]" resizeMode="contain" />
+              <Text className="text-xl font-bold text-white mt-4">Welcome to Fync!</Text>
+              <Text className="text-gray-500 text-center mt-2 px-10">
+                Your feed is empty. Start following people or create a post to see updates here.
+              </Text>
+            </View>
+          ) : null
         }
         contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
       />
 
-      <CommentsModal 
+      <CommentsModal
         isVisible={isCommentModalVisible}
         postId={selectedPostId}
         currentUser={user}
         onClose={() => setCommentModalVisible(false)}
-        onCommentAdded={handleCommentAddedInModal} 
+        onCommentAdded={handleCommentAddedInModal}
+      />
+
+      <CrushInputModal
+        isVisible={isCrushModalVisible}
+        onClose={() => {
+          setCrushModalVisible(false);
+          fetchCrushCount();
+        }}
       />
     </View>
   );

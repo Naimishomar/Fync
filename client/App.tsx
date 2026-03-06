@@ -72,6 +72,8 @@ import Map from './components/newFeatures/Map';
 import LateNightFood from 'components/newFeatures/LateNightFood';
 import CampusTravel from 'components/newFeatures/CampusTravel';
 import StudyAssistant from 'components/newFeatures/StudyAssistant';
+import WifiSettingsScreen from 'components/newFeatures/WifiSettingsScreen';
+import WifiSessionMonitor from 'components/newFeatures/WifiSessionMonitor';
 import GroupJamSetup from 'components/GroupSongs/GroupJamSetup';
 import GroupJamPlayer from 'components/GroupSongs/GroupJamPlayer';
 import socket from 'utils/socket';
@@ -98,6 +100,21 @@ import CollaborationScreen from './components/collaboration/CollaborationScreen'
 // Paid Gigs
 import PaidGigs from './components/PaidGigs';
 import CreateShorts from 'components/CreateShorts';
+import NearbyCrushDetector from './components/crush/NearbyCrushDetector';
+
+// Pay & Split
+import PayAndSplitHome from './components/payAndSplit/PayAndSplitHome';
+import QRScannerScreen from './components/payAndSplit/QRScannerScreen';
+import EnterAmountScreen from './components/payAndSplit/EnterAmountScreen';
+import SplitMembersScreen from './components/payAndSplit/SplitMembersScreen';
+import PendingPaymentsScreen from './components/payAndSplit/PendingPaymentsScreen';
+import MonthlyAnalyticsScreen from './components/payAndSplit/MonthlyAnalyticsScreen';
+import GroupManagementScreen from './components/payAndSplit/GroupManagementScreen';
+import CreatedSplitsScreen from './components/payAndSplit/CreatedSplitsScreen';
+
+
+
+
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -114,11 +131,11 @@ export interface Question {
 }
 
 export type RootStackParamList = {
-  Tabs: undefined; 
+  Tabs: undefined;
   SplashScreen: undefined;
   Login: undefined;
   Signup: undefined;
-  ProfileSetup1: { email: any; username: any; phoneNumber: any; password: any;};
+  ProfileSetup1: { email: any; username: any; phoneNumber: any; password: any; };
   ProfileSetup2: { email: any; username: any; phoneNumber: any; password: any; fullName: any; birthday: any; gender: any; college: any; major: any; year: any };
   Profile: undefined;
   EditProfile: undefined;
@@ -129,7 +146,7 @@ export type RootStackParamList = {
   ReceiptWebview: { url: string };
   Shorts: undefined;
   Home: undefined;
-  PublicProfile: {userId: string};
+  PublicProfile: { userId: string };
   FollowersAndFollowing: { userId: string; type: "followers" | "following" };
   Chat: { conversationId: string };
   ChatList: undefined;
@@ -138,10 +155,10 @@ export type RootStackParamList = {
   JoinRoomInput: undefined;
   WaitingRoom: { roomId: string; startTime: string };
   OneVsOneSetup: undefined;
-  QuizScreen: { 
-    questions: Question[]; 
-    roomId: string; 
-    mode: 'custom' | '1v1' ;
+  QuizScreen: {
+    questions: Question[];
+    roomId: string;
+    mode: 'custom' | '1v1';
     endTime?: string;
     opponent?: any;
   };
@@ -181,7 +198,17 @@ export type RootStackParamList = {
   CreateShorts: undefined;
   GroupJamSetup: undefined;
   GroupJamPlayer: undefined;
+  PayAndSplitHome: undefined;
+  QRScannerScreen: undefined;
+  EnterAmountScreen: { merchantUpiId?: string; merchantName?: string };
+  SplitMembersScreen: { amount: number; paymentTransactionId?: string };
+  PendingPaymentsScreen: undefined;
+  MonthlyAnalyticsScreen: undefined;
+  GroupManagementScreen: undefined;
+  CreatedSplitsScreen: undefined;
+  WifiSettingsScreen: undefined;
 };
+
 
 function HomeDrawer() {
   return (
@@ -228,14 +255,14 @@ function AppStack() {
 
     socket.on('incoming-jam', (data) => {
       console.log("Invitation Received on Guest Phone!", data.host.username);
-      
+
       Alert.alert(
         "Squad Jam! 🔥",
         `${data.host.username} is jamming to ${data.station.name}. Join?`,
         [
           { text: "No", style: "cancel" },
-          { 
-            text: "Join Sync", 
+          {
+            text: "Join Sync",
             onPress: () => {
               // 🔥 FIX: Use navigationRef instead of navigation
               if (navigationRef.isReady()) {
@@ -243,13 +270,13 @@ function AppStack() {
               } else {
                 console.log("Navigation not ready yet");
               }
-            } 
+            }
           }
         ]
       );
     });
 
-    return () => socket.off('incoming-jam');
+    return () => { socket.off('incoming-jam'); };
   }, []);
 
 
@@ -306,6 +333,15 @@ function AppStack() {
       <Stack.Screen name="StudyAssistant" component={StudyAssistant} />
       <Stack.Screen name="GroupJamSetup" component={GroupJamSetup} />
       <Stack.Screen name="GroupJamPlayer" component={GroupJamPlayer} />
+      <Stack.Screen name="PayAndSplitHome" component={PayAndSplitHome} />
+      <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
+      <Stack.Screen name="EnterAmountScreen" component={EnterAmountScreen} />
+      <Stack.Screen name="SplitMembersScreen" component={SplitMembersScreen} />
+      <Stack.Screen name="PendingPaymentsScreen" component={PendingPaymentsScreen} />
+      <Stack.Screen name="MonthlyAnalyticsScreen" component={MonthlyAnalyticsScreen} />
+      <Stack.Screen name="GroupManagementScreen" component={GroupManagementScreen} />
+      <Stack.Screen name="CreatedSplitsScreen" component={CreatedSplitsScreen} />
+      <Stack.Screen name="WifiSettingsScreen" component={WifiSettingsScreen} />
       {/* <Stack.Screen name="VideoLobby" component={VideoLobby} /> */}
     </Stack.Navigator>
   );
@@ -327,14 +363,16 @@ function RootNavigator() {
 }
 
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
- 
+
 export default function App() {
   return (
-    <NavigationContainer ref={navigationRef}> 
-      <AuthProvider>
+    <AuthProvider>
+      <NavigationContainer ref={navigationRef}>
         <RootNavigator />
-        <Toast position="top" />
-      </AuthProvider>
-    </NavigationContainer>
+      </NavigationContainer>
+      <NearbyCrushDetector />
+      <WifiSessionMonitor />
+      <Toast position="top" />
+    </AuthProvider>
   );
 }

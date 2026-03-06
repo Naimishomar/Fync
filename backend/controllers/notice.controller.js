@@ -3,14 +3,14 @@ import Comment from "../models/comment.model.js";
 import { tryCatch } from "bullmq";
 import User from "../models/user.model.js";
 
-export const createNotice = async(req,res)=>{
+export const createNotice = async (req, res) => {
     try {
         const { title, description, link } = req.body;
-        if(!title || !description){
+        if (!title || !description) {
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
         let noticeImage = "";
-        if(req.files && req.files.length > 0){
+        if (req.files && req.files.length > 0) {
             noticeImage = req.files.map(file => file.path);
         }
         const notice = await Notice.create({
@@ -19,7 +19,7 @@ export const createNotice = async(req,res)=>{
             link,
             user: req.user.id,
             college: req.user.college,
-            image : noticeImage,
+            image: noticeImage,
             user: req.user.id,
             college: req.user.college
         })
@@ -30,17 +30,17 @@ export const createNotice = async(req,res)=>{
     }
 }
 
-export const createGlobalNotice = async(req,res)=>{
+export const createGlobalNotice = async (req, res) => {
     try {
         const { title, description, link } = req.body;
-        if(!title || !description){
+        if (!title || !description) {
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
         let noticeImage = "";
-        if(req.files && req.files.length > 0){
+        if (req.files && req.files.length > 0) {
             noticeImage = req.files.map(file => file.path);
         }
-        if(req.user.email !== process.env.ADMIN_EMAIL){
+        if (req.user.email !== process.env.ADMIN_EMAIL) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
         const user = await User.findOne({ email: process.env.ADMIN_EMAIL });
@@ -48,7 +48,7 @@ export const createGlobalNotice = async(req,res)=>{
             title,
             description,
             link,
-            image : noticeImage,
+            image: noticeImage,
             user: user._id,
             college: user.college,
         })
@@ -66,37 +66,71 @@ export const getGlobalNotices = async (req, res) => {
         if (!user) {
             return res.status(200).json({ success: true, message: "No admin configured", notices: [] });
         }
-        const notices = await Notice.find({ user: user._id }).populate("user", "name avatar username");
-        if (!notices) {
-            return res.status(404).json({ success: false, message: "No notices" });
-        }
-        return res.status(200).json({ success: true, message: "Notices fetched successfully", notices });
-    } catch (error) {
-        console.log("Internal server error", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });   
-    }
-}
+        const { page = 1, limit = 10 } = req.query;
+        const skip = (page - 1) * limit;
 
-export const getCollegeNotices = async(req,res)=>{
-    try {
-        const notices = await Notice.find({ college: req.user.college }).populate("user", "name avatar username");
-        if(!notices){
-            return res.status(404).json({ success: false, message: "No notices" });
-        }
-        return res.status(200).json({ success: true, message: "Notices fetched successfully", notices });
+        const notices = await Notice.find({ user: user._id })
+            .sort({ createdAt: -1 })
+            .populate("user", "name avatar username")
+            .skip(skip)
+            .limit(Number(limit));
+
+        const total = await Notice.countDocuments({ user: user._id });
+
+        return res.status(200).json({
+            success: true,
+            message: "Notices fetched successfully",
+            notices,
+            pagination: {
+                total,
+                page: Number(page),
+                limit: Number(limit),
+                pages: Math.ceil(total / limit)
+            }
+        });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 
-export const deleteNotice = async(req,res)=>{
+export const getCollegeNotices = async (req, res) => {
+    try {
+        const { page = 1, limit = 10 } = req.query;
+        const skip = (page - 1) * limit;
+
+        const notices = await Notice.find({ college: req.user.college })
+            .sort({ createdAt: -1 })
+            .populate("user", "name avatar username")
+            .skip(skip)
+            .limit(Number(limit));
+
+        const total = await Notice.countDocuments({ college: req.user.college });
+
+        return res.status(200).json({
+            success: true,
+            message: "Notices fetched successfully",
+            notices,
+            pagination: {
+                total,
+                page: Number(page),
+                limit: Number(limit),
+                pages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        console.log("Internal server error", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+}
+
+export const deleteNotice = async (req, res) => {
     try {
         const notice = await Notice.findById(req.params.id);
-        if(!notice){
+        if (!notice) {
             return res.status(404).json({ success: false, message: "No notice found" });
         }
-        if(notice.user.toString() !== req.user.id.toString()){
+        if (notice.user.toString() !== req.user.id.toString()) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
         await Notice.findByIdAndDelete(req.params.id);
@@ -107,18 +141,18 @@ export const deleteNotice = async(req,res)=>{
     }
 }
 
-export const UpdateNotice = async(req,res)=>{
+export const UpdateNotice = async (req, res) => {
     try {
         const { title, description, link } = req.body;
         const notice = await Notice.findById(req.params.id);
-        if(!notice){
+        if (!notice) {
             return res.status(404).json({ success: false, message: "No notice found" });
         }
-        if(notice.user.toString() !== req.user.id.toString()){
+        if (notice.user.toString() !== req.user.id.toString()) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
         let noticeImage = "";
-        if(req.files && req.files.length > 0){
+        if (req.files && req.files.length > 0) {
             noticeImage = req.files.map(file => file.path);
         }
         notice.title = title;

@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  View, Text, FlatList, TouchableOpacity, ActivityIndicator, 
-  Alert, RefreshControl, Image, Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform, Pressable
+import {
+    View, Text, FlatList, TouchableOpacity, ActivityIndicator,
+    Alert, RefreshControl, Image, Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform, Pressable
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
-import socket from '../utils/socket'; 
+import socket from '../utils/socket';
 import moment from 'moment';
 
 // --- TYPES ---
@@ -19,9 +19,9 @@ interface Gig {
     stipend: string;
     postedUserCollege: string;
     status: string;
-    visibility?: string; 
+    visibility?: string;
     createdAt: string;
-    postedBy: any; 
+    postedBy: any;
 }
 
 // =======================================================
@@ -65,8 +65,8 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                 </View>
 
                 <Text className="text-gray-300 text-sm leading-6 mb-4">
-                    {item.description.length > MAX_CHAR && !isExpanded 
-                        ? `${item.description.substring(0, MAX_CHAR)}...` 
+                    {item.description.length > MAX_CHAR && !isExpanded
+                        ? `${item.description.substring(0, MAX_CHAR)}...`
                         : item.description
                     }
                     {item.description.length > MAX_CHAR && (
@@ -80,9 +80,9 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
 
                 <View className="flex-row justify-between items-center mb-4">
                     <View className="flex-row items-center flex-1">
-                        <Image 
-                            source={{ uri: avatarUrl }} 
-                            className="w-10 h-10 rounded-full border border-white/20 bg-gray-800" 
+                        <Image
+                            source={{ uri: avatarUrl }}
+                            className="w-10 h-10 rounded-full border border-white/20 bg-gray-800"
                         />
                         <View className="ml-3 flex-1">
                             <Text className="text-white text-sm font-bold" numberOfLines={1}>{posterName}</Text>
@@ -91,7 +91,7 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                             </Text>
                         </View>
                     </View>
-                    
+
                     {!isOwner && (
                         <View className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg max-w-[40%]">
                             <Text className="text-gray-400 font-bold text-[9px] uppercase tracking-widest text-center" numberOfLines={1}>
@@ -102,7 +102,7 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                 </View>
 
                 {isOwner ? (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={() => onCloseGig(item._id, 'Closed')}
                         className="w-full py-3 bg-red-500/10 border border-red-500/30 rounded-xl items-center justify-center flex-row"
                     >
@@ -110,13 +110,13 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                         <Text className="text-red-400 font-black text-xs uppercase tracking-widest ml-2">Close Gig</Text>
                     </TouchableOpacity>
                 ) : (
-                    <TouchableOpacity 
-                        onPress={() => onMessage(item._id, item.postedBy)} 
+                    <TouchableOpacity
+                        onPress={() => onMessage(item._id, item.postedBy)}
                         disabled={connectingId !== null}
                         className="w-full rounded-xl overflow-hidden shadow-lg shadow-pink-500/20"
                     >
                         <LinearGradient
-                            colors={['#ec4899', '#be185d']} 
+                            colors={['#ec4899', '#be185d']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
                             className="py-3.5 flex-row items-center justify-center"
@@ -146,6 +146,10 @@ export default function PaidGigs({ navigation }: any) {
     const [gigs, setGigs] = useState<Gig[]>([]);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+
 
     // Form / Modal State
     const [modalVisible, setModalVisible] = useState(false);
@@ -159,39 +163,71 @@ export default function PaidGigs({ navigation }: any) {
 
     const [connectingId, setConnectingId] = useState<string | null>(null);
 
-    const fetchGigs = async () => {
+    const fetchGigs = async (pageNum: number = 1, shouldAppend: boolean = false) => {
+        if (pageNum > 1) setLoadingMore(true);
+        else if (!refreshing) setLoading(true);
+
         try {
             let endpoint = '';
-            if (activeTab === 'college') endpoint = '/gigs?query=college';
-            else if (activeTab === 'global') endpoint = '/gigs?query=all';
-            else if (activeTab === 'mine') endpoint = '/gigs/your';
+            if (activeTab === 'college') endpoint = `/gigs?query=college&page=${pageNum}&limit=10`;
+            else if (activeTab === 'global') endpoint = `/gigs?query=all&page=${pageNum}&limit=10`;
+            else if (activeTab === 'mine') endpoint = `/gigs/your?page=${pageNum}&limit=10`;
 
             const res = await axios.get(endpoint);
-            if (res.data.success || res.status === 200) {
-                const fetchedData = activeTab === 'mine' ? res.data.yourGigs : res.data.gigs;
-                setGigs(fetchedData || []);
+            const resData = res.data;
+            const fetchedGigs = activeTab === 'mine' ? resData.yourGigs : resData.gigs;
+
+            if (fetchedGigs && Array.isArray(fetchedGigs)) {
+                if (shouldAppend) {
+                    setGigs(prev => [...prev, ...fetchedGigs]);
+                } else {
+                    setGigs(fetchedGigs);
+                }
+
+                const pagination = resData.pagination;
+                if (pagination) {
+                    setHasMore(pagination.page < pagination.pages);
+                    setPage(pagination.page);
+                } else {
+                    setHasMore(false);
+                }
+            } else {
+                if (!shouldAppend) setGigs([]);
+                setHasMore(false);
             }
         } catch (error: any) {
-            if (error.response?.status === 404) {
-                setGigs([]); 
+            if (error.response?.status === 404 && pageNum === 1) {
+                setGigs([]);
+                setHasMore(false);
             } else {
                 console.log("Error fetching gigs", error);
             }
         } finally {
             setLoading(false);
             setRefreshing(false);
+            setLoadingMore(false);
         }
     };
 
     useEffect(() => {
-        setLoading(true);
-        fetchGigs();
+        setPage(1);
+        setHasMore(true);
+        fetchGigs(1, false);
     }, [activeTab]);
 
     const onRefresh = () => {
         setRefreshing(true);
-        fetchGigs();
+        setPage(1);
+        setHasMore(true);
+        fetchGigs(1, false);
     };
+
+    const handleLoadMore = () => {
+        if (!loading && !loadingMore && hasMore) {
+            fetchGigs(page + 1, true);
+        }
+    };
+
 
     const handleSubmit = async () => {
         if (!title.trim() || !description.trim()) {
@@ -222,18 +258,20 @@ export default function PaidGigs({ navigation }: any) {
 
     const handleStatusChange = useCallback(async (id: string, newStatus: string) => {
         Alert.alert(
-            "Confirm", 
+            "Confirm",
             `Are you sure you want to close this gig? It will be removed.`,
             [
                 { text: "Cancel", style: "cancel" },
-                { text: "Close Gig", style: "destructive", onPress: async () => {
-                    try {
-                        await axios.post(`/gigs/${id}/status`, { status: newStatus });
-                        setGigs(prev => prev.filter(g => g._id !== id)); 
-                    } catch (error) {
-                        Alert.alert("Error", "Could not update status.");
+                {
+                    text: "Close Gig", style: "destructive", onPress: async () => {
+                        try {
+                            await axios.post(`/gigs/${id}/status`, { status: newStatus });
+                            setGigs(prev => prev.filter(g => g._id !== id));
+                        } catch (error) {
+                            Alert.alert("Error", "Could not update status.");
+                        }
                     }
-                }}
+                }
             ]
         );
     }, []);
@@ -241,14 +279,16 @@ export default function PaidGigs({ navigation }: any) {
     const handleDelete = useCallback(async (id: string) => {
         Alert.alert("Delete Gig", "Are you sure you want to delete this gig permanently?", [
             { text: "Cancel", style: "cancel" },
-            { text: "Delete", style: "destructive", onPress: async () => {
-                try {
-                    await axios.delete(`/gigs/${id}`);
-                    setGigs(prev => prev.filter(g => g._id !== id));
-                } catch (error) {
-                    Alert.alert("Error", "Could not delete gig.");
+            {
+                text: "Delete", style: "destructive", onPress: async () => {
+                    try {
+                        await axios.delete(`/gigs/${id}`);
+                        setGigs(prev => prev.filter(g => g._id !== id));
+                    } catch (error) {
+                        Alert.alert("Error", "Could not delete gig.");
+                    }
                 }
-            }}
+            }
         ]);
     }, []);
 
@@ -316,7 +356,7 @@ export default function PaidGigs({ navigation }: any) {
                         </Text>
                         <Text className="text-gray-400 text-xs mt-1 uppercase tracking-widest font-bold">Find & post freelance work</Text>
                     </View>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={openCreateModal}
                         className="p-3 bg-pink-600/20 rounded-full border border-pink-500/50 shadow-lg shadow-pink-500/30"
                     >
@@ -330,12 +370,11 @@ export default function PaidGigs({ navigation }: any) {
                         { key: 'global', label: 'Global' },
                         { key: 'mine', label: 'My Gigs' }
                     ].map((t) => (
-                        <Pressable 
+                        <Pressable
                             key={t.key}
                             onPress={() => setActiveTab(t.key as any)}
-                            className={`flex-1 py-3 rounded-xl items-center ${
-                                activeTab === t.key ? 'bg-pink-600/20 border border-pink-500' : ''
-                            }`}
+                            className={`flex-1 py-3 rounded-xl items-center ${activeTab === t.key ? 'bg-pink-600/20 border border-pink-500' : ''
+                                }`}
                         >
                             <Text className={`font-black tracking-widest text-[10px] uppercase ${activeTab === t.key ? 'text-pink-400' : 'text-gray-500'}`}>
                                 {t.label}
@@ -354,8 +393,8 @@ export default function PaidGigs({ navigation }: any) {
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ec4899" />}
                         contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
                         renderItem={({ item }) => (
-                            <GigCard 
-                                item={item} 
+                            <GigCard
+                                item={item}
                                 currentUser={user}
                                 onEdit={openEditModal}
                                 onDelete={handleDelete}
@@ -363,6 +402,15 @@ export default function PaidGigs({ navigation }: any) {
                                 onMessage={handleMessage}
                                 connectingId={connectingId}
                             />
+                        )}
+                        onEndReached={handleLoadMore}
+                        onEndReachedThreshold={0.5}
+                        ListFooterComponent={() => (
+                            loadingMore ? (
+                                <View className="py-6 items-center">
+                                    <ActivityIndicator size="small" color="#ec4899" />
+                                </View>
+                            ) : <View className="h-20" />
                         )}
                         ListEmptyComponent={
                             <View className="items-center justify-center mt-20 opacity-50">
@@ -388,18 +436,18 @@ export default function PaidGigs({ navigation }: any) {
 
                     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
                         <ScrollView className="p-6" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
-                            
+
                             <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2 ml-1">Gig Title</Text>
-                            <TextInput 
-                                value={title} onChangeText={setTitle} 
-                                placeholder="e.g. Need a React Native dev for 1 week" 
-                                placeholderTextColor="#6b7280" 
+                            <TextInput
+                                value={title} onChangeText={setTitle}
+                                placeholder="e.g. Need a React Native dev for 1 week"
+                                placeholderTextColor="#6b7280"
                                 className="bg-[#2a2a2a] p-4 rounded-2xl mb-6 border border-white/10 text-white font-bold text-base"
                             />
 
                             <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2 ml-1">Visibility Target</Text>
                             <View className="flex-row bg-[#2a2a2a] p-1.5 rounded-2xl mb-6 border border-white/10">
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     onPress={() => setVisibility('College')}
                                     className={`flex-1 py-3 rounded-xl items-center ${visibility === 'College' ? 'bg-pink-600/20 border border-pink-500' : ''}`}
                                 >
@@ -407,7 +455,7 @@ export default function PaidGigs({ navigation }: any) {
                                         My College
                                     </Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     onPress={() => setVisibility('Global')}
                                     className={`flex-1 py-3 rounded-xl items-center ${visibility === 'Global' ? 'bg-pink-600/20 border border-pink-500' : ''}`}
                                 >
@@ -418,24 +466,24 @@ export default function PaidGigs({ navigation }: any) {
                             </View>
 
                             <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2 ml-1">Description</Text>
-                            <TextInput 
-                                value={description} onChangeText={setDescription} 
+                            <TextInput
+                                value={description} onChangeText={setDescription}
                                 multiline numberOfLines={5} textAlignVertical="top"
-                                placeholder="Explain the exact requirements, skills needed, and timeframe..." 
-                                placeholderTextColor="#6b7280" 
+                                placeholder="Explain the exact requirements, skills needed, and timeframe..."
+                                placeholderTextColor="#6b7280"
                                 className="bg-[#2a2a2a] p-4 rounded-2xl mb-6 border border-white/10 text-white font-medium min-h-[120px]"
                             />
 
                             <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2 ml-1">Stipend / Budget (Optional)</Text>
-                            <TextInput 
-                                value={stipend} onChangeText={setStipend} 
-                                placeholder="e.g. ₹5000, 2k-4k, or 'Negotiable'" 
-                                placeholderTextColor="#6b7280" 
+                            <TextInput
+                                value={stipend} onChangeText={setStipend}
+                                placeholder="e.g. ₹5000, 2k-4k, or 'Negotiable'"
+                                placeholderTextColor="#6b7280"
                                 className="bg-[#2a2a2a] p-4 rounded-2xl mb-8 border border-white/10 text-green-400 font-bold"
                             />
 
-                            <TouchableOpacity 
-                                onPress={handleSubmit} disabled={submitting} 
+                            <TouchableOpacity
+                                onPress={handleSubmit} disabled={submitting}
                                 className="py-5 rounded-2xl items-center shadow-lg border border-pink-500/50 bg-pink-600 flex-row justify-center mt-2"
                             >
                                 {submitting ? <ActivityIndicator color="white" /> : (

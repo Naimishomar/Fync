@@ -8,6 +8,8 @@ dotenv.config({ quiet: true });
 let upload;
 let videoUpload;
 let audioUpload;
+let storyUpload;
+
 
 try {
   if (
@@ -46,12 +48,12 @@ try {
     cloudinary,
     params: {
       folder: "interviews_audio",
-      resource_type: "raw", 
-      allowed_formats: ["mp3", "m4a", "wav", "aac", "mp4"], 
+      resource_type: "raw",
+      allowed_formats: ["mp3", "m4a", "wav", "aac", "mp4"],
     },
   });
 
-  upload = multer({ 
+  upload = multer({
     storage: imageStorage,
     limits: { fileSize: 1024 * 1024 * 10 },
   });
@@ -65,10 +67,25 @@ try {
     storage: audioStorage,
     limits: { fileSize: 1024 * 1024 * 10 },
   })
+  const storyStorage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+      folder: "stories",
+      resource_type: "auto",
+      allowed_formats: ["jpg", "jpeg", "png", "mp4", "mov"],
+    },
+  });
+
+  storyUpload = multer({
+    storage: storyStorage,
+    limits: { fileSize: 1024 * 1024 * 20 }, // 20MB
+  });
+
   console.log("✅ Cloudinary initialized successfully");
+
 } catch (error) {
   console.error("❌ Cloudinary initialization failed:", error.message);
   process.exit(1);
 }
 
-export { cloudinary, upload, videoUpload, audioUpload };
+export { cloudinary, upload, videoUpload, audioUpload, storyUpload };

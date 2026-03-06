@@ -10,13 +10,12 @@ import {
   Image,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import io from "socket.io-client";
+import socket from "../utils/socket";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
-const socket = io(BACKEND_URL);
 
 const Chat = ({ route, navigation }: any) => {
   const conversationId = route?.params?.conversationId;
@@ -72,6 +71,7 @@ const Chat = ({ route, navigation }: any) => {
   useEffect(() => {
     fetchConversationUser();
 
+    socket.emit("register", user._id);
     socket.emit("join", { conversationId });
 
     socket.emit("markSeen", {
@@ -79,21 +79,40 @@ const Chat = ({ route, navigation }: any) => {
       userId: user._id,
     });
 
+
     socket.on("newMessage", (msg) => {
       if (
         msg.sender === user._id ||
         msg.sender?._id === user._id
       ) return;
 
-      setMessages((prev) => [msg, ...prev]);
+      setMessages((prev) => {
+        if (prev.find((m) => m._id === msg._id)) return prev;
+        return [msg, ...prev];
+      });
+
+      // ✅ AUTOMATICALLY SEEN: If screen is open, tell server we've read it
+
+      socket.emit("markSeen", {
+        conversationId,
+        userId: user._id,
+      });
     });
+
 
     // ✅ typing listeners
     socket.on("userTyping", () => setIsTyping(true));
     socket.on("userStopTyping", () => setIsTyping(false));
 
     // ✅ seen listener
-    socket.on("messagesSeen", () => setSeen(true));
+    socket.on("messagesSeen", ({ conversationId: seenId }) => {
+      if (seenId === conversationId) {
+        setMessages((prev) =>
+          prev.map(msg => ({ ...msg, seen: true }))
+        );
+      }
+    });
+
 
     loadMessages();
 
@@ -112,11 +131,18 @@ const Chat = ({ route, navigation }: any) => {
 
     try {
       const res = await axios.get(
-        `/chat/${conversationId}/messages?page=${page}`
+        `/chat/${conversationId}/messages`,
+        { params: { page, noCache: true } }
       );
 
-      setMessages((prev) => [...prev, ...res.data.messages]);
+
+      setMessages((prev) => {
+        const prevIds = new Set(prev.map(m => m._id));
+        const newUnique = res.data.messages.filter((m: any) => !prevIds.has(m._id));
+        return [...prev, ...newUnique];
+      });
       setPage((prev) => prev + 1);
+
     } catch (error) {
       console.log("Error loading messages", error);
     } finally {
@@ -181,34 +207,47 @@ const Chat = ({ route, navigation }: any) => {
     const isLastMessage = index === 0;
 
     return (
-      <View className={`flex-row w-full ${isMe ? "justify-end" : "justify-start"} items-center py-1`}>
-        {isMe ? (
-          <>
-            <View className="max-w-[75%] px-4 py-2 rounded-3xl bg-blue-500">
-              <Text className="text-white">{item.message}</Text>
+      <View className={`flex-row w-full ${isMe ? "justify-end" : "justify-start"} items-end pb-2`}>
+        {!isMe && (
+          <Image
+            source={{
+              uri: item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}&background=random&color=fff`,
+            }}
+            className="h-8 w-8 rounded-full mr-2"
+          />
+        )}
+
+        <View className={isMe ? "items-end" : "items-start"}>
+          <View className={`max-w-[250px] px-4 py-2.5 rounded-2xl ${isMe ? "bg-blue-600 rounded-tr-none" : "bg-gray-100 rounded-tl-none border border-gray-200"}`}>
+            <Text className={`${isMe ? "text-white" : "text-black"} text-base`}>{item.message}</Text>
+          </View>
+
+
+          {isMe && isLastMessage && (
+            <View className="flex-row items-center mt-1">
+              <Ionicons
+                name={item.seen ? "checkmark-done" : "checkmark"}
+                size={14}
+                color={item.seen ? "#3b82f6" : "#9ca3af"}
+              />
+              <Text className="text-[10px] text-gray-500 ml-1">
+                {item.seen ? "Seen" : "Sent"}
+              </Text>
             </View>
-            <Image
-              source={{
-                uri: item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}&background=random&color=fff`,
-              }}
-              className="h-6 w-6 rounded-full ml-2"
-            />
-          </>
-        ) : (
-          <>
-            <Image
-              source={{
-                uri: item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}&background=random&color=fff`,
-              }}
-              className="h-6 w-6 rounded-full mr-2"
-            />
-            <View className="max-w-[75%] px-4 py-2 rounded-3xl bg-gray-200">
-              <Text className="text-black">{item.message}</Text>
-            </View>
-          </>
+          )}
+        </View>
+
+        {isMe && (
+          <Image
+            source={{
+              uri: item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}&background=random&color=fff`,
+            }}
+            className="h-8 w-8 rounded-full ml-2"
+          />
         )}
       </View>
     );
+
   };
 
   return (
@@ -270,9 +309,9 @@ const Chat = ({ route, navigation }: any) => {
         {/* ✅ typing indicator */}
         {isTyping && (
           <>
-          <Text className="px-4 pb-1 text-gray-500 text-sm">
-            typing...
-          </Text>
+            <Text className="px-4 pb-1 text-gray-500 text-sm">
+              typing...
+            </Text>
           </>
         )}
 

@@ -5,7 +5,10 @@ import crypto from "crypto";
 import fs from "fs";
 import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
+import { Jimp } from "jimp";
+import jsQR from "jsqr";
 dotenv.config({ quiet: true });
+
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -123,3 +126,28 @@ export const verifyOrder = async (req, res) => {
     }, 10000);
   });
 };
+
+export const scanQRImage = async (req, res) => {
+  try {
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ success: false, message: "No image provided" });
+    }
+
+    const image = await Jimp.read(req.file.buffer);
+    const { width, height, data } = image.bitmap;
+
+    // Uint8ClampedArray is required by jsQR
+    const clampedData = new Uint8ClampedArray(data);
+    const qrCode = jsQR(clampedData, width, height);
+
+    if (qrCode) {
+      return res.status(200).json({ success: true, data: qrCode.data });
+    } else {
+      return res.status(400).json({ success: false, message: "No QR code could be read from this image." });
+    }
+  } catch (error) {
+    console.error("Scan QR Error:", error);
+    res.status(500).json({ success: false, message: "Failed to scan QR code from image." });
+  }
+};
+

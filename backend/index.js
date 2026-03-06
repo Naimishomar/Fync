@@ -1,7 +1,8 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
-import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import connectDB from './db/db.js';
 import authRoute from './routes/auth.route.js';
@@ -23,29 +24,29 @@ import noticeRoute from './routes/notice.route.js';
 import mapRoute from './routes/map.route.js';
 import paidGigsRoute from './routes/paidGigs.route.js';
 import AiIntelligenceRoute from './routes/aiItelligence.route.js';
+import splitRoute from './routes/split.route.js';
+import crushRoute from './routes/crush.routes.js';
+
 import { rateLimit } from 'express-rate-limit';
 import { logout } from './controllers/auth.controller.js';
 
 import { socketController } from './controllers/socket.controller.js';
 import { lotterySocketController } from './socket/9pmConfession.socket.js';
-import { setupVideoSocket } from './socket/videoLobby.js' 
+import { setupVideoSocket } from './socket/videoLobby.js'
 import { setupMusicSocket } from './socket/musicSocket.js';
 
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000,
-  max: 100,
-  statusCode: 429,
-  message: "Too many requests from this IP, please try again after an hour",
-  handler: logout,
+  max: 100, 
+  message: "Too many requests from this IP, please try again later",
 });
 
-dotenv.config({quiet: true});
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 8000;
 
 const io = new Server(server, {
-    cors: { origin: ["http://localhost:5173"], credentials: true }
+  cors: { origin: "*", credentials: true }
 });
 
 app.use(limiter);
@@ -78,6 +79,10 @@ app.use('/notice', noticeRoute);
 app.use('/map', mapRoute);
 app.use('/gigs', paidGigsRoute);
 app.use('/api', AiIntelligenceRoute);
+app.use('/split', splitRoute);
+app.use('/crush', crushRoute);
+
+
 
 socketController(io);
 lotterySocketController(io);
@@ -88,7 +93,16 @@ app.get('/', (req, res) => {
   res.send('Fync never gets down!🚀');
 });
 
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}🚀`);
-  connectDB();
-});
+const startServer = async () => {
+  try {
+    await connectDB();
+    server.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}🚀`);
+    });
+  } catch (err) {
+    console.error("Critical: Failed to start server:", err);
+    process.exit(1);
+  }
+};
+
+startServer();

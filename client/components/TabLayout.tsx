@@ -92,15 +92,15 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
     <View className="flex-1 items-center justify-center">
       {/* Background Overlay to close menu when clicking outside */}
       {opened && (
-        <Pressable 
-          onPress={toggleMenu} 
-          className="absolute -top-[1000] -left-[1000] -right-[1000] -bottom-[1000]" 
+        <Pressable
+          onPress={toggleMenu}
+          className="absolute -top-[1000] -left-[1000] -right-[1000] -bottom-[1000]"
         />
       )}
 
       {/* Sub Button 2 (e.g., Create Post) */}
       <Animated.View style={[item1Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={()=> navigation.navigate('CreatePost')}>
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => navigation.navigate('CreatePost')}>
           <Ionicons name="aperture-outline" size={20} color="#7e22ce" />
         </TouchableOpacity>
         <Text className="text-white text-[10px] font-bold mt-1 uppercase tracking-tighter shadow-black">Add Post</Text>
@@ -108,14 +108,14 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
 
       {/* Sub Button 1 (e.g., Create Video) */}
       <Animated.View style={[item2Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={()=> navigation.navigate('CreateShorts')}>
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => navigation.navigate('CreateShorts')}>
           <Ionicons name="videocam" size={20} color="#ec4899" />
         </TouchableOpacity>
         <Text className="text-white text-[10px] whitespace-nowrap font-bold mt-1 uppercase tracking-tighter shadow-black">Add Shorts</Text>
       </Animated.View>
 
       <Animated.View style={[item3Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={()=> navigation.navigate('CreatePost')}>
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => navigation.navigate('CreatePost')}>
           <Ionicons name="bulb-outline" size={20} color="#7e22ce" />
         </TouchableOpacity>
         <Text className="text-white text-[10px] font-bold mt-1 uppercase tracking-tighter shadow-black">Add Startup</Text>
@@ -124,10 +124,10 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
 
 
       {/* Main Center Button */}
-      <View 
-        style={{ 
-          shadowColor: '#ec4899', shadowOffset: { width: 0, height: 5 }, 
-          shadowOpacity: 0.4, shadowRadius: 10, elevation: 10 
+      <View
+        style={{
+          shadowColor: '#ec4899', shadowOffset: { width: 0, height: 5 },
+          shadowOpacity: 0.4, shadowRadius: 10, elevation: 10
         }}
         className="w-[72px] h-[72px] rounded-full bg-black items-center justify-center"
       >
@@ -181,10 +181,10 @@ export default function TabLayout() {
         <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={24} color={color} /> }} />
 
         <Tab.Screen name="Shorts" component={Shorts} options={{ tabBarIcon: ({ color }) => <Ionicons name="play-outline" size={24} color={color} /> }} />
-        
-        <Tab.Screen 
-          name="Create" 
-          component={CreateShorts} 
+
+        <Tab.Screen
+          name="Create"
+          component={CreateShorts}
           options={{
             tabBarButton: (props) => <CustomTabBarButton {...props} />
           }}

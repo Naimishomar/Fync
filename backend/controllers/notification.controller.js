@@ -2,13 +2,29 @@ import Notification from "../models/notification.model.js";
 
 export const getNotifications = async (req, res) => {
     try {
+        const { page = 1, limit = 20 } = req.query;
+        const skip = (page - 1) * limit;
+
         const notifications = await Notification.find({ recipient: req.user.id })
             .sort({ createdAt: -1 })
             .populate("sender", "username avatar")
             .populate("post", "image")
             .populate("shorts", "video")
-            .limit(30);
-        return res.status(200).json({ success: true, notifications });
+            .skip(skip)
+            .limit(Number(limit));
+
+        const total = await Notification.countDocuments({ recipient: req.user.id });
+
+        return res.status(200).json({
+            success: true,
+            notifications,
+            pagination: {
+                total,
+                page: Number(page),
+                limit: Number(limit),
+                pages: Math.ceil(total / limit)
+            }
+        });
     } catch (error) {
         console.error("Get Notifications Error:", error);
         return res.status(500).json({ success: false, message: "Server error" });
@@ -17,9 +33,9 @@ export const getNotifications = async (req, res) => {
 
 export const getUnreadCount = async (req, res) => {
     try {
-        const count = await Notification.countDocuments({ 
-            recipient: req.user.id, 
-            isRead: false 
+        const count = await Notification.countDocuments({
+            recipient: req.user.id,
+            isRead: false
         });
         return res.status(200).json({ success: true, count });
     } catch (error) {

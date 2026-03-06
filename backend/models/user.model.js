@@ -1,144 +1,170 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        required:true
+    name: {
+        type: String,
+        required: true
     },
-    username:{
-        type:String,
-        required:true,
-        unique:true,
-        sparse: true
-    },
-    email:{
-        type:String,
-        required:true,
-        unique:true,
-        sparse: true
-    },
-    mobileNumber:{
+    username: {
         type: String,
         required: true,
         unique: true,
         sparse: true
     },
-    password:{
-        type:String,
-        required:true
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        sparse: true
     },
-    refreshToken:{
-        type:String,
-        default: null
+    mobileNumber: {
+        type: String,
+        required: true,
+        unique: true,
+        sparse: true
     },
-    dob:{
-        type:Date,
+    password: {
+        type: String,
         required: true
     },
-    college:{
+    refreshToken: {
+        type: String,
+        default: null
+    },
+    dob: {
+        type: Date,
+        required: true
+    },
+    college: {
         type: String,
         required: true,
     },
-    year:{
-        type:Number,
+    year: {
+        type: Number,
         required: true
     },
-    major:{
-        type:String,
+    major: {
+        type: String,
         required: true
     },
-    gender:{
-        type:String,
+    gender: {
+        type: String,
         required: true,
         enum: ['Male', 'Female']
     },
-    avatar:{
-        type:String,
+    avatar: {
+        type: String,
         default: 'https://cdn-icons-png.freepik.com/512/219/219988.png'
     },
-    banner:{
-        type:String,
+    banner: {
+        type: String,
         default: 'https://cdn.pixabay.com/photo/2015/10/29/14/38/web-1012467_1280.jpg'
     },
-    is_subscribed:{
-        type:Boolean,
-        default:false
+    is_subscribed: {
+        type: Boolean,
+        default: false
     },
     followers: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
     }],
     following: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
     }],
-    linkedIn_id:{
-        type:String,
+    linkedIn_id: {
+        type: String,
         sparse: true
     },
-    github_id:{
-        type:String,
+    github_id: {
+        type: String,
         sparse: true
     },
-    interest:{
+    interest: {
         type: [String]
     },
-    hobbies:{
+    hobbies: {
         type: [String]
     },
-    user_access:{
+    user_access: {
         type: String,
         enum: ['admin', 'user'],
         default: 'user'
     },
-    about:{
+    about: {
         type: String,
     },
-    skills:{
+    skills: {
         type: [String]
     },
-    experience:{
+    experience: {
         type: String
     },
     codingProfiles: {
-        leetcode: { 
-            type: String, 
-            default: null 
+        leetcode: {
+            type: String,
+            default: null
         },
-        gfg: { 
-            type: String, 
-            default: null 
-        } 
+        gfg: {
+            type: String,
+            default: null
+        }
     },
     codingStats: {
-        totalSolved: { 
-            type: Number, 
-            default: 0 
+        totalSolved: {
+            type: Number,
+            default: 0
         },
-        leetcodeSolved: { 
-            type: Number, 
-            default: 0 
+        leetcodeSolved: {
+            type: Number,
+            default: 0
         },
-        gfgSolved: { 
-            type: Number, 
-            default: 0 
+        gfgSolved: {
+            type: Number,
+            default: 0
         },
-        lastUpdated: { 
-            type: Date, 
-            default: Date.now 
+        lastUpdated: {
+            type: Date,
+            default: Date.now
         }
     },
     weeklyStats: {
-        startOfWeekScore: { 
-            type: Number, 
-            default: 0 
+        startOfWeekScore: {
+            type: Number,
+            default: 0
         },
-        questionsThisWeek: { 
-            type: Number, 
-            default: 0 
+        questionsThisWeek: {
+            type: Number,
+            default: 0
+        }
+    },
+    upiId: {
+        type: String,
+        default: null
+    },
+    deviceId: {
+        type: String,
+        default: null
+    },
+    deviceModel: {
+        type: String,
+        default: null
+    },
+    location: {
+        latitude: {
+            type: Number,
+            default: null
+        },
+        longitude: {
+            type: Number,
+            default: null
+        },
+        lastUpdated: {
+            type: Date,
+            default: null
         }
     }
-},{timestamps:true});
+}, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);
 export default User;

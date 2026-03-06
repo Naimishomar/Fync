@@ -15,6 +15,9 @@ import { useAuth } from "../context/auth.context";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import socket from "../utils/socket";
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 const ChatList = () => {
   const navigation = useNavigation<any>();
@@ -24,6 +27,8 @@ const ChatList = () => {
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+
 
   // 1. Create a Ref to store the timer ID
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -31,12 +36,71 @@ const ChatList = () => {
   useFocusEffect(
     useCallback(() => {
       loadChats();
-    }, [])
+      socket.emit("register", user._id);
+
+      socket.on("statusUpdate", ({ userId, status }: { userId: string, status: string }) => {
+        setOnlineUsers(prev => {
+          const next = new Set(prev);
+          if (status === "online") next.add(userId);
+          else next.delete(userId);
+          return next;
+        });
+      });
+
+      socket.on("initialOnlineList", (list: string[]) => {
+        setOnlineUsers(new Set(list));
+      });
+
+      // ✅ REAL-TIME UNREAD UPDATES
+      socket.on("unreadUpdate", (payload) => {
+        setConversations(prev => {
+          let updatedConvos = [...prev];
+          const convoIndex = updatedConvos.findIndex(c => c._id === payload.conversationId);
+
+          if (convoIndex > -1) {
+            const convo = updatedConvos[convoIndex];
+            const currentUnread = convo.unreadCount?.[user._id] || 0;
+
+            updatedConvos[convoIndex] = {
+              ...convo,
+              lastMessage: payload.lastMessage || convo.lastMessage,
+              updatedAt: payload.lastMessage ? payload.lastMessage.createdAt : convo.updatedAt,
+              unreadCount: {
+                ...convo.unreadCount,
+                [user._id]: payload.type === 'reset' ? 0 : payload.type === 'sent' ? currentUnread : currentUnread + 1
+              }
+            };
+
+            // Move to top if there's a new message
+            if (payload.lastMessage) {
+              const updatedConvo = updatedConvos.splice(convoIndex, 1)[0];
+              updatedConvos.unshift(updatedConvo);
+            }
+          } else if (payload.lastMessage) {
+            // New conversation scenario
+            loadChats();
+          }
+
+          return updatedConvos;
+        });
+      });
+
+
+      return () => {
+        socket.off("statusUpdate");
+        socket.off("initialOnlineList");
+        socket.off("unreadUpdate");
+      };
+
+
+    }, [user._id])
   );
+
 
   const loadChats = async () => {
     try {
-      const res = await axios.get("/chat/conversations");
+      // Force non-cached request to get accurate unread counts
+      const res = await axios.get("/chat/conversations", { params: { noCache: true } });
       setConversations(res.data.conversations || []);
     } catch (e) {
       console.log("Error loading chats", e);
@@ -44,6 +108,8 @@ const ChatList = () => {
       setLoading(false);
     }
   };
+
+
 
   const performSearch = async (text: string) => {
     if (!text.trim()) {
@@ -66,12 +132,12 @@ const ChatList = () => {
       clearTimeout(typingTimeoutRef.current);
     }
     if (text.trim() === "") {
-        setResults([]);
-        return;
+      setResults([]);
+      return;
     }
     typingTimeoutRef.current = setTimeout(() => {
       performSearch(text);
-    }, 1000); 
+    }, 1000);
   };
 
   const startChat = async (targetUser: any) => {
@@ -113,13 +179,17 @@ const ChatList = () => {
         activeOpacity={0.7}
       >
         <View className="relative">
-            <View className="h-14 w-14 rounded-full border border-white/10 bg-gray-800 justify-center items-center overflow-hidden">
-                <Image
-                    source={{ uri: otherUser?.avatar?.trim() || `https://ui-avatars.com/api/?name=${otherUser?.username}&background=random&color=fff` }}
-                    className="h-full w-full"
-                />
-            </View>
+          <View className="h-14 w-14 rounded-full border border-white/10 bg-gray-800 justify-center items-center overflow-hidden">
+            <Image
+              source={{ uri: otherUser?.avatar?.trim() || `https://ui-avatars.com/api/?name=${otherUser?.username}&background=random&color=fff` }}
+              className="h-full w-full"
+            />
+          </View>
+          {onlineUsers.has(otherUser?._id) && (
+            <View className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-black" />
+          )}
         </View>
+
 
         <View className="ml-4 flex-1 justify-center">
           <View className="flex-row items-center justify-between mb-1">
@@ -158,12 +228,18 @@ const ChatList = () => {
       onPress={() => startChat(item)}
       activeOpacity={0.7}
     >
-      <View className="h-12 w-12 rounded-full border border-white/10 bg-gray-800 justify-center items-center overflow-hidden">
+      <View className="relative">
+        <View className="h-12 w-12 rounded-full border border-white/10 bg-gray-800 justify-center items-center overflow-hidden">
           <Image
             source={{ uri: item.avatar?.trim() || `https://ui-avatars.com/api/?name=${item.username}&background=random&color=fff` }}
             className="h-full w-full"
           />
+        </View>
+        {onlineUsers.has(item._id) && (
+          <View className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-black" />
+        )}
       </View>
+
       <View className="ml-4 flex-1">
         <Text className="font-bold text-white text-base">
           {item.username}
@@ -179,16 +255,16 @@ const ChatList = () => {
   return (
     <View className="flex-1 bg-black">
       <StatusBar barStyle="light-content" />
-      
+
       {/* Background Gradient */}
       <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
 
       <SafeAreaView className="flex-1">
-        
+
         {/* HEADER */}
         <View className="flex-row items-center px-6 pt-4 mb-6">
-          <TouchableOpacity 
-            onPress={() => navigation.goBack()} 
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
             className="p-2 bg-white/10 rounded-full mr-4 border border-white/10"
           >
             <Ionicons name="chevron-back" size={24} color="white" />
@@ -221,34 +297,34 @@ const ChatList = () => {
 
         {/* LIST CONTENT */}
         {loading ? (
-            <View className="flex-1 justify-center items-center">
-                <ActivityIndicator size="large" color="#ec4899" />
-            </View>
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#ec4899" />
+          </View>
         ) : (
-            <FlatList
-              data={search.length > 0 ? results : conversations}
-              keyExtractor={(item) => item._id}
-              renderItem={search.length > 0 ? renderUser : renderConversation}
-              contentContainerStyle={{ paddingBottom: 20 }}
-              showsVerticalScrollIndicator={false}
-              ListEmptyComponent={
-                <View className="flex-1 items-center justify-center mt-20 opacity-50">
-                  <Ionicons 
-                      name={search.length > 0 ? "person-remove-outline" : "chatbubbles-outline"} 
-                      size={64} 
-                      color="gray" 
-                  />
-                  <Text className="text-center text-gray-400 mt-4 text-lg font-bold">
-                    {search.length > 0
-                      ? "No users found"
-                      : "No conversations yet"}
-                  </Text>
-                  {search.length === 0 && (
-                      <Text className="text-gray-500 text-sm mt-2 font-medium">Start searching to chat!</Text>
-                  )}
-                </View>
-              }
-            />
+          <FlatList
+            data={search.length > 0 ? results : conversations}
+            keyExtractor={(item) => item._id}
+            renderItem={search.length > 0 ? renderUser : renderConversation}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View className="flex-1 items-center justify-center mt-20 opacity-50">
+                <Ionicons
+                  name={search.length > 0 ? "person-remove-outline" : "chatbubbles-outline"}
+                  size={64}
+                  color="gray"
+                />
+                <Text className="text-center text-gray-400 mt-4 text-lg font-bold">
+                  {search.length > 0
+                    ? "No users found"
+                    : "No conversations yet"}
+                </Text>
+                {search.length === 0 && (
+                  <Text className="text-gray-500 text-sm mt-2 font-medium">Start searching to chat!</Text>
+                )}
+              </View>
+            }
+          />
         )}
       </SafeAreaView>
     </View>

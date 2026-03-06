@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Text, 
-  Image, 
-  View, 
-  Pressable, 
-  FlatList, 
-  Dimensions, 
+import {
+  Text,
+  Image,
+  View,
+  Pressable,
+  FlatList,
+  Dimensions,
   RefreshControl,
   Linking
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Video, ResizeMode } from 'expo-av';
 import { useAuth } from '../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
@@ -50,7 +51,7 @@ type PostType = {
 type ShortType = {
   _id: string;
   title: string;
-  video: string; 
+  video: string;
   thumbnail?: string;
   views: number;
 };
@@ -58,10 +59,10 @@ type ShortType = {
 function Profile() {
   const { user, logout } = useAuth();
   const navigation = useNavigation<any>();
-  
+
   const [posts, setPosts] = useState<PostType[]>([]);
   const [shorts, setShorts] = useState<ShortType[]>([]);
-  
+
   const [activeTab, setActiveTab] = useState<'grid' | 'list' | 'tags'>('grid');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -78,7 +79,7 @@ function Profile() {
 
   const getShorts = async () => {
     try {
-      const res = await axios.get('/shorts/get/yours'); 
+      const res = await axios.get('/shorts/get/yours');
       if (res.data.success) {
         setShorts(res.data.shorts);
       }
@@ -106,63 +107,63 @@ function Profile() {
   // --- ABOUT SECTION ---
   const AboutSection = () => (
     <View className="px-4 py-6 bg-black pb-20">
-        {user?.about && (
-            <View className="mb-6">
-                <Text className="text-gray-500 text-xs font-bold uppercase mb-2 tracking-wider">About</Text>
-                <Text className="text-gray-200 text-base leading-relaxed">{user.about}</Text>
+      {user?.about && (
+        <View className="mb-6">
+          <Text className="text-gray-500 text-xs font-bold uppercase mb-2 tracking-wider">About</Text>
+          <Text className="text-gray-200 text-base leading-relaxed">{user.about}</Text>
+        </View>
+      )}
+      {user?.skills && user.skills.length > 0 ? (
+        <View className="mb-6">
+          <Text className="text-gray-500 text-xs font-bold uppercase mb-2 tracking-wider">Skills</Text>
+          <View className="flex-row flex-wrap gap-2">
+            {user.skills.map((skill: string, index: number) => (
+              <View key={index} className="bg-blue-900/20 px-3 py-1.5 rounded-lg border border-blue-500/30">
+                <Text className="text-blue-300 font-medium text-sm">{skill}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+      {user?.experience ? (
+        <View className="mb-6">
+          <Text className="text-gray-500 text-xs font-bold uppercase mb-2 tracking-wider">Experience</Text>
+          <View className="flex-row items-start bg-gray-900/50 p-3 rounded-xl border border-gray-800">
+            <View className="bg-gray-800 p-2 rounded-lg mr-3">
+              <Ionicons name="briefcase" size={20} color="#f9a8d4" />
             </View>
-        )}
-         {user?.skills && user.skills.length > 0 ? (
-            <View className="mb-6">
-                <Text className="text-gray-500 text-xs font-bold uppercase mb-2 tracking-wider">Skills</Text>
-                <View className="flex-row flex-wrap gap-2">
-                    {user.skills.map((skill: string, index: number) => (
-                        <View key={index} className="bg-blue-900/20 px-3 py-1.5 rounded-lg border border-blue-500/30">
-                            <Text className="text-blue-300 font-medium text-sm">{skill}</Text>
-                        </View>
-                    ))}
-                </View>
-            </View>
-        ) : null}
-         {user?.experience ? (
-            <View className="mb-6">
-                <Text className="text-gray-500 text-xs font-bold uppercase mb-2 tracking-wider">Experience</Text>
-                <View className="flex-row items-start bg-gray-900/50 p-3 rounded-xl border border-gray-800">
-                    <View className="bg-gray-800 p-2 rounded-lg mr-3">
-                        <Ionicons name="briefcase" size={20} color="#f9a8d4" />
-                    </View>
-                    <Text className="text-white text-base flex-1 mt-1">{user.experience}</Text>
-                </View>
-            </View>
-        ) : null}
-        {/* Linkedin/Github */}
-        {(user?.github_id || user?.linkedIn_id) ? (
-            <View className="mb-6">
-                <Text className="text-gray-500 text-xs font-bold uppercase mb-2 tracking-wider">Socials</Text>
-                <View className="gap-3">
-                    {user?.github_id ? (
-                        <Pressable 
-                            onPress={() => Linking.openURL(user.github_id!)}
-                            className="flex-row items-center bg-gray-900/50 px-4 py-3 rounded-xl border border-gray-800"
-                        >
-                            <Ionicons name="logo-github" size={22} color="gray" />
-                            <Text className="text-gray-400 ml-3 font-medium">GitHub Profile</Text>
-                            <Ionicons name="open-outline" size={16} color="gray" style={{marginLeft: 'auto'}} />
-                        </Pressable>
-                    ) : null}
-                    {user?.linkedIn_id ? (
-                        <Pressable 
-                            onPress={() => Linking.openURL(user.linkedIn_id!)}
-                            className="flex-row items-center bg-gray-900/50 px-4 py-3 rounded-xl border border-gray-800"
-                        >
-                            <Ionicons name="logo-linkedin" size={22} color="#0077b5" />
-                            <Text className="text-blue-400 ml-3 font-medium">LinkedIn Profile</Text>
-                            <Ionicons name="open-outline" size={16} color="gray" style={{marginLeft: 'auto'}} />
-                        </Pressable>
-                    ) : null}
-                </View>
-            </View>
-        ) : null}
+            <Text className="text-white text-base flex-1 mt-1">{user.experience}</Text>
+          </View>
+        </View>
+      ) : null}
+      {/* Linkedin/Github */}
+      {(user?.github_id || user?.linkedIn_id) ? (
+        <View className="mb-6">
+          <Text className="text-gray-500 text-xs font-bold uppercase mb-2 tracking-wider">Socials</Text>
+          <View className="gap-3">
+            {user?.github_id ? (
+              <Pressable
+                onPress={() => Linking.openURL(user.github_id!)}
+                className="flex-row items-center bg-gray-900/50 px-4 py-3 rounded-xl border border-gray-800"
+              >
+                <Ionicons name="logo-github" size={22} color="gray" />
+                <Text className="text-gray-400 ml-3 font-medium">GitHub Profile</Text>
+                <Ionicons name="open-outline" size={16} color="gray" style={{ marginLeft: 'auto' }} />
+              </Pressable>
+            ) : null}
+            {user?.linkedIn_id ? (
+              <Pressable
+                onPress={() => Linking.openURL(user.linkedIn_id!)}
+                className="flex-row items-center bg-gray-900/50 px-4 py-3 rounded-xl border border-gray-800"
+              >
+                <Ionicons name="logo-linkedin" size={22} color="#0077b5" />
+                <Text className="text-blue-400 ml-3 font-medium">LinkedIn Profile</Text>
+                <Ionicons name="open-outline" size={16} color="gray" style={{ marginLeft: 'auto' }} />
+              </Pressable>
+            ) : null}
+          </View>
+        </View>
+      ) : null}
     </View>
   );
 
@@ -202,11 +203,11 @@ function Profile() {
             <Text className="text-white text-lg font-bold">{posts.length}</Text>
             <Text className="text-white text-sm">Posts</Text>
           </Pressable>
-          <Pressable className="items-center" onPress={()=> navigation.navigate('FollowersAndFollowing', {userId: user._id, type: 'followers'})}>
+          <Pressable className="items-center" onPress={() => navigation.navigate('FollowersAndFollowing', { userId: user._id, type: 'followers' })}>
             <Text className="text-white text-lg font-bold">{user?.followers?.length || 0}</Text>
             <Text className="text-white text-sm">Followers</Text>
           </Pressable>
-          <Pressable className="items-center" onPress={()=> navigation.navigate('FollowersAndFollowing', {userId: user._id, type: 'following'})}>
+          <Pressable className="items-center" onPress={() => navigation.navigate('FollowersAndFollowing', { userId: user._id, type: 'following' })}>
             <Text className="text-white text-lg font-bold">{user?.following?.length || 0}</Text>
             <Text className="text-white text-sm">Following</Text>
           </Pressable>
@@ -249,39 +250,51 @@ function Profile() {
   const renderGridItem = ({ item, isShort }: { item: any, isShort?: boolean }) => (
     <Pressable onPress={() => {
       if (isShort) {
-          navigation.navigate('IndividualPostOrShort', { shortId: item._id });
+        navigation.navigate('IndividualPostOrShort', { shortId: item._id });
       } else {
-          navigation.navigate('IndividualPostOrShort', { postId: item._id });
+        navigation.navigate('IndividualPostOrShort', { postId: item._id });
       }
-      }} className="border border-black relative" style={{ width: COLUMN_SIZE, height: isShort ? COLUMN_SIZE * 1.5 : COLUMN_SIZE }}>
-      
-      {/* Thumbnail / Image */}
-      {(item.image && item.image.length > 0) || item.thumbnail || item.video ? (
-        <Image 
-            source={{ uri: isShort ? (item.thumbnail || 'https://via.placeholder.com/150/000000/FFFFFF/?text=Short') : item.image[0] }} 
-            className="w-full h-full" 
-            resizeMode="cover" 
+    }} className="border border-black relative" style={{ width: COLUMN_SIZE, height: isShort ? COLUMN_SIZE * 1.5 : COLUMN_SIZE }}>
+
+      {/* Thumbnail / Image / Video Frame */}
+      {isShort ? (
+        <View className="w-full h-full bg-gray-900 overflow-hidden">
+          <Video
+            source={{ uri: item.video }}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode={ResizeMode.COVER}
+            shouldPlay={false}
+            positionMillis={100} // Small offset to ensure first frame is rendered
+          />
+          {/* Dark gradient overlay for title/views visibility */}
+          <View className="absolute bottom-0 w-full h-1/2 bg-gradient-to-t from-black/80 to-transparent" />
+        </View>
+      ) : (item.image && item.image.length > 0) ? (
+        <Image
+          source={{ uri: item.image[0] }}
+          className="w-full h-full"
+          resizeMode="cover"
         />
       ) : (
         <View className="w-full h-full bg-gray-800 items-center justify-center">
-           <Text className="text-gray-500 text-xs p-2 text-center" numberOfLines={3}>{item.title}</Text>
+          <Text className="text-gray-500 text-xs p-2 text-center" numberOfLines={3}>{item.title}</Text>
         </View>
       )}
 
       {/* --- MULTIPLE IMAGES INDICATOR (LIKE INSTA) --- */}
       {!isShort && item.image && item.image.length > 1 && (
         <View className="absolute top-2 right-2 bg-black/50 px-2 py-1 rounded-full flex-row items-center gap-1">
-            <Ionicons name="copy-outline" size={12} color="white" />
-            <Text className="text-white text-[10px] font-bold">{item.image.length}</Text>
+          <Ionicons name="copy-outline" size={12} color="white" />
+          <Text className="text-white text-[10px] font-bold">{item.image.length}</Text>
         </View>
       )}
 
       {/* Shorts Overlay */}
       {isShort && (
-          <View className="absolute inset-0 items-center justify-center bg-black/20">
-              <Ionicons name="play-outline" size={32} color="white" />
-              <Text className="text-white text-xs font-bold absolute bottom-2 left-2">{item.views || 0} views</Text>
-          </View>
+        <View className="absolute inset-0 items-center justify-center bg-black/20">
+          <Ionicons name="play-outline" size={32} color="white" />
+          <Text className="text-white text-xs font-bold absolute bottom-2 left-2">{item.views || 0} views</Text>
+        </View>
       )}
     </Pressable>
   );
@@ -289,52 +302,52 @@ function Profile() {
   return (
     <SafeAreaView className="flex-1 bg-black">
       {renderHeader()}
-      
+
       <FlatList
-        key={activeTab} 
-        
+        key={activeTab}
+
         data={
-            activeTab === 'grid' ? posts : 
-            activeTab === 'list' ? shorts : 
-            ['ABOUT_VIEW']
+          activeTab === 'grid' ? posts :
+            activeTab === 'list' ? shorts :
+              ['ABOUT_VIEW'] as any
         }
         keyExtractor={(item, index) => (typeof item === 'string' ? item : item._id)}
-        
-        numColumns={activeTab === 'tags' ? 1 : 3} 
-        
+
+        numColumns={activeTab === 'tags' ? 1 : 3}
+
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
         }
-        
+
         ListHeaderComponent={
           <>
             {renderProfileInfo()}
             {renderTabBar()}
           </>
         }
-        
+
         renderItem={({ item }) => {
-            if (activeTab === 'tags') {
-                return <AboutSection />;
-            }
-            if (activeTab === 'grid') {
-                return renderGridItem({ item: item as PostType, isShort: false });
-            }
-            if (activeTab === 'list') {
-                return renderGridItem({ item: item as unknown as ShortType, isShort: true });
-            }
-            return null;
+          if (activeTab === 'tags') {
+            return <AboutSection />;
+          }
+          if (activeTab === 'grid') {
+            return renderGridItem({ item: item as PostType, isShort: false });
+          }
+          if (activeTab === 'list') {
+            return renderGridItem({ item: item as unknown as ShortType, isShort: true });
+          }
+          return null;
         }}
 
         ListEmptyComponent={
           activeTab !== 'tags' ? (
             <View className="items-center justify-center py-20">
-                <View className="w-24 h-24 rounded-full border-2 border-white items-center justify-center mb-4">
-                    <Ionicons name={activeTab === 'list' ? "videocam-outline" : "camera-outline"} size={48} color="white" />
-                </View>
-                <Text className="text-white text-xl font-bold">
-                    {activeTab === 'list' ? "No Shorts Yet" : "No Posts Yet"}
-                </Text>
+              <View className="w-24 h-24 rounded-full border-2 border-white items-center justify-center mb-4">
+                <Ionicons name={activeTab === 'list' ? "videocam-outline" : "camera-outline"} size={48} color="white" />
+              </View>
+              <Text className="text-white text-xl font-bold">
+                {activeTab === 'list' ? "No Shorts Yet" : "No Posts Yet"}
+              </Text>
             </View>
           ) : null
         }

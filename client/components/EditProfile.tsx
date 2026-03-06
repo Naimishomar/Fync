@@ -28,7 +28,7 @@ export default function EditProfile() {
   const [bio, setBio] = useState(user?.bio || '');
   const [about, setAbout] = useState(user?.about || '');
   const [experience, setExperience] = useState(user?.experience || '');
-  
+
   // --- Arrays / Tags ---
   const [skills, setSkills] = useState<string[]>(user?.skills || []);
   const [skillInput, setSkillInput] = useState('');
@@ -39,10 +39,11 @@ export default function EditProfile() {
   // --- Social Links ---
   const [githubId, setGithubId] = useState(user?.github_id || '');
   const [linkedinId, setLinkedinId] = useState(user?.linkedIn_id || '');
-  
+
   // --- Coding Profiles (New) ---
   const [leetcodeId, setLeetcodeId] = useState(user?.codingProfiles?.leetcode || '');
   const [gfgId, setGfgId] = useState(user?.codingProfiles?.gfg || '');
+  const [upiId, setUpiId] = useState(user?.upiId || '');
 
   // --- Images ---
   const [avatar, setAvatar] = useState(user?.avatar || null);
@@ -103,9 +104,10 @@ export default function EditProfile() {
       formData.append('linkedIn_id', linkedinId);
       formData.append('leetcode', leetcodeId);
       formData.append('gfg', gfgId);
+      formData.append('upiId', upiId);
 
       skills.forEach((skill) => {
-        formData.append('skills', skill); 
+        formData.append('skills', skill);
       });
 
       // Append Avatar
@@ -165,22 +167,22 @@ export default function EditProfile() {
       </View>
 
       <ScrollView className="p-4" showsVerticalScrollIndicator={false}>
-        
+
         {/* --- Banner Image --- */}
         <Pressable onPress={() => pickImage('banner')} className="mb-6">
-            <View className="h-32 w-full bg-gray-800 rounded-xl overflow-hidden border border-gray-700 justify-center items-center">
-                {banner ? (
-                    <Image source={{ uri: banner }} className="w-full h-full" resizeMode="cover" />
-                ) : (
-                    <View className="items-center">
-                        <Ionicons name="image-outline" size={30} color="#9ca3af" />
-                        <Text className="text-gray-400 text-xs mt-1">Tap to add banner</Text>
-                    </View>
-                )}
-                <View className="absolute bg-black/40 p-2 rounded-full">
-                    <Ionicons name="camera-outline" size={20} color="white" />
-                </View>
+          <View className="h-32 w-full bg-gray-800 rounded-xl overflow-hidden border border-gray-700 justify-center items-center">
+            {banner ? (
+              <Image source={{ uri: banner }} className="w-full h-full" resizeMode="cover" />
+            ) : (
+              <View className="items-center">
+                <Ionicons name="image-outline" size={30} color="#9ca3af" />
+                <Text className="text-gray-400 text-xs mt-1">Tap to add banner</Text>
+              </View>
+            )}
+            <View className="absolute bg-black/40 p-2 rounded-full">
+              <Ionicons name="camera-outline" size={20} color="white" />
             </View>
+          </View>
         </Pressable>
 
         {/* --- Avatar Image --- */}
@@ -191,7 +193,7 @@ export default function EditProfile() {
               className="h-24 w-24 rounded-full border-4 border-black bg-gray-800"
             />
             <View className="absolute bottom-0 right-0 bg-blue-600 p-1.5 rounded-full border-2 border-black">
-                <Ionicons name="pencil" size={14} color="white" />
+              <Ionicons name="pencil" size={14} color="white" />
             </View>
           </Pressable>
           <Text className="text-blue-500 text-sm font-semibold mt-2">Change Profile Photo</Text>
@@ -199,10 +201,10 @@ export default function EditProfile() {
 
         {/* --- Form Fields --- */}
         <View className="space-y-5 pb-10">
-          
+
           <InputGroup label="Name" value={name} onChange={setName} placeholder="Your Name" />
           <InputGroup label="Username" value={username} onChange={setUsername} placeholder="username" />
-          
+
           <InputGroup label="Bio" value={bio} onChange={setBio} placeholder="Short bio..." multiline />
           <InputGroup label="About" value={about} onChange={setAbout} placeholder="Tell us more about yourself..." multiline />
 
@@ -210,21 +212,21 @@ export default function EditProfile() {
           <View>
             <Text className="text-gray-400 text-sm mb-2 ml-1">Skills (Type & comma to add)</Text>
             <View className="bg-gray-900 rounded-xl p-3 flex-row flex-wrap gap-2 border border-gray-800">
-               {skills.map((skill, index) => (
-                   <View key={index} className="bg-blue-900/50 border border-blue-500/30 px-3 py-1.5 rounded-full flex-row items-center">
-                       <Text className="text-blue-100 font-medium mr-1">{skill}</Text>
-                       <Pressable onPress={() => removeSkill(index)}>
-                           <Ionicons name="close-circle" size={16} color="#93c5fd" />
-                       </Pressable>
-                   </View>
-               ))}
-               <TextInput
-                  value={skillInput}
-                  onChangeText={handleSkillInput}
-                  placeholder={skills.length > 0 ? "" : "React, Node.js, Design..."}
-                  placeholderTextColor="#6b7280"
-                  className="text-white min-w-[100px] flex-1 py-1"
-               />
+              {skills.map((skill, index) => (
+                <View key={index} className="bg-blue-900/50 border border-blue-500/30 px-3 py-1.5 rounded-full flex-row items-center">
+                  <Text className="text-blue-100 font-medium mr-1">{skill}</Text>
+                  <Pressable onPress={() => removeSkill(index)}>
+                    <Ionicons name="close-circle" size={16} color="#93c5fd" />
+                  </Pressable>
+                </View>
+              ))}
+              <TextInput
+                value={skillInput}
+                onChangeText={handleSkillInput}
+                placeholder={skills.length > 0 ? "" : "React, Node.js, Design..."}
+                placeholderTextColor="#6b7280"
+                className="text-white min-w-[100px] flex-1 py-1"
+              />
             </View>
           </View>
 
@@ -232,68 +234,80 @@ export default function EditProfile() {
           <InputGroup label="Interests" value={interest} onChange={setInterest} placeholder="e.g. AI, Web3, Cycling" />
           <InputGroup label="Hobbies" value={hobbies} onChange={setHobbies} placeholder="Reading, Gaming..." />
 
+          <View className="bg-green-900/10 p-3 rounded-xl border border-green-500/20 mt-2">
+            <InputGroup
+              label="UPI ID (For receiving tips/payments)"
+              value={upiId}
+              onChange={setUpiId}
+              placeholder="yourname@upi"
+            />
+            <Text className="text-green-500/60 text-[10px] mt-1 ml-1 font-medium italic">
+              * Other users will use this ID to pay you for your content.
+            </Text>
+          </View>
+
           {/* --- Social & Coding Links --- */}
           <View className="pt-4 border-t border-gray-800 mt-2">
-              <Text className="text-gray-300 font-bold mb-4 text-lg">Social & Coding Profiles</Text>
-              
-              {/* GitHub */}
-              <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800 mb-3">
-                  <Ionicons name="logo-github" size={24} color="white" />
-                  <TextInput
-                    value={githubId}
-                    onChangeText={setGithubId}
-                    placeholder="Github Username"
-                    placeholderTextColor="#666"
-                    className="flex-1 text-white p-3.5 ml-2"
-                  />
-              </View>
+            <Text className="text-gray-300 font-bold mb-4 text-lg">Social & Coding Profiles</Text>
 
-              {/* LinkedIn */}
-              <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800 mb-3">
-                  <Ionicons name="logo-linkedin" size={24} color="#0077b5" />
-                  <TextInput
-                    value={linkedinId}
-                    onChangeText={setLinkedinId}
-                    placeholder="LinkedIn Profile URL"
-                    placeholderTextColor="#666"
-                    className="flex-1 text-white p-3.5 ml-2"
-                  />
-              </View>
+            {/* GitHub */}
+            <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800 mb-3">
+              <Ionicons name="logo-github" size={24} color="white" />
+              <TextInput
+                value={githubId}
+                onChangeText={setGithubId}
+                placeholder="Github Username"
+                placeholderTextColor="#666"
+                className="flex-1 text-white p-3.5 ml-2"
+              />
+            </View>
 
-              {/* LeetCode */}
-              <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800 mb-3">
-                  <Image 
-                    source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png" }} 
-                    width={16} height={16}
-                    className="w-6 h-6"
-                    style={{ tintColor: '#facc15' }}
-                    resizeMode="contain"
-                  />
-                  <TextInput
-                    value={leetcodeId}
-                    onChangeText={setLeetcodeId}
-                    placeholder="LeetCode Username"
-                    placeholderTextColor="#666"
-                    className="flex-1 text-white p-3.5 ml-2"
-                  />
-              </View>
+            {/* LinkedIn */}
+            <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800 mb-3">
+              <Ionicons name="logo-linkedin" size={24} color="#0077b5" />
+              <TextInput
+                value={linkedinId}
+                onChangeText={setLinkedinId}
+                placeholder="LinkedIn Profile URL"
+                placeholderTextColor="#666"
+                className="flex-1 text-white p-3.5 ml-2"
+              />
+            </View>
 
-              {/* GeeksForGeeks */}
-              <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800 mb-3">
-                  <Image 
-                    source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/4/43/GeeksforGeeks.svg" }} 
-                    width={6} height={6}
-                    className="w-6 h-6"
-                    resizeMode="contain"
-                  />
-                  <TextInput
-                    value={gfgId}
-                    onChangeText={setGfgId}
-                    placeholder="GeeksforGeeks Username"
-                    placeholderTextColor="#666"
-                    className="flex-1 text-white p-3.5 ml-2"
-                  />
-              </View>
+            {/* LeetCode */}
+            <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800 mb-3">
+              <Image
+                source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png" }}
+                width={16} height={16}
+                className="w-6 h-6"
+                style={{ tintColor: '#facc15' }}
+                resizeMode="contain"
+              />
+              <TextInput
+                value={leetcodeId}
+                onChangeText={setLeetcodeId}
+                placeholder="LeetCode Username"
+                placeholderTextColor="#666"
+                className="flex-1 text-white p-3.5 ml-2"
+              />
+            </View>
+
+            {/* GeeksForGeeks */}
+            <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800 mb-3">
+              <Image
+                source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/4/43/GeeksforGeeks.svg" }}
+                width={6} height={6}
+                className="w-6 h-6"
+                resizeMode="contain"
+              />
+              <TextInput
+                value={gfgId}
+                onChangeText={setGfgId}
+                placeholder="GeeksforGeeks Username"
+                placeholderTextColor="#666"
+                className="flex-1 text-white p-3.5 ml-2"
+              />
+            </View>
           </View>
 
         </View>
@@ -304,16 +318,16 @@ export default function EditProfile() {
 
 // --- Reusable Input Component ---
 const InputGroup = ({ label, value, onChange, placeholder, multiline = false }: any) => (
-    <View>
-        <Text className="text-gray-400 text-sm mb-1.5 ml-1">{label}</Text>
-        <TextInput
-            value={value}
-            onChangeText={onChange}
-            className={`bg-gray-900 text-white p-3.5 rounded-xl text-base border border-gray-800 ${multiline ? 'min-h-[80px]' : ''}`}
-            placeholder={placeholder}
-            placeholderTextColor="#525252"
-            multiline={multiline}
-            textAlignVertical={multiline ? 'top' : 'center'}
-        />
-    </View>
+  <View>
+    <Text className="text-gray-400 text-sm mb-1.5 ml-1">{label}</Text>
+    <TextInput
+      value={value}
+      onChangeText={onChange}
+      className={`bg-gray-900 text-white p-3.5 rounded-xl text-base border border-gray-800 ${multiline ? 'min-h-[80px]' : ''}`}
+      placeholder={placeholder}
+      placeholderTextColor="#525252"
+      multiline={multiline}
+      textAlignVertical={multiline ? 'top' : 'center'}
+    />
+  </View>
 );
