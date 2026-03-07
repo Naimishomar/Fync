@@ -8,7 +8,7 @@ dotenv.config({ quiet: true });
 let upload;
 let videoUpload;
 let audioUpload;
-let storyUpload;
+let collegeChatUpload;
 
 export const getCloudinaryPublicId = (url) => {
   try {
@@ -89,19 +89,19 @@ try {
   audioUpload = multer({
     storage: audioStorage,
     limits: { fileSize: 1024 * 1024 * 10 },
-  })
-  const storyStorage = new CloudinaryStorage({
+  });
+
+  const collegeChatStorage = new CloudinaryStorage({
     cloudinary,
     params: {
-      folder: "stories",
+      folder: "college_chats",
       resource_type: "auto",
-      allowed_formats: ["jpg", "jpeg", "png", "mp4", "mov"],
     },
   });
 
-  storyUpload = multer({
-    storage: storyStorage,
-    limits: { fileSize: 1024 * 1024 * 20 }, // 20MB
+  collegeChatUpload = multer({
+    storage: collegeChatStorage,
+    limits: { fileSize: 1024 * 1024 * 50 }, // 50MB for whatsapp-like limits
   });
 
   console.log("✅ Cloudinary initialized successfully");
@@ -111,4 +111,4 @@ try {
   process.exit(1);
 }
 
-export { cloudinary, upload, videoUpload, audioUpload, storyUpload };
+export { cloudinary, upload, videoUpload, audioUpload, collegeChatUpload };

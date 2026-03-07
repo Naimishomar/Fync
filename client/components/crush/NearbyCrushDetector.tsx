@@ -27,10 +27,9 @@ const NearbyCrushDetector = () => {
         let intervalId: any;
 
         const startDetection = async () => {
-            const { status } = await Location.requestForegroundPermissionsAsync();
+            const { status } = await Location.getForegroundPermissionsAsync();
             if (status !== 'granted') {
-                console.log('Location permission denied');
-                return;
+                return; // Do not request permission automatically
             }
             setIsDetecting(true);
 
@@ -46,6 +45,23 @@ const NearbyCrushDetector = () => {
                 if (force) DeviceEventEmitter.emit('crush-scan-finished');
                 return;
             }
+
+            if (force) {
+                const { status } = await Location.requestForegroundPermissionsAsync();
+                if (status !== 'granted') {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Location Required 🗺️',
+                        text2: "We need location to find your crushes."
+                    });
+                    DeviceEventEmitter.emit('crush-scan-finished');
+                    return;
+                }
+            } else {
+                const { status } = await Location.getForegroundPermissionsAsync();
+                if (status !== 'granted') return;
+            }
+
             isUpdating.current = true;
             try {
                 const location = await Location.getCurrentPositionAsync({
@@ -62,11 +78,19 @@ const NearbyCrushDetector = () => {
                     if (res.data.nearby.length > 0) {
                         processNearby(res.data.nearby, force);
                     } else if (force) {
-                        Toast.show({
-                            type: 'info',
-                            text1: 'No crushes nearby 🧊',
-                            text2: "Keep looking, maybe they're just not here right now."
-                        });
+                        if (res.data.crushesWithoutLocation && res.data.crushesWithoutLocation > 0) {
+                            Toast.show({
+                                type: 'info',
+                                text1: 'Radar Empty 📡',
+                                text2: "Your crush hasn't shared their location yet."
+                            });
+                        } else {
+                            Toast.show({
+                                type: 'info',
+                                text1: 'No crushes nearby 🧊',
+                                text2: "Keep looking, maybe they're just not here right now."
+                            });
+                        }
                     }
                 }
             } catch (err) {

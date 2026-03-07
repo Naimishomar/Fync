@@ -276,7 +276,7 @@ const ChatList = () => {
 
         {/* SEARCH BAR */}
         <View className="px-6 mb-4">
-          <View className="flex-row items-center bg-[#2a2a2a] rounded-2xl px-4 py-3.5 border border-white/10 shadow-lg">
+          <View className="flex-row items-center bg-[#2a2a2a] rounded-2xl px-4 py-3.5 border border-white/10 shadow-lg mb-3">
             <Ionicons name="search" size={20} color="#ec4899" />
             <TextInput
               value={search}
@@ -293,6 +293,27 @@ const ChatList = () => {
               </TouchableOpacity>
             )}
           </View>
+
+          {/* College Community Chat Button */}
+          {user?.college && search.length === 0 && (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate("CollegeChatScreen")}
+              className="flex-row items-center justify-between bg-zinc-800/80 rounded-2xl p-4 border border-zinc-700/50 shadow-sm"
+            >
+              <View className="flex-row items-center flex-1">
+                <View className="w-12 h-12 rounded-full bg-pink-500/20 items-center justify-center border border-pink-500/30 mr-4">
+                  <Ionicons name="school" size={24} color="#ec4899" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-white font-bold text-lg">{user.college} Campus Area</Text>
+                  <Text className="text-gray-400 text-xs mt-0.5">24hr automatically expiring group chat</Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#6b7280" />
+            </TouchableOpacity>
+          )}
+
         </View>
 
         {/* LIST CONTENT */}

@@ -56,7 +56,8 @@
         "foregroundImage": "./assets/square_logo.png",
         "backgroundColor": "#000"
       },
-      "package": "com.anonymous.client"
+      "package": "com.anonymous.client",
+      "softwareKeyboardLayoutMode": "pan"
     }
   }
 }

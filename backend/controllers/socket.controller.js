@@ -41,6 +41,16 @@ export const socketController = (io) => {
       socket.join(conversationId);
     });
 
+    socket.on("join_college_room", ({ collegeName }) => {
+      if (!collegeName) return;
+      socket.join(`college_${collegeName}`);
+    });
+
+    socket.on("leave_college_room", ({ collegeName }) => {
+      if (!collegeName) return;
+      socket.leave(`college_${collegeName}`);
+    });
+
     socket.on("sendMessage", async ({ conversationId, senderId, text }) => {
       try {
         if (!conversationId || !senderId || !text?.trim()) return;

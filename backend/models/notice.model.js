@@ -2,39 +2,43 @@ import mongoose from "mongoose";
 import { create } from "qrcode";
 
 const noticeSchema = new mongoose.Schema({
-    title:{
+    title: {
         type: String,
         required: true
     },
-    description:{
+    description: {
         type: String,
         required: true
     },
-    link:{
+    link: {
         type: String,
     },
-    image:{
+    image: {
         type: [String],
     },
-    user:{
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
     },
-    college:{
+    college: {
         type: String,
         required: true
     },
+    isGlobal: {
+        type: Boolean,
+        default: false,
+    },
     comments: {
         type: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Comment",
-        },
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Comment",
+            },
         ],
         default: [],
     },
-    createdAt:{
+    createdAt: {
         type: Date,
         default: Date.now,
         index: { expires: '7d' }

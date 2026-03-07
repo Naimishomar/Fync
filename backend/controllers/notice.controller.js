@@ -3,6 +3,7 @@ import Comment from "../models/comment.model.js";
 import { tryCatch } from "bullmq";
 import User from "../models/user.model.js";
 import { deleteFromCloudinary } from "../utils/cloudinary.js";
+import crypto from 'crypto';
 
 export const createNotice = async (req, res) => {
     try {
@@ -33,25 +34,41 @@ export const createNotice = async (req, res) => {
 
 export const createGlobalNotice = async (req, res) => {
     try {
-        const { title, description, link } = req.body;
+        const { title, description, link, paymentRefId, razorpay_order_id, razorpay_signature } = req.body;
         if (!title || !description) {
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
+
+        const isAdmin = req.user.email === "naimishomar@gmail.com" || req.user.email === process.env.ADMIN_EMAIL;
+
+        if (!isAdmin) {
+            if (!paymentRefId || !razorpay_order_id || !razorpay_signature) {
+                return res.status(400).json({ success: false, message: "Payment verification required for global post" });
+            }
+            const body = razorpay_order_id + "|" + paymentRefId;
+            const expectedSignature = crypto
+                .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+                .update(body.toString())
+                .digest("hex");
+
+            if (expectedSignature !== razorpay_signature) {
+                return res.status(400).json({ success: false, message: "Invalid payment signature" });
+            }
+        }
+
         let noticeImage = "";
         if (req.files && req.files.length > 0) {
             noticeImage = req.files.map(file => file.path);
         }
-        if (req.user.email !== process.env.ADMIN_EMAIL) {
-            return res.status(403).json({ success: false, message: "Not authorized" });
-        }
-        const user = await User.findOne({ email: process.env.ADMIN_EMAIL });
+
         const notice = await Notice.create({
             title,
             description,
             link,
             image: noticeImage,
-            user: user._id,
-            college: user.college,
+            user: req.user.id,
+            college: req.user.college,
+            isGlobal: true,
         })
         return res.status(200).json({ success: true, message: "Notice created successfully", notice });
     } catch (error) {
@@ -62,21 +79,24 @@ export const createGlobalNotice = async (req, res) => {
 
 export const getGlobalNotices = async (req, res) => {
     try {
-        const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-        const user = await User.findOne({ email: ADMIN_EMAIL });
-        if (!user) {
-            return res.status(200).json({ success: true, message: "No admin configured", notices: [] });
-        }
-        const { page = 1, limit = 10 } = req.query;
-        const skip = (page - 1) * limit;
+        const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "naimishomar@gmail.com";
+        const adminUser = await User.findOne({ email: ADMIN_EMAIL });
 
-        const notices = await Notice.find({ user: user._id })
+        let query = { isGlobal: true }; 
+        if (adminUser) {
+            query = { $or: [{ isGlobal: true }, { user: adminUser._id }] };  
+        } 
+ 
+        const { page = 1, limit = 10 } = req.query;
+        const skip = (page - 1) * limit; 
+ 
+        const notices = await Notice.find(query)
             .sort({ createdAt: -1 })
             .populate("user", "name avatar username")
             .skip(skip)
             .limit(Number(limit));
 
-        const total = await Notice.countDocuments({ user: user._id });
+        const total = await Notice.countDocuments(query);
 
         return res.status(200).json({
             success: true,

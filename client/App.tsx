@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 import React, { useEffect } from "react";
-import { View, ActivityIndicator, Image, Alert } from "react-native";
+import { View, ActivityIndicator, Image, Alert, KeyboardAvoidingView, Platform } from "react-native";
 import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -74,6 +74,7 @@ import CampusTravel from 'components/newFeatures/CampusTravel';
 import StudyAssistant from 'components/newFeatures/StudyAssistant';
 import WifiSettingsScreen from 'components/newFeatures/WifiSettingsScreen';
 import WifiSessionMonitor from 'components/newFeatures/WifiSessionMonitor';
+import CollegeChatScreen from './components/newFeatures/CollegeChatScreen';
 import GroupJamSetup from 'components/GroupSongs/GroupJamSetup';
 import GroupJamPlayer from 'components/GroupSongs/GroupJamPlayer';
 import socket from 'utils/socket';
@@ -208,6 +209,7 @@ export type RootStackParamList = {
   GroupManagementScreen: undefined;
   CreatedSplitsScreen: undefined;
   WifiSettingsScreen: undefined;
+  CollegeChatScreen: undefined;
 };
 
 
@@ -343,6 +345,7 @@ function AppStack() {
       <Stack.Screen name="GroupManagementScreen" component={GroupManagementScreen} />
       <Stack.Screen name="CreatedSplitsScreen" component={CreatedSplitsScreen} />
       <Stack.Screen name="WifiSettingsScreen" component={WifiSettingsScreen} />
+      <Stack.Screen name="CollegeChatScreen" component={CollegeChatScreen} />
       {/* <Stack.Screen name="VideoLobby" component={VideoLobby} /> */}
     </Stack.Navigator>
   );
@@ -372,12 +375,14 @@ export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 export default function App() {
   return (
     <AuthProvider>
-      <NavigationContainer ref={navigationRef}>
-        <RootNavigator />
-      </NavigationContainer>
-      <NearbyCrushDetector />
-      <WifiSessionMonitor />
-      <Toast position="top" />
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={Platform.OS === "ios" ? 15 : 0}>
+        <NavigationContainer ref={navigationRef}>
+          <RootNavigator />
+        </NavigationContainer>
+        <NearbyCrushDetector />
+        <WifiSessionMonitor />
+        <Toast position="top" />
+      </KeyboardAvoidingView>
     </AuthProvider>
   );
 }

@@ -8,9 +8,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+import { WebView } from 'react-native-webview';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
 import moment from 'moment';
+import { RAZORPAY_KEY_ID } from '../constants/keys';
 
 const { width } = Dimensions.get('window');
 // Ensure this exactly matches the email in your backend .env file
@@ -69,6 +72,9 @@ const NoticeBoard = () => {
   const [noticeComments, setNoticeComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [commentsLoading, setCommentsLoading] = useState(false);
+
+  /* PAYMENT MODAL */
+  const [showPaymentParams, setShowPaymentParams] = useState<any>(null);
 
   // FIXED ADMIN CHECK: Added .trim() to catch invisible spaces
   const isAdmin = user?.email?.trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase();
@@ -137,9 +143,62 @@ const NoticeBoard = () => {
   };
 
 
-  const handleCreateNotice = async () => {
+  const handleCreateNotice = async (paymentData?: { paymentRefId: string, razorpay_order_id: string, razorpay_signature: string }) => {
     if (!title.trim() || !desc.trim()) {
       Alert.alert("Required", "Title and Description are required.");
+      return;
+    }
+
+    if (activeTab === 'global' && !isAdmin && !paymentData) {
+      setSubmitting(true);
+      try {
+        const orderRes = await axios.post('/payment/api/order', { amount: 49 });
+        const currentOrder = orderRes.data;
+        const content = `
+            <html>
+            <body>
+                <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+                <script>
+                var options = {
+                    key: "${RAZORPAY_KEY_ID}",
+                    amount: "${currentOrder.amount}",
+                    currency: "INR",
+                    name: "Fync",
+                    description: "Global Notice Fee",
+                    order_id: "${currentOrder.id}",
+                    prefill: {
+                        name: "${user?.name || ''}",
+                        email: "${user?.email || ''}",
+                        contact: "${user?.mobileNumber || ''}"
+                    },
+                    theme: { color: "#ec4899" },
+                    handler: function (response) {
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            event: "SUCCESS",
+                            data: response
+                        }));
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            window.ReactNativeWebView.postMessage(JSON.stringify({
+                                event: "FAILED"
+                            }));
+                        }
+                    }
+                };
+                var rzp1 = new Razorpay(options);
+                rzp1.open();
+                </script>
+            </body>
+            </html>
+            `;
+        setShowPaymentParams({ html: content });
+      } catch (err) {
+        console.error(err);
+        Alert.alert("Error", "Could not initiate payment");
+      } finally {
+        setSubmitting(false);
+      }
       return;
     }
 
@@ -161,7 +220,13 @@ const NoticeBoard = () => {
         });
       });
 
-      const endpoint = (activeTab === 'global' && isAdmin) ? '/notice/create/global' : '/notice/create';
+      if (paymentData) {
+        formData.append("paymentRefId", paymentData.paymentRefId);
+        formData.append("razorpay_order_id", paymentData.razorpay_order_id);
+        formData.append("razorpay_signature", paymentData.razorpay_signature);
+      }
+
+      const endpoint = (activeTab === 'global') ? '/notice/create/global' : '/notice/create';
       const res = await axios.post(endpoint, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -176,6 +241,21 @@ const NoticeBoard = () => {
       Alert.alert("Error", "Failed to publish notice.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleWebViewMessage = (event: any) => {
+    const msg = JSON.parse(event.nativeEvent.data);
+    if (msg.event === "SUCCESS") {
+      setShowPaymentParams(null);
+      handleCreateNotice({
+        paymentRefId: msg.data.razorpay_payment_id,
+        razorpay_order_id: msg.data.razorpay_order_id,
+        razorpay_signature: msg.data.razorpay_signature
+      });
+    } else {
+      setShowPaymentParams(null);
+      Alert.alert("Payment Cancelled", "Payment is required for global notices.");
     }
   };
 
@@ -380,20 +460,18 @@ const NoticeBoard = () => {
           />
         )}
 
-        {/* BOTTOM FLOATING CREATE FAB - Only visible to normal users in college tab, or admins in both tabs */}
-        {(activeTab === 'college' || (activeTab === 'global' && isAdmin)) && (
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setCreateModalVisible(true)}
-            className={`absolute bottom-14 right-6 px-6 py-4 rounded-full shadow-2xl flex-row items-center border ${activeTab === 'global' ? 'bg-red-600 border-red-500/50 shadow-red-500/30' : 'bg-pink-600 border-pink-500/50 shadow-pink-500/30'
-              }`}
-          >
-            <Ionicons name="pencil" size={20} color="white" />
-            <Text className="text-white font-black tracking-widest ml-2 uppercase text-sm">
-              {activeTab === 'global' ? 'Global Notice' : 'Post Notice'}
-            </Text>
-          </TouchableOpacity>
-        )}
+        {/* BOTTOM FLOATING CREATE FAB - Visible to all, global redirects to payment if not admin */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => setCreateModalVisible(true)}
+          className={`absolute bottom-14 right-6 px-6 py-4 rounded-full shadow-2xl flex-row items-center border ${activeTab === 'global' ? 'bg-red-600 border-red-500/50 shadow-red-500/30' : 'bg-pink-600 border-pink-500/50 shadow-pink-500/30'
+            }`}
+        >
+          <Ionicons name="pencil" size={20} color="white" />
+          <Text className="text-white font-black tracking-widest ml-2 uppercase text-sm">
+            {activeTab === 'global' ? 'Global Notice' : 'Post Notice'}
+          </Text>
+        </TouchableOpacity>
 
         {/* Create Modal */}
         <Modal visible={createModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setCreateModalVisible(false)}>
@@ -469,7 +547,9 @@ const NoticeBoard = () => {
               >
                 {submitting ? <ActivityIndicator color="white" /> : (
                   <>
-                    <Text className="text-white font-black text-lg tracking-widest uppercase mr-2">Publish</Text>
+                    <Text className="text-white font-black text-lg tracking-widest uppercase mr-2">
+                      {activeTab === 'global' && !isAdmin ? 'Publish for ₹49' : 'Publish'}
+                    </Text>
                     <Ionicons name="paper-plane" size={20} color="white" />
                   </>
                 )}
@@ -569,6 +649,30 @@ const NoticeBoard = () => {
               <Text className="text-white/60 text-xs font-bold tracking-widest uppercase">Tap anywhere to return</Text>
             </View>
           </View>
+        </Modal>
+
+        {/* PAYMENT MODAL */}
+        <Modal visible={!!showPaymentParams} animationType="slide" transparent={false} onRequestClose={() => setShowPaymentParams(null)}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
+            <View className="flex-row items-center justify-between p-4 border-b border-gray-900 bg-black">
+              <Text className="text-white font-bold text-lg">Secure Payment</Text>
+              <Pressable onPress={() => { setShowPaymentParams(null); Alert.alert('Cancelled', 'Payment is required to post a global notice.'); }}>
+                <Ionicons name="close" size={24} color="white" />
+              </Pressable>
+            </View>
+            {showPaymentParams?.html ? (
+              <WebView
+                source={{ html: showPaymentParams.html }}
+                originWhitelist={["*"]}
+                onMessage={handleWebViewMessage}
+                style={{ flex: 1, backgroundColor: '#000' }}
+              />
+            ) : (
+              <View className="flex-1 bg-black justify-center items-center">
+                <ActivityIndicator size="large" color="#ec4899" />
+              </View>
+            )}
+          </SafeAreaView>
         </Modal>
 
       </SafeAreaView>

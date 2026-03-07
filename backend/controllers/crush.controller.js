@@ -113,6 +113,7 @@ export const updateLocation = async (req, res) => {
         // Check for nearby crushes
         const myCrushes = await Crush.find({ userId }).populate('crushUserId', 'name username avatar location');
         const nearbyCrushes = [];
+        let crushesWithoutLocation = 0;
         const cooldownMs = 60 * 60 * 1000; // 1 hour cooldown for notifications
 
         for (const c of myCrushes) {
@@ -150,6 +151,8 @@ export const updateLocation = async (req, res) => {
                         await c.save();
                     }
                 }
+            } else {
+                crushesWithoutLocation++;
             }
         }
 
@@ -157,7 +160,8 @@ export const updateLocation = async (req, res) => {
             success: true,
             message: "Location updated",
             nearbyCount: nearbyCrushes.length,
-            nearby: nearbyCrushes // Client will handle alerting
+            nearby: nearbyCrushes, // Client will handle alerting
+            crushesWithoutLocation
         });
     } catch (error) {
         console.error("Location Update Error:", error);

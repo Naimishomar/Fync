@@ -27,6 +27,9 @@ import AiIntelligenceRoute from './routes/aiItelligence.route.js';
 import splitRoute from './routes/split.route.js';
 import crushRoute from './routes/crush.routes.js';
 import subscriptionRoute from './routes/subscription.route.js';
+import collegeChatRoute from './routes/collegeChat.route.js';
+import { setCollegeChatIo } from './controllers/collegeChat.controller.js';
+import { initCollegeChatCleanup } from './utils/collegeChatCleanup.js';
 
 import { rateLimit } from 'express-rate-limit';
 import { logout } from './controllers/auth.controller.js';
@@ -83,6 +86,7 @@ app.use('/api', AiIntelligenceRoute);
 app.use('/split', splitRoute);
 app.use('/crush', crushRoute);
 app.use('/subscription', subscriptionRoute);
+app.use('/college-chat', collegeChatRoute);
 
 
 
@@ -90,6 +94,8 @@ socketController(io);
 lotterySocketController(io);
 setupVideoSocket(io);
 setupMusicSocket(io);
+setCollegeChatIo(io);
+initCollegeChatCleanup();
 
 app.get('/', (req, res) => {
   res.send('Fync never gets down!🚀');
