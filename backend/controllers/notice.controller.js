@@ -82,14 +82,14 @@ export const getGlobalNotices = async (req, res) => {
         const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "naimishomar@gmail.com";
         const adminUser = await User.findOne({ email: ADMIN_EMAIL });
 
-        let query = { isGlobal: true }; 
+        let query = { isGlobal: true };
         if (adminUser) {
-            query = { $or: [{ isGlobal: true }, { user: adminUser._id }] };  
-        } 
- 
+            query = { $or: [{ isGlobal: true }, { user: adminUser._id }] };
+        }
+
         const { page = 1, limit = 10 } = req.query;
-        const skip = (page - 1) * limit; 
- 
+        const skip = (page - 1) * limit;
+
         const notices = await Notice.find(query)
             .sort({ createdAt: -1 })
             .populate("user", "name avatar username")
@@ -278,6 +278,42 @@ export const deleteComment = async (req, res) => {
         return res.status(200).json({ success: true, message: "Comment deleted successfully" });
     } catch (error) {
         console.log("Delete comment error", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+export const likeNotice = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const notice = await Notice.findById(req.params.id);
+        if (!notice) {
+            return res.status(404).json({ success: false, message: "Notice not found" });
+        }
+        const isLiked = notice.liked_by.includes(userId);
+        let updatedNotice;
+        if (isLiked) {
+            updatedNotice = await Notice.findByIdAndUpdate(
+                req.params.id,
+                {
+                    $inc: { likes: -1 },
+                    $pull: { liked_by: userId }
+                },
+                { new: true }
+            );
+            return res.status(200).json({ success: true, message: "Notice unliked successfully", notice: updatedNotice });
+        } else {
+            updatedNotice = await Notice.findByIdAndUpdate(
+                req.params.id,
+                {
+                    $inc: { likes: 1 },
+                    $addToSet: { liked_by: userId }
+                },
+                { new: true }
+            );
+            return res.status(200).json({ success: true, message: "Notice liked successfully", notice: updatedNotice });
+        }
+    } catch (error) {
+        console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };

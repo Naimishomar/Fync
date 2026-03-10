@@ -8,13 +8,15 @@ interface RazorpayWebViewProps {
       order: any;
       user: any;
       keyId: string;
+      merchantName?: string;
+      merchantUpiId?: string;
     };
   };
   navigation: any;
 }
 
 export default function RazorpayWebView({ route, navigation }: RazorpayWebViewProps) {
-  const { order, user, keyId } = route.params;
+  const { order, user, keyId, merchantName, merchantUpiId } = route.params;
   const [html, setHtml] = useState("");
 
   useEffect(() => {
@@ -27,8 +29,8 @@ export default function RazorpayWebView({ route, navigation }: RazorpayWebViewPr
             key: "${keyId}",
             amount: "${order.amount}",
             currency: "INR",
-            name: "Fync",
-            description: "Fync Ordering System",
+            name: "${merchantName || "Fync"}",
+            description: "Tip to Creator",
             order_id: "${order.id}",
             prefill: {
               name: "${user.name}",
@@ -72,6 +74,8 @@ export default function RazorpayWebView({ route, navigation }: RazorpayWebViewPr
                 ...msg.data,
                 order,
                 user,
+                merchantName,
+                merchantUpiId
               });
             } else {
               alert("Payment Cancelled ❌");

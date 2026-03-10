@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, Pressable, ScrollView, Alert, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, Modal, Pressable, ScrollView, Alert, KeyboardAvoidingView, Platform, ActivityIndicator, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import CrushSearchInput from './CrushSearchInput';
 import axios from '../../context/axiosConfig';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 
 interface User {
     _id: string;
@@ -25,6 +26,7 @@ interface Crush {
 }
 
 const CrushInputModal = ({ isVisible, onClose }: { isVisible: boolean; onClose: () => void }) => {
+    const navigation = useNavigation<any>();
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [myCrushes, setMyCrushes] = useState<Crush[]>([]);
     const [loading, setLoading] = useState(false);
@@ -105,7 +107,7 @@ const CrushInputModal = ({ isVisible, onClose }: { isVisible: boolean; onClose: 
                         </Pressable>
                     </View>
 
-                    <ScrollView showsVerticalScrollIndicator={false}>
+                    <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                         {/* Search Input */}
                         <View className="z-50">
                             <CrushSearchInput onSelect={setSelectedUser} />
@@ -146,16 +148,24 @@ const CrushInputModal = ({ isVisible, onClose }: { isVisible: boolean; onClose: 
                             ) : (
                                 myCrushes.map((crush) => (
                                     <View key={crush._id} className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex-row items-center justify-between mb-4">
-                                        <View className="flex-row items-center">
-                                            <View className="bg-pink-500/10 p-2 rounded-xl">
-                                                <Ionicons name="heart" size={24} color={crush.isMutual ? "#ff3b82" : "#444"} />
-                                            </View>
+                                        <Pressable
+                                            className="flex-row items-center flex-1"
+                                            onPress={() => {
+                                                onClose();
+                                                navigation.navigate('PublicProfile', { userId: crush.crushUserId?._id });
+                                            }}
+                                        >
+                                            <Image
+                                                source={{ uri: crush.crushUserId?.avatar || `https://ui-avatars.com/api/?name=${crush.crushUserId?.username}` }}
+                                                className="w-12 h-12 rounded-full border border-gray-700 bg-gray-800"
+                                            />
                                             <View className="ml-4">
-                                                <Text className="text-white font-bold">{crush.crushUserId?.name || "Deleted User"}</Text>
-                                                <Text className="text-gray-500 text-xs">{crush.isMutual ? "Matched! ❤️" : "Waiting for match..."}</Text>
+                                                <Text className="text-white font-bold">{crush.crushUserId?.username || "Deleted User"}</Text>
+                                                <Text className="text-gray-400 text-xs">{crush.crushUserId?.name}</Text>
+                                                <Text className="text-pink-500 text-[10px] mt-1 font-bold uppercase tracking-widest">{crush.isMutual ? "Matched! ❤️" : "Waiting for match..."}</Text>
                                             </View>
-                                        </View>
-                                        <Pressable onPress={() => handleRemoveCrush(crush._id)}>
+                                        </Pressable>
+                                        <Pressable onPress={() => handleRemoveCrush(crush._id)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                                             <Ionicons name="trash-outline" size={20} color="gray" />
                                         </Pressable>
                                     </View>

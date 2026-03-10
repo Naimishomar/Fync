@@ -51,7 +51,7 @@ const CrushCard = ({ onPress, crushCount, onCheckNearby, isChecking }: CrushCard
                 </LinearGradient>
             </Pressable>
             <View className="mt-1 px-4">
-                <Text className="text-gray-500 text-[10px] italic">Tap scan icon to check if your crush is within 50 meters.</Text>
+                <Text className="text-gray-500 text-[10px] italic">Tap scan icon to check if your crush is within 150 meters.</Text>
             </View>
         </View>
     );

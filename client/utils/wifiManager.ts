@@ -64,58 +64,98 @@ export const getWifiSettings = async (): Promise<WifiSettings> => {
 
 export const loginToWifiPortal = async (creds: WifiCredentials) => {
     try {
-        let url = creds.portalUrl;
-        if (!url.startsWith('http')) url = 'http://' + url;
+        let baseUrl = creds.portalUrl;
+        if (!baseUrl.startsWith('http')) baseUrl = 'http://' + baseUrl;
 
-        const response = await axios.post(url, {
-            username: creds.username,
-            password: creds.password,
-            user: creds.username,
-            pass: creds.password,
-            email: creds.username,
-            login: 'Login'
-        }, { timeout: 10000 });
+        // Extract origin — Cyberoam/Sophos portals post to /login.xml on the same host
+        let origin = baseUrl;
+        try { origin = new URL(baseUrl).origin; } catch { }
 
-        Toast.show({
-            type: 'success',
-            text1: 'Smart WiFi',
-            text2: 'Login successful! 🚀'
+        // ── Cyberoam / Sophos (httpclient.html portals) ────────────
+        // Confirmed working via live test: POST to /login.xml with these exact fields
+        const cyberoamFields = new URLSearchParams();
+        cyberoamFields.append('mode', '191');
+        cyberoamFields.append('username', creds.username!);
+        cyberoamFields.append('password', creds.password!);
+        cyberoamFields.append('a', Date.now().toString());
+        cyberoamFields.append('producttype', '0');
+
+        const cyberoamUrl = `${origin}/login.xml`;
+        const cyberoamRes = await axios.post(cyberoamUrl, cyberoamFields.toString(), {
+            timeout: 10000,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         });
 
+        const body: string = typeof cyberoamRes.data === 'string'
+            ? cyberoamRes.data
+            : JSON.stringify(cyberoamRes.data);
+
+        // Cyberoam returns XML: <status>LIVE</status> or <status>LOGIN</status>
+        const isSuccess = body.includes('LIVE') || body.includes('LOGIN') || body.includes('success');
+
+        if (isSuccess) {
+            Toast.show({ type: 'success', text1: 'Smart WiFi ✅', text2: 'Logged in successfully!' });
+            return true;
+        }
+
+        // ── Generic fallback for other portal types ─────────────────
+        const params = new URLSearchParams();
+        params.append('username', creds.username!);
+        params.append('password', creds.password!);
+        params.append('user', creds.username!);
+        params.append('pass', creds.password!);
+        params.append('email', creds.username!);
+        params.append('login', 'Login');
+        params.append('submit', 'Login');
+
+        await axios.post(baseUrl, params.toString(), {
+            timeout: 10000,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            maxRedirects: 5,
+        });
+
+        Toast.show({ type: 'success', text1: 'Smart WiFi', text2: 'Login attempted! 🚀' });
         return true;
+
     } catch (error: any) {
-        console.error("Wifi login failed:", error.message);
+        console.error('Wifi login failed:', error.message);
         return false;
     }
 };
 
 export const logoutPreviousSession = async (portalUrl: string) => {
     try {
-        let url = portalUrl;
-        if (!url.startsWith('http')) url = 'http://' + url;
+        let baseUrl = portalUrl;
+        if (!baseUrl.startsWith('http')) baseUrl = 'http://' + baseUrl;
 
-        const logoutUrls = [
-            `${url}/logout`,
-            `${url}?logout=1`,
-            url
+        let origin = baseUrl;
+        try { origin = new URL(baseUrl).origin; } catch { }
+
+        // ── Cyberoam / Sophos logout (uses logout.xml with mode=193) ─
+        const cyberoamLogout = new URLSearchParams();
+        cyberoamLogout.append('mode', '193');
+        cyberoamLogout.append('a', Date.now().toString());
+        try {
+            await axios.post(`${origin}/logout.xml`, cyberoamLogout.toString(), {
+                timeout: 5000,
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            });
+        } catch { /* ignore */ }
+
+        // ── Generic fallback logout URLs ────────────────────────────
+        const genericLogoutUrls = [
+            `${origin}/logout`,
+            `${origin}/logoff`,
+            `${origin}?logout=1`,
+            `${origin}?action=logout`,
         ];
-
-        for (const logoutUrl of logoutUrls) {
-            try {
-                await axios.get(logoutUrl, { timeout: 5000 });
-            } catch (e) {
-                // Ignore errors during logout
-            }
+        for (const url of genericLogoutUrls) {
+            try { await axios.get(url, { timeout: 3000 }); } catch { /* ignore */ }
         }
 
-        Toast.show({
-            type: 'info',
-            text1: 'Smart WiFi',
-            text2: 'Logged out from previous session 🏃‍♂️'
-        });
-
+        Toast.show({ type: 'info', text1: 'Smart WiFi', text2: 'Logged out from previous session 🏃' });
         return true;
-    } catch (error) {
+    } catch {
         return false;
     }
 };

@@ -7,7 +7,8 @@ import {
   FlatList,
   Dimensions,
   RefreshControl,
-  Linking
+  Linking,
+  Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -16,6 +17,8 @@ import { useAuth } from '../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
+import * as FileSystem from 'expo-file-system';
+import { Image as ExpoImage } from 'expo-image';
 
 const { width } = Dimensions.get('window');
 const COLUMN_SIZE = width / 3;
@@ -99,9 +102,69 @@ function Profile() {
     setRefreshing(false);
   };
 
+  const deletePost = async (id: string) => {
+    try {
+      const res = await axios.delete(`/post/${id}`);
+      if (res.data.success) {
+        setPosts(prev => prev.filter(p => p._id !== id));
+        Toast.show({ type: 'success', text1: 'Post deleted successfully' });
+      }
+    } catch (error) {
+      console.log('Failed to delete post', error);
+      Toast.show({ type: 'error', text1: 'Failed to delete post' });
+    }
+  };
+
+  const deleteShort = async (id: string) => {
+    try {
+      const res = await axios.post(`/shorts/delete/${id}`);
+      if (res.data.success) {
+        setShorts(prev => prev.filter(s => s._id !== id));
+        Toast.show({ type: 'success', text1: 'Short deleted successfully' });
+      }
+    } catch (error) {
+      console.log("Delete failed", error);
+      Toast.show({ type: 'error', text1: 'Failed to delete short' });
+    }
+  };
+
   const handleLogout = async () => {
     await logout();
     Toast.show({ type: 'success', text1: 'Logged out successfully!' });
+  };
+
+  const clearAppCache = async () => {
+    try {
+      if (FileSystem.cacheDirectory) {
+        const cacheDirInfo = await FileSystem.getInfoAsync(FileSystem.cacheDirectory);
+        if (cacheDirInfo.exists) {
+          const content = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory);
+
+          let totalFreed = 0;
+          for (const item of content) {
+            const itemPath = `${FileSystem.cacheDirectory}${item}`;
+            const itemInfo = await FileSystem.getInfoAsync(itemPath, { size: true });
+            if (itemInfo.exists && !itemInfo.isDirectory) {
+              totalFreed += itemInfo.size || 0;
+            }
+            await FileSystem.deleteAsync(itemPath, { idempotent: true });
+          }
+
+          await ExpoImage.clearDiskCache();
+          await ExpoImage.clearMemoryCache();
+
+          const freedMB = (totalFreed / (1024 * 1024)).toFixed(2);
+
+          Alert.alert(
+            "Cache Cleared 🧹",
+            `Successfully reclaimed ${freedMB} MB of storage space! The app should run smoother now.`
+          );
+        }
+      }
+    } catch (e) {
+      console.log('Error clearing cache', e);
+      Toast.show({ type: 'error', text1: 'Failed to clear cache' });
+    }
   };
 
   // --- ABOUT SECTION ---
@@ -179,6 +242,14 @@ function Profile() {
         <Pressable>
           <Ionicons name="add-circle-outline" size={28} color="white" />
         </Pressable>
+        <Pressable onPress={() => {
+          Alert.alert("Clear Cache Storage", "Do you want to clear temporary videos, images, and map data to free up space?", [
+            { text: "Cancel", style: "cancel" },
+            { text: "Clear Cache", style: "destructive", onPress: clearAppCache }
+          ]);
+        }}>
+          <Ionicons name="trash-bin-outline" size={26} color="#ef4444" />
+        </Pressable>
         <Pressable onPress={handleLogout}>
           <Ionicons name="menu-outline" size={28} color="white" />
         </Pressable>
@@ -248,13 +319,31 @@ function Profile() {
 
   // --- GRID RENDERER ---
   const renderGridItem = ({ item, isShort }: { item: any, isShort?: boolean }) => (
-    <Pressable onPress={() => {
-      if (isShort) {
-        navigation.navigate('IndividualPostOrShort', { shortId: item._id });
-      } else {
-        navigation.navigate('IndividualPostOrShort', { postId: item._id });
-      }
-    }} className="border border-black relative" style={{ width: COLUMN_SIZE, height: isShort ? COLUMN_SIZE * 1.5 : COLUMN_SIZE }}>
+    <Pressable
+      onPress={() => {
+        if (isShort) {
+          navigation.navigate('IndividualPostOrShort', { shortId: item._id });
+        } else {
+          navigation.navigate('IndividualPostOrShort', { postId: item._id });
+        }
+      }}
+      onLongPress={() => {
+        Alert.alert(
+          isShort ? "Delete Short" : "Delete Post",
+          `Are you sure you want to delete this ${isShort ? 'short' : 'post'}?`,
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Delete",
+              style: "destructive",
+              onPress: () => isShort ? deleteShort(item._id) : deletePost(item._id)
+            }
+          ]
+        );
+      }}
+      className="border border-black relative"
+      style={{ width: COLUMN_SIZE, height: isShort ? COLUMN_SIZE * 1.5 : COLUMN_SIZE }}
+    >
 
       {/* Thumbnail / Image / Video Frame */}
       {isShort ? (

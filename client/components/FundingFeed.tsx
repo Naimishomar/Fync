@@ -331,8 +331,20 @@ export default function FundingFeed() {
   /* ---------- MEDIA PICKERS ---------- */
   const pickImages = async () => {
     if (images.length >= 5) return Alert.alert("Limit reached", "Max 5 images allowed");
+
+    // Required on Android tablets — without this the gallery won't open
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permission Required',
+        'Please allow access to your photo library in Settings to add images.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsMultipleSelection: true,
       selectionLimit: 5 - images.length,
       quality: 0.8,
@@ -346,8 +358,19 @@ export default function FundingFeed() {
   };
 
   const pickVideo = async () => {
+    // Required on Android tablets
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permission Required',
+        'Please allow access to your photo library in Settings to add a video.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+      mediaTypes: ['videos'],
       quality: 1,
     });
     if (!res.canceled) {

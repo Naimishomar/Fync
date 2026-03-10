@@ -28,6 +28,8 @@ import splitRoute from './routes/split.route.js';
 import crushRoute from './routes/crush.routes.js';
 import subscriptionRoute from './routes/subscription.route.js';
 import collegeChatRoute from './routes/collegeChat.route.js';
+import placementHubRoute from './routes/placementHub.route.js';
+import apiPlaygroundRoute from './routes/apiPlayground.route.js';
 import { setCollegeChatIo } from './controllers/collegeChat.controller.js';
 import { initCollegeChatCleanup } from './utils/collegeChatCleanup.js';
 
@@ -87,6 +89,8 @@ app.use('/split', splitRoute);
 app.use('/crush', crushRoute);
 app.use('/subscription', subscriptionRoute);
 app.use('/college-chat', collegeChatRoute);
+app.use('/placement', placementHubRoute);
+app.use('/playground', apiPlaygroundRoute);
 
 
 

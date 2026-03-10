@@ -252,6 +252,7 @@ export const getUserProfileByName = async (req, res) => {
     };
     const searchRegex = new RegExp(name, "i");
     const users = await User.find({ $or: [{ username: { $regex: searchRegex } }, { name: { $regex: searchRegex } }] })
+      .select('_id name username avatar college year')
       .limit(10);
     return res.status(200).json({ success: true, users: users });
   } catch (error) {

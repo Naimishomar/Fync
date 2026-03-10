@@ -115,7 +115,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
       </Animated.View>
 
       <Animated.View style={[item3Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => navigation.navigate('CreatePost')}>
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => { toggleMenu(); navigation.navigate('Funding'); }}>
           <Ionicons name="bulb-outline" size={20} color="#7e22ce" />
         </TouchableOpacity>
         <Text className="text-white text-[10px] font-bold mt-1 uppercase tracking-tighter shadow-black">Add Startup</Text>

@@ -1,160 +1,215 @@
-// import React, { useEffect, useState } from 'react';
-// import { 
-//   View, 
-//   Text, 
-//   FlatList, 
-//   TouchableOpacity, 
-//   Alert, 
-//   StyleSheet,
-//   ActivityIndicator,
-//   Platform // ✅ Import Platform
-// } from 'react-native';
-// import { SafeAreaView } from 'react-native-safe-area-context';
-// import socket from '../../utils/socket'; 
-// import ZegoUIKitPrebuiltCallService, { 
-//   ZegoSendCallInvitationButton,
-// } from '@zegocloud/zego-uikit-prebuilt-call-rn';
-// import * as ZIM from 'zego-zim-react-native';
-// import { NativeStackScreenProps } from '@react-navigation/native-stack';
-// import { RootStackParamList } from '../../App';
+import React, { useEffect, useState } from 'react';
+import {
+    View,
+    Text,
+    FlatList,
+    TouchableOpacity,
+    Alert,
+    StyleSheet,
+    ActivityIndicator,
+    Platform,
+    Image
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import socket from '../../utils/socket';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../App';
+import { WebView } from 'react-native-webview';
+// Use Camera from expo-camera for permissions in Expo Go
+import { Camera } from 'expo-camera';
+import { Audio } from 'expo-av';
+import { Ionicons } from '@expo/vector-icons';
 
-// // 🔥 FIX 1: Polyfill Platform globally for any Zego dependency that forgot to import it
-// if (Platform) {
-//     (global as any).Platform = Platform;
-// }
+type Props = NativeStackScreenProps<RootStackParamList, 'VideoLobby'>;
 
-// type Props = NativeStackScreenProps<RootStackParamList, 'VideoLobby'>;
+export default function VideoLobby({ route, navigation }: Props) {
+    const myUserId = route.params?.myUserId || "";
+    const myUserName = route.params?.myUserName || "Unknown User";
+    const myAvatar = route.params?.myAvatar || "";
+    const myRealUsername = route.params?.myRealUsername || "";
 
-// const APP_ID = 1870753423; 
-// const APP_SIGN = "0c687e01e1e38767ccdd1fa77993629c0fc3a6392df1e6175cce7d3cc36e76c7";
+    const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
+    const [hasPermissions, setHasPermissions] = useState<boolean>(false);
+    const [activeCallRoom, setActiveCallRoom] = useState<string | null>(null);
 
-// export default function VideoLobby({ route, navigation }: Props) {
-//   const myUserId = route.params?.myUserId || ""; 
-//   const myUserName = route.params?.myUserName || "Unknown User";
-  
-//   const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
-//   const [isZegoReady, setIsZegoReady] = useState(false);
+    useEffect(() => {
+        (async () => {
+            // 1. You MUST ask for Expo Go permissions first before the WebView opens
+            const cameraStatus = await Camera.requestCameraPermissionsAsync();
+            const audioStatus = await Audio.requestPermissionsAsync();
 
-// useEffect(() => {
-//   if (!myUserId) {
-//     Alert.alert("Error", "User ID is missing.");
-//     navigation.goBack();
-//     return;
-//   }
-//   if (!socket.connected) socket.connect();
-//   socket.emit("join-lobby", myUserId);
-//   socket.on("update-user-list", (users: any) => {
-//     setOnlineUsers(users.filter((u: any) => u.userId !== myUserId));
-//   });
-//   setIsZegoReady(true); 
-//   return () => {
-//     socket.emit("leave-lobby", myUserId);
-//     socket.off("update-user-list");
-//   };
-// }, [myUserId]);
+            if (cameraStatus.status === 'granted' && audioStatus.status === 'granted') {
+                setHasPermissions(true);
+            } else {
+                Alert.alert("Permissions Required", "Camera and microphone permissions are required for video calls.");
+                navigation.goBack();
+            }
+        })();
+    }, []);
 
-// const initZego = async () => {
-//     try {
-//       await ZegoUIKitPrebuiltCallService.uninit();
+    useEffect(() => {
+        if (!myUserId) {
+            Alert.alert("Error", "User ID is missing.");
+            navigation.goBack();
+            return;
+        }
+        if (!socket.connected) socket.connect();
+        socket.emit("join-lobby", { userId: myUserId, userName: myUserName, myAvatar, myRealUsername });
+        socket.on("update-user-list", (users: any) => {
+            setOnlineUsers(users.filter((u: any) => u.userId !== myUserId));
+        });
 
-//       await ZegoUIKitPrebuiltCallService.init(
-//         APP_ID,
-//         APP_SIGN,
-//         myUserId,
-//         myUserName,
-//         [ZIM],
-//         {      
-//           onCallInvitationEvent: (event: any, data: any) => {
-//             console.log("ZEGO EVENT:", event);
-//             if (event === 'OutgoingCallAccepted' || event === 'IncomingCallAccepted') {
-//               socket.emit('set-status', { userId: myUserId, status: 'busy' });
-//             }
-//             if (event === 'CallEnded' || event === 'OutgoingCallRejected') {
-//               socket.emit('set-status', { userId: myUserId, status: 'available' });
-//             }
-//           }
-//         }
-//       );
-//       setIsZegoReady(true);
-//       console.log("✅ Zego Service Initialized");
-//     } catch (error) {
-//       console.error("❌ Zego Init Error:", error);
-//     }
-//   };
+        // Simple signaling for Jitsi Room invites 
+        socket.on("incoming-jitsi-call", (data: { callerId: string, callerName: string, roomId: string }) => {
+            Alert.alert(
+                "Incoming Video Call 📹",
+                `${data.callerName || data.callerId} is calling you!`,
+                [
+                    { text: "Decline", style: "cancel", onPress: () => socket.emit('set-status', { userId: myUserId, status: 'available' }) },
+                    {
+                        text: "Accept", onPress: () => {
+                            socket.emit('set-status', { userId: myUserId, status: 'busy' });
+                            setActiveCallRoom(data.roomId);
+                        }
+                    }
+                ]
+            );
+        });
 
-//   const renderUser = ({ item }: { item: any }) => {
-//     const isBusy = item.status === 'busy';
+        // Listen for remote call cut
+        socket.on("call-ended", (data: { roomId: string }) => {
+            setActiveCallRoom((currentRoom) => {
+                if (currentRoom === data.roomId) {
+                    socket.emit('set-status', { userId: myUserId, status: 'available' });
+                    return null;
+                }
+                return currentRoom;
+            });
+        });
 
-//     return (
-//       <View style={styles.card}>
-//         <View>
-//           <Text style={styles.userName}>{item.userId}</Text>
-//           <View style={styles.statusRow}>
-//             <View style={[styles.dot, { backgroundColor: isBusy ? 'red' : '#22c55e' }]} />
-//             <Text style={styles.statusText}>{isBusy ? "In a Call" : "Online"}</Text>
-//           </View>
-//         </View>
+        return () => {
+            socket.emit("leave-lobby", myUserId);
+            socket.off("update-user-list");
+            socket.off("incoming-jitsi-call");
+            socket.off("call-ended");
+        };
+    }, [myUserId]);
 
-//         {isBusy ? (
-//           <TouchableOpacity 
-//             style={[styles.btn, { backgroundColor: '#374151' }]} 
-//             onPress={() => Alert.alert("Busy", "User is currently in another call.")}
-//           >
-//             <Text style={styles.btnText}>Busy</Text>
-//           </TouchableOpacity>
-//         ) : (
-//           // Only show call button if Zego is ready
-//           isZegoReady ? (
-//             <ZegoSendCallInvitationButton
-//               invitees={[{ userID: item.userId, userName: item.userId }]}
-//               isVideoCall={true}
-//               resourceID={"zego_call"} 
-//               backgroundColor={'#2563eb'}
-//               textColor={'#fff'}
-//               width={100}
-//               height={40}
-//               borderRadius={8}
-//               text={"Video Call"}
-//               onPressed={(errorCode: any, errorMessage: any) => {
-//                   if(errorCode) {
-//                       console.error("Call Failed:", errorMessage);
-//                       Alert.alert("Call Error", errorMessage);
-//                   }
-//               }}
-//             />
-//           ) : (
-//             <ActivityIndicator color="#2563eb" />
-//           )
-//         )}
-//       </View>
-//     );
-//   };
+    const initiateCall = (targetUserId: string) => {
+        if (!hasPermissions) {
+            Alert.alert("Error", "Missing permissions.");
+            return;
+        }
+        const roomId = `FyncRoom_${Date.now()}_${myUserId}`;
+        socket.emit('set-status', { userId: myUserId, status: 'busy' });
 
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       <Text style={styles.header}>Lobby ({onlineUsers.length} Online)</Text>
-//       <FlatList
-//         data={onlineUsers}
-//         keyExtractor={(item) => item.userId}
-//         renderItem={renderUser}
-//         ListEmptyComponent={
-//             <Text style={{color: '#666', textAlign: 'center', marginTop: 20}}>
-//                 No one else is online right now.
-//             </Text>
-//         }
-//       />
-//     </SafeAreaView>
-//   );
-// }
+        // You would typically add a backend socket emitter for "call-user" here.
+        // For now we'll broadcast it if you have a routing file for it, or we rely on the generic lobby events.
+        socket.emit("call-user", { targetUserId, callerId: myUserId, callerName: myUserName, roomId });
+        setActiveCallRoom(roomId);
+    };
 
-// const styles = StyleSheet.create({
-//   container: { flex: 1, backgroundColor: '#000', padding: 10 },
-//   header: { color: '#fff', fontSize: 24, fontWeight: 'bold', marginBottom: 20, marginTop: Platform.OS === 'android' ? 10 : 0 },
-//   card: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1f2937', padding: 15, borderRadius: 12, marginBottom: 10 },
-//   userName: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-//   statusRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-//   dot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
-//   statusText: { color: '#9ca3af', fontSize: 12 },
-//   btn: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 },
-//   btnText: { color: '#9ca3af', fontWeight: 'bold' }
-// });
+    const renderUser = ({ item }: { item: any }) => {
+        const isBusy = item.status === 'busy';
+
+        return (
+            <View style={styles.card}>
+                <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity onPress={() => navigation.navigate('PublicProfile', { userId: item.userId })}>
+                        <Image
+                            source={{ uri: item.avatar || `https://ui-avatars.com/api/?name=${item.userName || item.userId}&background=random&color=fff` }}
+                            style={{ width: 50, height: 50, borderRadius: 25, marginRight: 15 }}
+                        />
+                    </TouchableOpacity>
+                    <View style={{ flex: 1, justifyContent: 'center' }}>
+                        <Text style={styles.userName} numberOfLines={1}>{item.userName || item.userId}</Text>
+                        <Text style={styles.statusText} numberOfLines={1}>
+                            {item.userUsername ? `@${item.userUsername} • ` : ""}
+                            {isBusy ? "In another call" : "Available"}
+                        </Text>
+                    </View>
+                </View>
+
+                {isBusy ? (
+                    <TouchableOpacity
+                        style={[styles.btn, { backgroundColor: '#374151' }]}
+                        onPress={() => Alert.alert("Busy", `${item.userName || item.userId} is currently in another call.`)}
+                    >
+                        <Ionicons name="videocam-off" size={22} color="#9ca3af" />
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity
+                        style={[styles.btn, { backgroundColor: '#25D366' }]} // WhatsApp Green
+                        onPress={() => initiateCall(item.userId)}
+                    >
+                        <Ionicons name="videocam" size={24} color="#fff" />
+                    </TouchableOpacity>
+                )}
+            </View>
+        );
+    };
+
+    // If active call is ongoing, render WebView instead of list
+    if (activeCallRoom) {
+        if (!hasPermissions) {
+            return (
+                <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                    <ActivityIndicator size="large" color="#2563eb" />
+                    <Text style={{ color: '#fff', marginTop: 10 }}>Getting Permissions...</Text>
+                </View>
+            )
+        }
+        return (
+            <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
+                {/* Custom Header to Leave Call */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 15, alignItems: 'center' }}>
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>Fync Secure Video 🔒</Text>
+                    <TouchableOpacity onPress={() => {
+                        socket.emit('end-call', { roomId: activeCallRoom });
+                        socket.emit('set-status', { userId: myUserId, status: 'available' });
+                        setActiveCallRoom(null);
+                    }} style={{ backgroundColor: '#ef4444', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 25 }}>
+                        <Text style={{ color: 'white', fontWeight: 'bold' }}>End Call</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={{ flex: 1, borderRadius: 12, overflow: 'hidden' }}>
+                    <WebView
+                        source={{ uri: `https://meet.ffmuc.net/${activeCallRoom}#config.prejoinPageEnabled=false&config.disableDeepLinking=true&userInfo.displayName="${encodeURIComponent(myUserName)}"` }}
+                        javaScriptEnabled={true}
+                        domStorageEnabled={true}
+                        allowsInlineMediaPlayback={true} // Crucial for iOS video
+                        mediaPlaybackRequiresUserAction={false} // Crucial for autoplay
+                        style={{ flex: 1, backgroundColor: '#000' }}
+                    />
+                </View>
+            </SafeAreaView>
+        )
+    }
+
+    return (
+        <SafeAreaView style={styles.container}>
+            <Text style={styles.header}>Lobby ({onlineUsers.length} Online)</Text>
+            <FlatList
+                data={onlineUsers}
+                keyExtractor={(item) => item.userId}
+                renderItem={renderUser}
+                ListEmptyComponent={
+                    <Text style={{ color: '#666', textAlign: 'center', marginTop: 20 }}>
+                        No one else is online right now.
+                    </Text>
+                }
+            />
+        </SafeAreaView>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: { flex: 1, backgroundColor: '#111827', padding: 15 },
+    header: { color: '#fff', fontSize: 28, fontWeight: '700', marginBottom: 25, marginTop: Platform.OS === 'android' ? 10 : 0 },
+    card: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#374151' },
+    userName: { color: '#f3f4f6', fontSize: 17, fontWeight: '600', marginBottom: 2 },
+    statusText: { color: '#9ca3af', fontSize: 14 },
+    btn: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
+    btnText: { color: '#9ca3af', fontWeight: 'bold' }
+});

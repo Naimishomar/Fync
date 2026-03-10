@@ -22,6 +22,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
     const [recording, setRecording] = useState<Audio.Recording | null>(null);
     const [isRecording, setIsRecording] = useState(false);
     const [sound, setSound] = useState<Audio.Sound | null>(null);
+    const recordingTaskRef = useRef(false);
 
     const flatListRef = useRef<FlatList>(null);
 
@@ -33,9 +34,20 @@ const CollegeChatScreen = ({ navigation }: any) => {
 
         const handleNewMessage = (msg: any) => {
             setMessages((prev) => {
+                // 1. Check if the exact message ID already exists (normal duplicate prevention)
                 if (prev.find((m) => m._id === msg._id)) return prev;
-                // Avoid duplicating optimistic messages that haven't updated _id yet somehow
-                if (msg.senderId._id === user._id && prev.find((m) => m.content === msg.content && new Date(msg.createdAt).getTime() - new Date(m.createdAt).getTime() < 3000)) return prev;
+
+                // 2. Check for optimistic duplicates (temp ID replaced by real ID)
+                // If the incoming message has the same content and sender as a pending message, 
+                // we should let the request callback handle the replacement, not the socket.
+                const isOptimisticDuplicate = prev.some(m =>
+                    m.pending &&
+                    m.content === msg.content &&
+                    m.senderId?._id === msg.senderId?._id
+                );
+
+                if (isOptimisticDuplicate) return prev;
+
                 return [msg, ...prev]; // Since inverted list
             });
         };
@@ -58,7 +70,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
     const loadMessages = async () => {
         try {
             setLoading(true);
-            const res = await axios.get("/college-chat/messages");
+            const res = await axios.get("/college-chat/messages", { params: { noCache: true } });
             if (res.data.success) {
                 // FlatList is inverted, so newest should be first
                 const sorted = res.data.messages.sort(
@@ -73,7 +85,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
         }
     };
 
-    const uploadMedia = async (uri: string, type: "image/jpeg" | "video/mp4" | "application/pdf" | "audio/m4a" | "application/octet-stream" | string, msgType: string) => {
+    const uploadMedia = async (uri: string, mimeType: string, msgType: string) => {
         const tempId = "temp_" + Date.now();
         const tempMessage = {
             _id: tempId,
@@ -90,15 +102,36 @@ const CollegeChatScreen = ({ navigation }: any) => {
         try {
             const formData = new FormData();
             formData.append("messageType", msgType);
-            formData.append("media", { uri, name: `upload_${Date.now()}`, type } as any);
+
+            let fileName = `upload_${Date.now()}`;
+            if (msgType === 'image') fileName += ".jpg";
+            else if (msgType === 'video') fileName += ".mp4";
+            else if (msgType === 'voice') fileName += ".m4a";
+            else fileName += ".bin";
+
+            formData.append("media", {
+                uri,
+                name: fileName,
+                type: mimeType || 'application/octet-stream',
+            } as any);
 
             const res = await axios.post("/college-chat/send", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'multipart/form-data',
+                },
+                // Important to prevent Axios from messing with FormData
+                transformRequest: (data) => data,
             });
-            if (res.data.success) setMessages((prev) => prev.map(m => m._id === tempId ? res.data.chat : m));
-        } catch (error) {
-            console.error("Upload error", error);
-            Alert.alert("Error", "Failed to upload file.");
+
+            if (res.data?.success) {
+                setMessages((prev) => prev.map(m => m._id === tempId ? res.data.chat : m));
+            } else {
+                throw new Error("Upload failed on server");
+            }
+        } catch (error: any) {
+            console.error("Upload error:", error?.message || "Unknown Error");
+            Alert.alert("Upload Failed", "Please check your network connection and try again.");
             setMessages((prev) => prev.filter(m => m._id !== tempId));
         }
     };
@@ -152,24 +185,61 @@ const CollegeChatScreen = ({ navigation }: any) => {
 
     const startRecording = async () => {
         try {
+            if (recordingTaskRef.current) {
+                console.log("Start task already running");
+                return;
+            }
+            recordingTaskRef.current = true;
+
+            // If we are already recording, we must stop first
+            if (isRecording || recording) {
+                console.log("Existing recording found, attempting to cleanup first");
+                if (recording) {
+                    try { await recording.stopAndUnloadAsync(); } catch (e) { }
+                }
+                setRecording(null);
+                setIsRecording(false);
+            }
+
             await Audio.requestPermissionsAsync();
-            await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-            const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-            setRecording(recording);
+            await Audio.setAudioModeAsync({
+                allowsRecordingIOS: true,
+                playsInSilentModeIOS: true,
+            });
+
+            const { recording: newRecording } = await Audio.Recording.createAsync(
+                Audio.RecordingOptionsPresets.HIGH_QUALITY
+            );
+            setRecording(newRecording);
             setIsRecording(true);
+            console.log("Recording started successfully");
         } catch (err) {
             console.error('Failed to start recording', err);
+            setRecording(null);
+            setIsRecording(false);
+        } finally {
+            recordingTaskRef.current = false;
         }
     };
 
     const stopRecording = async () => {
-        setIsRecording(false);
-        if (!recording) return;
-        await recording.stopAndUnloadAsync();
-        const uri = recording.getURI();
-        setRecording(null);
-        if (uri) {
-            uploadMedia(uri, "audio/m4a", "voice");
+        if (!recording) {
+            setIsRecording(false);
+            return;
+        }
+
+        try {
+            await recording.stopAndUnloadAsync();
+            const uri = recording.getURI();
+            if (uri) {
+                uploadMedia(uri, "audio/m4a", "voice");
+            }
+        } catch (err) {
+            console.error("Error stopping recording", err);
+        } finally {
+            setRecording(null);
+            setIsRecording(false);
+            recordingTaskRef.current = false;
         }
     };
 

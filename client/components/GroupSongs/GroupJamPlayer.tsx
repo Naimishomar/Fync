@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { 
-  View, Text, TouchableOpacity, Image, ActivityIndicator, 
-  ScrollView, Modal, TextInput, FlatList, KeyboardAvoidingView, Platform, Alert 
+import {
+  View, Text, TouchableOpacity, Image, ActivityIndicator,
+  ScrollView, Modal, TextInput, FlatList, KeyboardAvoidingView, Platform, Alert
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Audio } from "expo-av";
@@ -17,18 +17,18 @@ import FYNC_LOGO from '../../assets/logo.png';
 export default function GroupJamPlayer({ route, navigation }: any) {
   const { roomId, station } = route.params;
   const { user: authUser } = useAuth();
-  
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isBuffering, setIsBuffering] = useState(false); 
-  const [volume, setVolume] = useState(1.0); 
+  const [isBuffering, setIsBuffering] = useState(false);
+  const [volume, setVolume] = useState(1.0);
   const [squad, setSquad] = useState<any[]>([]);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [userQuery, setUserQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const [invitedUsers, setInvitedUsers] = useState<Record<string, boolean>>({});
-  
+
   const soundRef = useRef<Audio.Sound | null>(null);
 
   // --- 🛑 STOP AND LEAVE LOGIC ---
@@ -43,9 +43,9 @@ export default function GroupJamPlayer({ route, navigation }: any) {
       }
     }
     if (authUser?._id) {
-      socket.emit("leave-room", { 
-        roomId, 
-        user: { _id: authUser._id, username: authUser.username, avatar: authUser.avatar } 
+      socket.emit("leave-room", {
+        roomId,
+        user: { _id: authUser._id, username: authUser.username, avatar: authUser.avatar }
       });
     }
   }, [roomId, authUser]);
@@ -62,15 +62,15 @@ export default function GroupJamPlayer({ route, navigation }: any) {
       });
 
       const { sound } = await Audio.Sound.createAsync(
-        { 
-            uri: station.streamUrl, 
-            headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 13) Chrome/116.0.0.0 Mobile' } 
+        {
+          uri: station.streamUrl,
+          headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 13) Chrome/116.0.0.0 Mobile' }
         },
         { shouldPlay: true, volume: 1.0 },
-        (status: any) => { 
+        (status: any) => {
           if (status.isLoaded) {
             setIsPlaying(status.isPlaying);
-            setIsBuffering(status.isBuffering); 
+            setIsBuffering(status.isBuffering);
           }
         }
       );
@@ -141,15 +141,15 @@ export default function GroupJamPlayer({ route, navigation }: any) {
       } else {
         await soundRef.current.pauseAsync();
       }
-      
+
       // Notify other devices in the room
-      socket.emit("sync-music", { 
-        roomId, 
-        station, 
+      socket.emit("sync-music", {
+        roomId,
+        station,
         isPlaying: nextState,
-        sentAt: Date.now() 
+        sentAt: Date.now()
       });
-      
+
       setIsPlaying(nextState);
     } catch (error) {
       console.error("Toggle Play Error:", error);
@@ -188,16 +188,17 @@ export default function GroupJamPlayer({ route, navigation }: any) {
     const jamData = {
       roomId,
       station,
-      host: { 
-        _id: authUser?._id, 
-        username: authUser?.username, 
-        avatar: authUser?.avatar 
+      targetUserId: targetUser._id, // Add targetUserId for filtering
+      host: {
+        _id: authUser?._id,
+        username: authUser?.username,
+        avatar: authUser?.avatar
       }
     };
-    
+
     console.log("Sending invite to:", targetUser.username);
     socket.emit("invite-squad", jamData);
-    
+
     // Set 30s UI Cooldown
     setInvitedUsers(prev => ({ ...prev, [targetUser._id]: true }));
     setTimeout(() => {
@@ -212,18 +213,18 @@ export default function GroupJamPlayer({ route, navigation }: any) {
   return (
     <View className="flex-1 bg-zinc-950">
       <LinearGradient colors={['#ec489933', '#000', '#000']} className="absolute inset-0" />
-      
+
       <SafeAreaView className="flex-1">
         {/* HEADER */}
         <View className="flex-row justify-between items-center px-6 pt-4">
-          <TouchableOpacity 
-            onPress={() => navigation.goBack()} 
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
             className="bg-red-500/20 p-2 rounded-full border border-red-500/30 z-10"
           >
             <Ionicons name="exit-outline" size={24} color="#ef4444" />
           </TouchableOpacity>
           <Text className="text-white/50 font-bold uppercase text-[10px] tracking-[2px]">Fync Squad Jam</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => setIsInviteModalOpen(true)}
             className="bg-pink-500/20 p-2 rounded-full border border-pink-500/30 z-10"
           >
@@ -242,8 +243,8 @@ export default function GroupJamPlayer({ route, navigation }: any) {
           <View className="w-full mt-10 items-start">
             <Text className="text-white text-3xl font-black tracking-tighter italic" numberOfLines={1}>{station.name}</Text>
             <View className="flex-row items-center mt-1">
-               <View className="w-2 h-2 rounded-full bg-pink-500 mr-2 animate-pulse" />
-               <Text className="text-pink-500 font-medium text-lg">Live Radio</Text>
+              <View className="w-2 h-2 rounded-full bg-pink-500 mr-2 animate-pulse" />
+              <Text className="text-pink-500 font-medium text-lg">Live Radio</Text>
             </View>
           </View>
 
@@ -256,9 +257,9 @@ export default function GroupJamPlayer({ route, navigation }: any) {
           <View className="flex-row items-center justify-between w-full mt-10 px-4">
             <Ionicons name="shuffle-outline" size={28} color="white" style={{ opacity: 0.3 }} />
             <Ionicons name="play-skip-back" size={36} color="white" style={{ opacity: 0.3 }} />
-            
-            <TouchableOpacity 
-              onPress={togglePlay} 
+
+            <TouchableOpacity
+              onPress={togglePlay}
               disabled={loading}
               activeOpacity={0.7}
               className="w-24 h-24 bg-white rounded-full items-center justify-center shadow-2xl shadow-white/50"
@@ -278,7 +279,7 @@ export default function GroupJamPlayer({ route, navigation }: any) {
           <View className="w-full mt-12 flex-row items-center bg-white/5 p-4 rounded-3xl border border-white/5">
             <Ionicons name={volume === 0 ? "volume-mute" : "volume-low"} size={20} color="white" style={{ opacity: 0.5 }} />
             <View className="flex-1 mx-4 h-1.5 bg-zinc-800 rounded-full overflow-hidden justify-center">
-              <TouchableOpacity 
+              <TouchableOpacity
                 activeOpacity={1}
                 onPress={(e) => {
                   const relativeX = e.nativeEvent.locationX;
@@ -321,12 +322,12 @@ export default function GroupJamPlayer({ route, navigation }: any) {
 
             <View className="bg-white/5 rounded-2xl flex-row items-center px-4 py-3 border border-white/10 mb-6">
               <Ionicons name="search" size={20} color="#ec4899" />
-              <TextInput 
-                className="flex-1 ml-3 text-white font-medium" 
-                placeholder="Search friends..." 
-                placeholderTextColor="#555" 
-                value={userQuery} 
-                onChangeText={searchUsers} 
+              <TextInput
+                className="flex-1 ml-3 text-white font-medium"
+                placeholder="Search friends..."
+                placeholderTextColor="#555"
+                value={userQuery}
+                onChangeText={searchUsers}
               />
             </View>
 
@@ -344,9 +345,9 @@ export default function GroupJamPlayer({ route, navigation }: any) {
                         <Text className="text-white font-bold">{item.username} {isSelf && "(You)"}</Text>
                       </View>
                       {!isSelf && (
-                        <TouchableOpacity 
-                          onPress={() => sendInvite(item)} 
-                          disabled={isInvited} 
+                        <TouchableOpacity
+                          onPress={() => sendInvite(item)}
+                          disabled={isInvited}
                           className={`${isInvited ? 'bg-zinc-700' : 'bg-pink-500'} px-5 py-2.5 rounded-full`}
                         >
                           <Text className="text-white text-[10px] font-black uppercase">{isInvited ? 'Invited' : 'Invite'}</Text>

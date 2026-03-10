@@ -1,11 +1,12 @@
 import express from 'express';
-import { addComment, createShorts, deleteComment, deleteShort, fetchShorts, getAllComments, getShortByShortId, getShortsByUserId, getYourShorts, likeAndUnlikeShort, updateComment, updateShort, viewsInShort } from '../controllers/shorts.controller.js';
+import { addComment, createShorts, deleteComment, deleteShort, fetchShorts, getAllComments, getShortByShortId, getShortsByUserId, getSmartShorts, getYourShorts, likeAndUnlikeShort, updateComment, updateShort, viewsInShort } from '../controllers/shorts.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { videoUpload } from '../utils/cloudinary.js';
 const router = express.Router();
 
 router.post('/create', authMiddleware, videoUpload.single('video'), createShorts);
 router.get("/get/shorts", authMiddleware, fetchShorts);
+router.post("/smart", authMiddleware, getSmartShorts);
 router.get("/get/yours", authMiddleware, getYourShorts);
 router.post('/update/:id', authMiddleware, updateShort);
 router.post('/delete/:id', authMiddleware, deleteShort);

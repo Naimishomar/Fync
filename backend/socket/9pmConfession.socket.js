@@ -15,7 +15,7 @@ export const lotterySocketController = (io) => {
         // Clear old queues to be safe
         const keys = await redisClient.keys("lottery:queue:*");
         if (keys.length > 0) await redisClient.del(keys);
-        
+
         lotteryIo.emit('status_change', { status: 'LOBBY', message: 'Lobby Open! Matching in 5 mins.' });
     });
 
@@ -24,7 +24,7 @@ export const lotterySocketController = (io) => {
         console.log("🎰 MATCHING STARTED");
         await redisClient.set("lottery:status", "LIVE");
         lotteryIo.emit('status_change', { status: 'MATCHING', message: 'Pairing students...' });
-        
+
         // Trigger the Matching Engine
         await processLotteryQueues(lotteryIo);
     });
@@ -45,7 +45,7 @@ export const lotterySocketController = (io) => {
         // A. JOIN LOBBY
         socket.on("join_lobby", async ({ userId }) => {
             const status = await redisClient.get("lottery:status");
-            
+
             if (status === "CLOSED" || !status) {
                 socket.emit("error", "Lottery is closed. Come back at 9:55 PM.");
                 return;
@@ -67,14 +67,14 @@ export const lotterySocketController = (io) => {
 
             // 3. Add to Redis Queue (Store Gender in Payload)
             // Storing gender here avoids 1000s of DB calls at 10:00 PM
-            const userData = JSON.stringify({ 
-                userId, 
-                socketId: socket.id, 
+            const userData = JSON.stringify({
+                userId,
+                socketId: socket.id,
                 gender: user.gender // 'Male' or 'Female'
             });
-            
+
             await redisClient.rPush(`lottery:queue:${user.college}`, userData);
-            
+
             socket.join(`lobby:${user.college}`);
             socket.emit("joined_success", { message: "You are in the pool. Don't leave!" });
         });
@@ -105,15 +105,15 @@ export const lotterySocketController = (io) => {
                 const users = await User.find({ _id: { $in: session.participants } })
                     .select("name username avatar college bio");
 
-                lotteryIo.to(roomId).emit("reveal_success", { 
+                lotteryIo.to(roomId).emit("reveal_success", {
                     profiles: users,
-                    message: "It's a Match! Identities revealed. ❤️" 
+                    message: "It's a Match! Identities revealed. ❤️"
                 });
 
                 session.status = 'REVEALED';
                 session.revealVotes = session.participants;
                 await session.save();
-                
+
                 await redisClient.del(voteKey);
             } else {
                 socket.to(roomId).emit("partner_voted");
@@ -204,7 +204,7 @@ const processLotteryQueues = async (lotteryIo) => {
                 s2.join(roomId);
 
                 // Mark as Played
-                const expiry = 18 * 60 * 60; 
+                const expiry = 18 * 60 * 60;
                 await redisClient.set(`lottery:played:${u1.userId}`, "true", { EX: expiry });
                 await redisClient.set(`lottery:played:${u2.userId}`, "true", { EX: expiry });
 
@@ -217,7 +217,7 @@ const processLotteryQueues = async (lotteryIo) => {
                 // Start Timer
                 setTimeout(() => {
                     lotteryIo.to(roomId).emit("time_up", { message: "Time's up! Reveal Identity?" });
-                }, 300000); 
+                }, 300000);
 
             } catch (err) {
                 console.error("Session creation error:", err);

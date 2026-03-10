@@ -64,6 +64,21 @@ const NearbyCrushDetector = () => {
 
             isUpdating.current = true;
             try {
+                // Pre-check to avoid "unsatisfied device settings" crash when GPS is off
+                const servicesEnabled = await Location.hasServicesEnabledAsync();
+                if (!servicesEnabled) {
+                    if (force) {
+                        Toast.show({
+                            type: 'error',
+                            text1: 'GPS is Off 📡',
+                            text2: "Please enable your device's location services."
+                        });
+                    }
+                    isUpdating.current = false;
+                    if (force) DeviceEventEmitter.emit('crush-scan-finished');
+                    return;
+                }
+
                 const location = await Location.getCurrentPositionAsync({
                     accuracy: Location.Accuracy.High
                 });
@@ -82,7 +97,7 @@ const NearbyCrushDetector = () => {
                             Toast.show({
                                 type: 'info',
                                 text1: 'Radar Empty 📡',
-                                text2: "Your crush hasn't shared their location yet."
+                                text2: "Your crush's location is turned off or unavailable."
                             });
                         } else {
                             Toast.show({
@@ -94,12 +109,12 @@ const NearbyCrushDetector = () => {
                     }
                 }
             } catch (err) {
-                console.error("Location update failed:", err);
                 if (force) {
+                    console.error("Location update failed:", err);
                     Toast.show({
                         type: 'error',
                         text1: 'Failed to scan',
-                        text2: "Make sure location is enabled."
+                        text2: "Make sure location is enabled properly."
                     });
                 }
             } finally {
@@ -124,7 +139,7 @@ const NearbyCrushDetector = () => {
                     Toast.show({
                         type: 'info',
                         text1: 'Someone special is nearby! ❤️',
-                        text2: "A secret crush is within 50 meters.",
+                        text2: "A secret crush is within 150 meters.",
                         visibilityTime: 6000,
                         autoHide: true,
                     });

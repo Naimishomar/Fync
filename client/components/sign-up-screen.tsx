@@ -7,7 +7,6 @@ import {
   Image,
   ScrollView,
   KeyboardAvoidingView,
-  Platform,
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
@@ -31,82 +30,82 @@ export default function SignUpScreen() {
   const [otpSent, setOtpSent] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
 
-const sendOtpToEmail = async () => {
-  if (!email || !username || !phoneNumber || !password) {
-    Toast.show({
-      type: 'error',
-      text1: 'Missing Fields',
-      text2: 'All fields are required',
-    });
-    return;
-  }
-
-  try {
-    const res = await axios.post('/user/send-email-otp', {
-      email,
-      username,
-      mobileNumber: phoneNumber,
-    });
-
-    if (res.data.success) {
-      setOtpSent(true);
-      Toast.show({
-        type: 'success',
-        text1: 'OTP Sent',
-        text2: 'Check your email',
-      });
-    } else {
+  const sendOtpToEmail = async () => {
+    if (!email || !username || !phoneNumber || !password) {
       Toast.show({
         type: 'error',
-        text1: 'Failed',
-        text2: res.data.message,
+        text1: 'Missing Fields',
+        text2: 'All fields are required',
       });
+      return;
     }
-  } catch (error : any) {
-    console.error("Send OTP Error", error);
-    Toast.show({
-      type: 'error',
-      text1: 'Error',
-      text2: error.response?.data?.message || 'Failed to send OTP',
-    });
-  }
-};
 
-const verifyOtpAndProceed = async () => {
-  try {
-    const res = await axios.post('/user/verify-email-otp', {
-      email,
-      otp,
-    });
-
-    if (res.data.success) {
-      Toast.show({
-        type: 'success',
-        text1: 'OTP Verified',
-      });
-
-      navigation.navigate('ProfileSetup1', {
+    try {
+      const res = await axios.post('/user/send-email-otp', {
         email,
         username,
-        phoneNumber,
-        password,
+        mobileNumber: phoneNumber,
       });
-    } else {
+
+      if (res.data.success) {
+        setOtpSent(true);
+        Toast.show({
+          type: 'success',
+          text1: 'OTP Sent',
+          text2: 'Check your email',
+        });
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Failed',
+          text2: res.data.message,
+        });
+      }
+    } catch (error: any) {
+      console.error("Send OTP Error", error);
       Toast.show({
         type: 'error',
-        text1: 'Invalid OTP',
-        text2: res.data.message,
+        text1: 'Error',
+        text2: error.response?.data?.message || 'Failed to send OTP',
       });
     }
-  } catch (error : any) {
-    console.error("Verify OTP Error", error);
-    Toast.show({
-      type: 'error',
-      text1: 'Verification Failed',
-      text2: error.response?.data?.message || 'Invalid OTP or Server Error',
-    });
-  }
-};
+  };
+
+  const verifyOtpAndProceed = async () => {
+    try {
+      const res = await axios.post('/user/verify-email-otp', {
+        email,
+        otp,
+      });
+
+      if (res.data.success) {
+        Toast.show({
+          type: 'success',
+          text1: 'OTP Verified',
+        });
+
+        navigation.navigate('ProfileSetup1', {
+          email,
+          username,
+          phoneNumber,
+          password,
+        });
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Invalid OTP',
+          text2: res.data.message,
+        });
+      }
+    } catch (error: any) {
+      console.error("Verify OTP Error", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Verification Failed',
+        text2: error.response?.data?.message || 'Invalid OTP or Server Error',
+      });
+    }
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -126,9 +125,7 @@ const verifyOtpAndProceed = async () => {
         </ScrollView>
 
         {/* Signup Sheet */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        <View
           className="absolute bottom-0 w-full"
         >
           <ScrollView keyboardShouldPersistTaps="handled">
@@ -221,7 +218,7 @@ const verifyOtpAndProceed = async () => {
               </View>
             </View>
           </ScrollView>
-        </KeyboardAvoidingView>
+        </View>
       </View>
     </TouchableWithoutFeedback>
   );

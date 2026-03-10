@@ -6,8 +6,6 @@ import {
   Pressable,
   Image,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   TouchableWithoutFeedback,
   Keyboard,
   ActivityIndicator,
@@ -26,7 +24,6 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
-
   const [isLoading, setIsLoading] = useState(false);
 
   const togglePassword = useCallback(
@@ -74,9 +71,7 @@ export default function LoginScreen() {
         </ScrollView>
 
         {/* Login Sheet */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        <View
           className="absolute bottom-0 w-full"
         >
           <ScrollView
@@ -115,17 +110,17 @@ export default function LoginScreen() {
                 </Pressable>
               </View>
 
-              <Pressable className='items-end mb-6 mt-1' onPress={()=> navigation.navigate('ForgotPassword' , {
+              <Pressable className='items-end mb-6 mt-1' onPress={() => navigation.navigate('ForgotPassword', {
                 email
               })}>
                 <Text className='text-red-400'>Forgot Password?</Text>
               </Pressable>
 
-              {isLoading ? 
+              {isLoading ?
                 <Pressable className="rounded-full bg-black py-4 items-center">
-                  <ActivityIndicator size="small" color="#9CA3AF" /> 
+                  <ActivityIndicator size="small" color="#9CA3AF" />
                 </Pressable>
-                : 
+                :
                 <Pressable
                   className="rounded-full bg-black py-4 items-center"
                   onPress={handleSubmit}
@@ -142,7 +137,7 @@ export default function LoginScreen() {
               </View>
             </View>
           </ScrollView>
-        </KeyboardAvoidingView>
+        </View>
 
       </View>
     </TouchableWithoutFeedback>

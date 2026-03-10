@@ -17,8 +17,8 @@ import {
   TouchableOpacity,
   DeviceEventEmitter
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
 import { useAuth } from '../context/auth.context';
 import CreatePost from './create-post';
 import axios from '../context/axiosConfig';
@@ -28,6 +28,13 @@ import AdCarousel from './AdCarousel';
 import { LinearGradient } from 'expo-linear-gradient';
 import CrushCard from './crush/CrushCard';
 import CrushInputModal from './crush/CrushInputModal';
+import { Ionicons } from '@expo/vector-icons';
+import {
+  checkAndStartSession,
+  getSeenPostIds,
+  markPostsAsSeen,
+  resetSeenPosts,
+} from '../utils/feedSession';
 
 const { width } = Dimensions.get('window');
 
@@ -173,7 +180,7 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
 };
 
 // --- UPDATED SUB-COMPONENT: POST ITEM (With Carousel & Show More) ---
-const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser: any, openComments: (id: string) => void }) => {
+const PostItem = ({ item, currentUser, openComments, onDeletePost }: { item: Post, currentUser: any, openComments: (id: string) => void, onDeletePost: (id: string) => void }) => {
   const [liked, setLiked] = useState(item.liked_by.includes(currentUser?._id));
   const [likeCount, setLikeCount] = useState(item.likes);
   const [resizeMode, setResizeMode] = useState(false);
@@ -236,7 +243,20 @@ const PostItem = ({ item, currentUser, openComments }: { item: Post, currentUser
             </View>
           </View>
         </Pressable>
-        <Ionicons name="ellipsis-horizontal" size={20} color="gray" />
+        {currentUser && currentUser._id === item.user?._id && (
+          <Pressable onPress={() => {
+            Alert.alert(
+              "Delete Post",
+              "Are you sure you want to delete this post?",
+              [
+                { text: "Cancel", style: "cancel" },
+                { text: "Delete", style: "destructive", onPress: () => onDeletePost(item._id) }
+              ]
+            );
+          }}>
+            <Ionicons name="ellipsis-horizontal" size={20} color="gray" />
+          </Pressable>
+        )}
       </View>
 
       {/* --- CAROUSEL IMAGE SECTION --- */}
@@ -383,11 +403,27 @@ export default function HomeScreen() {
     if (pageNum > 1) setLoadingMore(true);
 
     try {
-      const endpoint = activeTab === 'forYou'
-        ? `/post/feed?page=${pageNum}&limit=10`
-        : `/post/feed/followers?page=${pageNum}&limit=10`;
+      // ── Following tab uses existing endpoint (unchanged) ──────────
+      if (activeTab === 'following') {
+        const res = await axios.get(`/post/feed/followers?page=${pageNum}&limit=10`);
+        if (res.data.success) {
+          const newPosts = res.data.posts;
+          if (shouldRefresh || pageNum === 1) setFeed(newPosts);
+          else setFeed(prev => {
+            const ids = new Set(prev.map(p => p._id));
+            return [...prev, ...newPosts.filter((p: Post) => !ids.has(p._id))];
+          });
+          setHasMore(newPosts.length >= 10);
+        }
+        return;
+      }
 
-      const res = await axios.get(endpoint);
+      // ── For You tab — AI Smart Feed (Gemini + Redis) ─────────────
+      const seenIds = await getSeenPostIds();
+
+      const res = await axios.post(`/post/smart-feed?page=${pageNum}&limit=10`, {
+        seenIds,
+      });
 
       if (res.data.success) {
         const newPosts = res.data.posts;
@@ -397,19 +433,39 @@ export default function HomeScreen() {
         } else {
           setFeed(prev => {
             const existingIds = new Set(prev.map(p => p._id));
-            const uniqueNewPosts = newPosts.filter((p: Post) => !existingIds.has(p._id));
-            return [...prev, ...uniqueNewPosts];
+            const uniqueNew = newPosts.filter((p: Post) => !existingIds.has(p._id));
+            return [...prev, ...uniqueNew];
           });
         }
 
-        if (newPosts.length < 10) {
-          setHasMore(false);
-        } else {
-          setHasMore(true);
+        setHasMore(res.data.hasMore ?? newPosts.length >= 10);
+
+        // ── Mark as seen in AsyncStorage (no DB write) ───────────
+        if (newPosts.length > 0) {
+          markPostsAsSeen(newPosts.map((p: Post) => p._id));
+        }
+
+        // ── Limited-content magic ─────────────────────────────────
+        // If backend says 'recycled' (user has seen ALL posts),
+        // immediately clear the seenIds so the next pull-to-refresh
+        // shows a freshly AI-ranked feed instead of the same recycled list.
+        // This is what makes the algo work great with only 9-10 posts.
+        if (res.data.mode === 'recycled') {
+          resetSeenPosts();
         }
       }
     } catch (error) {
       console.log('Failed to load feed', error);
+      // Fallback to old endpoint on error
+      try {
+        const res = await axios.get(`/post/feed?page=${pageNum}&limit=10`);
+        if (res.data.success) {
+          const newPosts = res.data.posts;
+          if (shouldRefresh || pageNum === 1) setFeed(newPosts);
+          else setFeed(prev => [...prev, ...newPosts]);
+          setHasMore(newPosts.length >= 10);
+        }
+      } catch { /* silent */ }
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -422,7 +478,13 @@ export default function HomeScreen() {
       setProfileImage(user.avatar);
       setPage(1);
       setHasMore(true);
-      fetchFeed(1, true);
+
+      // ── Session-aware feed init ─────────────────────────────
+      // checkAndStartSession clears seenIds if app was closed >30 min
+      // This means every fresh app open = fresh content
+      checkAndStartSession().then(() => {
+        fetchFeed(1, true);
+      });
     }
   }, [user, activeTab]);
 
@@ -476,6 +538,19 @@ export default function HomeScreen() {
         return post;
       })
     );
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    try {
+      const res = await axios.delete(`/post/${postId}`);
+      if (res.data.success) {
+        setFeed(prev => prev.filter(p => p._id !== postId));
+        Toast.show({ type: 'success', text1: 'Post deleted successfully' });
+      }
+    } catch (error) {
+      console.log('Failed to delete post', error);
+      Toast.show({ type: 'error', text1: 'Failed to delete post' });
+    }
   };
 
 
@@ -562,6 +637,7 @@ export default function HomeScreen() {
             item={item}
             currentUser={user}
             openComments={handleOpenComments}
+            onDeletePost={handleDeletePost}
           />
         )}
         ListHeaderComponent={

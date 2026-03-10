@@ -22,7 +22,7 @@ const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q
 // --- TYPES ---
 interface NotificationItem {
   _id: string;
-  type: 'follow' | 'tag' | 'like' | 'comment' | 'story_like' | 'story_comment' | 'split_request' | 'split_paid';
+  type: 'follow' | 'tag' | 'like' | 'comment' | 'story_like' | 'story_comment' | 'split_request' | 'split_paid' | 'crush_match' | 'crush_nearby';
   sender: {
     _id: string;
     username: string;
@@ -112,6 +112,8 @@ const Notification = () => {
   const handlePress = (item: NotificationItem) => {
     if (item.type === 'follow') {
       navigation.navigate('PublicProfile', { user: item.sender });
+    } else if (item.type === 'crush_match') {
+      navigation.navigate('PublicProfile', { user: item.sender });
     } else if (item.post) {
       navigation.navigate('Profile');
     }
@@ -173,6 +175,18 @@ const Notification = () => {
         iconColor = '#34d399'; // emerald-400
         iconBg = 'rgba(52, 211, 153, 0.2)';
         break;
+      case 'crush_match':
+        message = "matched with you! ❤️ It's mutual!";
+        iconName = 'heart-sharp';
+        iconColor = '#ec4899';
+        iconBg = 'rgba(236, 72, 153, 0.2)';
+        break;
+      case 'crush_nearby':
+        message = 'is nearby now! Radar detected someone.';
+        iconName = 'radar';
+        iconColor = '#ff8b3b';
+        iconBg = 'rgba(255, 139, 59, 0.2)';
+        break;
     }
 
     return (
@@ -186,7 +200,11 @@ const Notification = () => {
         {/* Avatar Section */}
         <View className="relative mr-2">
           <Image
-            source={{ uri: item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}` }}
+            source={{
+              uri: (item.type === 'crush_nearby' && !item.sender.username.includes('Mutual'))
+                ? 'https://cdn-icons-png.freepik.com/512/219/219988.png'
+                : item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}`
+            }}
             className="w-10 h-10 rounded-full border border-white/10"
           />
         </View>
@@ -194,7 +212,9 @@ const Notification = () => {
         {/* Text Section */}
         <View className="flex-1">
           <Text className="text-gray-300 text-sm leading-5">
-            <Text className="font-bold text-white text-base">{item.sender.username}</Text> {message}
+            <Text className="font-bold text-white text-base">
+              {item.type === 'crush_nearby' ? 'Someone Special' : item.sender.username}
+            </Text> {message}
           </Text>
           <Text className="text-gray-500 text-[10px] mt-1 font-medium uppercase tracking-wide">
             {getTimeAgo(item.createdAt)}

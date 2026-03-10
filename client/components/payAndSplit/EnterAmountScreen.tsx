@@ -93,17 +93,16 @@ const EnterAmountScreen = () => {
         try {
             const canOpen = await Linking.canOpenURL(upiUrl);
 
-            // Simulating UPI App if not found on emulator
             if (canOpen) {
                 setWaitingForPayment(true);
                 await Linking.openURL(upiUrl);
             } else {
-                setWaitingForPayment(true);
-                // Fallback testing flow logic for local emulator missing intents
-                setTimeout(() => {
-                    showVerificationAlert();
-                    setWaitingForPayment(false);
-                }, 2000);
+                // If NO UPI app is installed, show a warning
+                Alert.alert(
+                    "No UPI App Found",
+                    "We couldn't find any UPI apps (like GPay, PhonePe, Paytm) on your device. Please install one to proceed with the payment.",
+                    [{ text: "Okay" }]
+                );
             }
         } catch (error) {
             console.error("Open URL Error", error);

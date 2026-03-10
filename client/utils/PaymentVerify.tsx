@@ -11,19 +11,23 @@ interface PaymentVerifyProps {
       razorpay_signature: string;
       order: any;
       user: any;
+      keyId: string;
+      merchantName?: string;
+      merchantUpiId?: string;
     };
   };
+  navigation: any;
 }
 
 export default function PaymentVerify({ route }: PaymentVerifyProps) {
   const navigation: any = useNavigation();
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order, user } = route.params;
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order, user, merchantName, merchantUpiId } = route.params;
 
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState<boolean | null>(null);
   const [receiptUrl, setReceiptUrl] = useState('');
 
-const verifyPayment = async () => {
+  const verifyPayment = async () => {
     try {
       const res = await axios.post('/payment/api/verify', {
         razorpay_order_id,
@@ -32,10 +36,12 @@ const verifyPayment = async () => {
         customerName: user.name,
         customerEmail: user.email,
         amount: order.amount / 100,
+        merchantUpiId,
+        merchantName,
       },
-      {
-          headers: { 
-            'Content-Type': 'application/json' 
+        {
+          headers: {
+            'Content-Type': 'application/json'
           }
         });
 
@@ -90,7 +96,7 @@ const verifyPayment = async () => {
           onPress={() =>
             navigation.reset({
               index: 0,
-              routes: [{ name: 'Home1' }],
+              routes: [{ name: 'Tabs' }],
             })
           }>
           <Text className="text-lg font-semibold text-white">Go Back to Home</Text>
@@ -113,7 +119,7 @@ const verifyPayment = async () => {
         onPress={() =>
           navigation.reset({
             index: 0,
-            routes: [{ name: 'Home1' }],
+            routes: [{ name: 'Tabs' }],
           })
         }>
         <Text className="text-lg font-semibold text-white">Go Back to Home</Text>

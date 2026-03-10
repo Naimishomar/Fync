@@ -43,7 +43,7 @@ export const getPaidGigs = async (req, res) => {
         const total = await PaidGigs.countDocuments(filter);
 
         if (!gigs || gigs.length === 0) {
-            return res.status(404).json({ success: false, message: "Gigs not found" });
+            return res.status(200).json({ success: true, message: "No gigs found", gigs: [], pagination: { total: 0, page: Number(page), limit: Number(limit), pages: 0 } });
         }
 
         return res.status(200).json({
@@ -70,7 +70,8 @@ export const updatePaidGigs = async (req, res) => {
         if (!gig) {
             return res.status(404).json({ success: false, message: "Gig not found" });
         }
-        if (gig.postedBy.toString() !== req.user.id.toString()) {
+        const postedById = gig.postedBy._id ? gig.postedBy._id.toString() : gig.postedBy.toString();
+        if (postedById !== req.user.id.toString()) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
         else {
@@ -128,12 +129,13 @@ export const deleteGigs = async (req, res) => {
         if (!gig) {
             return res.status(404).json({ success: false, message: "Gig not found" });
         }
-        if (gig.postedBy.toString() !== req.user.id) {
+        const postedById = gig.postedBy._id ? gig.postedBy._id.toString() : gig.postedBy.toString();
+        if (postedById !== req.user.id.toString()) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
         else {
             const deleteGig = await PaidGigs.findByIdAndDelete(req.params.id);
-            return res.status(200).json({ message: "Gig deleted successfully", deleteGig });
+            return res.status(200).json({ success: true, message: "Gig deleted successfully", deleteGig });
         }
     } catch (error) {
         console.log("Internal server error", error);
@@ -155,10 +157,11 @@ export const getYourPostedGigs = async (req, res) => {
         const total = await PaidGigs.countDocuments({ postedBy: req.user.id });
 
         if (!yourGigs || yourGigs.length === 0) {
-            return res.status(404).json({ message: "No gigs found" });
+            return res.status(200).json({ message: "No gigs found", yourGigs: [], pagination: { total: 0, page: Number(page), limit: Number(limit), pages: 0 } });
         }
 
         return res.status(200).json({
+            success: true,
             message: "Your gigs fetched successfully",
             yourGigs,
             pagination: {
@@ -170,6 +173,6 @@ export const getYourPostedGigs = async (req, res) => {
         });
     } catch (error) {
         console.log("Internal server error", error);
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }

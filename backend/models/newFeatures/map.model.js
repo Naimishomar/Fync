@@ -1,15 +1,21 @@
 import mongoose from 'mongoose';
 
 const mapSchema = new mongoose.Schema({
-    college:{
+    college: {
         type: String,
         index: true
     },
-    lat:{
+    lat: {
         type: Number,
     },
-    lng:{
+    lng: {
         type: Number,
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+        // Auto-delete documents after 1 hour — keeps heatmap current, prevents DB bloat
+        expires: 3600
     }
 });
 

@@ -48,7 +48,16 @@ export const addCrush = async (req, res) => {
             await mutualCrush.save();
 
             // Notify both users of a match
-            // (Socket notifications handled separately or via another service)
+            await Notification.create({
+                recipient: crushUserId,
+                sender: userId,
+                type: 'crush_match'
+            });
+            await Notification.create({
+                recipient: userId,
+                sender: crushUserId,
+                type: 'crush_match'
+            });
         }
 
         return res.status(200).json({ success: true, message: "Secret crush added!", isMutual: !!mutualCrush });
@@ -119,25 +128,27 @@ export const updateLocation = async (req, res) => {
         for (const c of myCrushes) {
             const crushUser = c.crushUserId;
             if (crushUser?.location?.latitude) {
-                const lastUpdated = new Date(crushUser.location.lastUpdated);
+                const lastUpdated = crushUser.location.lastUpdated ? new Date(crushUser.location.lastUpdated) : new Date(0);
                 const now = new Date();
-                const isFresh = (now - lastUpdated) / 1000 / 60 / 60 < 24; // Location updated in last 24h
+                const isFresh = (now - lastUpdated) / 1000 / 60 / 60 < 1; // must be within last 1 hour
 
-                if (!isFresh) continue;
+                if (!isFresh) {
+                    crushesWithoutLocation++;
+                    continue;
+                }
 
                 const distance = getDistance(
                     latitude, longitude,
                     crushUser.location.latitude, crushUser.location.longitude
                 );
 
-                console.log(`[DEBUG] Distance to crush ${crushUser.username}: ${distance.toFixed(2)}m (Threshold: 100m)`);
+                console.log(`[DEBUG] Distance to crush ${crushUser.username}: ${distance.toFixed(2)}m (Threshold: 150m)`);
 
                 // Check if they were already notified recently
                 const lastNotified = c.lastNotifiedAt ? new Date(c.lastNotifiedAt).getTime() : 0;
                 const isWithinCooldown = (now.getTime() - lastNotified) < cooldownMs;
 
-                if (distance <= 100) { // Increased to 100m for better testing
-                    // If it's a manual check (force = true), return it regardless of cooldown
+                if (distance <= 150) { // Increased to 150m for better UX
                     if (force || !isWithinCooldown) {
                         nearbyCrushes.push({
                             crushId: c._id,
@@ -149,6 +160,13 @@ export const updateLocation = async (req, res) => {
                         // Update lastNotifiedAt
                         c.lastNotifiedAt = new Date();
                         await c.save();
+
+                        // Save notification in DB so it shows in inbox
+                        await Notification.create({
+                            recipient: userId,
+                            sender: crushUser._id,
+                            type: c.isMutual ? 'crush_match' : 'crush_nearby'
+                        });
                     }
                 }
             } else {
@@ -177,21 +195,20 @@ export const checkNearby = async (req, res) => {
             return res.status(400).json({ success: false, message: "User location not set" });
         }
 
-        const myCrushes = await Crush.find({ userId }).populate('crushUserId', 'name username avatar');
+        const myCrushes = await Crush.find({ userId }).populate('crushUserId', 'name username avatar location');
         const nearby = [];
 
         for (const c of myCrushes) {
-            const crushUser = await User.findById(c.crushUserId._id);
+            const crushUser = c.crushUserId; // Already has location if we populate correctly, but User.findById ensures we have it
             if (crushUser?.location?.latitude) {
-                // Check if crush location was updated recently (e.g. last 24 hours) to ensure it's not totally stale
-                const lastUpdated = new Date(crushUser.location.lastUpdated);
+                const lastUpdated = crushUser.location.lastUpdated ? new Date(crushUser.location.lastUpdated) : new Date(0);
                 const now = new Date();
-                if ((now - lastUpdated) / 1000 / 60 / 60 < 24) {
+                if ((now - lastUpdated) / 1000 / 60 / 60 < 1) { // must be within last 1 hour
                     const dist = getDistance(
                         user.location.latitude, user.location.longitude,
                         crushUser.location.latitude, crushUser.location.longitude
                     );
-                    if (dist <= 100) {
+                    if (dist <= 150) {
                         nearby.push({
                             isMutual: c.isMutual,
                             crushUserId: c.isMutual ? c.crushUserId : { _id: c.crushUserId._id, name: "Someone Special", username: "Secret" }

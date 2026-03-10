@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 import axios from '../context/axiosConfig';
 const baseURL = axios.defaults.baseURL || "";
-const SOCKET_URL = baseURL.split('/api')[0]; 
+const SOCKET_URL = baseURL.split('/api')[0];
 
 console.log("🔗 Socket attempting connection to:", SOCKET_URL);
 

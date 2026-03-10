@@ -41,6 +41,8 @@ interface NoticeType {
   college: string;
   createdAt: string;
   comments: string[];
+  likes?: number;
+  liked_by?: string[];
 }
 
 const NoticeBoard = () => {
@@ -300,6 +302,29 @@ const NoticeBoard = () => {
     ])
   };
 
+  const handleLikeNotice = async (id: string, isCurrentlyLiked: boolean) => {
+    setNotices(prev => prev.map(n => {
+      if (n._id === id) {
+        const currentLikes = n.likes || 0;
+        const likedBy = n.liked_by || [];
+        return {
+          ...n,
+          likes: isCurrentlyLiked ? currentLikes - 1 : currentLikes + 1,
+          liked_by: isCurrentlyLiked
+            ? likedBy.filter(uId => uId !== user?._id)
+            : [...likedBy, user?._id || '']
+        };
+      }
+      return n;
+    }));
+
+    try {
+      await axios.post(`/notice/like/${id}`);
+    } catch (e) {
+      console.log('Error liking notice', e);
+    }
+  };
+
   const renderNotice = ({ item }: { item: NoticeType }) => {
     const isOwner = item.user?._id === user?._id;
     const avatarUrl = item.user?.avatar || `https://ui-avatars.com/api/?name=${item.user?.username || 'Admin'}`;
@@ -379,6 +404,18 @@ const NoticeBoard = () => {
             </View>
 
             <View className="flex-row items-center gap-4">
+              <TouchableOpacity
+                onPress={() => handleLikeNotice(item._id, !!item.liked_by?.includes(user?._id || ''))}
+                className="flex-row items-center p-2 bg-white/5 rounded-full border border-white/5"
+              >
+                <Ionicons
+                  name={item.liked_by?.includes(user?._id || '') ? "heart" : "heart-outline"}
+                  size={18}
+                  color={item.liked_by?.includes(user?._id || '') ? "#ec4899" : "#9ca3af"}
+                />
+                <Text className="text-gray-300 text-xs ml-2 font-bold">{item.likes || 0}</Text>
+              </TouchableOpacity>
+
               <TouchableOpacity onPress={() => openComments(item._id)} className="flex-row items-center p-2 bg-white/5 rounded-full border border-white/5">
                 <Ionicons name="chatbubble-outline" size={18} color="#9ca3af" />
                 <Text className="text-gray-300 text-xs ml-2 font-bold">{item.comments?.length || 0}</Text>
@@ -540,7 +577,7 @@ const NoticeBoard = () => {
               )}
 
               <TouchableOpacity
-                onPress={handleCreateNotice}
+                onPress={() => handleCreateNotice()}
                 disabled={submitting}
                 className={`py-5 rounded-2xl items-center shadow-lg border flex-row justify-center ${activeTab === 'global' ? 'bg-red-600 border-red-500/50' : 'bg-pink-600 border-pink-500/50'
                   }`}
@@ -584,6 +621,28 @@ const NoticeBoard = () => {
                         <Text className="font-bold text-xs text-pink-400 mb-1 tracking-wider">{item.commentor?.name || 'Anonymous'}</Text>
                         <Text className="text-gray-200 text-sm leading-5">{item.text}</Text>
                       </View>
+
+                      {item.commentor?._id === user?._id && (
+                        <TouchableOpacity
+                          className="ml-2 self-start p-2"
+                          onPress={async () => {
+                            try {
+                              await axios.post(`/notice/comment/delete/${item._id}`);
+                              setNoticeComments(prev => prev.filter(c => c._id !== item._id));
+                              setNotices(prev => prev.map(n => {
+                                if (n._id === activeNoticeId) {
+                                  return { ...n, comments: n.comments.filter(v => v !== item._id) };
+                                }
+                                return n;
+                              }));
+                            } catch (e) {
+                              Alert.alert('Error', 'Failed to delete comment');
+                            }
+                          }}
+                        >
+                          <Ionicons name="trash-outline" size={16} color="#ef4444" />
+                        </TouchableOpacity>
+                      )}
                     </View>
                   )}
                   ListEmptyComponent={

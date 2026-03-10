@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
-import socket from '../../utils/socket'; 
+import socket from '../../utils/socket';
 
 const BG_IMAGE = "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=1000&auto=format&fit=crop";
 
@@ -13,7 +13,7 @@ export default function NineAmConfession() {
     const { user } = useAuth();
     const navigation = useNavigation<any>();
 
-    const [status, setStatus] = useState('CHECKING'); 
+    const [status, setStatus] = useState('CHECKING');
     const [messages, setMessages] = useState<any[]>([]);
     const [inputText, setInputText] = useState("");
     const [roomId, setRoomId] = useState<string | null>(null);
@@ -37,7 +37,7 @@ export default function NineAmConfession() {
 
         // 2. Define Event Handlers
         const onConnect = () => console.log("Connected to Lottery Socket");
-        
+
         const onStatusChange = (data: any) => {
             if (data.status === 'CLOSED') setStatus('CLOSED');
             if (data.status === 'LOBBY') setStatus('LOBBY');
@@ -119,7 +119,7 @@ export default function NineAmConfession() {
     const voteReveal = (vote: boolean) => {
         setHasVoted(true);
         socket.emit("vote_reveal", { roomId, userId: user._id, vote });
-        if(!vote) navigation.goBack(); 
+        if (!vote) navigation.goBack();
     };
 
     const startTimer = (endTimeIso: string) => {
@@ -191,7 +191,7 @@ export default function NineAmConfession() {
                     </View>
                     <Text className="text-red-500 font-mono font-bold text-xl">{timeLeft}</Text>
                 </View>
-                
+
                 {/* Chat Area */}
                 <View className="flex-1 px-4 py-2">
                     {messages.map((msg, index) => (
@@ -203,10 +203,10 @@ export default function NineAmConfession() {
 
                 {/* Input */}
                 <View className="p-4 flex-row items-center bg-gray-900">
-                    <TextInput 
+                    <TextInput
                         value={inputText}
                         onChangeText={setInputText}
-                        placeholder="Say hello..." 
+                        placeholder="Say hello..."
                         placeholderTextColor="#666"
                         className="flex-1 bg-black text-white p-4 rounded-full mr-3 border border-gray-800"
                     />
@@ -222,12 +222,12 @@ export default function NineAmConfession() {
         return (
             <View className="flex-1 bg-black justify-center items-center px-6">
                 <LinearGradient colors={['rgba(236, 72, 153, 0.2)', 'rgba(0,0,0,0)']} className="absolute w-full h-full" />
-                
+
                 <Text className="text-white text-4xl font-black mb-2">TIME IS UP 🎉</Text>
                 <Text className="text-gray-400 text-center mb-12 px-4">
                     Do you want to reveal your identity to this person?{"\n"}Both must say YES.
                 </Text>
-                
+
                 {!hasVoted ? (
                     <View className="flex-row gap-4 w-full">
                         <TouchableOpacity onPress={() => voteReveal(false)} className="flex-1 bg-gray-800 py-5 rounded-2xl border border-gray-700">
@@ -239,7 +239,7 @@ export default function NineAmConfession() {
                     </View>
                 ) : (
                     <View className="items-center">
-                        <ActivityIndicator color="#ec4899" className="mb-4"/>
+                        <ActivityIndicator color="#ec4899" className="mb-4" />
                         <Text className="text-white font-bold text-xl">Waiting for partner...</Text>
                         {partnerVoted && <Text className="text-green-500 mt-2">Partner has voted!</Text>}
                     </View>
@@ -254,17 +254,17 @@ export default function NineAmConfession() {
             <View className="flex-1 bg-black justify-center items-center">
                 <LinearGradient colors={['rgba(236, 72, 153, 0.15)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
                 <Image source={{ uri: BG_IMAGE }} className="absolute w-full h-full opacity-30" />
-                
+
                 <Text className="text-pink-500 text-4xl font-black mb-8 shadow-lg">IT IS A MATCH!</Text>
-                
+
                 <View className="bg-gray-900/80 p-6 rounded-3xl border border-pink-500/30 items-center w-full shadow-2xl backdrop-blur-md">
-                    <Image 
-                        source={{ uri: partner?.avatar || "https://via.placeholder.com/150" }} 
+                    <Image
+                        source={{ uri: partner?.avatar || "https://via.placeholder.com/150" }}
                         className="w-32 h-32 rounded-full border-4 border-pink-500 mb-4"
                     />
                     <Text className="text-white text-2xl font-bold">{partner?.name}</Text>
                     <Text className="text-gray-400 mb-6">@{partner?.username} • {partner?.college}</Text>
-                    
+
                     <TouchableOpacity onPress={() => navigation.navigate("PublicProfile", { user: partner })} className="bg-white w-full py-4 rounded-xl">
                         <Text className="text-black text-center font-bold text-lg">View Profile</Text>
                     </TouchableOpacity>

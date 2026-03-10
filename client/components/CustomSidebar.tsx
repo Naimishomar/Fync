@@ -261,7 +261,9 @@ export default function CustomSidebar(props: any) {
                             }
                             props.navigation.navigate('VideoLobby', {
                                 myUserId: userId,
-                                myUserName: userName
+                                myUserName: userName,
+                                myAvatar: user?.avatar,
+                                myRealUsername: user?.username
                             });
                         }}
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
@@ -342,6 +344,15 @@ export default function CustomSidebar(props: any) {
                         <Text className="text-white text-lg ml-4 font-medium">Campus Travel</Text>
                     </Pressable>
 
+                    {/* 17b. Smart Ride Safety */}
+                    <Pressable
+                        onPress={() => props.navigation.navigate('SmartRideSafety')}
+                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                    >
+                        <Ionicons name="shield-checkmark-outline" size={24} color="#f9a8d4" />
+                        <Text className="text-white text-lg ml-4 font-medium">Ride Safety 🛡️</Text>
+                    </Pressable>
+
                     {/* 18. Study Assistant */}
                     <Pressable
                         onPress={() => props.navigation.navigate('StudyAssistant')}
@@ -349,6 +360,24 @@ export default function CustomSidebar(props: any) {
                     >
                         <Ionicons name="book-outline" size={24} color="#f9a8d4" />
                         <Text className="text-white text-lg ml-4 font-medium">Study Assistant</Text>
+                    </Pressable>
+
+                    {/* 18b. Dev Toots */}
+                    <Pressable
+                        onPress={() => props.navigation.navigate('DevToots')}
+                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                    >
+                        <Ionicons name="construct-outline" size={24} color="#f9a8d4" />
+                        <Text className="text-white text-lg ml-4 font-medium">Dev Toots 🛠️</Text>
+                    </Pressable>
+
+                    {/* 18c. Placement Hub */}
+                    <Pressable
+                        onPress={() => props.navigation.navigate('PlacementHub')}
+                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                    >
+                        <Ionicons name="business-outline" size={24} color="#f9a8d4" />
+                        <Text className="text-white text-lg ml-4 font-medium">Placement Hub 🏢</Text>
                     </Pressable>
 
                     {/* 19. Group Jam */}

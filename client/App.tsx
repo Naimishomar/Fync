@@ -11,6 +11,7 @@ import Toast from "react-native-toast-message";
 import './context/axiosConfig';
 //@ts-ignore
 import "./global.css";
+import { StatusBar } from 'expo-status-bar';
 
 // Context
 import { AuthProvider, useAuth } from "./context/auth.context";
@@ -78,7 +79,9 @@ import CollegeChatScreen from './components/newFeatures/CollegeChatScreen';
 import GroupJamSetup from 'components/GroupSongs/GroupJamSetup';
 import GroupJamPlayer from 'components/GroupSongs/GroupJamPlayer';
 import socket from 'utils/socket';
-// import VideoLobby from './components/newFeatures/VideoLobby';
+import VideoLobby from './components/newFeatures/VideoLobby';
+import DevToots from './components/newFeatures/DevToots';
+import PlacementHub from './components/newFeatures/PlacementHub';
 
 // Notification
 import Notification from "./components/Notification";
@@ -113,6 +116,7 @@ import MonthlyAnalyticsScreen from './components/payAndSplit/MonthlyAnalyticsScr
 import GroupManagementScreen from './components/payAndSplit/GroupManagementScreen';
 import CreatedSplitsScreen from './components/payAndSplit/CreatedSplitsScreen';
 import SubscriptionGuard from './components/newFeatures/SubscriptionGuard';
+import SmartRideSafety from './components/newFeatures/SmartRideSafety';
 
 
 
@@ -184,11 +188,9 @@ export type RootStackParamList = {
   CodingLeaderboard: undefined;
   DriveFolderScreen: undefined;
   PDFViewerScreen: undefined;
-  VideoLobby: { myUserId: string, myUserName: string };
+  VideoLobby: { myUserId: string, myUserName: string, myAvatar?: string, myRealUsername?: string };
   IndividualPostOrShort: { postId: string };
   MarketplaceScreen: undefined;
-  ZegoUIKitPrebuiltCallWaitingScreen: undefined;
-  ZegoUIKitPrebuiltCallInCallScreen: undefined;
   LostAndFound: undefined;
   NoticeBoard: undefined;
   CollaborationScreen: undefined;
@@ -196,6 +198,8 @@ export type RootStackParamList = {
   PaidGigs: undefined;
   LateNightFood: undefined;
   CampusTravel: undefined;
+  DevToots: undefined;
+  PlacementHub: undefined;
   StudyAssistant: undefined;
   CreateShorts: undefined;
   GroupJamSetup: undefined;
@@ -210,6 +214,7 @@ export type RootStackParamList = {
   CreatedSplitsScreen: undefined;
   WifiSettingsScreen: undefined;
   CollegeChatScreen: undefined;
+  SmartRideSafety: undefined;
 };
 
 
@@ -253,10 +258,18 @@ function AuthStack() {
 }
 
 function AppStack() {
+  const { user } = useAuth();
+
   useEffect(() => {
     console.log("AppStack Socket Listener Mounted 👂 - Socket ID:", socket.id);
 
     socket.on('incoming-jam', (data) => {
+      // Check if the current user is actually invited
+      const currentUserId = user?._id || user?.id;
+      const isInvited = data.participants?.some((p: any) => p._id === currentUserId) || data.targetUserId === currentUserId;
+
+      if (!isInvited) return;
+
       console.log("Invitation Received on Guest Phone!", data.host.username);
 
       Alert.alert(
@@ -267,7 +280,6 @@ function AppStack() {
           {
             text: "Join Sync",
             onPress: () => {
-              // 🔥 FIX: Use navigationRef instead of navigation
               if (navigationRef.isReady()) {
                 navigationRef.navigate("GroupJamPlayer", data);
               } else {
@@ -280,8 +292,7 @@ function AppStack() {
     });
 
     return () => { socket.off('incoming-jam'); };
-  }, []);
-
+  }, [user]);
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: "simple_push" }}>
@@ -346,7 +357,10 @@ function AppStack() {
       <Stack.Screen name="CreatedSplitsScreen" component={CreatedSplitsScreen} />
       <Stack.Screen name="WifiSettingsScreen" component={WifiSettingsScreen} />
       <Stack.Screen name="CollegeChatScreen" component={CollegeChatScreen} />
-      {/* <Stack.Screen name="VideoLobby" component={VideoLobby} /> */}
+      <Stack.Screen name="VideoLobby" component={VideoLobby} />
+      <Stack.Screen name="SmartRideSafety" component={SmartRideSafety} />
+      <Stack.Screen name="DevToots" component={DevToots} />
+      <Stack.Screen name="PlacementHub" component={PlacementHub} />
     </Stack.Navigator>
   );
 }
@@ -376,6 +390,7 @@ export default function App() {
   return (
     <AuthProvider>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={Platform.OS === "ios" ? 15 : 0}>
+        <StatusBar style="light" backgroundColor="#000" />
         <NavigationContainer ref={navigationRef}>
           <RootNavigator />
         </NavigationContainer>

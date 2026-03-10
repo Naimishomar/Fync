@@ -4,6 +4,7 @@ import Comment from '../models/comment.model.js';
 import User from '../models/user.model.js';
 import Notification from '../models/notification.model.js';
 import { deleteFromCloudinary } from '../utils/cloudinary.js';
+import { getCandidatePool, getUserInterestProfile, rankFeed, invalidatePool } from '../utils/feedEngine.js';
 
 export const createPost = async (req, res) => {
     try {
@@ -29,6 +30,8 @@ export const createPost = async (req, res) => {
                 liked_by: [],
                 comments: []
             })
+            // Invalidate Redis pool so next fetch picks up the new post
+            invalidatePool(req.user.college, 'posts').catch(() => { });
             return res.status(200).json({ success: true, message: 'Post created successfully', post });
         }
     } catch (error) {
@@ -64,7 +67,7 @@ export const updatePost = async (req, res) => {
         if (!post) {
             return res.status(404).json({ success: false, message: "Post not found" });
         }
-        if (post.user.toString() !== req.user.id) {
+        if (post.user.toString() !== req.user.id.toString()) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
         else {
@@ -102,7 +105,12 @@ export const deletePost = async (req, res) => {
         if (!post) {
             return res.status(404).json({ success: false, message: "Post not found" });
         }
-        if (post.user.toString() !== req.user.id) {
+        if (post.user.toString() !== req.user.id.toString()) {
+            console.log("Delete Post Unauthorized:", {
+                postUser: post.user.toString(),
+                reqUser: req.user.id.toString(),
+                match: post.user.toString() === req.user.id.toString()
+            });
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
         else {
@@ -251,7 +259,7 @@ export const deleteComment = async (req, res) => {
         if (!comment) {
             return res.status(404).json({ success: false, message: 'Comment not found' });
         }
-        if (comment.commentor.toString() !== req.user.id) {
+        if (comment.commentor.toString() !== req.user.id.toString()) {
             return res.status(403).json({ success: false, message: 'Not authorized' });
         }
         await Post.findByIdAndUpdate(comment.post, {
@@ -277,7 +285,7 @@ export const updateComment = async (req, res) => {
         if (!comment) {
             return res.status(404).json({ success: false, message: 'Comment not found' });
         }
-        if (comment.commentor.toString() !== req.user.id) {
+        if (comment.commentor.toString() !== req.user.id.toString()) {
             return res.status(403).json({ success: false, message: 'Not authorized' });
         }
         else {
@@ -375,3 +383,85 @@ export const getPostByPostId = async (req, res) => {
         return res.status(500).json({ success: false, message: "Server error" });
     }
 }
+
+// ─────────────────────────────────────────────────────────────
+//  SMART FEED  (Gemini AI + Redis cache + in-memory ranking)
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * GET /post/smart-feed?page=1&limit=10
+ * Body (optional): { seenIds: ["id1", "id2", ...] }
+ *
+ * How it works (zero extra DB load):
+ *  1. Candidate pool is fetched from Redis (or DB once, then cached 5 min)
+ *  2. User interest profile is fetched from Redis (or Gemini once per 24h)
+ *  3. All scoring happens IN MEMORY — no additional DB queries
+ *  4. seenIds come from the CLIENT (AsyncStorage) — no DB writes needed
+ */
+export const getSmartFeed = async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // ── HARD FALLBACK ─────────────────────────────────────────
+    // If ANY step of the smart feed fails, we silently fall back
+    // to the original simple feed query so users NEVER see a 500.
+    const simpleFallback = async () => {
+        const posts = await Post.find({ college: req.user.college })
+            .populate('user', 'name username avatar')
+            .populate({ path: 'comments', populate: { path: 'commentor', select: 'name avatar username' } })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+        return res.status(200).json({ success: true, posts, hasMore: posts.length >= limit, mode: 'fallback' });
+    };
+
+    try {
+        const seenIds = Array.isArray(req.body?.seenIds) ? req.body.seenIds : [];
+
+        // STEP 1 — Candidate pool (Redis → MongoDB)
+        let candidates;
+        try {
+            candidates = await getCandidatePool(req.user.college, Post, 150);
+        } catch (e) {
+            console.error('[SmartFeed] Step1 getCandidatePool failed:', e.message);
+            return simpleFallback();
+        }
+
+        // STEP 2 — User interest profile (Gemini → Redis)
+        let interestProfile = { keywords: [] };
+        try {
+            const userDoc = await User.findById(req.user.id)
+                .select('interest hobbies skills major about')
+                .lean();
+            interestProfile = await getUserInterestProfile({
+                ...(userDoc || {}),
+                id: req.user.id,
+                _id: req.user.id
+            });
+        } catch (e) {
+            // Non-fatal — continue with empty keywords (engagement-only scoring)
+            console.log('[SmartFeed] Step2 interest profile failed (using fallback):', e.message);
+        }
+
+        // STEP 3 — In-memory rank + paginate
+        let ranked;
+        try {
+            ranked = rankFeed({ candidates, seenIds, interestProfile, page, limit });
+        } catch (e) {
+            console.error('[SmartFeed] Step3 rankFeed failed:', e.message);
+            return simpleFallback();
+        }
+
+        return res.status(200).json({
+            success: true,
+            posts: ranked.items,
+            hasMore: ranked.hasMore,
+            mode: ranked.mode   // 'fresh' | 'recycled'
+        });
+
+    } catch (error) {
+        console.error('[SmartFeed] Unexpected error:', error);
+        return simpleFallback();
+    }
+};

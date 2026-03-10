@@ -41,6 +41,8 @@ export const verifyOrder = async (req, res) => {
     customerName,
     customerEmail,
     amount,
+    merchantUpiId,
+    merchantName,
   } = req.body;
 
   const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -80,6 +82,14 @@ export const verifyOrder = async (req, res) => {
   doc.text(`Email: ${customerEmail || "N/A"}`);
   doc.moveDown();
 
+  if (merchantName || merchantUpiId) {
+    doc.fontSize(16).text("Paid To (Creator)", { underline: true });
+    doc.moveDown(0.5);
+    doc.fontSize(12).text(`Name: ${merchantName || "N/A"}`);
+    doc.text(`UPI ID: ${merchantUpiId || "N/A"}`);
+    doc.moveDown();
+  }
+
   // ---------- Payment Info ----------
   doc.fontSize(16).text("Payment Info", { underline: true });
   doc.moveDown(0.5);
@@ -113,7 +123,10 @@ export const verifyOrder = async (req, res) => {
   doc.end();
 
   stream.on("finish", () => {
-    const url = `http://192.168.28.159:3000/receipts/${razorpay_order_id}.pdf`;
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const url = `${protocol}://${host}/receipts/${razorpay_order_id}.pdf`;
+
     res.json({
       success: true,
       receipt_url: url,

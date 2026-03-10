@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   ScrollView,
   Alert,
+  ToastAndroid,
 } from "react-native";
 import { Video, ResizeMode } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
@@ -23,6 +24,12 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
 import { useAuth } from "../context/auth.context";
 import axios from "../context/axiosConfig";
+import {
+  checkAndStartSession,
+  getSeenShortIds,
+  markShortsAsSeen,
+  resetSeenShorts,
+} from "../utils/feedSession";
 
 
 /* ---------------- CONSTANTS ---------------- */
@@ -51,20 +58,179 @@ interface ShortItem {
   user: User;
 }
 
+/* ---------------- GLOBAL CACHE ---------------- */
+let globalShortsCache: ShortItem[] = [];
+let globalCurrentPage = 1;
+let globalHasMore = true;
+
 /* ---------------- COMPONENT ---------------- */
+
+const SingleShort = React.memo(({
+  item,
+  isActive,
+  currentUserId,
+  navigation,
+  onLike,
+  onComment,
+  onDelete
+}: {
+  item: ShortItem;
+  isActive: boolean;
+  currentUserId: string | undefined;
+  navigation: any;
+  onLike: (item: ShortItem) => void;
+  onComment: (id: string) => void;
+  onDelete: (id: string) => void;
+}) => {
+  const [showIcon, setShowIcon] = useState<"play" | "pause" | null>(null);
+  const videoRef = useRef<Video>(null);
+  const isLiked = item.liked_by.includes(currentUserId || "");
+
+  useEffect(() => {
+    if (isActive) {
+      videoRef.current?.playAsync();
+      axios.get(`/shorts/view/${item._id}`).catch(() => { });
+    } else {
+      videoRef.current?.pauseAsync();
+    }
+  }, [isActive]);
+
+  const togglePlay = async () => {
+    if (!videoRef.current) return;
+    const status = await videoRef.current.getStatusAsync();
+    if (status.isLoaded && status.isPlaying) {
+      await videoRef.current.pauseAsync();
+      setShowIcon("play");
+    } else {
+      await videoRef.current.playAsync();
+      setShowIcon("pause");
+    }
+    setTimeout(() => setShowIcon(null), 600);
+  };
+
+  return (
+    <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }} className="bg-black">
+      <Pressable onPress={togglePlay}>
+        <Video
+          ref={videoRef}
+          source={{ uri: item.video }}
+          style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }}
+          resizeMode={ResizeMode.COVER}
+          isLooping
+          shouldPlay={isActive}
+          isMuted={false}
+          useNativeControls={false}
+        />
+      </Pressable>
+
+      {showIcon && (
+        <View className="absolute inset-0 items-center justify-center bg-black/10">
+          <Ionicons
+            name={showIcon === "play" ? "play" : "pause"}
+            size={72}
+            color="white"
+          />
+        </View>
+      )}
+
+      {/* -------- BOTTOM OVERLAY -------- */}
+      <View className="absolute bottom-32 left-4 right-4 flex-row justify-between items-end">
+        {/* LEFT */}
+        <View className="flex-1 pr-6">
+          <Pressable
+            onPress={() => {
+              if (item.user._id === currentUserId) {
+                navigation.navigate("Profile");
+              } else {
+                navigation.navigate("PublicProfile", { userId: item.user._id });
+              }
+            }}
+            className="flex-row items-center mb-1"
+          >
+            <Image
+              source={{ uri: item.user.avatar }}
+              className="h-10 w-10 rounded-full mr-3"
+            />
+            <View>
+              <Text className="text-white font-semibold">{item.user.name}</Text>
+              <Text className="text-gray-300 text-xs">@{item.user.username}</Text>
+            </View>
+          </Pressable>
+          <Text className="text-gray-300">{item.title}</Text>
+          <Text className="text-gray-500">{item.description}</Text>
+        </View>
+
+        {/* RIGHT */}
+        <View className="items-center">
+          {item.user._id === currentUserId && (
+            <Pressable
+              onPress={() => {
+                Alert.alert(
+                  "Delete Short",
+                  "Are you sure you want to delete this short?",
+                  [
+                    { text: "Cancel", style: "cancel" },
+                    { text: "Delete", style: "destructive", onPress: () => onDelete(item._id) }
+                  ]
+                );
+              }}
+              className="mb-4"
+            >
+              <Ionicons name="trash-outline" size={28} color="#ef4444" />
+            </Pressable>
+          )}
+
+          <Pressable onPress={() => onLike(item)}>
+            <Ionicons
+              name={isLiked ? "heart" : "heart-outline"}
+              size={34}
+              color={isLiked ? "red" : "white"}
+            />
+          </Pressable>
+          <Text className="text-white text-xs mb-4">{item.likes || 0}</Text>
+
+          <Pressable onPress={() => onComment(item._id)} className="mb-4">
+            <Ionicons name="chatbubble-outline" size={28} color="white" />
+          </Pressable>
+
+          <Pressable
+            onPress={() => {
+              if (item.user.upiId) {
+                navigation.navigate("EnterAmountScreen", {
+                  merchantUpiId: item.user.upiId,
+                  merchantName: item.user.name
+                });
+              } else {
+                Alert.alert(
+                  "Payments Not Setup",
+                  `${item.user.name} hasn't added their UPI ID yet.`,
+                  [{ text: "Okay" }]
+                );
+              }
+            }}
+            className="mb-4 items-center"
+          >
+            <View className="bg-green-500/20 p-2 rounded-full border border-green-500/30">
+              <Ionicons name="cash-outline" size={26} color="#4ade80" />
+            </View>
+            <Text className="text-green-400 text-[10px] mt-1 font-bold">TIP</Text>
+          </Pressable>
+
+          <Ionicons name="eye-outline" size={28} color="white" />
+          <Text className="text-white text-xs">{item.views || 0}</Text>
+        </View>
+      </View>
+    </View>
+  );
+});
 
 export default function Shorts() {
   const { user } = useAuth();
   const currentUserId = user?.id || user?._id;
 
-  const videoRefs = useRef<Map<string, Video>>(new Map());
-  const activeVideoId = useRef<string | null>(null);
-
-  const [shorts, setShorts] = useState<ShortItem[]>([]);
-  const [showIcon, setShowIcon] = useState<{
-    id: string;
-    type: "play" | "pause";
-  } | null>(null);
+  const [shorts, setShorts] = useState<ShortItem[]>(globalShortsCache);
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(globalShortsCache.length > 0 ? globalShortsCache[0]._id : null);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const [commentModalVisible, setCommentModalVisible] = useState(false);
   const [activeShortId, setActiveShortId] = useState<string | null>(null);
@@ -80,82 +246,95 @@ export default function Shorts() {
 
   /* ---------------- FETCH ---------------- */
 
-  const fetchShorts = async () => {
+  const fetchShorts = async (page = 1, shouldRefresh = false) => {
+    if (!globalHasMore && !shouldRefresh && page !== 1) return;
+    if (page > 1) setLoadingMore(true);
+
     try {
-      const res = await axios.get(
-        "/shorts/get/shorts"
-      );
-      if (res.data.success) setShorts(res.data.shorts);
+      // ── Get seen IDs from AsyncStorage (zero DB load) ──────────
+      const seenIds = await getSeenShortIds();
+
+      // ── Call AI smart endpoint ─────────────────────────────
+      const res = await axios.post(`/shorts/smart?page=${page}`, { seenIds });
+
+      if (res.data.success) {
+        const newShorts = res.data.shorts;
+        if (shouldRefresh || page === 1) {
+          globalShortsCache = newShorts;
+          setShorts(newShorts);
+          if (newShorts.length > 0 && !activeVideoId) setActiveVideoId(newShorts[0]._id);
+        } else {
+          globalShortsCache = [...globalShortsCache, ...newShorts];
+          setShorts(globalShortsCache);
+        }
+
+        globalCurrentPage = page;
+        globalHasMore = res.data.hasMore ?? newShorts.length >= 10;
+
+        // ── Mark as seen in AsyncStorage (zero DB write) ─────────
+        if (newShorts.length > 0) {
+          markShortsAsSeen(newShorts.map((s: ShortItem) => s._id));
+        }
+
+        // ── Limited-content magic ─────────────────────────────────
+        // Backend returns 'recycled' when user has seen all shorts.
+        // Immediately clear seenIds so next swipe-refresh is fresh
+        // and AI scoring gives a different order every time.
+        if (res.data.mode === 'recycled') {
+          resetSeenShorts();
+        }
+      }
     } catch (err) {
-      console.log("Failed to load shorts", err);
+      // Graceful fallback to original endpoint
+      try {
+        const res = await axios.get(`/shorts/get/shorts?page=${page}`);
+        if (res.data.success) {
+          const newShorts = res.data.shorts;
+          if (shouldRefresh || page === 1) {
+            globalShortsCache = newShorts;
+            setShorts(newShorts);
+          } else {
+            globalShortsCache = [...globalShortsCache, ...newShorts];
+            setShorts(globalShortsCache);
+          }
+          globalCurrentPage = page;
+          globalHasMore = newShorts.length >= 10;
+        }
+      } catch { /* silent */ }
+    } finally {
+      setLoadingMore(false);
+      setRefreshing(false);
     }
   };
 
   useEffect(() => {
-    fetchShorts();
+    if (globalShortsCache.length === 0) {
+      // Session-aware: clears seen list if app was closed >30 min
+      checkAndStartSession().then(() => fetchShorts(1, true));
+    }
   }, []);
+
+  const loadMore = () => {
+    if (!loadingMore && globalHasMore) {
+      fetchShorts(globalCurrentPage + 1);
+    }
+  };
 
   /* ---------------- VIDEO CONTROL ---------------- */
 
-  const pauseAll = async () => {
-    for (const [, ref] of videoRefs.current) {
-      try {
-        await ref.pauseAsync();
-      } catch { }
-    }
-  };
-
   const onViewableItemsChanged = useRef(
-    async ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       if (!viewableItems.length) return;
-
       const item = viewableItems[0].item as ShortItem;
-
-      if (activeVideoId.current === item._id) return;
-
-      activeVideoId.current = item._id;
-
-      await pauseAll();
-
-      const ref = videoRefs.current.get(item._id);
-      if (ref) {
-        await ref.playAsync();
+      if (activeVideoId !== item._id) {
+        setActiveVideoId(item._id);
       }
-
-      // register view
-      axios.get(`/shorts/view/${item._id}`);
     }
   ).current;
 
-  const viewabilityConfig = {
-    itemVisiblePercentThreshold: 90,
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        pauseAll();
-      };
-    }, [])
-  );
-
-  /* ---------------- PLAY / PAUSE ---------------- */
-
-  const togglePlay = async (id: string) => {
-    const ref = videoRefs.current.get(id);
-    if (!ref) return;
-
-    const status = await ref.getStatusAsync();
-    if (status.isLoaded && status.isPlaying) {
-      await ref.pauseAsync();
-      setShowIcon({ id, type: "play" });
-    } else {
-      await pauseAll();
-      await ref.playAsync();
-      setShowIcon({ id, type: "pause" });
-    }
-    setTimeout(() => setShowIcon(null), 600);
-  };
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50,
+  }).current;
 
   /* ---------------- LIKE ---------------- */
 
@@ -165,19 +344,20 @@ export default function Shorts() {
     const token = await AsyncStorage.getItem("token");
     const isLiked = short.liked_by.includes(currentUserId);
 
-    setShorts(prev =>
-      prev.map(s =>
-        s._id === short._id
-          ? {
-            ...s,
-            likes: isLiked ? s.likes - 1 : s.likes + 1,
-            liked_by: isLiked
-              ? s.liked_by.filter(id => id !== currentUserId)
-              : [...s.liked_by, currentUserId],
-          }
-          : s
-      )
+    const updatedShorts = shorts.map(s =>
+      s._id === short._id
+        ? {
+          ...s,
+          likes: isLiked ? s.likes - 1 : s.likes + 1,
+          liked_by: isLiked
+            ? s.liked_by.filter(id => id !== currentUserId)
+            : [...s.liked_by, currentUserId],
+        }
+        : s
     );
+
+    setShorts(updatedShorts);
+    globalShortsCache = updatedShorts;
 
     axios.post(`/shorts/like/${short._id}`);
   };
@@ -225,13 +405,8 @@ export default function Shorts() {
   const onRefresh = async () => {
     try {
       setRefreshing(true);
-
-      // Stop all videos before refresh
-      await pauseAll();
-      activeVideoId.current = null;
-
-      // Re-fetch shorts
-      await fetchShorts();
+      setActiveVideoId(null);
+      await fetchShorts(1, true);
     } catch (e) {
       console.log("Refresh failed", e);
     } finally {
@@ -241,113 +416,41 @@ export default function Shorts() {
 
 
 
+  const deleteShort = async (id: string) => {
+    try {
+      const res = await axios.post(`/shorts/delete/${id}`);
+      if (res.data.success) {
+        const updatedShorts = shorts.filter(s => s._id !== id);
+        setShorts(updatedShorts);
+        globalShortsCache = updatedShorts;
+        if (Platform.OS === 'android') {
+          ToastAndroid.show("Short deleted successfully", ToastAndroid.SHORT);
+        } else {
+          Alert.alert("Success", "Short deleted successfully");
+        }
+      }
+    } catch (error) {
+      console.log("Delete failed", error);
+      Alert.alert("Error", "Failed to delete short");
+    }
+  };
+
+
   /* ---------------- RENDER ---------------- */
 
-  const renderItem = ({ item }: { item: ShortItem }) => {
-    const isLiked = item.liked_by.includes(currentUserId || "");
-
+  const renderItem = useCallback(({ item }: { item: ShortItem }) => {
     return (
-      <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }} className="bg-black">
-        <Pressable onPress={() => togglePlay(item._id)}>
-          <Video
-            ref={(ref) => { if (ref) videoRefs.current.set(item._id, ref); }}
-            source={{ uri: item.video }}
-            style={{
-              height: SCREEN_HEIGHT,
-              width: SCREEN_WIDTH,
-            }}
-            resizeMode={ResizeMode.COVER}
-            isLooping
-            shouldPlay={false}
-          />
-        </Pressable>
-
-        {showIcon?.id === item._id && (
-          <View className="absolute inset-0 items-center justify-center bg-black/10">
-            <Ionicons
-              name={showIcon.type === "play" ? "play" : "pause"}
-              size={72}
-              color="white"
-            />
-          </View>
-        )}
-
-        {/* -------- BOTTOM OVERLAY -------- */}
-        <View className="absolute bottom-32 left-4 right-4 flex-row justify-between items-end">
-          {/* LEFT */}
-          <View className="flex-1 pr-6">
-            <Pressable
-              onPress={() => {
-                if (item.user._id === currentUserId) {
-                  navigation.navigate("Profile");
-                } else {
-                  navigation.navigate("PublicProfile", { userId: item.user._id });
-                }
-              }}
-              className="flex-row items-center mb-1"
-            >
-              <Image
-                source={{ uri: item.user.avatar }}
-                className="h-10 w-10 rounded-full mr-3"
-              />
-              <View>
-                <Text className="text-white font-semibold">
-                  {item.user.name}
-                </Text>
-                <Text className="text-gray-300 text-xs">
-                  @{item.user.username}
-                </Text>
-              </View>
-            </Pressable>
-            <Text className="text-gray-300">{item.title}</Text>
-            <Text className="text-gray-500">{item.description}</Text>
-          </View>
-
-          {/* RIGHT */}
-          <View className="items-center">
-            <Pressable onPress={() => toggleLike(item)}>
-              <Ionicons
-                name={isLiked ? "heart" : "heart-outline"}
-                size={34}
-                color={isLiked ? "red" : "white"}
-              />
-            </Pressable>
-            <Text className="text-white text-xs mb-4">{item.likes || 0}</Text>
-
-            <Pressable onPress={() => openComments(item._id)} className="mb-4">
-              <Ionicons name="chatbubble-outline" size={28} color="white" />
-            </Pressable>
-
-            <Pressable
-              onPress={() => {
-                if (item.user.upiId) {
-                  navigation.navigate("EnterAmountScreen", {
-                    merchantUpiId: item.user.upiId,
-                    merchantName: item.user.name
-                  });
-                } else {
-                  Alert.alert(
-                    "Payments Not Setup",
-                    `${item.user.name} hasn't added their UPI ID yet. You can only pay creators who have set up their payments!`,
-                    [{ text: "Okay" }]
-                  );
-                }
-              }}
-              className="mb-4 items-center"
-            >
-              <View className="bg-green-500/20 p-2 rounded-full border border-green-500/30">
-                <Ionicons name="cash-outline" size={26} color="#4ade80" />
-              </View>
-              <Text className="text-green-400 text-[10px] mt-1 font-bold">TIP</Text>
-            </Pressable>
-
-            <Ionicons name="eye-outline" size={28} color="white" />
-            <Text className="text-white text-xs">{item.views || 0}</Text>
-          </View>
-        </View>
-      </View>
+      <SingleShort
+        item={item}
+        isActive={item._id === activeVideoId}
+        currentUserId={currentUserId}
+        navigation={navigation}
+        onLike={toggleLike}
+        onComment={openComments}
+        onDelete={deleteShort}
+      />
     );
-  };
+  }, [activeVideoId, currentUserId]);
 
   /* ---------------- UI ---------------- */
 
@@ -371,9 +474,11 @@ export default function Shorts() {
         windowSize={3}
         initialNumToRender={1}
         maxToRenderPerBatch={1}
-        removeClippedSubviews
+        removeClippedSubviews={false}
         refreshing={refreshing}
         onRefresh={onRefresh}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
       />
 
       <Modal
