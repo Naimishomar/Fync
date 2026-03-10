@@ -1,9 +1,11 @@
-import { GoogleGenAI } from "@google/genai"; 
-import InterviewSession from '../models/interview.model.js'; 
+import { GoogleGenAI } from "@google/genai";
+import InterviewSession from '../models/interview.model.js';
 import { cloudinary } from '../utils/cloudinary.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const { PDFParse } = require('pdf-parse');
+const pdf = require('pdf-parse');
+import axios from 'axios';
+
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export const startInterview = async (req, res) => {
@@ -11,17 +13,18 @@ export const startInterview = async (req, res) => {
         console.log("🔹 Request received at /start");
 
         const { domain, experience, duration } = req.body;
-        
+
         if (!req.file) {
             return res.status(400).json({ message: "Resume file is required." });
         }
 
         let resumeText = "";
         try {
-            console.log("🔹 processing PDF with PDFParse V2...");
-            const parser = new PDFParse({ url: req.file.path });
-            const pdfResult = await parser.getText();
-            resumeText = pdfResult.text.substring(0, 3000); 
+            console.log("🔹 processing PDF with stable pdf-parse...");
+            const response = await axios.get(req.file.path, { responseType: 'arraybuffer' });
+            const dataBuffer = Buffer.from(response.data);
+            const pdfResult = await pdf(dataBuffer);
+            resumeText = pdfResult.text.substring(0, 3000);
             console.log("✅ PDF Parsed successfully");
 
         } catch (pdfError) {
@@ -43,9 +46,9 @@ export const startInterview = async (req, res) => {
         `;
 
         console.log("🔹 Calling Gemini 2.5...");
-        
+
         const result = await ai.models.generateContent({
-            model: "gemini-2.5-flash", 
+            model: "gemini-1.5-flash",
             contents: systemPrompt,
         });
 
@@ -91,7 +94,7 @@ export const processAnswer = async (req, res) => {
         `;
 
         const result = await ai.models.generateContent({
-            model: "gemini-2.5-flash", 
+            model: "gemini-1.5-flash",
             contents: contextPrompt,
         });
 
@@ -133,7 +136,7 @@ export const endInterview = async (req, res) => {
         `;
 
         const result = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-1.5-flash",
             contents: reportPrompt
         });
 
@@ -149,8 +152,8 @@ export const endInterview = async (req, res) => {
                 await cloudinary.api.delete_resources([session.resumePublicId], { resource_type: 'image' });
             }
             console.log("✅ Cloudinary files deleted successfully.");
-        } catch (e) { 
-            console.log("⚠️ Cloudinary cleanup warning:", e.message); 
+        } catch (e) {
+            console.log("⚠️ Cloudinary cleanup warning:", e.message);
         }
         await InterviewSession.findByIdAndDelete(sessionId);
         console.log(`✅ MongoDB Session ${sessionId} deleted successfully.`);

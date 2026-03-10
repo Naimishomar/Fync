@@ -35,7 +35,7 @@
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.10",
     "nodemon": "^3.1.11",
-    "pdf-parse": "^2.4.5",
+    "pdf-parse": "1.1.1",
     "pdf2json": "^4.0.2",
     "pdfkit": "^0.17.2",
     "qrcode": "^1.5.4",
