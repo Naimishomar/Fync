@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ silent: true });
+import cors from 'cors';
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -32,9 +33,27 @@ import placementHubRoute from './routes/placementHub.route.js';
 import apiPlaygroundRoute from './routes/apiPlayground.route.js';
 import { setCollegeChatIo } from './controllers/collegeChat.controller.js';
 import { initCollegeChatCleanup } from './utils/collegeChatCleanup.js';
+import errorLogger from './middlewares/error.middleware.js';
+
+const processLogger = (err, type) => {
+  const timestamp = new Date().toISOString();
+  console.error(`\x1b[41m\x1b[1m[${timestamp}] CRITICAL ${type}\x1b[0m`);
+  console.error(err);
+};
+
+process.on('uncaughtException', (err) => {
+  processLogger(err, 'Uncaught Exception');
+  // For critical errors we might still want to restart, but we log first.
+  // However, the user asked NOT to crash the whole app.
+  // In node, for uncaughtException, it's generally risky to continue, 
+  // but we can try to keep it alive as requested.
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  processLogger(reason, 'Unhandled Rejection');
+});
 
 import { rateLimit } from 'express-rate-limit';
-import { logout } from './controllers/auth.controller.js';
 
 import { socketController } from './controllers/socket.controller.js';
 import { lotterySocketController } from './socket/9pmConfession.socket.js';
@@ -55,6 +74,10 @@ const io = new Server(server, {
   cors: { origin: "*", credentials: true }
 });
 
+app.use(cors({
+  origin: "*",
+  credentials: true
+}));
 app.use(limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -91,6 +114,9 @@ app.use('/subscription', subscriptionRoute);
 app.use('/college-chat', collegeChatRoute);
 app.use('/placement', placementHubRoute);
 app.use('/playground', apiPlaygroundRoute);
+
+// GLOBAL ERROR HANDLER - Must be after all routes
+app.use(errorLogger);
 
 
 

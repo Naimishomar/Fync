@@ -27,7 +27,7 @@ export default function SplashScreen({ navigation }: any) {
     }, 2000);
 
     return () => clearTimeout(timer);
-  },[]);
+  }, []);
 
   return (
     <SafeAreaView className="flex-1 bg-black justify-center items-center">

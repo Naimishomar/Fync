@@ -1,15 +1,15 @@
-import { 
-  ActivityIndicator, 
-  Image, 
-  Keyboard, 
-  KeyboardAvoidingView, 
-  Platform, 
-  Pressable, 
-  Text, 
-  TextInput, 
-  TouchableWithoutFeedback, 
-  View, 
-  Alert 
+import {
+  ActivityIndicator,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  TouchableWithoutFeedback,
+  View,
+  Alert
 } from 'react-native';
 import React, { useCallback, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -119,13 +119,13 @@ const ForgotPassword = ({ route, navigation }: any) => {
             contentContainerStyle={{ paddingBottom: 24 }}
           >
             <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-10">
-              <Image 
-                source={require('../assets/logo.png')} 
-                className="h-14 w-28 self-center" 
-                style={{ tintColor: '#000' }} 
-                resizeMode='cover' 
+              <Image
+                source={require('../assets/logo.png')}
+                className="h-14 w-28 self-center"
+                style={{ tintColor: '#000' }}
+                resizeMode='cover'
               />
-              
+
               <Text className="text-3xl font-bold mb-6 text-center">
                 {isOtpSent ? "Verify & Reset" : "Forgot Password"}
               </Text>
@@ -196,9 +196,9 @@ const ForgotPassword = ({ route, navigation }: any) => {
 
               {/* Back to Edit Email (Optional UX improvement) */}
               {isOtpSent && !isLoading && (
-                 <Pressable onPress={() => setIsOtpSent(false)} className="mt-4 items-center">
-                    <Text className="text-gray-500 font-medium">Change Email or Resend</Text>
-                 </Pressable>
+                <Pressable onPress={() => setIsOtpSent(false)} className="mt-4 items-center">
+                  <Text className="text-gray-500 font-medium">Change Email or Resend</Text>
+                </Pressable>
               )}
 
             </View>

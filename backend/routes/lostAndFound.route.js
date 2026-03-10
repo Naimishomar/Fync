@@ -3,7 +3,7 @@ import { createFoundItem, createLostItem, getFoundItems, getLostItems, claimedFo
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { upload } from '../utils/cloudinary.js';
 
-const router = express.Router();
+const router = express.Router(); 
 
 router.post('/create/found', authMiddleware, upload.single('productImage'), createFoundItem);
 router.post('/create/lost', authMiddleware, upload.single('productImage'), createLostItem);
