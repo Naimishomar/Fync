@@ -1,39 +1,59 @@
 import { v2 as cloudinary } from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
+import  CloudinaryStorage  from "multer-storage-cloudinary";
 import multer from "multer";
 import dotenv from "dotenv";
 
-dotenv.config({ quiet: true });
+dotenv.config();
 
+// --------------------
+// Upload Variables
+// --------------------
 let upload;
 let videoUpload;
 let audioUpload;
 let collegeChatUpload;
 
+// --------------------
+// Get Cloudinary Public ID from URL
+// --------------------
 export const getCloudinaryPublicId = (url) => {
   try {
-    if (!url || typeof url !== 'string' || !url.includes('cloudinary.com')) return null;
-    const matches = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-z0-9]+$/i);
+    if (!url || typeof url !== "string" || !url.includes("cloudinary.com")) {
+      return null;
+    }
+
+    const matches = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z0-9]+$/);
+
     if (matches && matches[1]) {
       return matches[1];
     }
+
     return null;
   } catch (error) {
     return null;
   }
 };
 
+// --------------------
+// Delete File From Cloudinary
+// --------------------
 export const deleteFromCloudinary = async (url, resourceType = "image") => {
   try {
-    const pubId = getCloudinaryPublicId(url);
-    if (pubId) {
-      await cloudinary.uploader.destroy(pubId, { resource_type: resourceType });
+    const publicId = getCloudinaryPublicId(url);
+
+    if (publicId) {
+      await cloudinary.uploader.destroy(publicId, {
+        resource_type: resourceType,
+      });
     }
   } catch (error) {
     console.error(`Cloudinary Delete Error (${resourceType}):`, error.message);
   }
 };
 
+// --------------------
+// Cloudinary Initialization
+// --------------------
 try {
   if (
     !process.env.CLOUDINARY_CLOUD_NAME ||
@@ -49,8 +69,11 @@ try {
     api_secret: process.env.CLOUDINARY_API_SECRET,
   });
 
+  // --------------------
+  // Image Storage
+  // --------------------
   const imageStorage = new CloudinaryStorage({
-    cloudinary,
+    cloudinary: cloudinary,
     params: {
       folder: "avatar",
       resource_type: "auto",
@@ -58,8 +81,11 @@ try {
     },
   });
 
+  // --------------------
+  // Video Storage
+  // --------------------
   const videoStorage = new CloudinaryStorage({
-    cloudinary,
+    cloudinary: cloudinary,
     params: {
       folder: "video",
       resource_type: "video",
@@ -67,8 +93,11 @@ try {
     },
   });
 
+  // --------------------
+  // Audio Storage
+  // --------------------
   const audioStorage = new CloudinaryStorage({
-    cloudinary,
+    cloudinary: cloudinary,
     params: {
       folder: "interviews_audio",
       resource_type: "raw",
@@ -76,23 +105,29 @@ try {
     },
   });
 
+  // --------------------
+  // Multer Uploads
+  // --------------------
   upload = multer({
     storage: imageStorage,
-    limits: { fileSize: 1024 * 1024 * 10 },
+    limits: { fileSize: 10 * 1024 * 1024 },
   });
 
   videoUpload = multer({
     storage: videoStorage,
-    limits: { fileSize: 1024 * 1024 * 20 },
+    limits: { fileSize: 20 * 1024 * 1024 },
   });
 
   audioUpload = multer({
     storage: audioStorage,
-    limits: { fileSize: 1024 * 1024 * 10 },
+    limits: { fileSize: 10 * 1024 * 1024 },
   });
 
+  // --------------------
+  // College Chat Storage
+  // --------------------
   const collegeChatStorage = new CloudinaryStorage({
-    cloudinary,
+    cloudinary: cloudinary,
     params: {
       folder: "college_chats",
       resource_type: "auto",
@@ -101,14 +136,16 @@ try {
 
   collegeChatUpload = multer({
     storage: collegeChatStorage,
-    limits: { fileSize: 1024 * 1024 * 50 }, // 50MB for whatsapp-like limits
+    limits: { fileSize: 50 * 1024 * 1024 },
   });
 
   console.log("✅ Cloudinary initialized successfully");
-
 } catch (error) {
   console.error("❌ Cloudinary initialization failed:", error.message);
   process.exit(1);
 }
 
+// --------------------
+// Export Modules
+// --------------------
 export { cloudinary, upload, videoUpload, audioUpload, collegeChatUpload };

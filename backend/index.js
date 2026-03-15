@@ -118,8 +118,6 @@ app.use('/playground', apiPlaygroundRoute);
 // GLOBAL ERROR HANDLER - Must be after all routes
 app.use(errorLogger);
 
-
-
 socketController(io);
 lotterySocketController(io);
 setupVideoSocket(io);
