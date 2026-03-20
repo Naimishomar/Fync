@@ -1,12 +1,11 @@
-import {v4 as uuidv4} from "uuid";
-const CreateSubmission = (data)=>({
-       submissionId:uuidv4(),
-       teamId:data.teamId,
-       hackathonId:data.hackathonId,
-       projectTitle:data.title,
-       repoUrl:data.repoUrl,
-       demoUrl:data.demoUrl,
-       description:data.description,
-       submittedAt:Date.now()
+import mongoose from "mongoose"
+
+const submissionSchemma = new mongoose.Schema({
+      ProjectTitle:{
+           type:String
+      },     
+      repourl:{
+       type:String
+      },
+      
 })
-export default CreateSubmission;
