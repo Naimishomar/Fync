@@ -10,7 +10,7 @@ const hackathonSchema = new mongoose.Schema({
       type: String,
       required: true
    },
-   oragniser:{
+   organiser:{
       type:uuidv4,
       require:true,
    },
@@ -78,12 +78,8 @@ const hackathonSchema = new mongoose.Schema({
          String
       }
    },
-   judges:[
-      {name:String,
-       designation:String,
-       experionce:[{String}]  
-      }
-   ]
+   judges: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+   participants:[{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 },
  {
    timestamps: true
