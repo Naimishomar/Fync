@@ -2,6 +2,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+console.log("🌐 Axios Base URL:", BACKEND_URL);
 axios.defaults.baseURL = BACKEND_URL;
 
 axios.interceptors.request.use(
@@ -55,6 +56,10 @@ axios.interceptors.response.use(
       }
     }
 
+    console.log("❌ Axios Error:", error.message, error.config?.url);
+    if (error.response) {
+      console.log("❌ Error Data:", error.response.data);
+    }
     return Promise.reject(error);
   }
 );

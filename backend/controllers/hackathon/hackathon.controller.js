@@ -152,3 +152,15 @@ export const deletehackathon  = async(req,res,next)=>{
     next(error);
   }
 }
+
+
+// Participants join the channel
+// post /api/hackathon/:hackathonId/join - participants join the channel
+
+export const Joinchannel = async(req,res,next)=>{ 
+  try{
+   const hack = await Hackathon.findById()
+  }catch(error){
+    next(error);
+  }
+}

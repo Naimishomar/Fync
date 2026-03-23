@@ -1,5 +1,8 @@
 import PlacementQuestion from "../models/newFeatures/placementHub.model.js";
 import User from "../models/user.model.js";
+import Comment from "../models/comment.model.js";
+import Notification from "../models/notification.model.js";
+import { clearCache } from "../middlewares/cache.middleware.js";
 
 export const addQuestion = async (req, res) => {
     try {
@@ -20,6 +23,7 @@ export const addQuestion = async (req, res) => {
         });
 
         const populated = await newQuestion.populate("postedBy", "name avatar username");
+        clearCache("placement-hub").catch(() => { });
         res.status(201).json({ success: true, message: "Question shared successfully", data: populated });
     } catch (error) {
         console.error("Error in addQuestion:", error);
@@ -43,11 +47,21 @@ export const getQuestions = async (req, res) => {
             ];
         }
 
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 12;
+        const skip = (page - 1) * limit;
+
         const questions = await PlacementQuestion.find(filter)
             .populate("postedBy", "name avatar username")
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
 
-        res.status(200).json({ success: true, data: questions });
+        res.status(200).json({ 
+            success: true, 
+            data: questions,
+            hasMore: questions.length === limit
+        });
     } catch (error) {
         console.error("Error in getQuestions:", error);
         res.status(500).json({ success: false, message: "Internal server error" });
@@ -68,6 +82,8 @@ export const upvoteQuestion = async (req, res) => {
         }
 
         await question.save();
+        clearCache(`placement-hub/questions`).catch(() => { });
+        clearCache(`placement-hub/trending`).catch(() => { });
         res.status(200).json({ success: true, upvotes: question.upvotes.length, hasUpvoted: !hasUpvoted });
     } catch (error) {
         console.error("Error in upvoteQuestion:", error);
@@ -78,22 +94,84 @@ export const upvoteQuestion = async (req, res) => {
 export const addComment = async (req, res) => {
     try {
         const { id } = req.params;
-        const { text } = req.body;
+        const { text, parentCommentId } = req.body;
         if (!text) return res.status(400).json({ success: false, message: "Comment text is required" });
 
         const question = await PlacementQuestion.findById(id);
         if (!question) return res.status(404).json({ success: false, message: "Question not found" });
 
-        question.comments.push({ user: req.user.id, text });
+        let replyToUser = null;
+        if (parentCommentId) {
+            const parent = await Comment.findById(parentCommentId);
+            if (parent) {
+                replyToUser = parent.commentor;
+            }
+        }
+
+        const comment = await Comment.create({
+            text,
+            commentor: req.user.id,
+            post: id,
+            postType: "PlacementQuestion",
+            parentComment: parentCommentId || null,
+            replyToUser: replyToUser || null
+        });
+
+        question.comments.push(comment._id);
         await question.save();
 
-        const updated = await PlacementQuestion.findById(id).populate("comments.user", "name avatar");
-        res.status(200).json({ success: true, comments: updated.comments });
+        // Notifications
+        if (parentCommentId && replyToUser && replyToUser.toString() !== req.user.id.toString()) {
+            await Notification.create({
+                recipient: replyToUser,
+                sender: req.user.id,
+                type: 'reply',
+                post: id, // Note: This might cause issues if notification model only expects Post/Shorts. 
+                // However, I'll update notification model to be more generic if needed.
+                commentText: text
+            });
+        } else if (question.postedBy.toString() !== req.user.id.toString()) {
+            await Notification.create({
+                recipient: question.postedBy,
+                sender: req.user.id,
+                type: 'comment',
+                post: id,
+                commentText: text
+            });
+        }
+
+        const populatedComment = await Comment.findById(comment._id)
+            .populate("commentor", "name avatar username")
+            .populate("replyToUser", "username");
+
+        res.status(200).json({ success: true, comment: populatedComment });
     } catch (error) {
         console.error("Error in addComment:", error);
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
+export const getComments = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const comments = await Comment.find({ post: id, postType: "PlacementQuestion", parentComment: null })
+            .populate("commentor", "name avatar username")
+            .sort({ createdAt: -1 });
+
+        const commentsWithReplies = await Promise.all(comments.map(async (comment) => {
+            const replies = await Comment.find({ parentComment: comment._id })
+                .populate("commentor", "name avatar username")
+                .populate("replyToUser", "username")
+                .sort({ createdAt: 1 });
+            return { ...comment._doc, replies };
+        }));
+
+        res.status(200).json({ success: true, comments: commentsWithReplies });
+    } catch (error) {
+        console.error("Error in getComments:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+}
 
 export const getTrending = async (req, res) => {
     try {

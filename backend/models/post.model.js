@@ -12,10 +12,12 @@ const postSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
+    index: true,
   },
   college:{
     type: String,
     required: true,
+    index: true,
   },
   likes: {
     type: Number,

@@ -1,6 +1,7 @@
 import express from 'express';
 import Gaming from '../../models/collaboration/gaming.model.js';
 import mongoose from 'mongoose';
+import Comment from '../../models/comment.model.js';
 
 export const addGames = async (req, res) => {
   try {
@@ -85,7 +86,7 @@ export const deleteGames = async (req, res) => {
     if (!gaming) {
       return res.status(404).json({ success: false, message: 'Gaming not found' });
     }
-    if (gaming.admin.toString() !== req.user.id) {
+    if (gaming.admin.toString() !== req.user.id.toString()) {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
     const deletedGaming = await Gaming.findByIdAndDelete(req.params.id);
@@ -146,4 +147,61 @@ export const leaveGames = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ success: false, message: "Internal server error"});
   }
+};
+
+export const addComment = async (req, res) => {
+    try {
+        const { text, parentCommentId } = req.body;
+        if (!text) return res.status(400).json({ success: false, message: "Comment text required" });
+
+        const gaming = await Gaming.findById(req.params.id);
+        if (!gaming) return res.status(404).json({ success: false, message: "Gaming session not found" });
+
+        let replyToUser = null;
+        if (parentCommentId) {
+            const parent = await Comment.findById(parentCommentId);
+            if (parent) replyToUser = parent.commentor;
+        }
+
+        const comment = await Comment.create({
+            text,
+            commentor: req.user.id,
+            post: req.params.id,
+            postType: "Gaming",
+            parentComment: parentCommentId || null,
+            replyToUser: replyToUser || null
+        });
+
+        gaming.comments.push(comment._id);
+        await gaming.save();
+
+        const populated = await Comment.findById(comment._id)
+            .populate("commentor", "name avatar username")
+            .populate("replyToUser", "username");
+
+        res.status(200).json({ success: true, comment: populated });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+export const getComments = async (req, res) => {
+    try {
+        const comments = await Comment.find({ post: req.params.id, postType: "Gaming", parentComment: null })
+            .populate("commentor", "name avatar username")
+            .sort({ createdAt: -1 });
+
+        const commentsWithReplies = await Promise.all(comments.map(async (comment) => {
+            const replies = await Comment.find({ parentComment: comment._id })
+                .populate("commentor", "name avatar username")
+                .populate("replyToUser", "username")
+                .sort({ createdAt: 1 });
+            return { ...comment._doc, replies };
+        }));
+
+        res.status(200).json({ success: true, comments: commentsWithReplies });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
 };

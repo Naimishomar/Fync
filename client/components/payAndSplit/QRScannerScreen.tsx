@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Alert, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Alert, StyleSheet, StatusBar, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -77,15 +77,25 @@ const QRScannerScreen = () => {
                 const match = /\.(\w+)$/.exec(filename);
                 const type = match ? `image/${match[1]}` : 'image/jpeg';
 
+                console.log("📤 Sending Scan QR Request...");
+                console.log("📍 URI:", uri);
+                console.log("📄 Filename:", filename);
+                console.log("🏷️ Type:", type);
+                console.log("🔗 BaseURL:", axios.defaults.baseURL);
+
                 formData.append('qrImage', {
-                    uri,
+                    uri: Platform.OS === 'android' ? uri : uri.replace('file://', ''),
                     name: filename,
                     type,
                 } as any);
 
-                const res = await axios.post('/payment/api/scan-qr', formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
+                const res = await axios.post('/payment/scan-qr', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
                 });
+
+                console.log("📥 Scan QR Response Received:", res.data);
 
                 if (res.data.success && res.data.data) {
                     handleBarCodeScanned({ type: 'gallery', data: res.data.data });
@@ -93,8 +103,14 @@ const QRScannerScreen = () => {
                     Alert.alert('Scan Failed', 'No QR code could be read.');
                 }
             } catch (error: any) {
-                console.log(error);
-                Alert.alert('Scan Failed', error?.response?.data?.message || 'Failed to read QR code from image.');
+                console.log("❌ Axios Error:", error);
+                if (error.response) {
+                    console.log("❌ Response Data:", error.response.data);
+                    console.log("❌ Response Status:", error.response.status);
+                } else if (error.request) {
+                    console.log("❌ Request Object [No Response]:", error.request);
+                }
+                Alert.alert('Scan Failed', error?.response?.data?.message || 'Network error while scanning QR.');
             } finally {
                 setIsUploading(false);
             }
@@ -108,13 +124,17 @@ const QRScannerScreen = () => {
 
     if (!permission.granted) {
         return (
-            <SafeAreaView className="flex-1 bg-black justify-center items-center p-6">
-                <Text className="text-white text-lg font-bold text-center mb-4">We need your camera permission to scan QR codes</Text>
-                <TouchableOpacity onPress={requestPermission} className="bg-blue-600 p-4 rounded-xl">
-                    <Text className="text-white font-bold px-4 text-lg">Grant Permission</Text>
-                </TouchableOpacity>
+            <SafeAreaView className="flex-1 bg-[#F5F7FA] justify-center items-center p-8">
+                <View className="bg-white p-10 rounded-3xl items-center border border-gray-100 shadow-sm">
+                    <Ionicons name="camera-outline" size={64} color="#ec4899" className="mb-6" />
+                    <Text className="text-zinc-900 text-xl font-black italic tracking-tighter text-center mb-2">Camera Access Required</Text>
+                    <Text className="text-gray-500 text-sm text-center mb-8 font-medium">We need your camera permission to scan merchant QR codes and process payments.</Text>
+                    <TouchableOpacity onPress={requestPermission} className="bg-pink-500 py-4 px-10 rounded-2xl shadow-lg shadow-pink-500/20">
+                        <Text className="text-white font-black italic uppercase tracking-tight">Allow Access</Text>
+                    </TouchableOpacity>
+                </View>
                 <TouchableOpacity onPress={() => navigation.goBack()} className="mt-8">
-                    <Text className="text-gray-400">Go Back</Text>
+                    <Text className="text-gray-400 font-bold uppercase tracking-widest text-xs">Maybe Later</Text>
                 </TouchableOpacity>
             </SafeAreaView>
         );
@@ -122,6 +142,8 @@ const QRScannerScreen = () => {
 
     return (
         <View className="flex-1 bg-black">
+            <StatusBar barStyle="light-content" />
+            
             {/* Full Screen Camera */}
             <CameraView
                 onBarcodeScanned={scanned || isUploading ? undefined : handleBarCodeScanned}
@@ -134,46 +156,58 @@ const QRScannerScreen = () => {
             {/* Top Header Overlay */}
             <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
                 <View className="flex-row items-center p-4 w-full">
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4 bg-black/40 p-2 rounded-full">
-                        <Ionicons name="close" size={28} color="white" />
+                    <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4 bg-black/50 p-3 rounded-full border border-white/20">
+                        <Ionicons name="close" size={24} color="white" />
                     </TouchableOpacity>
-                    <Text className="text-xl font-bold text-white shadow-lg">Scan & Pay</Text>
+                    <Text className="text-xl font-black italic tracking-tighter text-white shadow-xl">Scan & <Text className="text-pink-500">Pay</Text> ⚡️</Text>
                 </View>
 
                 {/* Center Target Box */}
                 <View className="flex-1 justify-center items-center pointer-events-none">
-                    <View className="w-64 h-64 border-[3px] border-white/70 rounded-3xl" />
-                    <Text className="text-white mt-8 font-semibold bg-black/40 px-4 py-2 rounded-full overflow-hidden">
-                        Align QR code within the frame
-                    </Text>
+                    <View className="w-64 h-64 border-2 border-white/40 rounded-2xl relative">
+                         <View className="absolute top-0 left-0 w-8 h-8 border-t-[4px] border-l-[4px] border-pink-500 rounded-tl-xl -mt-1 -ml-1" />
+                         <View className="absolute top-0 right-0 w-8 h-8 border-t-[4px] border-r-[4px] border-pink-500 rounded-tr-xl -mt-1 -mr-1" />
+                         <View className="absolute bottom-0 left-0 w-8 h-8 border-b-[4px] border-l-[4px] border-pink-500 rounded-bl-xl -mb-1 -ml-1" />
+                         <View className="absolute bottom-0 right-0 w-8 h-8 border-b-[4px] border-r-[4px] border-pink-500 rounded-br-xl -mb-1 -mr-1" />
+                    </View>
+                    
+                    <View className="bg-black/60 px-6 py-2.5 rounded-full mt-10 border border-white/10">
+                        <Text className="text-white font-bold text-xs uppercase tracking-widest">
+                            {scanned ? "Scanned Successfully" : "Center the QR in frame"}
+                        </Text>
+                    </View>
 
                     {scanned && (
                         <TouchableOpacity
-                            className="bg-blue-600 mt-6 px-6 py-3 rounded-full shadow-lg pointer-events-auto"
+                            className="bg-pink-500 mt-6 px-8 py-3.5 rounded-2xl shadow-lg pointer-events-auto"
                             onPress={() => setScanned(false)}
                         >
-                            <Text className="text-white font-bold text-lg">Tap to Scan Again</Text>
+                            <Text className="text-white font-black italic uppercase tracking-tight">Scan Again</Text>
                         </TouchableOpacity>
                     )}
                 </View>
 
                 {/* Bottom Action Sheet */}
-                <View className="bg-black/80 px-4 pt-6 pb-2 rounded-t-[40px] border-t border-white/10">
+                <View className="bg-white px-6 pt-6 pb-10 rounded-t-3xl border-t border-gray-100 shadow-2xl">
+                    <View className="w-12 h-1.5 bg-gray-100 rounded-full self-center mb-6" />
+                    
+                    <Text className="text-gray-400 ml-2 mb-4 font-black uppercase text-[10px] tracking-widest">Or enter manually</Text>
 
-                    <Text className="text-gray-300 ml-2 mb-3 font-semibold text-sm uppercase tracking-wide">Or enter manually</Text>
-
-                    <View className="flex-row items-center">
-                        <TextInput
-                            className="flex-1 bg-white/10 border border-white/20 rounded-2xl p-4 text-white font-bold text-base"
-                            placeholder="Mobile number or UPI ID"
-                            placeholderTextColor="#9ca3af"
-                            value={manualUpi}
-                            onChangeText={setManualUpi}
-                            autoCapitalize="none"
-                        />
+                    <View className="flex-row items-center mb-6 bg-gray-50 border border-gray-100 px-3 rounded-2xl">
+                        <View className="flex-1 flex-row items-center bg-gray-50 rounded-2xl py-3.5">
+                            <Ionicons name="at" size={20} color="#ec4899" />
+                            <TextInput
+                                className="flex-1 text-zinc-900 font-bold ml-1 text-base"
+                                placeholder="UPI ID"
+                                placeholderTextColor="#9ca3af"
+                                value={manualUpi}
+                                onChangeText={setManualUpi}
+                                autoCapitalize="none"
+                            />
+                        </View>
 
                         <TouchableOpacity
-                            className="bg-blue-600 ml-3 h-14 w-14 items-center justify-center rounded-2xl"
+                            className="bg-zinc-900 h-14 w-14 items-center justify-center rounded-2xl shadow-lg shadow-black/10"
                             onPress={() => proceedWithUpi(manualUpi)}
                         >
                             <Ionicons name="arrow-forward" size={24} color="white" />
@@ -181,18 +215,16 @@ const QRScannerScreen = () => {
                     </View>
 
                     {/* Gallery Button */}
-                    <View className="flex-row items-center justify-center mt-6 py-4">
-                        <TouchableOpacity
-                            className="bg-white/10 flex-row items-center px-6 py-3.5 rounded-full border border-white/20"
-                            onPress={handleUploadFromGallery}
-                            disabled={isUploading}
-                        >
-                            <Ionicons name="images-outline" size={22} color="white" />
-                            <Text className="text-white font-bold ml-2 text-base">
-                                {isUploading ? "Scanning..." : "Upload from Gallery"}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity
+                        className="bg-white flex-row items-center justify-center py-4 rounded-2xl border border-gray-100 shadow-sm"
+                        onPress={handleUploadFromGallery}
+                        disabled={isUploading}
+                    >
+                        <Ionicons name="images-outline" size={22} color="#4b5563" />
+                        <Text className="text-zinc-600 font-black italic uppercase tracking-tighter ml-3">
+                            {isUploading ? "Reading QR..." : "Upload from Gallery"}
+                        </Text>
+                    </TouchableOpacity>
                 </View>
             </SafeAreaView>
         </View>

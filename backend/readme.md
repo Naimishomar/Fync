@@ -1,0 +1,2 @@
+All routes at a glance
+MethodRouteRoleWhat it doesGET/api/hackathonspublicFeed with filters (status, tags, mode, page)GET/api/hackathons/:idpublicFull detail + judgesPOST/api/hackathonsorganizerCreate hackathonPATCH/api/hackathons/:idorganizerEdit hackathonDELETE/api/hackathons/:idorganizerDelete hackathonPOST/api/hackathons/:id/announceorganizerPush announcement + socket emitPATCH/api/hackathons/:id/statusorganizerChange status + socket emitPOST/api/hackathons/:id/judgesorganizerAdd a judgeDELETE/api/hackathons/:id/judges/:judgeIdorganizerRemove a judge

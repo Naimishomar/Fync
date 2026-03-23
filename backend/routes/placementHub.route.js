@@ -4,18 +4,21 @@ import {
     getQuestions,
     upvoteQuestion,
     addComment,
+    getComments,
     getTrending,
     toggleSave
 } from "../controllers/placementHub.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
+import { cacheMiddleware } from "../middlewares/cache.middleware.js";
 
 const router = express.Router();
 
 router.post("/add", authMiddleware, addQuestion);
-router.get("/questions", authMiddleware, getQuestions);
-router.get("/trending", authMiddleware, getTrending);
+router.get("/questions", authMiddleware, cacheMiddleware(300), getQuestions);
+router.get("/trending", authMiddleware, cacheMiddleware(600), getTrending);
 router.post("/upvote/:id", authMiddleware, upvoteQuestion);
 router.post("/comment/:id", authMiddleware, addComment);
+router.get("/comments/:id", authMiddleware, cacheMiddleware(60), getComments);
 router.post("/save/:id", authMiddleware, toggleSave);
 
 export default router;

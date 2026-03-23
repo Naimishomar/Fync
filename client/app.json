@@ -29,7 +29,8 @@
           "videosPermission": "Allow Fync to access your videos",
           "isAccessMediaLocationEnabled": true
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -52,6 +53,7 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION"
       ],
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/square_logo.png",
         "backgroundColor": "#000"

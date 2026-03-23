@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, Alert, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, Alert, Linking, StatusBar } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -49,7 +49,6 @@ const PendingPaymentsScreen = () => {
                 Alert.alert("Simulating UPI App", `You paid ₹${item.amount} to ${item.split.payer.name}. Now marking it as Paid.`);
             }
 
-            // Immediately mark it as paid or show a button "Already Paid"
             Alert.alert(
                 "Payment Confirmation",
                 "Did you complete the payment?",
@@ -79,49 +78,56 @@ const PendingPaymentsScreen = () => {
     };
 
     const renderItem = ({ item }: { item: any }) => (
-        <View className="bg-gray-800 p-4 rounded-xl mb-4 border border-gray-700">
-            <View className="flex-row justify-between items-start mb-3">
+        <View className="bg-white p-5 rounded-2xl mb-4 border border-gray-100 shadow-sm">
+            <View className="flex-row justify-between items-start mb-4">
                 <View>
-                    <Text className="text-white font-bold text-lg">{item.split.description}</Text>
-                    <Text className="text-gray-400 text-sm">Owed to: {item.split.payer.name}</Text>
-                    {item.split.group && <Text className="text-green-400 text-xs mt-1">Group: {item.split.group.title}</Text>}
+                    <Text className="text-zinc-900 font-bold text-[16px]">{item.split.description}</Text>
+                    <Text className="text-gray-500 text-xs mt-1">Owed to: <Text className="font-bold text-zinc-900">{item.split.payer.name}</Text></Text>
+                    {item.split.group && (
+                        <View className="bg-emerald-50 self-start px-2 py-0.5 rounded-full mt-2 border border-emerald-100">
+                             <Text className="text-emerald-600 text-[9px] font-black uppercase tracking-widest">Group: {item.split.group.title}</Text>
+                        </View>
+                    )}
                 </View>
-                <Text className="text-red-400 font-bold text-xl">₹{item.amount}</Text>
+                <Text className="text-pink-600 font-black text-xl italic tracking-tighter">₹{item.amount}</Text>
             </View>
-            <View className="flex-row gap-2">
+            <View className="flex-row gap-3">
                 <TouchableOpacity
-                    className="flex-1 bg-blue-600 p-3 justify-center items-center rounded-lg"
+                    className="flex-1 bg-indigo-600 py-3.5 justify-center items-center rounded-xl shadow-lg shadow-indigo-600/20"
                     onPress={() => handlePayNow(item)}
                 >
-                    <Text className="text-white font-bold">Pay Now</Text>
+                    <Text className="text-white font-black italic tracking-tighter uppercase text-xs">Pay Now</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    className="flex-1 border border-blue-600 p-3 justify-center items-center rounded-lg"
+                    className="flex-1 bg-white border border-gray-100 py-3.5 justify-center items-center rounded-xl"
                     onPress={() => markAsPaid(item)}
                 >
-                    <Text className="text-blue-500 font-bold">Already Paid</Text>
+                    <Text className="text-gray-500 font-black italic tracking-tighter uppercase text-xs">Already Paid</Text>
                 </TouchableOpacity>
             </View>
         </View>
     );
 
     return (
-        <SafeAreaView className="flex-1 bg-black">
-            <View className="flex-row items-center p-4 border-b border-gray-800">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
-                    <Ionicons name="arrow-back" size={28} color="white" />
+        <SafeAreaView className="flex-1 bg-[#F5F7FA]">
+            <StatusBar barStyle="dark-content" />
+            <View className="flex-row items-center p-4 bg-white border-b border-gray-100 shadow-sm">
+                <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4 p-2 bg-gray-50 rounded-full">
+                    <Ionicons name="arrow-back" size={24} color="#18181b" />
                 </TouchableOpacity>
-                <Text className="text-xl font-bold text-white">Pending Payments</Text>
+                <Text className="text-xl font-bold text-zinc-900 font-black italic tracking-tighter">Pending <Text className="text-pink-500">Payments</Text></Text>
             </View>
 
             <View className="flex-1 p-4">
                 {loading ? (
-                    <ActivityIndicator size="large" color="#3b82f6" />
+                    <ActivityIndicator size="large" color="#ec4899" className="mt-20" />
                 ) : pendingDebts.length === 0 ? (
-                    <View className="flex-1 justify-center items-center">
-                        <Ionicons name="checkmark-circle-outline" size={64} color="#34d399" className="mb-4" />
-                        <Text className="text-gray-400 text-lg">You are all caught up!</Text>
-                        <Text className="text-gray-500 text-sm">No pending debts to settle.</Text>
+                    <View className="flex-1 justify-center items-center px-10">
+                        <View className="w-20 h-20 bg-white rounded-full items-center justify-center mb-6 shadow-sm border border-gray-100">
+                            <Ionicons name="checkmark-circle-outline" size={40} color="#10b981" />
+                        </View>
+                        <Text className="text-zinc-900 text-xl font-black italic tracking-tighter">All caught up!</Text>
+                        <Text className="text-gray-500 text-sm mt-2 text-center font-medium">No pending debts to settle. You're doing great!</Text>
                     </View>
                 ) : (
                     <FlatList
@@ -129,6 +135,7 @@ const PendingPaymentsScreen = () => {
                         keyExtractor={(item) => item._id}
                         renderItem={renderItem}
                         showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ paddingBottom: 40 }}
                     />
                 )}
             </View>

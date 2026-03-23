@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, StatusBar } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -37,29 +37,45 @@ const CreatedSplitsScreen = () => {
         const paidMembers = item.members.filter((m: any) => m.status === 'paid').length;
 
         return (
-            <View className="bg-gray-800 p-4 rounded-xl mb-4 border border-gray-700">
-                <View className="flex-row justify-between items-start mb-3">
-                    <View>
-                        <Text className="text-white font-bold text-lg">{item.description}</Text>
-                        <Text className="text-gray-400 text-sm">Amount Required: <Text className="text-red-400 font-bold">₹{item.amount}</Text></Text>
-                        {item.group && <Text className="text-green-400 text-xs mt-1">Group: {item.group.title}</Text>}
+            <View className="bg-white p-5 rounded-2xl mb-4 border border-gray-100 shadow-sm shadow-black/5">
+                <View className="flex-row justify-between items-start mb-4">
+                    <View className="flex-1">
+                        <Text className="text-zinc-900 font-bold text-[16px]">{item.description}</Text>
+                        <Text className="text-gray-500 text-xs mt-1">Total Bill: <Text className="text-zinc-900 font-bold">₹{item.amount}</Text></Text>
+                        {item.group && (
+                             <View className="bg-emerald-50 self-start px-2 py-0.5 rounded-full mt-2 border border-emerald-100">
+                                 <Text className="text-emerald-600 text-[9px] font-black uppercase tracking-widest">Group: {item.group.title}</Text>
+                             </View>
+                        )}
                     </View>
                     <View className="items-end">
-                        <Text className="text-white text-sm font-semibold">{paidMembers} / {totalMembers} users paid</Text>
+                        <View className="bg-pink-50 px-3 py-1.5 rounded-full border border-pink-100">
+                            <Text className="text-pink-600 text-[10px] font-black uppercase tracking-tighter">{paidMembers} / {totalMembers} PAID</Text>
+                        </View>
                     </View>
                 </View>
 
                 {/* List of Members */}
-                <View className="mt-2 pt-2 border-t border-gray-700">
-                    <Text className="text-gray-400 text-xs font-semibold mb-2 uppercase">Members:</Text>
+                <View className="mt-2 pt-4 border-t border-gray-50">
+                    <Text className="text-gray-400 text-[9px] font-black uppercase tracking-widest mb-3">Split Details</Text>
                     {item.members.map((member: any) => (
-                        <View key={member._id} className="flex-row justify-between items-center mb-2">
-                            <Text className="text-white text-sm">{member.debtor.name}</Text>
-                            {member.status === 'paid' ? (
-                                <Text className="text-green-400 text-xs font-bold bg-green-900/40 px-2 py-0.5 rounded">Paid</Text>
-                            ) : (
-                                <Text className="text-yellow-400 text-xs font-bold bg-yellow-900/40 px-2 py-0.5 rounded">Pending</Text>
-                            )}
+                        <View key={member._id} className="flex-row justify-between items-center mb-3">
+                            <View className="flex-row items-center">
+                                <View className="w-1.5 h-1.5 rounded-full bg-gray-200 mr-2" />
+                                <Text className="text-zinc-600 text-sm font-medium">{member.debtor.name}</Text>
+                            </View>
+                            <View className="flex-row items-center">
+                                <Text className="text-zinc-900 font-bold text-xs mr-3">₹{member.amount}</Text>
+                                {member.status === 'paid' ? (
+                                    <View className="bg-emerald-100 px-2 py-0.5 rounded-md">
+                                        <Text className="text-emerald-700 text-[9px] font-black uppercase">PAID</Text>
+                                    </View>
+                                ) : (
+                                    <View className="bg-amber-100 px-2 py-0.5 rounded-md">
+                                        <Text className="text-amber-700 text-[9px] font-black uppercase">PENDING</Text>
+                                    </View>
+                                )}
+                            </View>
                         </View>
                     ))}
                 </View>
@@ -68,22 +84,25 @@ const CreatedSplitsScreen = () => {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-black">
-            <View className="flex-row items-center p-4 border-b border-gray-800">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
-                    <Ionicons name="arrow-back" size={28} color="white" />
+        <SafeAreaView className="flex-1 bg-[#F5F7FA]">
+            <StatusBar barStyle="dark-content" />
+            <View className="flex-row items-center p-4 bg-white border-b border-gray-100 shadow-sm">
+                <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4 p-2 bg-gray-50 rounded-full">
+                    <Ionicons name="arrow-back" size={24} color="#18181b" />
                 </TouchableOpacity>
-                <Text className="text-xl font-bold text-white">My Split Groups</Text>
+                <Text className="text-xl font-bold text-zinc-900 font-black italic tracking-tighter">Created <Text className="text-pink-500">Splits</Text></Text>
             </View>
 
             <View className="flex-1 p-4">
                 {loading ? (
-                    <ActivityIndicator size="large" color="#3b82f6" />
+                    <ActivityIndicator size="large" color="#ec4899" className="mt-20" />
                 ) : splits.length === 0 ? (
-                    <View className="flex-1 justify-center items-center">
-                        <Ionicons name="documents-outline" size={64} color="#6b7280" className="mb-4" />
-                        <Text className="text-gray-400 text-lg">No splits created.</Text>
-                        <Text className="text-gray-500 text-sm">You haven't split any payments yet.</Text>
+                    <View className="flex-1 justify-center items-center px-10">
+                        <View className="w-20 h-20 bg-white rounded-full items-center justify-center mb-6 shadow-sm border border-gray-100">
+                            <Ionicons name="receipt-outline" size={36} color="#9ca3af" />
+                        </View>
+                        <Text className="text-zinc-900 text-xl font-black italic tracking-tighter">No splits yet!</Text>
+                        <Text className="text-gray-500 text-sm mt-2 text-center font-medium">Any bills you split with others will appear here. Start splitting!</Text>
                     </View>
                 ) : (
                     <FlatList
@@ -91,6 +110,7 @@ const CreatedSplitsScreen = () => {
                         keyExtractor={(item) => item._id}
                         renderItem={renderItem}
                         showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ paddingBottom: 40 }}
                     />
                 )}
             </View>

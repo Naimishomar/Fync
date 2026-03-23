@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Alert, Animated, TouchableOpacity } from 'react-native';
+import { View, Text, Alert, Animated, TouchableOpacity, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -98,61 +98,64 @@ const WaitingRoom: React.FC<Props> = ({ route, navigation }) => {
   }, [startTime]);
 
   return (
-    <View className="flex-1 bg-black">
-      {/* Background Gradient */}
-      <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
+    <View className="flex-1 bg-[#F8FAFC]">
+      <StatusBar barStyle="dark-content" />
 
-      <SafeAreaView className="flex-1 justify-between px-6 pb-10">
+      <SafeAreaView className="flex-1 justify-between px-8 pb-12">
         
         {/* HEADER */}
-        <View className="flex-row items-center justify-between pt-4">
+        <View className="flex-row items-center justify-between pt-8">
           <TouchableOpacity 
             onPress={() => navigation.goBack()} 
-            className="p-2 bg-white/10 rounded-full border border-white/10"
+            activeOpacity={0.9}
+            className="w-12 h-12 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm shadow-black/5"
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="close" size={24} color="white" />
+            <Ionicons name="close" size={24} color="#18181b" />
           </TouchableOpacity>
-          <Text className="text-white text-2xl font-black italic tracking-tighter">
-            THE <Text className="text-pink-500">LOBBY</Text> ⏳
+          <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter uppercase">
+            The <Text className="text-pink-500">Lobby</Text>
           </Text>
-          <View style={{ width: 40 }} /> {/* Spacer for centering */}
+          <View style={{ width: 48 }} /> {/* Spacer for centering */}
         </View>
 
         {/* MAIN CONTENT */}
         <View className="items-center">
           
           {/* Room ID Badge */}
-          <View className="bg-[#2a2a2a] px-6 py-2 rounded-full border border-white/10 mb-10 flex-row items-center shadow-lg">
-             <Ionicons name="keypad" size={16} color="#9ca3af" className="mr-2" />
-             <Text className="text-gray-400 font-bold tracking-widest ml-2">ROOM: <Text className="text-white">{roomId}</Text></Text>
+          <View className="bg-white px-8 py-3 rounded-full border border-slate-100 mb-14 flex-row items-center shadow-sm shadow-black/5">
+             <View className="w-2 h-2 bg-pink-500 rounded-full animate-pulse" />
+             <Text className="text-slate-400 font-black italic tracking-[2px] ml-3 uppercase">Node: <Text className="text-zinc-900">{roomId}</Text></Text>
           </View>
 
           {/* Pulsing Timer Circle */}
           <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-            <View className={`w-64 h-64 rounded-full border-4 items-center justify-center shadow-2xl ${
-                isStarting ? 'border-green-400 bg-green-500/20 shadow-green-500/50' : 'border-pink-500 bg-pink-500/10 shadow-pink-500/50'
-            }`}>
+            <View className={`w-72 h-72 rounded-[64px] border border-slate-100 items-center justify-center shadow-2xl overflow-hidden bg-white shadow-black/5`}>
+              <View className="absolute top-0 right-0 w-32 h-32 bg-pink-50 rounded-full -mr-16 -mt-16" />
+              <View className="absolute bottom-0 left-0 w-32 h-32 bg-slate-50 rounded-full -ml-16 -mb-16" />
+              
               {!isStarting && (
-                  <Text className="text-pink-300 font-bold text-sm tracking-widest uppercase mb-2">Starts In</Text>
+                  <Text className="text-slate-400 font-black italic text-[10px] tracking-[4px] uppercase mb-4">Initializes In</Text>
               )}
-              <Text className={`font-black tracking-widest ${isStarting ? 'text-green-400 text-3xl' : 'text-white text-6xl'}`}>
+              <Text className={`font-black italic tracking-tighter uppercase text-center px-4 ${isStarting ? 'text-zinc-900 text-4xl' : 'text-zinc-900 text-6xl'}`}>
                 {timeString}
               </Text>
             </View>
           </Animated.View>
 
-          <Text className="text-gray-400 text-lg font-medium mt-12 text-center px-4">
-            {isStarting ? "Prepare for battle!" : "Waiting for the host to start the match..."}
+          <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-16 text-center px-8 leading-5">
+            {isStarting ? "Establish connection... Preparing module." : "Awaiting Host protocol to initiate the sequence."}
           </Text>
 
         </View>
 
         {/* FOOTER WARNING */}
-        <View className="bg-[#1e1e1e]/80 border border-red-500/30 p-4 rounded-2xl flex-row items-center">
-          <Ionicons name="warning-outline" size={24} color="#ef4444" />
-          <Text className="text-gray-300 ml-3 flex-1 text-xs leading-5">
-            <Text className="font-bold text-red-400">Do not close the app.</Text> Leaving this screen will disconnect you from the lobby.
+        <View className="bg-zinc-900 p-8 rounded-[40px] flex-row items-center shadow-2xl shadow-black/20">
+          <View className="w-12 h-12 bg-zinc-800 rounded-2xl items-center justify-center border border-zinc-700">
+            <Ionicons name="shield-checkmark" size={24} color="#ec4899" />
+          </View>
+          <Text className="text-slate-500 ml-5 flex-1 text-[10px] font-bold uppercase tracking-wide leading-5">
+            <Text className="font-black text-white italic">Protocol Active.</Text> Maintain active connection. Disconnection will result in session void.
           </Text>
         </View>
 

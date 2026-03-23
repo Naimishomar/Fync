@@ -9,7 +9,8 @@ import {
   Linking, 
   RefreshControl,
   TextInput,
-  Dimensions
+  Dimensions,
+  StatusBar
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
@@ -36,69 +37,56 @@ interface Workshop {
 
 // --- 1. MEMOIZED WORKSHOP CARD ---
 const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: string) => void }) => {
-  // Fallback for images
   const imageUrl = item.banner_mobile?.url || item.logoUrl2 || 'https://via.placeholder.com/300x150?text=No+Image';
-  const orgName = item.organisation?.name || "Unstop";
+  const orgName = item.organisation?.name || "Global Organisation";
 
   return (
-    <View className="bg-[#1e1e1e]/80 rounded-3xl mb-6 mx-5 overflow-hidden border border-white/10 shadow-lg">
-      
-      {/* Banner Image */}
-      <Image 
-        source={{ uri: imageUrl }} 
-        className="w-full h-40 bg-white/5"
-        resizeMode="cover"
-      />
-      
-      {/* Overlay Gradient on Image */}
-      <LinearGradient
-         colors={['transparent', 'rgba(30,30,30,1)']}
-         className="absolute w-full h-40 bottom-0"
-      />
-
-      <View className="p-5 -mt-10">
-        
-        {/* Date Tag */}
-        <View className="self-start bg-black/60 px-3 py-1 mb-2 rounded-full backdrop-blur-md border border-white/10 flex-row items-center">
-            <Ionicons name="calendar" size={12} color="#fbbf24" />
-            <Text className="text-[10px] text-gray-200 font-bold ml-1.5 uppercase tracking-wider">
-                {item.start_date ? new Date(item.start_date).toLocaleDateString() : 'Coming Soon'}
-            </Text>
+    <View className="bg-white rounded-2xl mb-8 mx-6 overflow-hidden shadow-sm shadow-black/5 border border-gray-300">
+      <View className="relative py-4">
+        <Image 
+          source={{ uri: imageUrl }} 
+          className="w-full h-48 bg-white"
+          resizeMode="contain"
+        />
+        <View className="absolute top-4 left-4">
+            <View className="bg-white/90 px-3 py-1.5 rounded-xl backdrop-blur-md border border-gray-300 flex-row items-center shadow-sm">
+                <Ionicons name="calendar-clear" size={14} color="#ec4899" />
+                <Text className="text-[10px] text-zinc-900 font-black italic ml-2 uppercase tracking-tight">
+                    {item.start_date ? new Date(item.start_date).toLocaleDateString() : 'Active Session'}
+                </Text>
+            </View>
         </View>
+      </View>
 
-        <Text className="text-lg font-bold text-white mb-1 shadow-sm" numberOfLines={2}>
+      <View className="p-5">
+        <Text className="text-xl font-black italic text-zinc-900 mb-2 leading-6 tracking-tighter" numberOfLines={2}>
             {item.title}
         </Text>
         
         <View className="flex-row items-center mb-4">
-            <Ionicons name="business" size={14} color="#9ca3af" />
-            <Text className="text-gray-400 text-xs ml-1.5 font-medium">
+            <View className="w-6 h-6 p-1 bg-gray-200 rounded-full items-center justify-center border border-gray-100 mr-2">
+                <Ionicons name="business" size={12} color="#64748b" />
+            </View>
+            <Text className="text-gray-600 text-[10px] font-black uppercase tracking-widest">
                 {orgName}
             </Text>
         </View>
 
         {/* Footer */}
-        <View className="flex-row justify-between items-center mt-2">
+        <View className="flex-row justify-between items-center">
             <View>
-                <Text className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Deadline</Text>
-                <Text className="text-xs text-gray-300 font-medium">
-                    {item.regn_deadline ? new Date(item.regn_deadline).toLocaleDateString() : "Open"}
+                <Text className="text-slate-400 font-black uppercase text-[8px] tracking-[2px]">Registration Ends</Text>
+                <Text className="text-zinc-900 text-sm font-black italic mt-0.5 tracking-tight uppercase">
+                    {item.regn_deadline ? new Date(item.regn_deadline).toLocaleDateString() : "Open Registry"}
                 </Text>
             </View>
 
             <TouchableOpacity 
-                activeOpacity={0.8}
+                activeOpacity={0.9}
                 onPress={() => onPress(item.seo_url)}
+                className="bg-pink-500 px-6 py-4 rounded-xl shadow-lg shadow-black/20"
             >
-                <LinearGradient
-                    colors={['#6366f1', '#a855f7']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    className="px-5 py-2 rounded-full flex-row justify-center items-center shadow-lg shadow-indigo-500/20"
-                >
-                    <Text className="text-white font-bold text-xs mr-1.5">Apply Now</Text>
-                    <Ionicons name="arrow-forward" size={14} color="white" />
-                </LinearGradient>
+                <Text className="text-white font-black italic uppercase tracking-widest text-[10px]">Access Portal</Text>
             </TouchableOpacity>
         </View>
       </View>
@@ -190,38 +178,38 @@ export default function WorkshopList() {
   ), [openLink]);
 
   return (
-    <View className="flex-1 bg-black">
-      {/* 🌸 BACKGROUND 🌸 */}
-      <Image source={{ uri: BG_IMAGE }} className="absolute w-full h-full opacity-50" />
-      <LinearGradient 
-        colors={['rgba(236, 72, 153, 0.40)', 'rgba(0,0,0,0.85)', '#000000']} 
-        className="absolute w-full h-full" 
-      />
+    <View className="flex-1 bg-[#F8FAFC]">
+      <StatusBar barStyle="dark-content" />
 
-      <SafeAreaView className="flex-1 px-2">
+      <SafeAreaView className="flex-1">
         
         {/* Header */}
-        <View className="px-5 pt-4 pb-2">
-            <Text className="text-white text-3xl font-black shadow-lg">Workshops 🛠️</Text>
-            <Text className="text-gray-300 text-sm mt-1 font-medium">
-                Learn new skills from industry experts.
-            </Text>
+        <View className="px-8 pt-8 pb-4">
+            <View className="flex-row items-center gap-3">
+                <View className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/20">
+                    <Ionicons name="construct" size={24} color="white" />
+                </View>
+                <View>
+                    <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter uppercase">Workshops</Text>
+                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">Master Industry-Leading Skills</Text>
+                </View>
+            </View>
         </View>
 
         {/* 🔍 Search Bar */}
-        <View className="mx-5 mt-4 mb-2">
-            <View className="flex-row items-center bg-[#1a1a1a]/90 rounded-2xl px-4 border border-white/10 shadow-md">
-                <Ionicons name="search" size={20} color="#9ca3af" />
+        <View className="px-6 mt-4 mb-4">
+            <View className="flex-row items-center bg-white rounded-3xl px-6 py-4 border border-slate-100 shadow-sm shadow-black/5">
+                <Ionicons name="search" size={20} color="#ec4899" />
                 <TextInput 
-                    placeholder="Search workshops..."
-                    placeholderTextColor="#6b7280"
+                    placeholder="Search masterclasses, labs..."
+                    placeholderTextColor="#94a3b8"
                     value={searchQuery}
                     onChangeText={setSearchQuery}
-                    className="flex-1 ml-3 text-white text-base font-medium"
+                    className="flex-1 ml-3 text-zinc-900 text-base font-black italic"
                 />
                 {searchQuery.length > 0 && (
-                    <TouchableOpacity onPress={() => setSearchQuery("")}>
-                        <Ionicons name="close-circle" size={20} color="#6b7280" />
+                    <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-slate-50 p-1 rounded-full">
+                        <Ionicons name="close" size={18} color="#94a3b8" />
                     </TouchableOpacity>
                 )}
             </View>
@@ -232,27 +220,25 @@ export default function WorkshopList() {
             data={filteredWorkshops}
             renderItem={renderItem}
             keyExtractor={(item) => item.id.toString()}
-            
             contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
             showsVerticalScrollIndicator={false}
-            
             onEndReached={loadMore}
             onEndReachedThreshold={0.5}
-            
             refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ec4899" />
             }
-            
             ListFooterComponent={
-                loadingMore ? <ActivityIndicator size="small" color="#ec4899" className="py-4" /> : <View className="h-10" />
+                loadingMore ? <ActivityIndicator size="small" color="#ec4899" className="py-10" /> : <View className="h-10" />
             }
-            
             ListEmptyComponent={
                 !loading ? (
-                    <View className="items-center justify-center mt-20">
-                        <MaterialCommunityIcons name="calendar-remove" size={60} color="#333" />
-                        <Text className="text-gray-500 mt-4 text-center px-10">
-                            {searchQuery ? "No workshops found matching your search." : "No workshops available right now."}
+                    <View className="items-center mt-20 px-10">
+                        <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
+                            <Ionicons name="calendar" size={40} color="#CBD5E1" />
+                        </View>
+                        <Text className="text-zinc-900 font-black italic text-xl tracking-tight text-center uppercase">Zero Labs</Text>
+                        <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-wide">
+                            {searchQuery ? "No skill modules matched your search protocol." : "The global workshop registry is clear."}
                         </Text>
                     </View>
                 ) : (

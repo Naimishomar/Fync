@@ -8,7 +8,8 @@ import {
   Dimensions,
   RefreshControl,
   Linking,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -17,7 +18,8 @@ import { useAuth } from '../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
-import * as FileSystem from 'expo-file-system';
+import Avatar from './Avatar';
+import { cacheDirectory, getInfoAsync, readDirectoryAsync, deleteAsync } from 'expo-file-system';
 import { Image as ExpoImage } from 'expo-image';
 
 const { width } = Dimensions.get('window');
@@ -29,6 +31,7 @@ type UserType = {
   name: string;
   username: string;
   avatar: string;
+  user_access?: 'admin' | 'user' | 'alumni';
   college?: string;
   interest?: string;
   bio?: string;
@@ -69,37 +72,74 @@ function Profile() {
   const [activeTab, setActiveTab] = useState<'grid' | 'list' | 'tags'>('grid');
   const [refreshing, setRefreshing] = useState(false);
 
-  const getPosts = async () => {
+  const [postsPage, setPostsPage] = useState(1);
+  const [shortsPage, setShortsPage] = useState(1);
+  const [hasMorePosts, setHasMorePosts] = useState(true);
+  const [hasMoreShorts, setHasMoreShorts] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const getPosts = async (page = 1, isInitial = false) => {
     try {
-      const res = await axios.get('/post/posts');
+      setIsLoadingMore(true);
+      const res = await axios.get(`/post/posts?page=${page}&limit=12`);
       if (res.data.success) {
-        setPosts(res.data.posts);
+        setPosts(prev => {
+          const newPosts = res.data.posts || [];
+          if (isInitial) return newPosts;
+          const existingIds = new Set(prev.map(p => p._id));
+          const filteredNew = newPosts.filter((p: any) => !existingIds.has(p._id));
+          return [...prev, ...filteredNew];
+        });
+        setHasMorePosts(res.data.hasMore);
+        setPostsPage(page);
       }
     } catch (e) {
       console.log("Error fetching posts");
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
-  const getShorts = async () => {
+  const getShorts = async (page = 1, isInitial = false) => {
     try {
-      const res = await axios.get('/shorts/get/yours');
+      setIsLoadingMore(true);
+      const res = await axios.get(`/shorts/get/yours?page=${page}&limit=12`);
       if (res.data.success) {
-        setShorts(res.data.shorts);
+        setShorts(prev => {
+          const newShorts = res.data.shorts || [];
+          if (isInitial) return newShorts;
+          const existingIds = new Set(prev.map(s => s._id));
+          const filteredNew = newShorts.filter((s: any) => !existingIds.has(s._id));
+          return [...prev, ...filteredNew];
+        });
+        setHasMoreShorts(res.data.hasMore);
+        setShortsPage(page);
       }
     } catch (e) {
       console.log("Error fetching shorts", e);
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    getPosts();
-    getShorts();
+    getPosts(1, true);
+    getShorts(1, true);
   }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([getPosts(), getShorts()]);
+    await Promise.all([getPosts(1, true), getShorts(1, true)]);
     setRefreshing(false);
+  };
+
+  const handleLoadMore = () => {
+    if (isLoadingMore) return;
+    if (activeTab === 'grid' && hasMorePosts) {
+      getPosts(postsPage + 1);
+    } else if (activeTab === 'list' && hasMoreShorts) {
+      getShorts(shortsPage + 1);
+    }
   };
 
   const deletePost = async (id: string) => {
@@ -135,19 +175,19 @@ function Profile() {
 
   const clearAppCache = async () => {
     try {
-      if (FileSystem.cacheDirectory) {
-        const cacheDirInfo = await FileSystem.getInfoAsync(FileSystem.cacheDirectory);
+      if (cacheDirectory) {
+        const cacheDirInfo = await getInfoAsync(cacheDirectory);
         if (cacheDirInfo.exists) {
-          const content = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory);
+          const content = await readDirectoryAsync(cacheDirectory);
 
           let totalFreed = 0;
           for (const item of content) {
-            const itemPath = `${FileSystem.cacheDirectory}${item}`;
-            const itemInfo = await FileSystem.getInfoAsync(itemPath, { size: true });
+            const itemPath = `${cacheDirectory}${item}`;
+            const itemInfo = await getInfoAsync(itemPath, { size: true });
             if (itemInfo.exists && !itemInfo.isDirectory) {
               totalFreed += itemInfo.size || 0;
             }
-            await FileSystem.deleteAsync(itemPath, { idempotent: true });
+            await deleteAsync(itemPath, { idempotent: true });
           }
 
           await ExpoImage.clearDiskCache();
@@ -261,9 +301,9 @@ function Profile() {
     <View className="px-4 pt-4">
       <View className="flex-row items-center justify-between">
         <View>
-          <Image
-            source={{ uri: user?.avatar || `https://ui-avatars.com/api/?name=${user?.username}&background=random&color=fff` }}
-            className="h-24 w-24 rounded-full border-2 border-gray-800"
+          <Avatar 
+            user={user as any} 
+            size={96} 
           />
           <View className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-1 border-2 border-black">
             <Ionicons name="add" size={16} color="white" />
@@ -408,6 +448,9 @@ function Profile() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
         }
 
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+
         ListHeaderComponent={
           <>
             {renderProfileInfo()}
@@ -427,6 +470,14 @@ function Profile() {
           }
           return null;
         }}
+
+        ListFooterComponent={
+          isLoadingMore ? (
+            <View className="py-4">
+              <ActivityIndicator size="small" color="#ffffff" />
+            </View>
+          ) : null
+        }
 
         ListEmptyComponent={
           activeTab !== 'tags' ? (

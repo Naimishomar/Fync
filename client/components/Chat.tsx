@@ -8,12 +8,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Alert,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import socket from "../utils/socket";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { CommentSkeleton } from "./Skeleton";
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -25,11 +27,13 @@ const Chat = ({ route, navigation }: any) => {
   const [text, setText] = useState("");
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [otherUser, setOtherUser] = useState<any>(null);
 
   // ✅ NEW STATES
   const [isTyping, setIsTyping] = useState(false);
   const [seen, setSeen] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<any>(null);
 
   const typingTimeout = useRef<any>(null);
   const flatListRef = useRef<FlatList>(null);
@@ -113,6 +117,10 @@ const Chat = ({ route, navigation }: any) => {
       }
     });
 
+    socket.on("messageDeleted", ({ messageId }) => {
+      setMessages((prev) => prev.filter(m => m._id !== messageId));
+    });
+
 
     loadMessages();
 
@@ -121,6 +129,7 @@ const Chat = ({ route, navigation }: any) => {
       socket.off("userTyping");
       socket.off("userStopTyping");
       socket.off("messagesSeen");
+      socket.off("messageDeleted");
     };
   }, [conversationId]);
 
@@ -146,6 +155,7 @@ const Chat = ({ route, navigation }: any) => {
     } catch (error) {
       console.log("Error loading messages", error);
     } finally {
+      setLoading(false);
       setLoadingMore(false);
     }
   };
@@ -168,6 +178,7 @@ const Chat = ({ route, navigation }: any) => {
       conversationId,
       senderId: user._id,
       text,
+      replyTo: replyingTo?._id || null,
     });
 
     // stop typing when sent
@@ -177,6 +188,7 @@ const Chat = ({ route, navigation }: any) => {
     });
 
     setText("");
+    setReplyingTo(null);
   };
 
   /* ---------- TYPING ---------- */
@@ -196,6 +208,26 @@ const Chat = ({ route, navigation }: any) => {
         userId: user._id,
       });
     }, 1000);
+  };
+
+  const deleteMessage = (messageId: string) => {
+    Alert.alert("Delete Message", "Delete this message for everyone?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const res = await axios.delete(`/chat/message/${messageId}`);
+            if (res.data.success) {
+              setMessages((prev) => prev.filter((m) => m._id !== messageId));
+            }
+          } catch (e) {
+            console.log("Delete error", e);
+          }
+        },
+      },
+    ]);
   };
 
   /* ---------- MESSAGE UI ---------- */
@@ -218,9 +250,33 @@ const Chat = ({ route, navigation }: any) => {
         )}
 
         <View className={isMe ? "items-end" : "items-start"}>
-          <View className={`max-w-[250px] px-4 py-2.5 rounded-2xl ${isMe ? "bg-blue-600 rounded-tr-none" : "bg-gray-100 rounded-tl-none border border-gray-200"}`}>
+          <Pressable 
+            onLongPress={() => {
+              if (isMe) {
+                Alert.alert("Options", "Choose an action", [
+                  { text: "Reply", onPress: () => setReplyingTo(item) },
+                  { text: "Delete", style: "destructive", onPress: () => deleteMessage(item._id) },
+                  { text: "Cancel", style: "cancel" }
+                ]);
+              } else {
+                setReplyingTo(item);
+              }
+            }}
+            delayLongPress={500}
+            className={`max-w-[250px] px-4 py-2.5 rounded-2xl ${isMe ? "bg-indigo-600 rounded-tr-none" : "bg-white rounded-tl-none border border-gray-100 shadow-sm"}`}
+          >
+            {item.replyTo && (
+              <View className={`mb-2 p-2 rounded-lg border-l-4 ${isMe ? "bg-blue-700/50 border-blue-300" : "bg-gray-200 border-blue-500"}`}>
+                <Text className={`text-[10px] font-bold ${isMe ? "text-blue-100" : "text-blue-600"}`}>
+                  {item.replyTo.sender?.name || (item.replyTo.sender === user._id ? "You" : "User")}
+                </Text>
+                <Text className={`${isMe ? "text-gray-200" : "text-gray-600"} text-[11px]`} numberOfLines={1}>
+                  {item.replyTo.message}
+                </Text>
+              </View>
+            )}
             <Text className={`${isMe ? "text-white" : "text-black"} text-base`}>{item.message}</Text>
-          </View>
+          </Pressable>
 
 
           {isMe && isLastMessage && (
@@ -251,13 +307,13 @@ const Chat = ({ route, navigation }: any) => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-[#F5F7FA]">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1"
       >
-        {/* HEADER — unchanged */}
-        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 bg-white">
+        {/* HEADER */}
+        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100 bg-white shadow-sm">
           <View className="flex-row items-center">
             <Pressable onPress={() => navigation.goBack()}>
               <Ionicons name="arrow-back" size={24} color="black" />
@@ -292,19 +348,28 @@ const Chat = ({ route, navigation }: any) => {
               </Pressable>
             )}
           </View>
+
+          <View className="flex-row items-center space-x-4 pr-3">
+          </View>
         </View>
 
         {/* MESSAGES */}
-        <FlatList
-          ref={flatListRef}
-          data={sortedMessages}
-          inverted
-          keyExtractor={(item) => item._id}
-          renderItem={renderItem}
-          onEndReached={loadMessages}
-          contentContainerStyle={{ padding: 12 }}
-          showsVerticalScrollIndicator={false}
-        />
+        {loading ? (
+             <View className="flex-1 p-4">
+                 {[1,2,3,4,5].map(i => <CommentSkeleton key={i} />)}
+             </View>
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={sortedMessages}
+            inverted
+            keyExtractor={(item) => item._id}
+            renderItem={renderItem}
+            onEndReached={loadMessages}
+            contentContainerStyle={{ padding: 12 }}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
 
         {/* ✅ typing indicator */}
         {isTyping && (
@@ -315,17 +380,35 @@ const Chat = ({ route, navigation }: any) => {
           </>
         )}
 
-        {/* INPUT — unchanged */}
-        <View className="flex-row items-center px-3 py-2 border-t border-gray-200 bg-white">
+        {/* ✅ reply indicator */}
+        {replyingTo && (
+          <View className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex-row items-center justify-between">
+            <View className="border-l-4 border-blue-500 pl-3">
+              <Text className="text-blue-500 text-xs font-bold">
+                Replying to {replyingTo.sender?.name || (replyingTo.sender === user._id ? "yourself" : "User")}
+              </Text>
+              <Text className="text-gray-500 text-xs" numberOfLines={1}>
+                {replyingTo.message}
+              </Text>
+            </View>
+            <Pressable onPress={() => setReplyingTo(null)}>
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </Pressable>
+          </View>
+        )}
+
+        {/* INPUT */}
+        <View className="flex-row items-center px-3 py-3 border-t border-gray-100 bg-white shadow-lg">
           <TextInput
             value={text}
             onChangeText={handleTyping}
-            placeholder="Message..."
-            className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-base"
+            placeholder="Type a message..."
+            placeholderTextColor="#9ca3af"
+            className="flex-1 bg-gray-50 rounded-full px-4 py-2 text-base text-zinc-900 border border-gray-100"
           />
           <Pressable
             onPress={sendMessage}
-            className="ml-3 bg-blue-500 p-2 rounded-full"
+            className="ml-3 bg-indigo-600 p-2.5 rounded-full shadow-md shadow-indigo-600/30"
           >
             <Ionicons name="send" size={18} color="white" />
           </Pressable>

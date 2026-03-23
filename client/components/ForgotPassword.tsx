@@ -12,7 +12,7 @@ import {
   Alert
 } from 'react-native';
 import React, { useCallback, useState } from 'react';
-import { ScrollView } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import axios from '../context/axiosConfig';
 //@ts-ignore
@@ -38,7 +38,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
 
     setIsLoading(true);
     try {
-      const response = await axios.post(`user/reset-password`, { email });
+      const response = await axios.post(`/user/reset-password`, { email });
       if (response.data.success) {
         Alert.alert("OTP Sent", "Please check your email for the verification code.");
         setIsOtpSent(true);
@@ -68,7 +68,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
     setIsLoading(true);
     try {
       // Call your backend verifyResetPassword endpoint
-      const response = await axios.post(`user/verify-reset-password`, {
+      const response = await axios.post(`/user/verify-reset-password`, {
         email,
         otp,
         password

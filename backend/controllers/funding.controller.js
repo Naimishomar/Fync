@@ -210,7 +210,7 @@ export const likeAndUnlikeProject = async (req, res) => {
 
 export const addComment = async (req, res) => {
     try {
-        const { text } = req.body;
+        const { text, parentCommentId } = req.body;
         if (!text) {
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
@@ -218,14 +218,33 @@ export const addComment = async (req, res) => {
         if (!project) {
             return res.status(404).json({ success: false, message: "Project not found" });
         }
+
+        let replyToUser = null;
+        if (parentCommentId) {
+            const parent = await Comment.findById(parentCommentId);
+            if (parent) {
+                replyToUser = parent.commentor;
+            }
+        }
+
         const comment = await Comment.create({
             text,
             commentor: req.user.id,
             post: req.params.id,
-            postType: "FundingProject"
+            postType: "FundingProject",
+            parentComment: parentCommentId || null,
+            replyToUser: replyToUser || null
         })
-        const commenterDetails = await Comment.findById(comment._id).populate("commentor", "name avatar username");
-        return res.status(200).json({ success: true, message: "Comment created successfully", comment, commenterDetails });
+
+        if (parentCommentId && replyToUser && replyToUser.toString() !== req.user.id) {
+             // Optional: Add notification for funding reply if needed
+        }
+
+        const commenterDetails = await Comment.findById(comment._id)
+            .populate("commentor", "name avatar username")
+            .populate("replyToUser", "username");
+
+        return res.status(200).json({ success: true, message: "Comment created successfully", comment: commenterDetails });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -234,14 +253,20 @@ export const addComment = async (req, res) => {
 
 export const getAllComments = async (req, res) => {
     try {
-        const comments = await Comment.find({ post: req.params.id, postType: "FundingProject" })
+        const comments = await Comment.find({ post: req.params.id, postType: "FundingProject", parentComment: null })
             .sort({ createdAt: -1 })
             .populate("commentor", "name avatar username");
-        if (!comments) {
-            return res.status(404).json({ success: false, message: "No comments" });
-        }
-        const totalComments = comments.length;
-        return res.status(200).json({ success: true, message: "Comments fetched successfully", comments, totalComments });
+        
+        const commentsWithReplies = await Promise.all(comments.map(async (comment) => {
+            const replies = await Comment.find({ parentComment: comment._id })
+                .populate("commentor", "name avatar username")
+                .populate("replyToUser", "username")
+                .sort({ createdAt: 1 });
+            return { ...comment._doc, replies };
+        }));
+
+        const totalComments = commentsWithReplies.length;
+        return res.status(200).json({ success: true, message: "Comments fetched successfully", comments: commentsWithReplies, totalComments });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error", });

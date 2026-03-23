@@ -27,6 +27,11 @@ const collegeChatSchema = new mongoose.Schema({
     expiresAt: {
         type: Date,
         required: true,
+    },
+    replyTo: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "CollegeChat",
+        default: null
     }
 }, { timestamps: true });
 

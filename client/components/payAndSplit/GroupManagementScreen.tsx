@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, TextInput, StatusBar } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -63,7 +63,7 @@ const GroupManagementScreen = () => {
             const res = await axios.post('/split/groups', {
                 title: newGroupTitle,
                 description: newGroupDesc,
-                members: [] // A complete feature would have user selection here similar to split members
+                members: []
             });
             if (res.data.success) {
                 Toast.show({ type: 'success', text1: 'Group Created' });
@@ -77,70 +77,74 @@ const GroupManagementScreen = () => {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-black">
-            <View className="flex-row items-center justify-between p-4 border-b border-gray-800">
+        <SafeAreaView className="flex-1 bg-[#F5F7FA]">
+            <StatusBar barStyle="dark-content" />
+            <View className="flex-row items-center justify-between p-4 bg-white border-b border-gray-100 shadow-sm">
                 <View className="flex-row items-center">
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
-                        <Ionicons name="arrow-back" size={28} color="white" />
+                    <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4 p-2 bg-gray-50 rounded-full">
+                        <Ionicons name="arrow-back" size={24} color="#18181b" />
                     </TouchableOpacity>
-                    <Text className="text-xl font-bold text-white">My Groups</Text>
+                    <Text className="text-xl font-bold text-zinc-900 font-black italic tracking-tighter">My <Text className="text-pink-500">Groups</Text></Text>
                 </View>
-                <TouchableOpacity onPress={() => setIsCreating(!isCreating)}>
-                    <Ionicons name={isCreating ? "close" : "add"} size={28} color="#3b82f6" />
+                <TouchableOpacity onPress={() => setIsCreating(!isCreating)} className={`p-2 rounded-full ${isCreating ? 'bg-red-50' : 'bg-pink-50'} border border-gray-100`}>
+                    <Ionicons name={isCreating ? "close" : "add"} size={24} color={isCreating ? "#ef4444" : "#ec4899"} />
                 </TouchableOpacity>
             </View>
 
             {/* Tabs */}
-            <View className="flex-row border-b border-gray-800">
+            <View className="flex-row bg-white px-2 py-1 mx-4 mt-4 rounded-2xl border border-gray-100 shadow-sm shadow-black/5">
                 <TouchableOpacity
-                    className={`flex-1 py-4 items-center ${activeTab === 'splits' ? 'border-b-2 border-blue-500' : ''}`}
+                    className={`flex-1 py-3 items-center rounded-xl ${activeTab === 'splits' ? 'bg-pink-500 shadow-sm shadow-pink-500/20' : ''}`}
                     onPress={() => setActiveTab('splits')}
                 >
-                    <Text className={`font-bold ${activeTab === 'splits' ? 'text-blue-500' : 'text-gray-400'}`}>My Splits</Text>
+                    <Text className={`font-black italic tracking-tighter uppercase text-xs ${activeTab === 'splits' ? 'text-white' : 'text-gray-400'}`}>My Splits</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    className={`flex-1 py-4 items-center ${activeTab === 'groups' ? 'border-b-2 border-blue-500' : ''}`}
+                    className={`flex-1 py-3 items-center rounded-xl ${activeTab === 'groups' ? 'bg-pink-500 shadow-sm shadow-pink-500/20' : ''}`}
                     onPress={() => setActiveTab('groups')}
                 >
-                    <Text className={`font-bold ${activeTab === 'groups' ? 'text-blue-500' : 'text-gray-400'}`}>Squads</Text>
+                    <Text className={`font-black italic tracking-tighter uppercase text-xs ${activeTab === 'groups' ? 'text-white' : 'text-gray-400'}`}>Squads</Text>
                 </TouchableOpacity>
             </View>
 
             <View className="flex-1 p-4">
                 {isCreating && (
-                    <View className="bg-gray-800 p-4 rounded-xl border border-gray-700 mb-6">
-                        <Text className="text-white font-bold mb-2">Create New Group</Text>
+                    <View className="bg-white p-5 rounded-2xl border border-gray-100 mb-6 shadow-xl">
+                        <Text className="text-zinc-900 font-black uppercase tracking-widest text-[10px] mb-4 italic">Create New Group</Text>
                         <TextInput
-                            className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-white mb-3"
+                            className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-zinc-900 mb-4 font-bold"
                             placeholder="Group Title (e.g. Goa Trip)"
-                            placeholderTextColor="#6b7280"
+                            placeholderTextColor="#9ca3af"
                             value={newGroupTitle}
                             onChangeText={setNewGroupTitle}
                         />
                         <TextInput
-                            className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-white mb-3"
+                            className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-zinc-900 mb-6 font-medium"
                             placeholder="Description"
-                            placeholderTextColor="#6b7280"
+                            placeholderTextColor="#9ca3af"
                             value={newGroupDesc}
                             onChangeText={setNewGroupDesc}
+                            multiline
                         />
                         <TouchableOpacity
-                            className="bg-blue-600 p-3 rounded-lg items-center"
+                            className="bg-indigo-600 py-4 rounded-xl items-center shadow-lg shadow-indigo-600/30"
                             onPress={handleCreateGroup}
                         >
-                            <Text className="text-white font-bold">Create</Text>
+                            <Text className="text-white font-black italic tracking-tighter uppercase">Create Group</Text>
                         </TouchableOpacity>
                     </View>
                 )}
 
                 {loading ? (
-                    <ActivityIndicator size="large" color="#3b82f6" />
+                    <ActivityIndicator size="large" color="#ec4899" className="mt-20" />
                 ) : activeTab === 'splits' ? (
                     createdSplits.length === 0 ? (
-                        <View className="flex-1 justify-center items-center">
-                            <Ionicons name="documents-outline" size={64} color="#6b7280" className="mb-4" />
-                            <Text className="text-gray-400 text-lg">No splits created.</Text>
-                            <Text className="text-gray-500 text-sm mt-1">You haven't split any payments yet.</Text>
+                        <View className="flex-1 justify-center items-center px-10">
+                            <View className="w-20 h-20 bg-white rounded-full items-center justify-center mb-6 shadow-sm border border-gray-100">
+                                <Ionicons name="documents-outline" size={40} color="#cbd5e1" />
+                            </View>
+                            <Text className="text-zinc-900 text-xl font-black italic tracking-tighter">No splits yet</Text>
+                            <Text className="text-gray-500 text-sm mt-2 text-center font-medium">You haven't split any payments yet. Start by splitting a bill!</Text>
                         </View>
                     ) : (
                         <FlatList
@@ -152,38 +156,41 @@ const GroupManagementScreen = () => {
                                 const paidMembers = item.members.filter((m: any) => m.status === 'paid').length;
 
                                 return (
-                                    <View className="bg-gray-800 p-4 rounded-xl mb-4 border border-gray-700">
-                                        <View className="flex-row justify-between items-start mb-3">
+                                    <View className="bg-white p-5 rounded-2xl mb-4 border border-gray-100 shadow-sm">
+                                        <View className="flex-row justify-between items-start mb-4">
                                             <View>
-                                                <Text className="text-white font-bold text-lg">{item.description}</Text>
-                                                <Text className="text-gray-400 text-sm">Amount Requested: <Text className="text-blue-400 font-bold">₹{item.amount}</Text></Text>
+                                                <Text className="text-zinc-900 font-bold text-[16px]">{item.description}</Text>
+                                                <Text className="text-gray-500 text-xs mt-1">Amount Requested: <Text className="text-pink-600 font-black">₹{item.amount}</Text></Text>
                                             </View>
-                                            <View className="items-end bg-black/40 px-2 py-1 rounded">
-                                                <Text className="text-white text-xs font-semibold">{paidMembers} / {totalMembers} users paid</Text>
+                                            <View className="bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                                                <Text className="text-emerald-700 text-[10px] font-black uppercase tracking-widest">{paidMembers} / {totalMembers} PAID</Text>
                                             </View>
                                         </View>
 
-                                        {/* List of Members inside this group/split */}
-                                        <View className="mt-2 pt-2 border-t border-gray-700">
-                                            <Text className="text-gray-400 text-xs font-semibold mb-2 uppercase">Members:</Text>
+                                        <View className="mt-2 pt-4 border-t border-gray-50">
+                                            <Text className="text-gray-400 text-[10px] font-black uppercase tracking-widest mb-3">Participation:</Text>
                                             {item.members.map((member: any) => (
-                                                <View key={member._id} className="flex-row justify-between items-center mb-2">
+                                                <View key={member._id} className="flex-row justify-between items-center mb-3">
                                                     <View className="flex-row items-center">
-                                                        <View className={`w-2 h-2 rounded-full mr-2 ${member.status === 'paid' ? 'bg-green-500' : 'bg-yellow-500'}`} />
-                                                        <Text className="text-white text-sm">{member.debtor.name || member.debtor.username}</Text>
+                                                        <View className={`w-2 h-2 rounded-full mr-2 ${member.status === 'paid' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                                                        <Text className="text-zinc-900 text-sm font-medium">{member.debtor.name || member.debtor.username}</Text>
                                                     </View>
                                                     {member.status === 'paid' ? (
-                                                        <Text className="text-green-400 text-xs font-bold px-2 py-0.5 border border-green-400/30 rounded">Paid</Text>
+                                                        <View className="bg-emerald-50 px-2 py-0.5 rounded-full">
+                                                            <Text className="text-emerald-600 text-[10px] font-bold">PAID</Text>
+                                                        </View>
                                                     ) : (
                                                         <View className="flex-row items-center">
                                                             <TouchableOpacity
-                                                                className="mr-2 px-3 py-1 bg-blue-600/20 border border-blue-500/50 rounded flex-row items-center"
+                                                                className="mr-2 px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-full flex-row items-center"
                                                                 onPress={() => handleRemindMember(member._id)}
                                                             >
-                                                                <Ionicons name="notifications" size={12} color="#60a5fa" className="mr-1" />
-                                                                <Text className="text-blue-400 text-xs font-bold">Notify</Text>
+                                                                <Ionicons name="notifications" size={10} color="#4f46e5" className="mr-1" />
+                                                                <Text className="text-indigo-600 text-[10px] font-black uppercase tracking-tighter">Remind</Text>
                                                             </TouchableOpacity>
-                                                            <Text className="text-yellow-400 text-xs font-bold px-2 py-0.5 border border-yellow-400/30 rounded">Pending</Text>
+                                                            <View className="bg-amber-50 px-2 py-0.5 rounded-full">
+                                                                <Text className="text-amber-600 text-[10px] font-bold">PENDING</Text>
+                                                            </View>
                                                         </View>
                                                     )}
                                                 </View>
@@ -195,19 +202,31 @@ const GroupManagementScreen = () => {
                         />
                     )
                 ) : groups.length === 0 ? (
-                    <View className="flex-1 justify-center items-center">
-                        <Ionicons name="people-outline" size={64} color="#6b7280" className="mb-4" />
-                        <Text className="text-gray-400 text-lg">No squads yet.</Text>
+                    <View className="flex-1 justify-center items-center px-10">
+                         <View className="w-20 h-20 bg-white rounded-full items-center justify-center mb-6 shadow-sm border border-gray-100">
+                            <Ionicons name="people-outline" size={40} color="#cbd5e1" />
+                        </View>
+                        <Text className="text-zinc-900 text-xl font-black italic tracking-tighter">No squads yet</Text>
+                        <Text className="text-gray-500 text-sm mt-2 text-center font-medium">Create a group to easily split bills with your regular crew!</Text>
                     </View>
                 ) : (
                     <FlatList
                         data={groups}
                         keyExtractor={(item) => item._id}
                         renderItem={({ item }) => (
-                            <TouchableOpacity className="bg-gray-800 p-4 rounded-xl mb-4 border border-gray-700">
-                                <Text className="text-white font-bold text-lg">{item.title}</Text>
-                                {item.description && <Text className="text-gray-400 text-sm mt-1">{item.description}</Text>}
-                                <Text className="text-gray-500 text-xs mt-3">{item.members?.length || 0} members</Text>
+                            <TouchableOpacity className="bg-white p-5 rounded-2xl mb-4 border border-gray-100 shadow-sm">
+                                <View className="flex-row justify-between items-center">
+                                    <View>
+                                        <Text className="text-zinc-900 font-bold text-lg">{item.title}</Text>
+                                        {item.description && <Text className="text-gray-500 text-sm mt-1">{item.description}</Text>}
+                                    </View>
+                                    <Ionicons name="chevron-forward" size={20} color="#cbd5e1" />
+                                </View>
+                                <View className="mt-4 pt-4 border-t border-gray-50 flex-row items-center">
+                                    <View className="bg-pink-50 px-2 py-0.5 rounded-full border border-pink-100">
+                                        <Text className="text-pink-600 text-[10px] font-black uppercase tracking-widest">{item.members?.length || 0} MEMBERS</Text>
+                                    </View>
+                                </View>
                             </TouchableOpacity>
                         )}
                         showsVerticalScrollIndicator={false}

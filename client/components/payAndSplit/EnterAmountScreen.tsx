@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Linking, Alert, ActivityIndicator, AppState } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Linking, Alert, ActivityIndicator, AppState, StatusBar } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -111,32 +111,35 @@ const EnterAmountScreen = () => {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-black">
+        <SafeAreaView className="flex-1 bg-[#F5F7FA]">
+            <StatusBar barStyle="dark-content" />
             <View className="flex-row items-center p-4">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
-                    <Ionicons name="close" size={28} color="white" />
+                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 bg-white rounded-full border border-gray-100 shadow-sm">
+                    <Ionicons name="close" size={24} color="#18181b" />
                 </TouchableOpacity>
             </View>
 
             {paymentSuccess ? (
-                <View className="flex-1 items-center justify-center p-6 bg-black">
-                    <Ionicons name="checkmark-circle" size={100} color="#34d399" />
-                    <Text className="text-white text-2xl font-bold mt-6 mb-2">Payment Successful!</Text>
-                    <Text className="text-gray-400 text-center mb-10">You have paid ₹{amount} to {merchantName || 'Merchant'}.</Text>
+                <View className="flex-1 items-center justify-center p-6">
+                    <View className="w-24 h-24 bg-emerald-50 rounded-full items-center justify-center mb-6 border border-emerald-100">
+                        <Ionicons name="checkmark-circle" size={80} color="#10b981" />
+                    </View>
+                    <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter text-center">Payment <Text className="text-emerald-500">Successful!</Text></Text>
+                    <Text className="text-gray-500 text-center mt-3 mb-10 font-medium px-4">You have successfully paid ₹{amount} to {merchantName || 'Merchant'}.</Text>
 
                     <TouchableOpacity
-                        className="bg-blue-600 w-full p-4 rounded-xl items-center flex-row justify-center mb-4"
+                        className="bg-zinc-900 w-full p-5 rounded-2xl items-center flex-row justify-center mb-4 shadow-lg shadow-black/20"
                         onPress={() => setSplitModalVisible(true)}
                     >
-                        <Ionicons name="people" size={24} color="white" className="mr-2" />
-                        <Text className="text-white text-lg font-bold ml-2">Split with Friends</Text>
+                        <Ionicons name="people" size={24} color="white" />
+                        <Text className="text-white text-lg font-black italic tracking-tight uppercase ml-2">Split with Friends</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        className="border border-gray-700 w-full p-4 rounded-xl items-center flex-row justify-center bg-gray-900"
+                        className="bg-white border border-gray-100 w-full p-5 rounded-2xl items-center flex-row justify-center"
                         onPress={() => navigation.navigate("PayAndSplitHome")}
                     >
-                        <Text className="text-gray-300 text-lg font-bold">Done</Text>
+                        <Text className="text-gray-500 text-lg font-black italic tracking-tight uppercase">Done</Text>
                     </TouchableOpacity>
 
                     <SplitPaymentModal
@@ -148,23 +151,23 @@ const EnterAmountScreen = () => {
                     />
                 </View>
             ) : (
-                <View className="flex-1 items-center justify-center p-6">
-                    <View className="bg-gray-800 p-6 rounded-2xl items-center mb-10 w-full max-w-sm border border-gray-700">
-                        <View className="bg-white/10 p-3 rounded-full mb-3">
-                            <Ionicons name="storefront-outline" size={32} color="white" />
+                <View className="flex-1 items-center justify-center p-6 -mt-10">
+                    <View className="bg-white p-8 rounded-3xl items-center mb-10 w-full max-w-sm border border-gray-100 shadow-sm shadow-black/5">
+                        <View className="bg-pink-50 p-4 rounded-full mb-4 border border-pink-100">
+                            <Ionicons name="storefront-outline" size={36} color="#ec4899" />
                         </View>
-                        <Text className="text-gray-400 text-sm">Paying securely to</Text>
-                        <Text className="text-white text-2xl font-bold mt-1 text-center">{merchantName || 'Merchant'}</Text>
-                        <Text className="text-gray-500 text-xs mt-1 bg-black/50 px-2 py-1 rounded-md">{merchantUpiId}</Text>
+                        <Text className="text-gray-400 text-[10px] font-black uppercase tracking-widest">Paying securely to</Text>
+                        <Text className="text-zinc-900 text-2xl font-black italic tracking-tighter mt-1 text-center">{merchantName || 'Merchant'}</Text>
+                        <Text className="text-gray-500 text-[10px] mt-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 font-bold uppercase">{merchantUpiId}</Text>
                     </View>
 
-                    <Text className="text-gray-400 mb-2 font-semibold">Enter Amount</Text>
-                    <View className="flex-row items-center mb-8 border-b-2 border-gray-700 pb-2">
-                        <Text className="text-white text-5xl mr-2 font-light">₹</Text>
+                    <Text className="text-gray-400 text-xs font-black uppercase tracking-widest mb-4">Enter Amount</Text>
+                    <View className="flex-row items-center mb-10 border-b-4 border-pink-500/10 pb-2">
+                        <Text className="text-zinc-900 text-5xl font-black italic tracking-tighter">₹</Text>
                         <TextInput
-                            className="text-white text-6xl font-bold min-w-[120px] text-center"
+                            className="text-zinc-900 text-5xl font-black italic tracking-tighter min-w-[150px] text-center"
                             placeholder="0"
-                            placeholderTextColor="#4b5563"
+                            placeholderTextColor="#e4e4e7"
                             keyboardType="numeric"
                             value={amount}
                             onChangeText={setAmount}
@@ -173,16 +176,21 @@ const EnterAmountScreen = () => {
                     </View>
 
                     <TouchableOpacity
-                        className={`w-full p-4 rounded-xl items-center mt-4 ${!amount || Number(amount) <= 0 ? 'bg-gray-800' : 'bg-blue-600'}`}
+                        className={`w-full p-5 rounded-2xl items-center shadow-lg ${!amount || Number(amount) <= 0 ? 'bg-gray-100' : 'bg-pink-500 shadow-pink-500/30'}`}
                         onPress={handlePay}
                         disabled={loading || !amount || Number(amount) <= 0}
                     >
                         {loading ? (
                             <ActivityIndicator color="white" />
                         ) : (
-                            <Text className={`text-lg font-bold ${!amount || Number(amount) <= 0 ? 'text-gray-500' : 'text-white'}`}>Proceed to Pay</Text>
+                            <Text className={`text-lg font-black italic tracking-tight uppercase ${!amount || Number(amount) <= 0 ? 'text-gray-400' : 'text-white'}`}>Proceed to Pay</Text>
                         )}
                     </TouchableOpacity>
+                    
+                    <View className="mt-8 flex-row items-center opacity-40">
+                        <Ionicons name="lock-closed" size={12} color="#9ca3af" />
+                        <Text className="text-gray-500 text-[10px] font-bold uppercase ml-1 tracking-tighter">Secure UPI Encryption Active</Text>
+                    </View>
                 </View>
             )}
         </SafeAreaView>

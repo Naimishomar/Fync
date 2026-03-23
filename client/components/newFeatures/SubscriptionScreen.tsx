@@ -140,7 +140,6 @@ const SubscriptionScreen = ({ onSuccess }: { onSuccess: () => void }) => {
                             { icon: "infinite-outline", text: "Access to all app services" },
                             { icon: "wifi-outline", text: "Smart WiFi Login Manager" },
                             { icon: "wallet-outline", text: "Split & Pay features" },
-                            { icon: "heart-outline", text: "Secret Crush detection feature" },
                             { icon: "sparkles-outline", text: "Exclusive future premium tools" },
                         ].map((item, index) => (
                             <View key={index} className="flex-row items-center">
