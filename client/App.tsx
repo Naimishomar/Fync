@@ -13,14 +13,21 @@ import './context/axiosConfig';
 import "./global.css";
 import { StatusBar } from 'expo-status-bar';
 
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
 // Context
 import { AuthProvider, useAuth } from "./context/auth.context";
+import { navigationRef } from "./utils/navigation";
 
 // Auth Components
 import LoginScreen from "./components/login-screen";
 import SignUpScreen from "./components/sign-up-screen";
 import ProfileSetup1 from "./components/profile-setup-1";
 import ProfileSetup2 from "./components/profile-setup-2";
+import AlumniSignup from "./components/AlumniSignup";
+import AlumniProfileSetup from "./components/AlumniProfileSetup";
+import AlumniAvatarSetup from "./components/AlumniAvatarSetup";
+import ForgotPassword from "./components/ForgotPassword";
 
 // Core Components
 import TabLayout from "./components/TabLayout";
@@ -60,28 +67,21 @@ import ActiveInterview from "./components/interview/ActiveInterview";
 
 // Find Teammate
 import FindTeammate from "./components/FindTeammate";
+import FindAlumni from "./components/FindAlumni";
 
 // New Features
 import BunkOMeter from "./components/newFeatures/BunkOMeter";
-import VibeSelector from "./components/newFeatures/VibeSelector";
+import ConfessionFeed from "./components/newFeatures/ConfessionFeed";
 import TwelveAMHomeCard from "./components/newFeatures/TwelveAMHomeCard";
 import TwelveAMClub from "./components/newFeatures/TwelveAMClub";
-import ConfessionFeed from './components/newFeatures/ConfessionFeed';
-import NineAmConfession from './components/newFeatures/NineAmConfession';
 import CodingLeaderboard from './components/newFeatures/CodingLeaderboard';
-import Map from './components/newFeatures/Map';
-import LateNightFood from 'components/newFeatures/LateNightFood';
-import CampusTravel from 'components/newFeatures/CampusTravel';
-import StudyAssistant from 'components/newFeatures/StudyAssistant';
-import WifiSettingsScreen from 'components/newFeatures/WifiSettingsScreen';
-import WifiSessionMonitor from 'components/newFeatures/WifiSessionMonitor';
+import StudyAssistant from './components/newFeatures/StudyAssistant';
 import CollegeChatScreen from './components/newFeatures/CollegeChatScreen';
-import GroupJamSetup from 'components/GroupSongs/GroupJamSetup';
-import GroupJamPlayer from 'components/GroupSongs/GroupJamPlayer';
+import AlumniConnect from './components/AlumniConnect';
 import socket from 'utils/socket';
-import VideoLobby from './components/newFeatures/VideoLobby';
-import DevToots from './components/newFeatures/DevToots';
 import PlacementHub from './components/newFeatures/PlacementHub';
+import ProfessionalHub from './components/ProfessionalHub';
+import AlumniJobs from './components/newFeatures/AlumniJobs';
 
 // Notification
 import Notification from "./components/Notification";
@@ -104,7 +104,14 @@ import CollaborationScreen from './components/collaboration/CollaborationScreen'
 // Paid Gigs
 import PaidGigs from './components/PaidGigs';
 import CreateShorts from 'components/CreateShorts';
-import NearbyCrushDetector from './components/crush/NearbyCrushDetector';
+import SpeakerSessionScreen from './components/events/SpeakerSessionScreen';
+import BootcampScreen from './components/events/BootcampScreen';
+import EventCommunityChat from './components/events/EventCommunityChat';
+import CommunityListScreen from './components/community/CommunityListScreen';
+import CreateCommunityScreen from './components/community/CreateCommunityScreen';
+import CommunityHubScreen from './components/community/CommunityHubScreen';
+import SubCommunityChat from './components/community/SubCommunityChat';
+
 
 // Pay & Split
 import PayAndSplitHome from './components/payAndSplit/PayAndSplitHome';
@@ -116,7 +123,7 @@ import MonthlyAnalyticsScreen from './components/payAndSplit/MonthlyAnalyticsScr
 import GroupManagementScreen from './components/payAndSplit/GroupManagementScreen';
 import CreatedSplitsScreen from './components/payAndSplit/CreatedSplitsScreen';
 import SubscriptionGuard from './components/newFeatures/SubscriptionGuard';
-import SmartRideSafety from './components/newFeatures/SmartRideSafety';
+import PlacementPredictor from './components/newFeatures/PlacementPredictor';
 
 
 
@@ -141,6 +148,29 @@ export type RootStackParamList = {
   SplashScreen: undefined;
   Login: undefined;
   Signup: undefined;
+  ForgotPassword: { email?: string };
+  AlumniSignup: undefined;
+  AlumniProfileSetup: { 
+    email: string; 
+    username: string; 
+    phoneNumber: string; 
+    password: string; 
+    name: string; 
+  };
+  AlumniAvatarSetup: {
+    email: string;
+    phoneNumber: string;
+    name: string;
+    username: string;
+    password: string;
+    college: string;
+    graduationYear: string;
+    company: string;
+    role: string;
+    experienceLevel: string;
+    domains: string;
+    linkedIn: string;
+  };
   ProfileSetup1: { email: any; username: any; phoneNumber: any; password: any; };
   ProfileSetup2: { email: any; username: any; phoneNumber: any; password: any; fullName: any; birthday: any; gender: any; college: any; major: any; year: any };
   Profile: undefined;
@@ -148,7 +178,16 @@ export type RootStackParamList = {
   CreatePost: undefined;
   SearchScreen: undefined;
   RazorpayWebView: { order: any; user: any; keyId: string };
-  PaymentVerify: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string; order: any; user: any };
+  PaymentVerify: { 
+    razorpay_order_id: string; 
+    razorpay_payment_id: string; 
+    razorpay_signature: string; 
+    order: any; 
+    user: any;
+    keyId?: string;
+    merchantName?: string;
+    merchantUpiId?: string;
+  };
   ReceiptWebview: { url: string };
   Shorts: undefined;
   Home: undefined;
@@ -178,32 +217,23 @@ export type RootStackParamList = {
   InterviewSetup: undefined;
   ActiveInterview: undefined;
   BunkOMeter: undefined;
-  VibeSelector: undefined;
+  ConfessionFeed: undefined;
   TwelveAMHomeCard: undefined;
   TwelveAMClub: undefined;
   FindTeammate: undefined;
-  ConfessionFeed: undefined;
   Notification: undefined;
-  NineAmConfession: undefined;
   CodingLeaderboard: undefined;
   DriveFolderScreen: undefined;
   PDFViewerScreen: undefined;
-  VideoLobby: { myUserId: string, myUserName: string, myAvatar?: string, myRealUsername?: string };
   IndividualPostOrShort: { postId: string };
   MarketplaceScreen: undefined;
   LostAndFound: undefined;
   NoticeBoard: undefined;
   CollaborationScreen: undefined;
-  Map: undefined;
   PaidGigs: undefined;
-  LateNightFood: undefined;
-  CampusTravel: undefined;
-  DevToots: undefined;
   PlacementHub: undefined;
   StudyAssistant: undefined;
   CreateShorts: undefined;
-  GroupJamSetup: undefined;
-  GroupJamPlayer: undefined;
   PayAndSplitHome: undefined;
   QRScannerScreen: undefined;
   EnterAmountScreen: { merchantUpiId?: string; merchantName?: string };
@@ -212,9 +242,20 @@ export type RootStackParamList = {
   MonthlyAnalyticsScreen: undefined;
   GroupManagementScreen: undefined;
   CreatedSplitsScreen: undefined;
-  WifiSettingsScreen: undefined;
   CollegeChatScreen: undefined;
-  SmartRideSafety: undefined;
+  AlumniConnect: undefined;
+  ProfessionalHub: undefined;
+  FindAlumni: undefined;
+  AlumniJobs: undefined;
+  PlacementPredictor: undefined;
+  SpeakerSessionScreen: undefined;
+  BootcampScreen: undefined;
+
+  EventCommunityChat: { eventId: string; eventName: string; type: 'Bootcamp' | 'SpeakerSession' };
+  CommunityList: undefined;
+  CreateCommunity: undefined;
+  CommunityHub: { communityId: string };
+  SubCommunityChat: { subId: string; subName: string; communityId: string };
 };
 
 
@@ -247,11 +288,21 @@ function AuthStack() {
       <Stack.Screen name="Signup">
         {() => <SignUpScreen />}
       </Stack.Screen>
+      <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
       <Stack.Screen name="ProfileSetup1">
         {() => <ProfileSetup1 />}
       </Stack.Screen>
       <Stack.Screen name="ProfileSetup2">
         {() => <ProfileSetup2 />}
+      </Stack.Screen>
+      <Stack.Screen name="AlumniSignup">
+        {() => <AlumniSignup />}
+      </Stack.Screen>
+      <Stack.Screen name="AlumniProfileSetup">
+        {() => <AlumniProfileSetup />}
+      </Stack.Screen>
+      <Stack.Screen name="AlumniAvatarSetup">
+        {() => <AlumniAvatarSetup />}
       </Stack.Screen>
     </Stack.Navigator>
   );
@@ -260,39 +311,6 @@ function AuthStack() {
 function AppStack() {
   const { user } = useAuth();
 
-  useEffect(() => {
-    console.log("AppStack Socket Listener Mounted 👂 - Socket ID:", socket.id);
-
-    socket.on('incoming-jam', (data) => {
-      // Check if the current user is actually invited
-      const currentUserId = user?._id || user?.id;
-      const isInvited = data.participants?.some((p: any) => p._id === currentUserId) || data.targetUserId === currentUserId;
-
-      if (!isInvited) return;
-
-      console.log("Invitation Received on Guest Phone!", data.host.username);
-
-      Alert.alert(
-        "Squad Jam! 🔥",
-        `${data.host.username} is jamming to ${data.station.name}. Join?`,
-        [
-          { text: "No", style: "cancel" },
-          {
-            text: "Join Sync",
-            onPress: () => {
-              if (navigationRef.isReady()) {
-                navigationRef.navigate("GroupJamPlayer", data);
-              } else {
-                console.log("Navigation not ready yet");
-              }
-            }
-          }
-        ]
-      );
-    });
-
-    return () => { socket.off('incoming-jam'); };
-  }, [user]);
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: "simple_push" }}>
@@ -325,13 +343,11 @@ function AppStack() {
       <Stack.Screen name="InterviewSetup" component={InterviewSetup} />
       <Stack.Screen name="ActiveInterview" component={ActiveInterview} />
       <Stack.Screen name="BunkOMeter" component={BunkOMeter} />
-      <Stack.Screen name="VibeSelector" component={VibeSelector} />
+      <Stack.Screen name="ConfessionFeed" component={ConfessionFeed} />
       <Stack.Screen name="TwelveAMHomeCard" component={TwelveAMHomeCard} />
       <Stack.Screen name="TwelveAMClub" component={TwelveAMClub} />
       <Stack.Screen name="FindTeammate" component={FindTeammate} />
-      <Stack.Screen name="ConfessionFeed" component={ConfessionFeed} />
       <Stack.Screen name="Notification" component={Notification} />
-      <Stack.Screen name="NineAmConfession" component={NineAmConfession} />
       <Stack.Screen name="CodingLeaderboard" component={CodingLeaderboard} />
       <Stack.Screen name="DriveFolderScreen" component={DriveFolderScreen} />
       <Stack.Screen name="PDFViewerScreen" component={PDFViewerScreen} />
@@ -340,13 +356,8 @@ function AppStack() {
       <Stack.Screen name="LostAndFound" component={LostAndFound} />
       <Stack.Screen name="NoticeBoard" component={NoticeBoard} />
       <Stack.Screen name="CollaborationScreen" component={CollaborationScreen} />
-      <Stack.Screen name="Map" component={Map} />
       <Stack.Screen name="PaidGigs" component={PaidGigs} />
-      <Stack.Screen name="LateNightFood" component={LateNightFood} />
-      <Stack.Screen name="CampusTravel" component={CampusTravel} />
       <Stack.Screen name="StudyAssistant" component={StudyAssistant} />
-      <Stack.Screen name="GroupJamSetup" component={GroupJamSetup} />
-      <Stack.Screen name="GroupJamPlayer" component={GroupJamPlayer} />
       <Stack.Screen name="PayAndSplitHome" component={PayAndSplitHome} />
       <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
       <Stack.Screen name="EnterAmountScreen" component={EnterAmountScreen} />
@@ -355,12 +366,21 @@ function AppStack() {
       <Stack.Screen name="MonthlyAnalyticsScreen" component={MonthlyAnalyticsScreen} />
       <Stack.Screen name="GroupManagementScreen" component={GroupManagementScreen} />
       <Stack.Screen name="CreatedSplitsScreen" component={CreatedSplitsScreen} />
-      <Stack.Screen name="WifiSettingsScreen" component={WifiSettingsScreen} />
       <Stack.Screen name="CollegeChatScreen" component={CollegeChatScreen} />
-      <Stack.Screen name="VideoLobby" component={VideoLobby} />
-      <Stack.Screen name="SmartRideSafety" component={SmartRideSafety} />
-      <Stack.Screen name="DevToots" component={DevToots} />
+      <Stack.Screen name="AlumniConnect" component={AlumniConnect} />
+      <Stack.Screen name="ProfessionalHub" component={ProfessionalHub} />
+      <Stack.Screen name="FindAlumni" component={FindAlumni} />
       <Stack.Screen name="PlacementHub" component={PlacementHub} />
+      <Stack.Screen name="AlumniJobs" component={AlumniJobs} />
+      <Stack.Screen name="PlacementPredictor" component={PlacementPredictor} />
+      <Stack.Screen name="SpeakerSessionScreen" component={SpeakerSessionScreen} />
+      <Stack.Screen name="BootcampScreen" component={BootcampScreen} />
+
+      <Stack.Screen name="EventCommunityChat" component={EventCommunityChat} />
+      <Stack.Screen name="CommunityList" component={CommunityListScreen} />
+      <Stack.Screen name="CreateCommunity" component={CreateCommunityScreen} />
+      <Stack.Screen name="CommunityHub" component={CommunityHubScreen} />
+      <Stack.Screen name="SubCommunityChat" component={SubCommunityChat} />
     </Stack.Navigator>
   );
 }
@@ -384,20 +404,28 @@ function RootNavigator() {
   ) : <AuthStack />;
 }
 
-export const navigationRef = createNavigationContainerRef<RootStackParamList>();
+
+const linking = {
+  prefixes: ['fync://', 'https://fync.app'],
+  config: {
+    screens: {
+      IndividualPostOrShort: {
+        path: 'view',
+      },
+    },
+  },
+};
 
 export default function App() {
   return (
     <AuthProvider>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={Platform.OS === "ios" ? 15 : 0}>
-        <StatusBar style="light" backgroundColor="#000" />
-        <NavigationContainer ref={navigationRef}>
+      <SafeAreaProvider>
+        <NavigationContainer ref={navigationRef} linking={linking}>
+          <StatusBar style="light" backgroundColor="#000" />
           <RootNavigator />
+          <Toast position="top" />
         </NavigationContainer>
-        <NearbyCrushDetector />
-        <WifiSessionMonitor />
-        <Toast position="top" />
-      </KeyboardAvoidingView>
+      </SafeAreaProvider>
     </AuthProvider>
   );
 }

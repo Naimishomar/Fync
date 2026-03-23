@@ -22,6 +22,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
     const [recording, setRecording] = useState<Audio.Recording | null>(null);
     const [isRecording, setIsRecording] = useState(false);
     const [sound, setSound] = useState<Audio.Sound | null>(null);
+    const [replyTo, setReplyTo] = useState<any>(null);
     const recordingTaskRef = useRef(false);
 
     const flatListRef = useRef<FlatList>(null);
@@ -126,6 +127,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
 
             if (res.data?.success) {
                 setMessages((prev) => prev.map(m => m._id === tempId ? res.data.chat : m));
+                setReplyTo(null);
             } else {
                 throw new Error("Upload failed on server");
             }
@@ -152,8 +154,15 @@ const CollegeChatScreen = ({ navigation }: any) => {
         };
         setMessages((prev) => [tempMessage, ...prev]);
         try {
-            const res = await axios.post("/college-chat/send", { messageType: "text", content: msg });
-            if (res.data.success) setMessages((prev) => prev.map(m => m._id === tempId ? res.data.chat : m));
+            const res = await axios.post("/college-chat/send", { 
+                messageType: "text", 
+                content: msg,
+                replyToId: replyTo?._id || null
+            });
+            if (res.data.success) {
+                setMessages((prev) => prev.map(m => m._id === tempId ? res.data.chat : m));
+                setReplyTo(null);
+            }
         } catch (e) {
             console.log("Error sending txt", e);
             setMessages((prev) => prev.filter(m => m._id !== tempId));
@@ -282,10 +291,19 @@ const CollegeChatScreen = ({ navigation }: any) => {
                     />
                 )}
                 <View className={isMe ? "items-end" : "items-start"}>
-                    {!isMe && <Text className="text-xs text-gray-500 ml-1 mb-1">{item.senderId?.name}</Text>}
+                    {!isMe && <Text className="text-xs text-gray-400 ml-1 mb-1 font-bold">@{item.senderId?.username}</Text>}
+
+                    {item.replyTo && (
+                        <View className={`max-w-[240px] px-3 py-1 bg-black/5 rounded-t-xl border-l-4 border-blue-500 mb-[-8px] z-0 opacity-80`}>
+                            <Text className="text-[10px] text-blue-600 font-black uppercase">reply to @{item.replyTo.senderId?.username || 'user'}</Text>
+                            <Text className="text-[10px] text-gray-500 italic" numberOfLines={1}>{item.replyTo.content || '[Media]'}</Text>
+                        </View>
+                    )}
+
                     <Pressable
                         onLongPress={() => deleteMessage(item._id, item.senderId?._id)}
-                        className={`max-w-[280px] p-3 rounded-2xl ${isMe ? "bg-blue-600 rounded-br-none" : "bg-gray-200 rounded-bl-none"} ${item.pending ? 'opacity-70' : ''}`}
+                        onPress={() => setReplyTo(item)}
+                        className={`max-w-[280px] p-3 rounded-2xl ${isMe ? "bg-blue-600 rounded-br-none" : "bg-gray-100 rounded-bl-none"} ${item.pending ? 'opacity-70' : ''} z-10`}
                     >
                         {item.messageType === "text" && (
                             <Text className={`${isMe ? "text-white" : "text-black"} text-base`}>{item.content}</Text>
@@ -364,36 +382,49 @@ const CollegeChatScreen = ({ navigation }: any) => {
                     />
                 )}
 
-                <View className="border-t border-gray-200 bg-white px-2 py-3 pb-6">
-                    <View className="flex-row items-center justify-between bg-gray-100 rounded-3xl px-3 py-1">
-                        <Pressable onPress={handlePickImage} className="mr-2">
-                            <Ionicons name="image" size={22} color="#4b5563" />
-                        </Pressable>
-                        <Pressable onPress={handlePickDocument} className="mr-2">
-                            <Ionicons name="document-attach" size={22} color="#4b5563" />
-                        </Pressable>
-
-                        <TextInput
-                            value={text}
-                            onChangeText={setText}
-                            placeholder="Message your college..."
-                            className="flex-1 bg-transparent py-3 px-2 text-base text-gray-800"
-                            multiline
-                        />
-
-                        {text.trim().length > 0 ? (
-                            <Pressable onPress={handleSendText} className="bg-blue-600 p-2.5 rounded-full shadow-sm">
-                                <Ionicons name="send" size={18} color="white" />
+                <View className="border-t border-gray-200 bg-white">
+                    {replyTo && (
+                        <View className="flex-row items-center justify-between bg-gray-50 px-4 py-2 border-l-4 border-blue-500">
+                           <View className="flex-1">
+                               <Text className="text-xs text-blue-600 font-bold">Replying to @{replyTo.senderId?.username}</Text>
+                               <Text className="text-xs text-gray-500 italic" numberOfLines={1}>{replyTo.content || '[Media]'}</Text>
+                           </View>
+                           <Pressable onPress={() => setReplyTo(null)}>
+                               <Ionicons name="close-circle" size={20} color="#6b7280" />
+                           </Pressable>
+                        </View>
+                    )}
+                    <View className="px-2 py-3 pb-6">
+                        <View className="flex-row items-center justify-between bg-gray-100 rounded-3xl px-3 py-1">
+                            <Pressable onPress={handlePickImage} className="mr-2">
+                                <Ionicons name="image" size={22} color="#4b5563" />
                             </Pressable>
-                        ) : (
-                            <Pressable
-                                onPressIn={startRecording}
-                                onPressOut={stopRecording}
-                                className={`${isRecording ? 'bg-red-500' : 'bg-gray-200'} p-2.5 rounded-full items-center justify-center shadow-sm`}
-                            >
-                                <Ionicons name="mic" size={20} color={isRecording ? "white" : "#4b5563"} />
+                            <Pressable onPress={handlePickDocument} className="mr-2">
+                                <Ionicons name="document-attach" size={22} color="#4b5563" />
                             </Pressable>
-                        )}
+
+                            <TextInput
+                                value={text}
+                                onChangeText={setText}
+                                placeholder="Message your college..."
+                                className="flex-1 bg-transparent py-3 px-2 text-base text-gray-800"
+                                multiline
+                            />
+
+                            {text.trim().length > 0 ? (
+                                <Pressable onPress={handleSendText} className="bg-blue-600 p-2.5 rounded-full shadow-sm">
+                                    <Ionicons name="send" size={18} color="white" />
+                                </Pressable>
+                            ) : (
+                                <Pressable
+                                    onPressIn={startRecording}
+                                    onPressOut={stopRecording}
+                                    className={`${isRecording ? 'bg-red-500' : 'bg-gray-200'} p-2.5 rounded-full items-center justify-center shadow-sm`}
+                                >
+                                    <Ionicons name="mic" size={20} color={isRecording ? "white" : "#4b5563"} />
+                                </Pressable>
+                            )}
+                        </View>
                     </View>
                 </View>
             </KeyboardAvoidingView>

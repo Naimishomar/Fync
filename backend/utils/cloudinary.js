@@ -9,10 +9,20 @@ let upload;
 let videoUpload;
 let audioUpload;
 let collegeChatUpload;
+let mentorshipUpload;
+let resumeUpload;
 
-export const getCloudinaryPublicId = (url) => {
+export const getCloudinaryPublicId = (url, isRaw = false) => {
   try {
     if (!url || typeof url !== 'string' || !url.includes('cloudinary.com')) return null;
+    
+    if (isRaw) {
+      // Raw files in Cloudinary require the extension in the public_id
+      const matches = url.match(/\/upload\/(?:v\d+\/)?(.+)$/i);
+      return matches && matches[1] ? matches[1] : null;
+    }
+    
+    // Images/Videos usually exclude the extension in public_id
     const matches = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-z0-9]+$/i);
     if (matches && matches[1]) {
       return matches[1];
@@ -25,12 +35,27 @@ export const getCloudinaryPublicId = (url) => {
 
 export const deleteFromCloudinary = async (url, resourceType = "image") => {
   try {
-    const pubId = getCloudinaryPublicId(url);
+    const isRaw = resourceType === "raw";
+    const pubId = getCloudinaryPublicId(url, isRaw);
     if (pubId) {
       await cloudinary.uploader.destroy(pubId, { resource_type: resourceType });
+      // console.log(`🗑️ Cloudinary: Deleted ${pubId} (${resourceType})`);
     }
   } catch (error) {
     console.error(`Cloudinary Delete Error (${resourceType}):`, error.message);
+  }
+};
+
+export const uploadToCloudinary = async (file, folder = "fync_events") => {
+  try {
+    const result = await cloudinary.uploader.upload(file, {
+      folder: folder,
+      resource_type: "auto",
+    });
+    return result.secure_url;
+  } catch (error) {
+    console.error("Cloudinary Manual Upload Error:", error);
+    throw error;
   }
 };
 
@@ -101,7 +126,26 @@ try {
 
   collegeChatUpload = multer({
     storage: collegeChatStorage,
-    limits: { fileSize: 1024 * 1024 * 50 }, // 50MB for whatsapp-like limits
+    limits: { fileSize: 1024 * 1024 * 5 }, // 5MB for whatsapp-like limits
+  });
+
+  mentorshipUpload = multer({
+    storage: collegeChatStorage,
+    limits: { fileSize: 1024 * 1024 * 5 }, // 5MB limit as requested
+  });
+
+  const resumeStorage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+      folder: "resumes",
+      resource_type: "raw",
+      allowed_formats: ["pdf"],
+    },
+  });
+
+  resumeUpload = multer({
+    storage: resumeStorage,
+    limits: { fileSize: 1024 * 1024 * 5 }, // 5MB limit for resumes
   });
 
   console.log("✅ Cloudinary initialized successfully");
@@ -111,4 +155,4 @@ try {
   process.exit(1);
 }
 
-export { cloudinary, upload, videoUpload, audioUpload, collegeChatUpload };
+export { cloudinary, upload, videoUpload, audioUpload, collegeChatUpload, mentorshipUpload, resumeUpload };

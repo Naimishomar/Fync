@@ -6,10 +6,10 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { differenceInSeconds, addDays, startOfDay } from 'date-fns';
 import * as ImagePicker from 'expo-image-picker'; // Image Library
-import { Audio } from 'expo-av'; // Audio Library
-import * as FileSystem from 'expo-file-system/legacy';
+import * as WebBrowser from 'expo-web-browser';
 import { useAuth } from '../../context/auth.context';
 import socket from '../../utils/socket'; 
+import axios from '../../context/axiosConfig';
 
 // High-Res Night Sky Background
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
@@ -37,11 +37,7 @@ export default function TwelveAMClub() {
   const [messages, setMessages] = useState<any[]>([]);
   const [inputText, setInputText] = useState("");
   
-  // --- NEW STATE FOR MEDIA ---
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const soundRef = useRef<Audio.Sound | null>(null);
-  // ---------------------------
 
   const { user } = useAuth();
   const CURRENT_USER_ID = user?._id || user?.id; 
@@ -75,8 +71,7 @@ export default function TwelveAMClub() {
     socket.emit("join_night_club");
 
     const handleJoined = (data: any) => {
-      setMessages(data.history);
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: false }), 100);
+      setMessages([...data.history].reverse());
     };
 
     const handleNewMessage = (msg: any) => {
@@ -88,9 +83,8 @@ export default function TwelveAMClub() {
             newMessages[pendingIndex] = msg; 
             return newMessages;
         }
-        return [...prev, msg];
+        return [msg, ...prev];
       });
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     };
 
     const handleError = (err: any) => Alert.alert("Club Error", err.message);
@@ -107,91 +101,54 @@ export default function TwelveAMClub() {
     };
   }, [isOpen]);
 
-  // --- 3. MEDIA FUNCTIONALITY (NO DB STORAGE) ---
-
-  // Helper: Convert File to Base64 and Send
-const processAndSendMedia = async (uri: string, type: 'image' | 'audio') => {
+  const processAndSendMedia = async (uri: string) => {
       if (!CURRENT_USER_ID) return;
       setIsProcessing(true);
+      const tempId = Date.now().toString();
+      
+      const optimisticMsg = {
+          _id: tempId, tempId, message: "", messageType: 'image', fileUrl: uri,
+          sender: { _id: CURRENT_USER_ID, username: user?.username || "Me", avatar: user?.avatar },
+          createdAt: new Date().toISOString(), pending: true 
+      };
+
+      setMessages(prev => [optimisticMsg, ...prev]);
+
       try {
-          // FIXED: Used string 'base64' directly
-          const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
+          const formData = new FormData();
+          formData.append("file", { uri, name: "night_club.jpg", type: "image/jpeg" } as any);
           
-          const mediaUrl = `data:${type === 'image' ? 'image/jpeg' : 'audio/m4a'};base64,${base64}`;
-          const tempId = Date.now().toString();
+          const res = await axios.post("/night-chat/upload", formData);
 
-          const optimisticMsg = {
-              _id: tempId, tempId, message: "", type, mediaUrl,
-              sender: { _id: CURRENT_USER_ID, username: user?.username || "Me", avatar: user?.avatar },
-              createdAt: new Date().toISOString(), pending: true 
-          };
-
-          setMessages(prev => [...prev, optimisticMsg]);
-          setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50);
-
-          socket.emit("send_night_message", {
-              senderId: CURRENT_USER_ID, text: "", tempId, type, mediaUrl
-          });
+          if (res.data.success) {
+              socket.emit("send_night_message", {
+                  senderId: CURRENT_USER_ID, text: "", tempId, type: 'image', mediaUrl: res.data.fileUrl
+              });
+          }
       } catch (e) {
           console.error("Media Error:", e);
-          Alert.alert("Error", "Failed to send media. Check console.");
+          setMessages(prev => prev.filter(m => m.tempId !== tempId));
+          Alert.alert("Error", "Failed to send image.");
       } finally {
           setIsProcessing(false);
       }
   };
 
-const pickImage = async () => {
-      // 1. Request Permission explicitly if needed (optional but good practice)
+  const pickImage = async () => {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-          Alert.alert('Permission needed', 'We need access to your gallery to send images.');
+          Alert.alert('Permission needed', 'Access to gallery required.');
           return;
       }
-
-      // 2. Launch Picker with aggressive compression
       const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true, // Crops to square (optional, helps reduce size)
-          aspect: [4, 3],
-          quality: 0.2, // <--- KEEP LOW (0.2 = 20% quality)
+          quality: 0.3,
       });
-
       if (!result.canceled) {
-          // Check file size (optional debugging)
-          // console.log("File URI:", result.assets[0].uri);
-          processAndSendMedia(result.assets[0].uri, 'image');
+          processAndSendMedia(result.assets[0].uri);
       }
   };
 
-  const handleMicPress = async () => {
-      if (recording) {
-          // Stop Recording
-          setIsProcessing(true);
-          await recording.stopAndUnloadAsync();
-          const uri = recording.getURI();
-          setRecording(null);
-          if (uri) await processAndSendMedia(uri, 'audio');
-          setIsProcessing(false);
-      } else {
-          // Start Recording
-          try {
-              const perm = await Audio.requestPermissionsAsync();
-              if (perm.status !== "granted") return;
-              await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-              const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.LOW_QUALITY);
-              setRecording(recording);
-          } catch (err) { console.error(err); }
-      }
-  };
-
-  const playAudio = async (uri: string) => {
-      try {
-          if (soundRef.current) await soundRef.current.unloadAsync();
-          const { sound } = await Audio.Sound.createAsync({ uri });
-          soundRef.current = sound;
-          await sound.playAsync();
-      } catch (e) { console.log("Play error", e); }
-  };
 
   // --- 4. TEXT MESSAGE ---
   const sendMessage = () => {
@@ -205,9 +162,8 @@ const pickImage = async () => {
         createdAt: new Date().toISOString(), pending: true 
     };
 
-    setMessages(prev => [...prev, optimisticMsg]);
+    setMessages(prev => [optimisticMsg, ...prev]);
     setInputText("");
-    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50);
 
     socket.emit("send_night_message", {
       senderId: CURRENT_USER_ID, text: textToSend, tempId, type: 'text'
@@ -256,6 +212,7 @@ const pickImage = async () => {
             <FlatList
                 ref={flatListRef}
                 data={messages}
+                inverted
                 keyExtractor={(item) => item._id || item.tempId || Math.random().toString()}
                 contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 20, paddingTop: 10 }}
                 showsVerticalScrollIndicator={false}
@@ -273,21 +230,13 @@ const pickImage = async () => {
                                 {/* BUBBLE CONTAINER */}
                                 <View className={`px-2 py-2 ${isMe ? 'border border-gray-700 rounded-full rounded-br-md' : 'bg-[#262626] rounded-[22px] rounded-bl-md'}`}>
                             
-                                    {/* --- MEDIA RENDERING --- */}
-                                    {item.type === 'image' ? (
+                                    {item.messageType === 'image' || item.type === 'image' ? (
                                         <Image 
-                                            source={{ uri: item.mediaUrl }} 
+                                            source={{ uri: item.fileUrl || item.mediaUrl }} 
                                             style={{ width: 200, height: 150, borderRadius: 10 }} 
                                             resizeMode="cover" 
                                         />
-                                    ) : item.type === 'audio' ? (
-                                        <TouchableOpacity onPress={() => playAudio(item.mediaUrl)} className="flex-row items-center w-32 py-1">
-                                            <Ionicons name="play-circle" size={28} color={isMe ? "#f9a8d4" : "white"} />
-                                            <View className="h-1 flex-1 bg-gray-500/50 mx-2 rounded-full" />
-                                            <Text className="text-gray-400 text-xs">Voice</Text>
-                                        </TouchableOpacity>
                                     ) : (
-                                        // Standard Text
                                         <Text className={`${isMe ? 'text-pink-300' : 'text-white'} text-[15px] leading-5 font-normal`}>
                                             {item.message}
                                         </Text>
@@ -310,11 +259,11 @@ const pickImage = async () => {
                     </TouchableOpacity>
 
                     <TextInput 
-                        placeholder={recording ? "Recording... (Tap mic to stop)" : `Posting as ${myIdentity.username}...`}
-                        placeholderTextColor={recording ? "#ef4444" : "#9ca3af"}
+                        placeholder={isProcessing ? "Sending..." : `Posting as ${myIdentity.username}...`}
+                        placeholderTextColor="#9ca3af"
                         multiline
                         maxLength={500}
-                        editable={!recording && !isProcessing}
+                        editable={!isProcessing}
                         className="flex-1 text-white text-[15px] px-3 py-2 max-h-24 leading-5"
                         value={inputText}
                         onChangeText={setInputText}
@@ -326,12 +275,6 @@ const pickImage = async () => {
                         </TouchableOpacity>
                     ) : (
                         <View className="flex-row mr-2 space-x-3">
-                             {/* MIC BUTTON (Now Functional) */}
-                             <TouchableOpacity onPress={handleMicPress}>
-                                <Ionicons name={recording ? "stop-circle" : "mic-outline"} size={24} color={recording ? "#ef4444" : "white"} />
-                             </TouchableOpacity>
-                             
-                             {/* IMAGE BUTTON (Now Functional) */}
                              <TouchableOpacity onPress={pickImage} disabled={isProcessing}>
                                 <Ionicons name="image-outline" size={24} color="white" />
                              </TouchableOpacity>
@@ -341,7 +284,7 @@ const pickImage = async () => {
                 
                 <View className="items-center mt-3">
                     <Text className="text-gray-600 text-[10px] font-medium tracking-wide">
-                        {recording ? "Recording... Tap mic to send" : "✨ Be gentle. No harm. Zero history. ✨"}
+                        ✨ Be gentle. No harm. Zero history. ✨
                     </Text>
                 </View>
             </View>

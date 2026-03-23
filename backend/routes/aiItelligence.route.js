@@ -1,4 +1,4 @@
-import { AiIntelligence, uploadPDF } from "../controllers/newFeatures/aiIntelligence.controller.js";
+import { AiIntelligence, uploadPDF } from "../controllers/newFeatures/aiIntelligence.controller.js"; 
 import express from "express";
 import multer from "multer";
 const upload = multer({ storage: multer.memoryStorage() });

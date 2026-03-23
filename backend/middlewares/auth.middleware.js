@@ -28,13 +28,17 @@ export const authMiddleware = async (req, res, next) => {
       });
     }
     req.user = {
-      id: user._id,
+      id: user._id.toString(),
+      _id: user._id,
       name: user.name,
       email: user.email,
       username: user.username,
       mobileNumber: user.mobileNumber,
       college: user.college,
-      avatar: user.avatar
+      major: user.major,
+      avatar: user.avatar,
+      user_access: user.user_access,
+      graduationYear: user.graduationYear
     };
     next();
   } catch (error) {

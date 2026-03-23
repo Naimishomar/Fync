@@ -154,7 +154,7 @@ const NoticeBoard = () => {
     if (activeTab === 'global' && !isAdmin && !paymentData) {
       setSubmitting(true);
       try {
-        const orderRes = await axios.post('/payment/api/order', { amount: 49 });
+        const orderRes = await axios.post('/payment/order', { amount: 49 });
         const currentOrder = orderRes.data;
         const content = `
             <html>

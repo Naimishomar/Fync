@@ -178,6 +178,41 @@ export default function CustomSidebar(props: any) {
                         <Text className="text-white text-lg ml-4 font-medium">Messages</Text>
                     </Pressable>
 
+                    {/* Campus Alumni (Find alumni from your college) */}
+                    <Pressable
+                        onPress={() => props.navigation.navigate('FindAlumni')}
+                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                    >
+                        <Ionicons name="school-outline" size={24} color="#f9a8d4" />
+                        <Text className="text-white text-lg ml-4 font-medium">Campus Alumni</Text>
+                    </Pressable>
+
+                    {/* Alumni Connect (Only for Alumni) */}
+                    {user?.user_access === 'alumni' && (
+                        <Pressable
+                            onPress={() => props.navigation.navigate('AlumniConnect')}
+                            className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                        >
+                            <Ionicons name="chatbubbles-outline" size={24} color="#f9a8d4" />
+                            <Text className="text-white text-lg ml-4 font-medium">Alumni Connect</Text>
+                            <View className="ml-2 bg-pink-500 px-2 py-0.5 rounded-full">
+                                <Text className="text-[10px] text-white font-bold">Exclusive</Text>
+                            </View>
+                        </Pressable>
+                    )}
+
+                    {/* Professional Hub (Student-Alumni Mentorship) */}
+                    <Pressable
+                        onPress={() => props.navigation.navigate('ProfessionalHub')}
+                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                    >
+                        <Ionicons name="briefcase-outline" size={24} color="#3b82f6" />
+                        <Text className="text-white text-lg ml-4 font-medium">Professional Hub</Text>
+                        <View className="ml-2 bg-blue-500 px-2 py-0.5 rounded-full">
+                            <Text className="text-[10px] text-white font-bold italic">PRO</Text>
+                        </View>
+                    </Pressable>
+
                     {/* 5. Bunk O Meter */}
                     <Pressable
                         onPress={() => props.navigation.navigate('BunkOMeter')}
@@ -186,13 +221,6 @@ export default function CustomSidebar(props: any) {
                         <Text className="text-white text-lg ml-4 font-medium">BunkOMeter</Text>
                     </Pressable>
 
-                    {/* 5. Vibe Selector */}
-                    <Pressable
-                        onPress={() => props.navigation.navigate('VibeSelector')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800">
-                        <Ionicons name="musical-notes-outline" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">Vibe Selector</Text>
-                    </Pressable>
 
                     {/* 5. Twelve AM Club */}
                     <Pressable
@@ -210,29 +238,18 @@ export default function CustomSidebar(props: any) {
                         <Text className="text-white text-lg ml-4 font-medium">Find Teammate</Text>
                     </Pressable>
 
-                    {/* 7. Confession Feed */}
+                    {/* Confession Feed */}
                     <Pressable
                         onPress={() => props.navigation.navigate('ConfessionFeed')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800">
-                        <Ionicons name="chatbubble-ellipses-outline" size={24} color="#f9a8d4" />
+                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                    >
+                        <Ionicons name="chatbubbles-outline" size={24} color="#f9a8d4" />
                         <Text className="text-white text-lg ml-4 font-medium">Confession Feed</Text>
+                        <View className="ml-2 bg-pink-500/20 px-2 py-0.5 rounded-full border border-pink-500/30">
+                            <Text className="text-[10px] text-pink-400 font-bold italic">SECRET</Text>
+                        </View>
                     </Pressable>
 
-                    {/* 8. 9AM Confession */}
-                    <Pressable
-                        onPress={() => props.navigation.navigate('NineAmConfession')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800">
-                        <Ionicons name="flashlight-outline" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">9AM Confession</Text>
-                    </Pressable>
-
-                    {/* 8b. Smart WiFi Login */}
-                    <Pressable
-                        onPress={() => props.navigation.navigate('WifiSettingsScreen')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800">
-                        <Ionicons name="wifi-outline" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">Smart WiFi Login</Text>
-                    </Pressable>
 
                     {/* 9. Coding Leaderboard */}
                     <Pressable
@@ -248,28 +265,6 @@ export default function CustomSidebar(props: any) {
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800">
                         <Ionicons name="folder-outline" size={24} color="#f9a8d4" />
                         <Text className="text-white text-lg ml-4 font-medium">Study Material</Text>
-                    </Pressable>
-
-                    {/* 11. Video Lobby */}
-                    <Pressable
-                        onPress={() => {
-                            const userId = user?._id || user?.id;
-                            const userName = user?.name || user?.username || "Fync User";
-                            if (!userId) {
-                                alert("User data not loaded yet. Please wait or re-login.");
-                                return;
-                            }
-                            props.navigation.navigate('VideoLobby', {
-                                myUserId: userId,
-                                myUserName: userName,
-                                myAvatar: user?.avatar,
-                                myRealUsername: user?.username
-                            });
-                        }}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
-                    >
-                        <Ionicons name="videocam-outline" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">Video Lobby</Text>
                     </Pressable>
 
                     {/* 10. Marketplace */}
@@ -299,6 +294,18 @@ export default function CustomSidebar(props: any) {
                         <Text className="text-white text-lg ml-4 font-medium">Notice Board</Text>
                     </Pressable>
 
+                    {/* Echo Hubs (Creator Ecosystem) */}
+                    <Pressable
+                        onPress={() => props.navigation.navigate('CommunityList')}
+                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                    >
+                        <Ionicons name="megaphone-outline" size={24} color="#6366f1" />
+                        <Text className="text-white text-lg ml-4 font-medium">Echo Hubs</Text>
+                        <View className="ml-2 bg-indigo-600 px-2 py-0.5 rounded-full">
+                            <Text className="text-[8px] text-white font-black italic">NEW</Text>
+                        </View>
+                    </Pressable>
+
                     {/* 13. Collaboration */}
                     <Pressable
                         onPress={() => props.navigation.navigate('CollaborationScreen')}
@@ -308,14 +315,6 @@ export default function CustomSidebar(props: any) {
                         <Text className="text-white text-lg ml-4 font-medium">Collaboration</Text>
                     </Pressable>
 
-                    {/* 14. Map */}
-                    <Pressable
-                        onPress={() => props.navigation.navigate('Map')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
-                    >
-                        <Ionicons name="locate-outline" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">Locate the crowd</Text>
-                    </Pressable>
 
                     {/* 15. Paid Gigs */}
                     <Pressable
@@ -326,32 +325,10 @@ export default function CustomSidebar(props: any) {
                         <Text className="text-white text-lg ml-4 font-medium">Paid Gigs</Text>
                     </Pressable>
 
-                    {/* 16. Late Night Food */}
-                    <Pressable
-                        onPress={() => props.navigation.navigate('LateNightFood')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
-                    >
-                        <Ionicons name="restaurant-outline" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">Late Night Food</Text>
-                    </Pressable>
+                    {/* 16. Late Night Food removed */}
 
-                    {/* 17. Campus Travel */}
-                    <Pressable
-                        onPress={() => props.navigation.navigate('CampusTravel')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
-                    >
-                        <Ionicons name="car-outline" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">Campus Travel</Text>
-                    </Pressable>
+                    {/* 17. Campus Travel removed */}
 
-                    {/* 17b. Smart Ride Safety */}
-                    <Pressable
-                        onPress={() => props.navigation.navigate('SmartRideSafety')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
-                    >
-                        <Ionicons name="shield-checkmark-outline" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">Ride Safety 🛡️</Text>
-                    </Pressable>
 
                     {/* 18. Study Assistant */}
                     <Pressable
@@ -362,14 +339,6 @@ export default function CustomSidebar(props: any) {
                         <Text className="text-white text-lg ml-4 font-medium">Study Assistant</Text>
                     </Pressable>
 
-                    {/* 18b. Dev Toots */}
-                    <Pressable
-                        onPress={() => props.navigation.navigate('DevToots')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
-                    >
-                        <Ionicons name="construct-outline" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">Dev Toots 🛠️</Text>
-                    </Pressable>
 
                     {/* 18c. Placement Hub */}
                     <Pressable
@@ -380,14 +349,7 @@ export default function CustomSidebar(props: any) {
                         <Text className="text-white text-lg ml-4 font-medium">Placement Hub 🏢</Text>
                     </Pressable>
 
-                    {/* 19. Group Jam */}
-                    <Pressable
-                        onPress={() => props.navigation.navigate('GroupJamSetup')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
-                    >
-                        <Ionicons name="musical-notes" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">Group Jam</Text>
-                    </Pressable>
+
 
                 </View>
             </DrawerContentScrollView>

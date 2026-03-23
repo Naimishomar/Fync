@@ -79,7 +79,7 @@ export async function getCandidatePool(college, PostModel, poolSize = 100) {
         .find({ college })
         .sort({ createdAt: -1 })
         .limit(poolSize)
-        .populate('user', 'name username avatar')
+        .populate('user', 'name username avatar user_access')
         .lean();   // .lean() = plain JS objects, much faster than Mongoose docs
 
     await rSet(cacheKey, JSON.stringify(posts), CANDIDATE_POOL_TTL);
@@ -102,7 +102,7 @@ export async function getShortsPool(ShortsModel, poolSize = 80) {
         .find()
         .sort({ createdAt: -1 })
         .limit(poolSize)
-        .populate('user', 'name username avatar upiId')
+        .populate('user', 'name username avatar upiId user_access')
         .lean();
 
     await rSet(cacheKey, JSON.stringify(shorts), CANDIDATE_POOL_TTL);

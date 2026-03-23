@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
+import Skeleton, { UserListSkeleton } from "./Skeleton";
 
 type User = {
   _id: string;
@@ -129,8 +130,16 @@ const FollowersAndFollowing = () => {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-black">
-        <ActivityIndicator size="large" color="#f9a8d4" />
+      <SafeAreaView className="flex-1 bg-black">
+        <View className="flex-row items-center px-4 py-3 border-b border-gray-900">
+           <Skeleton width={30} height={30} borderRadius={15} />
+           <Skeleton width={100} height={20} style={{ marginLeft: 24 }} />
+        </View>
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <View key={i} className="border-b border-gray-900">
+            <UserListSkeleton />
+          </View>
+        ))}
       </SafeAreaView>
     );
   }

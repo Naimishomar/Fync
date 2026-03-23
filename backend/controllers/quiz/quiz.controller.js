@@ -1,5 +1,6 @@
 import Room from "../../models/quiz/room.model.js";
 import Submission from "../../models/quiz/submission.model.js";
+import User from "../../models/user.model.js";
 import { nanoid } from "nanoid";
 
 export const createRoom = async (req, res) => {
@@ -21,6 +22,24 @@ export const createRoom = async (req, res) => {
     });
 
     res.status(201).json({ roomId });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getArenaStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).select("oneVsOnePoints");
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const points = user.oneVsOnePoints || 0;
+    const rank = await User.countDocuments({ oneVsOnePoints: { $gt: points } }) + 1;
+
+    res.status(200).json({ points, rank });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -56,6 +75,18 @@ export const getLeaderboard = async (req, res) => {
       .limit(50);
 
     res.status(200).json(leaderboard);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getTopGladiators = async (req, res) => {
+  try {
+    const topUsers = await User.find({ oneVsOnePoints: { $gt: 0 } })
+      .select("name username avatar oneVsOnePoints")
+      .sort({ oneVsOnePoints: -1 })
+      .limit(10);
+    res.status(200).json(topUsers);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

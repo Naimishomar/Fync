@@ -9,7 +9,7 @@ export const setCollegeChatIo = (io) => {
 
 export const sendMessage = async (req, res) => {
     try {
-        const { messageType, content } = req.body;
+        const { messageType, content, replyTo } = req.body;
         const collegeName = req.user.college;
 
         if (!collegeName) {
@@ -35,10 +35,16 @@ export const sendMessage = async (req, res) => {
             messageType: type,
             content: content || "",
             mediaUrl,
-            expiresAt
+            expiresAt,
+            replyTo: replyTo || null
         });
 
-        const populatedMessage = await CollegeChat.findById(newMessage._id).populate('senderId', 'name username avatar');
+        const populatedMessage = await CollegeChat.findById(newMessage._id)
+            .populate('senderId', 'name username avatar')
+            .populate({
+                path: 'replyTo',
+                populate: { path: 'senderId', select: 'username' }
+            });
 
         if (ioInstance) {
             ioInstance.to(`college_${collegeName}`).emit("new_college_message", populatedMessage);
@@ -69,6 +75,10 @@ export const getMessages = async (req, res) => {
             expiresAt: { $gt: now }
         })
             .populate('senderId', 'name username avatar')
+            .populate({
+                path: 'replyTo',
+                populate: { path: 'senderId', select: 'username' }
+            })
             .sort({ createdAt: 1 });
 
         return res.status(200).json({ success: true, messages });

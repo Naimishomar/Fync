@@ -23,8 +23,8 @@ const interviewSchema = new mongoose.Schema(
     ],
     duration: {
       type: Number,
-      enum: [5, 10, 15],
-      default: 5,
+      enum: [10, 15],
+      default: 10,
     },
     status: {
       type: String,
@@ -35,7 +35,7 @@ const interviewSchema = new mongoose.Schema(
       {
         role: {
           type: String,
-          enum: ["user", "model"],
+          enum: ["user", "model", "assistant", "system"],
           required: true,
         },
         parts: [
@@ -45,14 +45,7 @@ const interviewSchema = new mongoose.Schema(
         ],
       },
     ],
-    report: {
-      technical_score: { type: Number, min: 0, max: 10 },
-      communication_score: { type: Number, min: 0, max: 10 },
-      strengths: [{ type: String }],
-      improvements: [{ type: String }],
-      verdict: { type: String, enum: ["Pass", "Fail", "Pending"] },
-      summary: { type: String }
-    }
+    summary: { type: String, default: "" }
   },
   { timestamps: true }
 );

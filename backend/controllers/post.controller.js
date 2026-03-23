@@ -5,6 +5,7 @@ import User from '../models/user.model.js';
 import Notification from '../models/notification.model.js';
 import { deleteFromCloudinary } from '../utils/cloudinary.js';
 import { getCandidatePool, getUserInterestProfile, rankFeed, invalidatePool } from '../utils/feedEngine.js';
+import { clearCache } from '../middlewares/cache.middleware.js';
 
 export const createPost = async (req, res) => {
     try {
@@ -32,6 +33,8 @@ export const createPost = async (req, res) => {
             })
             // Invalidate Redis pool so next fetch picks up the new post
             invalidatePool(req.user.college, 'posts').catch(() => { });
+            clearCache('feed').catch(() => { });
+            clearCache('posts').catch(() => { });
             return res.status(200).json({ success: true, message: 'Post created successfully', post });
         }
     } catch (error) {
@@ -47,7 +50,7 @@ export const getPosts = async (req, res) => {
             return res.status(404).json({ success: false, message: "User not found, please login" });
         }
         const posts = await Post.find({ user: req.user.id })
-            .populate("user", "name avatar username college")
+            .populate("user", "name avatar username college user_access")
             .populate({
                 path: "comments",
                 populate: { path: "user", select: "name avatar username" }
@@ -123,6 +126,9 @@ export const deletePost = async (req, res) => {
             await Comment.deleteMany({ post: req.params.id, postType: "Post" });
 
             const deletedPost = await Post.findByIdAndDelete(req.params.id);
+            clearCache('feed').catch(() => { });
+            clearCache('posts').catch(() => { });
+            clearCache(`individual/${req.params.id}`).catch(() => { });
             return res.status(200).json({ success: true, message: "Post deleted successfully", post: deletedPost });
         }
     } catch (error) {
@@ -185,53 +191,58 @@ export const likePost = async (req, res) => {
 
 export const addComment = async (req, res) => {
     try {
-        const { text } = req.body;
+        const { text, parentCommentId } = req.body;
         if (!text) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
-        else {
-            const user = await User.findById(req.user.id);
-            if (!user) {
-                return res.status(400).json({ success: false, message: 'User not found' });
-            }
-            const post = await Post.findById(req.params.id);
-            if (!post) {
-                return res.status(404).json({ success: false, message: 'Post not found' });
-            }
-            const comment = await Comment.create({
-                text,
-                commentor: req.user.id,
-                post: req.params.id,
-                postType: "Post"
-            })
-            const commenterDetails = await Comment.findById(comment._id).populate("commentor", "name avatar username");
-            if (post.user.toString() !== req.user.id.toString()) {
-                await Notification.create({
-                    recipient: post.user,
-                    sender: req.user.id,
-                    type: 'comment',
-                    post: post._id,
-                    commentText: text
-                });
-            }
-            const mentionedUsers = text.match(/@\w+/g);
-            if (mentionedUsers) {
-                for (const tag of mentionedUsers) {
-                    const username = tag.substring(1);
-                    const taggedUser = await User.findOne({ username });
-                    if (taggedUser && taggedUser._id.toString() !== req.user.id.toString()) {
-                        await Notification.create({
-                            recipient: taggedUser._id,
-                            sender: req.user.id,
-                            type: 'tag',
-                            post: post._id,
-                            commentText: text
-                        });
-                    }
-                }
-            }
-            return res.status(200).json({ success: true, message: 'Comment created successfully', comment, commenterDetails });
+        const post = await Post.findById(req.params.id);
+        if (!post) {
+            return res.status(404).json({ success: false, message: 'Post not found' });
         }
+
+        let replyToUser = null;
+        if (parentCommentId) {
+            const parent = await Comment.findById(parentCommentId);
+            if (parent) {
+                replyToUser = parent.commentor;
+            }
+        }
+
+        const comment = await Comment.create({
+            text,
+            commentor: req.user.id,
+            post: req.params.id,
+            postType: "Post",
+            parentComment: parentCommentId || null,
+            replyToUser: replyToUser || null
+        });
+
+        // Notifications
+        if (parentCommentId && replyToUser && replyToUser.toString() !== req.user.id) {
+            await Notification.create({
+                recipient: replyToUser,
+                sender: req.user.id,
+                type: 'reply',
+                post: post._id,
+                commentText: text
+            });
+        } else if (post.user.toString() !== req.user.id.toString()) {
+            await Notification.create({
+                recipient: post.user,
+                sender: req.user.id,
+                type: 'comment',
+                post: post._id,
+                commentText: text
+            });
+        }
+
+        const commenterDetails = await Comment.findById(comment._id)
+            .populate("commentor", "name avatar username")
+            .populate("replyToUser", "username");
+
+        clearCache(`comment/${req.params.id}`).catch(() => { });
+
+        return res.status(200).json({ success: true, message: 'Comment created successfully', comment: commenterDetails });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -240,13 +251,25 @@ export const addComment = async (req, res) => {
 
 export const getComments = async (req, res) => {
     try {
-        const post = await Comment.find({ post: req.params.id, postType: "Post" }).populate("commentor", "name avatar username").sort({ createdAt: -1 });
-        if (!post) {
-            return res.status(404).json({ success: false, message: 'Post not found' });
-        }
-        const comments = await Comment.find({ post: req.params.id })
-            .populate("commentor", "name avatar username");
-        return res.status(200).json({ success: true, message: 'Comments fetched successfully', comments, commentLength: comments.length });
+        const comments = await Comment.find({ post: req.params.id, postType: "Post", parentComment: null })
+            .populate("commentor", "name avatar username")
+            .sort({ createdAt: -1 });
+
+        // For each comment, fetch its replies
+        const commentsWithReplies = await Promise.all(comments.map(async (comment) => {
+            const replies = await Comment.find({ parentComment: comment._id })
+                .populate("commentor", "name avatar username")
+                .populate("replyToUser", "username")
+                .sort({ createdAt: 1 });
+            return { ...comment._doc, replies };
+        }));
+
+        return res.status(200).json({ 
+            success: true, 
+            message: 'Comments fetched successfully', 
+            comments: commentsWithReplies, 
+            commentLength: commentsWithReplies.length 
+        });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -284,7 +307,7 @@ export const updateComment = async (req, res) => {
         const comment = await Comment.findById(req.params.id);
         if (!comment) {
             return res.status(404).json({ success: false, message: 'Comment not found' });
-        }
+        } 
         if (comment.commentor.toString() !== req.user.id.toString()) {
             return res.status(403).json({ success: false, message: 'Not authorized' });
         }
@@ -356,11 +379,21 @@ export const getFollowingPosts = async (req, res) => {
 export const getPostsByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 12;
+        const skip = (page - 1) * limit;
+
         const posts = await Post.find({ user: userId })
             .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
             .populate("user", "name username avatar");
 
-        return res.status(200).json({ success: true, posts });
+        return res.status(200).json({ 
+            success: true, 
+            posts,
+            hasMore: posts.length === limit 
+        });
     } catch (error) {
         console.log("Error fetching user posts:", error);
         return res.status(500).json({ success: false, message: "Server error" });
@@ -373,7 +406,7 @@ export const getPostByPostId = async (req, res) => {
         if (!postId) {
             return res.status(400).json({ success: false, message: 'POST ID is required' });
         }
-        const post = await Post.findById(postId).populate("user", "name username avatar").populate("comments");
+        const post = await Post.findById(postId).populate("user", "name username avatar");
         if (!post) {
             return res.status(404).json({ success: false, message: 'Post not found' });
         }
@@ -408,7 +441,7 @@ export const getSmartFeed = async (req, res) => {
     // to the original simple feed query so users NEVER see a 500.
     const simpleFallback = async () => {
         const posts = await Post.find({ college: req.user.college })
-            .populate('user', 'name username avatar')
+            .populate('user', 'name username avatar user_access')
             .populate({ path: 'comments', populate: { path: 'commentor', select: 'name avatar username' } })
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -419,30 +452,17 @@ export const getSmartFeed = async (req, res) => {
     try {
         const seenIds = Array.isArray(req.body?.seenIds) ? req.body.seenIds : [];
 
-        // STEP 1 — Candidate pool (Redis → MongoDB)
-        let candidates;
-        try {
-            candidates = await getCandidatePool(req.user.college, Post, 150);
-        } catch (e) {
-            console.error('[SmartFeed] Step1 getCandidatePool failed:', e.message);
-            return simpleFallback();
-        }
-
-        // STEP 2 — User interest profile (Gemini → Redis)
-        let interestProfile = { keywords: [] };
-        try {
-            const userDoc = await User.findById(req.user.id)
+        const [candidates, interestProfile] = await Promise.all([
+            getCandidatePool(req.user.college, Post, 150),
+            User.findById(req.user.id)
                 .select('interest hobbies skills major about')
-                .lean();
-            interestProfile = await getUserInterestProfile({
-                ...(userDoc || {}),
-                id: req.user.id,
-                _id: req.user.id
-            });
-        } catch (e) {
-            // Non-fatal — continue with empty keywords (engagement-only scoring)
-            console.log('[SmartFeed] Step2 interest profile failed (using fallback):', e.message);
-        }
+                .lean()
+                .then(userDoc => getUserInterestProfile({
+                    ...(userDoc || {}),
+                    id: req.user.id,
+                    _id: req.user.id
+                }))
+        ]);
 
         // STEP 3 — In-memory rank + paginate
         let ranked;

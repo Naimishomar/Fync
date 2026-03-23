@@ -1,150 +1,278 @@
-import Confession from "../../models/newFeatures/confession.model.js";
-import ConfessionReport from "../../models/newFeatures/confessionReport.model.js";
-import Comment from "../../models/comment.model.js";
+import Confession from '../../models/newFeatures/confession.model.js';
+import Comment from '../../models/comment.model.js';
+import Notification from '../../models/notification.model.js';
 
-export const createConfession = async(req,res)=>{
-    try {
-        const { message } = req.body;
-        if(!message){
-            return res.status(400).json({message: "Please provide a message", success: false});
-        }
-        const confession = await Confession.create({
-            senderId: req.user.id,
-            collegeName: req.user.college,
-            message,
-            isBanned: false
-        })
-        return res.status(201).json({message: "Confession created successfully", success: true, confession});
-    } catch (error) {
-        console.log("Internal server error", error);
-        res.status(500).json({
-            message: "Internal server error",
-            error: error.message
-        });
-    }
-}
+import User from '../../models/user.model.js';
+import { clearCache } from '../../middlewares/cache.middleware.js';
 
-export const getConfession = async(req,res)=>{
-    try {
-        const confession = await Confession.find({ collegeName: req.user.college }).populate("senderId", "username");
-        if(!confession){
-            return res.status(404).json({message: "No confessions found", success: false});
-        }
-        return res.status(200).json({message: "Confessions found", success: true, confession});
-    } catch (error) {
-        console.log("Internal server error", error);
-        res.status(500).json({ message: "Internal server error", error: error.message });
-    }
-}
+const CONFESSION_COLORS = [
+    '#FF6B6B', // Red
+    '#4D96FF', // Blue
+    '#6BCB77', // Green
+    '#FFD93D', // Yellow
+    '#9B59B6', // Purple
+    '#E67E22', // Orange
+    '#1ABC9C', // Teal
+];
 
-export const deleteConfession = async(req,res)=>{
-    try {
-        const { confessionId } = req.params;
-        const confession = await Confession.findById(confessionId);
-        if(!confession){
-            return res.status(404).json({message: "No confession found", success: false});
-        }
-        if(confession.senderId.toString() !== req.user.id.toString()){
-            return res.status(403).json({message: "You are not authorized to delete this confession", success: false});
-        }
-        await Confession.findByIdAndDelete(confessionId);
-        return res.status(200).json({message: "Confession deleted successfully", success: true});
-    } catch (error) {
-        console.log("Internal server error", error);
-        return res.status(500).json({ message: "Internal server error", error: error.message });
-    }
-}
+const getRandomColor = () => CONFESSION_COLORS[Math.floor(Math.random() * CONFESSION_COLORS.length)];
 
-export const likeAndUnlikeConfession = async (req, res) => {
+export const createConfession = async (req, res) => {
     try {
-        const { confessionId } = req.params;
+        const { content, color, taggedUserId } = req.body;
+        const college = req.user.college;
         const userId = req.user.id;
-        const confession = await Confession.findById(confessionId);
-        if (!confession) {
-            return res.status(404).json({success: false,message: "Confession not found"});
-        }
-        const isLiked = confession.likes.some(
-            id => id.toString() === userId.toString()
-        );
-        if (isLiked) {
-            confession.likes = confession.likes.filter(
-                id => id.toString() !== userId.toString()
-            );
-        } else {
-            confession.likes.push(userId);
-        }
-        await confession.save();
-        return res.status(200).json({ success: true, message: isLiked ? "Confession unliked" : "Confession liked", likesCount: confession.likes.length});
 
-    } catch (error) {
-        console.error("Like/unlike error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error"
+        if (!content) {
+            return res.status(400).json({ success: false, message: 'Content is required' });
+        }
+
+        const confession = await Confession.create({
+            content,
+            user: userId,
+            college,
+            color: color || getRandomColor(),
+            taggedUser: taggedUserId || null,
         });
+
+        if (taggedUserId) {
+            await Notification.create({
+                recipient: taggedUserId,
+                sender: userId,
+                type: 'tag',
+                confession: confession._id,
+                commentText: content.substring(0, 50) // Preview
+            });
+        }
+
+        const populatedConfessions = await Confession.findById(confession._id)
+            .populate('taggedUser', 'name username avatar user_access');
+
+        const confessionWithFlag = {
+            ...populatedConfessions._doc,
+            canManage: true // Author can always manage their new post
+        };
+
+        clearCache('confessions').catch(() => { });
+        return res.status(201).json({ success: true, message: 'Confession posted!', confession: confessionWithFlag });
+    } catch (error) {
+        console.error("Create confession error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
 
-export const createConfessionComment = async(req,res)=>{
+export const getConfessions = async (req, res) => {
     try {
-        const { text } = req.body;
-        if(!text){
-            return res.status(400).json({message: "Missing required fields", success: false});
+        const college = req.user.college;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 15;
+        const skip = (page - 1) * limit;
+
+        const confessions = await Confession.find({ college })
+            .populate('taggedUser', 'name username avatar user_access')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const confessionsWithFlags = confessions.map(c => ({
+            ...c._doc,
+            canManage: c.user.toString() === req.user.id.toString()
+        }));
+
+        return res.status(200).json({ success: true, confessions: confessionsWithFlags, hasMore: confessions.length === limit });
+    } catch (error) {
+        console.error("Get confessions error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+export const likeConfession = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const confession = await Confession.findById(req.params.id);
+
+        if (!confession) {
+            return res.status(404).json({ success: false, message: "Confession not found" });
         }
-        const { confessionId } = req.params;
+
+        const isLiked = confession.liked_by.includes(userId);
+        let updatedConfession;
+
+        if (isLiked) {
+            updatedConfession = await Confession.findByIdAndUpdate(
+                req.params.id,
+                { $inc: { likes: -1 }, $pull: { liked_by: userId } },
+                { new: true }
+            );
+        } else {
+            updatedConfession = await Confession.findByIdAndUpdate(
+                req.params.id,
+                { $inc: { likes: 1 }, $addToSet: { liked_by: userId } },
+                { new: true }
+            );
+        }
+
+        return res.status(200).json({ success: true, confession: updatedConfession });
+    } catch (error) {
+        console.error("Like confession error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+export const addConfessionComment = async (req, res) => {
+    try {
+        const { text, parentCommentId } = req.body;
+        const confessionId = req.params.id;
+        const userId = req.user.id;
+
+        if (!text) {
+            return res.status(400).json({ success: false, message: 'Comment text is required' });
+        }
+
         const confession = await Confession.findById(confessionId);
-        if(!confession){
-            return res.status(404).json({message: "No confession found", success: false});
+        if (!confession) {
+             return res.status(404).json({ success: false, message: 'Confession not found' });
         }
-        const comment = new Comment({
+
+        let replyToUser = null;
+        if (parentCommentId) {
+            const parent = await Comment.findById(parentCommentId);
+            if (parent) {
+                replyToUser = parent.commentor;
+            }
+        }
+
+        const comment = await Comment.create({
             text,
-            commentor: req.user.id,
+            commentor: userId,
             post: confessionId,
             postType: "Confession",
-            expiresAt: new Date(confession.createdAt.getTime() + 1000 * 60 * 60 * 24 * 7)
-        })
-        await comment.save();
-        const commenterDetails = await Comment.findById(comment._id).populate("commentor", "name avatar username");
-        return res.status(200).json({message: "Comment created successfully", success: true, comment, commenterDetails});
-    } catch (error) {
-        console.log("Internal server error", error);
-        return res.status(500).json({ message: "Internal server error", error: error.message });
-    }
-}
+            parentComment: parentCommentId || null,
+            replyToUser: replyToUser || null,
+        });
 
-export const getConfessionComments = async(req,res)=>{
-    try {
-        const { confessionId } = req.params;
-        const confession = await Confession.findById(confessionId);
-        if(!confession){
-            return res.status(404).json({message: "No confession found", success: false});
-        }
-        const comments = await Comment.find({ post: confessionId, postType: "Confession" })
-        .populate("commentor", "name avatar username");
-        return res.status(200).json({message: "Comments fetched successfully", success: true, comments, commentLength: comments.length});
-    } catch (error) {
-        console.log("Internal server error", error);
-        return res.status(500).json({ message: "Internal server error", error: error.message });
-    }
-}
+        await Confession.findByIdAndUpdate(confessionId, { $push: { comments: comment._id } });
 
-export const reportConfession = async(req,res)=>{
-    try {
-        const { confessionId } = req.params;
-        const confession = await Confession.findById(confessionId);
-        if(!confession){
-            return res.status(404).json({message: "No confession found", success: false});
-        }
-        if(confession.senderId.toString() === req.user.id.toString()){
-            return res.status(403).json({message: "You are not authorized to report your confession", success: false});
-        }
-        const report = await ConfessionReport.create({
-            confessionId: confessionId,
-            reporterId: req.user.id
-        })
-        return res.status(201).json({message: "Report created successfully", success: true, report});
+        const populatedComment = await Comment.findById(comment._id)
+            .populate("commentor", "name username avatar")
+            .populate("replyToUser", "username");
+
+        clearCache(`confession_comments/${confessionId}`).catch(() => { });
+        return res.status(201).json({ success: true, comment: populatedComment });
     } catch (error) {
-        console.log("Internal server erro", error);
-        return res.status(500).json({ message: "Internal server error", error: error.message });
+        console.error("Add confession comment error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
-}
+};
+
+export const getConfessionComments = async (req, res) => {
+    try {
+        const comments = await Comment.find({ post: req.params.id, postType: "Confession", parentComment: null })
+            .populate("commentor", "name username avatar")
+            .sort({ createdAt: -1 });
+
+        // Replies
+        const commentsWithReplies = await Promise.all(comments.map(async (comment) => {
+            const replies = await Comment.find({ parentComment: comment._id })
+                .populate("commentor", "name username avatar")
+                .populate("replyToUser", "username")
+                .sort({ createdAt: 1 });
+            return { ...comment._doc, replies };
+        }));
+
+        return res.status(200).json({ success: true, comments: commentsWithReplies });
+    } catch (error) {
+        console.error("Get confession comments error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+export const updateConfession = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { content, color, taggedUserId } = req.body;
+        const confession = await Confession.findById(id);
+
+        if (!confession) {
+            return res.status(404).json({ success: false, message: "Confession not found" });
+        }
+
+        // Admin or Owner
+        if (confession.user.toString() !== req.user.id.toString() && req.user.user_access !== 'admin') {
+            return res.status(403).json({ success: false, message: "Not authorized" });
+        }
+
+        const updated = await Confession.findByIdAndUpdate(
+            id,
+            { 
+                $set: { 
+                    ...(content && { content }), 
+                    ...(color && { color }),
+                    taggedUser: taggedUserId !== undefined ? taggedUserId : confession.taggedUser 
+                } 
+            },
+            { new: true }
+        ).populate('taggedUser', 'name username avatar user_access');
+
+        const updatedWithFlag = {
+            ...updated._doc,
+            canManage: true
+        };
+
+        clearCache('confessions').catch(() => { });
+        return res.status(200).json({ success: true, message: "Confession updated", confession: updatedWithFlag });
+    } catch (error) {
+        console.error("Update confession error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+export const deleteConfession = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const confession = await Confession.findById(id);
+
+        if (!confession) {
+            return res.status(404).json({ success: false, message: "Confession not found" });
+        }
+
+        // Admin or Owner
+        if (confession.user.toString() !== req.user.id.toString()) {
+            return res.status(403).json({ success: false, message: "Not authorized" });
+        }
+
+        // Delete associated comments
+        await Comment.deleteMany({ post: id, postType: "Confession" });
+        await Confession.findByIdAndDelete(id);
+
+        clearCache('confessions').catch(() => { });
+        clearCache(`confession_comments/${id}`).catch(() => { });
+        return res.status(200).json({ success: true, message: "Confession deleted" });
+    } catch (error) {
+        console.error("Delete confession error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+export const searchUsersForTag = async (req, res) => {
+    try {
+        const { query } = req.query;
+        if (!query) return res.json({ success: true, users: [] });
+
+        const users = await User.find({
+            college: req.user.college,
+            user_access: { $ne: 'alumni' },
+            $or: [
+                { username: { $regex: query, $options: 'i' } },
+                { name: { $regex: query, $options: 'i' } }
+            ]
+        })
+        .select('name username avatar user_access')
+        .limit(10);
+
+        return res.status(200).json({ success: true, users });
+    } catch (error) {
+        console.error("Search users error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};

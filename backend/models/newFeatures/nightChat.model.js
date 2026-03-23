@@ -8,13 +8,20 @@ const nightChatSchema = new mongoose.Schema({
     },
     message: {
         type: String,
-        required: true,
         trim: true
+    },
+    messageType: {
+        type: String,
+        enum: ['text', 'image'],
+        default: 'text'
+    },
+    fileUrl: {
+        type: String
     },
     createdAt: {
         type: Date,
         default: Date.now,
-        expires: 21600
+        expires: 21600 // 6 hours
     }
 });
 

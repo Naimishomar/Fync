@@ -7,22 +7,19 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Pressable
+  Pressable,
+  StatusBar
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
-
-// --- 🌌 BACKGROUND IMAGE ---
-const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
 
 // --- TYPES ---
 interface NotificationItem {
   _id: string;
-  type: 'follow' | 'tag' | 'like' | 'comment' | 'story_like' | 'story_comment' | 'split_request' | 'split_paid' | 'crush_match' | 'crush_nearby';
+  type: 'follow' | 'tag' | 'like' | 'comment' | 'story_like' | 'story_comment' | 'split_request' | 'split_paid';
   sender: {
     _id: string;
     username: string;
@@ -112,8 +109,6 @@ const Notification = () => {
   const handlePress = (item: NotificationItem) => {
     if (item.type === 'follow') {
       navigation.navigate('PublicProfile', { user: item.sender });
-    } else if (item.type === 'crush_match') {
-      navigation.navigate('PublicProfile', { user: item.sender });
     } else if (item.post) {
       navigation.navigate('Profile');
     }
@@ -175,48 +170,37 @@ const Notification = () => {
         iconColor = '#34d399'; // emerald-400
         iconBg = 'rgba(52, 211, 153, 0.2)';
         break;
-      case 'crush_match':
-        message = "matched with you! ❤️ It's mutual!";
-        iconName = 'heart-sharp';
-        iconColor = '#ec4899';
-        iconBg = 'rgba(236, 72, 153, 0.2)';
-        break;
-      case 'crush_nearby':
-        message = 'is nearby now! Radar detected someone.';
-        iconName = 'radar';
-        iconColor = '#ff8b3b';
-        iconBg = 'rgba(255, 139, 59, 0.2)';
-        break;
     }
 
     return (
       <Pressable
-        className={`flex-row items-center py-3 px-2 mb-2 mx-2 rounded-2xl border ${!item.isRead
-          ? 'bg-indigo-900/20 border-indigo-500/30'
-          : 'bg-[#1e1e1e]/60 border-white/5'
+        className={`flex-row items-center py-4 px-4 mb-3 mx-4 rounded-2xl border ${!item.isRead
+          ? 'bg-white border-pink-100 shadow-sm'
+          : 'bg-white/80 border-gray-100'
           }`}
         onPress={() => handlePress(item)}
       >
         {/* Avatar Section */}
-        <View className="relative mr-2">
+        <View className="relative mr-3">
           <Image
             source={{
-              uri: (item.type === 'crush_nearby' && !item.sender.username.includes('Mutual'))
-                ? 'https://cdn-icons-png.freepik.com/512/219/219988.png'
-                : item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}`
+              uri: item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}`
             }}
-            className="w-10 h-10 rounded-full border border-white/10"
+            className="w-12 h-12 rounded-full border border-gray-100"
           />
+          {!item.isRead && (
+            <View className="absolute -top-1 -right-1 w-3 h-3 bg-pink-500 rounded-full border-2 border-white" />
+          )}
         </View>
 
         {/* Text Section */}
         <View className="flex-1">
-          <Text className="text-gray-300 text-sm leading-5">
-            <Text className="font-bold text-white text-base">
-              {item.type === 'crush_nearby' ? 'Someone Special' : item.sender.username}
+          <Text className="text-zinc-600 text-[13px] leading-5">
+            <Text className="font-bold text-zinc-900 text-[14px]">
+              {item.sender.username}
             </Text> {message}
           </Text>
-          <Text className="text-gray-500 text-[10px] mt-1 font-medium uppercase tracking-wide">
+          <Text className="text-gray-400 text-[10px] mt-1 font-bold uppercase tracking-wider">
             {getTimeAgo(item.createdAt)}
           </Text>
         </View>
@@ -225,31 +209,28 @@ const Notification = () => {
         {item.type !== 'follow' && item.post?.image && item.post.image.length > 0 ? (
           <Image
             source={{ uri: item.post.image[0] }}
-            className="w-12 h-12 rounded-lg border border-white/10"
+            className="w-12 h-12 rounded-lg border border-gray-100 ml-2"
           />
         ) : item.type === 'follow' ? (
-          <Text>.</Text>
+          <View className="bg-pink-500 px-3 py-1.5 rounded-full ml-2">
+            <Text className="text-white text-[10px] font-bold uppercase tracking-tighter">Profile</Text>
+          </View>
         ) : null}
       </Pressable>
     );
   };
 
   return (
-    <View className="flex-1 bg-black">
-      {/* 🌸 BACKGROUND 🌸 */}
-      <Image source={{ uri: BG_IMAGE }} className="absolute w-full h-full opacity-50" />
-      <LinearGradient
-        colors={['rgba(236, 72, 153, 0.40)', 'rgba(0,0,0,0.85)', '#000000']}
-        className="absolute w-full h-full"
-      />
-
-      <SafeAreaView className="flex-1 px-2">
+    <View className="flex-1 bg-[#F5F7FA]">
+      <StatusBar barStyle="dark-content" />
+      
+      <SafeAreaView className="flex-1">
         {/* Header */}
-        <View className="px-2 pt-4 pb-4 flex flex-row items-center gap-2">
-          <Pressable onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="white" />
+        <View className="px-5 pt-4 pb-4 flex flex-row items-center bg-white border-b border-gray-100 shadow-sm">
+          <Pressable onPress={() => navigation.goBack()} className="p-2 bg-gray-50 rounded-full mr-3 border border-gray-100">
+            <Ionicons name="arrow-back" size={22} color="#18181b" />
           </Pressable>
-          <Text className="text-white text-3xl font-black shadow-lg">Notifications ⚡️</Text>
+          <Text className="text-zinc-900 text-2xl font-black italic tracking-tighter">Notifications <Text className="text-pink-500">⚡️</Text></Text>
         </View>
 
         {/* List */}
@@ -263,7 +244,7 @@ const Notification = () => {
             keyExtractor={(item) => item._id}
             renderItem={renderItem}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ec4899" />
             }
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.5}
@@ -272,18 +253,18 @@ const Notification = () => {
                 <View className="py-6 items-center">
                   <ActivityIndicator size="small" color="#ec4899" />
                 </View>
-              ) : <View className="h-10" />
+              ) : <View className="h-20" />
             )}
             ListEmptyComponent={
-              <View className="flex-1 justify-center items-center mt-32">
-                <View className="w-20 h-20 bg-white/5 rounded-full items-center justify-center mb-4">
-                  <Ionicons name="notifications-off-outline" size={40} color="#666" />
+              <View className="flex-1 justify-center items-center mt-32 px-10">
+                <View className="w-20 h-20 bg-white rounded-full items-center justify-center mb-6 shadow-sm border border-gray-100">
+                  <Ionicons name="notifications-off-outline" size={36} color="#9ca3af" />
                 </View>
-                <Text className="text-gray-400 text-lg font-bold">All caught up!</Text>
-                <Text className="text-gray-600 text-sm mt-1">No new notifications for now.</Text>
+                <Text className="text-zinc-900 text-xl font-black italic tracking-tight">All caught up!</Text>
+                <Text className="text-gray-500 text-sm mt-2 text-center font-medium">No new notifications at the moment. Check back later!</Text>
               </View>
             }
-            contentContainerStyle={{ paddingBottom: 20 }}
+            contentContainerStyle={{ paddingTop: 16 }}
             showsVerticalScrollIndicator={false}
           />
         )}

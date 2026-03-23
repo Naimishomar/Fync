@@ -13,7 +13,7 @@ const notificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['follow', 'tag', 'like', 'comment', 'story_like', 'story_comment', 'split_request', 'split_paid', 'crush_match', 'crush_nearby'],
+        enum: ['follow', 'tag', 'like', 'comment', 'reply', 'story_like', 'story_comment', 'story_reply', 'split_request', 'split_paid', 'college_reply'],
         required: true
     },
     post: {
@@ -24,6 +24,11 @@ const notificationSchema = new mongoose.Schema({
     shorts: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Shorts",
+        default: null
+    },
+    confession: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Confession",
         default: null
     },
     commentText: {

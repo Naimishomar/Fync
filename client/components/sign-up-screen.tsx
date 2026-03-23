@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
+  ActivityIndicator,
 } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,6 +30,7 @@ export default function SignUpScreen() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const sendOtpToEmail = async () => {
     if (!email || !username || !phoneNumber || !password) {
@@ -41,6 +43,7 @@ export default function SignUpScreen() {
     }
 
     try {
+      setIsLoading(true);
       const res = await axios.post('/user/send-email-otp', {
         email,
         username,
@@ -68,11 +71,13 @@ export default function SignUpScreen() {
         text1: 'Error',
         text2: error.response?.data?.message || 'Failed to send OTP',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
-
   const verifyOtpAndProceed = async () => {
     try {
+      setIsLoading(true);
       const res = await axios.post('/user/verify-email-otp', {
         email,
         otp,
@@ -104,6 +109,8 @@ export default function SignUpScreen() {
         text1: 'Verification Failed',
         text2: error.response?.data?.message || 'Invalid OTP or Server Error',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -117,8 +124,9 @@ export default function SignUpScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <Image
-            source={loginImage}
-            className="w-full rounded-2xl"
+            source={{ uri: 'https://i.pinimg.com/736x/a2/05/60/a205602210656db27579657ba25f57a4.jpg' }}
+            style={{ width: '100%', height: 450 }}
+            className="rounded-2xl"
             resizeMode="cover"
           />
           <View className="h-56" />
@@ -192,21 +200,31 @@ export default function SignUpScreen() {
 
               {!otpSent ? (
                 <Pressable
-                  className="rounded-full bg-black py-4 items-center"
+                  className={`rounded-full py-4 items-center ${isLoading || !agreeTerms ? 'bg-gray-400' : 'bg-black'}`}
                   onPress={sendOtpToEmail}
+                  disabled={isLoading || !agreeTerms}
                 >
-                  <Text className="text-white text-lg font-semibold">
-                    Send OTP
-                  </Text>
+                  {isLoading ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text className="text-white text-lg font-semibold">
+                      Send OTP
+                    </Text>
+                  )}
                 </Pressable>
               ) : (
                 <Pressable
-                  className="rounded-full bg-black py-4 items-center"
+                  className={`rounded-full py-4 items-center ${isLoading ? 'bg-gray-400' : 'bg-black'}`}
                   onPress={verifyOtpAndProceed}
+                  disabled={isLoading}
                 >
-                  <Text className="text-white text-lg font-semibold">
-                    Verify & Continue
-                  </Text>
+                  {isLoading ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text className="text-white text-lg font-semibold">
+                      Verify & Continue
+                    </Text>
+                  )}
                 </Pressable>
               )}
 

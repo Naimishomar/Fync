@@ -87,33 +87,32 @@ function CreatePost() {
 
 
   return (
-    <View className="mx-3 my-4 rounded-xl bg-white/5 p-3 border border-pink-300">
+    <View className="mx-3 my-4 rounded-2xl bg-white p-4 border border-gray-300 shadow-sm shadow-black/5">
       <TextInput
         placeholder="Share your thoughts..."
         placeholderTextColor="#9ca3af"
         value={description}
         onChangeText={setDescription}
         multiline
-        className="text-white text-base"
+        className="text-zinc-800 text-base min-h-[60px]"
       />
 
-      <View className="mt-3 flex-row items-center justify-between">
+      <View className="mt-4 flex-row items-center justify-between border-t border-gray-50 pt-3">
         <View className="flex-row gap-5">
-          <Pressable onPress={openGallery}>
-            <FontAwesome6 name="image" size={20} color="white" />
+          <Pressable onPress={openGallery} className="bg-gray-100 p-2 rounded-full">
+            <FontAwesome6 name="image" size={20} color="#1A1A1A" />
           </Pressable>
-          {/* <FontAwesome6 name="globe" size={18} color="white" /> */}
         </View>
 
         <Pressable
           onPress={handleSubmit}
           disabled={isLoading}
-          className="rounded-full bg-pink-400 px-4 py-1"
+          className="rounded-full bg-pink-500 px-6 py-2 shadow-sm shadow-pink-200"
         >
           {isLoading ? (
-            <ActivityIndicator size="small" color="#000" />
+            <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Text className="font-semibold text-black">Post</Text>
+            <Text className="font-bold text-white">Post</Text>
           )}
         </Pressable>
       </View>

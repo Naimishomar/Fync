@@ -6,7 +6,8 @@ export const getDevelopers = async (req, res) => {
         const { type } = req.query;
 
         let query = { 
-            _id: { $ne: currentUserId }
+            _id: { $ne: currentUserId },
+            user_access: { $ne: 'alumni' }
         };
 
         if (type === 'college') {
