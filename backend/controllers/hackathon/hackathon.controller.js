@@ -1,5 +1,6 @@
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import Hackathon from "../../models/hackathon/hackathons.model";
+import HackathonChannel from "../../models/hackathon/Hackathonchannel.model";
 export const createHackathon = async (req, res, next) => {
     try {
         const hack = await Hackathon.create({ ...req.body, organiser: req.user.id });
@@ -161,9 +162,45 @@ export const Joinchannel = async(req,res,next)=>{
   try{
    const hack = await Hackathon.findById(req.params.hackathonId);
    if(!hack){
-    return res.status(403).json({success:true,messeage:"hackathon do"})
+    return res.status(403).json({success:true,messeage:"hackathon not exist"});
    }
+   const hackathonchannel = await HackathonChannel.findOne({hackathon:hack.hackathonId});
+   const alreadyIn = hackathonchannel.members.some((m)=>m.user.toString()!==req.user.id.toString());
+   if(alreadyIn){
+      return res.status(403).json({success:false,message:"Already in the channel"});
+   }
+   hackathonchannel.members.push({user:req.user.id,role:req.user.role});
+   await hackathonchannel.save();
+   
+   if(!hack.participants.map(String).includes(req.user.id.toString())){
+     hack.participants.push(req.user.id);
+     await hack.save();
+   };
+
+    // Notify channel members
+    const io = req.app.get("io");
+    io.to(`hack:${hack._id}`).emit("channel:member_joined", {
+      userId: req.user._id,
+      name:   req.user.name,
+      avatar: req.user.avatar,
+    });
+    res.status(200).json({succes:true,message:"Joined the channel"})
   }catch(error){
     next(error);
   }
 }
+
+// Get api/hackathon/:hackathonId/getchannel   get  [ Channelinfo + member ] 
+export const gethackchannels = async(req,res,next)=>{
+    try{  
+        const {hackathonId} = req.params;
+        const channel = await hackathonchannel.findOne({hackathon:hackathonId}).populate("member.user","avatar name college skills");
+        if(!channel){
+               res.status(200).json({success:true,message:"Channel doesnt exists"});
+        }
+        return res.status(200).json({success:true,Data:channels});
+    }catch(error){
+        next(error);
+    }
+}
+

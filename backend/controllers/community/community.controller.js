@@ -53,6 +53,7 @@ export const createCommunity = async (req, res) => {
             }
         });
 
+        
         // Create mandatory initial sub-communities
         await SubCommunity.create([
             {
