@@ -159,7 +159,10 @@ export const deletehackathon  = async(req,res,next)=>{
 
 export const Joinchannel = async(req,res,next)=>{ 
   try{
-   const hack = await Hackathon.findById()
+   const hack = await Hackathon.findById(req.params.hackathonId);
+   if(!hack){
+    return res.status(403).json({success:true,messeage:"hackathon do"})
+   }
   }catch(error){
     next(error);
   }
