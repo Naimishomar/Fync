@@ -1,41 +1,45 @@
 import mongoose from "mongoose";
 const teamSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        required:true
+    name: {
+        type: String,
+        required: true
     },
-    Hackathon:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"Hackathon",
-        required:true,
+    hackathon: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Hackathon",
+        required: true,
     },
-    leader:{
-       type:mongoose.Schema.Types.ObjectId,
-       ref:"User",
-       required:true
+    leader: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
     },
-    members:[
+    members: [
         {
-            user:{type:mongoose.Schema.Types.ObjectId},
-            role:{type:String,enum:["leader","member"],default:"member"},
-            joinedAt:{type:Date,default:Date.now()}
+            user: { type: mongoose.Schema.Types.ObjectId },
+            role: { type: String, enum: ["leader", "member"], default: "member" },
+            joinedAt: { type: Date, default: Date.now() }
         }
     ],
-    invites:[
+    invites: [
         {
-            to:{type:mongoose.Schema.Types.ObjectId, ref:"User"},
-            status:{type:String,enum:["accepted","pending","declined"],default:"pending"},
-            sentAt:{type:Date,default:Date.now()}
+            to: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+            status: { type: String, enum: ["accepted", "pending", "declined"], default: "pending" },
+            sentAt: { type: Date, default: Date.now() }
         }
     ],
-    joinRequests:[
+    joinRequests: [
         {
-            from:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
-            message:{type:String,required:true},
-            status:{type:String,enum:["accepted","pending","declined"],default:"pending"},
-            sentAt:{type:Date,default:Date.now()}
+            from: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+            message: { type: String, required: true },
+            status: { type: String, enum: ["accepted", "pending", "declined"], default: "pending" },
+             sentAt: { type: Date, default: Date.now() }
         }
-    ]
-},{timestamps:true})
-const HackathonTeam = mongoose.model("HackathonTeam",teamSchema);
+    ],
+    requiredSkills: [{ type: String }],
+    description: { type: String },
+    isLocked: { type: Boolean, default: false },
+    lookingForMembers: { type: Boolean, default: true },
+}, { timestamps: true })
+const HackathonTeam = mongoose.model("HackathonTeam", teamSchema);
 export default HackathonTeam;
