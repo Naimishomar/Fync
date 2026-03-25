@@ -12,6 +12,7 @@ import socket from '../../utils/socket';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const SubCommunityChat = ({ navigation, route }: any) => {
+    if (!navigation) return null; // Bridge context check
     const { subId, subName, communityId } = route.params;
     const { user } = useAuth();
 

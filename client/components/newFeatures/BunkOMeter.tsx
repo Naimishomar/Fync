@@ -130,7 +130,7 @@ export default function BunkOMeter() {
                     <View className="flex-row gap-5 mb-6">
                         <View className="flex-1">
                             <Text className="text-slate-400 mb-2 font-black text-[10px] uppercase tracking-widest ml-1">Attended</Text>
-                            <View className="flex-row items-center bg-slate-50 border border-slate-100 rounded-3xl px-4 py-4">
+                            <View className="flex-row items-center bg-slate-50 border border-slate-100 rounded-2xl px-4 py-1">
                                 <Ionicons name="checkmark-done" size={20} color="#16a34a" />
                                 <TextInput
                                     value={attended}
@@ -145,7 +145,7 @@ export default function BunkOMeter() {
 
                         <View className="flex-1">
                             <Text className="text-slate-400 mb-2 font-black text-[10px] uppercase tracking-widest ml-1">Total Held</Text>
-                            <View className="flex-row items-center bg-slate-50 border border-slate-100 rounded-3xl px-4 py-4">
+                            <View className="flex-row items-center bg-slate-50 border border-slate-100 rounded-2xl px-4 py-1">
                                 <Ionicons name="list" size={20} color="#2563eb" />
                                 <TextInput
                                     value={total}
@@ -162,7 +162,7 @@ export default function BunkOMeter() {
                     {/* Row 2: Target */}
                     <View className="mb-8">
                         <Text className="text-slate-400 mb-2 font-black text-[10px] uppercase tracking-widest ml-1">Target Percentage (%)</Text>
-                        <View className="flex-row items-center bg-slate-50 border border-slate-100 rounded-3xl px-5 py-4">
+                        <View className="flex-row items-center bg-slate-50 border border-slate-100 rounded-2xl px-4 py-1">
                             <Ionicons name="pie-chart-outline" size={20} color="#ec4899" />
                             <TextInput
                                 value={targetInput}
@@ -170,14 +170,14 @@ export default function BunkOMeter() {
                                 keyboardType="numeric"
                                 placeholder="75 (Recommended)"
                                 placeholderTextColor="#94a3b8"
-                                className="flex-1 text-zinc-900 text-xl font-black italic ml-3"
+                                className="flex-1 text-zinc-900 text-xl font-black italic ml-1"
                             />
                         </View>
                     </View>
 
                     {/* Calculate Button */}
-                    <TouchableOpacity onPress={calculateAttendance} activeOpacity={0.9} className="overflow-hidden rounded-2xl bg-pink-500 flex-row items-center justify-center">
-                        <Text className="text-white font-black italic text-base uppercase tracking-widest py-5  shadow-xl shadow-pink-500/20">Predict Fate 📉</Text>
+                    <TouchableOpacity onPress={calculateAttendance} activeOpacity={0.9} className="overflow-hidden rounded-xl bg-pink-500 flex-row items-center justify-center">
+                        <Text className="text-white font-black text-base uppercase py-4 shadow-xl shadow-pink-500/20">Predict Fate 📉</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -189,7 +189,7 @@ export default function BunkOMeter() {
                             {/* Circular Percentage */}
                             <View className="mb-6 bg-white w-32 h-32 rounded-full items-center justify-center border-[6px]"
                                   style={{ borderColor: result.color }}>
-                                <Text className="text-zinc-900 text-3xl font-black italic">{result.percentage}%</Text>
+                                <Text className="text-zinc-900 text-2xl font-black italic">{result.percentage}%</Text>
                                 <View className="h-[1px] w-12 bg-slate-200 my-1" />
                                 <Text className="text-slate-400 font-black uppercase text-[8px] tracking-widest">Score</Text>
                             </View>
@@ -198,12 +198,12 @@ export default function BunkOMeter() {
                             <View className="items-center">
                                 <View className="flex-row items-center gap-2 mb-3 bg-white px-5 py-2 rounded-full border border-slate-100">
                                     <Ionicons name={result.icon} size={20} color={result.color} />
-                                    <Text className="text-lg font-black italic text-zinc-900 tracking-tight uppercase">
+                                    <Text className="text-lg font-black text-zinc-900 uppercase">
                                         {result.status === 'SAFE' ? 'The Great Escape' : 'System Critical'}
                                     </Text>
                                 </View>
 
-                                <Text className="text-2xl font-black italic text-center mb-3 tracking-tighter" style={{ color: result.color }}>
+                                <Text className="text-xl font-black text-center mb-3" style={{ color: result.color }}>
                                     {result.message}
                                 </Text>
 

@@ -226,11 +226,11 @@ const Notification = () => {
       
       <SafeAreaView className="flex-1">
         {/* Header */}
-        <View className="px-5 pt-4 pb-4 flex flex-row items-center bg-white border-b border-gray-100 shadow-sm">
-          <Pressable onPress={() => navigation.goBack()} className="p-2 bg-gray-50 rounded-full mr-3 border border-gray-100">
-            <Ionicons name="arrow-back" size={22} color="#18181b" />
+        <View className="px-6 pt-4 pb-4 flex flex-row items-center">
+          <Pressable onPress={() => navigation.goBack()} className="p-2 bg-white rounded-full mr-1 border border-gray-100">
+            <Ionicons name="arrow-back" size={20} color="#18181b" />
           </Pressable>
-          <Text className="text-zinc-900 text-2xl font-black italic tracking-tighter">Notifications <Text className="text-pink-500">⚡️</Text></Text>
+          <Text className="text-zinc-900 text-2xl font-black tracking-tighter">Notifications</Text>
         </View>
 
         {/* List */}
@@ -256,11 +256,11 @@ const Notification = () => {
               ) : <View className="h-20" />
             )}
             ListEmptyComponent={
-              <View className="flex-1 justify-center items-center mt-32 px-10">
-                <View className="w-20 h-20 bg-white rounded-full items-center justify-center mb-6 shadow-sm border border-gray-100">
+              <View className="flex-1 justify-center items-center mt-6 px-10">
+                <View className="w-20 h-20 bg-white rounded-full items-center justify-center mb-2 shadow-sm border border-gray-100">
                   <Ionicons name="notifications-off-outline" size={36} color="#9ca3af" />
                 </View>
-                <Text className="text-zinc-900 text-xl font-black italic tracking-tight">All caught up!</Text>
+                <Text className="text-zinc-900 text-xl font-black">All caught up!</Text>
                 <Text className="text-gray-500 text-sm mt-2 text-center font-medium">No new notifications at the moment. Check back later!</Text>
               </View>
             }

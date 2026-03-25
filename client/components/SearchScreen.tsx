@@ -91,12 +91,12 @@ const SearchScreen = () => {
     <TouchableOpacity 
       onPress={() => handleUserPress(item)}
       activeOpacity={0.8}
-      className="flex-row items-center justify-between p-4 mb-4 mx-6 bg-white rounded-2xl border border-gray-100 shadow-sm shadow-black/5"
+      className="flex-row items-center justify-between p-4 mx-6 bg-white rounded-2xl border border-gray-100 shadow-sm shadow-black/5"
     >
       <View className="flex-row items-center flex-1">
         <Avatar 
           user={item as any} 
-          size={48} 
+          size={34} 
         />
         
         <View className="ml-4">
@@ -112,7 +112,7 @@ const SearchScreen = () => {
       {isRecent && (
         <TouchableOpacity 
             onPress={() => removeItem(item._id)}
-            className="p-2 bg-gray-50 rounded-full border border-gray-100"
+            className="rounded-full p-2"
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <Ionicons name="close" size={16} color="#9ca3af" />
@@ -127,24 +127,24 @@ const SearchScreen = () => {
       <SafeAreaView className="flex-1">
         
         {/* HEADER */}
-        <View className="flex-row items-center px-6 pt-4 mb-6">
+        <View className="flex-row items-center px-6 pt-4 mb-5">
           <TouchableOpacity 
             onPress={() => navigation.goBack()} 
-            className="p-2 bg-white rounded-full mr-4 border border-gray-100 shadow-sm"
+            className="p-2 bg-white rounded-full mr-2 border border-gray-100 shadow-sm"
           >
-            <Ionicons name="chevron-back" size={24} color="#1A1A1A" />
+            <Ionicons name="chevron-back" size={18} color="#1A1A1A" />
           </TouchableOpacity>
-          <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter">
-            USER <Text className="text-pink-500">SEARCH</Text> 🔍
+          <Text className="text-zinc-900 text-2xl font-black tracking-tighter">
+            USER <Text className="text-pink-500">SEARCH</Text>
           </Text>
         </View>
 
         {/* SEARCH BAR */}
         <View className="px-6 mb-4">
-            <View className="flex-row items-center bg-white rounded-2xl px-4 py-3.5 border border-gray-100 shadow-sm">
+            <View className="flex-row items-center bg-white rounded-2xl px-4 border border-gray-100 shadow-sm">
                 <Ionicons name="search" size={20} color="#ec4899" />
                 <TextInput
-                    className="flex-1 ml-3 text-base text-zinc-900 font-medium"
+                    className="flex-1 ml-1 text-base text-zinc-900 font-medium"
                     placeholder="Search for developers..."
                     placeholderTextColor="#9ca3af"
                     value={query}

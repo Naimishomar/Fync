@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import Shorts from '../models/shorts.model.js';
 import Comment from '../models/comment.model.js';
 import Notification from '../models/notification.model.js';
@@ -62,11 +63,23 @@ export const fetchShorts = async (req, res) => {
 
 export const getYourShorts = async (req, res) => {
     try {
-        const shorts = await Shorts.find({ user: req.user.id });
-        if (!shorts) {
-            return res.status(404).json({ success: false, message: "Shorts not found" });
-        }
-        return res.status(200).json({ success: true, message: "Shorts fetched successfully", shorts });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 12;
+        const skip = (page - 1) * limit;
+
+        const shorts = await Shorts.find({ user: req.user.id })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const totalShorts = await Shorts.countDocuments({ user: req.user.id });
+
+        return res.status(200).json({ 
+            success: true, 
+            message: "Shorts fetched successfully", 
+            shorts,
+            hasMore: skip + shorts.length < totalShorts
+        });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -128,7 +141,7 @@ export const likeAndUnlikeShort = async (req, res) => {
         if (!short) {
             return res.status(404).json({ success: false, message: "Short not found" });
         }
-        const isLiked = short.liked_by.includes(req.user.id);
+        const isLiked = short.liked_by.some(id => id.toString() === req.user.id.toString());
         let updatedShort;
         if (isLiked) {
             updatedShort = await Shorts.findByIdAndUpdate(
@@ -139,6 +152,11 @@ export const likeAndUnlikeShort = async (req, res) => {
                 },
                 { new: true }
             );
+            clearCache('shorts').catch(() => { });
+            clearCache(`individual/${req.params.id}`).catch(() => { });
+            clearCache(`feed/${short.user}`).catch(() => { });
+            invalidatePool('global', 'shorts').catch(() => { });
+
             return res.status(200).json({ success: true, message: "Short unliked successfully", short: updatedShort });
         }
         else {
@@ -166,6 +184,11 @@ export const likeAndUnlikeShort = async (req, res) => {
                     });
                 }
             }
+            clearCache('shorts').catch(() => { });
+            clearCache(`individual/${req.params.id}`).catch(() => { });
+            clearCache(`feed/${short.user}`).catch(() => { });
+            invalidatePool('global', 'shorts').catch(() => { });
+
             return res.status(200).json({ success: true, message: "Short liked successfully", short: updatedShort });
         }
     } catch (error) {
@@ -326,12 +349,13 @@ export const viewsInShort = async (req, res) => {
 export const getShortsByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
-        console.log(`🎥 Fetching shorts for user: ${userId}`);
+        console.log(`🎥 [ShortsController] Fetching shorts for user: ${userId}`);
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 12;
         const skip = (page - 1) * limit;
 
-        const shorts = await Shorts.find({ user: userId })
+        const query = { user: new mongoose.Types.ObjectId(userId) };
+        const shorts = await Shorts.find(query)
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);

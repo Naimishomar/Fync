@@ -317,7 +317,7 @@ const PlacementHub = () => {
                                     <View className="bg-white/20 self-start px-3 py-1 rounded-full mb-3">
                                         <Text className="text-white text-[8px] font-black uppercase tracking-[2px]">New Feature ✨</Text>
                                     </View>
-                                    <Text className="text-white text-xl font-black italic uppercase tracking-tighter">Placement <Text className="text-pink-400">Predictor</Text></Text>
+                                    <Text className="text-white text-xl font-black uppercase">Placement <Text className="text-pink-400">Predictor</Text></Text>
                                     <Text className="text-white/70 text-[10px] font-bold mt-1 leading-4">AI-powered resume & GPA analysis to predict your dream company match.</Text>
                                 </View>
                                 <View className="bg-white/10 w-16 h-16 rounded-3xl items-center justify-center border border-white/20">

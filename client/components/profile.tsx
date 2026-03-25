@@ -103,7 +103,7 @@ function Profile() {
   const getShorts = async (page = 1, isInitial = false) => {
     try {
       setIsLoadingMore(true);
-      const res = await axios.get(`/shorts/get/yours?page=${page}&limit=12`);
+      const res = await axios.get(`/shorts/your?page=${page}&limit=12`);
       if (res.data.success) {
         setShorts(prev => {
           const newShorts = res.data.shorts || [];
@@ -112,8 +112,10 @@ function Profile() {
           const filteredNew = newShorts.filter((s: any) => !existingIds.has(s._id));
           return [...prev, ...filteredNew];
         });
-        setHasMoreShorts(res.data.hasMore);
+        setHasMoreShorts(res.data.hasMore === true);
         setShortsPage(page);
+      } else {
+        setHasMoreShorts(false);
       }
     } catch (e) {
       console.log("Error fetching shorts", e);

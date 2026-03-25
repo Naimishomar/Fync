@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import Post from '../models/post.model.js';
 import Comment from '../models/comment.model.js';
 import User from '../models/user.model.js';
@@ -45,18 +46,28 @@ export const createPost = async (req, res) => {
 
 export const getPosts = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);
-        if (!user) {
-            return res.status(404).json({ success: false, message: "User not found, please login" });
-        }
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 12;
+        const skip = (page - 1) * limit;
+
         const posts = await Post.find({ user: req.user.id })
             .populate("user", "name avatar username college user_access")
             .populate({
                 path: "comments",
                 populate: { path: "user", select: "name avatar username" }
             })
-            .sort({ createdAt: -1 });
-        return res.status(200).json({ success: true, message: "Posts fetched successfully", posts });
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const totalPosts = await Post.countDocuments({ user: req.user.id });
+
+        return res.status(200).json({ 
+            success: true, 
+            message: "Posts fetched successfully", 
+            posts,
+            hasMore: skip + posts.length < totalPosts
+        });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -155,6 +166,11 @@ export const likePost = async (req, res) => {
                 },
                 { new: true }
             );
+            clearCache('posts').catch(() => { });
+            clearCache(`individual/${req.params.id}`).catch(() => { });
+            clearCache(`feed/${post.user}`).catch(() => { });
+            invalidatePool(post.college, 'posts').catch(() => { });
+
             return res.status(200).json({ success: true, message: "Post unliked successfully", post: updatedPost });
         } else {
             updatedPost = await Post.findByIdAndUpdate(
@@ -181,6 +197,11 @@ export const likePost = async (req, res) => {
                     });
                 }
             }
+            clearCache('posts').catch(() => { });
+            clearCache(`individual/${req.params.id}`).catch(() => { });
+            clearCache(`feed/${post.user}`).catch(() => { });
+            invalidatePool(post.college, 'posts').catch(() => { });
+
             return res.status(200).json({ success: true, message: "Post liked successfully", post: updatedPost });
         }
     } catch (error) {
@@ -379,11 +400,13 @@ export const getFollowingPosts = async (req, res) => {
 export const getPostsByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
+        console.log(`📡 [PostController] Fetching posts for user: ${userId}`);
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 12;
         const skip = (page - 1) * limit;
 
-        const posts = await Post.find({ user: userId })
+        const query = { user: new mongoose.Types.ObjectId(userId) };
+        const posts = await Post.find(query)
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)

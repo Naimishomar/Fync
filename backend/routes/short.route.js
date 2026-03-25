@@ -10,7 +10,7 @@ router.get('/all', authMiddleware, cacheMiddleware(60), fetchShorts);
 router.get('/your', authMiddleware, cacheMiddleware(300), getYourShorts);
 router.post('/smart', authMiddleware, getSmartShorts);
 
-router.get('/feed/:userId', authMiddleware, cacheMiddleware(300), getShortsByUserId);
+router.get('/feed/:userId', authMiddleware, cacheMiddleware(1), getShortsByUserId);
 
 router.post('/update/:id', authMiddleware, updateShort);
 router.delete('/delete/:id', authMiddleware, deleteShort);

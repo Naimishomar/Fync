@@ -183,7 +183,7 @@ const ChatList = () => {
         <View className="relative">
           <Avatar 
             user={otherUser as any} 
-            size={56} 
+            size={38} 
           />
           {onlineUsers.has(otherUser?._id) && (
             <View className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
@@ -256,28 +256,28 @@ const ChatList = () => {
       <SafeAreaView className="flex-1">
 
         {/* HEADER */}
-        <View className="flex-row items-center px-6 pt-4 mb-6">
+        <View className="flex-row items-center px-6 pt-4 mb-5">
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            className="p-2 bg-white rounded-full mr-4 border border-gray-100 shadow-sm"
+            className="p-2 bg-white rounded-full mr-2 border border-gray-100 shadow-sm"
           >
-            <Ionicons name="chevron-back" size={24} color="black" />
+            <Ionicons name="chevron-back" size={20} color="black" />
           </TouchableOpacity>
-          <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter">
-            DIRECT<Text className="text-pink-500"> MESSAGES</Text>💬
+          <Text className="text-zinc-900 text-2xl font-black tracking-tighter">
+            DIRECT<Text className="text-pink-500"> MESSAGES</Text>
           </Text>
         </View>
 
         {/* SEARCH BAR */}
         <View className="px-6 mb-4">
-          <View className="flex-row items-center bg-white rounded-2xl px-4 py-1 border border-gray-100 shadow-sm mb-3">
+          <View className="flex-row items-center bg-white rounded-2xl px-4 border border-gray-100 shadow-sm mb-3">
             <Ionicons name="search" size={20} color="#ec4899" />
             <TextInput
               value={search}
               onChangeText={handleSearchChange}
               placeholder="Search friends..."
               placeholderTextColor="#9ca3af"
-              className="ml-3 flex-1 text-base text-zinc-900 font-medium"
+              className="ml-1 flex-1 text-base text-zinc-900 font-medium"
               autoCapitalize="none"
               autoCorrect={false}
             />

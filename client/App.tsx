@@ -78,7 +78,6 @@ import CodingLeaderboard from './components/newFeatures/CodingLeaderboard';
 import StudyAssistant from './components/newFeatures/StudyAssistant';
 import CollegeChatScreen from './components/newFeatures/CollegeChatScreen';
 import AlumniConnect from './components/AlumniConnect';
-import socket from 'utils/socket';
 import PlacementHub from './components/newFeatures/PlacementHub';
 import ProfessionalHub from './components/ProfessionalHub';
 import AlumniJobs from './components/newFeatures/AlumniJobs';
@@ -111,6 +110,7 @@ import CommunityListScreen from './components/community/CommunityListScreen';
 import CreateCommunityScreen from './components/community/CreateCommunityScreen';
 import CommunityHubScreen from './components/community/CommunityHubScreen';
 import SubCommunityChat from './components/community/SubCommunityChat';
+import FyncMediaFeed from './components/FyncMediaFeed';
 
 
 // Pay & Split
@@ -125,8 +125,7 @@ import CreatedSplitsScreen from './components/payAndSplit/CreatedSplitsScreen';
 import SubscriptionGuard from './components/newFeatures/SubscriptionGuard';
 import PlacementPredictor from './components/newFeatures/PlacementPredictor';
 
-
-
+import TermsAndCondition from 'components/T&C';
 
 
 configureReanimatedLogger({
@@ -250,12 +249,13 @@ export type RootStackParamList = {
   PlacementPredictor: undefined;
   SpeakerSessionScreen: undefined;
   BootcampScreen: undefined;
-
+  TermsAndCondition: undefined;
   EventCommunityChat: { eventId: string; eventName: string; type: 'Bootcamp' | 'SpeakerSession' };
   CommunityList: undefined;
   CreateCommunity: undefined;
   CommunityHub: { communityId: string };
   SubCommunityChat: { subId: string; subName: string; communityId: string };
+  FyncMediaFeed: undefined;
 };
 
 
@@ -303,6 +303,9 @@ function AuthStack() {
       </Stack.Screen>
       <Stack.Screen name="AlumniAvatarSetup">
         {() => <AlumniAvatarSetup />}
+      </Stack.Screen>
+      <Stack.Screen name="TermsAndCondition">
+        {() => <TermsAndCondition />}
       </Stack.Screen>
     </Stack.Navigator>
   );
@@ -381,6 +384,8 @@ function AppStack() {
       <Stack.Screen name="CreateCommunity" component={CreateCommunityScreen} />
       <Stack.Screen name="CommunityHub" component={CommunityHubScreen} />
       <Stack.Screen name="SubCommunityChat" component={SubCommunityChat} />
+      <Stack.Screen name="TermsAndCondition" component={TermsAndCondition} />
+      <Stack.Screen name="FyncMediaFeed" component={FyncMediaFeed} />
     </Stack.Navigator>
   );
 }

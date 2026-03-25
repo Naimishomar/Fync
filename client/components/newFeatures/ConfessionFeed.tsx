@@ -254,7 +254,7 @@ const ConfessionFeed = () => {
                 )}
             </View>
 
-            <Text className="text-white text-lg font-bold leading-7 mb-4">{item.content}</Text>
+            <Text className="text-white text-lg font-bold leading-7 mb-2">{item.content}</Text>
             
             {item.taggedUser && (
                 <TouchableOpacity 
@@ -264,15 +264,15 @@ const ConfessionFeed = () => {
                     }}
                     className="flex-row items-center bg-black/20 py-2 px-4 rounded-full self-start mb-4 border border-white/10"
                 >
-                    <Ionicons name="at-outline" size={16} color="white" />
-                    <Text className="text-white font-bold ml-1 text-xs">{item.taggedUser?.username}</Text>
+                    <Ionicons name="at-outline" size={12} color="white" />
+                    <Text className="text-white font-bold text-sm">{item.taggedUser?.username}</Text>
                 </TouchableOpacity>
             )}
 
             <View className="flex-row items-center justify-between border-t border-white/20 pt-4">
                 <Text className="text-white/50 text-[10px] uppercase font-bold">{new Date(item.createdAt).toLocaleDateString()}</Text>
                 <View className="flex-row items-center">
-                    <TouchableOpacity onPress={() => handleLike(item._id)} className="flex-row items-center mr-5">
+                    <TouchableOpacity onPress={() => handleLike(item._id)} className="flex-row items-center mr-4">
                         <Ionicons 
                             name={item.liked_by?.includes(user?._id || user?.id) ? "heart" : "heart-outline"} 
                             size={20} 

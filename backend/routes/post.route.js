@@ -12,7 +12,7 @@ router.get('/posts', authMiddleware, cacheMiddleware(300), getPosts);
 // Feed routes
 router.get('/feed', authMiddleware, cacheMiddleware(60), getFeed);
 router.get('/feed/followers', authMiddleware, cacheMiddleware(60), getFollowingPosts);
-router.get('/feed/:userId', authMiddleware, cacheMiddleware(120), getPostsByUserId);
+router.get('/feed/:userId', authMiddleware, cacheMiddleware(1), getPostsByUserId);
 
 // Smart feed — POST so it can receive seenIds in the body
 // MUST be above /:id or Express will treat "smart-feed" as an ObjectId

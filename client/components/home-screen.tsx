@@ -96,13 +96,13 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
     if (!newComment.trim()) return;
     setPosting(true);
     try {
-      const res = await axios.post(`/post/comment/${postId}`, { 
-        text: newComment, 
-        parentCommentId: replyingTo?._id 
+      const res = await axios.post(`/post/comment/${postId}`, {
+        text: newComment,
+        parentCommentId: replyingTo?._id
       });
       if (res.data.success) {
         const addedComment = res.data.comment;
-        
+
         if (replyingTo) {
           // Add to replies of the parent comment
           setComments(prev => prev.map(c => {
@@ -115,7 +115,7 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
           // Add to top level comments
           setComments([addedComment, ...comments]);
         }
-        
+
         setNewComment('');
         setReplyingTo(null);
         if (onCommentAdded) {
@@ -199,7 +199,7 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
                 showsVerticalScrollIndicator={false}
               />
             )}
-            
+
             <View className="w-full bg-white border-t border-gray-100 px-4 pt-2 pb-5" style={{ paddingBottom: Platform.OS === 'ios' ? 40 : 20 }}>
               {replyingTo && (
                 <View className="flex-row items-center justify-between bg-zinc-50 px-3 py-2 mb-2 rounded-lg">
@@ -209,11 +209,11 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
                   </Pressable>
                 </View>
               )}
-              <View className="flex-row items-center">
+              <View className="flex-row items-center gap-2">
                 <ExpoImage
                   source={{ uri: currentUser?.avatar || `https://ui-avatars.com/api/?name=${currentUser?.username}` }}
-                  style={{ width: 40, height: 40, borderRadius: 999 }}
-                  className="rounded-full mr-3"
+                  style={{ width: 32, height: 32, borderRadius: 999 }}
+                  className="rounded-full"
                   cachePolicy="disk"
                 />
                 <TextInput
@@ -245,7 +245,7 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
   const [activeIndex, setActiveIndex] = useState(0);
 
   const [isExpanded, setIsExpanded] = useState(false);
-  const MAX_CHAR_LIMIT = 150; 
+  const MAX_CHAR_LIMIT = 150;
 
   const navigation = useNavigation<any>();
 
@@ -290,7 +290,7 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
   const handleShare = async () => {
     try {
       const shareUrl = `https://fync.app/view?postId=${item._id}`;
-      const playStoreUrl = "https://play.google.com/store/apps/details?id=com.fync.app"; 
+      const playStoreUrl = "https://play.google.com/store/apps/details?id=com.fync.app";
 
       await Share.share({
         message: `Check out this post by ${item.user?.username} on Fync!\n\n${item.description || ''}\n\nView post: ${shareUrl}\n\nDon't have Fync? Download it here: ${playStoreUrl}`,
@@ -306,13 +306,13 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
       <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })}>
           <View className="flex-row items-center">
-            <Avatar 
-              user={item.user as any} 
-              size={36} 
+            <Avatar
+              user={item.user as any}
+              size={30}
             />
             <View className="ml-3">
-              <Text className="text-zinc-900 font-bold text-sm">{item.user?.username || "Unknown"}</Text>
-              {item.college && <Text className="text-gray-400 text-[10px] uppercase tracking-wide">{item.college}</Text>}
+              <Text className="text-zinc-900 font-bold text-sm">{item.user?.name || "Unknown"}</Text>
+              {item.user?.username && <Text className="text-gray-400 text-[10px] tracking-wide">{item.user?.username}</Text>}
             </View>
           </View>
         </Pressable>
@@ -582,9 +582,9 @@ export default function HomeScreen() {
 
 
   const renderHeader = () => (
-    <View 
-      style={{ paddingTop: insets.top }}  
-      className="flex-row items-center justify-between px-4 bg-white border-b border-gray-100 shadow-sm"
+    <View
+      style={{ paddingTop: insets.top }}
+      className="flex-row items-center justify-between px-4 bg-white shadow-sm"
     >
       <View className="flex-row items-center py-2 gap-2">
         <Pressable onPress={() => navigation.openDrawer()}>
@@ -595,7 +595,7 @@ export default function HomeScreen() {
             cachePolicy="disk"
           />
         </Pressable>
-        <Text className="text-2xl font-bold text-zinc-900 tracking-tighter italic">Fync</Text>
+        <Text className="text-xl font-bold text-zinc-900 tracking-tighter">{`Hi, ${user?.name?.split(" ")[0]}`}</Text>
       </View>
 
       <View className="flex-row items-center gap-5">
@@ -625,7 +625,7 @@ export default function HomeScreen() {
   );
 
   const renderTabBar = () => (
-    <View className="flex-row bg-white border-b border-gray-100 mt-0">
+    <View className="flex-row bg-white border-b border-gray-100">
       {['For You', 'Following'].map((tabTitle) => {
         const key = tabTitle === 'For You' ? 'forYou' : 'following';
         const isActive = activeTab === key;
@@ -638,7 +638,7 @@ export default function HomeScreen() {
             <Text className={`text-base font-bold ${isActive ? 'text-zinc-900' : 'text-gray-400'}`}>
               {tabTitle}
             </Text>
-            {isActive && <View className="absolute bottom-0 h-0.5 bg-zinc-900 w-1/4 rounded-full" />}
+            {isActive && <View className="absolute bottom-0 h-0.5 bg-zinc-900 w-1/2 rounded-full" />}
           </Pressable>
         );
       })}
@@ -658,10 +658,9 @@ export default function HomeScreen() {
   const features = useMemo(() => [
     { id: 'jobs', name: 'Alumni Jobs', icon: 'business-outline', color: '#f87171', onPress: () => navigation.navigate('AlumniJobs') },
     { id: 'professional_hub', name: 'Mentor Hub', icon: 'briefcase-outline', color: '#3b82f6', onPress: () => navigation.navigate('ProfessionalHub') },
+    { id: 'fync_media', name: 'Fync Media', icon: 'play-circle-outline', color: '#ec4899', onPress: () => navigation.navigate('FyncMediaFeed') },
     { id: 'events', name: 'Speaker Hub', icon: 'mic-outline', color: '#ec4899', onPress: () => navigation.navigate('SpeakerSessionScreen') },
     { id: 'bootcamp', name: 'Bootcamp', icon: 'rocket-outline', color: '#6366f1', onPress: () => navigation.navigate('BootcampScreen') },
-
-    { id: 'alumni', name: 'Alumni', icon: 'school-outline', color: '#f9a8d4', onPress: () => navigation.navigate('FindAlumni') },
   ], [user, navigation]);
 
   const displayedFeatures = useMemo(() => features.slice(0, 6), [features]);

@@ -216,7 +216,7 @@ const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSessi
                       <View className="relative">
                         <Image 
                             source={{ uri: speaker.image }} 
-                            className="w-16 h-16 rounded-[24px] bg-gray-100 border border-gray-100"
+                            className="w-14 h-14 rounded-full bg-gray-100 border border-gray-100"
                             resizeMode="cover"
                         />
                         {isPrimaryAdmin && (
@@ -1114,29 +1114,18 @@ export default function SpeakerSessionScreen() {
       <Modal visible={qrModalVisible} transparent onRequestClose={() => setQrModalVisible(false)}>
         <View className="flex-1 bg-black/80 justify-center items-center px-8">
             <View className="bg-white w-full rounded-[40px] overflow-hidden">
-                <LinearGradient colors={['#4f46e5', '#3730a3']} className="p-8 items-center flex-row justify-between">
-                    <View className="w-8" />
+                <LinearGradient colors={['#4f46e5', '#3730a3']} className="p-4 items-center flex-row justify-center">
                     <Text className="text-white text-xl font-black italic text-center tracking-tighter">{(selectedReg?.eventId as any)?.eventName}</Text>
-                    <TouchableOpacity onPress={() => setQrModalVisible(false)} className="w-8 h-8 items-center justify-center">
-                        <Ionicons name="close" size={24} color="white" />
-                    </TouchableOpacity>
                 </LinearGradient>
                 <View className="p-8 items-center bg-gray-50/50">
                     <View className="flex-row items-center gap-4">
                         <View className="p-3 bg-white border-2 border-indigo-100 rounded-3xl shadow-sm">
                             {selectedReg?.qrCode && <Image source={{ uri: selectedReg.qrCode }} style={{ width: 140, height: 140 }} resizeMode="contain" />}
                         </View>
-                        <View className="p-3 bg-white border-2 border-pink-100 rounded-3xl shadow-sm">
-                            <Image 
-                                source={{ uri: (selectedReg?.userId as any)?.avatar || user?.avatar }} 
-                                style={{ width: 140, height: 140 }} 
-                                className="rounded-2xl"
-                                resizeMode="cover"
-                            />
-                        </View>
                     </View>
-                    <TouchableOpacity onPress={() => setQrModalVisible(false)} className="mt-8 bg-zinc-900 w-full py-5 rounded-[22px] items-center shadow-lg">
-                        <Text className="text-white font-black italic text-xs uppercase tracking-widest">Close Ticket</Text>
+                    <Text className='font-semibold mt-2'>{user?.name}</Text>
+                    <TouchableOpacity onPress={() => setQrModalVisible(false)} className="mt-8 bg-zinc-900 w-full py-5 rounded-2xl items-center shadow-lg">
+                        <Text className="text-white font-black text-xs uppercase">Close Ticket</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -1793,11 +1782,11 @@ export default function SpeakerSessionScreen() {
       {/* My Tickets Dashboard Modal */}
       <Modal visible={ticketsModalVisible} transparent animationType="slide" onRequestClose={() => setTicketsModalVisible(false)}>
           <View className="flex-1 bg-black/50 justify-end">
-              <View className="bg-white h-[90%] rounded-t-[50px] overflow-hidden">
-                  <View className="p-10 pt-12 flex-1">
-                      <View className="flex-row justify-between items-center mb-8">
+              <View className="bg-white h-[70%] rounded-t-[50px] overflow-hidden">
+                  <View className="p-1 pt-12 flex-1">
+                      <View className="flex-row justify-between items-center mb-8 px-5">
                           <View>
-                            <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter uppercase">My Tickets</Text>
+                            <Text className="text-zinc-900 text-3xl font-black uppercase">My Tickets</Text>
                             <Text className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">{myRegistrations.length} Active Passes</Text>
                           </View>
                           <TouchableOpacity onPress={() => setTicketsModalVisible(false)} className="w-12 h-12 bg-gray-50 rounded-2xl items-center justify-center border border-gray-100">

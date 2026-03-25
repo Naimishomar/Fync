@@ -191,11 +191,16 @@ export default function SignUpScreen() {
                 />
               )}
 
-              <View className="mb-6 flex-row items-center">
+              <View className="mb-6 flex-row items-center flex-wrap">
                 <Checkbox value={agreeTerms} onValueChange={setAgreeTerms} />
                 <Text className="ml-2 text-gray-600">
-                  I agree to the Terms & Conditions
+                  I agree to the{" "}
                 </Text>
+                <Pressable onPress={() => navigation.navigate('TermsAndCondition')}>
+                  <Text className="text-blue-600 underline cursor-pointer">
+                    Terms & Conditions
+                  </Text>
+                </Pressable>
               </View>
 
               {!otpSent ? (

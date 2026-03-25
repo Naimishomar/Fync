@@ -382,9 +382,6 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                 <Ionicons name="chevron-back" size={16} color="white" />
                             </TouchableOpacity>
                             <View className="flex-row gap-2">
-                                <TouchableOpacity onPress={handleShare} className="w-8 h-8 bg-black/20 rounded-lg items-center justify-center backdrop-blur-md">
-                                    <Feather name="share" size={14} color="white" />
-                                </TouchableOpacity>
                                 {isCreator && (
                                     <TouchableOpacity onPress={() => setEditHubModal(true)} className="w-8 h-8 bg-black/20 rounded-lg items-center justify-center backdrop-blur-md">
                                         <Feather name="settings" size={14} color="white" />
@@ -394,7 +391,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                         </SafeAreaView>
 
                         <View className="absolute bottom-5 left-5 right-5 flex-row items-end gap-4">
-                            <View className="w-16 h-16 rounded-[24px] border-4 border-white shadow-xl overflow-hidden bg-zinc-900">
+                            <View className="w-16 h-16 rounded-[24px] border-2 border-white shadow-xl overflow-hidden bg-zinc-900">
                                 <Image source={{ uri: community.logo || 'https://via.placeholder.com/150' }} className="w-full h-full" />
                             </View>
                             <View className="flex-1 pb-1.5">
@@ -425,8 +422,8 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                 {isJoining ? <ActivityIndicator size="small" color="white" /> : <Text className="text-white font-black uppercase text-[8px] tracking-widest">Subscribe</Text>}
                             </TouchableOpacity>
                         )}
-                        <TouchableOpacity className="w-11 h-11 bg-white rounded-xl items-center justify-center border border-zinc-100 shadow-sm">
-                            <Feather name="mail" size={16} color="#1a1a1a" />
+                        <TouchableOpacity onPress={handleShare} className="w-11 h-11 border border-gray-300 rounded-lg items-center justify-center backdrop-blur-md">
+                            <Ionicons name="share-social-outline" size={14} color="black" />
                         </TouchableOpacity>
                     </View>
 
@@ -521,7 +518,9 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                 key={sub._id} 
                                 onPress={() => {
                                     if (isSuspended) { Alert.alert("Hub Suspended", "Activation required."); return; }
-                                    navigation.navigate('SubCommunityChat', { subId: sub._id, subName: sub.name, communityId: community._id });
+                                    if (navigation) {
+                                        navigation.navigate('SubCommunityChat', { subId: sub._id, subName: sub.name, communityId: community._id });
+                                    }
                                 }}
                                 className={`bg-white p-3 rounded-2xl border border-zinc-50 flex-row items-center gap-3 mb-2 shadow-sm shadow-black/5 ${isSuspended ? 'opacity-30' : ''}`}
                             >

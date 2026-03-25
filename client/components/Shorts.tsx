@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -88,12 +88,15 @@ const SingleShort = React.memo(({
 }) => {
   const [showIcon, setShowIcon] = useState<"play" | "pause" | null>(null);
   const videoRef = useRef<Video>(null);
-  const isLiked = item.liked_by.includes(currentUserId || "");
+  const isLiked = useMemo(() => {
+    if (!currentUserId || !item.liked_by) return false;
+    return item.liked_by.some(id => String(id) === String(currentUserId));
+  }, [item.liked_by, currentUserId]);
 
   useEffect(() => {
     if (isActive) {
       videoRef.current?.playAsync();
-      axios.get(`/shorts/view/${item._id}`).catch(() => { });
+      axios.post(`/shorts/views/${item._id}`).catch(() => { });
     } else {
       videoRef.current?.pauseAsync();
     }
@@ -462,7 +465,7 @@ export default function Shorts() {
         onDelete={deleteShort}
       />
     );
-  }, [activeVideoId, currentUserId]);
+  }, [activeVideoId, currentUserId, navigation, toggleLike, deleteShort]);
 
   const CommentItem = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => (
     <View className={`${isReply ? 'ml-10 mt-2' : 'mb-4'}`}>
@@ -529,8 +532,10 @@ export default function Shorts() {
         viewabilityConfig={viewabilityConfig}
         windowSize={3}
         initialNumToRender={1}
-        maxToRenderPerBatch={1}
-        removeClippedSubviews={false}
+        maxToRenderPerBatch={2}
+        updateCellsBatchingPeriod={50}
+        removeClippedSubviews={Platform.OS === 'android'}
+        scrollEventThrottle={16}
         refreshing={refreshing}
         onRefresh={onRefresh}
         onEndReached={loadMore}

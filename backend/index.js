@@ -35,6 +35,7 @@ import confessionRoute from './routes/newFeatures/confession.route.js';
 import speakerRoute from './routes/events/speakers.route.js';
 import bootcampRoute from './routes/events/bootcamp.route.js';
 import communityRoute from './routes/community/community.routes.js';
+import fyncMediaRoute from './routes/fyncMedia.route.js';
 
 import { setCollegeChatIo } from './controllers/collegeChat.controller.js';
 import { setAlumniChatIo } from './controllers/alumniChat.controller.js';
@@ -47,6 +48,7 @@ import { initNightClubCleanup } from './utils/nightClubCleanup.js';
 import { initAlumniChatCleanup } from './utils/alumniChatCleanup.js';
 import { initEventCleanup } from './utils/eventCleanup.js';
 import { initCommunityCleanup } from './utils/communityCleanup.js';
+import { initFyncMediaCleanup } from './utils/fyncMediaCleanup.js';
 
 import { rateLimit } from 'express-rate-limit';
 
@@ -142,6 +144,8 @@ app.use('/placement-predictor', placementPredictorRoute);
 app.use('/confessions', confessionRoute);
 app.use('/speakers', speakerRoute);
 app.use('/bootcamp', bootcampRoute);
+app.use('/fync-media', fyncMediaRoute);
+app.use('/api/fync-media', fyncMediaRoute);
 
 
 socketController(io);
@@ -155,6 +159,7 @@ initMentorshipCleanup();
 initNightClubCleanup();
 initAlumniChatCleanup();
 initCommunityCleanup();
+initFyncMediaCleanup();
 
 app.get('/', (req, res) => {
   res.send('Fync never gets down!🚀');

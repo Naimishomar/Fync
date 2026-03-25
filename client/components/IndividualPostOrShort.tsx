@@ -20,7 +20,7 @@ const { width, height } = Dimensions.get('window');
 const getEndpoints = (isShort: boolean, id: string) => ({
     get: isShort ? `/shorts/individual/${id}` : `/post/individual/${id}`,
     like: isShort ? `/shorts/like/${id}` : `/post/like/${id}`,
-    view: isShort ? `/shorts/view/${id}` : null,
+    view: isShort ? `/shorts/views/${id}` : null,
     getComments: isShort ? `/shorts/comment/all/${id}` : `/post/comment/${id}`,
     addComment: isShort ? `/shorts/comment/add/${id}` : `/post/comment/${id}`,
     updateComment: isShort ? `/shorts/comment/update` : `/post/comment/update`,
@@ -316,10 +316,11 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                 const fetchedData = isShort ? res.data.short : res.data.post;
                 setData(fetchedData);
                 setLikeCount(fetchedData.likes || 0);
-                setIsLiked(fetchedData.liked_by.includes(currentUser?._id));
+                const isUserLiked = fetchedData.liked_by?.some((id: any) => String(id) === String(currentUser?._id));
+                setIsLiked(isUserLiked);
                 setCommentCount(fetchedData.comments?.length || 0);
 
-                if (isShort && endpoints.view) axios.get(endpoints.view);
+                if (isShort && endpoints.view) axios.post(endpoints.view);
             }
         } catch (error: any) {
             console.error("Error loading data:", error);

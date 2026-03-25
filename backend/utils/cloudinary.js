@@ -11,6 +11,9 @@ let audioUpload;
 let collegeChatUpload;
 let mentorshipUpload;
 let resumeUpload;
+let mediaThumbnailUpload;
+let mediaVideoUpload;
+let fyncMediaCombinedUpload;
 
 export const getCloudinaryPublicId = (url, isRaw = false) => {
   try {
@@ -83,6 +86,11 @@ try {
     },
   });
 
+  upload = multer({
+    storage: imageStorage,
+    limits: { fileSize: 1024 * 1024 * 10 },
+  });
+
   const videoStorage = new CloudinaryStorage({
     cloudinary,
     params: {
@@ -92,6 +100,11 @@ try {
     },
   });
 
+  videoUpload = multer({
+    storage: videoStorage,
+    limits: { fileSize: 1024 * 1024 * 20 },
+  });
+
   const audioStorage = new CloudinaryStorage({
     cloudinary,
     params: {
@@ -99,16 +112,6 @@ try {
       resource_type: "raw",
       allowed_formats: ["mp3", "m4a", "wav", "aac", "mp4"],
     },
-  });
-
-  upload = multer({
-    storage: imageStorage,
-    limits: { fileSize: 1024 * 1024 * 10 },
-  });
-
-  videoUpload = multer({
-    storage: videoStorage,
-    limits: { fileSize: 1024 * 1024 * 20 },
   });
 
   audioUpload = multer({
@@ -145,14 +148,37 @@ try {
 
   resumeUpload = multer({
     storage: resumeStorage,
-    limits: { fileSize: 1024 * 1024 * 5 }, // 5MB limit for resumes
+    limits: { fileSize: 1024 * 1024 * 5 },
+  });
+
+  const fyncMediaCombinedStorage = new CloudinaryStorage({
+    cloudinary,
+    params: async (req, file) => {
+      if (file.fieldname === 'video') {
+        return {
+          folder: "fync_media_videos",
+          resource_type: "video",
+          allowed_formats: ["mp4"],
+        };
+      } else {
+        return {
+          folder: "fync_media_thumbnails",
+          resource_type: "image",
+          allowed_formats: ["jpg", "jpeg", "png", "webp"],
+        };
+      }
+    },
+  });
+
+  fyncMediaCombinedUpload = multer({
+    storage: fyncMediaCombinedStorage,
+    limits: { fileSize: 1024 * 1024 * 100 }, // 100MB cover both limits
   });
 
   console.log("✅ Cloudinary initialized successfully");
-
 } catch (error) {
   console.error("❌ Cloudinary initialization failed:", error.message);
   process.exit(1);
 }
 
-export { cloudinary, upload, videoUpload, audioUpload, collegeChatUpload, mentorshipUpload, resumeUpload };
+export { cloudinary, upload, videoUpload, audioUpload, collegeChatUpload, mentorshipUpload, resumeUpload, mediaThumbnailUpload, mediaVideoUpload, fyncMediaCombinedUpload };

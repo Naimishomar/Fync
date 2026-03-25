@@ -239,7 +239,7 @@ const Chat = ({ route, navigation }: any) => {
     const isLastMessage = index === 0;
 
     return (
-      <View className={`flex-row w-full ${isMe ? "justify-end" : "justify-start"} items-end pb-2`}>
+      <View className={`flex-row w-full ${isMe ? "justify-end" : "justify-start"} items-center pb-2`}>
         {!isMe && (
           <Image
             source={{
@@ -263,10 +263,10 @@ const Chat = ({ route, navigation }: any) => {
               }
             }}
             delayLongPress={500}
-            className={`max-w-[250px] px-4 py-2.5 rounded-2xl ${isMe ? "bg-indigo-600 rounded-tr-none" : "bg-white rounded-tl-none border border-gray-100 shadow-sm"}`}
+            className={`max-w-[250px] px-4 py-2 rounded-full ${isMe ? "bg-indigo-600" : "bg-white border border-gray-100 shadow-sm"}`}
           >
             {item.replyTo && (
-              <View className={`mb-2 p-2 rounded-lg border-l-4 ${isMe ? "bg-blue-700/50 border-blue-300" : "bg-gray-200 border-blue-500"}`}>
+              <View className={`mb-2 p-2 rounded-lg ${isMe ? "bg-blue-700/50 border-blue-300" : "bg-gray-200 border-blue-500"}`}>
                 <Text className={`text-[10px] font-bold ${isMe ? "text-blue-100" : "text-blue-600"}`}>
                   {item.replyTo.sender?.name || (item.replyTo.sender === user._id ? "You" : "User")}
                 </Text>
@@ -334,14 +334,14 @@ const Chat = ({ route, navigation }: any) => {
                       otherUser.avatar ||
                       `https://ui-avatars.com/api/?name=${otherUser.username}`,
                   }}
-                  className="h-10 w-10 rounded-full"
+                  className="h-8 w-8 rounded-full"
                 />
 
-                <View className="ml-3">
-                  <Text className="font-semibold text-base">
+                <View className="ml-2">
+                  <Text className="font-semibold text-base text-sm">
                     {otherUser.name}
                   </Text>
-                  <Text className="text-xs text-gray-500">
+                  <Text className="text-xs text-gray-500 text-xs">
                     @{otherUser.username}
                   </Text>
                 </View>

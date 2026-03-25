@@ -234,21 +234,21 @@ const PlacementPredictor = () => {
                         onPress={handlePredict}
                         disabled={loading}
                         activeOpacity={0.9}
-                        className="w-full"
+                        className="w-full rounded-2xl"
                     >
                         <LinearGradient
                             colors={['#ec4899', '#db2777']}
                             start={{x: 0, y: 0}}
                             end={{x: 1, y: 0}}
-                            className="py-6 rounded-[32px] flex-row justify-center items-center shadow-2xl shadow-pink-500/30"
+                            className="py-4 rounded-2xl flex-row justify-center items-center shadow-2xl shadow-pink-500/30"
                         >
                             {loading ? (
                                 <ActivityIndicator color="white" />
                             ) : (
-                                <>
-                                    <Text className="text-white font-black italic text-lg mr-3 uppercase tracking-[4px]">Generate Prediction</Text>
+                                <View className='flex-row rounded-2xl'>
+                                    <Text className="text-white font-black italic text-lg mr-1 uppercase">Generate Prediction</Text>
                                     <Ionicons name="flash" size={22} color="white" />
-                                </>
+                                </View>
                             )}
                         </LinearGradient>
                     </TouchableOpacity>

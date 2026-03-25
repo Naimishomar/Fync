@@ -310,10 +310,6 @@ export default function EventCommunityChat({ route }: any) {
                             <Text className="text-gray-400 text-[9px] font-bold uppercase tracking-widest">Community Hub</Text>
                         </View>
                     </View>
-
-                    <TouchableOpacity className="w-10 h-10 bg-indigo-50 rounded-2xl items-center justify-center">
-                        <Ionicons name="information-circle-outline" size={22} color="#4f46e5" />
-                    </TouchableOpacity>
                 </View>
 
                 {loading ? (

@@ -55,15 +55,6 @@ export default function CustomSidebar(props: any) {
                 {/* Menu Items */}
                 <View className="mt-4 px-2">
 
-                    {/* 1. My Profile */}
-                    <Pressable
-                        onPress={() => props.navigation.navigate('Profile')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
-                    >
-                        <Ionicons name="person-outline" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">My Profile</Text>
-                    </Pressable>
-
                     {/* 2. QUIZZES DROPDOWN (Parent) */}
                     <Pressable
                         onPress={toggleQuizzes}
@@ -169,14 +160,6 @@ export default function CustomSidebar(props: any) {
                         </View>
                     )}
 
-                    {/* 4. Messages */}
-                    <Pressable
-                        onPress={() => props.navigation.navigate('ChatList')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
-                    >
-                        <Ionicons name="chatbubbles-outline" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">Messages</Text>
-                    </Pressable>
 
                     {/* Campus Alumni (Find alumni from your college) */}
                     <Pressable

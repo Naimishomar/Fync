@@ -130,6 +130,8 @@ const PublicProfile = () => {
             }
         } catch (error) {
             console.log("Error fetching profile:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -141,19 +143,18 @@ const PublicProfile = () => {
                 const newPosts = res.data.posts || [];
                 setPosts(prev => {
                     if (isInitial) return newPosts;
-                    // Filter out any posts that already exist in the list to avoid duplicate keys
                     const existingIds = new Set(prev.map(p => p._id));
                     const filteredNew = newPosts.filter((p: any) => !existingIds.has(p._id));
                     return [...prev, ...filteredNew];
                 });
-                setHasMorePosts(res.data.hasMore);
+                setHasMorePosts(res.data.hasMore === true);
                 setPostsPage(page);
             }
         } catch (error) {
             console.log("Error fetching posts:", error);
         } finally {
-            if (isInitial) setLoading(false);
             setIsFetchingMore(false);
+            if (!profileUser) setLoading(false); // Safety fallback
         }
     };
 
@@ -228,6 +229,7 @@ const PublicProfile = () => {
     };
 
     // --- GRID RENDERER ---
+    const COLUMN_SIZE = width / 3;
     const renderGridItem = ({ item }: { item: any }) => {
         const isVideo = activeTab === 'shorts';
         return (
@@ -240,6 +242,7 @@ const PublicProfile = () => {
                     }
                 }}
                 className="relative border border-black/50"
+                style={{ width: COLUMN_SIZE, height: isVideo ? COLUMN_SIZE * 1.5 : COLUMN_SIZE }}
             >
                 {isVideo ? (
                     <View className="flex-1 bg-gray-900 justify-center items-center overflow-hidden">
@@ -370,14 +373,6 @@ const PublicProfile = () => {
 
     return (
         <View className="flex-1 bg-black">
-            {/* 🔮 PURE BLACK BACKGROUND WITH PINKISH GLOW */}
-            <LinearGradient
-                colors={['rgba(236, 72, 153, 0.40)', '#000000']}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 0.6 }}
-                className="absolute w-full h-full"
-            />
-
             <SafeAreaView className="flex-1">
 
                 {/* Header */}
