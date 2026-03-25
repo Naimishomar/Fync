@@ -4,7 +4,7 @@ import e from "express";
 
 const hackathonChannelSchema = new mongoose.Schema({
      Hackathon:{
-        type:mongoose.Schema.Types.ObjectId;
+        type:mongoose.Schema.Types.ObjectId,
         ref:"Hackathon",
         required:true,
         unique:true
@@ -16,7 +16,7 @@ const hackathonChannelSchema = new mongoose.Schema({
      members:[
         {
             user:{
-                type:mongoose.Schema.Types.ObjectId;
+                type:mongoose.Schema.Types.ObjectId,
                 ref:"User"
             },
             role:{

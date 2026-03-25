@@ -11,7 +11,7 @@ const hackathonSchema = new mongoose.Schema({
       required: true
    },
    organiser:{
-      type:uuidv4,
+      type:mongoose.Schema.Types.ObjectId,
       require:true,
    },
    registrationstart: {
