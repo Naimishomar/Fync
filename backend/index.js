@@ -149,9 +149,7 @@ app.use('/confessions', confessionRoute);
 app.use('/speakers', speakerRoute);
 app.use('/bootcamp', bootcampRoute);
 app.use('/fync-media', fyncMediaRoute);
-app.use('/api/fync-media', fyncMediaRoute);
 app.use('/clubs', clubRoute);
-app.use('/api/clubs', clubRoute);
 app.use('/api/marketplace', marketplaceRoute);
 
 
