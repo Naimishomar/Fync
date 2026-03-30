@@ -128,7 +128,6 @@ app.use('/shorts', (req, res, next) => {
   next();
 }, shortRoute);
 app.use('/funding', fundingRoute);
-
 app.use('/quiz', quizRoute);
 app.use('/interview', interviewRoute);
 app.use('/notifications', notificationRoute);
@@ -152,7 +151,8 @@ app.use('/fync-media', fyncMediaRoute);
 app.use('/api/fync-media', fyncMediaRoute);
 app.use('/clubs', clubRoute);
 app.use('/api/clubs', clubRoute);
-
+app.use('/playground', apiPlaygroundRoute);
+app.use(errorLogger);
 
 socketController(io);
 setCollegeChatIo(io);

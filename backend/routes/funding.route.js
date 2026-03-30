@@ -12,6 +12,9 @@ import {
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { fundingUpload } from "../utils/r2.js";
 import { r2UploadMiddleware } from "../utils/r2Upload.js";
+import multer from "multer";
+import { cloudinary } from "../utils/cloudinary.js";
+import CloudinaryStorage from "multer-storage-cloudinary";
 
 const router = express.Router();
 
