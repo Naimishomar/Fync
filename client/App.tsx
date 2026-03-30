@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 import React, { useEffect } from "react";
-import { View, ActivityIndicator, Image, Alert, KeyboardAvoidingView, Platform } from "react-native";
+import { View, ActivityIndicator, Image, Alert, KeyboardAvoidingView, Platform, Text } from "react-native";
 import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -93,7 +93,7 @@ import DriveFolderScreen from './components/studyMaterial/DriveFolderScreen';
 import PDFViewerScreen from './components/studyMaterial/PDFViewerScreen';
 
 // OLX & Notice Board
-import MarketplaceScreen from './components/olx/MarketplaceScreen';
+import MarketplaceScreen from './components/marketplace/MarketplaceScreen';
 import LostAndFound from './components/LostAndFound';
 import NoticeBoard from './components/NoticeBoard';
 
@@ -385,9 +385,12 @@ function RootNavigator() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#000" }}>
-        <Image source={require('./assets/Fync.jpg')} className='w-56 h-56 object-contain rounded-full' />
-        <ActivityIndicator size="large" color="#fff" />
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#fff" }}>
+        <Image source={require('./assets/Fync.jpg')} className='w-56 h-56 object-contain rounded-full mb-5' />
+        <View className='flex-row gap-2 items-center'>
+          <Text className='text-black text-lg font-semibold'>Loading</Text>
+          <ActivityIndicator size="small" color="#000" />
+        </View>
       </View>
     );
   }
@@ -416,7 +419,7 @@ export default function App() {
     <AuthProvider>
       <SafeAreaProvider>
         <NavigationContainer ref={navigationRef} linking={linking}>
-          <StatusBar style="light" backgroundColor="#000" />
+          <StatusBar style="dark" backgroundColor="#ffffff" />
           <RootNavigator />
           <Toast position="top" />
         </NavigationContainer>

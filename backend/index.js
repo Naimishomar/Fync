@@ -35,6 +35,7 @@ import bootcampRoute from './routes/events/bootcamp.route.js';
 import communityRoute from './routes/community/community.routes.js';
 import fyncMediaRoute from './routes/fyncMedia.route.js';
 import clubRoute from './routes/club/club.routes.js';
+import marketplaceRoute from './routes/marketplace/marketplace.route.js';
 
 import { setCollegeChatIo } from './controllers/collegeChat.controller.js';
 import { setAlumniChatIo } from './controllers/alumniChat.controller.js';
@@ -128,7 +129,6 @@ app.use('/shorts', (req, res, next) => {
   next();
 }, shortRoute);
 app.use('/funding', fundingRoute);
-
 app.use('/quiz', quizRoute);
 app.use('/interview', interviewRoute);
 app.use('/notifications', notificationRoute);
@@ -152,6 +152,7 @@ app.use('/fync-media', fyncMediaRoute);
 app.use('/api/fync-media', fyncMediaRoute);
 app.use('/clubs', clubRoute);
 app.use('/api/clubs', clubRoute);
+app.use('/api/marketplace', marketplaceRoute);
 
 
 socketController(io);

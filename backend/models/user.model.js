@@ -198,7 +198,17 @@ const userSchema = new mongoose.Schema({
     oneVsOnePoints: {
         type: Number,
         default: 0
-    }
+    },
+    coins:{
+        type: Number,
+        default: 0
+    },
+    redeemedItems: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "MarketPlace"
+        }
+    ]
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);

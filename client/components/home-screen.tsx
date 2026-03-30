@@ -653,6 +653,7 @@ export default function HomeScreen() {
   };
 
   const features = useMemo(() => [
+    { id: 'marketplace', name: 'Rewards', icon: 'cart-outline', color: '#10b981', onPress: () => navigation.navigate('MarketplaceScreen') },
     { id: 'jobs', name: 'Alumni Jobs', icon: 'business-outline', color: '#f87171', onPress: () => navigation.navigate('AlumniJobs') },
     { id: 'professional_hub', name: 'Mentor Hub', icon: 'briefcase-outline', color: '#3b82f6', onPress: () => navigation.navigate('ProfessionalHub') },
     { id: 'fync_media', name: 'Fync Media', icon: 'play-circle-outline', color: '#ec4899', onPress: () => navigation.navigate('FyncMediaFeed') },
