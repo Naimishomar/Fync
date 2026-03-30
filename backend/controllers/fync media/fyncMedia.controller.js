@@ -1,7 +1,7 @@
 import Comment from "../../models/comment.model.js";
 import FyncMedia from "../../models/fync media/fyncMedia.model.js";
 import User from "../../models/user.model.js";
-import { deleteFromCloudinary } from "../../utils/cloudinary.js";
+import { deleteFromR2 } from "../../utils/r2.js";
 
 
 export const createFyncMedia = async(req,res)=>{
@@ -125,10 +125,10 @@ export const updateMedia = async (req, res) => {
         const video = req.files?.video?.path;
 
         if (thumbnail && media.thumbnail) {
-            await deleteFromCloudinary(media.thumbnail, "image");
+            await deleteFromR2(media.thumbnail);
         }
         if (video && media.video_link) {
-            await deleteFromCloudinary(media.video_link, "video");
+            await deleteFromR2(media.video_link);
         }
 
         const updatedMedia = await FyncMedia.findByIdAndUpdate(
@@ -162,10 +162,10 @@ export const deleteMedia = async (req, res) => {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
         if (media.video_link) {
-            await deleteFromCloudinary(media.video_link, "video");
+            await deleteFromR2(media.video_link);
         }
         if (media.thumbnail) {
-            await deleteFromCloudinary(media.thumbnail, "image");
+            await deleteFromR2(media.thumbnail);
         }
         await Comment.deleteMany({ post: req.params.id, postType: "FyncMedia" });
         await FyncMedia.findByIdAndDelete(req.params.id);

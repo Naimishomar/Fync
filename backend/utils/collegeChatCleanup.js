@@ -1,6 +1,6 @@
 import cron from "node-cron";
 import CollegeChat from "../models/collegeChat.model.js";
-import { deleteFromCloudinary } from "./cloudinary.js";
+import { deleteFromR2 } from "./r2.js";
 
 // Run every 30 minutes to delete expired messages and their media
 export const initCollegeChatCleanup = () => {
@@ -20,7 +20,7 @@ export const initCollegeChatCleanup = () => {
                         if (msg.messageType === 'file') resourceType = 'raw';
                         
                         try {
-                            await deleteFromCloudinary(msg.mediaUrl, resourceType);
+                            await deleteFromR2(msg.mediaUrl);
                         } catch (e) {
                             console.error("❌ Cleanup cloudinary error:", e);
                         }

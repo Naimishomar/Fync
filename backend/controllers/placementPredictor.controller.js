@@ -13,23 +13,12 @@ export const predictPlacement = async (req, res) => {
     try {
         const { gpa, resumeText: manualText } = req.body;
         console.log("📊 GPA:", gpa, "Manual Text length:", manualText?.length || 0);
-        console.log("📁 File info:", req.file ? { path: req.file.path, size: req.file.size } : "No file");
+        
+        let resumeText = manualText || "";
 
         if (req.file) {
             try {
-                const buffer = await new Promise((resolve, reject) => {
-                    https.get(req.file.path, (response) => {
-                        if (response.statusCode !== 200) {
-                            reject(new Error(`Failed to fetch PDF: ${response.statusCode}`));
-                            return;
-                        }
-                        const chunks = [];
-                        response.on('data', (chunk) => chunks.push(chunk));
-                        response.on('end', () => resolve(Buffer.concat(chunks)));
-                    }).on('error', reject);
-                });
-
-                const pdfData = await pdf(buffer);
+                const pdfData = await pdf(req.file.buffer);
                 resumeText = pdfData.text.trim();
             } catch (err) {
                 console.error("❌ PDF Parsing failed for prediction:", err.message);

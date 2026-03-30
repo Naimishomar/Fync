@@ -1,7 +1,7 @@
 import MentorshipMessage from "../models/mentorshipMessage.model.js";
 import User from "../models/user.model.js";
 import Notification from "../models/notification.model.js";
-import { deleteFromCloudinary } from "../utils/cloudinary.js";
+import { deleteFromR2 } from "../utils/r2.js";
 
 let ioInstance = null;
 
@@ -134,7 +134,7 @@ export const deleteMessage = async (req, res) => {
         if (message.fileUrl && message.messageType !== 'text') {
             let resourceType = 'image';
             if (message.messageType === 'file') resourceType = 'raw';
-            await deleteFromCloudinary(message.fileUrl, resourceType);
+            await deleteFromR2(message.fileUrl);
         }
 
         await MentorshipMessage.findByIdAndDelete(id);

@@ -1,5 +1,5 @@
 import CollegeChat from '../models/collegeChat.model.js';
-import { deleteFromCloudinary } from '../utils/cloudinary.js';
+import { deleteFromR2 } from "../utils/r2.js";
 
 let ioInstance = null;
 
@@ -105,7 +105,7 @@ export const deleteMessage = async (req, res) => {
             let resourceType = 'image';
             if (message.messageType === 'video' || message.messageType === 'voice') resourceType = 'video';
             if (message.messageType === 'file') resourceType = 'raw';
-            await deleteFromCloudinary(message.mediaUrl, resourceType);
+            await deleteFromR2(message.mediaUrl);
         }
 
         await CollegeChat.findByIdAndDelete(id);

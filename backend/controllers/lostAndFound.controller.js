@@ -1,5 +1,5 @@
 import LostAndFound from "../models/lostAndFound.model.js";
-import { deleteFromCloudinary } from "../utils/cloudinary.js";
+import { deleteFromR2 } from "../utils/r2.js";
 
 export const createFoundItem = async (req, res) => {
     try {
@@ -129,7 +129,7 @@ export const deleteLostAndFoundItem = async (req, res) => {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
         if (item.image) {
-            await deleteFromCloudinary(item.image, "image");
+            await deleteFromR2(item.image);
         }
         await LostAndFound.findByIdAndDelete(req.params.id);
         return res.status(200).json({ success: true, message: "Item deleted successfully", item });

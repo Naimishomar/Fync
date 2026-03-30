@@ -185,9 +185,6 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                             <Text className="text-teal-500 font-bold text-[8px] uppercase tracking-widest">Active Connection</Text>
                         </View>
                     </View>
-                    <TouchableOpacity className="w-10 h-10 items-center justify-center bg-zinc-50 rounded-xl">
-                        <Feather name="more-horizontal" size={18} color="black" />
-                    </TouchableOpacity>
                 </View>
 
                 {/* Minimal Purge Warning */}
@@ -236,7 +233,7 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                                 <TouchableOpacity className="w-12 h-12 bg-zinc-100 rounded-[18px] items-center justify-center mb-1">
                                     <Feather name="plus" size={24} color="#94a3b8" />
                                 </TouchableOpacity>
-                                <View className="flex-1 min-h-[50px] max-h-[120px] bg-zinc-100 rounded-[24px] px-5 py-3 border border-zinc-200 justify-center">
+                                <View className="flex-1 min-h-[50px] max-h-[120px] bg-zinc-100 rounded-[24px] px-3 border border-zinc-200 justify-center">
                                     <TextInput 
                                         placeholder={subType === 'announcement' ? "Make a broadcast..." : "Message..."} 
                                         placeholderTextColor="#94a3b8"

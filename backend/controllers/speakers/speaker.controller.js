@@ -3,10 +3,10 @@ import Speaker from "../../models/events/speakers.model.js";
 import RegisterSpeakerSession from "../../models/events/registerSpeakerSession.model.js";
 import { customAlphabet } from "nanoid";
 import QRCode from "qrcode"; 
-import { deleteFromCloudinary } from "../../utils/cloudinary.js";
+import { deleteFromR2 } from "../../utils/r2.js";
 import Razorpay from "razorpay";
 import dotenv from "dotenv";
-dotenv.config({ silent: true });
+dotenv.config({ quiet: true });
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -30,14 +30,14 @@ export const createSpeakerSession = async(req,res)=>{
         const banner = req.files?.banner?.[0]?.path;
 
         if(!admin_email || !eventName || !description || !college || !venue || !date || !startTime || !endTime || userLimit === undefined || fee === undefined){
-            if (logo) await deleteFromCloudinary(logo);
-            if (banner) await deleteFromCloudinary(banner);
+            if (logo) await deleteFromR2(logo);
+            if (banner) await deleteFromR2(banner);
             return res.status(400).json({success: false, message: "Required all fields"});
         }
 
         if (fee > 0 && !admin_upi_id) {
-            if (logo) await deleteFromCloudinary(logo);
-            if (banner) await deleteFromCloudinary(banner);
+            if (logo) await deleteFromR2(logo);
+            if (banner) await deleteFromR2(banner);
             return res.status(400).json({success: false, message: "UPI ID is mandatory for paid events"});
         }
 
@@ -86,8 +86,8 @@ export const createSpeakerSession = async(req,res)=>{
 
         return res.status(200).json({ success: true, message: "Speaker session created successfully", speakerSession });
     } catch (error) {
-        if (req.files?.logo?.[0]?.path) await deleteFromCloudinary(req.files.logo[0].path);
-        if (req.files?.banner?.[0]?.path) await deleteFromCloudinary(req.files.banner[0].path);
+        if (req.files?.logo?.[0]?.path) await deleteFromR2(req.files.logo[0].path);
+        if (req.files?.banner?.[0]?.path) await deleteFromR2(req.files.banner[0].path);
         return res.status(400).json({ success: false, message: error.message || "Internal server error" })
     }
 }
@@ -400,19 +400,19 @@ export const addSpeakerToSession = async(req,res)=>{
         const image = req.file?.path;
 
         if(!eventId || !name || !designation || !image){
-            if (image) await deleteFromCloudinary(image);
+            if (image) await deleteFromR2(image);
             return res.status(400).json({success: false, message: "Required all fields including speaker image"});
         }
 
         const session = await CreateSpeakerSession.findOne({ eventId });
         if(!session){
-            await deleteFromCloudinary(image);
+            await deleteFromR2(image);
             return res.status(404).json({success: false, message: "Speaker session not found"});
         }
 
         // Verify admin
         if(req.user.id.toString() !== session.admin_email.toString()){
-            await deleteFromCloudinary(image);
+            await deleteFromR2(image);
             return res.status(403).json({success: false, message: "You are not authorized to add speakers to this session"});
         }
 
@@ -428,7 +428,7 @@ export const addSpeakerToSession = async(req,res)=>{
 
         return res.status(200).json({ success: true, message: "Speaker added successfully", speaker });
     } catch (error) {
-        if (req.file?.path) await deleteFromCloudinary(req.file.path);
+        if (req.file?.path) await deleteFromR2(req.file.path);
         return res.status(500).json({ success: false, message: error.message || "Internal server error" })
     }
 }
@@ -461,8 +461,8 @@ export const updateSpeakerSession = async(req,res)=>{
         const logo = req.files?.logo?.[0]?.path;
         const banner = req.files?.banner?.[0]?.path;
 
-        if (logo && speakerSession.logo) await deleteFromCloudinary(speakerSession.logo);
-        if (banner && speakerSession.banner) await deleteFromCloudinary(speakerSession.banner);
+        if (logo && speakerSession.logo) await deleteFromR2(speakerSession.logo);
+        if (banner && speakerSession.banner) await deleteFromR2(speakerSession.banner);
 
         const updatedSpeakerSession = await CreateSpeakerSession.findOneAndUpdate(
             { eventId },
@@ -491,8 +491,8 @@ export const updateSpeakerSession = async(req,res)=>{
         );
         return res.status(200).json({ success: true, message: "Speaker session updated successfully", speakerSession: updatedSpeakerSession });
     } catch (error) {
-        if (req.files?.logo?.[0]?.path) await deleteFromCloudinary(req.files.logo[0].path);
-        if (req.files?.banner?.[0]?.path) await deleteFromCloudinary(req.files.banner[0].path);
+        if (req.files?.logo?.[0]?.path) await deleteFromR2(req.files.logo[0].path);
+        if (req.files?.banner?.[0]?.path) await deleteFromR2(req.files.banner[0].path);
         return res.status(500).json({ success: false, message: error.message || "Internal server error" })
     }
 }
@@ -514,13 +514,13 @@ export const deleteSpeakerSession = async(req,res)=>{
         }
 
         // Cleanup related data
-        if (session.logo) await deleteFromCloudinary(session.logo);
-        if (session.banner) await deleteFromCloudinary(session.banner);
+        if (session.logo) await deleteFromR2(session.logo);
+        if (session.banner) await deleteFromR2(session.banner);
 
         // Delete all speakers related to this session and their images
         const speakers = await Speaker.find({ eventId: session._id });
         for (const spk of speakers) {
-            if (spk.image) await deleteFromCloudinary(spk.image);
+            if (spk.image) await deleteFromR2(spk.image);
             await Speaker.deleteOne({ _id: spk._id });
         }
 
@@ -542,23 +542,23 @@ export const updateSpeaker = async(req,res)=>{
         const image = req.file?.path;
 
         if(!speakerId){
-            if (image) await deleteFromCloudinary(image);
+            if (image) await deleteFromR2(image);
             return res.status(400).json({success: false, message: "Speaker ID is required"});
         }
 
         const speaker = await Speaker.findById(speakerId).populate('eventId');
         if(!speaker){
-            if (image) await deleteFromCloudinary(image);
+            if (image) await deleteFromR2(image);
             return res.status(404).json({success: false, message: "Speaker not found"});
         }
 
         // speaker.eventId here is the full session object because of populate
         if(!speaker.eventId || !speaker.eventId.admin_email || req.user.id.toString() !== speaker.eventId.admin_email.toString()){
-            if (image) await deleteFromCloudinary(image);
+            if (image) await deleteFromR2(image);
             return res.status(403).json({success: false, message: "Unauthorized to update this speaker"});
         }
 
-        if (image && speaker.image) await deleteFromCloudinary(speaker.image);
+        if (image && speaker.image) await deleteFromR2(speaker.image);
 
         speaker.name = name || speaker.name;
         speaker.designation = designation || speaker.designation;
@@ -568,7 +568,7 @@ export const updateSpeaker = async(req,res)=>{
 
         return res.status(200).json({ success: true, message: "Speaker updated successfully", speaker });
     } catch (error) {
-        if (req.file?.path) await deleteFromCloudinary(req.file.path);
+        if (req.file?.path) await deleteFromR2(req.file.path);
         return res.status(500).json({ success: false, message: error.message || "Internal server error" })
     }
 }
@@ -589,7 +589,7 @@ export const deleteSpeaker = async(req,res)=>{
             return res.status(403).json({success: false, message: "Unauthorized to delete this speaker"});
         }
 
-        if (speaker.image) await deleteFromCloudinary(speaker.image);
+        if (speaker.image) await deleteFromR2(speaker.image);
         
         // Remove speaker from session's speakers array
         await CreateSpeakerSession.updateOne(
@@ -757,4 +757,4 @@ export const getSpeakerSessionById = async (req, res) => {
         return res.status(500).json({ success: false, message: e.message });
     }
 }
-
+

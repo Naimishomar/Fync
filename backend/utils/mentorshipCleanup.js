@@ -1,6 +1,6 @@
 import cron from "node-cron";
 import MentorshipMessage from "../models/mentorshipMessage.model.js";
-import { deleteFromCloudinary } from "./cloudinary.js";
+import { deleteFromR2 } from "./r2.js";
 
 // Run every 12 hours to delete messages older than 7 days
 export const initMentorshipCleanup = () => {
@@ -23,7 +23,7 @@ export const initMentorshipCleanup = () => {
                     // If it was uploaded as 'auto', it might be easier to use 'image' or check the file extension.
                     
                     try {
-                        await deleteFromCloudinary(msg.fileUrl, resourceType);
+                        await deleteFromR2(msg.fileUrl);
                     } catch (e) {
                         console.error("Cleanup mentorship cloudinary error:", e);
                     }

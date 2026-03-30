@@ -1,7 +1,7 @@
 import express from "express";
 import { predictPlacement, getPredictionHistory } from "../controllers/placementPredictor.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
-import { resumeUpload } from "../utils/cloudinary.js";
+import { resumeUpload } from '../utils/r2.js';
 
 const router = express.Router();
 

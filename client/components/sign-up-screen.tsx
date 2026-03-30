@@ -138,7 +138,7 @@ export default function SignUpScreen() {
         >
           <ScrollView keyboardShouldPersistTaps="handled">
             <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-16">
-              <Image source={require('../assets/logo.png')} className="h-14 w-28 self-center" style={{ tintColor: '#000' }} resizeMode='cover' />
+              <Image source={require('../assets/Fync.jpg')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
               <Text className="text-3xl font-bold mb-6">Sign Up</Text>
 
               <TextInput

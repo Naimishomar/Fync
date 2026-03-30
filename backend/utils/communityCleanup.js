@@ -1,5 +1,5 @@
 import CommunityMessage from '../models/community/communityMessage.model.js';
-import { deleteFromCloudinary } from './cloudinary.js';
+import { deleteFromR2 } from './r2.js';
 
 export const initCommunityCleanup = () => {
     // Run every 24 hours
@@ -17,14 +17,14 @@ export const initCommunityCleanup = () => {
             for (const msg of expiredMessages) {
                 if (msg.image) {
                     try {
-                        await deleteFromCloudinary(msg.image);
+                        await deleteFromR2(msg.image);
                     } catch (e) {
                         console.error("Cloudinary delete error:", e);
                     }
                 }
                 if (msg.video) {
                     try {
-                        await deleteFromCloudinary(msg.video);
+                        await deleteFromR2(msg.video);
                     } catch (e) {
                         console.error("Cloudinary delete error (video):", e);
                     }

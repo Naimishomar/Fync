@@ -7,11 +7,25 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import { Video, ResizeMode } from "expo-av";
+import { Video, ResizeMode, AVPlaybackStatus, AVPlaybackStatusSuccess, Audio, InterruptionModeIOS, InterruptionModeAndroid } from "expo-av";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { WebView } from "react-native-webview";
+import { 
+  GestureHandlerRootView, 
+  GestureDetector, 
+  Gesture 
+} from 'react-native-gesture-handler';
+import * as ScreenOrientation from 'expo-screen-orientation';
+import Animated, { 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withSpring,
+  runOnJS
+} from 'react-native-reanimated';
+import { useWindowDimensions } from 'react-native';
+
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import { RAZORPAY_KEY_ID } from "../constants/keys";
@@ -39,6 +53,206 @@ interface Project {
   liked_by: string[];
   user: User;
 }
+
+/* ---------- YOUTUBE PLAYER COMPONENT ---------- */
+const YouTubeVideoPlayer = ({ 
+  source, 
+  thumbnail, 
+}: { 
+  source: string, 
+  thumbnail?: string, 
+}) => {
+  const videoRef = useRef<Video>(null);
+  const [status, setStatus] = useState<AVPlaybackStatusSuccess | null>(null);
+  const [showControls, setShowControls] = useState(true);
+  const [playbackRate, setPlaybackRate] = useState(1.0);
+  const [barWidth, setBarWidth] = useState(300);
+
+  const { width: windowWidth } = useWindowDimensions();
+
+  // Pinch to Zoom
+  const scale = useSharedValue(1);
+  const pinchGesture = Gesture.Pinch()
+    .onUpdate((event) => {
+      scale.value = event.scale;
+    })
+    .onEnd(() => {
+      if (scale.value < 1.1) {
+        scale.value = withSpring(1);
+      }
+    });
+
+  // Long Press for 2x Speed
+  const isPressingSpeed = useSharedValue(false);
+  const longPressGesture = Gesture.LongPress()
+    .onStart(() => {
+      isPressingSpeed.value = true;
+      runOnJS(setPlaybackRate)(2.0);
+    })
+    .onEnd(() => {
+      isPressingSpeed.value = false;
+      runOnJS(setPlaybackRate)(1.0);
+    });
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.setRateAsync(playbackRate, true);
+    }
+  }, [playbackRate]);
+
+  useEffect(() => {
+    const setupAudio = async () => {
+      try {
+        await Audio.setAudioModeAsync({
+          playsInSilentModeIOS: true,
+          allowsRecordingIOS: false,
+          staysActiveInBackground: true,
+          interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+          shouldDuckAndroid: true,
+          interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+          playThroughEarpieceAndroid: false
+        });
+      } catch (e) {}
+    };
+    setupAudio();
+  }, []);
+
+  const skipForward = async () => {
+    if (!videoRef.current) return;
+    const currentStatus = await videoRef.current.getStatusAsync() as AVPlaybackStatusSuccess;
+    if (currentStatus && currentStatus.isLoaded) {
+      const newPos = Math.min(currentStatus.durationMillis || 0, currentStatus.positionMillis + 10000);
+      await videoRef.current.setPositionAsync(newPos);
+    }
+  };
+
+  const skipBackward = async () => {
+    if (!videoRef.current) return;
+    const currentStatus = await videoRef.current.getStatusAsync() as AVPlaybackStatusSuccess;
+    if (currentStatus && currentStatus.isLoaded) {
+      const newPos = Math.max(0, currentStatus.positionMillis - 10000);
+      await videoRef.current.setPositionAsync(newPos);
+    }
+  };
+
+  const [seekFeedback, setSeekFeedback] = useState<'forward' | 'backward' | null>(null);
+
+  const singleTap = Gesture.Tap()
+    .numberOfTaps(1)
+    .onEnd((_event, success) => {
+      if (success) runOnJS(setShowControls)(!showControls);
+    });
+
+  const doubleTap = Gesture.Tap()
+    .numberOfTaps(2)
+    .onEnd((event, success) => {
+      if (success) {
+        if (event.x < windowWidth / 2) {
+          runOnJS(setSeekFeedback)('backward');
+          runOnJS(skipBackward)();
+        } else {
+          runOnJS(setSeekFeedback)('forward');
+          runOnJS(skipForward)();
+        }
+        setTimeout(() => runOnJS(setSeekFeedback)(null), 500);
+      }
+    });
+
+  const tapGestures = Gesture.Exclusive(doubleTap, singleTap);
+  const videoGesture = Gesture.Simultaneous(pinchGesture, longPressGesture, tapGestures);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const onPlaybackStatusUpdate = (newStatus: AVPlaybackStatus) => {
+    if (newStatus.isLoaded) setStatus(newStatus);
+  };
+
+  const togglePlay = async () => {
+    if (!videoRef.current) return;
+    if (!status) {
+      await videoRef.current.playAsync();
+      return;
+    }
+    status.isPlaying ? await videoRef.current.pauseAsync() : await videoRef.current.playAsync();
+  };
+
+  const handleSeek = async (e: any) => {
+    if (!videoRef.current || !status?.durationMillis || barWidth <= 0) return;
+    const { locationX } = e.nativeEvent;
+    const seekPosition = (locationX / barWidth) * status.durationMillis;
+    await videoRef.current.setPositionAsync(seekPosition);
+  };
+
+  return (
+    <View className="bg-black relative overflow-hidden w-full h-[300px]">
+        <GestureDetector gesture={videoGesture}>
+          <Animated.View style={[{ width: '100%', height: '100%' }, animatedStyle]}>
+            <Video
+              ref={videoRef}
+              source={{ uri: source }}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode={ResizeMode.CONTAIN}
+              onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+              shouldPlay={false}
+              isMuted={false}
+              posterSource={{ uri: thumbnail }}
+              usePoster={!!thumbnail}
+              posterStyle={{ resizeMode: 'cover' }}
+            />
+            {(!status || (status.isLoaded && status.isBuffering)) && (
+              <View className="absolute inset-0 items-center justify-center bg-black/10">
+                <ActivityIndicator size="large" color="#ffffff" />
+              </View>
+            )}
+            {playbackRate > 1 && (
+              <View className="absolute top-10 self-center bg-black/40 px-3 py-1 rounded-full border border-white/20">
+                <Text className="text-white font-black text-xs">2x Speed</Text>
+              </View>
+            )}
+            {seekFeedback && (
+              <View className={`absolute top-1/2 -translate-y-12 ${seekFeedback === 'forward' ? 'right-12' : 'left-12'} bg-black/60 w-20 h-20 rounded-full items-center justify-center border border-white/20`}>
+                <Ionicons name={seekFeedback === 'forward' ? "play-forward" : "play-back"} size={32} color="white" />
+                <Text className="text-white font-black text-[10px] mt-1 uppercase">10s</Text>
+              </View>
+            )}
+          </Animated.View>
+        </GestureDetector>
+
+        {showControls && (
+          <View pointerEvents="box-none" className="absolute inset-0 bg-black/40 items-center justify-center">
+            <View className="flex-row items-center gap-10">
+              <TouchableOpacity onPress={skipBackward} className="p-3 rounded-full bg-black/20">
+                <Ionicons name="play-back" size={24} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={togglePlay} className="w-16 h-16 rounded-full bg-black/20 items-center justify-center">
+                <Ionicons name={status?.isPlaying ? "pause" : "play"} size={36} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={skipForward} className="p-3 rounded-full bg-black/20">
+                <Ionicons name="play-forward" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <View pointerEvents="box-none" className="absolute bottom-0 inset-x-0 p-4">
+              <View pointerEvents="box-none" className="flex-row justify-between mb-2">
+                <Text className="text-white text-[10px] font-bold">
+                  {status ? `${Math.floor(status.positionMillis / 60000)}:${String(Math.floor((status.positionMillis % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
+                  <Text className="text-white/60"> / {status ? `${Math.floor(status.durationMillis! / 60000)}:${String(Math.floor((status.durationMillis! % 60000) / 1000)).padStart(2, '0')}` : '0:00'}</Text>
+                </Text>
+              </View>
+              <Pressable onPress={handleSeek} onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)} className="w-full h-3 justify-center">
+                <View className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
+                  <View className="h-full bg-red-600 rounded-full" style={{ width: status ? `${(status.positionMillis / (status.durationMillis || 1)) * 100}%` : '0%' }} />
+                </View>
+              </Pressable>
+            </View>
+          </View>
+        )}
+    </View>
+
+  );
+};
 
 /* ---------- PROJECT CARD SUB-COMPONENT ---------- */
 const ProjectCard = ({
@@ -106,11 +320,9 @@ const ProjectCard = ({
 
       {/* Media Slider */}
       {item.video ? (
-        <Video 
-          source={{ uri: item.video.replace(/^http:\/\//i, 'https://') }} 
-          style={{ height: 400, width: '100%', backgroundColor: '#050505' }} 
-          useNativeControls 
-          resizeMode={ResizeMode.CONTAIN} 
+        <YouTubeVideoPlayer
+          source={item.video.replace(/^http:\/\//i, 'https://')}
+          thumbnail={item.image && item.image.length > 0 ? item.image[0] : undefined}
         />
       ) : item.image && item.image.length > 0 ? (
         <View>
@@ -572,10 +784,10 @@ export default function FundingFeed() {
   );
 
   return (
-    <View className="flex-1 bg-[#F5F7FA]">
-      <StatusBar barStyle="dark-content" />
-
-      <SafeAreaView className="flex-1">
+    <GestureHandlerRootView className="flex-1">
+      <View className="flex-1 bg-[#F5F7FA]">
+        <StatusBar barStyle="dark-content" />
+        <SafeAreaView className="flex-1">
         <View className="px-6 pt-4 pb-4 flex-row justify-between items-center bg-white border-b border-gray-100 shadow-sm">
           <View className="flex-row items-center">
             <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 bg-gray-50 rounded-full mr-3 border border-gray-100">
@@ -689,13 +901,10 @@ export default function FundingFeed() {
                     )}
                     {video && (
                       <View className="mb-4 relative w-full shadow-sm rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800">
-                        <Video 
-                          source={{ uri: video.uri }} 
-                          style={{ height: 250, width: '100%' }} 
-                          useNativeControls 
-                          resizeMode={ResizeMode.CONTAIN}
+                        <YouTubeVideoPlayer 
+                          source={video.uri} 
                         />
-                        <TouchableOpacity onPress={() => setVideo(null)} className="absolute top-2 right-2 bg-white rounded-full p-2 border border-gray-100 shadow-sm">
+                        <TouchableOpacity onPress={() => setVideo(null)} className="absolute top-2 right-2 bg-white rounded-full p-2 border border-gray-100 shadow-sm z-10">
                           <Ionicons name="close" size={18} color="#ef4444" />
                         </TouchableOpacity>
                       </View>
@@ -803,5 +1012,7 @@ export default function FundingFeed() {
         </Modal>
       </SafeAreaView>
     </View>
+    </GestureHandlerRootView>
   );
 }
+

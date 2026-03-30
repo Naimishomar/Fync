@@ -118,7 +118,7 @@ const CommunityListScreen = () => {
                 {/* Content Area - Tighter Padding */}
                 <View className="p-4">
                     <Text className="text-zinc-500 text-[10px] font-medium leading-[16px] mb-4" numberOfLines={2}>
-                        {item.description || "The ultimate creator ecosystem built for high-velocity collaboration."}
+                        {item.description || "The ultimate creator ecosystem built for high-velocity growth and achievement."}
                     </Text>
 
                     <View className="flex-row justify-between items-center">

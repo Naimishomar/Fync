@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-dotenv.config({ silent: true });
+dotenv.config({ quiet: true });
 import cors from 'cors';
 import express from 'express';
 import http from 'http';
@@ -10,7 +10,6 @@ import authRoute from './routes/auth.route.js';
 import postRoute from './routes/post.route.js';
 import chatRoute from './routes/chat.route.js';
 import paymentRoute from './routes/payment.route.js';
-import collaborationRoute from './routes/collaboration.route.js';
 import shortRoute from './routes/short.route.js';
 import fundingRoute from './routes/funding.route.js';
 import quizRoute from './routes/quiz.route.js';
@@ -22,7 +21,6 @@ import LostAndFoundRoute from './routes/lostAndFound.route.js';
 import noticeRoute from './routes/notice.route.js';
 import paidGigsRoute from './routes/paidGigs.route.js';
 import AiIntelligenceRoute from './routes/aiItelligence.route.js';
-import splitRoute from './routes/split.route.js';
 import subscriptionRoute from './routes/subscription.route.js';
 import collegeChatRoute from './routes/collegeChat.route.js';
 import alumniConnectRoute from './routes/alumniChat.route.js';
@@ -36,12 +34,14 @@ import speakerRoute from './routes/events/speakers.route.js';
 import bootcampRoute from './routes/events/bootcamp.route.js';
 import communityRoute from './routes/community/community.routes.js';
 import fyncMediaRoute from './routes/fyncMedia.route.js';
+import clubRoute from './routes/club/club.routes.js';
 
 import { setCollegeChatIo } from './controllers/collegeChat.controller.js';
 import { setAlumniChatIo } from './controllers/alumniChat.controller.js';
 import { setMentorshipIo } from './controllers/mentorshipChat.controller.js';
 import { setEventCommunityIo } from './controllers/events/eventActivity.controller.js';
 import { setCommunityIo } from './controllers/community/community.controller.js';
+import { setClubIo } from './controllers/club/message.controller.js';
 import { initCollegeChatCleanup } from './utils/collegeChatCleanup.js';
 import { initMentorshipCleanup } from './utils/mentorshipCleanup.js';
 import { initNightClubCleanup } from './utils/nightClubCleanup.js';
@@ -49,6 +49,7 @@ import { initAlumniChatCleanup } from './utils/alumniChatCleanup.js';
 import { initEventCleanup } from './utils/eventCleanup.js';
 import { initCommunityCleanup } from './utils/communityCleanup.js';
 import { initFyncMediaCleanup } from './utils/fyncMediaCleanup.js';
+import startCleanupCron from './services/cleanup.service.js';
 
 import { rateLimit } from 'express-rate-limit';
 
@@ -114,7 +115,7 @@ app.use("/receipts", express.static("receipts"));
 
 app.use('/user', authRoute);
 app.use('/post', postRoute);
-app.use('/collaboration', collaborationRoute);
+app.use('/chat', chatRoute);
 app.use('/chat', chatRoute);
 app.use('/payment', paymentRoute);
 app.use('/api/payment', paymentRoute);
@@ -122,8 +123,12 @@ app.use('/communities', communityRoute);
 app.use('/api/communities', communityRoute);
 app.use('/subscription', subscriptionRoute);
 app.use('/api/subscription', subscriptionRoute);
-app.use('/shorts', shortRoute);
+app.use('/shorts', (req, res, next) => {
+  console.log(`📡 [MainIndex] Handing request to ShortRouter: ${req.method} ${req.url}`);
+  next();
+}, shortRoute);
 app.use('/funding', fundingRoute);
+
 app.use('/quiz', quizRoute);
 app.use('/interview', interviewRoute);
 app.use('/notifications', notificationRoute);
@@ -133,7 +138,6 @@ app.use('/lostAndFound', LostAndFoundRoute);
 app.use('/notice', noticeRoute);
 app.use('/gigs', paidGigsRoute);
 app.use('/api', AiIntelligenceRoute);
-app.use('/split', splitRoute);
 app.use('/college-chat', collegeChatRoute);
 app.use('/alumni-chat', alumniConnectRoute);
 app.use('/placement', placementHubRoute);
@@ -146,6 +150,8 @@ app.use('/speakers', speakerRoute);
 app.use('/bootcamp', bootcampRoute);
 app.use('/fync-media', fyncMediaRoute);
 app.use('/api/fync-media', fyncMediaRoute);
+app.use('/clubs', clubRoute);
+app.use('/api/clubs', clubRoute);
 
 
 socketController(io);
@@ -154,12 +160,14 @@ setAlumniChatIo(io);
 setMentorshipIo(io);
 setEventCommunityIo(io);
 setCommunityIo(io);
+setClubIo(io);
 initCollegeChatCleanup();
 initMentorshipCleanup();
 initNightClubCleanup();
 initAlumniChatCleanup();
 initCommunityCleanup();
 initFyncMediaCleanup();
+startCleanupCron();
 
 app.get('/', (req, res) => {
   res.send('Fync never gets down!🚀');

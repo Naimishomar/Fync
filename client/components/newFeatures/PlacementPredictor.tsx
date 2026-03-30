@@ -55,6 +55,7 @@ const PlacementPredictor = () => {
             } as any);
 
             const res = await axios.post('/placement-predictor/predict', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
                 timeout: 60000, // 60s for heavy AI analysis
             });
 

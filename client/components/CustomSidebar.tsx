@@ -189,11 +189,8 @@ export default function CustomSidebar(props: any) {
                         onPress={() => props.navigation.navigate('ProfessionalHub')}
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
                     >
-                        <Ionicons name="briefcase-outline" size={24} color="#3b82f6" />
+                        <Ionicons name="briefcase-outline" size={24} color="#f9a8d4" />
                         <Text className="text-white text-lg ml-4 font-medium">Professional Hub</Text>
-                        <View className="ml-2 bg-blue-500 px-2 py-0.5 rounded-full">
-                            <Text className="text-[10px] text-white font-bold italic">PRO</Text>
-                        </View>
                     </Pressable>
 
                     {/* 5. Bunk O Meter */}
@@ -282,22 +279,18 @@ export default function CustomSidebar(props: any) {
                         onPress={() => props.navigation.navigate('CommunityList')}
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
                     >
-                        <Ionicons name="megaphone-outline" size={24} color="#6366f1" />
+                        <Ionicons name="megaphone-outline" size={24} color="#f9a8d4" />
                         <Text className="text-white text-lg ml-4 font-medium">Echo Hubs</Text>
-                        <View className="ml-2 bg-indigo-600 px-2 py-0.5 rounded-full">
-                            <Text className="text-[8px] text-white font-black italic">NEW</Text>
-                        </View>
                     </Pressable>
 
-                    {/* 13. Collaboration */}
+                    {/* College Clubs (Campus Community) */}
                     <Pressable
-                        onPress={() => props.navigation.navigate('CollaborationScreen')}
+                        onPress={() => props.navigation.navigate('ClubList')}
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
                     >
-                        <Ionicons name="people-outline" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">Collaboration</Text>
+                        <Ionicons name="people-circle-outline" size={24} color="#f9a8d4" />
+                        <Text className="text-white text-lg ml-4 font-medium">College Clubs</Text>
                     </Pressable>
-
 
                     {/* 15. Paid Gigs */}
                     <Pressable
@@ -329,7 +322,7 @@ export default function CustomSidebar(props: any) {
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
                     >
                         <Ionicons name="business-outline" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">Placement Hub 🏢</Text>
+                        <Text className="text-white text-lg ml-4 font-medium">Placement Hub</Text>
                     </Pressable>
 
 

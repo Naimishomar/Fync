@@ -19,7 +19,7 @@ const confessionSchema = new mongoose.Schema({
     },
     color: {
         type: String,
-        default: "#FF6B6B", // Vibrant default
+        default: "#FF6B6B",
     },
     likes: {
         type: Number,
@@ -39,6 +39,9 @@ const confessionSchema = new mongoose.Schema({
         ref: "Comment",
     }],
 }, { timestamps: true });
+
+
+confessionSchema.index({ createdAt: 1 }, { expireAfterSeconds: 604800 });
 
 const Confession = mongoose.model("Confession", confessionSchema);
 export default Confession;

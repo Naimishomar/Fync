@@ -8,7 +8,7 @@ import OTP from '../models/otp.model.js';
 import Notification from '../models/notification.model.js';
 import { clearCache } from '../middlewares/cache.middleware.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/token.js';
-import { deleteFromCloudinary } from '../utils/cloudinary.js';
+import { deleteFromR2 } from '../utils/r2.js';
 // import {sendPhoneOTP, verifyPhoneOTP } from '../utils/phoneOtp.js';
 
 export const sendOTP = async (req, res) => {
@@ -338,13 +338,13 @@ export const updateUser = async (req, res) => {
     let bannerUrl = "";
     if (req.files?.avatar) {
       if (user.avatar) {
-        await deleteFromCloudinary(user.avatar, "image");
+        await deleteFromR2(user.avatar);
       }
       avatarUrl = req.files.avatar[0].path;
     }
     if (req.files?.banner) {
       if (user.banner) {
-        await deleteFromCloudinary(user.banner, "image");
+        await deleteFromR2(user.banner);
       }
       bannerUrl = req.files.banner[0].path;
     }

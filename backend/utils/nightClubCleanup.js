@@ -1,6 +1,6 @@
 import cron from "node-cron";
 import NightMessage from "../models/newFeatures/nightChat.model.js";
-import { deleteFromCloudinary } from "./cloudinary.js";
+import { deleteFromR2 } from "./r2.js";
 
 // Run every 10 minutes to clean up expired night messages and their cloudinary assets
 export const initNightClubCleanup = () => {
@@ -21,7 +21,7 @@ export const initNightClubCleanup = () => {
             for (let msg of expiredMessages) {
                 if (msg.fileUrl && msg.messageType === 'image') {
                     try {
-                        await deleteFromCloudinary(msg.fileUrl, "image");
+                        await deleteFromR2(msg.fileUrl);
                     } catch (e) {
                         console.error("12AM Cleanup Cloudinary error:", e);
                     }
@@ -40,7 +40,7 @@ export const initNightClubCleanup = () => {
                 const remaining = await NightMessage.find();
                 for (let msg of remaining) {
                     if (msg.fileUrl && msg.messageType === 'image') {
-                        try { await deleteFromCloudinary(msg.fileUrl, "image"); } catch(e){}
+                        try { await deleteFromR2(msg.fileUrl); } catch(e){}
                     }
                 }
                 await NightMessage.deleteMany({});

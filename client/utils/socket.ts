@@ -1,7 +1,4 @@
 import { io } from "socket.io-client";
-
-// The IP must be the local IP of your PC where the backend is running.
-// If you are using a physical phone, they must be on the same WiFi.
 const SOCKET_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 console.log("🔗 Socket attempting connection to:", SOCKET_URL);

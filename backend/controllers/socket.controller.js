@@ -225,6 +225,18 @@ export const socketController = (io) => {
       socket.leave(subId);
     });
 
+    // --- CLUB MANAGEMENT SYSTEM ---
+    socket.on("join_club_room", ({ subGroupId }) => {
+      if (!subGroupId) return;
+      socket.join(subGroupId);
+      console.log(`♣️ User joined Club room: ${subGroupId}`);
+    });
+
+    socket.on("leave_club_room", ({ subGroupId }) => {
+      if (!subGroupId) return;
+      socket.leave(subGroupId);
+    });
+
     // --- EVENT COMMUNITY ---
     socket.on("join_community_room", ({ eventId }) => {
       if (!eventId) return;

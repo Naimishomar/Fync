@@ -599,9 +599,6 @@ export default function HomeScreen() {
       </View>
 
       <View className="flex-row items-center gap-5">
-        <Pressable onPress={() => navigation.navigate('PayAndSplitHome')}>
-          <Ionicons name="qr-code-outline" size={26} color="#1A1A1A" />
-        </Pressable>
         <Pressable onPress={() => navigation.navigate('SearchScreen')}>
           <Ionicons name="search-outline" size={26} color="#1A1A1A" />
         </Pressable>
@@ -609,7 +606,7 @@ export default function HomeScreen() {
           <View>
             <Ionicons name="heart-outline" size={26} color="#1A1A1A" />
             {unreadCount > 0 && (
-              <View className="absolute -top-1 -right-1 bg-pink-500 rounded-full w-4 h-4 justify-center items-center border border-white">
+              <View className="absolute -top-1 -right-1 bg-pink-500 rounded-full w-5 h-5 justify-center items-center border border-white">
                 <Text className="text-white text-[10px] font-bold">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </Text>

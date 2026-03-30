@@ -41,7 +41,7 @@ import Animated, {
   runOnJS
 } from 'react-native-reanimated';
 //@ts-ignore
-import FyncLogo from "../assets/square_logo.png"
+import FyncLogo from "../assets/Fync.jpg"
 
 interface FyncMediaItem {
   _id: string;
@@ -65,6 +65,37 @@ interface FyncMediaItem {
   duration?: string;
   date: string;
 }
+
+const formatDuration = (duration: string | undefined): string => {
+  if (!duration || duration === "0:00") return "0:00";
+  
+  // If it's already in MM:SS format
+  if (duration.includes(':')) {
+    const parts = duration.split(':');
+    const mins = parseInt(parts[0]);
+    const secs = parseInt(parts[1]);
+    
+    // Check for the millisecond bug (minutes > 600 usually means it was ms)
+    if (mins >= 600) {
+      const totalSeconds = Math.floor((mins * 60 + secs) / 1000);
+      const m = Math.floor(totalSeconds / 60);
+      const s = totalSeconds % 60;
+      return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+    return duration;
+  }
+  
+  // If it's raw milliseconds
+  const ms = parseInt(duration);
+  if (!isNaN(ms) && ms > 10000) { // Arbitrary large number to distinguish from small seconds
+    const totalSeconds = Math.floor(ms / 1000);
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+  
+  return duration;
+};
 
 const YouTubeVideoPlayer = ({ 
   source, 
@@ -139,6 +170,7 @@ const YouTubeVideoPlayer = ({
 
   // Double Tap Seek Gestures
   const skipForward = async () => {
+    resetHideTimer();
     if (!videoRef.current) return;
     const currentStatus = await videoRef.current.getStatusAsync() as AVPlaybackStatusSuccess;
     if (currentStatus && currentStatus.isLoaded) {
@@ -148,6 +180,7 @@ const YouTubeVideoPlayer = ({
   };
 
   const skipBackward = async () => {
+    resetHideTimer();
     if (!videoRef.current) return;
     const currentStatus = await videoRef.current.getStatusAsync() as AVPlaybackStatusSuccess;
     if (currentStatus && currentStatus.isLoaded) {
@@ -198,6 +231,7 @@ const YouTubeVideoPlayer = ({
   };
 
   const togglePlay = async () => {
+    resetHideTimer();
     if (!videoRef.current) return;
     
     if (!status) {
@@ -218,9 +252,29 @@ const YouTubeVideoPlayer = ({
     Alert.alert("Video Error", "Unable to load video. Please check your connection or link.");
   };
 
-  const toggleControls = () => setShowControls(!showControls);
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const resetHideTimer = useCallback(() => {
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    setShowControls(true);
+    hideTimerRef.current = setTimeout(() => {
+      setShowControls(false);
+    }, 1000); // Exactly 1s as requested
+  }, []);
+
+  useEffect(() => {
+    if (showControls) {
+      resetHideTimer();
+    }
+    return () => { if (hideTimerRef.current) clearTimeout(hideTimerRef.current); };
+  }, [showControls]);
+
+  const toggleControls = () => {
+    resetHideTimer(); // Always show and start/reset 1s timer on tap
+  };
 
   const toggleFullscreen = async () => {
+    resetHideTimer();
     try {
       if (!isFullscreen) {
         await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
@@ -235,6 +289,7 @@ const YouTubeVideoPlayer = ({
   };
 
   const handleSeek = async (e: any) => {
+    resetHideTimer();
     if (!videoRef.current || !status?.durationMillis || barWidth <= 0) return;
     const { locationX } = e.nativeEvent;
     const seekPosition = (locationX / barWidth) * status.durationMillis;
@@ -243,9 +298,10 @@ const YouTubeVideoPlayer = ({
 
   return (
     <View 
+      onTouchStart={resetHideTimer}
       className={`bg-black relative overflow-hidden ${isFullscreen ? 'absolute inset-0 z-[999]' : 'w-full aspect-video'}`}
     >
-      <GestureDetector gesture={videoGesture}>
+      <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, longPressGesture, doubleTap)}>
         <Animated.View style={[{ width: '100%', height: '100%' }, animatedStyle]}>
           <Video
             ref={videoRef}
@@ -255,7 +311,7 @@ const YouTubeVideoPlayer = ({
             onPlaybackStatusUpdate={onPlaybackStatusUpdate}
             onError={onVideoError}
             shouldPlay={true}
-            isMuted={false} // Try starting unmuted now that setup is better
+            isMuted={false}
             posterSource={{ uri: thumbnail }}
             usePoster={true}
             posterStyle={{ resizeMode: 'cover' }}
@@ -358,7 +414,7 @@ const YouTubeCard = React.memo(({
           resizeMode="cover"
         />
         <View className="absolute bottom-3 right-3 bg-black/80 px-1.5 py-0.5 rounded-md">
-          <Text className="text-white text-[10px] font-black uppercase tracking-tighter">{item.duration || '0:00'}</Text>
+          <Text className="text-white text-[10px] font-black uppercase tracking-tighter">{formatDuration(item.duration)}</Text>
         </View>
 
         {isAdmin && (
@@ -465,88 +521,90 @@ const MediaDetailView = React.memo(({
   };
 
   return (
-    <View className="flex-1 bg-black">
-      {/* YouTube Video Component */}
-      <YouTubeVideoPlayer 
-        source={item.video_link} 
-        thumbnail={item.thumbnail}
-        onClose={onClose} 
-      />
+    <SafeAreaView className="flex-1 bg-black">
+      <View className="flex-1 bg-black">
+        {/* YouTube Video Component */}
+        <YouTubeVideoPlayer 
+          source={item.video_link} 
+          thumbnail={item.thumbnail}
+          onClose={onClose} 
+        />
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="p-4">
-          <Text className="text-white text-[19px] font-black leading-tight mb-4 tracking-tight">{item.title}</Text>
-          
-          {/* Action Row - YouTube Pill Style */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
-            <View className="flex-row items-center gap-3">
-              <View className="flex-row items-center bg-white/20 rounded-full h-10 px-1">
-                <TouchableOpacity onPress={handleLike} className="flex-row items-center gap-2 pl-3 pr-4 border-r border-[#E5E5E5]">
-                  <Ionicons name={isLiked ? "heart" : "heart-outline"} size={20} color="#fff" />
-                  <Text className="font-bold text-xs text-[#fff]">{likeCount}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleDislike} className="flex-row items-center gap-2 pl-4 pr-3">
-                  <Ionicons name={isDisliked ? "heart-dislike" : "heart-dislike-outline"} size={20} color="#fff" />
-                  <Text className="font-bold text-xs text-[#fff]">{dislikeCount}</Text>
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <View className="p-4">
+            <Text className="text-white text-[19px] font-black leading-tight mb-4 tracking-tight">{item.title}</Text>
+            
+            {/* Action Row - YouTube Pill Style */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
+              <View className="flex-row items-center gap-3">
+                <View className="flex-row items-center bg-white/20 rounded-full h-10 px-1">
+                  <TouchableOpacity onPress={handleLike} className="flex-row items-center gap-2 pl-3 pr-4 border-r border-[#E5E5E5]">
+                    <Ionicons name={isLiked ? "heart" : "heart-outline"} size={20} color="#fff" />
+                    <Text className="font-bold text-xs text-[#fff]">{likeCount}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleDislike} className="flex-row items-center gap-2 pl-4 pr-3">
+                    <Ionicons name={isDisliked ? "heart-dislike" : "heart-dislike-outline"} size={20} color="#fff" />
+                    <Text className="font-bold text-xs text-[#fff]">{dislikeCount}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity onPress={handleShare} className="bg-white/20 h-10 px-5 rounded-full flex-row items-center gap-2">
+                  <Ionicons name="share-social-outline" size={18} color="#fff" />
+                  <Text className="font-bold text-xs text-[#fff]">Share</Text>
                 </TouchableOpacity>
               </View>
+            </ScrollView>
 
-              <TouchableOpacity onPress={handleShare} className="bg-white/20 h-10 px-5 rounded-full flex-row items-center gap-2">
-                <Ionicons name="share-social-outline" size={18} color="#fff" />
-                <Text className="font-bold text-xs text-[#fff]">Share</Text>
+
+            {/* Description Section */}
+            <TouchableOpacity 
+              onPress={() => setIsExpanded(!isExpanded)}
+              activeOpacity={0.8}
+              className="bg-white/20 rounded-2xl p-4 mb-6"
+            >
+              <View className="flex-row gap-2 mb-2">
+                <Text className="text-[#fff] text-xs font-black uppercase tracking-tighter">Information</Text>
+                <Text className="text-[#fff] text-xs">•</Text>
+                <Text className="text-white/80 text-xs font-medium">{new Date(item.date).toLocaleDateString()}</Text>
+              </View>
+              
+              <Text className="text-[#fff] leading-6 text-[14px] font-medium" numberOfLines={isExpanded ? undefined : 2}>
+                {item.description}
+              </Text>
+              
+              <View className="flex-row items-center gap-2 mt-2">
+                {item.tags?.map((tag, idx) => (
+                  <Text key={idx} className="text-sky-400 font-medium text-xs">#{tag}</Text>
+                ))}
+              </View>
+              
+              <Text className="text-white/50 font-bold text-xs mt-3">{isExpanded ? 'Show less' : 'Show more'}</Text>
+            </TouchableOpacity>
+
+            {/* Comment Preview Section */}
+            <View className="bg-white/20 rounded-2xl border border-gray-700 px-4 py-2 mb-20 overflow-hidden">
+              <TouchableOpacity 
+                onPress={() => onCommentPress(item._id)}
+                className="flex-row justify-between items-center mb-4"
+              >
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-white/80 font-black text-sm">Comments</Text>
+                  <Text className="text-[#fff] text-sm font-medium">{item.comment?.length || 0}</Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                onPress={() => onCommentPress(item._id)}
+                className="flex-row items-center bg-white/20 rounded-full px-3 py-2 border border-gray-800"
+              >
+                 <Image source={{ uri: user?.avatar }} className="w-7 h-7 rounded-full mr-2 bg-gray-100" />
+                 <Text className="text-[#fff] text-sm font-medium">Add community thoughts...</Text>
               </TouchableOpacity>
             </View>
-          </ScrollView>
-
-
-          {/* Description Section */}
-          <TouchableOpacity 
-            onPress={() => setIsExpanded(!isExpanded)}
-            activeOpacity={0.8}
-            className="bg-white/20 rounded-2xl p-4 mb-6"
-          >
-            <View className="flex-row gap-2 mb-2">
-              <Text className="text-[#fff] text-xs font-black uppercase tracking-tighter">Information</Text>
-              <Text className="text-[#fff] text-xs">•</Text>
-              <Text className="text-white/80 text-xs font-medium">{new Date(item.date).toLocaleDateString()}</Text>
-            </View>
-            
-            <Text className="text-[#fff] leading-6 text-[14px] font-medium" numberOfLines={isExpanded ? undefined : 2}>
-              {item.description}
-            </Text>
-            
-            <View className="flex-row items-center gap-2 mt-2">
-              {item.tags?.map((tag, idx) => (
-                <Text key={idx} className="text-sky-400 font-medium text-xs">#{tag}</Text>
-              ))}
-            </View>
-            
-            <Text className="text-white/50 font-bold text-xs mt-3">{isExpanded ? 'Show less' : 'Show more'}</Text>
-          </TouchableOpacity>
-
-          {/* Comment Preview Section */}
-          <View className="bg-white/20 rounded-2xl border border-gray-700 px-4 py-2 mb-20 overflow-hidden">
-            <TouchableOpacity 
-              onPress={() => onCommentPress(item._id)}
-              className="flex-row justify-between items-center mb-4"
-            >
-              <View className="flex-row items-center gap-2">
-                <Text className="text-white/80 font-black text-sm">Comments</Text>
-                <Text className="text-[#fff] text-sm font-medium">{item.comment?.length || 0}</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              onPress={() => onCommentPress(item._id)}
-              className="flex-row items-center bg-white/20 rounded-full px-3 py-2 border border-gray-800"
-            >
-               <Image source={{ uri: user?.avatar }} className="w-7 h-7 rounded-full mr-2 bg-gray-100" />
-               <Text className="text-[#fff] text-sm font-medium">Add community thoughts...</Text>
-            </TouchableOpacity>
           </View>
-        </View>
-      </ScrollView>
-    </View>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 });
 
@@ -747,10 +805,11 @@ export default function FyncMediaFeed() {
     if (!result.canceled) {
       setUploadVideo(result.assets[0].uri);
       // Format duration from milliseconds/seconds
+      // Format duration from milliseconds
       if (result.assets[0].duration) {
-        // ImagePicker returns duration in seconds in some versions, ms in others. 
-        // We handle as seconds (most common for v15+ library assets)
-        const totalSeconds = Math.round(result.assets[0].duration);
+        // expo-image-picker duration is in milliseconds
+        const totalMs = result.assets[0].duration;
+        const totalSeconds = Math.floor(totalMs / 1000);
         const mins = Math.floor(totalSeconds / 60);
         const secs = totalSeconds % 60;
         setUploadDuration(`${mins}:${secs.toString().padStart(2, '0')}`);
@@ -1028,111 +1087,114 @@ export default function FyncMediaFeed() {
 
       {/* Comment Modal */}
       <Modal visible={!!activeCommentMediaId} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setActiveCommentMediaId(null)}>
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1 bg-black">
-          <View className="flex-row justify-between items-center p-4 border-b border-white/20 bg-black">
-            <Text className="font-black text-xl text-white">COMMENTS</Text>
-            <TouchableOpacity onPress={() => setActiveCommentMediaId(null)} className="p-1 bg-gray-50 rounded-full">
-              <Ionicons name="close" size={20} color="#1A1A1A" />
-            </TouchableOpacity>
-          </View>
-
-          {loadingComments ? (
-            <View className="flex-1 justify-center items-center">
-              <ActivityIndicator size="large" color="#ec4899" />
-            </View>
-          ) : (
-            <FlatList
-              data={comments}
-              keyExtractor={item => item._id}
-              contentContainerStyle={{ padding: 20 }}
-              ListEmptyComponent={
-                <View className="items-center justify-center mt-20">
-                  <Ionicons name="chatbubbles-outline" size={48} color="#e2e8f0" />
-                  <Text className="text-slate-200 font-bold mt-4">No comments yet</Text>
-                  <Text className="text-slate-300 text-xs mt-1">Be the first to join the conversation.</Text>
-                </View>
-              }
-              renderItem={({ item }: { item: any }) => {
-                // Only render top-level comments in the main list
-                if (item.parentComment) return null;
-                
-                const renderCommentItem = (comment: any, isReply = false) => {
-                  // Find replies to THIS specific comment
-                  const commentReplies = comments.filter((c: any) => String(c.parentComment) === String(comment._id));
-
-                  return (
-                    <View key={comment._id} className={`${isReply ? 'ml-8 mt-4' : 'mb-6'}`}>
-                      <View className="flex-row">
-                        <Image source={{ uri: comment.commentor?.avatar || 'https://ui-avatars.com/api/?name=User' }} className={`${isReply ? 'w-7 h-7' : 'w-9 h-9'} rounded-full mr-2 bg-gray-100`} />
-                        <View className="flex-1 bg-white/10 rounded-2xl px-3 py-2 border border-gray-800">
-                          <View className="flex-row justify-between items-center mb-1">
-                            <Text className="text-white/50 text-[9px] font-black">
-                              {new Date(comment.createdAt).toLocaleDateString()}
-                            </Text>
-                          </View>
-                          <Text className="text-white/80 text-[13px] font-medium leading-5">{comment.text}</Text>
-                          
-                          <View className="flex-row items-center mt-2 gap-4">
-                             {!isReply && (
-                               <TouchableOpacity onPress={() => {
-                                 setReplyingTo(comment);
-                                 setNewCommentText(`@${comment.commentor.username} `);
-                                 commentInputRef.current?.focus();
-                               }}>
-                                 <Text className="text-pink-400 text-[10px] font-bold uppercase tracking-widest">Reply</Text>
-                               </TouchableOpacity>
-                             )}
-                             {comment.commentor?._id === (user?._id || user?.id) && (
-                                <TouchableOpacity onPress={() => handleDeleteComment(comment._id)}>
-                                  <Text className="text-red-500/90 text-[10px] font-bold uppercase tracking-widest">Delete</Text>
-                                </TouchableOpacity>
-                             )}
-                          </View>
-                        </View>
-                      </View>
-                      
-                      {/* Render Replies */}
-                      {commentReplies.map((reply: any) => renderCommentItem(reply, true))}
-                    </View>
-                  );
-                };
-
-                return renderCommentItem(item);
-              }}
-            />
-          )}
-
-          {/* Replying indicator */}
-          {replyingTo && (
-            <View className="px-4 py-2 bg-white/5 flex-row justify-between items-center border-t border-white/10">
-              <Text className="text-white/60 text-[10px] font-bold italic">
-                Replying to <Text className="text-pink-400">@{replyingTo.commentor?.username}</Text>
-              </Text>
-              <TouchableOpacity onPress={() => { setReplyingTo(null); setNewCommentText(""); }}>
-                <Ionicons name="close-circle" size={16} color="#666" />
+        <SafeAreaView className="flex-1 bg-black">
+          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1 bg-black">
+            <View className="flex-row justify-between items-center p-4 border-b border-white/20 bg-black">
+              <Text className="font-black text-xl text-white">COMMENTS</Text>
+              <TouchableOpacity onPress={() => setActiveCommentMediaId(null)} className="p-1 bg-gray-50 rounded-full">
+                <Ionicons name="close" size={20} color="#1A1A1A" />
               </TouchableOpacity>
             </View>
-          )}
 
-          <View className="p-4 border-t border-gray-700 bg-black flex-row items-center">
-            <Image source={{ uri: user?.avatar }} className="w-10 h-10 rounded-full mr-2 bg-gray-100" />
-            <TextInput
-              ref={commentInputRef}
-              value={newCommentText}
-              onChangeText={setNewCommentText}
-              placeholder="Write a comment..."
-              className="flex-1 bg-black px-3 py-2.5 rounded-full border border-gray-200 font-medium text-white placeholder:text-gray-200"
-            />
-            <TouchableOpacity 
-              disabled={postingComment || !newCommentText.trim()} 
-              onPress={handlePostComment}
-              className={`w-10 h-10 rounded-full items-center justify-center ml-2 shadow-md ${newCommentText.trim() ? 'bg-pink-600 shadow-pink-600/30' : 'bg-gray-200 shadow-none'}`}
-            >
-              {postingComment ? <ActivityIndicator size="small" color="white" /> : <Ionicons name="send" size={18} color={newCommentText.trim() ? "white" : "#94a3b8"} style={{ marginLeft: 2 }} />}
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
+            {loadingComments ? (
+              <View className="flex-1 justify-center items-center">
+                <ActivityIndicator size="large" color="#ec4899" />
+              </View>
+            ) : (
+              <FlatList
+                data={comments}
+                keyExtractor={item => item._id}
+                contentContainerStyle={{ padding: 20 }}
+                ListEmptyComponent={
+                  <View className="items-center justify-center mt-20">
+                    <Ionicons name="chatbubbles-outline" size={48} color="#e2e8f0" />
+                    <Text className="text-slate-200 font-bold mt-4">No comments yet</Text>
+                    <Text className="text-slate-300 text-xs mt-1">Be the first to join the conversation.</Text>
+                  </View>
+                }
+                renderItem={({ item }: { item: any }) => {
+                  // Only render top-level comments in the main list
+                  if (item.parentComment) return null;
+                  
+                  const renderCommentItem = (comment: any, isReply = false) => {
+                    // Find replies to THIS specific comment
+                    const commentReplies = comments.filter((c: any) => String(c.parentComment) === String(comment._id));
+
+                    return (
+                      <View key={comment._id} className={`${isReply ? 'ml-8 mt-4' : 'mb-6'}`}>
+                        <View className="flex-row">
+                          <Image source={{ uri: comment.commentor?.avatar || 'https://ui-avatars.com/api/?name=User' }} className={`${isReply ? 'w-7 h-7' : 'w-9 h-9'} rounded-full mr-2 bg-gray-100`} />
+                          <View className="flex-1 bg-white/10 rounded-2xl px-3 py-2 border border-gray-800">
+                            <View className="flex-row justify-between items-center mb-1">
+                              <Text className="text-white/50 text-[9px] font-black">
+                                {new Date(comment.createdAt).toLocaleDateString()}
+                              </Text>
+                            </View>
+                            <Text className="text-white/80 text-[13px] font-medium leading-5">{comment.text}</Text>
+                            
+                            <View className="flex-row items-center mt-2 gap-4">
+                               {!isReply && (
+                                 <TouchableOpacity onPress={() => {
+                                   setReplyingTo(comment);
+                                   setNewCommentText(`@${comment.commentor.username} `);
+                                   commentInputRef.current?.focus();
+                                 }}>
+                                   <Text className="text-pink-400 text-[10px] font-bold uppercase tracking-widest">Reply</Text>
+                                 </TouchableOpacity>
+                               )}
+                               {comment.commentor?._id === (user?._id || user?.id) && (
+                                  <TouchableOpacity onPress={() => handleDeleteComment(comment._id)}>
+                                    <Text className="text-red-500/90 text-[10px] font-bold uppercase tracking-widest">Delete</Text>
+                                  </TouchableOpacity>
+                               )}
+                            </View>
+                          </View>
+                        </View>
+                        
+                        {/* Render Replies */}
+                        {commentReplies.map((reply: any) => renderCommentItem(reply, true))}
+                      </View>
+                    );
+                  };
+
+                  return renderCommentItem(item);
+                }}
+              />
+            )}
+
+            {/* Replying indicator */}
+            {replyingTo && (
+              <View className="px-4 py-2 bg-white/5 flex-row justify-between items-center border-t border-white/10">
+                <Text className="text-white/60 text-[10px] font-bold italic">
+                  Replying to <Text className="text-pink-400">@{replyingTo.commentor?.username}</Text>
+                </Text>
+                <TouchableOpacity onPress={() => { setReplyingTo(null); setNewCommentText(""); }}>
+                  <Ionicons name="close-circle" size={16} color="#666" />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <View className="p-4 border-t border-gray-700 bg-black flex-row items-center">
+              <Image source={{ uri: user?.avatar }} className="w-10 h-10 rounded-full mr-2 bg-gray-100" />
+              <TextInput
+                ref={commentInputRef}
+                value={newCommentText}
+                onChangeText={setNewCommentText}
+                placeholder="Write a comment..."
+                className="flex-1 bg-black px-3 py-2.5 rounded-full border border-gray-200 font-medium text-white placeholder:text-gray-200"
+              />
+              <TouchableOpacity 
+                disabled={postingComment || !newCommentText.trim()} 
+                onPress={handlePostComment}
+                className={`w-10 h-10 rounded-full items-center justify-center ml-2 shadow-md ${newCommentText.trim() ? 'bg-pink-600 shadow-pink-600/30' : 'bg-gray-200 shadow-none'}`}
+              >
+                {postingComment ? <ActivityIndicator size="small" color="white" /> : <Ionicons name="send" size={18} color={newCommentText.trim() ? "white" : "#94a3b8"} style={{ marginLeft: 2 }} />}
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
       </Modal>
+
 
         </View>
     </GestureHandlerRootView>

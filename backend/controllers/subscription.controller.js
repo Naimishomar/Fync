@@ -4,7 +4,7 @@ import Subscription from "../models/subscription.model.js";
 import User from "../models/user.model.js";
 import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({quiet: true});
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,

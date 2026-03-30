@@ -174,9 +174,10 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
         setCreatingSub(true);
         try {
             const formData = new FormData();
-            formData.append('subCommunityId', targetSubId);
+            formData.append('subId', targetSubId);
             formData.append('name', subName);
             formData.append('description', subDesc);
+            formData.append('userId', user?._id);
             if (subLogo && !subLogo.startsWith('http')) {
                 const filename = subLogo.split('/').pop();
                 const match = /\.(\w+)$/.exec(filename || '');
@@ -196,6 +197,27 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
             }
         } catch (e) { Alert.alert("Error", "Refinement failed"); }
         finally { setCreatingSub(false); }
+    };
+
+    const handleDeleteSubCommunity = async () => {
+        if (!targetSubId) return;
+        Alert.alert("Dissolve Room", "Permanent purging of all messages in this room frequency.", [
+            { text: "Abort", style: "cancel" },
+            { text: "Dissolve", style: "destructive", onPress: async () => {
+                setCreatingSub(true);
+                try {
+                    const res = await axios.delete('/communities/sub/delete', { 
+                        data: { subId: targetSubId, userId: user?._id } 
+                    });
+                    if (res.data.success) {
+                        setEditSubModal(false);
+                        fetchDetails();
+                        Alert.alert("Dissolved", "Channel spectral signature purged.");
+                    }
+                } catch (e) { Alert.alert("Error", "Dissolution failed"); }
+                finally { setCreatingSub(false); }
+            }}
+        ]);
     };
 
     const handleRenew = async () => {
@@ -678,6 +700,13 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                             ) : (
                                 <Text className="text-white font-black uppercase text-[9px] tracking-widest">Sync Specs</Text>
                             )}
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                            onPress={handleDeleteSubCommunity}
+                            className="p-4 rounded-xl items-center border border-red-50"
+                        >
+                            <Text className="text-red-500 font-black uppercase text-[7px] tracking-widest">Dissolve Room</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

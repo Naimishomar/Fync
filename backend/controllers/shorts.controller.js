@@ -4,7 +4,7 @@ import Shorts from '../models/shorts.model.js';
 import Comment from '../models/comment.model.js';
 import Notification from '../models/notification.model.js';
 import User from '../models/user.model.js';
-import { deleteFromCloudinary } from '../utils/cloudinary.js';
+import { deleteFromR2 } from '../utils/r2.js';
 import { getShortsPool, getUserInterestProfile, rankFeed, invalidatePool } from '../utils/feedEngine.js';
 import { clearCache } from '../middlewares/cache.middleware.js';
 
@@ -114,23 +114,38 @@ export const updateShort = async (req, res) => {
 
 export const deleteShort = async (req, res) => {
     try {
+        console.log(`🗑️ [DeleteShort] Request for ID: ${req.params.id} by user: ${req.user.id}`);
         const short = await Shorts.findById(req.params.id);
+        
         if (!short) {
+            console.warn(`⚠️ [DeleteShort] Short not found: ${req.params.id}`);
             return res.status(404).json({ success: false, message: "Short not found" });
         }
+        
+        console.log(`📄 [DeleteShort] Found short owner: ${short.user}`);
         if (short.user.toString() !== req.user.id.toString()) {
+            console.error(`🚫 [DeleteShort] Unauthorized. Short owner: ${short.user}, Request user: ${req.user.id}`);
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
+
         if (short.video) {
-            await deleteFromCloudinary(short.video, "video");
+            console.log(`🎞️ [DeleteShort] Deleting video from R2: ${short.video}`);
+            await deleteFromR2(short.video);
         }
+
+        console.log(`💬 [DeleteShort] Deleting comments for short: ${req.params.id}`);
         await Comment.deleteMany({ post: req.params.id, postType: "Shorts" });
+
+        console.log(`📉 [DeleteShort] Deleting short from DB...`);
         const deletedShort = await Shorts.findByIdAndDelete(req.params.id);
+        
         clearCache('shorts').catch(() => { });
         clearCache(`individual/${req.params.id}`).catch(() => { });
+        
+        console.log(`✅ [DeleteShort] Successfully deleted short: ${req.params.id}`);
         return res.status(200).json({ success: true, message: "Short deleted successfully", short: deletedShort });
     } catch (error) {
-        console.log("Internal server error", error);
+        console.error("❌ [DeleteShort] Exception:", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
@@ -309,19 +324,27 @@ export const updateComment = async (req, res) => {
 
 export const deleteComment = async (req, res) => {
     try {
-        const comment = await Comment.find({ post: req.params.id, postType: "Shorts" });
+        const comment = await Comment.findById(req.params.id);
         if (!comment) {
             return res.status(404).json({ success: false, message: "Comment not found" });
         }
+        
+        // Allow deletion by the comment owner OR the post owner
         if (comment.commentor.toString() !== req.user.id.toString()) {
-            return res.status(403).json({ success: false, message: "Not authorized" });
+            const short = await Shorts.findById(comment.post);
+            if (!short || short.user.toString() !== req.user.id.toString()) {
+                return res.status(403).json({ success: false, message: "Not authorized to delete this comment" });
+            }
         }
-        await Comment.findOneAndDelete({ post: req.params.id });
+        
+        await Comment.findByIdAndDelete(req.params.id);
         return res.status(200).json({ success: true, message: "Comment deleted successfully" });
     } catch (error) {
+        console.error("❌ [DeleteComment] error:", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
 
 export const viewsInShort = async (req, res) => {
     try {

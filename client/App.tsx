@@ -97,9 +97,6 @@ import MarketplaceScreen from './components/olx/MarketplaceScreen';
 import LostAndFound from './components/LostAndFound';
 import NoticeBoard from './components/NoticeBoard';
 
-// Collaboration
-import CollaborationScreen from './components/collaboration/CollaborationScreen';
-
 // Paid Gigs
 import PaidGigs from './components/PaidGigs';
 import CreateShorts from 'components/CreateShorts';
@@ -110,18 +107,15 @@ import CommunityListScreen from './components/community/CommunityListScreen';
 import CreateCommunityScreen from './components/community/CreateCommunityScreen';
 import CommunityHubScreen from './components/community/CommunityHubScreen';
 import SubCommunityChat from './components/community/SubCommunityChat';
+import ClubListScreen from './components/club/ClubListScreen';
+import ClubHubScreen from './components/club/ClubHubScreen';
+import CreateClubScreen from './components/club/CreateClubScreen';
+import CreateSubGroupScreen from './components/club/CreateSubGroupScreen';
+import EditSubGroupScreen from './components/club/EditSubGroupScreen';
+import SubGroupChat from './components/club/SubGroupChat';
+import ClubAdminPanel from './components/club/ClubAdminPanel';
 import FyncMediaFeed from './components/FyncMediaFeed';
 
-
-// Pay & Split
-import PayAndSplitHome from './components/payAndSplit/PayAndSplitHome';
-import QRScannerScreen from './components/payAndSplit/QRScannerScreen';
-import EnterAmountScreen from './components/payAndSplit/EnterAmountScreen';
-import SplitMembersScreen from './components/payAndSplit/SplitMembersScreen';
-import PendingPaymentsScreen from './components/payAndSplit/PendingPaymentsScreen';
-import MonthlyAnalyticsScreen from './components/payAndSplit/MonthlyAnalyticsScreen';
-import GroupManagementScreen from './components/payAndSplit/GroupManagementScreen';
-import CreatedSplitsScreen from './components/payAndSplit/CreatedSplitsScreen';
 import SubscriptionGuard from './components/newFeatures/SubscriptionGuard';
 import PlacementPredictor from './components/newFeatures/PlacementPredictor';
 
@@ -228,19 +222,10 @@ export type RootStackParamList = {
   MarketplaceScreen: undefined;
   LostAndFound: undefined;
   NoticeBoard: undefined;
-  CollaborationScreen: undefined;
   PaidGigs: undefined;
   PlacementHub: undefined;
   StudyAssistant: undefined;
   CreateShorts: undefined;
-  PayAndSplitHome: undefined;
-  QRScannerScreen: undefined;
-  EnterAmountScreen: { merchantUpiId?: string; merchantName?: string };
-  SplitMembersScreen: { amount: number; paymentTransactionId?: string };
-  PendingPaymentsScreen: undefined;
-  MonthlyAnalyticsScreen: undefined;
-  GroupManagementScreen: undefined;
-  CreatedSplitsScreen: undefined;
   CollegeChatScreen: undefined;
   AlumniConnect: undefined;
   ProfessionalHub: undefined;
@@ -255,6 +240,13 @@ export type RootStackParamList = {
   CreateCommunity: undefined;
   CommunityHub: { communityId: string };
   SubCommunityChat: { subId: string; subName: string; communityId: string };
+  ClubList: undefined;
+  ClubHub: { clubId: string };
+  CreateClub: undefined;
+  CreateSubGroup: { clubId: string };
+  EditSubGroup: { subGroupId: string };
+  SubGroupChat: { subGroupId: string; subGroupName: string; clubId: string };
+  ClubAdminPanel: { clubId: string };
   FyncMediaFeed: undefined;
 };
 
@@ -358,17 +350,8 @@ function AppStack() {
       <Stack.Screen name="MarketplaceScreen" component={MarketplaceScreen} />
       <Stack.Screen name="LostAndFound" component={LostAndFound} />
       <Stack.Screen name="NoticeBoard" component={NoticeBoard} />
-      <Stack.Screen name="CollaborationScreen" component={CollaborationScreen} />
       <Stack.Screen name="PaidGigs" component={PaidGigs} />
       <Stack.Screen name="StudyAssistant" component={StudyAssistant} />
-      <Stack.Screen name="PayAndSplitHome" component={PayAndSplitHome} />
-      <Stack.Screen name="QRScannerScreen" component={QRScannerScreen} />
-      <Stack.Screen name="EnterAmountScreen" component={EnterAmountScreen} />
-      <Stack.Screen name="SplitMembersScreen" component={SplitMembersScreen} />
-      <Stack.Screen name="PendingPaymentsScreen" component={PendingPaymentsScreen} />
-      <Stack.Screen name="MonthlyAnalyticsScreen" component={MonthlyAnalyticsScreen} />
-      <Stack.Screen name="GroupManagementScreen" component={GroupManagementScreen} />
-      <Stack.Screen name="CreatedSplitsScreen" component={CreatedSplitsScreen} />
       <Stack.Screen name="CollegeChatScreen" component={CollegeChatScreen} />
       <Stack.Screen name="AlumniConnect" component={AlumniConnect} />
       <Stack.Screen name="ProfessionalHub" component={ProfessionalHub} />
@@ -384,6 +367,13 @@ function AppStack() {
       <Stack.Screen name="CreateCommunity" component={CreateCommunityScreen} />
       <Stack.Screen name="CommunityHub" component={CommunityHubScreen} />
       <Stack.Screen name="SubCommunityChat" component={SubCommunityChat} />
+      <Stack.Screen name="ClubList" component={ClubListScreen} />
+      <Stack.Screen name="ClubHub" component={ClubHubScreen} />
+      <Stack.Screen name="CreateClub" component={CreateClubScreen} />
+      <Stack.Screen name="CreateSubGroup" component={CreateSubGroupScreen} />
+      <Stack.Screen name="EditSubGroup" component={EditSubGroupScreen} />
+      <Stack.Screen name="SubGroupChat" component={SubGroupChat} />
+      <Stack.Screen name="ClubAdminPanel" component={ClubAdminPanel} />
       <Stack.Screen name="TermsAndCondition" component={TermsAndCondition} />
       <Stack.Screen name="FyncMediaFeed" component={FyncMediaFeed} />
     </Stack.Navigator>
@@ -396,7 +386,7 @@ function RootNavigator() {
   if (loading) {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#000" }}>
-        <Image source={require('./assets/logo.png')} className='w-56 h-28 object-contain' />
+        <Image source={require('./assets/Fync.jpg')} className='w-56 h-56 object-contain rounded-full' />
         <ActivityIndicator size="large" color="#fff" />
       </View>
     );

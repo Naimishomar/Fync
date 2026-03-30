@@ -1,7 +1,7 @@
 import express from 'express';
-import { 
-    createFyncMedia, getFyncMedia, getFyncMediaById, updateMedia, deleteMedia,
-    likeAndUnlikeMedia, dislikeAndUndislikeMedia, addMediaComment, getMediaComments, deleteMediaComment
+import {
+  createFyncMedia, getFyncMedia, getFyncMediaById, updateMedia, deleteMedia,
+  likeAndUnlikeMedia, dislikeAndUndislikeMedia, addMediaComment, getMediaComments, deleteMediaComment
 } from '../controllers/fync media/fyncMedia.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { fyncMediaCombinedUpload } from '../utils/cloudinary.js';

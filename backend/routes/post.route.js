@@ -2,11 +2,12 @@ import express from 'express';
 import { createPost, updatePost, getPosts, deletePost, likePost, addComment, deleteComment, updateComment, getComments, getFeed, getFollowingPosts, getPostsByUserId, getPostByPostId, getSmartFeed } from '../controllers/post.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { cacheMiddleware } from '../middlewares/cache.middleware.js';
-import { upload } from '../utils/cloudinary.js';
+import { upload } from '../utils/r2.js';
+import { r2UploadMiddleware } from '../utils/r2Upload.js';
 const router = express.Router();
 
 // ── Specific named routes MUST come before wildcard /:id routes ──
-router.post('/create', authMiddleware, upload.array('image'), createPost);
+router.post('/create', authMiddleware, upload.array('image'), r2UploadMiddleware({ image: 'posts' }), createPost);
 router.get('/posts', authMiddleware, cacheMiddleware(300), getPosts);
 
 // Feed routes
@@ -29,7 +30,7 @@ router.get('/comment/:id', authMiddleware, cacheMiddleware(60), getComments);
 router.get('/individual/:postId', authMiddleware, cacheMiddleware(300), getPostByPostId);
 
 // Wildcard /:id routes — MUST be last (they match everything)
-router.post('/:id', authMiddleware, upload.array('image'), updatePost);
+router.post('/:id', authMiddleware, upload.array('image'), r2UploadMiddleware({ image: 'posts' }), updatePost);
 router.delete('/:id', authMiddleware, deletePost);
 
 export default router;

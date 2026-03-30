@@ -1,7 +1,7 @@
 import Community from '../../models/community/community.model.js';
 import SubCommunity from '../../models/community/subCommunity.model.js';
 import CommunityMessage from '../../models/community/communityMessage.model.js';
-import { deleteFromCloudinary } from '../../utils/cloudinary.js';
+import { deleteFromR2 } from '../../utils/r2.js';
 import redis from '../../utils/redis.js';
 
 let communityIo;
@@ -16,15 +16,15 @@ export const createCommunity = async (req, res) => {
         const banner = req.files?.banner?.[0]?.path;
 
         if (!name || !creatorId) {
-            if (logo) await deleteFromCloudinary(logo);
-            if (banner) await deleteFromCloudinary(banner);
+            if (logo) await deleteFromR2(logo);
+            if (banner) await deleteFromR2(banner);
             return res.status(400).json({ success: false, message: "Name and Creator ID are required" });
         }
 
         const existing = await Community.findOne({ name });
         if (existing) {
-            if (logo) await deleteFromCloudinary(logo);
-            if (banner) await deleteFromCloudinary(banner);
+            if (logo) await deleteFromR2(logo);
+            if (banner) await deleteFromR2(banner);
             return res.status(400).json({ success: false, message: "Community name already exists" });
         }
 
@@ -92,11 +92,11 @@ export const updateCommunity = async (req, res) => {
 
         if (req.files) {
             if (req.files.logo?.[0]) {
-                if (community.logo) await deleteFromCloudinary(community.logo);
+                if (community.logo) await deleteFromR2(community.logo);
                 community.logo = req.files.logo[0].path;
             }
             if (req.files.banner?.[0]) {
-                if (community.banner) await deleteFromCloudinary(community.banner);
+                if (community.banner) await deleteFromR2(community.banner);
                 community.banner = req.files.banner[0].path;
             }
         }
@@ -116,18 +116,18 @@ export const deleteCommunity = async (req, res) => {
         if (community.creator.toString() !== userId) return res.status(403).json({ success: false, message: "Denied" });
 
         // Clean hub assets
-        if (community.logo) await deleteFromCloudinary(community.logo);
-        if (community.banner) await deleteFromCloudinary(community.banner);
+        if (community.logo) await deleteFromR2(community.logo);
+        if (community.banner) await deleteFromR2(community.banner);
 
         // Sub-communities and their assets
         const subs = await SubCommunity.find({ communityId });
         for (const sub of subs) {
-            if (sub.logo) await deleteFromCloudinary(sub.logo);
+            if (sub.logo) await deleteFromR2(sub.logo);
             // Messages media
             const messages = await CommunityMessage.find({ subCommunityId: sub._id });
             for (const msg of messages) {
-                if (msg.image) await deleteFromCloudinary(msg.image);
-                if (msg.video) await deleteFromCloudinary(msg.video);
+                if (msg.image) await deleteFromR2(msg.image);
+                if (msg.video) await deleteFromR2(msg.video);
             }
             await CommunityMessage.deleteMany({ subCommunityId: sub._id });
         }
@@ -268,7 +268,7 @@ export const updateSubCommunity = async (req, res) => {
         if (description) sub.description = description;
 
         if (req.file) {
-            if (sub.logo) await deleteFromCloudinary(sub.logo);
+            if (sub.logo) await deleteFromR2(sub.logo);
             sub.logo = req.file.path;
         }
 
@@ -286,12 +286,12 @@ export const deleteSubCommunity = async (req, res) => {
         if (!sub) return res.status(404).json({ success: false, message: "Room not found" });
         if (sub.communityId.creator.toString() !== userId) return res.status(403).json({ success: false, message: "Denied" });
 
-        if (sub.logo) await deleteFromCloudinary(sub.logo);
+        if (sub.logo) await deleteFromR2(sub.logo);
 
         const messages = await CommunityMessage.find({ subCommunityId: subId });
         for (const msg of messages) {
-            if (msg.image) await deleteFromCloudinary(msg.image);
-            if (msg.video) await deleteFromCloudinary(msg.video);
+            if (msg.image) await deleteFromR2(msg.image);
+            if (msg.video) await deleteFromR2(msg.video);
         }
 
         await CommunityMessage.deleteMany({ subCommunityId: subId });
@@ -323,8 +323,8 @@ export const deleteMessage = async (req, res) => {
             return res.status(403).json({ success: false, message: "Not authorized to delete" });
         }
 
-        if (message.image) await deleteFromCloudinary(message.image);
-        if (message.video) await deleteFromCloudinary(message.video);
+        if (message.image) await deleteFromR2(message.image);
+        if (message.video) await deleteFromR2(message.video);
         
         const subId = message.subCommunityId._id.toString();
         await message.deleteOne();

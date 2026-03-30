@@ -3,10 +3,10 @@ import RegisterBootcamp from "../../models/events/registerBootcamp.model.js";
 import Speaker from "../../models/events/speakers.model.js";
 import { customAlphabet } from "nanoid";
 import QRCode from "qrcode";
-import { deleteFromCloudinary } from "../../utils/cloudinary.js";
+import { deleteFromR2 } from "../../utils/r2.js";
 import Razorpay from "razorpay";
 import dotenv from "dotenv";
-dotenv.config({ silent: true });
+dotenv.config({ quiet: true });
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -32,8 +32,8 @@ export const createBootcamp = async(req,res)=>{
         const banner = req.files?.banner?.[0]?.path;
 
         if(!admin_email || !eventName || !description || !college || !venue || !startDate || !endDate || !startTime || !endTime || userLimit === undefined || fee === undefined){
-            if (logo) await deleteFromCloudinary(logo);
-            if (banner) await deleteFromCloudinary(banner);
+            if (logo) await deleteFromR2(logo);
+            if (banner) await deleteFromR2(banner);
             return res.status(400).json({success: false, message: "Required all fields missing"});
         }
 
@@ -75,8 +75,8 @@ export const createBootcamp = async(req,res)=>{
 
         return res.status(200).json({ success: true, message: "Bootcamp created successfully", bootcamp });
     } catch (error) {
-        if (req.files?.logo?.[0]?.path) await deleteFromCloudinary(req.files.logo[0].path);
-        if (req.files?.banner?.[0]?.path) await deleteFromCloudinary(req.files.banner[0].path);
+        if (req.files?.logo?.[0]?.path) await deleteFromR2(req.files.logo[0].path);
+        if (req.files?.banner?.[0]?.path) await deleteFromR2(req.files.banner[0].path);
         return res.status(500).json({ success: false, message: error.message || "Internal server error" })
     }
 }
@@ -418,8 +418,8 @@ export const updateBootcamp = async (req, res) => {
         const logo = req.files?.logo?.[0]?.path;
         const banner = req.files?.banner?.[0]?.path;
 
-        if (logo && bootcamp.logo) await deleteFromCloudinary(bootcamp.logo);
-        if (banner && bootcamp.banner) await deleteFromCloudinary(bootcamp.banner);
+        if (logo && bootcamp.logo) await deleteFromR2(bootcamp.logo);
+        if (banner && bootcamp.banner) await deleteFromR2(bootcamp.banner);
 
         const updatedBootcamp = await Bootcamp.findOneAndUpdate(
             { eventId },
@@ -449,8 +449,8 @@ export const updateBootcamp = async (req, res) => {
 
         return res.status(200).json({ success: true, message: "Bootcamp updated successfully", bootcamp: updatedBootcamp });
     } catch (error) {
-        if (req.files?.logo?.[0]?.path) await deleteFromCloudinary(req.files.logo[0].path);
-        if (req.files?.banner?.[0]?.path) await deleteFromCloudinary(req.files.banner[0].path);
+        if (req.files?.logo?.[0]?.path) await deleteFromR2(req.files.logo[0].path);
+        if (req.files?.banner?.[0]?.path) await deleteFromR2(req.files.banner[0].path);
         return res.status(500).json({ success: false, message: error.message });
     }
 }
@@ -472,8 +472,8 @@ export const deleteBootcamp = async (req, res) => {
         }
 
         // Cleanup related data
-        if (bootcamp.logo) await deleteFromCloudinary(bootcamp.logo);
-        if (bootcamp.banner) await deleteFromCloudinary(bootcamp.banner);
+        if (bootcamp.logo) await deleteFromR2(bootcamp.logo);
+        if (bootcamp.banner) await deleteFromR2(bootcamp.banner);
 
         // Delete all registrations
         await RegisterBootcamp.deleteMany({ eventId: bootcamp._id });

@@ -4,7 +4,7 @@ import Post from '../models/post.model.js';
 import Comment from '../models/comment.model.js';
 import User from '../models/user.model.js';
 import Notification from '../models/notification.model.js';
-import { deleteFromCloudinary } from '../utils/cloudinary.js';
+import { deleteFromR2 } from '../utils/r2.js';
 import { getCandidatePool, getUserInterestProfile, rankFeed, invalidatePool } from '../utils/feedEngine.js';
 import { clearCache } from '../middlewares/cache.middleware.js';
 
@@ -91,7 +91,7 @@ export const updatePost = async (req, res) => {
                 // Since there are new images, delete old ones
                 if (post.image && Array.isArray(post.image)) {
                     for (let imgUrl of post.image) {
-                        await deleteFromCloudinary(imgUrl, "image");
+                        await deleteFromR2(imgUrl);
                     }
                 }
             }
@@ -130,7 +130,7 @@ export const deletePost = async (req, res) => {
         else {
             if (post.image && Array.isArray(post.image)) {
                 for (let imgUrl of post.image) {
-                    await deleteFromCloudinary(imgUrl, "image");
+                    await deleteFromR2(imgUrl);
                 }
             }
             // Also delete associated comments to keep DB clean
