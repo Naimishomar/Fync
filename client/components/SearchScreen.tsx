@@ -1,17 +1,18 @@
-import { View, Text, TextInput, FlatList, Image, ActivityIndicator, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, FlatList, Image, ActivityIndicator, TouchableOpacity, StatusBar } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { LinearGradient } from "expo-linear-gradient";
+import Avatar from "./Avatar";
 
 interface User {
   _id: string;
   username: string;
   name: string;
   avatar?: string;
+  user_access?: 'admin' | 'user' | 'alumni';
 }
 
 const SearchScreen = () => {
@@ -22,21 +23,21 @@ const SearchScreen = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    const normalized = query.replace(/\s+/g, "").trim();
+    const normalized = query.trim();
     if (!normalized) {
       setSearchResults([]);
       return;
     }
     const timer = setTimeout(() => {
       fetchUsers(normalized);
-    }, 700);
+    }, 400); 
     return () => clearTimeout(timer);
   }, [query]);
 
   const fetchUsers = async (searchText: string) => {
     try {
       setLoading(true);
-      const normalized = searchText.replace(/\s+/g, "").trim();
+      const normalized = searchText.trim();
       const res = await axios.post("/user/search", {
         name: normalized,
       });
@@ -45,7 +46,7 @@ const SearchScreen = () => {
         setSearchResults(res.data.users || []);
       }
     } catch (error) {
-      console.log(error);
+      console.log("Search Error:", error);
     } finally {
       setLoading(false);
     }
@@ -55,7 +56,7 @@ const SearchScreen = () => {
     const updated = [user, ...recentSearches.filter((item) => item._id !== user._id)].slice(0, 10);
     setRecentSearches(updated);
     await AsyncStorage.setItem("recentSearches", JSON.stringify(updated));
-    navigation.navigate("PublicProfile", { userId: user._id }); // Assuming PublicProfile takes userId like your other screens
+    navigation.navigate("PublicProfile", { user: user });
   };
 
   const removeItem = async (userId: string) => {
@@ -90,21 +91,19 @@ const SearchScreen = () => {
     <TouchableOpacity 
       onPress={() => handleUserPress(item)}
       activeOpacity={0.8}
-      className="flex-row items-center justify-between p-4 mb-3 mx-6 bg-[#1e1e1e]/80 rounded-2xl border border-white/10 shadow-lg"
+      className="flex-row items-center justify-between p-4 mx-6 bg-white rounded-2xl border border-gray-100 shadow-sm shadow-black/5"
     >
       <View className="flex-row items-center flex-1">
-        <View className="w-12 h-12 rounded-full bg-gray-800 border border-white/10 justify-center items-center overflow-hidden">
-            <Image 
-            source={{ uri: item.avatar || `https://ui-avatars.com/api/?name=${item.username}&background=random&color=fff` }}
-            className="w-full h-full"
-            />
-        </View>
+        <Avatar 
+          user={item as any} 
+          size={34} 
+        />
         
         <View className="ml-4">
-          <Text className="text-base font-bold text-white">
+          <Text className="text-base font-bold text-zinc-900">
             {item.username}
           </Text>
-          <Text className="text-xs text-gray-400 mt-0.5">
+          <Text className="text-xs text-gray-500 mt-0.5">
             {item.name}
           </Text>
         </View>
@@ -113,7 +112,7 @@ const SearchScreen = () => {
       {isRecent && (
         <TouchableOpacity 
             onPress={() => removeItem(item._id)}
-            className="p-2 bg-black/40 rounded-full"
+            className="rounded-full p-2"
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <Ionicons name="close" size={16} color="#9ca3af" />
@@ -123,33 +122,31 @@ const SearchScreen = () => {
   );
 
   return (
-    <View className="flex-1 bg-black">
-      {/* Background Gradient */}
-      <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
-
+    <View className="flex-1 bg-[#F5F7FA]">
+      <StatusBar barStyle="dark-content" />
       <SafeAreaView className="flex-1">
         
         {/* HEADER */}
-        <View className="flex-row items-center px-6 pt-4 mb-6">
+        <View className="flex-row items-center px-6 pt-4 mb-5">
           <TouchableOpacity 
             onPress={() => navigation.goBack()} 
-            className="p-2 bg-white/10 rounded-full mr-4 border border-white/10"
+            className="p-2 bg-white rounded-full mr-2 border border-gray-100 shadow-sm"
           >
-            <Ionicons name="chevron-back" size={24} color="white" />
+            <Ionicons name="chevron-back" size={18} color="#1A1A1A" />
           </TouchableOpacity>
-          <Text className="text-white text-3xl font-black italic tracking-tighter">
-            USER <Text className="text-pink-500">SEARCH</Text> 🔍
+          <Text className="text-zinc-900 text-2xl font-black tracking-tighter">
+            USER <Text className="text-pink-500">SEARCH</Text>
           </Text>
         </View>
 
         {/* SEARCH BAR */}
         <View className="px-6 mb-4">
-            <View className="flex-row items-center bg-[#2a2a2a] rounded-2xl px-4 py-3.5 border border-white/10 shadow-lg">
+            <View className="flex-row items-center bg-white rounded-2xl px-4 border border-gray-100 shadow-sm">
                 <Ionicons name="search" size={20} color="#ec4899" />
                 <TextInput
-                    className="flex-1 ml-3 text-base text-white font-medium"
+                    className="flex-1 ml-1 text-base text-zinc-900 font-medium"
                     placeholder="Search for developers..."
-                    placeholderTextColor="#6b7280"
+                    placeholderTextColor="#9ca3af"
                     value={query}
                     onChangeText={setQuery}
                     autoCapitalize="none"
@@ -158,7 +155,7 @@ const SearchScreen = () => {
                 {loading && <ActivityIndicator size="small" color="#ec4899" className="mr-2" />}
                 {query.length > 0 && (
                     <TouchableOpacity onPress={() => setQuery("")} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                        <Ionicons name="close-circle" size={20} color="#6b7280" />
+                        <Ionicons name="close-circle" size={20} color="#9ca3af" />
                     </TouchableOpacity>
                 )}
             </View>
@@ -174,10 +171,15 @@ const SearchScreen = () => {
             contentContainerStyle={{ paddingBottom: 20 }}
             ListEmptyComponent={
               !loading ? (
-                <View className="items-center mt-12 opacity-50">
-                    <Ionicons name="search-outline" size={48} color="gray" />
-                    <Text className="text-center text-gray-400 mt-4 font-bold">
+                <View className="items-center mt-12 px-10">
+                    <View className="w-16 h-16 bg-white rounded-full items-center justify-center mb-4 border border-gray-100 shadow-sm">
+                      <Ionicons name="search-outline" size={32} color="#cbd5e1" />
+                    </View>
+                    <Text className="text-center text-zinc-900 font-bold text-lg">
                     No users found
+                    </Text>
+                    <Text className="text-center text-gray-500 mt-1">
+                    Try searching for a different name or username
                     </Text>
                 </View>
               ) : null
@@ -201,10 +203,15 @@ const SearchScreen = () => {
               renderItem={({ item }) => renderUserItem({ item, isRecent: true })}
               contentContainerStyle={{ paddingBottom: 20 }}
               ListEmptyComponent={
-                <View className="items-center mt-12 opacity-50">
-                    <Ionicons name="time-outline" size={48} color="gray" />
-                    <Text className="text-center text-gray-400 mt-4 font-bold">
+                <View className="items-center mt-12 px-10">
+                    <View className="w-16 h-16 bg-white rounded-full items-center justify-center mb-4 border border-gray-100 shadow-sm">
+                      <Ionicons name="time-outline" size={32} color="#cbd5e1" />
+                    </View>
+                    <Text className="text-center text-zinc-900 font-bold text-lg">
                     No recent searches
+                    </Text>
+                    <Text className="text-center text-gray-500 mt-1">
+                    Start exploring our community!
                     </Text>
                 </View>
               }

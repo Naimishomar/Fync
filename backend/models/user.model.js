@@ -38,6 +38,7 @@ const userSchema = new mongoose.Schema({
     college: {
         type: String,
         required: true,
+        index: true
     },
     year: {
         type: Number,
@@ -88,11 +89,41 @@ const userSchema = new mongoose.Schema({
     },
     user_access: {
         type: String,
-        enum: ['admin', 'user'],
+        enum: ['admin', 'user', 'alumni'],
         default: 'user'
     },
     about: {
         type: String,
+    },
+    // Alumni specific fields
+    graduationYear: {
+        type: Number,
+        index: true
+    },
+    company: {
+        type: String,
+    },
+    role: {
+        type: String,
+    },
+    experienceLevel: {
+        type: String,
+        enum: ['Junior', 'Mid', 'Senior', 'Lead', 'Founder', 'Other']
+    },
+    domains: {
+        type: [String]
+    },
+    professionalEmail: {
+        type: String,
+        sparse: true
+    },
+    linkedIn: {
+        type: String,
+        default: null
+    },
+    isVerifiedAlumni: {
+        type: Boolean,
+        default: false
     },
     skills: {
         type: [String]
@@ -163,6 +194,10 @@ const userSchema = new mongoose.Schema({
             type: Date,
             default: null
         }
+    },
+    oneVsOnePoints: {
+        type: Number,
+        default: 0
     }
 }, { timestamps: true });
 

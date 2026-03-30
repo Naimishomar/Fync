@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import {
     View, Text, ActivityIndicator, Image, TouchableOpacity,
     Modal, TextInput, KeyboardAvoidingView, Platform, FlatList, Alert,
-    Pressable, Dimensions, ScrollView
+    Pressable, Dimensions, ScrollView, Share
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +10,9 @@ import { Video, ResizeMode } from 'expo-av';
 import axios from "../context/axiosConfig";
 import { useAuth } from '../context/auth.context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Image as ExpoImage } from 'expo-image';
+import { memo } from 'react';
+import Avatar from './Avatar';
 
 const { width, height } = Dimensions.get('window');
 
@@ -17,66 +20,143 @@ const { width, height } = Dimensions.get('window');
 const getEndpoints = (isShort: boolean, id: string) => ({
     get: isShort ? `/shorts/individual/${id}` : `/post/individual/${id}`,
     like: isShort ? `/shorts/like/${id}` : `/post/like/${id}`,
-    view: isShort ? `/shorts/view/${id}` : null,
+    view: isShort ? `/shorts/views/${id}` : null,
     getComments: isShort ? `/shorts/comment/all/${id}` : `/post/comment/${id}`,
     addComment: isShort ? `/shorts/comment/add/${id}` : `/post/comment/${id}`,
-    updateComment: isShort ? `/shorts/comment/update` : `/post/comment`, // Append ID later
-    deleteComment: isShort ? `/shorts/comment/delete` : `/post/comment/delete`, // Append ID later
+    updateComment: isShort ? `/shorts/comment/update` : `/post/comment/update`,
+    deleteComment: isShort ? `/shorts/comment/delete` : `/post/comment`,
 });
 
-// --- 1. UNIFIED COMMENTS MODAL (Dark Theme Matched) ---
+// --- 0. COMMENT ITEM SUB-COMPONENT (Recursive) ---
+const CommentItem = ({ 
+    comment, 
+    currentUser, 
+    onReply, 
+    onDelete, 
+    onEdit, 
+    editingId, 
+    editingText, 
+    setEditingText, 
+    handleUpdate, 
+    actionLoadingId, 
+    isReply = false 
+}: any) => (
+    <View className={`${isReply ? 'ml-10 mt-3' : 'mb-5'}`}>
+        <View className="flex-row">
+            <Image source={{ uri: comment.commentor?.avatar || 'https://ui-avatars.com/api/?name=User' }} className={`${isReply ? 'h-7 w-7' : 'h-9 w-9'} rounded-full mr-3 bg-gray-700`} />
+            <View className="flex-1">
+                <View className="flex flex-row items-center gap-1">
+                    <Text className="text-white font-semibold text-[13px]">{comment.commentor?.name}</Text>
+                    <Text className="text-gray-400 text-[11px]">@{comment.commentor?.username}</Text>
+                </View>
+
+                {editingId === comment._id ? (
+                    <TextInput
+                        value={editingText}
+                        onChangeText={setEditingText}
+                        className="text-white border-b border-gray-600 pb-1 mt-1 text-[13px]"
+                        autoFocus
+                    />
+                ) : (
+                    <Text className="text-gray-300 mt-0.5 text-[13px] leading-5">
+                        {comment.replyToUser && <Text className="text-pink-400">@{comment.replyToUser.username} </Text>}
+                        {comment.text}
+                    </Text>
+                )}
+
+                {/* Actions */}
+                <View className="flex-row mt-2 gap-4">
+                    {!isReply && (
+                        <Pressable onPress={() => onReply(comment)}>
+                            <Text className="text-gray-500 text-[11px] font-bold uppercase tracking-wider">Reply</Text>
+                        </Pressable>
+                    )}
+                    
+                    {comment.commentor?._id === currentUser?._id && (
+                        <>
+                            {editingId === comment._id ? (
+                                <Pressable onPress={() => handleUpdate(comment._id)}>
+                                    {actionLoadingId === comment._id ? <ActivityIndicator size="small" color="#fff" /> : <Text className="text-blue-400 text-[11px] font-bold uppercase tracking-wider">Save</Text>}
+                                </Pressable>
+                            ) : (
+                                <Pressable onPress={() => onEdit(comment)}>
+                                    <Text className="text-gray-500 text-[11px] font-bold uppercase tracking-wider">Edit</Text>
+                                </Pressable>
+                            )}
+                            <Pressable onPress={() => onDelete(comment._id)}>
+                                {actionLoadingId === comment._id ? <ActivityIndicator size="small" color="red" /> : <Text className="text-red-400/80 text-[11px] font-bold uppercase tracking-wider">Delete</Text>}
+                            </Pressable>
+                        </>
+                    )}
+                </View>
+            </View>
+        </View>
+        
+        {/* Render Replies Recursively */}
+        {comment.replies && comment.replies.map((reply: any) => (
+            <CommentItem 
+                key={reply._id}
+                comment={reply}
+                currentUser={currentUser}
+                onReply={onReply}
+                onDelete={onDelete}
+                onEdit={onEdit}
+                editingId={editingId}
+                editingText={editingText}
+                setEditingText={setEditingText}
+                handleUpdate={handleUpdate}
+                actionLoadingId={actionLoadingId}
+                isReply={true}
+            />
+        ))}
+    </View>
+);
+
+// --- 1. UNIFIED COMMENTS MODAL ---
 const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, onCommentAdded }: any) => {
     const [comments, setComments] = useState<any[]>([]);
     const [newComment, setNewComment] = useState('');
     const [loading, setLoading] = useState(true);
     const [posting, setPosting] = useState(false);
 
-    // Edit State
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editingText, setEditingText] = useState("");
     const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+    const [replyingTo, setReplyingTo] = useState<any>(null);
+    const commentInputRef = useRef<TextInput>(null);
 
-    const endpoints = getEndpoints(isShort, id);
+    const endpoints = useMemo(() => getEndpoints(isShort, id), [isShort, id]);
 
-    useEffect(() => {
-        if (isVisible && id) fetchComments();
-    }, [isVisible, id]);
-
-    const fetchComments = async () => {
+    const fetchComments = useCallback(async () => {
         setLoading(true);
         try {
             const res = await axios.get(endpoints.getComments);
             if (res.data.success) {
-                const sorted = res.data.comments.sort((a: any, b: any) =>
-                    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-                );
-                setComments(sorted);
+                setComments(res.data.comments);
             }
         } catch (error) {
             console.log("Error loading comments", error);
         } finally {
             setLoading(false);
         }
-    };
+    }, [endpoints.getComments]);
+
+    useEffect(() => {
+        if (isVisible && id) fetchComments();
+    }, [isVisible, id]);
 
     const handlePostComment = async () => {
         if (!newComment.trim()) return;
         setPosting(true);
         try {
-            const res = await axios.post(endpoints.addComment, { text: newComment });
+            const res = await axios.post(endpoints.addComment, { 
+                text: newComment,
+                parentCommentId: replyingTo?._id || null
+            });
             if (res.data.success) {
-                const addedComment = res.data.comment;
-                // Manual population
-                if (!addedComment.commentor) {
-                    addedComment.commentor = {
-                        _id: currentUser._id,
-                        username: currentUser.username,
-                        avatar: currentUser.avatar,
-                        name: currentUser.name || currentUser.username
-                    };
-                }
-                setComments([addedComment, ...comments]);
+                fetchComments(); 
                 setNewComment('');
+                setReplyingTo(null);
                 if (onCommentAdded) onCommentAdded();
             }
         } catch (error) {
@@ -90,12 +170,9 @@ const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, on
         if (!editingText.trim()) return;
         setActionLoadingId(commentId);
         try {
-            // Construct URL: e.g. /shorts/comment/update/123
             const url = `${endpoints.updateComment}/${commentId}`;
             await axios.post(url, { text: editingText });
-
-            // Update Local State
-            setComments(prev => prev.map(c => c._id === commentId ? { ...c, text: editingText } : c));
+            fetchComments();
             setEditingId(null);
             setEditingText("");
         } catch (error) {
@@ -109,10 +186,8 @@ const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, on
         setActionLoadingId(commentId);
         try {
             const url = `${endpoints.deleteComment}/${commentId}`;
-            // Try both methods just in case backend varies
             await axios.post(url).catch(() => axios.delete(url));
-
-            setComments(prev => prev.filter(c => c._id !== commentId));
+            fetchComments();
         } catch (error) {
             Alert.alert("Error", "Delete failed");
         } finally {
@@ -128,7 +203,7 @@ const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, on
             >
                 <Pressable className="flex-1" onPress={onClose} />
 
-                <View className="bg-neutral-900 rounded-t-2xl h-[75%] px-4 pt-4 border-t border-gray-800">
+                <View className="bg-neutral-900 rounded-t-2xl h-[75%] pt-4 border-t border-gray-800">
                     {/* Header */}
                     <View className="items-center mb-3">
                         <View className="h-1 w-10 bg-gray-600 rounded-full mb-2" />
@@ -137,67 +212,64 @@ const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, on
 
                     {/* List */}
                     {loading ? (
-                        <ActivityIndicator size="large" color="#fff" className="mt-10" />
+                        <ActivityIndicator size="large" color="#ec4899" className="mt-10" />
                     ) : (
-                        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
-                            {comments.length === 0 && (
+                        <FlatList
+                            data={comments}
+                            keyExtractor={(item) => item._id}
+                            showsVerticalScrollIndicator={false}
+                            contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 16 }}
+                            ListEmptyComponent={
                                 <Text className="text-gray-400 text-center mt-10">No comments yet</Text>
+                            }
+                            renderItem={({ item }) => (
+                                <CommentItem 
+                                    comment={item}
+                                    currentUser={currentUser}
+                                    onReply={(c: any) => {
+                                        setReplyingTo(c);
+                                        setNewComment(`@${c.commentor.username} `);
+                                        commentInputRef.current?.focus();
+                                    }}
+                                    onDelete={handleDeleteComment}
+                                    onEdit={(c: any) => {
+                                        setEditingId(c._id);
+                                        setEditingText(c.text);
+                                    }}
+                                    editingId={editingId}
+                                    editingText={editingText}
+                                    setEditingText={setEditingText}
+                                    handleUpdate={handleUpdateComment}
+                                    actionLoadingId={actionLoadingId}
+                                />
                             )}
-                            {comments.map((c: any) => (
-                                <View key={c._id} className="flex-row mb-4">
-                                    <Image source={{ uri: c.commentor?.avatar }} className="h-9 w-9 rounded-full mr-3 bg-gray-700" />
-                                    <View className="flex-1">
-                                        <View className="flex flex-row items-center gap-1">
-                                            <Text className="text-white font-semibold">{c.commentor?.name}</Text>
-                                            <Text className="text-gray-400 text-sm">@{c.commentor?.username}</Text>
-                                        </View>
-
-                                        {editingId === c._id ? (
-                                            <TextInput
-                                                value={editingText}
-                                                onChangeText={setEditingText}
-                                                className="text-white border-b border-gray-600 pb-1 mt-1"
-                                                autoFocus
-                                            />
-                                        ) : (
-                                            <Text className="text-gray-300 mt-0.5">{c.text}</Text>
-                                        )}
-
-                                        {/* Actions */}
-                                        {(c.commentor?._id === currentUser._id) && (
-                                            <View className="flex-row mt-2">
-                                                {editingId === c._id ? (
-                                                    <Pressable onPress={() => handleUpdateComment(c._id)} className="mr-4">
-                                                        {actionLoadingId === c._id ? <ActivityIndicator size="small" color="#fff" /> : <Text className="text-blue-400 text-xs">Save</Text>}
-                                                    </Pressable>
-                                                ) : (
-                                                    <Pressable onPress={() => { setEditingId(c._id); setEditingText(c.text); }} className="mr-4">
-                                                        <Text className="text-gray-400 text-xs">Edit</Text>
-                                                    </Pressable>
-                                                )}
-                                                <Pressable onPress={() => handleDeleteComment(c._id)}>
-                                                    {actionLoadingId === c._id ? <ActivityIndicator size="small" color="red" /> : <Text className="text-red-400 text-xs">Delete</Text>}
-                                                </Pressable>
-                                            </View>
-                                        )}
-                                    </View>
-                                </View>
-                            ))}
-                        </ScrollView>
+                        />
                     )}
 
                     {/* Input */}
-                    <View className="absolute bottom-0 left-0 right-0 border-t border-gray-800 bg-neutral-900 px-3 py-3 flex-row items-center">
-                        <TextInput
-                            value={newComment}
-                            onChangeText={setNewComment}
-                            placeholder="Add a comment..."
-                            placeholderTextColor="#888"
-                            className="flex-1 text-white bg-neutral-800 rounded-full px-4 py-3 mr-2"
-                        />
-                        <Pressable onPress={handlePostComment} disabled={posting || !newComment.trim()}>
-                            {posting ? <ActivityIndicator size="small" color="#ec4899" /> : <Text className="text-pink-400 font-semibold">Post</Text>}
-                        </Pressable>
+                    <View className="absolute bottom-0 left-0 right-0 border-t border-gray-800 bg-neutral-900 px-3 pt-2 pb-8">
+                        {replyingTo && (
+                            <View className="flex-row items-center justify-between bg-neutral-800 px-3 py-2 mb-2 rounded-lg mx-2">
+                                <Text className="text-gray-400 text-xs text-white">Replying to <Text className="font-bold">@{replyingTo.commentor?.username}</Text></Text>
+                                <Pressable onPress={() => setReplyingTo(null)}>
+                                    <Ionicons name="close-circle" size={18} color="#9ca3af" />
+                                </Pressable>
+                            </View>
+                        )}
+                        <View className="flex-row items-center px-2">
+                            <TextInput
+                                ref={commentInputRef}
+                                value={newComment}
+                                onChangeText={setNewComment}
+                                placeholder={replyingTo ? "Add a reply..." : "Add a comment..."}
+                                placeholderTextColor="#888"
+                                className="flex-1 text-white bg-neutral-800 rounded-full px-4 py-3 mr-2"
+                                multiline
+                            />
+                            <Pressable onPress={handlePostComment} disabled={posting || !newComment.trim()}>
+                                {posting ? <ActivityIndicator size="small" color="#ec4899" /> : <Text className={`font-semibold px-2 ${!newComment.trim() ? 'text-gray-600' : 'text-pink-400'}`}>Post</Text>}
+                            </Pressable>
+                        </View>
                     </View>
                 </View>
             </KeyboardAvoidingView>
@@ -233,20 +305,22 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
         loadData();
     }, [id]);
 
-    const loadData = async () => {
+    const endpoints = useMemo(() => getEndpoints(isShort, id), [isShort, id]);
+
+    const loadData = useCallback(async () => {
         try {
             setLoading(true);
-            const endpoints = getEndpoints(isShort, id);
             const res = await axios.get(endpoints.get);
 
             if (res.data.success) {
                 const fetchedData = isShort ? res.data.short : res.data.post;
                 setData(fetchedData);
                 setLikeCount(fetchedData.likes || 0);
-                setIsLiked(fetchedData.liked_by.includes(currentUser?._id));
+                const isUserLiked = fetchedData.liked_by?.some((id: any) => String(id) === String(currentUser?._id));
+                setIsLiked(isUserLiked);
                 setCommentCount(fetchedData.comments?.length || 0);
 
-                if (isShort && endpoints.view) axios.get(endpoints.view);
+                if (isShort && endpoints.view) axios.post(endpoints.view);
             }
         } catch (error: any) {
             console.error("Error loading data:", error);
@@ -254,12 +328,11 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id, isShort, currentUser?._id, endpoints.get, endpoints.view]);
 
-    const handleLike = async () => {
+    const handleLike = useCallback(async () => {
         const previousLiked = isLiked;
         const previousCount = likeCount;
-        const endpoints = getEndpoints(isShort, id);
 
         setIsLiked(!isLiked);
         setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
@@ -270,10 +343,27 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             setIsLiked(previousLiked);
             setLikeCount(previousCount);
         }
-    };
+    }, [isLiked, likeCount, endpoints.like]);
 
-    const handleCommentAdded = () => {
+    const handleCommentAdded = useCallback(() => {
         setCommentCount(prev => prev + 1);
+    }, []);
+
+    const handleShare = async () => {
+        try {
+            const id = data._id;
+            const idParam = isShort ? `shortId=${id}` : `postId=${id}`;
+            const shareUrl = `https://fync.app/view?${idParam}`;
+            const playStoreUrl = "https://play.google.com/store/apps/details?id=com.fync.app";
+
+            await Share.share({
+                message: isShort 
+                    ? `Check out this short "${data.title}" on Fync!\n\nWatch here: ${shareUrl}\n\nDon't have Fync? Download: ${playStoreUrl}`
+                    : `Check out this post by ${data.user?.username} on Fync!\n\n${data.description || ''}\n\nView post: ${shareUrl}\n\nDon't have Fync? Download: ${playStoreUrl}`,
+            });
+        } catch (error: any) {
+            console.log('Share error:', error.message);
+        }
     };
 
     if (loading) {
@@ -322,9 +412,9 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             onPress={() => navigation.navigate("PublicProfile", { user: data.user })}
                             className="flex-row items-center mb-3"
                         >
-                            <Image
-                                source={{ uri: data.user?.avatar || `https://ui-avatars.com/api/?name=${data.user?.username}` }}
-                                className="h-10 w-10 rounded-full mr-3 border border-white/50"
+                            <Avatar 
+                                user={data.user as any} 
+                                size={40} 
                             />
                             <View>
                                 <Text className="text-white font-bold text-base shadow-md">
@@ -359,6 +449,10 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             <Ionicons name="eye-outline" size={32} color="white" />
                             <Text className="text-white text-xs font-bold shadow-md">{data.views || 0}</Text>
                         </View>
+
+                        <TouchableOpacity onPress={handleShare}>
+                            <Ionicons name="paper-plane-outline" size={32} color="white" />
+                        </TouchableOpacity>
                     </View>
                 </View>
 
@@ -386,9 +480,9 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             <Ionicons name="arrow-back" size={24} color="white" />
                         </Pressable>
                         <Pressable className="flex-row items-center" onPress={() => navigation.navigate("PublicProfile", { user: data?.user })}>
-                            <Image
-                                source={{ uri: data.user?.avatar || `https://ui-avatars.com/api/?name=${data.user?.username}` }}
-                                className="w-9 h-9 rounded-full border border-gray-800"
+                            <Avatar 
+                                user={data.user as any} 
+                                size={36} 
                             />
                             <View className="ml-3">
                                 <Text className="text-white font-bold text-sm">{data.user?.username}</Text>
@@ -403,10 +497,12 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                 <ScrollView>
                     <Pressable onPress={() => setResizeMode(prev => !prev)}>
                         <View className="w-full bg-gray-900 aspect-square">
-                            <Image
+                            <ExpoImage
                                 source={{ uri: data.image?.[0] }}
                                 style={{ width: width, height: width }}
-                                resizeMode={resizeMode ? "contain" : "cover"}
+                                contentFit={resizeMode ? "contain" : "cover"}
+                                cachePolicy="disk"
+                                transition={300}
                             />
                         </View>
                     </Pressable>
@@ -423,7 +519,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                         <TouchableOpacity onPress={() => setCommentModalVisible(true)}>
                             <Ionicons name="chatbubble-outline" size={26} color="white" />
                         </TouchableOpacity>
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={handleShare}>
                             <Ionicons name="paper-plane-outline" size={26} color="white" style={{ transform: [{ rotate: '-0deg' }], marginTop: -3 }} />
                         </TouchableOpacity>
                     </View>

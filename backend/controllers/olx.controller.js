@@ -1,7 +1,7 @@
 import express from 'express';
 import OLX from '../models/olx.model.js';
 import User from '../models/user.model.js';
-import { deleteFromCloudinary } from '../utils/cloudinary.js';
+import { deleteFromR2 } from '../utils/r2.js';
 
 export const sellProduct = async (req, res) => {
     try {
@@ -69,7 +69,7 @@ export const updateProduct = async (req, res) => {
                 product_image = req.files.map(file => file.path);
                 if (product.product_image && Array.isArray(product.product_image)) {
                     for (let imgUrl of product.product_image) {
-                        await deleteFromCloudinary(imgUrl, "image");
+                        await deleteFromR2(imgUrl);
                     }
                 }
             }
@@ -105,9 +105,7 @@ export const deleteProduct = async (req, res) => {
         }
         else {
             if (product.product_image && Array.isArray(product.product_image)) {
-                for (let imgUrl of product.product_image) {
-                    await deleteFromCloudinary(imgUrl, "image");
-                }
+                    await deleteFromR2(imgUrl);
             }
             const deletedProduct = await OLX.findByIdAndDelete(req.params.id);
             return res.status(200).json({ success: true, message: "Product deleted successfully", product: deletedProduct });

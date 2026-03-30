@@ -8,7 +8,8 @@ import {
   Pressable, 
   Linking,
   TextInput,
-  TouchableOpacity
+  TouchableOpacity,
+  StatusBar
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -31,75 +32,71 @@ const HackathonCard = memo(({ item, onPress }: { item: any; onPress: (url: strin
   };
 
   return (
-    <View className="bg-[#1e1e1e]/80 rounded-3xl mb-6 mx-5 overflow-hidden border border-white/10 shadow-lg">
-      <Image 
-        source={{ uri: fixUrl(item.thumbnail_url) }} 
-        className="w-full h-48 bg-white/5 rounded-xl"
-        resizeMode="cover"
-      />
-      
-      {/* Overlay Gradient on Image */}
-      <LinearGradient
-         colors={['transparent', 'rgba(30,30,30,1)']}
-         className="absolute w-full h-48 bottom-0"
-      />
-      
-      <View className="p-5 -mt-12">
-        <View className="flex-row justify-between items-start mb-2">
-            <View className="bg-black/60 px-3 py-1 rounded-full backdrop-blur-md border border-white/10">
-                <Text className="text-[10px] text-gray-300 font-bold uppercase tracking-wider">
-                    {item.submission_period_dates || "Open"}
-                </Text>
-            </View>
-            <View className={`px-3 py-1 rounded-full border ${item.is_online ? "bg-green-500/20 border-green-500/30" : "bg-blue-500/20 border-blue-500/30"}`}>
-                <Text className={`text-[10px] font-bold uppercase ${item.is_online ? "text-green-400" : "text-blue-400"}`}>
-                    {item.is_online ? "Online" : "Offline"}
+    <View className="bg-white rounded-2xl mb-8 mx-6 overflow-hidden shadow-sm shadow-black/5 border border-gray-300">
+      <View className="relative">
+        <Image 
+          source={{ uri: fixUrl(item.thumbnail_url) }} 
+          className="w-full h-56 bg-slate-50"
+          resizeMode="cover"
+        />
+        <View className="absolute mt-5 ml-5">
+            <View className={`px-4 py-1.5 rounded-full border shadow-sm ${item.is_online ? "bg-emerald-50 border-emerald-100" : "bg-blue-50 border-blue-100"}`}>
+                <Text className={`text-[10px] font-black uppercase tracking-widest ${item.is_online ? "text-emerald-500" : "text-blue-500"}`}>
+                    {item.is_online ? "Online" : "On-Site"}
                 </Text>
             </View>
         </View>
+      </View>
+      
+      <View className="p-4">
+        <View className="bg-slate-50 self-start px-3 py-1 rounded-lg border border-slate-100 mb-3">
+            <Text className="text-[10px] text-slate-500 font-black uppercase tracking-widest">
+                {item.submission_period_dates || "Open Entry"}
+            </Text>
+        </View>
 
-        <Text className="text-xl font-bold text-white mb-3 shadow-sm" numberOfLines={2}>
+        <Text className="text-2xl font-black italic text-zinc-900 mb-4 tracking-tighter leading-7" numberOfLines={2}>
             {item.title}
         </Text>
         
         {/* Stats Row */}
-        <View className="flex-col mb-3 gap-1">
+        <View className="flex-row items-center gap-6 mb-6">
           <View className="flex-row items-center">
-            <Ionicons name="trophy" size={14} color="#FBBF24" />
-            <Text className="ml-1.5 text-gray-300 font-medium text-xs">
+            <View className="w-8 h-8 bg-amber-50 rounded-full items-center justify-center border border-amber-100">
+                <Ionicons name="trophy" size={14} color="#d97706" />
+            </View>
+            <Text className="ml-2 text-zinc-600 font-black italic text-xs tracking-tight uppercase">
                 {stripHtml(item.prize_amount)}
             </Text>
           </View>
           <View className="flex-row items-center">
-            <Ionicons name="people" size={14} color="#60A5FA" />
-            <Text className="ml-1.5 text-gray-300 font-medium text-xs">
-                {item.registrations_count || "Join"} Registered
+            <View className="w-8 h-8 bg-blue-50 rounded-full items-center justify-center border border-blue-100">
+                <Ionicons name="people" size={14} color="#2563eb" />
+            </View>
+            <Text className="ml-2 text-zinc-600 font-black italic text-xs tracking-tight uppercase">
+                {item.registrations_count || "0"} Devs
             </Text>
           </View>
         </View>
 
         {/* Themes Tags */}
-        <View className="flex-row flex-wrap gap-2 mb-5">
+        <View className="flex-row flex-wrap gap-2 mb-8">
           {item.themes?.slice(0, 3).map((theme: any, index: number) => (
-            <View key={index} className="bg-white/5 px-2.5 py-1 rounded-md border border-white/5">
-                <Text className="text-[10px] text-gray-400 font-medium">#{theme.name}</Text>
+            <View key={index} className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                <Text className="text-[10px] text-slate-500 font-black uppercase tracking-tight">#{theme.name}</Text>
             </View>
           ))}
         </View>
 
         <TouchableOpacity 
-          activeOpacity={0.8}
+          activeOpacity={0.9}
           onPress={() => onPress(item.url)}
+          className="bg-pink-500 rounded-2xl overflow-hidden shadow-xl shadow-black/20"
         >
-          <LinearGradient
-              colors={['#6366f1', '#a855f7']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              className="py-3 rounded-xl flex-row justify-center items-center shadow-lg shadow-indigo-500/30"
-          >
-            <Text className="text-white font-bold text-sm mr-2">View Details</Text>
-            <Ionicons name="arrow-forward" size={16} color="white" />
-          </LinearGradient>
+          <View className="py-5 flex-row justify-center items-center">
+            <Text className="text-white font-black italic uppercase tracking-[2px] text-sm mr-2">Access Portal</Text>
+            <Ionicons name="arrow-forward" size={18} color="white" />
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -154,10 +151,8 @@ const HackathonList = () => {
     }
   }, [hasMore, loading, page, searchQuery]);
 
-  // --- 🔍 FILTER LOGIC ---
   const filteredHackathons = hackathons.filter((item) => {
       const query = searchQuery.toLowerCase();
-      // Match Title OR Themes
       const matchesTitle = item.title?.toLowerCase().includes(query);
       const matchesTheme = item.themes?.some((t: any) => t.name.toLowerCase().includes(query));
       
@@ -170,42 +165,42 @@ const HackathonList = () => {
 
   const renderFooter = () => {
     if (!loading) return <View className="h-12" />;
-    return <View className="py-5 items-center"><ActivityIndicator size="small" color="#ec4899" /></View>;
+    return <View className="py-10 items-center"><ActivityIndicator size="small" color="#ec4899" /></View>;
   };
 
   return (
-    <View className="flex-1 bg-black">
-      {/* 🌸 BACKGROUND 🌸 */}
-      <Image source={{ uri: BG_IMAGE }} className="absolute w-full h-full opacity-50" />
-      <LinearGradient 
-        colors={['rgba(236, 72, 153, 0.40)', 'rgba(0,0,0,0.85)', '#000000']} 
-        className="absolute w-full h-full" 
-      />
-
-      <SafeAreaView className="flex-1 px-2">
+    <View className="flex-1 bg-[#F8FAFC]">
+      <StatusBar barStyle="dark-content" />
+      
+      <SafeAreaView className="flex-1">
         
         {/* Header */}
-        <View className="px-5 pt-4 pb-2">
-            <Text className="text-white text-3xl font-black shadow-lg">Hackathons 🚀</Text>
-            <Text className="text-gray-300 text-sm mt-1 font-medium">
-                Build, compete, and win prizes globally.
-            </Text>
+        <View className="px-8 pt-8 pb-4">
+            <View className="flex-row items-center gap-3">
+                <View className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/20">
+                    <Ionicons name="rocket" size={24} color="white" />
+                </View>
+                <View>
+                    <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter uppercase">Hackathons</Text>
+                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">Build The Future Globally</Text>
+                </View>
+            </View>
         </View>
 
         {/* 🔍 Search Bar */}
-        <View className="mx-5 mt-4 mb-2">
-            <View className="flex-row items-center bg-[#1a1a1a]/90 rounded-2xl px-4 border border-white/10 shadow-md">
-                <Ionicons name="search" size={20} color="#9ca3af" />
+        <View className="px-6 mt-2 mb-4">
+            <View className="flex-row items-center bg-white rounded-3xl px-6 py-2 border border-gray-300 shadow-sm shadow-black/5">
+                <Ionicons name="search" size={20} color="#ec4899" />
                 <TextInput 
-                    placeholder="Search (e.g. AI, Web3, HackMIT)..."
-                    placeholderTextColor="#6b7280"
+                    placeholder="Search by tech stack, name..."
+                    placeholderTextColor="#94a3b8"
                     value={searchQuery}
                     onChangeText={setSearchQuery}
-                    className="flex-1 ml-3 text-white text-base font-medium"
+                    className="flex-1 ml-3 text-zinc-900 text-base font-black italic"
                 />
                 {searchQuery.length > 0 && (
-                    <TouchableOpacity onPress={() => setSearchQuery("")}>
-                        <Ionicons name="close-circle" size={20} color="#6b7280" />
+                    <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-slate-50 p-1 rounded-full">
+                        <Ionicons name="close" size={18} color="#94a3b8" />
                     </TouchableOpacity>
                 )}
             </View>
@@ -216,26 +211,25 @@ const HackathonList = () => {
             data={filteredHackathons}
             keyExtractor={(item) => item.id.toString()}
             renderItem={renderItem}
-            
-            // Performance Props
             initialNumToRender={5}
             maxToRenderPerBatch={5}
             windowSize={5}
             removeClippedSubviews={true}
             updateCellsBatchingPeriod={50}
-            
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.5}
             ListFooterComponent={renderFooter}
             contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
             showsVerticalScrollIndicator={false}
-
             ListEmptyComponent={
                 !loading ? (
-                    <View className="items-center mt-20">
-                        <Ionicons name="code-slash-outline" size={60} color="#333" />
-                        <Text className="text-gray-500 mt-4 text-center px-10">
-                            {searchQuery ? "No hackathons found matching your search." : "No hackathons available right now."}
+                    <View className="items-center mt-20 px-10">
+                        <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
+                            <Ionicons name="code-slash" size={40} color="#CBD5E1" />
+                        </View>
+                        <Text className="text-zinc-900 font-black italic text-xl tracking-tight text-center uppercase">Dev Void</Text>
+                        <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-widest">
+                            {searchQuery ? "No hackathons matched your search protocol." : "The global registry is currently updating."}
                         </Text>
                     </View>
                 ) : null

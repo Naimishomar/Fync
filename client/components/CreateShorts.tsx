@@ -12,6 +12,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import axios from "../context/axiosConfig";
 
+import Toast from "react-native-toast-message";
+
 const { width, height } = Dimensions.get("window");
 const COLUMN_COUNT = 4;
 const ITEM_SIZE = width / COLUMN_COUNT;
@@ -86,9 +88,21 @@ const CreateShorts = () => {
       await axios.post("/shorts/create", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      navigation.navigate("Shorts");
+
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'Short uploaded successfully! 🚀',
+      });
+
+      navigation.navigate("Tabs");
     } catch (err) {
       console.log(err);
+      Toast.show({
+        type: 'error',
+        text1: 'Upload Failed',
+        text2: 'Something went wrong while uploading your short.',
+      });
     } finally {
       setLoading(false);
     }

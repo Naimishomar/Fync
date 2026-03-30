@@ -2,6 +2,7 @@ import Message from "../models/chat.model.js";
 import Conversation from "../models/conversation.model.js";
 import Room from "../models/quiz/room.model.js";
 import Submission from "../models/quiz/submission.model.js";
+import User from "../models/user.model.js";
 import NightMessage from "../models/newFeatures/nightChat.model.js";
 import redisClient from "../utils/redis.js";
 import { generateQuestions } from "../utils/gemini.js";
@@ -51,7 +52,55 @@ export const socketController = (io) => {
       socket.leave(`college_${collegeName}`);
     });
 
-    socket.on("sendMessage", async ({ conversationId, senderId, text }) => {
+    socket.on("join_alumni_room", ({ college, graduationYear }) => {
+      if (!college || !graduationYear) return;
+      const roomName = `alumni_${college.replace(/\s+/g, '_')}_${graduationYear}`;
+      socket.join(roomName);
+    });
+
+    socket.on("leave_alumni_room", ({ college, graduationYear }) => {
+      if (!college || !graduationYear) return;
+      const roomName = `alumni_${college.replace(/\s+/g, '_')}_${graduationYear}`;
+      socket.leave(roomName);
+    });
+
+    socket.on("alumni_typing", ({ college, graduationYear, username }) => {
+      if (!college || !graduationYear) return;
+      const roomName = `alumni_${college.replace(/\s+/g, '_')}_${graduationYear}`;
+      socket.to(roomName).emit("alumni_user_typing", { username });
+    });
+
+    socket.on("alumni_stop_typing", ({ college, graduationYear, username }) => {
+      if (!college || !graduationYear) return;
+      const roomName = `alumni_${college.replace(/\s+/g, '_')}_${graduationYear}`;
+      socket.to(roomName).emit("alumni_user_stop_typing", { username });
+    });
+
+    socket.on("join_mentorship_room", ({ college }) => {
+      if (!college) return;
+      const roomName = `mentorship_${college.replace(/\s+/g, '_')}`;
+      socket.join(roomName);
+    });
+
+    socket.on("leave_mentorship_room", ({ college }) => {
+      if (!college) return;
+      const roomName = `mentorship_${college.replace(/\s+/g, '_')}`;
+      socket.leave(roomName);
+    });
+
+    socket.on("mentorship_typing", ({ college, username }) => {
+      if (!college) return;
+      const roomName = `mentorship_${college.replace(/\s+/g, '_')}`;
+      socket.to(roomName).emit("mentorship_user_typing", { username });
+    });
+
+    socket.on("mentorship_stop_typing", ({ college, username }) => {
+      if (!college) return;
+      const roomName = `mentorship_${college.replace(/\s+/g, '_')}`;
+      socket.to(roomName).emit("mentorship_user_stop_typing", { username });
+    });
+
+    socket.on("sendMessage", async ({ conversationId, senderId, text, replyTo }) => {
       try {
         if (!conversationId || !senderId || !text?.trim()) return;
 
@@ -66,7 +115,8 @@ export const socketController = (io) => {
         let message = await Message.create({
           conversationId,
           sender: senderId,
-          message: text.trim()
+          message: text.trim(),
+          replyTo: replyTo || null
         });
 
         await Conversation.findByIdAndUpdate(conversationId, {
@@ -74,10 +124,12 @@ export const socketController = (io) => {
           $inc: { [`unreadCount.${receiverId}`]: 1 }
         });
 
-        message = await message.populate(
-          "sender",
-          "name username avatar"
-        );
+        message = await Message.findById(message._id)
+          .populate("sender", "name username avatar")
+          .populate({
+            path: "replyTo",
+            populate: { path: "sender", select: "name username" }
+          });
 
         io.to(conversationId).emit("newMessage", message);
 
@@ -154,6 +206,46 @@ export const socketController = (io) => {
 
     socket.on("stopTyping", ({ conversationId, userId }) => {
       socket.to(conversationId).emit("userStopTyping", { userId });
+    });
+
+    socket.on("deleteMessage", ({ conversationId, messageId }) => {
+      if (!conversationId || !messageId) return;
+      io.to(conversationId).emit("messageDeleted", { messageId });
+    });
+    
+    // --- ECHO COMMUNITIES ---
+    socket.on("join_echo_room", ({ subId }) => {
+      if (!subId) return;
+      socket.join(subId);
+      console.log(`👤 User joined Echo room: ${subId}`);
+    });
+
+    socket.on("leave_echo_room", ({ subId }) => {
+      if (!subId) return;
+      socket.leave(subId);
+    });
+
+    // --- CLUB MANAGEMENT SYSTEM ---
+    socket.on("join_club_room", ({ subGroupId }) => {
+      if (!subGroupId) return;
+      socket.join(subGroupId);
+      console.log(`♣️ User joined Club room: ${subGroupId}`);
+    });
+
+    socket.on("leave_club_room", ({ subGroupId }) => {
+      if (!subGroupId) return;
+      socket.leave(subGroupId);
+    });
+
+    // --- EVENT COMMUNITY ---
+    socket.on("join_community_room", ({ eventId }) => {
+      if (!eventId) return;
+      socket.join(`community_${eventId}`);
+    });
+
+    socket.on("leave_community_room", ({ eventId }) => {
+      if (!eventId) return;
+      socket.leave(`community_${eventId}`);
     });
 
     socket.on("watch_leaderboard", ({ roomId }) => {
@@ -335,16 +427,22 @@ export const socketController = (io) => {
           const opScore = opponentData.score;
 
           let result = "DRAW";
-          if (myScore > opScore) result = "WIN";
+          if (myScore > opScore) {
+            result = "WIN";
+            await User.findByIdAndUpdate(userId, { $inc: { oneVsOnePoints: 1 } });
+          }
           if (myScore < opScore) result = "LOSE";
 
           let opResult = "DRAW";
-          if (opScore > myScore) opResult = "WIN";
+          if (opScore > myScore) {
+            opResult = "WIN";
+            await User.findByIdAndUpdate(opponentId, { $inc: { oneVsOnePoints: 1 } });
+          }
           if (opScore < myScore) opResult = "LOSE";
 
           socket.emit("1v1_result", {
             result, myScore, opScore,
-            message: result === "WIN" ? "You Won! 🎉" : result === "LOSE" ? "You Lost 😢" : "It's a Tie! 🤝"
+            message: result === "WIN" ? "Victory! +1 Point awarded. 🎉" : result === "LOSE" ? "Defeat 😢" : "It's a Tie! 🤝"
           });
 
           if (opponentData.socketId) {
@@ -352,7 +450,7 @@ export const socketController = (io) => {
               result: opResult,
               myScore: opScore,
               opScore: myScore,
-              message: opResult === "WIN" ? "You Won! 🎉" : opResult === "LOSE" ? "You Lost 😢" : "It's a Tie! 🤝"
+              message: opResult === "WIN" ? "Victory! +1 Point awarded. 🎉" : opResult === "LOSE" ? "Defeat 😢" : "It's a Tie! 🤝"
             });
           }
           await redisClient.del(matchRoomId);
@@ -409,7 +507,7 @@ export const socketController = (io) => {
       });
     });
 
-    socket.on("send_night_message", async ({ senderId, text, tempId }) => {
+    socket.on("send_night_message", async ({ senderId, text, tempId, type, mediaUrl }) => {
       const { isOpen } = checkClubStatus();
 
       if (!isOpen) {
@@ -418,12 +516,12 @@ export const socketController = (io) => {
         return;
       }
 
-      if (!senderId || !text?.trim()) return;
-
       try {
         let nightMsg = await NightMessage.create({
           sender: senderId,
-          message: text.trim()
+          message: text?.trim() || "",
+          messageType: type || 'text',
+          fileUrl: mediaUrl || ""
         });
         nightMsg = await nightMsg.populate("sender", "name username avatar");
         let msgObj = nightMsg.toObject();

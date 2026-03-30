@@ -12,7 +12,21 @@ let upload;
 let videoUpload;
 let audioUpload;
 let collegeChatUpload;
+let mentorshipUpload;
+let resumeUpload;
+let mediaThumbnailUpload;
+let mediaVideoUpload;
+let fyncMediaCombinedUpload;
 
+export const getCloudinaryPublicId = (url, isRaw = false) => {
+  try {
+    if (!url || typeof url !== 'string' || !url.includes('cloudinary.com')) return null;
+    
+    if (isRaw) {
+      const matches = url.match(/\/upload\/(?:v\d+\/)?(.+)$/i);
+      return matches && matches[1] ? matches[1] : null;
+    }
+    const matches = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-z0-9]+$/i);
 // --------------------
 // Get Cloudinary Public ID from URL
 // --------------------
@@ -21,9 +35,7 @@ export const getCloudinaryPublicId = (url) => {
     if (!url || typeof url !== "string" || !url.includes("cloudinary.com")) {
       return null;
     }
-
     const matches = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z0-9]+$/);
-
     if (matches && matches[1]) {
       return matches[1];
     }
@@ -39,6 +51,10 @@ export const getCloudinaryPublicId = (url) => {
 // --------------------
 export const deleteFromCloudinary = async (url, resourceType = "image") => {
   try {
+    const isRaw = resourceType === "raw";
+    const pubId = getCloudinaryPublicId(url, isRaw);
+    if (pubId) {
+      await cloudinary.uploader.destroy(pubId, { resource_type: resourceType });
     const publicId = getCloudinaryPublicId(url);
 
     if (publicId) {
@@ -51,6 +67,19 @@ export const deleteFromCloudinary = async (url, resourceType = "image") => {
   }
 };
 
+
+export const uploadToCloudinary = async (file, folder = "fync_events") => {
+  try {
+    const result = await cloudinary.uploader.upload(file, {
+      folder: folder,
+      resource_type: "auto",
+    });
+    return result.secure_url;
+  } catch (error) {
+    console.error("Cloudinary Manual Upload Error:", error);
+    throw error;
+  }
+};
 // --------------------
 // Cloudinary Initialization
 // --------------------
@@ -81,6 +110,11 @@ try {
     },
   });
 
+  upload = multer({
+    storage: imageStorage,
+    limits: { fileSize: 1024 * 1024 * 10 },
+  });
+
   // --------------------
   // Video Storage
   // --------------------
@@ -93,6 +127,10 @@ try {
     },
   });
 
+  videoUpload = multer({
+    storage: videoStorage,
+    limits: { fileSize: 1024 * 1024 * 20 },
+  });
   // --------------------
   // Audio Storage
   // --------------------
@@ -136,6 +174,52 @@ try {
 
   collegeChatUpload = multer({
     storage: collegeChatStorage,
+    limits: { fileSize: 1024 * 1024 * 5 }, // 5MB for whatsapp-like limits
+  });
+
+  mentorshipUpload = multer({
+    storage: collegeChatStorage,
+    limits: { fileSize: 1024 * 1024 * 5 }, // 5MB limit as requested
+  });
+
+  const resumeStorage = new CloudinaryStorage({
+    cloudinary,
+    params: {
+      folder: "resumes",
+      resource_type: "raw",
+      allowed_formats: ["pdf"],
+    },
+  });
+
+  resumeUpload = multer({
+    storage: resumeStorage,
+    limits: { fileSize: 1024 * 1024 * 5 },
+  });
+
+  const fyncMediaCombinedStorage = new CloudinaryStorage({
+    cloudinary,
+    params: async (req, file) => {
+      if (file.fieldname === 'video') {
+        return {
+          folder: "fync_media_videos",
+          resource_type: "video",
+          allowed_formats: ["mp4"],
+        };
+      } else {
+        return {
+          folder: "fync_media_thumbnails",
+          resource_type: "image",
+          allowed_formats: ["jpg", "jpeg", "png", "webp"],
+        };
+      }
+    },
+  });
+
+  fyncMediaCombinedUpload = multer({
+    storage: fyncMediaCombinedStorage,
+    limits: { fileSize: 1024 * 1024 * 100 },
+  });
+
     limits: { fileSize: 50 * 1024 * 1024 },
   });
 
@@ -144,8 +228,5 @@ try {
   console.error("❌ Cloudinary initialization failed:", error.message);
   process.exit(1);
 }
-
-// --------------------
-// Export Modules
-// --------------------
+export { cloudinary, upload, videoUpload, audioUpload, collegeChatUpload, mentorshipUpload, resumeUpload, mediaThumbnailUpload, mediaVideoUpload, fyncMediaCombinedUpload };
 export { cloudinary, upload, videoUpload, audioUpload, collegeChatUpload };

@@ -52,7 +52,10 @@ const placementQuestionSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     }],
-    comments: [commentSchema],
+    comments: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comment"
+    }],
     savedBy: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"

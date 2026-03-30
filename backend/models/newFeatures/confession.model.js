@@ -1,33 +1,47 @@
 import mongoose from "mongoose";
 
 const confessionSchema = new mongoose.Schema({
-    senderId:{
+    content: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true
+        required: true,
+        index: true,
     },
-    collegeName:{
+    college: {
         type: String,
-        required: true
+        required: true,
+        index: true,
     },
-    message:{
+    color: {
         type: String,
-        required: true
+        default: "#FF6B6B",
     },
-    likes: [{
+    likes: {
+        type: Number,
+        default: 0,
+    },
+    liked_by: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
+        ref: "User",
     }],
-    isBanned:{
-        type: Boolean,
-        default: false,
+    taggedUser: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
     },
-    createdAt:{
-        type: Date,
-        default: Date.now,
-        expires: 60 * 60 * 24 * 7,
-    },
-}, {timestamps: true});
+    comments: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comment",
+    }],
+}, { timestamps: true });
+
+
+confessionSchema.index({ createdAt: 1 }, { expireAfterSeconds: 604800 });
 
 const Confession = mongoose.model("Confession", confessionSchema);
 export default Confession;

@@ -2,7 +2,7 @@ import Notice from "../models/notice.model.js";
 import Comment from "../models/comment.model.js";
 import { tryCatch } from "bullmq";
 import User from "../models/user.model.js";
-import { deleteFromCloudinary } from "../utils/cloudinary.js";
+import { deleteFromR2 } from "../utils/r2.js";
 import crypto from 'crypto';
 
 export const createNotice = async (req, res) => {
@@ -156,7 +156,7 @@ export const deleteNotice = async (req, res) => {
         }
         if (notice.image && Array.isArray(notice.image)) {
             for (let imgUrl of notice.image) {
-                await deleteFromCloudinary(imgUrl, "image");
+                await deleteFromR2(imgUrl);
             }
         }
         await Notice.findByIdAndDelete(req.params.id);
@@ -181,7 +181,7 @@ export const UpdateNotice = async (req, res) => {
         if (req.files && req.files.length > 0) {
             if (notice.image && Array.isArray(notice.image)) {
                 for (let imgUrl of notice.image) {
-                    await deleteFromCloudinary(imgUrl, "image");
+                    await deleteFromR2(imgUrl);
                 }
             }
             noticeImage = req.files.map(file => file.path);

@@ -12,7 +12,7 @@ import {
   Alert
 } from 'react-native';
 import React, { useCallback, useState } from 'react';
-import { ScrollView } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import axios from '../context/axiosConfig';
 //@ts-ignore
@@ -38,7 +38,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
 
     setIsLoading(true);
     try {
-      const response = await axios.post(`user/reset-password`, { email });
+      const response = await axios.post(`/user/reset-password`, { email });
       if (response.data.success) {
         Alert.alert("OTP Sent", "Please check your email for the verification code.");
         setIsOtpSent(true);
@@ -68,7 +68,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
     setIsLoading(true);
     try {
       // Call your backend verifyResetPassword endpoint
-      const response = await axios.post(`user/verify-reset-password`, {
+      const response = await axios.post(`/user/verify-reset-password`, {
         email,
         otp,
         password
@@ -120,9 +120,8 @@ const ForgotPassword = ({ route, navigation }: any) => {
           >
             <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-10">
               <Image
-                source={require('../assets/logo.png')}
-                className="h-14 w-28 self-center"
-                style={{ tintColor: '#000' }}
+                source={require('../assets/Fync.jpg')}
+                className="h-20 w-20 self-center rounded-full mb-4"
                 resizeMode='cover'
               />
 

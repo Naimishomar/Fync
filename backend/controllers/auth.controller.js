@@ -6,15 +6,20 @@ import { customAlphabet } from 'nanoid';
 import sendMail from '../utils/emailOtp.js';
 import OTP from '../models/otp.model.js';
 import Notification from '../models/notification.model.js';
+import { clearCache } from '../middlewares/cache.middleware.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/token.js';
-import { deleteFromCloudinary } from '../utils/cloudinary.js';
+import { deleteFromR2 } from '../utils/r2.js';
 // import {sendPhoneOTP, verifyPhoneOTP } from '../utils/phoneOtp.js';
 
 export const sendOTP = async (req, res) => {
   try {
-    console.log(req.body);
-    const { email, username, mobileNumber } = req.body;
+    let { email, username, mobileNumber } = req.body;
+    if (email) email = email.toLowerCase().trim();
+    if (username) username = username.trim();
+    if (mobileNumber) mobileNumber = mobileNumber.trim();
+
     if (!email || !username || !mobileNumber) {
+      console.log(`DEBUG: Missing fields - email: ${!!email}, username: ${!!username}, mobileNumber: ${!!mobileNumber}`);
       return res.status(400).json({
         success: false,
         message: "Email & username or mobile number are required"
@@ -22,9 +27,14 @@ export const sendOTP = async (req, res) => {
     }
     const existingUser = await User.findOne({ $or: [{ email }, { username }, { mobileNumber }] });
     if (existingUser) {
+      let conflict = "Email";
+      if (existingUser.username === username) conflict = "Username";
+      if (existingUser.mobileNumber === mobileNumber) conflict = "Mobile Number";
+      
+      console.log(`DEBUG: Registration conflict - ${conflict} already in use`);
       return res.status(400).json({
         success: false,
-        message: "User already exists"
+        message: `${conflict} is already in use by another account.`
       });
     }
     await OTP.deleteMany({ email });
@@ -34,16 +44,98 @@ export const sendOTP = async (req, res) => {
       otp,
       purpose: "register"
     });
+    console.log(`DEBUG: OTP created in DB for ${email}`);
     await sendMail(email, otp, username);
     return res.status(200).json({
       success: true,
       message: "OTP sent successfully"
     });
   } catch (error) {
-    console.error("OTP Error:", error);
+    console.error("DEBUG: OTP Error Full:", error);
     return res.status(500).json({
       success: false,
-      message: "Unable to send OTP"
+      message: "Unable to send OTP",
+      error: error.message
+    });
+  }
+};
+
+export const sendAlumniOTP = async (req, res) => {
+  try {
+    console.log("DEBUG: sendAlumniOTP body:", req.body);
+    let { email, username } = req.body;
+    if (email) email = email.toLowerCase().trim();
+    if (username) username = username.trim();
+
+    if (!email || !username) {
+      return res.status(400).json({
+        success: false,
+        message: "Work email and username are required"
+      });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      console.log(`DEBUG: Alumni registration conflict - Email ${email} already in use`);
+      return res.status(400).json({
+        success: false,
+        message: "This work email is already registered with an account."
+      });
+    }
+
+    await OTP.deleteMany({ email, purpose: "alumni-register" });
+    const otp = customAlphabet("1234567890", 6)();
+    
+    await OTP.create({
+      email,
+      otp,
+      purpose: "alumni-register"
+    });
+    console.log(`DEBUG: Alumni OTP created in DB for ${email}`);
+    await sendMail(email, otp, username);
+
+    return res.status(200).json({
+      success: true,
+      message: "Verification OTP sent to your work email"
+    });
+  } catch (error) {
+    console.error("DEBUG: Alumni OTP Error Full:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to send OTP",
+      error: error.message
+    });
+  }
+};
+
+export const verifyAlumniOTP = async (req, res) => {
+  try {
+    let { email, otp } = req.body;
+    if (email) email = email.toLowerCase().trim();
+    if (otp) otp = otp.trim();
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required"
+      });
+    }
+    const otpDoc = await OTP.findOne({ email, otp, purpose: "alumni-register" });
+    if (!otpDoc) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP"
+      });
+    }
+    await OTP.deleteMany({ email, purpose: "alumni-register" });
+    return res.status(200).json({
+      success: true,
+      message: "Work email verified successfully"
+    });
+  } catch (error) {
+    console.error("Verify Alumni OTP Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
     });
   }
 };
@@ -140,9 +232,63 @@ export const register = async (req, res) => {
   }
 };
 
+export const registerAlumni = async (req, res) => {
+  try {
+    const { 
+      email, username, mobileNumber, password, name, dob, college, 
+      graduationYear, company, role, experienceLevel, domains, linkedIn,
+      deviceId, deviceModel, gender, major 
+    } = req.body;
+
+    if (!email || !username || !mobileNumber || !password || !name || !college || !graduationYear || !company || !role || !experienceLevel) {
+      return res.status(400).json({ success: false, message: "Missing required alumni fields" });
+    }
+
+    const existing = await User.findOne({ $or: [{ email }, { username }, { mobileNumber }] });
+    if (existing) {
+      return res.status(400).json({ success: false, message: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await User.create({
+      email,
+      username,
+      mobileNumber,
+      password: hashedPassword,
+      name,
+      dob: dob || new Date('1990-01-01'), 
+      college,
+      year: graduationYear, 
+      gender: gender || 'Male',
+      major: major || 'Alumni',
+      graduationYear,
+      company,
+      role,
+      experienceLevel,
+      domains: domains || [],
+      linkedIn: linkedIn || null, 
+      user_access: 'alumni',
+      isVerifiedAlumni: true,
+      deviceId: deviceId || null,
+      deviceModel: deviceModel || "another device",
+      avatar: req.file?.path || ""
+    });
+
+    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    return res.status(200).json({ success: true, message: "Alumni registered successfully", token, user: newUser });
+  } catch (error) {
+    console.error("Alumni Register Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
+
 export const login = async (req, res) => {
   try {
-    const { email, password, deviceId, deviceModel } = req.body;
+    let { email, password, deviceId, deviceModel } = req.body;
+    if (email) email = email.toLowerCase().trim();
 
     const user = await User.findOne({ $or: [{ email }, { username: email }, { mobileNumber: email }], });
     if (!user) {
@@ -192,13 +338,13 @@ export const updateUser = async (req, res) => {
     let bannerUrl = "";
     if (req.files?.avatar) {
       if (user.avatar) {
-        await deleteFromCloudinary(user.avatar, "image");
+        await deleteFromR2(user.avatar);
       }
       avatarUrl = req.files.avatar[0].path;
     }
     if (req.files?.banner) {
       if (user.banner) {
-        await deleteFromCloudinary(user.banner, "image");
+        await deleteFromR2(user.banner);
       }
       bannerUrl = req.files.banner[0].path;
     }
@@ -222,6 +368,9 @@ export const updateUser = async (req, res) => {
       },
       { new: true, runValidators: true }
     ).select("-password");
+
+    clearCache(`profile/${req.user.id}`).catch(() => { });
+    clearCache(`profile`).catch(() => { });
 
     return res.status(200).json({ success: true, message: "User updated successfully", user: updatedUser });
   } catch (error) {
@@ -252,11 +401,64 @@ export const getUserProfileByName = async (req, res) => {
     };
     const searchRegex = new RegExp(name, "i");
     const users = await User.find({ $or: [{ username: { $regex: searchRegex } }, { name: { $regex: searchRegex } }] })
-      .select('_id name username avatar college year')
+      .select('_id name username avatar college year user_access')
       .limit(10);
     return res.status(200).json({ success: true, users: users });
   } catch (error) {
     console.log("Search error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const getAlumniByCollege = async (req, res) => {
+  try {
+    const { college } = req.user;
+    if (!college) {
+      return res.status(400).json({ success: false, message: "College information missing in your profile" });
+    }
+
+    const { page = 1, limit = 10, search = "", batch = "" } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const query = {
+      college: college,
+      user_access: 'alumni',
+      _id: { $ne: req.user.id }
+    };
+
+    if (batch) {
+      query.graduationYear = batch;
+    }
+
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+      query.$or = [
+        { name: { $regex: searchRegex } },
+        { username: { $regex: searchRegex } },
+        { company: { $regex: searchRegex } },
+        { role: { $regex: searchRegex } }
+      ];
+    }
+
+    const alumni = await User.find(query)
+      .select('name username avatar college graduationYear company role')
+      .skip(skip)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 });
+
+    const totalAlumni = await User.countDocuments(query);
+
+    return res.status(200).json({
+      success: true,
+      alumni,
+      pagination: {
+        total: totalAlumni,
+        page: parseInt(page),
+        pages: Math.ceil(totalAlumni / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching alumni:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -308,6 +510,12 @@ export const followUser = async (req, res) => {
         type: 'follow'
       });
     }
+
+    clearCache(`profile/${targetUserId}`).catch(() => { });
+    clearCache(`profile/${currentUserId}`).catch(() => { });
+    clearCache(`followers/${targetUserId}`).catch(() => { });
+    clearCache(`following/${currentUserId}`).catch(() => { });
+
     return res.status(200).json({
       success: true,
       message: `You are now following ${targetUser.username}`,
@@ -335,6 +543,12 @@ export const unfollowUser = async (req, res) => {
       currentUserId,
       { $pull: { following: targetUserId } }
     );
+
+    clearCache(`profile/${targetUserId}`).catch(() => { });
+    clearCache(`profile/${currentUserId}`).catch(() => { });
+    clearCache(`followers/${targetUserId}`).catch(() => { });
+    clearCache(`following/${currentUserId}`).catch(() => { });
+
     return res.status(200).json({
       success: true,
       message: `You unfollowed ${targetUser.username}`,
@@ -381,6 +595,8 @@ export const logout = async (req, res) => {
     user.deviceId = null;
     user.deviceModel = null;
     await user.save();
+    clearCache(`profile/${user._id}`).catch(() => { });
+    clearCache(`profile`).catch(() => { });
     return res.status(200).json({ success: true, message: "User logged out successfully" });
   } catch (error) {
     console.log("Internal server error", error);
@@ -412,7 +628,9 @@ export const refreshToken = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
   try {
-    const { email } = req.body;
+    let { email } = req.body;
+    if (email) email = email.toLowerCase().trim();
+
     if (!email) {
       return res.status(400).json({ success: false, message: "Email is required" });
     }

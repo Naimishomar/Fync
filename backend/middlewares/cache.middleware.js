@@ -31,12 +31,13 @@ export const cacheMiddleware = (duration) => async (req, res, next) => {
     }
 };
 
-export const clearCache = async (userId, pattern) => {
+export const clearCache = async (pattern) => {
     try {
-        const keys = await redisClient.keys(`fync_cache:${userId}:${pattern}`);
+        // Find all keys matching the pattern regardless of userId
+        const keys = await redisClient.keys(`fync_cache:*${pattern}*`);
         if (keys.length > 0) {
             await redisClient.del(keys);
-            console.log(`Cleared ${keys.length} cache keys for user ${userId}`);
+            console.log(`🧹 Redis Clear: ${keys.length} keys for pattern "${pattern}"`);
         }
     } catch (error) {
         console.error("Redis Cache Clear Error:", error);

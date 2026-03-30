@@ -11,7 +11,11 @@ export const getMessages = async (req, res) => {
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(limit)
-    .populate("sender", "name avatar username");
+    .populate("sender", "name avatar username")
+    .populate({
+      path: "replyTo",
+      populate: { path: "sender", select: "name username" }
+    });
 
   res.json({ success: true, messages: messages.reverse() });
 };
@@ -94,4 +98,21 @@ export const startChat = async (req, res) => {
       message: "Internal server error"
     });
   }
+};
+
+export const deleteMessage = async (req, res) => {
+    try {
+        const { messageId } = req.params;
+        const message = await Message.findById(messageId);
+        if (!message) return res.status(404).json({ success: false, message: "Message not found" });
+
+        if (message.sender.toString() !== req.user.id.toString()) {
+            return res.status(403).json({ success: false, message: "Not authorized" });
+        }
+
+        await Message.findByIdAndDelete(messageId);
+        res.json({ success: true, message: "Message deleted" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Server error" });
+    }
 };

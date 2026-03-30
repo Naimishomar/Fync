@@ -1,10 +1,12 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import Shorts from '../models/shorts.model.js';
 import Comment from '../models/comment.model.js';
 import Notification from '../models/notification.model.js';
 import User from '../models/user.model.js';
-import { deleteFromCloudinary } from '../utils/cloudinary.js';
+import { deleteFromR2 } from '../utils/r2.js';
 import { getShortsPool, getUserInterestProfile, rankFeed, invalidatePool } from '../utils/feedEngine.js';
+import { clearCache } from '../middlewares/cache.middleware.js';
 
 export const createShorts = async (req, res) => {
     try {
@@ -24,6 +26,7 @@ export const createShorts = async (req, res) => {
         })
         // Invalidate Redis shorts pool so next fetch picks this up
         invalidatePool('global', 'shorts').catch(() => { });
+        clearCache('shorts').catch(() => { });
         return res.status(200).json({ success: true, message: 'Short created successfully', createShort });
     } catch (error) {
         console.log("Internal server error", error);
@@ -34,13 +37,13 @@ export const createShorts = async (req, res) => {
 export const fetchShorts = async (req, res) => {
     try {
         const { page } = req.query;
-        const limit = 10;
+        const limit = 15;
         const skip = (page - 1) * limit;
         const shorts = await Shorts.find()
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
-            .populate("user", "name username avatar upiId");
+            .populate("user", "name username avatar upiId user_access");
 
         const shortsWithCount = await Promise.all(
             shorts.map(async (s) => {
@@ -60,11 +63,23 @@ export const fetchShorts = async (req, res) => {
 
 export const getYourShorts = async (req, res) => {
     try {
-        const shorts = await Shorts.find({ user: req.user.id });
-        if (!shorts) {
-            return res.status(404).json({ success: false, message: "Shorts not found" });
-        }
-        return res.status(200).json({ success: true, message: "Shorts fetched successfully", shorts });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 12;
+        const skip = (page - 1) * limit;
+
+        const shorts = await Shorts.find({ user: req.user.id })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const totalShorts = await Shorts.countDocuments({ user: req.user.id });
+
+        return res.status(200).json({ 
+            success: true, 
+            message: "Shorts fetched successfully", 
+            shorts,
+            hasMore: skip + shorts.length < totalShorts
+        });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -99,21 +114,38 @@ export const updateShort = async (req, res) => {
 
 export const deleteShort = async (req, res) => {
     try {
+        console.log(`🗑️ [DeleteShort] Request for ID: ${req.params.id} by user: ${req.user.id}`);
         const short = await Shorts.findById(req.params.id);
+        
         if (!short) {
+            console.warn(`⚠️ [DeleteShort] Short not found: ${req.params.id}`);
             return res.status(404).json({ success: false, message: "Short not found" });
         }
+        
+        console.log(`📄 [DeleteShort] Found short owner: ${short.user}`);
         if (short.user.toString() !== req.user.id.toString()) {
+            console.error(`🚫 [DeleteShort] Unauthorized. Short owner: ${short.user}, Request user: ${req.user.id}`);
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
+
         if (short.video) {
-            await deleteFromCloudinary(short.video, "video");
+            console.log(`🎞️ [DeleteShort] Deleting video from R2: ${short.video}`);
+            await deleteFromR2(short.video);
         }
+
+        console.log(`💬 [DeleteShort] Deleting comments for short: ${req.params.id}`);
         await Comment.deleteMany({ post: req.params.id, postType: "Shorts" });
+
+        console.log(`📉 [DeleteShort] Deleting short from DB...`);
         const deletedShort = await Shorts.findByIdAndDelete(req.params.id);
+        
+        clearCache('shorts').catch(() => { });
+        clearCache(`individual/${req.params.id}`).catch(() => { });
+        
+        console.log(`✅ [DeleteShort] Successfully deleted short: ${req.params.id}`);
         return res.status(200).json({ success: true, message: "Short deleted successfully", short: deletedShort });
     } catch (error) {
-        console.log("Internal server error", error);
+        console.error("❌ [DeleteShort] Exception:", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
@@ -124,7 +156,7 @@ export const likeAndUnlikeShort = async (req, res) => {
         if (!short) {
             return res.status(404).json({ success: false, message: "Short not found" });
         }
-        const isLiked = short.liked_by.includes(req.user.id);
+        const isLiked = short.liked_by.some(id => id.toString() === req.user.id.toString());
         let updatedShort;
         if (isLiked) {
             updatedShort = await Shorts.findByIdAndUpdate(
@@ -135,6 +167,11 @@ export const likeAndUnlikeShort = async (req, res) => {
                 },
                 { new: true }
             );
+            clearCache('shorts').catch(() => { });
+            clearCache(`individual/${req.params.id}`).catch(() => { });
+            clearCache(`feed/${short.user}`).catch(() => { });
+            invalidatePool('global', 'shorts').catch(() => { });
+
             return res.status(200).json({ success: true, message: "Short unliked successfully", short: updatedShort });
         }
         else {
@@ -162,6 +199,11 @@ export const likeAndUnlikeShort = async (req, res) => {
                     });
                 }
             }
+            clearCache('shorts').catch(() => { });
+            clearCache(`individual/${req.params.id}`).catch(() => { });
+            clearCache(`feed/${short.user}`).catch(() => { });
+            invalidatePool('global', 'shorts').catch(() => { });
+
             return res.status(200).json({ success: true, message: "Short liked successfully", short: updatedShort });
         }
     } catch (error) {
@@ -172,7 +214,7 @@ export const likeAndUnlikeShort = async (req, res) => {
 
 export const addComment = async (req, res) => {
     try {
-        const { text } = req.body;
+        const { text, parentCommentId } = req.body;
         if (!text) {
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
@@ -180,14 +222,34 @@ export const addComment = async (req, res) => {
         if (!short) {
             return res.status(404).json({ success: false, message: "Short not found" });
         }
+
+        let replyToUser = null;
+        if (parentCommentId) {
+            const parent = await Comment.findById(parentCommentId);
+            if (parent) {
+                replyToUser = parent.commentor;
+            }
+        }
+
         const comment = await Comment.create({
             text,
             commentor: req.user.id,
             post: req.params.id,
-            postType: "Shorts"
+            postType: "Shorts",
+            parentComment: parentCommentId || null,
+            replyToUser: replyToUser || null
         })
-        const commenterDetails = await Comment.findById(comment._id).populate("commentor", "name avatar username");
-        if (short.user.toString() !== req.user.id.toString()) {
+
+        // Notifications
+        if (parentCommentId && replyToUser && replyToUser.toString() !== req.user.id) {
+            await Notification.create({
+                recipient: replyToUser,
+                sender: req.user.id,
+                type: 'story_reply',
+                shorts: short._id,
+                commentText: text
+            });
+        } else if (short.user.toString() !== req.user.id.toString()) {
             await Notification.create({
                 recipient: short.user,
                 sender: req.user.id,
@@ -196,7 +258,13 @@ export const addComment = async (req, res) => {
                 commentText: text
             });
         }
-        return res.status(200).json({ success: true, message: "Comment created successfully", comment, commenterDetails });
+
+        const commenterDetails = await Comment.findById(comment._id)
+            .populate("commentor", "name avatar username")
+            .populate("replyToUser", "username");
+
+        clearCache(`comments/${req.params.id}`).catch(() => { });
+        return res.status(200).json({ success: true, message: "Comment created successfully", comment: commenterDetails });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -205,13 +273,19 @@ export const addComment = async (req, res) => {
 
 export const getAllComments = async (req, res) => {
     try {
-        const comments = await Comment.find({ post: req.params.id, postType: "Shorts" })
-            .sort({ createdAt: -1 })
-            .populate("commentor", "name avatar username");
-        if (!comments) {
-            return res.status(404).json({ success: false, message: "No comments" });
-        }
-        return res.status(200).json({ success: true, message: "Comments fetched successfully", comments, totalComments: comments.length });
+        const comments = await Comment.find({ post: req.params.id, postType: "Shorts", parentComment: null })
+            .populate("commentor", "name avatar username")
+            .sort({ createdAt: -1 });
+
+        const commentsWithReplies = await Promise.all(comments.map(async (comment) => {
+            const replies = await Comment.find({ parentComment: comment._id })
+                .populate("commentor", "name avatar username")
+                .populate("replyToUser", "username")
+                .sort({ createdAt: 1 });
+            return { ...comment._doc, replies };
+        }));
+
+        return res.status(200).json({ success: true, message: "Comments fetched successfully", comments: commentsWithReplies, totalComments: commentsWithReplies.length });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error", });
@@ -250,19 +324,27 @@ export const updateComment = async (req, res) => {
 
 export const deleteComment = async (req, res) => {
     try {
-        const comment = await Comment.find({ post: req.params.id, postType: "Shorts" });
+        const comment = await Comment.findById(req.params.id);
         if (!comment) {
             return res.status(404).json({ success: false, message: "Comment not found" });
         }
+        
+        // Allow deletion by the comment owner OR the post owner
         if (comment.commentor.toString() !== req.user.id.toString()) {
-            return res.status(403).json({ success: false, message: "Not authorized" });
+            const short = await Shorts.findById(comment.post);
+            if (!short || short.user.toString() !== req.user.id.toString()) {
+                return res.status(403).json({ success: false, message: "Not authorized to delete this comment" });
+            }
         }
-        await Comment.findOneAndDelete({ post: req.params.id });
+        
+        await Comment.findByIdAndDelete(req.params.id);
         return res.status(200).json({ success: true, message: "Comment deleted successfully" });
     } catch (error) {
+        console.error("❌ [DeleteComment] error:", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
 
 export const viewsInShort = async (req, res) => {
     try {
@@ -290,9 +372,22 @@ export const viewsInShort = async (req, res) => {
 export const getShortsByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
-        const shorts = await Shorts.find({ user: userId })
-            .sort({ createdAt: -1 });
-        return res.status(200).json({ success: true, shorts });
+        console.log(`🎥 [ShortsController] Fetching shorts for user: ${userId}`);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 12;
+        const skip = (page - 1) * limit;
+
+        const query = { user: new mongoose.Types.ObjectId(userId) };
+        const shorts = await Shorts.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        return res.status(200).json({ 
+            success: true, 
+            shorts,
+            hasMore: shorts.length === limit
+        });
     } catch (error) {
         console.log("Error fetching user shorts:", error);
         return res.status(500).json({ success: false, message: "Server error" });
@@ -302,7 +397,7 @@ export const getShortsByUserId = async (req, res) => {
 export const getShortByShortId = async (req, res) => {
     try {
         const { shortId } = req.params;
-        const short = await Shorts.findById(shortId).populate("user", "name username avatar upiId").populate("comments");
+        const short = await Shorts.findById(shortId).populate("user", "name username avatar upiId");
         if (!short) {
             return res.status(404).json({ success: false, message: "Short not found" });
         }
@@ -327,7 +422,7 @@ export const getShortByShortId = async (req, res) => {
  */
 export const getSmartShorts = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
-    const limit = 10;
+    const limit = 15;
     const skip = (page - 1) * limit;
 
     // ── HARD FALLBACK ─────────────────────────────────────────
@@ -336,37 +431,24 @@ export const getSmartShorts = async (req, res) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
-            .populate('user', 'name username avatar upiId');
+            .populate('user', 'name username avatar upiId user_access');
         return res.status(200).json({ success: true, shorts, hasMore: shorts.length >= limit, mode: 'fallback' });
     };
 
     try {
         const seenIds = Array.isArray(req.body?.seenIds) ? req.body.seenIds : [];
 
-        // STEP 1 — Shorts pool (Redis → MongoDB)
-        let candidates;
-        try {
-            candidates = await getShortsPool(Shorts, 100);
-        } catch (e) {
-            console.error('[SmartShorts] Step1 getShortsPool failed:', e.message);
-            return simpleFallback();
-        }
-
-        // STEP 2 — User interest profile (Gemini → Redis)
-        let interestProfile = { keywords: [] };
-        try {
-            const userDoc = await User.findById(req.user.id)
+        const [candidates, interestProfile] = await Promise.all([
+            getShortsPool(Shorts, 100),
+            User.findById(req.user.id)
                 .select('interest hobbies skills major about')
-                .lean();
-            interestProfile = await getUserInterestProfile({
-                ...(userDoc || {}),
-                id: req.user.id,
-                _id: req.user.id
-            });
-        } catch (e) {
-            // Non-fatal — score by engagement only
-            console.log('[SmartShorts] Step2 interest profile failed (using fallback):', e.message);
-        }
+                .lean()
+                .then(userDoc => getUserInterestProfile({
+                    ...(userDoc || {}),
+                    id: req.user.id,
+                    _id: req.user.id
+                }))
+        ]);
 
         // STEP 3 — Rank + paginate
         let ranked;

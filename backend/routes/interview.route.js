@@ -1,15 +1,19 @@
 import express from 'express';
-import { startInterview, processAnswer, endInterview } from '../controllers/interview.controller.js';
+import { startInterview, processAnswer, endInterview, cancelInterview, generateReportPDF, createInterviewOrder, verifyInterviewPayment } from '../controllers/interview.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
-import { audioUpload, upload } from '../utils/cloudinary.js';
+import { audioUpload, resumeUpload } from '../utils/r2.js';
+import { r2UploadMiddleware } from '../utils/r2Upload.js';
 
 const router = express.Router();
 
 // --- 1. SAFE RESUME UPLOAD (For Start) ---
 const safeResumeUpload = (req, res, next) => {
-    upload.single('resume')(req, res, (err) => {
+    resumeUpload.single('resume')(req, res, (err) => {
         if (err) {
             console.error("❌ RESUME UPLOAD ERROR:", JSON.stringify(err, null, 2));
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ message: "PDF size should not be greater than 5MB" });
+            }
             return res.status(400).json({ message: "Resume upload failed", error: err.message });
         }
         next();
@@ -36,7 +40,7 @@ const safeAudioUpload = (req, res, next) => {
             return res.status(400).json({ message: "No audio file found in request" });
         }
 
-        console.log("✅ AUDIO UPLOADED SUCCESSFULLY:", req.file.path);
+        console.log("✅ AUDIO UPLOADED TO R2:", req.file.path);
         next();
     });
 };
@@ -46,8 +50,13 @@ const safeAudioUpload = (req, res, next) => {
 router.post('/start', authMiddleware, safeResumeUpload, startInterview);
 
 // Use the new safe wrapper here
-router.post('/answer', authMiddleware, safeAudioUpload, processAnswer);
+router.post('/answer', authMiddleware, safeAudioUpload, r2UploadMiddleware({ __single__: 'interviews_audio' }), processAnswer);
 
 router.post('/end', authMiddleware, endInterview);
+router.post('/cancel', authMiddleware, cancelInterview);
+router.post('/generate-pdf', authMiddleware, generateReportPDF);
+
+router.post('/create-order', authMiddleware, createInterviewOrder);
+router.post('/verify-payment', authMiddleware, verifyInterviewPayment);
 
 export default router;

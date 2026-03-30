@@ -18,7 +18,17 @@ const commentSchema = new mongoose.Schema({
   postType: {
     type: String,
     required: true,
-    enum: ['Post', 'Shorts', 'FundingProject', 'Confession', 'Notice', 'Gaming', 'Outing']
+    enum: ['Post', 'Shorts', 'FundingProject', 'Confession', 'Notice', 'Gaming', 'Outing', 'PlacementQuestion', 'JobOpening', 'FyncMedia']
+  },
+  parentComment: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Comment",
+    default: null
+  },
+  replyToUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null
   },
   expiresAt: {
     type: Date,

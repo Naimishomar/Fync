@@ -61,9 +61,10 @@ export default function LoginScreen() {
         >
           <View className="">
             <Image
-              source={loginImage}
-              className="w-full min-h-full rounded-2xl"
-              resizeMode='cover'
+              source={{ uri: 'https://i.pinimg.com/736x/a2/05/60/a205602210656db27579657ba25f57a4.jpg' }}
+              style={{ width: '100%', height: 450 }}
+              className="rounded-2xl"
+              resizeMode="cover"
             />
           </View>
 
@@ -79,7 +80,7 @@ export default function LoginScreen() {
             contentContainerStyle={{ paddingBottom: 24 }}
           >
             <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-10">
-              <Image source={require('../assets/logo.png')} className="h-14 w-28 self-center" style={{ tintColor: '#000' }} resizeMode='cover' />
+              <Image source={require('../assets/Fync.jpg')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
               <Text className="text-3xl font-bold mb-6">Login</Text>
 
               <TextInput
@@ -134,6 +135,16 @@ export default function LoginScreen() {
                 <Pressable onPress={() => navigation.navigate('Signup')}>
                   <Text className="font-semibold text-black">Signup</Text>
                 </Pressable>
+              </View>
+
+              <View className="mt-2 border-t border-gray-100 pt-3">
+                 <Text className="text-center text-gray-500 mb-3">Are you an Alumni?</Text>
+                 <Pressable 
+                  className="rounded-full border border-black py-3 items-center"
+                  onPress={() => navigation.navigate('AlumniSignup')}
+                 >
+                    <Text className="text-black font-semibold">Join as Alumni</Text>
+                 </Pressable>
               </View>
             </View>
           </ScrollView>

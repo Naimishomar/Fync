@@ -19,7 +19,7 @@ interface PaymentVerifyProps {
   navigation: any;
 }
 
-export default function PaymentVerify({ route }: PaymentVerifyProps) {
+export default function PaymentVerify({ route }: any) {
   const navigation: any = useNavigation();
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order, user, merchantName, merchantUpiId } = route.params;
 
@@ -29,7 +29,7 @@ export default function PaymentVerify({ route }: PaymentVerifyProps) {
 
   const verifyPayment = async () => {
     try {
-      const res = await axios.post('/payment/api/verify', {
+      const res = await axios.post('/payment/verify', {
         razorpay_order_id,
         razorpay_payment_id,
         razorpay_signature,

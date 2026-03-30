@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     View, Text, Image, Pressable, ScrollView, Dimensions,
-    ActivityIndicator, Modal, Linking
+    ActivityIndicator, Modal, Linking, FlatList
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -11,6 +11,8 @@ import { BlurView } from 'expo-blur';
 import { useRoute, useNavigation, RouteProp, useFocusEffect } from '@react-navigation/native';
 import axios from "../context/axiosConfig";
 import { useAuth } from '../context/auth.context';
+import Avatar from './Avatar';
+import { ProfileSkeleton } from './Skeleton';
 
 const { width } = Dimensions.get('window');
 
@@ -20,6 +22,7 @@ interface User {
     username: string;
     name: string;
     avatar?: string;
+    user_access?: 'admin' | 'user' | 'alumni';
     followers: string[];
     following: string[];
     about?: string;
@@ -49,7 +52,7 @@ interface Short {
 }
 
 type RootStackParamList = {
-    PublicProfile: { user: User };
+    PublicProfile: { user?: User; userId?: string };
     FollowersAndFollowing: { userId: string; type: string };
     Profile: undefined;
 };
@@ -59,6 +62,7 @@ const PublicProfile = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'PublicProfile'>>();
     const navigation = useNavigation<any>();
 
+    const targetUserId = route.params?.userId || route.params?.user?._id;
     const initialUser = route.params?.user;
 
     const [profileUser, setProfileUser] = useState<User | null>(initialUser || null);
@@ -86,51 +90,103 @@ const PublicProfile = () => {
         setIsFollowing(profileUser.followers?.includes(currentUser._id) || false);
     }, [currentUser, profileUser]);
 
-    useFocusEffect(
-        useCallback(() => {
-            if (initialUser?._id) {
-                fetchFullProfile();
-                fetchUserPosts();
-                fetchUserShorts();
-            }
-        }, [initialUser?._id])
-    );
+    const [postsPage, setPostsPage] = useState(1);
+    const [shortsPage, setShortsPage] = useState(1);
+    const [hasMorePosts, setHasMorePosts] = useState(true);
+    const [hasMoreShorts, setHasMoreShorts] = useState(true);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
 
-    const fetchFullProfile = async () => {
-        if (!initialUser?._id) return;
+    useEffect(() => {
+        console.log("👤 [PublicProfile] Component Mounted/Updated with Params:", route.params);
+        if (targetUserId) {
+            console.log(`🚀 [PublicProfile] Initiating data fetch for UID: ${targetUserId}`);
+            // Always reset loading and content when switching to a different user
+            // to show a fresh state and ensure re-fetch.
+            setLoading(true);
+            setPosts([]);
+            setShorts([]);
+            setPostsPage(1);
+            setShortsPage(1);
+            setHasMorePosts(true);
+            setHasMoreShorts(true);
+            
+            // Immediately update the profile info if available in params
+            setProfileUser(initialUser || null);
+
+            fetchFullProfile(targetUserId);
+            fetchUserPosts(targetUserId, 1, true);
+            fetchUserShorts(targetUserId, 1, true);
+        } else {
+            console.warn("⚠️ [PublicProfile] No targetUserId found in params!");
+            setLoading(false);
+        }
+    }, [targetUserId]);
+
+    const fetchFullProfile = async (uid: string) => {
         try {
-            const res = await axios.get(`/user/profile/${initialUser._id}`);
+            const res = await axios.get(`/user/profile/${uid}`);
             if (res.data.success) {
                 setProfileUser(res.data.user);
             }
         } catch (error) {
             console.log("Error fetching profile:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const fetchUserPosts = async () => {
-        if (!initialUser?._id) return;
+    const fetchUserPosts = async (uid: string, page = 1, isInitial = false) => {
         try {
-            const res = await axios.get(`/post/feed/${initialUser._id}`);
+            setIsFetchingMore(true);
+            const res = await axios.get(`/post/feed/${uid}?page=${page}&limit=12`);
             if (res.data.success) {
-                setPosts(res.data.posts || []);
+                const newPosts = res.data.posts || [];
+                setPosts(prev => {
+                    if (isInitial) return newPosts;
+                    const existingIds = new Set(prev.map(p => p._id));
+                    const filteredNew = newPosts.filter((p: any) => !existingIds.has(p._id));
+                    return [...prev, ...filteredNew];
+                });
+                setHasMorePosts(res.data.hasMore === true);
+                setPostsPage(page);
             }
         } catch (error) {
             console.log("Error fetching posts:", error);
+        } finally {
+            setIsFetchingMore(false);
+            if (!profileUser) setLoading(false); // Safety fallback
         }
     };
 
-    const fetchUserShorts = async () => {
-        if (!initialUser?._id) return;
+    const fetchUserShorts = async (uid: string, page = 1, isInitial = false) => {
         try {
-            const res = await axios.get(`/shorts/feed/${initialUser._id}`);
+            setIsFetchingMore(true); // Set to true for all fetches
+            const res = await axios.get(`/shorts/feed/${uid}?page=${page}&limit=12`);
             if (res.data.success) {
-                setShorts(res.data.shorts || []);
+                const newShorts = res.data.shorts || [];
+                setShorts(prev => {
+                    if (isInitial) return newShorts;
+                    // Filter out any shorts that already exist in the list to avoid duplicate keys
+                    const existingIds = new Set(prev.map(s => s._id));
+                    const filteredNew = newShorts.filter((s: any) => !existingIds.has(s._id));
+                    return [...prev, ...filteredNew];
+                });
+                setHasMoreShorts(res.data.hasMore);
+                setShortsPage(page);
             }
         } catch (error) {
             console.log("Error fetching shorts:", error);
         } finally {
-            setLoading(false);
+            setIsFetchingMore(false);
+        }
+    };
+
+    const handleLoadMore = () => {
+        if (isFetchingMore || !targetUserId) return;
+        if (activeTab === 'posts' && hasMorePosts) {
+            fetchUserPosts(targetUserId, postsPage + 1);
+        } else if (activeTab === 'shorts' && hasMoreShorts) {
+            fetchUserShorts(targetUserId, shortsPage + 1);
         }
     };
 
@@ -173,11 +229,11 @@ const PublicProfile = () => {
     };
 
     // --- GRID RENDERER ---
-    const renderGridItem = ({ item, index }: { item: any, index: number }) => {
+    const COLUMN_SIZE = width / 3;
+    const renderGridItem = ({ item }: { item: any }) => {
         const isVideo = activeTab === 'shorts';
         return (
             <Pressable
-                style={{ width: width / 3, height: isVideo ? width / 3 * 1.5 : width / 3, padding: 1 }}
                 onPress={() => {
                     if (isVideo) {
                         navigation.navigate('IndividualPostOrShort', { shortId: item._id });
@@ -186,6 +242,7 @@ const PublicProfile = () => {
                     }
                 }}
                 className="relative border border-black/50"
+                style={{ width: COLUMN_SIZE, height: isVideo ? COLUMN_SIZE * 1.5 : COLUMN_SIZE }}
             >
                 {isVideo ? (
                     <View className="flex-1 bg-gray-900 justify-center items-center overflow-hidden">
@@ -311,23 +368,11 @@ const PublicProfile = () => {
     );
 
     if (loading || !profileUser) {
-        return (
-            <View className="flex-1 bg-black justify-center items-center">
-                <ActivityIndicator size="large" color="#ec4899" />
-            </View>
-        );
+        return <ProfileSkeleton />;
     }
 
     return (
         <View className="flex-1 bg-black">
-            {/* 🔮 PURE BLACK BACKGROUND WITH PINKISH GLOW */}
-            <LinearGradient
-                colors={['rgba(236, 72, 153, 0.40)', '#000000']}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 0.6 }}
-                className="absolute w-full h-full"
-            />
-
             <SafeAreaView className="flex-1">
 
                 {/* Header */}
@@ -341,102 +386,92 @@ const PublicProfile = () => {
                     </View>
                 </View>
 
-                <ScrollView className="flex-1 mt-2" showsVerticalScrollIndicator={false}>
-
-                    {/* Top Profile Card */}
-                    <View className="mx-4 mt-2 mb-6 bg-white/5 rounded-3xl p-5 border border-white/10 shadow-lg">
-                        <View className="flex-row items-center">
-                            <Image
-                                source={{ uri: profileUser.avatar || `https://ui-avatars.com/api/?name=${profileUser.username}` }}
-                                className="w-20 h-20 rounded-full border-2 border-pink-500"
-                            />
-                            <View className="flex-1 ml-6 flex-row justify-between pr-4">
-                                <View className="items-center">
-                                    <Text className="text-xl font-bold text-white">{posts.length}</Text>
-                                    <Text className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Posts</Text>
+                <FlatList
+                    key={activeTab} // Reset list when tab changes
+                    data={activeTab === 'tags' ? ['ABOUT'] : activeTab === 'posts' ? posts : shorts}
+                    numColumns={activeTab === 'tags' ? 1 : 3}
+                    keyExtractor={(item) => typeof item === 'string' ? item : item._id}
+                    showsVerticalScrollIndicator={false}
+                    onEndReached={handleLoadMore}
+                    onEndReachedThreshold={0.5}
+                    ListHeaderComponent={
+                        <>
+                            {/* Top Profile Card */}
+                            <View className="mx-4 mt-2 mb-6 bg-white/5 rounded-3xl p-5 border border-white/10 shadow-lg">
+                                <View className="flex-row items-center">
+                                    <Avatar 
+                                        user={profileUser as any} 
+                                        size={80} 
+                                    />
+                                    <View className="flex-1 ml-6 flex-row justify-between pr-4">
+                                        <View className="items-center">
+                                            <Text className="text-xl font-bold text-white">{posts.length}</Text>
+                                            <Text className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Posts</Text>
+                                        </View>
+                                        <Pressable onPress={() => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "followers" })} className="items-center">
+                                            <Text className="text-xl font-bold text-white">{profileUser.followers?.length || 0}</Text>
+                                            <Text className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Followers</Text>
+                                        </Pressable>
+                                        <Pressable onPress={() => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "following" })} className="items-center">
+                                            <Text className="text-xl font-bold text-white">{profileUser.following?.length || 0}</Text>
+                                            <Text className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Following</Text>
+                                        </Pressable>
+                                    </View>
                                 </View>
-                                <Pressable onPress={() => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "followers" })} className="items-center">
-                                    <Text className="text-xl font-bold text-white">{profileUser.followers?.length || 0}</Text>
-                                    <Text className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Followers</Text>
+
+                                {/* Action Buttons */}
+                                {currentUser?._id !== profileUser._id && (
+                                    <View className="flex-row gap-3 mt-6">
+                                        <Pressable
+                                            onPress={handleFollowToggle}
+                                            className={`flex-1 py-3 rounded-xl items-center justify-center border ${isFollowing ? 'bg-transparent border-gray-500' : 'bg-pink-600 border-pink-600'}`}
+                                        >
+                                            <Text className={`font-bold tracking-wide ${isFollowing ? 'text-gray-300' : 'text-white'}`}>
+                                                {isFollowing ? "Following" : "Follow"}
+                                            </Text>
+                                        </Pressable>
+                                        <Pressable
+                                            onPress={startChat}
+                                            className="flex-1 bg-white/10 py-3 rounded-xl items-center justify-center border border-white/10"
+                                        >
+                                            <Text className="text-white font-bold tracking-wide">Message</Text>
+                                        </Pressable>
+                                    </View>
+                                )}
+                            </View>
+
+                            {/* Custom Tab Bar */}
+                            <View className="flex-row border-b border-white/10 mx-4 mb-2">
+                                <Pressable onPress={() => setActiveTab('posts')} className={`flex-1 items-center pb-3 ${activeTab === 'posts' ? 'border-b-2 border-pink-500' : ''}`}>
+                                    <Ionicons name="grid" size={22} color={activeTab === 'posts' ? '#ec4899' : '#666'} />
                                 </Pressable>
-                                <Pressable onPress={() => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "following" })} className="items-center">
-                                    <Text className="text-xl font-bold text-white">{profileUser.following?.length || 0}</Text>
-                                    <Text className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Following</Text>
+                                <Pressable onPress={() => setActiveTab('shorts')} className={`flex-1 items-center pb-3 ${activeTab === 'shorts' ? 'border-b-2 border-pink-500' : ''}`}>
+                                    <Ionicons name="videocam" size={24} color={activeTab === 'shorts' ? '#ec4899' : '#666'} />
+                                </Pressable>
+                                <Pressable onPress={() => setActiveTab('tags')} className={`flex-1 items-center pb-3 ${activeTab === 'tags' ? 'border-b-2 border-pink-500' : ''}`}>
+                                    <MaterialCommunityIcons name="account-details" size={26} color={activeTab === 'tags' ? '#ec4899' : '#666'} />
                                 </Pressable>
                             </View>
+                        </>
+                    }
+                    renderItem={({ item }: { item: any }) => {
+                        if (activeTab === 'tags') return <AboutSection />;
+                        return renderGridItem({ item });
+                    }}
+                    ListFooterComponent={
+                        isFetchingMore ? (
+                            <View className="py-4">
+                                <ActivityIndicator size="small" color="#ec4899" />
+                            </View>
+                        ) : null
+                    }
+                    ListEmptyComponent={
+                        <View className="items-center mt-20 opacity-50">
+                            <Ionicons name={activeTab === 'shorts' ? "videocam-off-outline" : "images-outline"} size={48} color="white" />
+                            <Text className="text-gray-400 mt-2">Nothing to see here</Text>
                         </View>
-
-                        {/* Action Buttons */}
-                        {currentUser?._id !== profileUser._id && (
-                            <View className="flex-row gap-3 mt-6">
-                                <Pressable
-                                    onPress={handleFollowToggle}
-                                    className={`flex-1 py-3 rounded-xl items-center justify-center border ${isFollowing ? 'bg-transparent border-gray-500' : 'bg-pink-600 border-pink-600'}`}
-                                >
-                                    <Text className={`font-bold tracking-wide ${isFollowing ? 'text-gray-300' : 'text-white'}`}>
-                                        {isFollowing ? "Following" : "Follow"}
-                                    </Text>
-                                </Pressable>
-                                <Pressable
-                                    onPress={startChat}
-                                    className="flex-1 bg-white/10 py-3 rounded-xl items-center justify-center border border-white/10"
-                                >
-                                    <Text className="text-white font-bold tracking-wide">Message</Text>
-                                </Pressable>
-                            </View>
-                        )}
-                    </View>
-
-                    {/* Custom Tab Bar */}
-                    <View className="flex-row border-b border-white/10 mx-4 mb-2">
-                        <Pressable onPress={() => setActiveTab('posts')} className={`flex-1 items-center pb-3 ${activeTab === 'posts' ? 'border-b-2 border-pink-500' : ''}`}>
-                            <Ionicons name="grid" size={22} color={activeTab === 'posts' ? '#ec4899' : '#666'} />
-                        </Pressable>
-                        <Pressable onPress={() => setActiveTab('shorts')} className={`flex-1 items-center pb-3 ${activeTab === 'shorts' ? 'border-b-2 border-pink-500' : ''}`}>
-                            <Ionicons name="videocam" size={24} color={activeTab === 'shorts' ? '#ec4899' : '#666'} />
-                        </Pressable>
-                        <Pressable onPress={() => setActiveTab('tags')} className={`flex-1 items-center pb-3 ${activeTab === 'tags' ? 'border-b-2 border-pink-500' : ''}`}>
-                            <MaterialCommunityIcons name="account-details" size={26} color={activeTab === 'tags' ? '#ec4899' : '#666'} />
-                        </Pressable>
-                    </View>
-
-                    {/* Content Area */}
-                    <View className="flex-1 min-h-[400px]">
-                        {activeTab === 'tags' ? (
-                            <AboutSection />
-                        ) : activeTab === 'posts' ? (
-                            posts.length > 0 ? (
-                                <View className="flex-row flex-wrap">
-                                    {posts.map((item, index) => (
-                                        <View key={item._id}>
-                                            {renderGridItem({ item, index })}
-                                        </View>
-                                    ))}
-                                </View>
-                            ) : (
-                                <View className="items-center mt-20 opacity-50">
-                                    <Ionicons name="images-outline" size={48} color="white" />
-                                    <Text className="text-gray-400 mt-2">No posts yet</Text>
-                                </View>
-                            )
-                        ) : (
-                            shorts.length > 0 ? (
-                                <View className="flex-row flex-wrap">
-                                    {shorts.map((item, index) => (
-                                        <View key={item._id}>
-                                            {renderGridItem({ item, index })}
-                                        </View>
-                                    ))}
-                                </View>
-                            ) : (
-                                <View className="items-center mt-20 opacity-50">
-                                    <Ionicons name="videocam-off-outline" size={48} color="white" />
-                                    <Text className="text-gray-400 mt-2">No shorts yet</Text>
-                                </View>
-                            )
-                        )}
-                    </View>
-                </ScrollView>
+                    }
+                />
 
                 {/* Dark Modal */}
                 <Modal visible={modalVisible} transparent={true} animationType="fade" onRequestClose={() => setModalVisible(false)}>

@@ -7,8 +7,8 @@ const router = express.Router();
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.post('/api/order', createOrder);
-router.post("/api/verify", verifyOrder);
-router.post("/api/scan-qr", authMiddleware, upload.single('qrImage'), scanQRImage);
+router.post('/order', authMiddleware, createOrder);
+router.post("/verify", authMiddleware, verifyOrder);
+router.post("/scan-qr", authMiddleware, upload.single('qrImage'), scanQRImage);
 
 export default router;

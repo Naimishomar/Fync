@@ -1,23 +1,37 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View, Text, FlatList, Image, Pressable, TextInput, Modal,
   Dimensions, Alert, ScrollView, ActivityIndicator,
-  KeyboardAvoidingView, Platform, TouchableOpacity, Linking, RefreshControl
+  KeyboardAvoidingView, Platform, TouchableOpacity, Linking, RefreshControl, StatusBar
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import { Video, ResizeMode } from "expo-av";
+import { Video, ResizeMode, AVPlaybackStatus, AVPlaybackStatusSuccess, Audio, InterruptionModeIOS, InterruptionModeAndroid } from "expo-av";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { WebView } from "react-native-webview";
+import { 
+  GestureHandlerRootView, 
+  GestureDetector, 
+  Gesture 
+} from 'react-native-gesture-handler';
+import * as ScreenOrientation from 'expo-screen-orientation';
+import Animated, { 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withSpring,
+  runOnJS
+} from 'react-native-reanimated';
+import { useWindowDimensions } from 'react-native';
+
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import { RAZORPAY_KEY_ID } from "../constants/keys";
 
 const { width } = Dimensions.get("window");
-const CARD_WIDTH = width - 32; // Screen width minus mx-4 (16px * 2)
+const CARD_WIDTH = width - 32; 
 
 /* ---------- TYPES ---------- */
 interface User {
@@ -40,14 +54,207 @@ interface Project {
   user: User;
 }
 
-interface Comment {
-  _id: string;
-  text: string;
-  commentor: User;
-}
+/* ---------- YOUTUBE PLAYER COMPONENT ---------- */
+const YouTubeVideoPlayer = ({ 
+  source, 
+  thumbnail, 
+}: { 
+  source: string, 
+  thumbnail?: string, 
+}) => {
+  const videoRef = useRef<Video>(null);
+  const [status, setStatus] = useState<AVPlaybackStatusSuccess | null>(null);
+  const [showControls, setShowControls] = useState(true);
+  const [playbackRate, setPlaybackRate] = useState(1.0);
+  const [barWidth, setBarWidth] = useState(300);
+
+  const { width: windowWidth } = useWindowDimensions();
+
+  // Pinch to Zoom
+  const scale = useSharedValue(1);
+  const pinchGesture = Gesture.Pinch()
+    .onUpdate((event) => {
+      scale.value = event.scale;
+    })
+    .onEnd(() => {
+      if (scale.value < 1.1) {
+        scale.value = withSpring(1);
+      }
+    });
+
+  // Long Press for 2x Speed
+  const isPressingSpeed = useSharedValue(false);
+  const longPressGesture = Gesture.LongPress()
+    .onStart(() => {
+      isPressingSpeed.value = true;
+      runOnJS(setPlaybackRate)(2.0);
+    })
+    .onEnd(() => {
+      isPressingSpeed.value = false;
+      runOnJS(setPlaybackRate)(1.0);
+    });
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.setRateAsync(playbackRate, true);
+    }
+  }, [playbackRate]);
+
+  useEffect(() => {
+    const setupAudio = async () => {
+      try {
+        await Audio.setAudioModeAsync({
+          playsInSilentModeIOS: true,
+          allowsRecordingIOS: false,
+          staysActiveInBackground: true,
+          interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+          shouldDuckAndroid: true,
+          interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+          playThroughEarpieceAndroid: false
+        });
+      } catch (e) {}
+    };
+    setupAudio();
+  }, []);
+
+  const skipForward = async () => {
+    if (!videoRef.current) return;
+    const currentStatus = await videoRef.current.getStatusAsync() as AVPlaybackStatusSuccess;
+    if (currentStatus && currentStatus.isLoaded) {
+      const newPos = Math.min(currentStatus.durationMillis || 0, currentStatus.positionMillis + 10000);
+      await videoRef.current.setPositionAsync(newPos);
+    }
+  };
+
+  const skipBackward = async () => {
+    if (!videoRef.current) return;
+    const currentStatus = await videoRef.current.getStatusAsync() as AVPlaybackStatusSuccess;
+    if (currentStatus && currentStatus.isLoaded) {
+      const newPos = Math.max(0, currentStatus.positionMillis - 10000);
+      await videoRef.current.setPositionAsync(newPos);
+    }
+  };
+
+  const [seekFeedback, setSeekFeedback] = useState<'forward' | 'backward' | null>(null);
+
+  const singleTap = Gesture.Tap()
+    .numberOfTaps(1)
+    .onEnd((_event, success) => {
+      if (success) runOnJS(setShowControls)(!showControls);
+    });
+
+  const doubleTap = Gesture.Tap()
+    .numberOfTaps(2)
+    .onEnd((event, success) => {
+      if (success) {
+        if (event.x < windowWidth / 2) {
+          runOnJS(setSeekFeedback)('backward');
+          runOnJS(skipBackward)();
+        } else {
+          runOnJS(setSeekFeedback)('forward');
+          runOnJS(skipForward)();
+        }
+        setTimeout(() => runOnJS(setSeekFeedback)(null), 500);
+      }
+    });
+
+  const tapGestures = Gesture.Exclusive(doubleTap, singleTap);
+  const videoGesture = Gesture.Simultaneous(pinchGesture, longPressGesture, tapGestures);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const onPlaybackStatusUpdate = (newStatus: AVPlaybackStatus) => {
+    if (newStatus.isLoaded) setStatus(newStatus);
+  };
+
+  const togglePlay = async () => {
+    if (!videoRef.current) return;
+    if (!status) {
+      await videoRef.current.playAsync();
+      return;
+    }
+    status.isPlaying ? await videoRef.current.pauseAsync() : await videoRef.current.playAsync();
+  };
+
+  const handleSeek = async (e: any) => {
+    if (!videoRef.current || !status?.durationMillis || barWidth <= 0) return;
+    const { locationX } = e.nativeEvent;
+    const seekPosition = (locationX / barWidth) * status.durationMillis;
+    await videoRef.current.setPositionAsync(seekPosition);
+  };
+
+  return (
+    <View className="bg-black relative overflow-hidden w-full h-[300px]">
+        <GestureDetector gesture={videoGesture}>
+          <Animated.View style={[{ width: '100%', height: '100%' }, animatedStyle]}>
+            <Video
+              ref={videoRef}
+              source={{ uri: source }}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode={ResizeMode.CONTAIN}
+              onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+              shouldPlay={false}
+              isMuted={false}
+              posterSource={{ uri: thumbnail }}
+              usePoster={!!thumbnail}
+              posterStyle={{ resizeMode: 'cover' }}
+            />
+            {(!status || (status.isLoaded && status.isBuffering)) && (
+              <View className="absolute inset-0 items-center justify-center bg-black/10">
+                <ActivityIndicator size="large" color="#ffffff" />
+              </View>
+            )}
+            {playbackRate > 1 && (
+              <View className="absolute top-10 self-center bg-black/40 px-3 py-1 rounded-full border border-white/20">
+                <Text className="text-white font-black text-xs">2x Speed</Text>
+              </View>
+            )}
+            {seekFeedback && (
+              <View className={`absolute top-1/2 -translate-y-12 ${seekFeedback === 'forward' ? 'right-12' : 'left-12'} bg-black/60 w-20 h-20 rounded-full items-center justify-center border border-white/20`}>
+                <Ionicons name={seekFeedback === 'forward' ? "play-forward" : "play-back"} size={32} color="white" />
+                <Text className="text-white font-black text-[10px] mt-1 uppercase">10s</Text>
+              </View>
+            )}
+          </Animated.View>
+        </GestureDetector>
+
+        {showControls && (
+          <View pointerEvents="box-none" className="absolute inset-0 bg-black/40 items-center justify-center">
+            <View className="flex-row items-center gap-10">
+              <TouchableOpacity onPress={skipBackward} className="p-3 rounded-full bg-black/20">
+                <Ionicons name="play-back" size={24} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={togglePlay} className="w-16 h-16 rounded-full bg-black/20 items-center justify-center">
+                <Ionicons name={status?.isPlaying ? "pause" : "play"} size={36} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={skipForward} className="p-3 rounded-full bg-black/20">
+                <Ionicons name="play-forward" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <View pointerEvents="box-none" className="absolute bottom-0 inset-x-0 p-4">
+              <View pointerEvents="box-none" className="flex-row justify-between mb-2">
+                <Text className="text-white text-[10px] font-bold">
+                  {status ? `${Math.floor(status.positionMillis / 60000)}:${String(Math.floor((status.positionMillis % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
+                  <Text className="text-white/60"> / {status ? `${Math.floor(status.durationMillis! / 60000)}:${String(Math.floor((status.durationMillis! % 60000) / 1000)).padStart(2, '0')}` : '0:00'}</Text>
+                </Text>
+              </View>
+              <Pressable onPress={handleSeek} onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)} className="w-full h-3 justify-center">
+                <View className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
+                  <View className="h-full bg-red-600 rounded-full" style={{ width: status ? `${(status.positionMillis / (status.durationMillis || 1)) * 100}%` : '0%' }} />
+                </View>
+              </Pressable>
+            </View>
+          </View>
+        )}
+    </View>
+
+  );
+};
 
 /* ---------- PROJECT CARD SUB-COMPONENT ---------- */
-// Managing state per card (for image slider and Read More)
 const ProjectCard = ({
   item,
   userId,
@@ -68,7 +275,6 @@ const ProjectCard = ({
   const isLiked = item.liked_by.includes(userId || "");
   const isOwner = item.user._id === userId || (item.user as any).id === userId;
 
-  // Image Slider State
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const handleScroll = (event: any) => {
@@ -77,32 +283,36 @@ const ProjectCard = ({
     setCurrentImageIndex(index);
   };
 
-  // Read More State
   const [isExpanded, setIsExpanded] = useState(false);
   const words = item.description ? item.description.split(" ") : [];
-  const isLong = words.length > 25; // Adjusted to 25 words for better mobile formatting (approx 100-150 chars)
+  const isLong = words.length > 25; 
 
   const displayDescription = isExpanded || !isLong
     ? item.description
     : words.slice(0, 25).join(" ") + "...";
 
   return (
-    <View className="mx-4 mb-5 rounded-2xl bg-[#1e1e1e]/90 border border-white/10 overflow-hidden">
+    <View className="mx-4 mb-6 rounded-3xl bg-white border border-gray-100 shadow-sm shadow-black/5 overflow-hidden">
       {/* User Info Header */}
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <View className="flex-row items-center">
-          <Image source={{ uri: item.user.avatar || 'https://ui-avatars.com/api/?name=User' }} className="h-10 w-10 rounded-full mr-3 border border-white/10 bg-gray-800" />
-          <Text className="font-bold text-white text-base">{item.user.username || item.user.name}</Text>
-        </View>
+      <View className="flex-row items-center justify-between px-5 py-4">
+        <TouchableOpacity 
+          onPress={() => navigation.navigate("PublicProfile", { user: item.user })}
+          className="flex-row items-center"
+        >
+          <Image source={{ uri: item.user.avatar || 'https://ui-avatars.com/api/?name=User' }} className="h-10 w-10 rounded-full mr-3 border border-gray-100 bg-gray-50" />
+          <View>
+            <Text className="font-bold text-zinc-900 text-[14px]">{item.user.username || item.user.name}</Text>
+            <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Project Lead</Text>
+          </View>
+        </TouchableOpacity>
 
-        {/* Edit/Delete Actions for Owner */}
         {isOwner && (
           <View className="flex-row gap-4">
-            <TouchableOpacity onPress={() => openEditModal(item)}>
-              <Ionicons name="pencil" size={18} color="#9ca3af" />
+            <TouchableOpacity onPress={() => openEditModal(item)} className="p-2 bg-gray-50 rounded-full">
+              <Ionicons name="pencil" size={16} color="#4b5563" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleDeleteProject(item._id)}>
-              <Ionicons name="trash" size={18} color="#ef4444" />
+            <TouchableOpacity onPress={() => handleDeleteProject(item._id)} className="p-2 bg-red-50 rounded-full">
+              <Ionicons name="trash" size={16} color="#ef4444" />
             </TouchableOpacity>
           </View>
         )}
@@ -110,7 +320,10 @@ const ProjectCard = ({
 
       {/* Media Slider */}
       {item.video ? (
-        <Video source={{ uri: item.video.replace(/^http:\/\//i, 'https://') }} style={{ height: 260, width: '100%' }} useNativeControls resizeMode={ResizeMode.COVER} />
+        <YouTubeVideoPlayer
+          source={item.video.replace(/^http:\/\//i, 'https://')}
+          thumbnail={item.image && item.image.length > 0 ? item.image[0] : undefined}
+        />
       ) : item.image && item.image.length > 0 ? (
         <View>
           <FlatList
@@ -122,22 +335,20 @@ const ProjectCard = ({
             onScroll={handleScroll}
             scrollEventThrottle={16}
             renderItem={({ item: imgUri }) => {
-              // Fix for Android blank images (forces HTTPS)
               const secureUrl = imgUri ? imgUri.replace(/^http:\/\//i, 'https://') : '';
               return (
                 <Image
                   source={{ uri: secureUrl }}
-                  style={{ width: CARD_WIDTH, height: 260 }}
+                  style={{ width: CARD_WIDTH, height: 280 }}
                   resizeMode="cover"
-                  className="bg-gray-800"
+                  className="bg-gray-50"
                 />
               );
             }}
           />
-          {/* Instagram-style Image Counter */}
           {item.image.length > 1 && (
-            <View className="absolute top-3 right-3 bg-black/70 px-3 py-1 rounded-full border border-white/10">
-              <Text className="text-white text-[10px] font-bold tracking-widest">
+            <View className="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-full border border-gray-100 shadow-sm">
+              <Text className="text-zinc-900 text-[10px] font-black tracking-tighter">
                 {currentImageIndex + 1} / {item.image.length}
               </Text>
             </View>
@@ -146,58 +357,55 @@ const ProjectCard = ({
       ) : null}
 
       {/* Project Details */}
-      <View className="px-4 py-3">
-        <Text className="font-bold text-white text-lg mb-1">{item.title}</Text>
+      <View className="px-5 py-4">
+        <Text className="font-black text-zinc-900 text-xl italic tracking-tighter mb-2">{item.title}</Text>
 
-        {/* Read More / Show Less Description */}
-        <Text className="text-gray-400 text-sm leading-5 mb-3">
+        <Text className="text-zinc-600 text-[13px] leading-5 mb-4">
           {displayDescription}
           {isLong && (
-            <Text onPress={() => setIsExpanded(!isExpanded)} className="text-pink-500 font-bold">
+            <Text onPress={() => setIsExpanded(!isExpanded)} className="text-pink-500 font-black italic tracking-tighter">
               {isExpanded ? " Show Less" : " Read More"}
             </Text>
           )}
         </Text>
 
-        <View className="flex-row items-center justify-between mb-3 border-b border-white/5 pb-3">
-          <View className="flex-row items-center gap-3">
+        <View className="flex-row items-center justify-between mb-2">
+          <View className="flex-row items-center gap-4">
             <Pressable onPress={() => toggleLike(item)} className="flex-row items-center">
-              <Ionicons name={isLiked ? "heart" : "heart-outline"} size={24} color={isLiked ? "#ec4899" : "white"} />
-              <Text className="ml-1 text-gray-300 font-medium">{item.likes}</Text>
+              <Ionicons name={isLiked ? "heart" : "heart-outline"} size={28} color={isLiked ? "#ec4899" : "#1A1A1A"} />
+              <Text className="ml-1.5 text-zinc-900 font-black text-sm italic">{item.likes}</Text>
             </Pressable>
 
-            <Pressable onPress={() => openComments(item._id)} className="flex-row items-center ml-2">
-              <Ionicons name="chatbubble-outline" size={22} color="white" />
+            <Pressable onPress={() => openComments(item._id)} className="flex-row items-center">
+              <Ionicons name="chatbubble-outline" size={26} color="#1A1A1A" />
             </Pressable>
 
-            {/* Contact Founder Button */}
             {!isOwner && (
               <TouchableOpacity
                 onPress={() => navigation.navigate("PublicProfile", { user: item.user })}
-                className="flex-row items-center bg-pink-500 px-3 py-1.5 rounded-full border border-white/10 ml-2"
+                className="flex-row items-center bg-zinc-900 px-4 py-2 rounded-full shadow-sm shadow-zinc-900/20"
               >
-                <Ionicons name="person-circle-outline" size={16} color="#fff" />
-                <Text className="text-gray-300 text-[10px] font-bold ml-1 uppercase tracking-wider">Contact</Text>
+                <Ionicons name="chatbubbles-outline" size={16} color="#fff" />
+                <Text className="text-white text-[10px] font-black italic tracking-tighter ml-2 uppercase">Connect</Text>
               </TouchableOpacity>
             )}
           </View>
 
-          {/* Clickable Links */}
-          <View className="flex-row gap-3">
+          <View className="flex-row gap-4">
             {item.github_url && (
               <TouchableOpacity
                 onPress={() => Linking.openURL(item.github_url as string)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                className="bg-gray-100 p-2 rounded-full"
               >
-                <Ionicons name="logo-github" size={22} color="white" />
+                <Ionicons name="logo-github" size={20} color="#1A1A1A" />
               </TouchableOpacity>
             )}
             {item.deployed_url && (
               <TouchableOpacity
                 onPress={() => Linking.openURL(item.deployed_url as string)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                className="bg-pink-50 p-2 rounded-full border border-pink-100"
               >
-                <Ionicons name="link-outline" size={22} color="skyblue" />
+                <Ionicons name="globe-outline" size={20} color="#ec4899" />
               </TouchableOpacity>
             )}
           </View>
@@ -222,7 +430,6 @@ export default function FundingFeed() {
   const [loadingMore, setLoadingMore] = useState(false);
 
 
-  /* CREATE / EDIT PROJECT MODAL */
   const [modalVisible, setModalVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -232,24 +439,15 @@ export default function FundingFeed() {
   const [deployedUrl, setDeployedUrl] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
 
-  const [images, setImages] = useState<any[]>([]); // New local images
-  const [video, setVideo] = useState<any>(null);   // New local video
-  const [oldImages, setOldImages] = useState<string[]>([]); // To show preview of existing
+  const [images, setImages] = useState<any[]>([]); 
+  const [video, setVideo] = useState<any>(null);   
+  const [oldImages, setOldImages] = useState<string[]>([]); 
   const [oldVideo, setOldVideo] = useState<string | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
 
-  /* COMMENTS MODAL */
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [commentText, setCommentText] = useState("");
-  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
-  const [commentModal, setCommentModal] = useState(false);
-  const [commentsLoading, setCommentsLoading] = useState(false);
-
-  /* PAYMENT MODAL */
   const [showPaymentParams, setShowPaymentParams] = useState<any>(null);
 
-  /* ---------- FETCH PROJECTS ---------- */
   const fetchProjects = async (pageNum: number = 1, shouldAppend: boolean = false) => {
     if (pageNum > 1) setLoadingMore(true);
     else if (!refreshing) setLoading(true);
@@ -299,7 +497,6 @@ export default function FundingFeed() {
   };
 
 
-  /* ---------- MODAL CONTROLS ---------- */
   const openCreateModal = () => {
     setIsEditing(false);
     setEditingId(null);
@@ -328,18 +525,12 @@ export default function FundingFeed() {
     setModalVisible(true);
   };
 
-  /* ---------- MEDIA PICKERS ---------- */
   const pickImages = async () => {
     if (images.length >= 5) return Alert.alert("Limit reached", "Max 5 images allowed");
 
-    // Required on Android tablets — without this the gallery won't open
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
-        'Permission Required',
-        'Please allow access to your photo library in Settings to add images.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Permission Required', 'Please allow access to your photo library to add images.');
       return;
     }
 
@@ -350,7 +541,7 @@ export default function FundingFeed() {
       quality: 0.8,
     });
     if (!res.canceled) {
-      setOldImages([]); // Clear old preview if new is selected
+      setOldImages([]); 
       setOldVideo(null);
       setVideo(null);
       setImages((prev) => [...prev, ...res.assets].slice(0, 5));
@@ -358,14 +549,9 @@ export default function FundingFeed() {
   };
 
   const pickVideo = async () => {
-    // Required on Android tablets
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
-        'Permission Required',
-        'Please allow access to your photo library in Settings to add a video.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Permission Required', 'Please allow access to your photo library to add a video.');
       return;
     }
 
@@ -376,12 +562,11 @@ export default function FundingFeed() {
     if (!res.canceled) {
       setOldImages([]);
       setOldVideo(null);
-      setImages([]); // If video, clear images
+      setImages([]); 
       setVideo(res.assets[0]);
     }
   };
 
-  /* ---------- SUBMIT PROJECT ---------- */
   const handleFinalSubmit = async (paymentData?: { paymentRefId: string, razorpay_order_id: string, razorpay_signature: string }) => {
     setSubmitting(true);
     try {
@@ -391,7 +576,6 @@ export default function FundingFeed() {
       formData.append("deployed_url", deployedUrl);
       formData.append("github_url", githubUrl);
 
-      // Only append files if user selected NEW ones
       images.forEach((img, index) => {
         formData.append("image", { uri: img.uri, name: `image_${index}.jpg`, type: "image/jpeg" } as any);
       });
@@ -404,12 +588,10 @@ export default function FundingFeed() {
         formData.append("razorpay_order_id", paymentData.razorpay_order_id);
         formData.append("razorpay_signature", paymentData.razorpay_signature);
       } else if (!isEditing) {
-        // Just an extra check to make sure non-edited forms have this field to pass the backend check if we enforce it.
         formData.append("isEditing", "false");
       }
 
       if (isEditing && editingId) {
-        // Explicitly set isEditing to bypass payment check during updates
         formData.append("isEditing", "true");
         await axios.post(`/funding/update/${editingId}`, formData, { headers: { "Content-Type": "multipart/form-data" } });
         Alert.alert("Success", "Project updated successfully");
@@ -438,20 +620,18 @@ export default function FundingFeed() {
     }
 
     if (isEditing) {
-      // Just update directly without payment
       handleFinalSubmit();
     } else {
-      // Create Razorpay Order for ₹249
       setSubmitting(true);
       try {
-        const orderRes = await axios.post('/payment/api/order', {
+        const orderRes = await axios.post('/payment/order', {
           amount: 249,
         });
         const currentOrder = orderRes.data;
 
         const content = `
         <html>
-        <body>
+        <body style="background-color: #F5F7FA;">
             <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
             <script>
             var options = {
@@ -512,7 +692,6 @@ export default function FundingFeed() {
     }
   };
 
-  /* ---------- DELETE PROJECT ---------- */
   const handleDeleteProject = (id: string) => {
     Alert.alert("Delete Project", "Are you sure? This will remove all files permanently.", [
       { text: "Cancel", style: "cancel" },
@@ -530,7 +709,14 @@ export default function FundingFeed() {
     ]);
   };
 
-  /* ---------- LIKE & COMMENTS ---------- */
+  const [comments, setComments] = useState<any[]>([]);
+  const [commentText, setCommentText] = useState("");
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [commentModal, setCommentModal] = useState(false);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<any>(null);
+  const commentInputRef = useRef<TextInput>(null);
+
   const toggleLike = async (project: Project) => {
     const liked = project.liked_by.includes(userId!);
     setProjects((prev) =>
@@ -554,24 +740,63 @@ export default function FundingFeed() {
   const postComment = async () => {
     if (!commentText || !activeProjectId) return;
     try {
-      await axios.post(`/funding/comment/add/${activeProjectId}`, { text: commentText });
+      await axios.post(`/funding/comment/add/${activeProjectId}`, { 
+        text: commentText,
+        parentCommentId: replyingTo?._id 
+      });
       setCommentText("");
+      setReplyingTo(null);
       openComments(activeProjectId);
     } catch (error) { }
   };
 
-  /* ---------- UI ---------- */
-  return (
-    <View className="flex-1 bg-black">
-      <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
-
-      <SafeAreaView className="flex-1">
-        <View className="px-6 pt-4 mb-4 flex-row justify-between items-center">
-          <View>
-            <Text className="text-white text-3xl font-black italic tracking-tighter">PROJECT<Text className="text-pink-500">FEED</Text> 🚀</Text>
+  const CommentItem = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => (
+    <View className={`${isReply ? 'ml-12 mt-2' : 'mb-6 px-2'}`}>
+      <View className="flex-row">
+        <Image source={{ uri: comment.commentor?.avatar || 'https://ui-avatars.com/api/?name=User' }} className={`${isReply ? 'w-8 h-8' : 'w-10 h-10'} rounded-full bg-gray-50 border border-gray-100`} />
+        <View className="ml-3 flex-1 bg-gray-50 p-4 rounded-3xl rounded-tl-none border border-gray-100">
+          <View className="flex-row items-baseline mb-1">
+            <Text className="font-bold text-xs text-zinc-900 mr-2">{comment.commentor?.username || comment.commentor?.name}</Text>
+            <Text className="text-[10px] text-gray-400 font-medium">{new Date(comment.createdAt).toLocaleDateString()}</Text>
           </View>
-          <TouchableOpacity onPress={openCreateModal} className="p-3 rounded-full border border-pink-500 bg-pink-500/20">
-            <Ionicons name="add" size={20} color="white" />
+          <Text className="text-zinc-700 text-sm leading-5">
+            {comment.replyToUser && <Text className="text-pink-500 font-bold">@{comment.replyToUser.username} </Text>}
+            {comment.text}
+          </Text>
+          {!isReply && (
+            <TouchableOpacity 
+              onPress={() => {
+                setReplyingTo(comment);
+                setCommentText(`@${comment.commentor.username} `);
+                commentInputRef.current?.focus();
+              }}
+              className="mt-3"
+            >
+              <Text className="text-pink-500 text-[10px] font-black uppercase tracking-widest italic">Reply</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+      {comment.replies && comment.replies.map((reply: any) => (
+        <CommentItem key={reply._id} comment={reply} isReply={true} />
+      ))}
+    </View>
+  );
+
+  return (
+    <GestureHandlerRootView className="flex-1">
+      <View className="flex-1 bg-[#F5F7FA]">
+        <StatusBar barStyle="dark-content" />
+        <SafeAreaView className="flex-1">
+        <View className="px-6 pt-4 pb-4 flex-row justify-between items-center bg-white border-b border-gray-100 shadow-sm">
+          <View className="flex-row items-center">
+            <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 bg-gray-50 rounded-full mr-3 border border-gray-100">
+              <Ionicons name="arrow-back" size={22} color="#1A1A1A" />
+            </TouchableOpacity>
+            <Text className="text-zinc-900 text-2xl font-black italic tracking-tighter">PROJECT<Text className="text-pink-500">FEED</Text> 🚀</Text>
+          </View>
+          <TouchableOpacity onPress={openCreateModal} className="p-2.5 rounded-full border border-pink-100 bg-pink-500 shadow-sm shadow-pink-500/30">
+            <Ionicons name="add" size={22} color="white" />
           </TouchableOpacity>
         </View>
 
@@ -601,13 +826,16 @@ export default function FundingFeed() {
                 <View className="py-6 items-center">
                   <ActivityIndicator size="small" color="#ec4899" />
                 </View>
-              ) : <View className="h-10" />
+              ) : <View className="h-20" />
             )}
-            contentContainerStyle={{ paddingBottom: 20, paddingTop: 10 }}
+            contentContainerStyle={{ paddingTop: 16 }}
             ListEmptyComponent={
-              <View className="items-center mt-20 opacity-50">
-                <Ionicons name="rocket-outline" size={50} color="gray" />
-                <Text className="text-gray-500 mt-4 font-bold">No projects found.</Text>
+              <View className="items-center mt-20 px-10">
+                <View className="w-20 h-20 bg-white rounded-full items-center justify-center mb-6 shadow-sm border border-gray-100">
+                  <Ionicons name="rocket-outline" size={40} color="#cbd5e1" />
+                </View>
+                <Text className="text-zinc-900 text-xl font-black italic tracking-tight">No projects yet</Text>
+                <Text className="text-gray-500 text-sm mt-2 text-center font-medium">Be the first to showcase your innovation and connect with the community!</Text>
               </View>
             }
           />
@@ -615,159 +843,176 @@ export default function FundingFeed() {
 
         {/* CREATE / EDIT PROJECT MODAL */}
         <Modal visible={modalVisible} transparent={true} animationType="slide" onRequestClose={() => setModalVisible(false)}>
-          <BlurView intensity={100} tint="dark" className="flex-1 justify-end">
-            <View className="bg-black/90 h-[90%] rounded-t-3xl border-t border-white/10 p-6 shadow-2xl">
-              <View className="w-12 h-1 bg-gray-600 rounded-full self-center mb-6" />
+            <View className="flex-1 bg-black/40 justify-end">
+              <Pressable className="flex-1" onPress={() => setModalVisible(false)} />
+              <View className="bg-white h-[90%] rounded-t-3xl border-t border-gray-100 p-6 shadow-2xl">
+                <View className="w-12 h-1 bg-gray-200 rounded-full self-center mb-6" />
 
-              <View className="flex-row justify-between items-center mb-6">
-                <Text className="text-white text-2xl font-black">{isEditing ? "Edit Project" : "Post Project"}</Text>
-                <TouchableOpacity onPress={() => setModalVisible(false)}>
-                  <Ionicons name="close-circle" size={28} color="gray" />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView showsVerticalScrollIndicator={false}>
-                <View className="bg-[#1e1e1e]/80 rounded-2xl p-4 border border-white/5 mb-4">
-                  <Text className="text-gray-400 font-bold mb-2 text-xs uppercase tracking-wider">Details</Text>
-                  <TextInput placeholder="Project Title" placeholderTextColor="#666" value={title} onChangeText={setTitle} className="text-white bg-[#2a2a2a] p-3 rounded-xl mb-3 font-medium" />
-                  <TextInput placeholder="Description" placeholderTextColor="#666" value={description} onChangeText={setDescription} multiline numberOfLines={4} textAlignVertical="top" className="text-white bg-[#2a2a2a] p-3 rounded-xl mb-3 font-medium min-h-[100px]" />
+                <View className="flex-row justify-between items-center mb-6">
+                  <Text className="text-zinc-900 text-2xl font-black italic tracking-tighter">{isEditing ? "Edit" : "Post"} <Text className="text-pink-500">Project</Text></Text>
+                  <TouchableOpacity onPress={() => setModalVisible(false)} className="p-1 bg-gray-100 rounded-full">
+                    <Ionicons name="close" size={24} color="#1A1A1A" />
+                  </TouchableOpacity>
                 </View>
 
-                <View className="bg-[#1e1e1e]/80 rounded-2xl p-4 border border-white/5 mb-4">
-                  <Text className="text-gray-400 font-bold mb-2 text-xs uppercase tracking-wider">Links</Text>
-                  <View className="flex-row items-center bg-[#2a2a2a] p-3 rounded-xl mb-3">
-                    <Ionicons name="link" size={18} color="gray" className="mr-2" />
-                    <TextInput placeholder="Deployed URL (Required)" placeholderTextColor="#666" value={deployedUrl} onChangeText={setDeployedUrl} className="text-white font-medium flex-1 ml-2" autoCapitalize="none" />
-                  </View>
-                  <View className="flex-row items-center bg-[#2a2a2a] p-3 rounded-xl">
-                    <Ionicons name="logo-github" size={18} color="gray" className="mr-2" />
-                    <TextInput placeholder="Github URL (Optional)" placeholderTextColor="#666" value={githubUrl} onChangeText={setGithubUrl} className="text-white font-medium flex-1 ml-2" autoCapitalize="none" />
-                  </View>
-                </View>
-
-                <View className="bg-[#1e1e1e]/80 rounded-2xl p-4 border border-white/5 mb-6">
-                  <Text className="text-gray-400 font-bold mb-3 text-xs uppercase tracking-wider">Media</Text>
-                  <Text className="text-gray-500 text-xs mb-3 italic">Selecting new media will replace the existing media.</Text>
-
-                  <View className="flex-row gap-3 mb-4">
-                    <TouchableOpacity onPress={pickImages} className="flex-1 bg-[#2a2a2a] py-3 rounded-xl flex-row items-center justify-center border border-white/5">
-                      <Ionicons name="images" size={18} color="#ec4899" />
-                      <Text className="text-white font-bold ml-2">Images</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={pickVideo} className="flex-1 bg-[#2a2a2a] py-3 rounded-xl flex-row items-center justify-center border border-white/5">
-                      <Ionicons name="videocam" size={18} color="#ec4899" />
-                      <Text className="text-white font-bold ml-2">Video</Text>
-                    </TouchableOpacity>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  <View className="bg-gray-50 rounded-2xl p-5 border border-gray-100 mb-5">
+                    <Text className="text-gray-400 font-black text-[10px] uppercase tracking-widest mb-3">Project Overview</Text>
+                    <TextInput placeholder="Project Title" placeholderTextColor="#9ca3af" value={title} onChangeText={setTitle} className="text-zinc-900 bg-white p-4 rounded-xl mb-4 font-bold border border-gray-100" />
+                    <TextInput placeholder="Tell everyone about your project..." placeholderTextColor="#9ca3af" value={description} onChangeText={setDescription} multiline numberOfLines={4} textAlignVertical="top" className="text-zinc-900 bg-white p-4 rounded-xl mb-3 font-medium border border-gray-100 min-h-[120px]" />
                   </View>
 
-                  {/* Render NEW Media Previews */}
-                  {images.length > 0 && (
-                    <FlatList horizontal data={images} keyExtractor={(_, i) => i.toString()} showsHorizontalScrollIndicator={false} className="mb-3" renderItem={({ item, index }) => (
-                      <View className="mr-3 relative">
-                        <Image source={{ uri: item.uri }} className="h-24 w-24 rounded-lg bg-gray-800" />
-                        <TouchableOpacity onPress={() => setImages((prev) => prev.filter((_, i) => i !== index))} className="absolute top-1 right-1 bg-black/70 rounded-full p-1 border border-white/20">
-                          <Ionicons name="close" size={12} color="white" />
-                        </TouchableOpacity>
-                      </View>
-                    )} />
-                  )}
-                  {video && (
-                    <View className="mb-3 relative w-full">
-                      <Video source={{ uri: video.uri }} style={{ height: 150, width: '100%', borderRadius: 10 }} useNativeControls />
-                      <TouchableOpacity onPress={() => setVideo(null)} className="absolute top-2 right-2 bg-black/70 rounded-full p-2 border border-white/20">
-                        <Ionicons name="close" size={16} color="white" />
+                  <View className="bg-gray-50 rounded-2xl p-5 border border-gray-100 mb-5">
+                    <Text className="text-gray-400 font-black text-[10px] uppercase tracking-widest mb-3">Live Links</Text>
+                    <View className="flex-row items-center bg-white p-4 rounded-xl mb-4 border border-gray-100 shadow-sm shadow-black/5">
+                      <Ionicons name="link-outline" size={20} color="#ec4899" />
+                      <TextInput placeholder="Deployed URL (Required)" placeholderTextColor="#9ca3af" value={deployedUrl} onChangeText={setDeployedUrl} className="text-zinc-900 font-bold flex-1 ml-3" autoCapitalize="none" />
+                    </View>
+                    <View className="flex-row items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm shadow-black/5">
+                      <Ionicons name="logo-github" size={20} color="#1A1A1A" />
+                      <TextInput placeholder="Github URL (Optional)" placeholderTextColor="#9ca3af" value={githubUrl} onChangeText={setGithubUrl} className="text-zinc-900 font-bold flex-1 ml-3" autoCapitalize="none" />
+                    </View>
+                  </View>
+
+                  <View className="bg-gray-50 rounded-2xl p-5 border border-gray-100 mb-8">
+                    <Text className="text-gray-400 font-black text-[10px] uppercase tracking-widest mb-1">Showcase Media</Text>
+                    <Text className="text-gray-400 text-[10px] mb-4 font-medium italic">High quality media helps you stand out!</Text>
+
+                    <View className="flex-row gap-4 mb-5">
+                      <TouchableOpacity onPress={pickImages} className="flex-1 bg-white py-4 rounded-2xl flex-row items-center justify-center border border-gray-100 shadow-sm shadow-black/5">
+                        <Ionicons name="images-outline" size={20} color="#ec4899" />
+                        <Text className="text-zinc-900 font-black italic tracking-tighter ml-2 uppercase text-xs">Images</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={pickVideo} className="flex-1 bg-white py-4 rounded-2xl flex-row items-center justify-center border border-gray-100 shadow-sm shadow-black/5">
+                        <Ionicons name="videocam-outline" size={20} color="#ec4899" />
+                        <Text className="text-zinc-900 font-black italic tracking-tighter ml-2 uppercase text-xs">Video</Text>
                       </TouchableOpacity>
                     </View>
-                  )}
 
-                  {/* Render OLD Media Previews (only if no new ones are selected) */}
-                  {images.length === 0 && !video && oldImages.length > 0 && (
-                    <View className="mb-3 opacity-60">
-                      <Text className="text-white text-xs mb-2">Current Images:</Text>
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        {oldImages.map((uri, idx) => <Image key={idx} source={{ uri: uri.replace(/^http:\/\//i, 'https://') }} className="h-20 w-20 rounded-lg bg-gray-800 mr-2" />)}
-                      </ScrollView>
-                    </View>
-                  )}
-                  {images.length === 0 && !video && oldVideo && (
-                    <View className="mb-3 opacity-60">
-                      <Text className="text-white text-xs mb-2">Current Video:</Text>
-                      <Video source={{ uri: oldVideo.replace(/^http:\/\//i, 'https://') }} style={{ height: 150, width: '100%', borderRadius: 10 }} />
-                    </View>
-                  )}
-                </View>
+                    {images.length > 0 && (
+                      <FlatList horizontal data={images} keyExtractor={(_, i) => i.toString()} showsHorizontalScrollIndicator={false} className="mb-4" renderItem={({ item, index }) => (
+                        <View className="mr-3 relative shadow-sm">
+                          <Image source={{ uri: item.uri }} className="h-24 w-24 rounded-2xl bg-gray-200" />
+                          <TouchableOpacity onPress={() => setImages((prev) => prev.filter((_, i) => i !== index))} className="absolute -top-1 -right-1 bg-white rounded-full p-1 border border-gray-100 shadow-sm">
+                            <Ionicons name="close" size={14} color="#ef4444" />
+                          </TouchableOpacity>
+                        </View>
+                      )} />
+                    )}
+                    {video && (
+                      <View className="mb-4 relative w-full shadow-sm rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800">
+                        <YouTubeVideoPlayer 
+                          source={video.uri} 
+                        />
+                        <TouchableOpacity onPress={() => setVideo(null)} className="absolute top-2 right-2 bg-white rounded-full p-2 border border-gray-100 shadow-sm z-10">
+                          <Ionicons name="close" size={18} color="#ef4444" />
+                        </TouchableOpacity>
+                      </View>
+                    )}
 
-                <TouchableOpacity onPress={handleInitiateProjectPost} disabled={submitting} className={`py-4 rounded-xl items-center shadow-lg border border-pink-500/30 mb-8 ${submitting ? 'bg-pink-600/50' : 'bg-pink-600'}`}>
-                  {submitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-bold text-lg">{isEditing ? "Update Project" : "Post Project for ₹249"}</Text>}
-                </TouchableOpacity>
-              </ScrollView>
+                    {images.length === 0 && !video && oldImages.length > 0 && (
+                      <View className="mb-4">
+                        <Text className="text-zinc-900 text-[10px] font-bold mb-2 uppercase tracking-tight">Active Images:</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                          {oldImages.map((uri, idx) => <Image key={idx} source={{ uri: uri.replace(/^http:\/\//i, 'https://') }} className="h-20 w-20 rounded-xl bg-gray-100 mr-2 border border-gray-200" />)}
+                        </ScrollView>
+                      </View>
+                    )}
+                  </View>
+
+                  <TouchableOpacity onPress={handleInitiateProjectPost} disabled={submitting} className={`py-5 rounded-2xl items-center shadow-lg shadow-pink-500/30 mb-12 ${submitting ? 'bg-pink-400' : 'bg-pink-500'}`}>
+                    {submitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-black text-lg italic tracking-tighter uppercase">{isEditing ? "Update Project" : "Post Project for ₹249"}</Text>}
+                  </TouchableOpacity>
+                </ScrollView>
+              </View>
             </View>
-          </BlurView>
         </Modal>
 
         {/* COMMENTS MODAL */}
         <Modal visible={commentModal} transparent={true} animationType="slide" onRequestClose={() => setCommentModal(false)}>
-          <BlurView intensity={100} tint="dark" className="flex-1 justify-end">
-            <View className="bg-black/90 h-[70%] rounded-t-3xl border-t border-white/10 overflow-hidden shadow-2xl">
-              <View className="flex-row justify-between items-center px-6 py-4 border-b border-white/10 bg-[#1e1e1e]/50">
-                <Text className="font-bold text-lg text-white">Comments</Text>
-                <TouchableOpacity onPress={() => setCommentModal(false)}>
-                  <Ionicons name="close-circle" size={24} color="gray" />
-                </TouchableOpacity>
-              </View>
-
-              {commentsLoading ? <ActivityIndicator className="mt-10" color="#ec4899" /> : (
-                <FlatList data={comments} keyExtractor={c => c._id} contentContainerStyle={{ padding: 16 }}
-                  renderItem={({ item }) => (
-                    <View className="flex-row mb-4">
-                      <Image source={{ uri: item.commentor?.avatar || 'https://ui-avatars.com/api/?name=User' }} className="w-8 h-8 rounded-full bg-gray-800 border border-white/10" />
-                      <View className="ml-3 flex-1 bg-[#2a2a2a] p-3 rounded-xl rounded-tl-none border border-white/5">
-                        <Text className="font-bold text-xs text-gray-300 mb-1">{item.commentor?.username || item.commentor?.name}</Text>
-                        <Text className="text-gray-400 text-sm leading-5">{item.text}</Text>
-                      </View>
-                    </View>
-                  )}
-                  ListEmptyComponent={<Text className="text-center text-gray-500 mt-10 font-medium">No comments yet. Be the first!</Text>}
-                />
-              )}
-
-              <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-                <View className="p-4 border-t border-white/10 flex-row items-center bg-[#1e1e1e]/80 pb-8">
-                  <TextInput value={commentText} onChangeText={setCommentText} placeholder="Add a comment..." placeholderTextColor="#666" className="flex-1 bg-[#2a2a2a] text-white rounded-full px-4 py-3 mr-3 border border-white/5 font-medium" />
-                  <TouchableOpacity onPress={postComment} className="bg-pink-600 p-3 rounded-full border border-pink-500/50">
-                    <Ionicons name="send" size={20} color="white" />
+            <View className="flex-1 bg-black/40 justify-end">
+              <Pressable className="flex-1" onPress={() => { setCommentModal(false); setReplyingTo(null); }} />
+              <View className="bg-white h-[75%] rounded-t-3xl border-t border-gray-100 overflow-hidden shadow-2xl">
+                <View className="flex-row justify-between items-center px-6 py-5 border-b border-gray-100 bg-white">
+                  <View>
+                    <Text className="font-black text-xl text-zinc-900 italic tracking-tighter">Project <Text className="text-pink-500">Discussion</Text></Text>
+                    <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Community Insights</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => { setCommentModal(false); setReplyingTo(null); }} className="p-2 bg-gray-50 rounded-full">
+                    <Ionicons name="close" size={22} color="#1A1A1A" />
                   </TouchableOpacity>
                 </View>
-              </KeyboardAvoidingView>
+
+                {commentsLoading ? <ActivityIndicator className="mt-10" color="#ec4899" /> : (
+                  <FlatList 
+                    data={comments} 
+                    keyExtractor={c => c._id} 
+                    contentContainerStyle={{ paddingVertical: 20, paddingBottom: 100 }}
+                    renderItem={({ item }) => <CommentItem comment={item} />}
+                    ListEmptyComponent={
+                      <View className="items-center mt-20 px-10">
+                        <View className="w-16 h-16 bg-gray-50 rounded-full items-center justify-center mb-4 border border-gray-100">
+                          <Ionicons name="chatbubbles-outline" size={32} color="#cbd5e1" />
+                        </View>
+                        <Text className="text-center text-zinc-900 text-lg font-black italic tracking-tighter">Join the conversation</Text>
+                        <Text className="text-center text-gray-500 text-xs mt-1 font-medium">Ask questions, offer feedback, or just share your support!</Text>
+                      </View>
+                    }
+                  />
+                )}
+
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+                  <View className="p-5 border-t border-gray-100 bg-white pb-10">
+                    {replyingTo && (
+                      <View className="flex-row items-center justify-between bg-gray-50 px-4 py-2 mb-3 rounded-xl border border-gray-100">
+                        <Text className="text-gray-500 text-xs font-medium">Replying to <Text className="font-black text-zinc-900">@{replyingTo.commentor.username}</Text></Text>
+                        <TouchableOpacity onPress={() => setReplyingTo(null)}>
+                          <Ionicons name="close-circle" size={18} color="#9ca3af" />
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                    <View className="flex-row items-center">
+                      <TextInput 
+                        ref={commentInputRef}
+                        value={commentText} 
+                        onChangeText={setCommentText} 
+                        placeholder={replyingTo ? "Write your reply..." : "Share your thoughts..."} 
+                        placeholderTextColor="#9ca3af" 
+                        className="flex-1 bg-gray-50 text-zinc-900 rounded-2xl px-5 py-4 mr-3 border border-gray-100 font-medium" 
+                        multiline
+                      />
+                      <TouchableOpacity onPress={postComment} className="bg-pink-500 p-4 rounded-2xl shadow-sm shadow-pink-500/20">
+                        <Ionicons name="send" size={20} color="white" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </KeyboardAvoidingView>
+              </View>
             </View>
-          </BlurView>
         </Modal>
 
         {/* PAYMENT MODAL */}
         <Modal visible={!!showPaymentParams} animationType="slide" transparent={false} onRequestClose={() => setShowPaymentParams(null)}>
-          <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
-            <View className="flex-row items-center justify-between p-4 border-b border-gray-900 bg-black">
-              <Text className="text-white font-bold text-lg">Secure Payment</Text>
-              <Pressable onPress={() => { setShowPaymentParams(null); Alert.alert('Cancelled', 'Payment is required to post your startup.'); }}>
-                <Ionicons name="close" size={24} color="white" />
-              </Pressable>
+          <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F7FA' }}>
+            <View className="flex-row items-center px-4 py-3 bg-white border-b border-gray-100">
+              <TouchableOpacity onPress={() => setShowPaymentParams(null)} className="p-2">
+                <Ionicons name="close" size={24} color="#000" />
+              </TouchableOpacity>
+              <Text className="ml-4 font-black italic tracking-tighter text-lg">Secure Gateway</Text>
             </View>
-            {showPaymentParams?.html ? (
-              <WebView
-                source={{ html: showPaymentParams.html }}
-                originWhitelist={["*"]}
-                onMessage={handleWebViewMessage}
-                style={{ flex: 1, backgroundColor: '#000' }}
-              />
-            ) : (
-              <View className="flex-1 bg-black justify-center items-center">
-                <ActivityIndicator size="large" color="#ec4899" />
-              </View>
-            )}
+            <WebView
+              source={showPaymentParams}
+              onMessage={handleWebViewMessage}
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+              startInLoadingState={true}
+              renderLoading={() => <ActivityIndicator color="#ec4899" size="large" style={{ position: 'absolute', top: '50%', left: '45%' }} />}
+            />
           </SafeAreaView>
         </Modal>
-
       </SafeAreaView>
     </View>
+    </GestureHandlerRootView>
   );
 }
+

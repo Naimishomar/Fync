@@ -4,7 +4,7 @@
     "slug": "fync-app",
     "scheme": "fync",
     "version": "1.0.0",
-    "icon": "./assets/square_logo.png",
+    "icon": "./assets/Fync.jpg",
     "experiments": {
       "tsconfigPaths": true
     },
@@ -29,7 +29,9 @@
           "videosPermission": "Allow Fync to access your videos",
           "isAccessMediaLocationEnabled": true
         }
-      ]
+      ],
+      "expo-web-browser",
+      "react-native-compressor"
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -52,8 +54,9 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION"
       ],
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/square_logo.png",
+        "foregroundImage": "./assets/Fync.jpg",
         "backgroundColor": "#000"
       },
       "package": "com.anonymous.client",

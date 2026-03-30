@@ -12,15 +12,6 @@ const shortsSchema = new mongoose.Schema({
     description:{
         type: String,
     },
-    user:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    comments: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Comment'
-    }],
     likes: {
         type: Number,
         default: 0,
@@ -36,15 +27,17 @@ const shortsSchema = new mongoose.Schema({
         ],
         default: [],
     },
-    comments: {
-        type: [
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+    },
+    comments: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Comment",
         },
-        ],
-        default: [],
-    },
+    ],
     views: {
         type: Number,
         default: 0,

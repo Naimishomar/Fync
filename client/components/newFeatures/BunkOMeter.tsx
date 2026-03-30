@@ -9,7 +9,8 @@ import {
   Image, 
   ScrollView,
   KeyboardAvoidingView,
-  Platform 
+  Platform,
+  StatusBar
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -51,7 +52,8 @@ export default function BunkOMeter() {
       message: '',
       color: '',
       detail: '',
-      icon: '' as keyof typeof Ionicons.glyphMap
+      icon: '' as keyof typeof Ionicons.glyphMap,
+      bg: [] as string[]
     };
 
     if (currentPercentage >= target) {
@@ -60,7 +62,8 @@ export default function BunkOMeter() {
       const canBunk = Math.floor(maxTotal - held);
 
       analysis.status = 'SAFE';
-      analysis.color = '#4ade80'; // Green
+      analysis.color = '#16a34a'; // Darker green for light theme
+      analysis.bg = ['#f0fdf4', '#dcfce7'];
       analysis.icon = 'checkmark-circle';
       if (canBunk > 0) {
         analysis.message = `Safe to Bunk ${canBunk} Classes!`;
@@ -75,7 +78,8 @@ export default function BunkOMeter() {
       
       if (decimalTarget >= 1) {
          analysis.status = 'DANGER';
-         analysis.color = '#ef4444';
+         analysis.color = '#dc2626';
+         analysis.bg = ['#fef2f2', '#fee2e2'];
          analysis.icon = 'alert-circle';
          analysis.message = `Impossible`;
          analysis.detail = `You cannot reach 100% if you have already missed a class.`;
@@ -84,7 +88,8 @@ export default function BunkOMeter() {
          const toAttend = Math.ceil(needed);
     
          analysis.status = 'DANGER';
-         analysis.color = '#ef4444'; // Red
+         analysis.color = '#dc2626'; // Darker red for light theme
+         analysis.bg = ['#fef2f2', '#fee2e2'];
          analysis.icon = 'warning';
          analysis.message = `Attend Next ${toAttend} Classes`;
          analysis.detail = `You must attend the next ${toAttend} lectures continuously to reach ${target}%.`;
@@ -95,141 +100,134 @@ export default function BunkOMeter() {
   };
 
   return (
-    <View className="flex-1 bg-black">
-      {/* 🌸 BACKGROUND 🌸 */}
-      <Image source={{ uri: BG_IMAGE }} className="absolute w-full h-full opacity-50" />
-      <LinearGradient 
-        colors={['rgba(236, 72, 153, 0.40)', 'rgba(0,0,0,0.85)', '#000000']} 
-        className="absolute w-full h-full" 
-      />
-
+    <View className="flex-1 bg-[#F8FAFC]">
+      <StatusBar barStyle="dark-content" />
+      
       <SafeAreaView className="flex-1">
         <KeyboardAvoidingView 
             behavior={Platform.OS === "ios" ? "padding" : "height"}
-            className="flex-1 px-2"
+            className="flex-1"
         >
             <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
                 
                 {/* Header */}
-                <View className="px-6 pt-6 pb-2">
-                    <Text className="text-white text-3xl font-black shadow-lg">Bunk-O-<Text className="text-pink-500">Meter</Text> 📉</Text>
-                    <Text className="text-gray-300 text-sm mt-1 font-medium">
-                        Calculate your attendance fate instantly.
-                    </Text>
+                <View className="px-8 pt-8 pb-4">
+                    <View className="flex-row items-center gap-3">
+                        <View className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/20">
+                            <MaterialCommunityIcons name="calculator" size={24} color="white" />
+                        </View>
+                        <View>
+                            <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter">BUNK<Text className="text-pink-500">-O-</Text>METER</Text>
+                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">Predict Your Attendance Fate</Text>
+                        </View>
+                    </View>
                 </View>
 
                 {/* --- INPUT CARD --- */}
-                <View className="bg-[#1e1e1e]/80 mx-5 mt-6 p-6 rounded-3xl border border-white/10 shadow-lg">
+                <View className="bg-white mx-6 mt-6 p-8 rounded-[40px] shadow-lg shadow-black/5">
                     
                     {/* Row 1: Attended & Total */}
-                    <View className="flex-row gap-4 mb-5">
+                    <View className="flex-row gap-5 mb-6">
                         <View className="flex-1">
-                            <Text className="text-gray-400 mb-2 font-bold text-[10px] uppercase tracking-wider">Attended</Text>
-                            <View className="flex-row items-center bg-black/50 border border-white/10 rounded-xl px-3 py-3">
-                                <Ionicons name="checkmark-done" size={18} color="#4ade80" />
+                            <Text className="text-slate-400 mb-2 font-black text-[10px] uppercase tracking-widest ml-1">Attended</Text>
+                            <View className="flex-row items-center bg-slate-50 border border-slate-100 rounded-2xl px-4 py-1">
+                                <Ionicons name="checkmark-done" size={20} color="#16a34a" />
                                 <TextInput
                                     value={attended}
                                     onChangeText={setAttended}
                                     keyboardType="numeric"
                                     placeholder="0"
-                                    placeholderTextColor="#555"
-                                    className="flex-1 text-white text-lg font-bold ml-2 text-center"
+                                    placeholderTextColor="#94a3b8"
+                                    className="flex-1 text-zinc-900 text-xl font-black italic ml-2"
                                 />
                             </View>
                         </View>
 
                         <View className="flex-1">
-                            <Text className="text-gray-400 mb-2 font-bold text-[10px] uppercase tracking-wider">Total Held</Text>
-                            <View className="flex-row items-center bg-black/50 border border-white/10 rounded-xl px-3 py-3">
-                                <Ionicons name="list" size={18} color="#60a5fa" />
+                            <Text className="text-slate-400 mb-2 font-black text-[10px] uppercase tracking-widest ml-1">Total Held</Text>
+                            <View className="flex-row items-center bg-slate-50 border border-slate-100 rounded-2xl px-4 py-1">
+                                <Ionicons name="list" size={20} color="#2563eb" />
                                 <TextInput
                                     value={total}
                                     onChangeText={setTotal}
                                     keyboardType="numeric"
                                     placeholder="0"
-                                    placeholderTextColor="#555"
-                                    className="flex-1 text-white text-lg font-bold ml-2 text-center"
+                                    placeholderTextColor="#94a3b8"
+                                    className="flex-1 text-zinc-900 text-xl font-black italic ml-2"
                                 />
                             </View>
                         </View>
                     </View>
 
                     {/* Row 2: Target */}
-                    <View className="mb-6">
-                        <Text className="text-gray-400 mb-2 font-bold text-[10px] uppercase tracking-wider">Target Percentage (%)</Text>
-                        <View className="flex-row items-center bg-black/50 border border-white/10 rounded-xl px-3 py-3">
-                            <Ionicons name="pie-chart-outline" size={18} color="#f472b6" />
+                    <View className="mb-8">
+                        <Text className="text-slate-400 mb-2 font-black text-[10px] uppercase tracking-widest ml-1">Target Percentage (%)</Text>
+                        <View className="flex-row items-center bg-slate-50 border border-slate-100 rounded-2xl px-4 py-1">
+                            <Ionicons name="pie-chart-outline" size={20} color="#ec4899" />
                             <TextInput
                                 value={targetInput}
                                 onChangeText={setTargetInput}
                                 keyboardType="numeric"
-                                placeholder="75 (Default)"
-                                placeholderTextColor="#555"
-                                className="flex-1 text-white text-lg font-bold ml-2"
+                                placeholder="75 (Recommended)"
+                                placeholderTextColor="#94a3b8"
+                                className="flex-1 text-zinc-900 text-xl font-black italic ml-1"
                             />
                         </View>
                     </View>
 
                     {/* Calculate Button */}
-                    <TouchableOpacity onPress={calculateAttendance} activeOpacity={0.8} className='rounded-full'>
-                        <LinearGradient
-                            colors={['#6366f1', '#a855f7']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            className="py-4 rounded-full items-center shadow-lg shadow-indigo-500/30"
-                        >
-                            <Text className="text-white font-bold text-base uppercase tracking-widest rounded-full">Predict Fate</Text>
-                        </LinearGradient>
+                    <TouchableOpacity onPress={calculateAttendance} activeOpacity={0.9} className="overflow-hidden rounded-xl bg-pink-500 flex-row items-center justify-center">
+                        <Text className="text-white font-black text-base uppercase py-4 shadow-xl shadow-pink-500/20">Predict Fate 📉</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* --- RESULT DISPLAY --- */}
                 {result && (
-                    <View className="mx-5 mt-6 px-2 rounded-2xl border">
-                        <LinearGradient
-                            colors={result.status === 'SAFE' 
-                                ? ['rgba(6, 78, 59, 0.8)', 'rgba(0,0,0,0.8)'] 
-                                : ['rgba(69, 10, 10, 0.8)', 'rgba(0,0,0,0.8)']}
-                            className="p-6 rounded-3xl border border-white/10 items-center"
-                        >
+                    <View className="mx-6 mt-8 p-1 rounded-[44px] overflow-hidden shadow-lg shadow-black/5">
+                        <View className="p-8 rounded-[40px] items-center" style={{ backgroundColor: result.bg[0] }}>
+                            
                             {/* Circular Percentage */}
-                            <View className="mb-4 bg-black/40 w-28 h-28 rounded-full items-center justify-center border-4"
+                            <View className="mb-6 bg-white w-32 h-32 rounded-full items-center justify-center border-[6px]"
                                   style={{ borderColor: result.color }}>
-                                <Text className="text-white text-2xl font-black">{result.percentage}%</Text>
-                                <Text className="text-gray-400 text-[10px]">Current</Text>
+                                <Text className="text-zinc-900 text-2xl font-black italic">{result.percentage}%</Text>
+                                <View className="h-[1px] w-12 bg-slate-200 my-1" />
+                                <Text className="text-slate-400 font-black uppercase text-[8px] tracking-widest">Score</Text>
                             </View>
 
-                            {/* Status Text */}
-                            <View className="flex-row items-center mb-2">
-                                <Ionicons name={result.icon} size={24} color={result.color} className='animate-pulse' />
-                                <Text className="text-2xl font-bold ml-2 text-white">
-                                    {result.status === 'SAFE' ? 'You are Safe!' : 'Danger Zone!'}
+                            {/* Status Body */}
+                            <View className="items-center">
+                                <View className="flex-row items-center gap-2 mb-3 bg-white px-5 py-2 rounded-full border border-slate-100">
+                                    <Ionicons name={result.icon} size={20} color={result.color} />
+                                    <Text className="text-lg font-black text-zinc-900 uppercase">
+                                        {result.status === 'SAFE' ? 'The Great Escape' : 'System Critical'}
+                                    </Text>
+                                </View>
+
+                                <Text className="text-xl font-black text-center mb-3" style={{ color: result.color }}>
+                                    {result.message}
                                 </Text>
-                            </View>
 
-                            <Text className="text-lg font-semibold text-center mb-2" style={{ color: result.color }}>
-                                {result.message}
-                            </Text>
-
-                            <Text className="text-gray-300 text-center text-sm px-2 leading-5 opacity-90">
-                                {result.detail}
-                            </Text>
-
-                            {/* Tip Box */}
-                            <View className="mt-6 bg-black/30 p-3 rounded-xl w-full flex-row items-center border border-white/5">
-                                <MaterialCommunityIcons 
-                                    name="lightbulb-on-outline" 
-                                    size={20} 
-                                    color="#fbbf24" 
-                                />
-                                <Text className="text-gray-400 ml-2 text-xs flex-1 italic">
-                                    {result.status === 'SAFE' 
-                                        ? "Tip: Sleep in tomorrow. The numbers say you can." 
-                                        : "Tip: Set 5 alarms. You cannot afford to miss the bus."}
+                                <Text className="text-slate-500 font-bold text-center text-[13px] px-2 leading-5 tracking-tight">
+                                    {result.detail}
                                 </Text>
-                            </View>
 
-                        </LinearGradient>
+                                {/* Tip Box */}
+                                <View className="mt-8 bg-white/70 p-4 rounded-2xl w-full flex-row items-center border border-white/50">
+                                    <View className="bg-amber-100 p-2 rounded-xl">
+                                        <MaterialCommunityIcons 
+                                            name="lightbulb-variant" 
+                                            size={20} 
+                                            color="#d97706" 
+                                        />
+                                    </View>
+                                    <Text className="text-slate-500 ml-3 text-[11px] font-bold flex-1 tracking-tight">
+                                        {result.status === 'SAFE' 
+                                            ? "Tip: Numbers confirm you're in the safe zone. Enjoy your bunk!" 
+                                            : "Tip: Alarm set to maximum. Every lecture from now is critical."}
+                                    </Text>
+                                </View>
+                            </View>
+                        </View>
                     </View>
                 )}
 

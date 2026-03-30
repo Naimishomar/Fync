@@ -3,7 +3,7 @@ import axios from '../context/axiosConfig';
 
 export const handlePayment = async (amount: number, user: any, navigation: any) => {
   try {
-    const orderRes = await axios.post('/payment/api/order', {
+    const orderRes = await axios.post('/payment/order', {
       amount,
     });
     const order = orderRes.data;

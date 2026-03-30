@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { 
-  View, Text, FlatList, Image, Pressable, ActivityIndicator, Alert, 
-  TouchableOpacity, Animated, Easing 
+import {
+  View, Text, FlatList, Image, Pressable, ActivityIndicator, Alert,
+  TouchableOpacity, Animated, Easing, StatusBar
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -11,7 +11,7 @@ import axios from '../../context/axiosConfig';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Print from 'expo-print';
 import { shareAsync } from 'expo-sharing';
-import socket from '../../utils/socket'; 
+import socket from '../../utils/socket';
 
 type ScreenRouteProp = RouteProp<RootStackParamList, 'LeaderboardScreen'>;
 
@@ -35,7 +35,7 @@ const LeaderboardScreen = () => {
 
     const onUpdate = () => {
         console.log("🔔 New submission received! Refreshing...");
-        fetchLeaderboard(); 
+        fetchLeaderboard();
     };
 
     socket.on("leaderboard_updated", onUpdate);
@@ -117,7 +117,7 @@ const LeaderboardScreen = () => {
           <body>
             <h1>Leaderboard Results</h1>
             <h3>Room ID: ${roomId}</h3>
-            
+
             <table>
               <thead>
                 <tr>
@@ -151,99 +151,103 @@ const LeaderboardScreen = () => {
 
   const renderItem = ({ item, index }: { item: any; index: number }) => {
     // Styling for Top 3 Ranks
-    let rankColor = 'text-gray-500';
-    let iconColor = '#6b7280';
-    if (index === 0) { rankColor = 'text-yellow-400'; iconColor = '#facc15'; } // Gold
-    else if (index === 1) { rankColor = 'text-gray-300'; iconColor = '#d1d5db'; } // Silver
-    else if (index === 2) { rankColor = 'text-orange-400'; iconColor = '#fb923c'; } // Bronze
+    let rankColor = 'text-slate-500';
+    let iconColor = '#94a3b8';
+    let cardBg = 'bg-white';
+    if (index === 0) { rankColor = 'text-yellow-600'; iconColor = '#d97706'; cardBg = 'bg-amber-50/50'; } // Gold
+    else if (index === 1) { rankColor = 'text-slate-400'; iconColor = '#64748b'; cardBg = 'bg-slate-50/50'; } // Silver
+    else if (index === 2) { rankColor = 'text-orange-600'; iconColor = '#c2410c'; cardBg = 'bg-orange-50/50'; } // Bronze
 
     return (
-      <View className="flex-row items-center bg-[#1e1e1e]/80 p-4 mb-3 mx-6 rounded-2xl border border-white/10 shadow-lg">
+      <View className={`flex-row items-center ${cardBg} p-5 mb-4 mx-6 rounded-3xl border border-slate-100 shadow-sm shadow-black/5`}>
         {/* Rank */}
-        <View className="w-10 items-center justify-center mr-2">
+        <View className="w-10 items-center justify-center mr-3">
            {index < 3 ? (
-               <Ionicons name="trophy" size={24} color={iconColor} />
+               <Ionicons name="trophy" size={28} color={iconColor} />
            ) : (
-               <Text className={`text-lg font-bold ${rankColor}`}>#{index + 1}</Text>
+               <Text className={`text-xl font-black italic ${rankColor}`}>#{index + 1}</Text>
            )}
         </View>
-        
+
         {/* Avatar */}
-        <View className="w-12 h-12 bg-gray-800 rounded-full mr-4 border border-white/10 justify-center items-center overflow-hidden">
+        <View className="w-14 h-14 bg-white rounded-2xl mr-4 border border-slate-100 justify-center items-center shadow-sm overflow-hidden p-1">
           {item.user?.avatar ? (
-            <Image source={{ uri: item.user.avatar }} className="w-full h-full" />
+            <Image source={{ uri: item.user.avatar }} className="w-full h-full rounded-xl" />
           ) : (
-            <Text className="font-bold text-gray-400 text-lg">{item.user?.username?.[0]?.toUpperCase()}</Text>
+            <Text className="font-black italic text-slate-300 text-xl">{item.user?.username?.[0]?.toUpperCase()}</Text>
           )}
         </View>
 
         {/* User Info */}
         <View className="flex-1">
-            <Text className="font-bold text-white text-base" numberOfLines={1}>
-            {item.user?.name || item.user?.username || "Unknown"}
+            <Text className="font-black italic text-zinc-900 text-base uppercase tracking-tight" numberOfLines={1}>
+            {item.user?.name || item.user?.username || "Global User"}
             </Text>
-            <Text className="text-xs text-gray-500">@{item.user?.username}</Text>
+            <Text className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">@{item.user?.username || "unknown"}</Text>
         </View>
 
         {/* Score Badge */}
-        <View className="bg-pink-500/20 px-3 py-1.5 rounded-full border border-pink-500/30">
-          <Text className="font-black text-pink-500">{item.score} <Text className="font-medium text-[10px]">pts</Text></Text>
+        <View className="bg-zinc-900 px-4 py-2 rounded-2xl shadow-lg shadow-black/20 transform rotate-2">
+          <Text className="font-black italic text-white text-base">
+            {item.score} <Text className="text-[10px] uppercase tracking-tighter">Pts</Text>
+          </Text>
         </View>
       </View>
     );
   };
 
   return (
-    <View className="flex-1 bg-black">
-      {/* Background Gradient */}
-      <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
+    <View className="flex-1 bg-[#F8FAFC]">
+      <StatusBar barStyle="dark-content" />
 
       <SafeAreaView className="flex-1">
         {/* HEADER */}
-        <View className="flex-row items-center justify-between px-6 pt-4 mb-2">
-          <TouchableOpacity 
+        <View className="flex-row items-center justify-between px-8 pt-8 mb-4">
+          <TouchableOpacity
             onPress={() => navigation.navigate("Tabs")}
-            className="p-2 bg-white/10 rounded-full border border-white/10"
+            className="w-12 h-12 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm shadow-black/5"
           >
-            <Ionicons name="home" size={20} color="white" />
+            <Ionicons name="home" size={20} color="#18181b" />
           </TouchableOpacity>
-          
-          <Text className="text-2xl font-black italic text-white tracking-tighter">
-             LEADER<Text className="text-pink-500">BOARD</Text> 🏆
+
+          <Text className="text-3xl font-black italic text-zinc-900 tracking-tighter uppercase">
+             Leader<Text className="text-pink-500">Board</Text>
           </Text>
-          
+
           {/* ACTION BUTTONS */}
           <View className="flex-row items-center gap-3">
             {/* Animated Refresh Button */}
-            <TouchableOpacity onPress={handleManualRefresh} className="p-2 bg-white/10 rounded-full border border-white/10">
+            <TouchableOpacity onPress={handleManualRefresh} className="w-12 h-12 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm shadow-black/5">
                 <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                    <Ionicons name="refresh" size={20} color="white" />
+                    <Ionicons name="refresh" size={20} color="#18181b" />
                 </Animated.View>
             </TouchableOpacity>
 
             {/* Download Button */}
-            <TouchableOpacity onPress={downloadPDF} disabled={downloading} className="p-2 bg-pink-600 rounded-full border border-pink-500/50">
+            <TouchableOpacity onPress={downloadPDF} disabled={downloading} className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/20">
                 {downloading ? (
                     <ActivityIndicator size="small" color="white" />
                 ) : (
-                    <Ionicons name="cloud-download-outline" size={20} color="white" />
+                    <Ionicons name="download" size={20} color="white" />
                 )}
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Room ID Badge */}
-        <View className="items-center mb-6">
-            <View className="bg-[#2a2a2a] px-4 py-1.5 rounded-full border border-white/10">
-                <Text className="text-xs font-bold text-gray-400 tracking-widest uppercase">Room: <Text className="text-white">{roomId}</Text></Text>
+        <View className="items-center mb-8">
+            <View className="bg-white px-6 py-2 rounded-full border border-slate-100 shadow-sm shadow-black/5">
+                <Text className="text-[10px] font-black italic text-slate-400 tracking-[2px] uppercase">Node: <Text className="text-zinc-900">{roomId}</Text></Text>
             </View>
         </View>
 
         {/* User's Own Score Card (If played) */}
         {myScore !== undefined && (
-          <View className="mx-6 bg-pink-600/20 p-6 rounded-3xl mb-6 border border-pink-500/50 items-center shadow-lg">
-            <Text className="text-pink-200 font-bold text-xs uppercase tracking-widest mb-1">Your Final Score</Text>
-            <Text className="text-white text-5xl font-black italic">{myScore}</Text>
+          <View className="mx-8 bg-zinc-900 p-8 rounded-[40px] mb-8 shadow-2xl shadow-black/20 items-center overflow-hidden">
+            <View className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full -mr-16 -mt-16" />
+            <Text className="text-pink-500 font-black italic text-[10px] uppercase tracking-[3px] mb-2">My Final Ranking</Text>
+            <Text className="text-white text-6xl font-black italic tracking-tighter">{myScore}</Text>
+            <Text className="text-slate-500 font-black italic text-[10px] uppercase tracking-[2px] mt-2">Points Verified</Text>
           </View>
         )}
 
@@ -256,11 +260,16 @@ const LeaderboardScreen = () => {
             keyExtractor={(item) => item._id}
             renderItem={renderItem}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 20 }}
+            contentContainerStyle={{ paddingBottom: 40 }}
             ListEmptyComponent={
-              <View className="items-center justify-center mt-20 opacity-50">
-                  <Ionicons name="hourglass-outline" size={48} color="gray" />
-                  <Text className="text-center text-gray-400 mt-4 font-bold text-lg">Waiting for challengers...</Text>
+              <View className="items-center justify-center mt-20 px-10">
+                  <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
+                    <Ionicons name="people" size={40} color="#CBD5E1" />
+                  </View>
+                  <Text className="text-zinc-900 font-black italic text-xl tracking-tight text-center uppercase">Dev Void</Text>
+                  <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-wide">
+                      Awaiting entry from challengers.
+                  </Text>
               </View>
             }
           />
