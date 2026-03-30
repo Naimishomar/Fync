@@ -152,7 +152,6 @@ app.use('/fync-media', fyncMediaRoute);
 app.use('/clubs', clubRoute);
 app.use('/api/marketplace', marketplaceRoute);
 
-
 socketController(io);
 setCollegeChatIo(io);
 setAlumniChatIo(io);
