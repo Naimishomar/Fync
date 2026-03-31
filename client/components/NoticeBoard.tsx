@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, FlatList, Image, TouchableOpacity,
   Modal, TextInput, ActivityIndicator, Alert, Pressable, Linking, ScrollView, RefreshControl,
-  Platform, KeyboardAvoidingView, StyleSheet, Dimensions
+  Platform, KeyboardAvoidingView, StyleSheet, Dimensions, Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -433,82 +433,128 @@ const NoticeBoard = () => {
     );
   };
 
-  return (
-    <View className="flex-1 bg-black">
-      {/* Background Gradient */}
-      <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
+    const NoticeSkeleton = () => {
+        const pulseAnim = useRef(new Animated.Value(0.3)).current;
 
-      <SafeAreaView className="flex-1" edges={['top']}>
-        {/* Header */}
-        <View className="px-6 py-4 flex-row justify-between items-center z-10">
-          <View>
-            <Text className="text-3xl font-black italic text-white tracking-tighter">
-              NOTICE <Text className="text-pink-500">BOARD</Text> 📌
-            </Text>
-            <Text className="text-gray-400 text-xs mt-1 uppercase tracking-widest font-bold">Stay updated with latest announcements</Text>
-          </View>
-        </View>
+        useEffect(() => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
+                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
+                ])
+            ).start();
+        }, []);
 
-        {/* Tabs */}
-        <View className="flex-row mx-6 mt-2 mb-4 bg-[#2a2a2a] p-1 rounded-xl border border-white/10 shadow-lg">
-          <TouchableOpacity
-            onPress={() => setActiveTab('college')}
-            className={`flex-1 py-2.5 items-center rounded-lg transition-all ${activeTab === 'college' ? 'bg-pink-600' : 'bg-transparent'
-              }`}
-          >
-            <Text className={`font-black tracking-widest text-xs uppercase ${activeTab === 'college' ? 'text-white' : 'text-gray-400'}`}>College</Text>
-          </TouchableOpacity>
+        return (
+            <Animated.View 
+                style={{ opacity: pulseAnim }}
+                className="bg-[#1e1e1e]/50 rounded-[32px] mb-5 shadow-2xl border border-white/5 overflow-hidden mx-6 mt-2"
+            >
+                <View className={`absolute left-0 top-0 bottom-0 w-1.5 ${activeTab === 'global' ? 'bg-red-500/30' : 'bg-pink-500/30'}`} />
+                <View className="p-6 pl-8">
+                    <View className="h-6 bg-zinc-800 rounded w-3/4 mb-4" />
+                    <View className="h-3 bg-zinc-800 rounded w-1/4 mb-6" />
+                    
+                    <View className="h-4 bg-zinc-800 rounded w-full mb-3" />
+                    <View className="h-4 bg-zinc-800 rounded w-4/5 mb-8" />
 
-          <TouchableOpacity
-            onPress={() => setActiveTab('global')}
-            className={`flex-1 py-2.5 items-center rounded-lg transition-all ${activeTab === 'global' ? 'bg-red-600' : 'bg-transparent'
-              }`}
-          >
-            <Text className={`font-black tracking-widest text-xs uppercase ${activeTab === 'global' ? 'text-white' : 'text-gray-400'}`}>Global</Text>
-          </TouchableOpacity>
-        </View>
+                    <View className="h-[1px] bg-white/5 w-full mb-6" />
 
-        {/* List */}
-        {loading && !refreshing ? (
-          <ActivityIndicator size="large" color={activeTab === 'global' ? '#ef4444' : '#ec4899'} className="mt-20" />
-        ) : (
-          <FlatList
-            data={notices}
-            keyExtractor={item => item._id}
-            renderItem={renderNotice}
-            contentContainerStyle={{ paddingBottom: 100, paddingTop: 16 }}
-            showsVerticalScrollIndicator={false}
-            refreshControl={<RefreshControl tintColor={activeTab === 'global' ? '#ef4444' : '#ec4899'} refreshing={refreshing} onRefresh={onRefresh} />}
-            onEndReached={handleLoadMore}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={() => (
-              loadingMore ? (
-                <View className="py-6 items-center">
-                  <ActivityIndicator size="small" color={activeTab === 'global' ? '#ef4444' : '#ec4899'} />
+                    <View className="flex-row justify-between items-center">
+                        <View className="flex-row items-center">
+                            <View className="w-8 h-8 bg-zinc-800 rounded-full" />
+                            <View className="ml-3">
+                                <View className="h-4 bg-zinc-800 rounded w-20 mb-1.5" />
+                            </View>
+                        </View>
+                        <View className="flex-row gap-2">
+                            <View className="w-12 h-8 bg-zinc-800 rounded-full" />
+                            <View className="w-12 h-8 bg-zinc-800 rounded-full" />
+                        </View>
+                    </View>
                 </View>
-              ) : <View className="h-10" />
-            )}
-            ListEmptyComponent={
-              <View className="items-center justify-center mt-20 opacity-50">
-                <MaterialCommunityIcons name="clipboard-text-off-outline" size={64} color="gray" />
-                <Text className="text-gray-400 mt-4 font-bold text-lg">No notices here yet.</Text>
-              </View>
-            }
-          />
-        )}
+            </Animated.View>
+        );
+    };
 
-        {/* BOTTOM FLOATING CREATE FAB - Visible to all, global redirects to payment if not admin */}
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => setCreateModalVisible(true)}
-          className={`absolute bottom-14 right-6 px-6 py-4 rounded-full shadow-2xl flex-row items-center border ${activeTab === 'global' ? 'bg-red-600 border-red-500/50 shadow-red-500/30' : 'bg-pink-600 border-pink-500/50 shadow-pink-500/30'
-            }`}
-        >
-          <Ionicons name="pencil" size={20} color="white" />
-          <Text className="text-white font-black tracking-widest ml-2 uppercase text-sm">
-            {activeTab === 'global' ? 'Global Notice' : 'Post Notice'}
-          </Text>
-        </TouchableOpacity>
+    return (
+        <View className="flex-1 bg-black">
+            {/* Background Gradient */}
+            <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
+
+            <SafeAreaView className="flex-1" edges={['top']}>
+                {/* Header */}
+                <View className="px-6 py-4 flex-row justify-between items-center z-10">
+                    <View>
+                        <Text className="text-3xl font-black italic text-white tracking-tighter">
+                            NOTICE <Text className="text-pink-500">BOARD</Text> 📌
+                        </Text>
+                        <Text className="text-gray-400 text-xs mt-1 uppercase tracking-widest font-bold">Stay updated with latest announcements</Text>
+                    </View>
+                </View>
+
+                {/* Tabs */}
+                <View className="flex-row mx-6 mt-2 mb-4 bg-[#2a2a2a] p-1 rounded-xl border border-white/10 shadow-lg">
+                    <TouchableOpacity
+                        onPress={() => setActiveTab('college')}
+                        className={`flex-1 py-2.5 items-center rounded-lg transition-all ${activeTab === 'college' ? 'bg-pink-600' : 'bg-transparent'
+                            }`}
+                    >
+                        <Text className={`font-black tracking-widest text-xs uppercase ${activeTab === 'college' ? 'text-white' : 'text-gray-400'}`}>College</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={() => setActiveTab('global')}
+                        className={`flex-1 py-2.5 items-center rounded-lg transition-all ${activeTab === 'global' ? 'bg-red-600' : 'bg-transparent'
+                            }`}
+                    >
+                        <Text className={`font-black tracking-widest text-xs uppercase ${activeTab === 'global' ? 'text-white' : 'text-gray-400'}`}>Global</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* List */}
+                {loading && !refreshing ? (
+                    <View>
+                        {[1, 2, 3].map(i => <NoticeSkeleton key={i} />)}
+                    </View>
+                ) : (
+                    <FlatList
+                        data={notices}
+                        keyExtractor={item => item._id}
+                        renderItem={renderNotice}
+                        contentContainerStyle={{ paddingBottom: 100, paddingTop: 16 }}
+                        showsVerticalScrollIndicator={false}
+                        refreshControl={<RefreshControl tintColor={activeTab === 'global' ? '#ef4444' : '#ec4899'} refreshing={refreshing} onRefresh={onRefresh} />}
+                        onEndReached={handleLoadMore}
+                        onEndReachedThreshold={0.5}
+                        ListFooterComponent={() => (
+                            loadingMore ? (
+                                <View className="py-6 items-center">
+                                    <ActivityIndicator size="small" color={activeTab === 'global' ? '#ef4444' : '#ec4899'} />
+                                </View>
+                            ) : <View className="h-10" />
+                        )}
+                        ListEmptyComponent={
+                            <View className="items-center justify-center mt-20 opacity-50">
+                                <MaterialCommunityIcons name="clipboard-text-off-outline" size={64} color="gray" />
+                                <Text className="text-gray-400 mt-4 font-bold text-lg">No notices here yet.</Text>
+                            </View>
+                        }
+                    />
+                )}
+
+                {/* BOTTOM FLOATING CREATE FAB - Visible to all, global redirects to payment if not admin */}
+                <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => setCreateModalVisible(true)}
+                    className={`absolute bottom-14 right-6 px-6 py-4 rounded-full shadow-2xl flex-row items-center border ${activeTab === 'global' ? 'bg-red-600 border-red-500/50 shadow-red-500/30' : 'bg-pink-600 border-pink-500/50 shadow-pink-500/30'
+                        }`}
+                >
+                    <Ionicons name="pencil" size={20} color="white" />
+                    <Text className="text-white font-black tracking-widest ml-2 uppercase text-sm">
+                        {activeTab === 'global' ? 'Global Notice' : 'Post Notice'}
+                    </Text>
+                </TouchableOpacity>
 
         {/* Create Modal */}
         <Modal visible={createModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setCreateModalVisible(false)}>

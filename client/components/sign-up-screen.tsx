@@ -119,12 +119,12 @@ export default function SignUpScreen() {
       <View className="flex-1 bg-[#F3F4F6]">
         {/* Background */}
         <ScrollView
-          contentContainerStyle={{ padding: 16 }}
+          contentContainerStyle={{ padding: 0 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           <Image
-            source={{ uri: 'https://i.pinimg.com/736x/a2/05/60/a205602210656db27579657ba25f57a4.jpg' }}
+            source={{ uri: 'https://i.pinimg.com/1200x/92/58/94/92589457f3c282c151c8da76c50a1316.jpg' }}
             style={{ width: '100%', height: 450 }}
             className="rounded-2xl"
             resizeMode="cover"
@@ -137,9 +137,9 @@ export default function SignUpScreen() {
           className="absolute bottom-0 w-full"
         >
           <ScrollView keyboardShouldPersistTaps="handled">
-            <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-16">
+            <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-12">
               <Image source={require('../assets/Fync.jpg')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
-              <Text className="text-3xl font-bold mb-6">Sign Up</Text>
+              <Text className="text-gray-500 mb-2">Join the exclusive student network</Text>
 
               <TextInput
                 className="mb-4 rounded-xl border border-gray-300 px-4 py-4"
@@ -233,7 +233,7 @@ export default function SignUpScreen() {
                 </Pressable>
               )}
 
-              <View className="mt-6 flex-row justify-center">
+              <View className="mt-3 flex-row justify-center">
                 <Text className="text-gray-600">Already have an account? </Text>
                 <Pressable onPress={() => navigation.navigate('Login')}>
                   <Text className="font-semibold text-black">Login</Text>

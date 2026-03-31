@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View, Text, TouchableOpacity, FlatList, Image,
-    ActivityIndicator, StatusBar, Alert, Platform, Modal, TextInput, KeyboardAvoidingView, ScrollView, RefreshControl
+    ActivityIndicator, StatusBar, Alert, Platform, Modal, TextInput, KeyboardAvoidingView, ScrollView, RefreshControl, Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -189,6 +189,35 @@ const MarketplaceScreen = () => {
         );
     };
 
+    const ProductSkeleton = () => {
+        const pulseAnim = useRef(new Animated.Value(0.4)).current;
+
+        useEffect(() => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim, { toValue: 0.8, duration: 1200, useNativeDriver: true }),
+                    Animated.timing(pulseAnim, { toValue: 0.4, duration: 1200, useNativeDriver: true }),
+                ])
+            ).start();
+        }, []);
+
+        return (
+            <Animated.View 
+                style={{ opacity: pulseAnim, width: '48%' }} 
+                className="bg-white rounded-2xl overflow-hidden mb-4 border border-zinc-100"
+            >
+                <View className="bg-zinc-100 w-full" style={{ aspectRatio: 1 }} />
+                <View className="px-3 pt-3 pb-4">
+                    <View className="h-4 bg-zinc-100 rounded w-3/4 self-center mb-4" />
+                    <View className="flex-row items-center justify-between">
+                        <View className="h-3 bg-zinc-50 rounded w-1/2" />
+                        <View className="h-7 bg-zinc-100 rounded-xl w-14" />
+                    </View>
+                </View>
+            </Animated.View>
+        );
+    };
+
     return (
         <View className="flex-1 bg-zinc-50">
             <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
@@ -214,9 +243,16 @@ const MarketplaceScreen = () => {
                     </View>
                 </View>
 
-                {loading ? (
-                    <View className="flex-1 items-center justify-center">
-                        <ActivityIndicator size="large" color="#000" />
+                {loading && !refreshing ? (
+                    <View className="flex-1 p-4">
+                        <View className="flex-row justify-between mb-4">
+                            <ProductSkeleton />
+                            <ProductSkeleton />
+                        </View>
+                        <View className="flex-row justify-between">
+                            <ProductSkeleton />
+                            <ProductSkeleton />
+                        </View>
                     </View>
                 ) : (
                     <FlatList

@@ -40,7 +40,12 @@ function CreatePost() {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async () => {
+   const handleSubmit = async () => {
+    if (images.length === 0) {
+      Toast.show({ type: 'error', text1: 'Please select at least one image' });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const formData = new FormData();
@@ -106,13 +111,13 @@ function CreatePost() {
 
         <Pressable
           onPress={handleSubmit}
-          disabled={isLoading}
-          className="rounded-full bg-pink-500 px-6 py-2 shadow-sm shadow-pink-200"
+          disabled={isLoading || images.length === 0}
+          className={`rounded-full px-6 py-2 shadow-sm ${images.length > 0 ? 'bg-pink-500 shadow-pink-200' : 'bg-zinc-200 shadow-none'}`}
         >
           {isLoading ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Text className="font-bold text-white">Post</Text>
+            <Text className={`font-bold ${images.length > 0 ? 'text-white' : 'text-zinc-400'}`}>Post</Text>
           )}
         </Pressable>
       </View>

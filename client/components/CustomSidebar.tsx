@@ -247,13 +247,25 @@ export default function CustomSidebar(props: any) {
                         <Text className="text-white text-lg ml-4 font-medium">Study Material</Text>
                     </Pressable>
 
-                    {/* 10. Marketplace */}
+                    {/* 10. Campus OLX (Peer-to-Peer) */}
                     <Pressable
-                        onPress={() => props.navigation.navigate('MarketplaceScreen')}
+                        onPress={() => props.navigation.navigate('OLXMarketplace')}
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
                     >
                         <Ionicons name="cart-outline" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">Marketplace</Text>
+                        <Text className="text-white text-lg ml-4 font-medium">Campus OLX</Text>
+                    </Pressable>
+
+                    {/* 10b. Rewards Store (Spend Coins) */}
+                    <Pressable
+                        onPress={() => props.navigation.navigate('RewardsMarketplace')}
+                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                    >
+                        <Ionicons name="gift-outline" size={24} color="#fbd38d" />
+                        <Text className="text-white text-lg ml-4 font-medium">Rewards Store</Text>
+                        <View className="ml-2 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30">
+                            <Text className="text-[9px] text-amber-500 font-bold">COINS</Text>
+                        </View>
                     </Pressable>
 
                     {/* 11. Lost & Found */}
@@ -301,11 +313,6 @@ export default function CustomSidebar(props: any) {
                         <Text className="text-white text-lg ml-4 font-medium">Paid Gigs</Text>
                     </Pressable>
 
-                    {/* 16. Late Night Food removed */}
-
-                    {/* 17. Campus Travel removed */}
-
-
                     {/* 18. Study Assistant */}
                     <Pressable
                         onPress={() => props.navigation.navigate('StudyAssistant')}
@@ -313,6 +320,15 @@ export default function CustomSidebar(props: any) {
                     >
                         <Ionicons name="book-outline" size={24} color="#f9a8d4" />
                         <Text className="text-white text-lg ml-4 font-medium">Study Assistant</Text>
+                    </Pressable>
+
+                    {/* Focus Mode */}
+                    <Pressable
+                        onPress={() => props.navigation.navigate('FocusProductivity')}
+                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                    >
+                        <Ionicons name="timer-outline" size={24} color="#f9a8d4" />
+                        <Text className="text-white text-lg ml-4 font-medium">Focus Mode</Text>
                     </Pressable>
 
 

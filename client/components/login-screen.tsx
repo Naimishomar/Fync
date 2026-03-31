@@ -15,7 +15,7 @@ import Toast from 'react-native-toast-message';
 import { useAuth } from 'context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 //@ts-ignore
-import loginImage from '../assets/loginImage.png';
+import loginImage from '../assets/login-ad.png';
 
 export default function LoginScreen() {
   const navigation = useNavigation<any>();
@@ -52,18 +52,17 @@ export default function LoginScreen() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 bg-[#F3F4F6]">
+      <View className="flex-1 bg-white">
         {/* Background Feed */}
         <ScrollView
-          contentContainerStyle={{ padding: 16 }}
+          contentContainerStyle={{ padding: 1 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           <View className="">
             <Image
-              source={{ uri: 'https://i.pinimg.com/736x/a2/05/60/a205602210656db27579657ba25f57a4.jpg' }}
-              style={{ width: '100%', height: 450 }}
-              className="rounded-2xl"
+              source={{ uri: 'https://i.pinimg.com/1200x/d8/39/f1/d839f11ee984f4a725af419b6237af35.jpg' }}
+              style={{ width: '100%', height: 500 }}
               resizeMode="cover"
             />
           </View>
@@ -79,9 +78,9 @@ export default function LoginScreen() {
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingBottom: 24 }}
           >
-            <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-10">
+            <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-7">
               <Image source={require('../assets/Fync.jpg')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
-              <Text className="text-3xl font-bold mb-6">Login</Text>
+              <Text className="text-gray-500 mb-2">Login to the exclusive student network</Text>
 
               <TextInput
                 className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-base"
@@ -137,7 +136,7 @@ export default function LoginScreen() {
                 </Pressable>
               </View>
 
-              <View className="mt-2 border-t border-gray-100 pt-3">
+              <View className="mt-5 border-t border-gray-50 pt-3">
                  <Text className="text-center text-gray-500 mb-3">Are you an Alumni?</Text>
                  <Pressable 
                   className="rounded-full border border-black py-3 items-center"

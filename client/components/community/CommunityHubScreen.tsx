@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   View, Text, TouchableOpacity, ScrollView, Image, 
   ActivityIndicator, Dimensions, Alert, Modal, TextInput, Linking, Share,
-  StatusBar, Platform
+  StatusBar, Platform, Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialIcons, MaterialCommunityIcons, FontAwesome5, SimpleLineIcons, Feather } from '@expo/vector-icons';
@@ -377,7 +377,59 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
         ]);
     };
 
-    if (loading) return <View className="flex-1 items-center justify-center bg-white"><ActivityIndicator size="small" color="#1a1a1a" /></View>;
+    const CommunityHubSkeleton = () => {
+        const pulseAnim = useRef(new Animated.Value(0.4)).current;
+
+        useEffect(() => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim, { toValue: 0.8, duration: 1200, useNativeDriver: true }),
+                    Animated.timing(pulseAnim, { toValue: 0.4, duration: 1200, useNativeDriver: true }),
+                ])
+            ).start();
+        }, []);
+
+        return (
+            <Animated.View style={{ opacity: pulseAnim }} className="flex-1 bg-white">
+                {/* Header Banner Skeleton */}
+                <View className="h-60 bg-zinc-100 relative" />
+                
+                <View className="px-5 pt-8">
+                    {/* Action Buttons Skeleton */}
+                    <View className="flex-row gap-3 mb-10">
+                        <View className="flex-1 h-12 bg-zinc-100 rounded-2xl" />
+                        <View className="w-12 h-12 bg-zinc-100 rounded-2xl" />
+                    </View>
+
+                    {/* About Section Skeleton */}
+                    <View className="mb-10">
+                        <View className="h-2 bg-zinc-100 rounded w-20 mb-4" />
+                        <View className="h-3 bg-zinc-50 rounded w-full mb-2" />
+                        <View className="h-3 bg-zinc-50 rounded w-4/5" />
+                    </View>
+
+                    {/* Channels Section Skeleton */}
+                    <View className="mb-10">
+                        <View className="flex-row justify-between items-center mb-6">
+                            <View className="h-5 bg-zinc-100 rounded w-1/3" />
+                            <View className="w-8 h-8 bg-zinc-100 rounded-lg" />
+                        </View>
+                        {[1, 2, 3].map(i => (
+                            <View key={i} className="flex-row items-center gap-4 mb-4 bg-zinc-50/50 p-4 rounded-2xl border border-zinc-50">
+                                <View className="w-10 h-10 bg-zinc-100 rounded-xl" />
+                                <View className="flex-1">
+                                    <View className="h-3 bg-zinc-100 rounded w-1/2 mb-2" />
+                                    <View className="h-2 bg-zinc-100 rounded w-1/4" />
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                </View>
+            </Animated.View>
+        );
+    };
+
+    if (loading) return <CommunityHubSkeleton />;
     if (!data) return <View className="flex-1 items-center justify-center bg-white"><Text>Not Found</Text></View>;
 
     const { community, subCommunities, creatorOtherCommunities } = data;

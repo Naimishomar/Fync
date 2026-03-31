@@ -18,6 +18,11 @@ const nightChatSchema = new mongoose.Schema({
     fileUrl: {
         type: String
     },
+    replyTo: {
+        messageId: { type: mongoose.Schema.Types.ObjectId, ref: "NightMessage" },
+        text: String,
+        senderName: String
+    },
     createdAt: {
         type: Date,
         default: Date.now,

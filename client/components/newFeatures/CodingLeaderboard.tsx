@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, Text, FlatList, Image, TextInput, TouchableOpacity, 
-  ActivityIndicator, RefreshControl, Modal, ScrollView, Alert, Linking 
+  ActivityIndicator, RefreshControl, Modal, ScrollView, Alert, Linking, Animated 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -146,59 +146,94 @@ export default function CodingLeaderboard() {
     </TouchableOpacity>
   );
 
-  return (
-    <View className="flex-1 bg-black">
-      <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
+    const LeaderboardSkeleton = () => {
+        const pulseAnim = useRef(new Animated.Value(0.3)).current;
 
-      <SafeAreaView className="flex-1">
-        <View className="px-6 pt-4 mb-4 flex-row justify-between items-center">
-            <View>
-                <Text className="text-white text-3xl font-black italic tracking-tighter">LEET<Text className="text-orange-500">RANK</Text> ⚡</Text>
-            </View>
-            <TouchableOpacity onPress={handleManualRefresh} disabled={refreshingStats} className={`p-3 rounded-full border ${refreshingStats ? 'border-orange-500 bg-orange-500/20' : 'border-gray-700 bg-gray-800'}`}>
-                {refreshingStats ? <ActivityIndicator size="small" color="#fb923c" /> : <Ionicons name="refresh" size={20} color="white" />}
-            </TouchableOpacity>
-        </View>
+        useEffect(() => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
+                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
+                ])
+            ).start();
+        }, []);
 
-        <View className="px-4 mb-4">
-            <View className="flex-row items-center bg-gray-900/80 p-3 rounded-xl border border-white/10 mb-4">
-                <Ionicons name="search" size={20} color="gray" />
-                <TextInput placeholder="Search..." placeholderTextColor="#666" value={search} onChangeText={setSearch} className="flex-1 ml-3 text-white font-medium" />
-            </View>
-            <View className="flex-row justify-between gap-3">
-                <View className="flex-1 flex-row bg-gray-900 rounded-lg p-1 border border-white/10">
-                    {['college', 'global'].map(scope => (
-                        <TouchableOpacity key={scope} onPress={() => setActiveScope(scope as any)} className={`flex-1 items-center py-2 rounded-md ${activeScope === scope ? 'bg-orange-600' : 'bg-transparent'}`}>
-                            <Text className={`font-bold text-xs capitalize ${activeScope === scope ? 'text-white' : 'text-gray-400'}`}>{scope}</Text>
-                        </TouchableOpacity>
-                    ))}
+        return (
+            <Animated.View 
+                style={{ opacity: pulseAnim }}
+                className="flex-row items-center bg-[#1e1e1e]/50 p-4 mb-3 mx-4 rounded-2xl border border-white/5"
+            >
+                <View className="w-10 items-center justify-center mr-2">
+                    <View className="w-6 h-6 bg-zinc-800 rounded-md" />
                 </View>
-                <View className="flex-1 flex-row bg-gray-900 rounded-lg p-1 border border-white/10">
-                    <TouchableOpacity onPress={() => setTimeFilter('allTime')} className={`flex-1 items-center py-2 rounded-md ${timeFilter === 'allTime' ? 'bg-gray-700' : 'bg-transparent'}`}>
-                        <Text className={`font-bold text-xs ${timeFilter === 'allTime' ? 'text-white' : 'text-gray-400'}`}>All Time</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => setTimeFilter('weekly')} className={`flex-1 items-center py-2 rounded-md ${timeFilter === 'weekly' ? 'bg-green-600' : 'bg-transparent'}`}>
-                        <Text className={`font-bold text-xs ${timeFilter === 'weekly' ? 'text-white' : 'text-gray-400'}`}>Weekly</Text>
-                    </TouchableOpacity>
+                <View className="w-12 h-12 rounded-full bg-zinc-800 border border-white/5" />
+                <View className="flex-1 ml-4 justify-center">
+                    <View className="h-4 bg-zinc-800 rounded w-1/2 mb-2" />
+                    <View className="h-3 bg-zinc-800 rounded w-1/4" />
                 </View>
-            </View>
-        </View>
+                <View className="items-end justify-center">
+                    <View className="h-6 bg-zinc-800 rounded w-10 mb-1" />
+                    <View className="h-2 bg-zinc-800 rounded w-8" />
+                </View>
+            </Animated.View>
+        );
+    };
 
-        {loading && !refreshing ? (
-            <ActivityIndicator size="large" color="#fb923c" className="mt-20" />
-        ) : (
-            <FlatList 
-                data={users} keyExtractor={(item) => item._id} renderItem={renderItem}
-                contentContainerStyle={{ paddingBottom: 20 }}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
-                ListEmptyComponent={
-                    <View className="items-center mt-20 opacity-50">
-                        <FontAwesome5 name="code" size={50} color="gray" />
-                        <Text className="text-gray-500 mt-4 font-bold">No LeetCoders found.</Text>
+    return (
+        <View className="flex-1 bg-black">
+            <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
+
+            <SafeAreaView className="flex-1">
+                <View className="px-6 pt-4 mb-4 flex-row justify-between items-center">
+                    <View>
+                        <Text className="text-3xl font-black italic tracking-tighter text-white">LEET<Text className="text-orange-500">RANK</Text> ⚡</Text>
                     </View>
-                }
-            />
-        )}
+                    <TouchableOpacity onPress={handleManualRefresh} disabled={refreshingStats} className={`p-3 rounded-full border ${refreshingStats ? 'border-orange-500 bg-orange-500/20' : 'border-gray-700 bg-gray-800'}`}>
+                        {refreshingStats ? <ActivityIndicator size="small" color="#fb923c" /> : <Ionicons name="refresh" size={20} color="white" />}
+                    </TouchableOpacity>
+                </View>
+
+                <View className="px-4 mb-4">
+                    <View className="flex-row items-center bg-gray-900/80 p-3 rounded-xl border border-white/10 mb-4">
+                        <Ionicons name="search" size={20} color="gray" />
+                        <TextInput placeholder="Search..." placeholderTextColor="#666" value={search} onChangeText={setSearch} className="flex-1 ml-3 text-white font-medium" />
+                    </View>
+                    <View className="flex-row justify-between gap-3">
+                        <View className="flex-1 flex-row bg-gray-900 rounded-lg p-1 border border-white/10">
+                            {['college', 'global'].map(scope => (
+                                <TouchableOpacity key={scope} onPress={() => setActiveScope(scope as any)} className={`flex-1 items-center py-2 rounded-md ${activeScope === scope ? 'bg-orange-600' : 'bg-transparent'}`}>
+                                    <Text className={`font-bold text-xs capitalize ${activeScope === scope ? 'text-white' : 'text-gray-400'}`}>{scope}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                        <View className="flex-1 flex-row bg-gray-900 rounded-lg p-1 border border-white/10">
+                            <TouchableOpacity onPress={() => setTimeFilter('allTime')} className={`flex-1 items-center py-2 rounded-md ${timeFilter === 'allTime' ? 'bg-gray-700' : 'bg-transparent'}`}>
+                                <Text className={`font-bold text-xs ${timeFilter === 'allTime' ? 'text-white' : 'text-gray-400'}`}>All Time</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => setTimeFilter('weekly')} className={`flex-1 items-center py-2 rounded-md ${timeFilter === 'weekly' ? 'bg-green-600' : 'bg-transparent'}`}>
+                                <Text className={`font-bold text-xs ${timeFilter === 'weekly' ? 'text-white' : 'text-gray-400'}`}>Weekly</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+
+                {loading && !refreshing ? (
+                    <View>
+                        {[1, 2, 3, 4, 5, 6].map(i => <LeaderboardSkeleton key={i} />)}
+                    </View>
+                ) : (
+                    <FlatList
+                        data={users} keyExtractor={(item) => item._id} renderItem={renderItem}
+                        contentContainerStyle={{ paddingBottom: 20 }}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
+                        ListEmptyComponent={
+                            <View className="items-center mt-20 opacity-50">
+                                <FontAwesome5 name="code" size={50} color="gray" />
+                                <Text className="text-gray-500 mt-4 font-bold">No LeetCoders found.</Text>
+                            </View>
+                        }
+                    />
+                )}
 
         {/* --- ULTRA DETAILED MODAL --- */}
         <Modal visible={modalVisible} transparent={true} animationType="slide" onRequestClose={() => setModalVisible(false)}>

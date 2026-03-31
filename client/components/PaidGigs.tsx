@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View, Text, FlatList, TouchableOpacity, ActivityIndicator,
-    Alert, RefreshControl, Image, Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform, Pressable
+    Alert, RefreshControl, Image, Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform, Pressable, Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -344,6 +344,50 @@ export default function PaidGigs({ navigation }: any) {
         setVisibility('Global');
     };
 
+    const GigSkeleton = () => {
+        const pulseAnim = useRef(new Animated.Value(0.3)).current;
+
+        useEffect(() => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
+                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
+                ])
+            ).start();
+        }, []);
+
+        return (
+            <Animated.View 
+                style={{ opacity: pulseAnim }}
+                className="bg-[#1e1e1e]/50 mx-5 mb-5 rounded-[32px] border border-white/5 overflow-hidden"
+            >
+                <View className="absolute left-0 top-0 bottom-0 w-[5px] bg-pink-500/30" />
+                <View className="p-6 pl-8">
+                    <View className="h-6 bg-zinc-800 rounded w-3/4 mb-4" />
+                    <View className="w-24 h-8 bg-zinc-800 rounded-xl mb-6" />
+                    
+                    <View className="h-4 bg-zinc-800 rounded w-full mb-3" />
+                    <View className="h-4 bg-zinc-800 rounded w-4/5 mb-8" />
+
+                    <View className="h-[1px] bg-white/5 w-full mb-6" />
+
+                    <View className="flex-row justify-between items-center mb-6">
+                        <View className="flex-row items-center">
+                            <View className="w-10 h-10 bg-zinc-800 rounded-full" />
+                            <View className="ml-3">
+                                <View className="h-4 bg-zinc-800 rounded w-20 mb-1.5" />
+                                <View className="h-3 bg-zinc-800 rounded w-12" />
+                            </View>
+                        </View>
+                        <View className="w-20 h-6 bg-zinc-800 rounded-lg" />
+                    </View>
+
+                    <View className="w-full h-14 bg-zinc-800 rounded-2xl" />
+                </View>
+            </Animated.View>
+        );
+    };
+
     return (
         <View className="flex-1 bg-black">
             <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
@@ -384,7 +428,9 @@ export default function PaidGigs({ navigation }: any) {
                 </View>
 
                 {loading && !refreshing ? (
-                    <ActivityIndicator size="large" color="#ec4899" className="mt-20" />
+                    <View>
+                        {[1, 2, 3].map(i => <GigSkeleton key={i} />)}
+                    </View>
                 ) : (
                     <FlatList
                         data={gigs}

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, Text, FlatList, Image, TouchableOpacity, 
-  Modal, TextInput, ActivityIndicator, Alert, Pressable 
+  Modal, TextInput, ActivityIndicator, Alert, Pressable, Animated 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -229,48 +229,82 @@ const LostAndFound = () => {
     );
   };
 
-  return (
-    <SafeAreaView className="flex-1 bg-black">
-      {/* Header & Tabs */}
-      <View className="px-4 py-2">
-        <Text className="text-white text-2xl font-bold mb-4">Lost & Found</Text>
-        
-        {/* Toggle Switch */}
-        <View className="flex-row bg-gray-900 p-1 rounded-xl mb-4">
-            <Pressable 
-                onPress={() => setActiveTab('lost')} 
-                className={`flex-1 py-3 rounded-lg items-center ${activeTab === 'lost' ? 'bg-red-500/20' : 'bg-transparent'}`}
-            >
-                <Text className={`font-bold ${activeTab === 'lost' ? 'text-red-500' : 'text-gray-500'}`}>LOST ITEMS</Text>
-            </Pressable>
-            <Pressable 
-                onPress={() => setActiveTab('found')} 
-                className={`flex-1 py-3 rounded-lg items-center ${activeTab === 'found' ? 'bg-green-500/20' : 'bg-transparent'}`}
-            >
-                <Text className={`font-bold ${activeTab === 'found' ? 'text-green-500' : 'text-gray-500'}`}>FOUND ITEMS</Text>
-            </Pressable>
-        </View>
-      </View>
+    const ItemSkeleton = () => {
+        const pulseAnim = useRef(new Animated.Value(0.3)).current;
 
-      {/* List */}
-      {loading ? (
-          <ActivityIndicator size="large" color="#fff" className="mt-20" />
-      ) : (
-          <FlatList 
-            data={items}
-            keyExtractor={item => item._id}
-            renderItem={renderItem}
-            contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-            refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); fetchItems(); }}
-            ListEmptyComponent={
-                <View className="items-center justify-center mt-20">
-                    <Ionicons name="search" size={48} color="#333" />
-                    <Text className="text-gray-500 text-center mt-4">No items listed.</Text>
+        useEffect(() => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
+                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
+                ])
+            ).start();
+        }, []);
+
+        return (
+            <Animated.View 
+                style={{ opacity: pulseAnim }}
+                className="bg-gray-900/50 rounded-2xl mb-4 border border-gray-800 overflow-hidden mx-4"
+            >
+                <View className="p-4 flex-row">
+                    <View className="w-24 h-24 bg-gray-800 rounded-xl mr-4" />
+                    <View className="flex-1 justify-center">
+                        <View className="h-5 bg-gray-800 rounded w-3/4 mb-3" />
+                        <View className="h-4 bg-gray-800 rounded w-1/2 mb-2" />
+                        <View className="h-3 bg-gray-800 rounded w-1/3" />
+                        <View className="w-20 h-8 bg-gray-800 rounded-lg mt-3" />
+                    </View>
                 </View>
-            }
-          />
-      )}
+            </Animated.View>
+        );
+    };
+
+    return (
+        <SafeAreaView className="flex-1 bg-black">
+            {/* Header & Tabs */}
+            <View className="px-4 py-2">
+                <Text className="text-white text-3xl font-black italic tracking-tighter mb-4 uppercase">
+                    Lost <Text className="text-gray-500">&</Text> Found 🔍
+                </Text>
+
+                {/* Toggle Switch */}
+                <View className="flex-row bg-gray-900 p-1 rounded-xl mb-4">
+                    <Pressable
+                        onPress={() => setActiveTab('lost')}
+                        className={`flex-1 py-3 rounded-lg items-center ${activeTab === 'lost' ? 'bg-red-500/20' : 'bg-transparent'}`}
+                    >
+                        <Text className={`font-bold ${activeTab === 'lost' ? 'text-red-500' : 'text-gray-500'}`}>LOST ITEMS</Text>
+                    </Pressable>
+                    <Pressable
+                        onPress={() => setActiveTab('found')}
+                        className={`flex-1 py-3 rounded-lg items-center ${activeTab === 'found' ? 'bg-green-500/20' : 'bg-transparent'}`}
+                    >
+                        <Text className={`font-bold ${activeTab === 'found' ? 'text-green-500' : 'text-gray-500'}`}>FOUND ITEMS</Text>
+                    </Pressable>
+                </View>
+            </View>
+
+            {/* List */}
+            {loading && !refreshing ? (
+                <View>
+                    {[1, 2, 3, 4].map(i => <ItemSkeleton key={i} />)}
+                </View>
+            ) : (
+                <FlatList
+                    data={items}
+                    keyExtractor={item => item._id}
+                    renderItem={renderItem}
+                    contentContainerStyle={{ paddingBottom: 100 }}
+                    refreshing={refreshing}
+                    onRefresh={() => { setRefreshing(true); fetchItems(); }}
+                    ListEmptyComponent={
+                        <View className="items-center justify-center mt-20 opacity-20">
+                            <Ionicons name="search" size={48} color="white" />
+                            <Text className="text-white font-bold mt-4 uppercase text-[10px] tracking-widest">No reports found</Text>
+                        </View>
+                    }
+                />
+            )}
 
       {/* Floating Action Button */}
       <TouchableOpacity 

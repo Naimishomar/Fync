@@ -98,14 +98,13 @@ export default function AlumniSignup() {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View className="flex-1 bg-[#F3F4F6]">
         <ScrollView
-          contentContainerStyle={{ padding: 16 }}
+          contentContainerStyle={{ padding: 0 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           <Image
-            source={{ uri: 'https://i.pinimg.com/736x/a2/05/60/a205602210656db27579657ba25f57a4.jpg' }}
-            style={{ width: '100%', height: 450 }}
-            className="rounded-2xl"
+            source={{ uri: 'https://i.pinimg.com/1200x/14/84/57/1484572a0fbeab4c170c7a5b9da9fed8.jpg' }}
+            style={{ width: '100%', height: 580 }}
             resizeMode="cover"
           />
           <View className="h-56" />
@@ -113,7 +112,7 @@ export default function AlumniSignup() {
 
         <View className="absolute bottom-0 w-full">
           <ScrollView keyboardShouldPersistTaps="handled">
-            <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-16">
+            <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-12">
               <Image source={require('../assets/Fync.jpg')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
               <Text className="text-gray-500 mb-2">Join the exclusive professional network</Text>
 
@@ -184,7 +183,7 @@ export default function AlumniSignup() {
                 </>
               )}
 
-              <View className="mt-6 flex-row justify-center">
+              <View className="mt-3 flex-row justify-center">
                 <Text className="text-gray-600">Already have an account? </Text>
                 <Pressable onPress={() => navigation.navigate('Login')}>
                   <Text className="font-semibold text-black">Login</Text>

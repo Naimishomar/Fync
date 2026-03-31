@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   View, Text, TouchableOpacity, FlatList, Image, TextInput, 
   ActivityIndicator, RefreshControl, Dimensions, Alert, 
-  StatusBar, Platform
+  StatusBar, Platform, Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5, Feather } from '@expo/vector-icons';
@@ -153,12 +153,54 @@ const CommunityListScreen = () => {
         );
     };
 
+    const CommunitySkeleton = () => {
+        const pulseAnim = useRef(new Animated.Value(0.4)).current;
+
+        useEffect(() => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim, { toValue: 0.8, duration: 1200, useNativeDriver: true }),
+                    Animated.timing(pulseAnim, { toValue: 0.4, duration: 1200, useNativeDriver: true }),
+                ])
+            ).start();
+        }, []);
+
+        return (
+            <Animated.View 
+                style={{ opacity: pulseAnim }}
+                className="mb-6 bg-white rounded-[32px] shadow-sm border border-zinc-100 overflow-hidden"
+            >
+                {/* Banner Placeholder */}
+                <View className="h-44 bg-zinc-100 relative" />
+                
+                {/* Content Area */}
+                <View className="p-6">
+                    <View className="flex-row items-center gap-4 -mt-10 mb-4 z-10">
+                        <View className="w-14 h-14 rounded-2xl bg-zinc-200 border-4 border-white shadow-sm" />
+                        <View className="flex-1 mt-4">
+                            <View className="h-5 bg-zinc-100 rounded-lg w-2/3 mb-2" />
+                            <View className="h-3 bg-zinc-100 rounded-lg w-1/3" />
+                        </View>
+                    </View>
+                    
+                    <View className="h-3 bg-zinc-50 rounded-lg w-full mb-2" />
+                    <View className="h-3 bg-zinc-50 rounded-lg w-4/5 mb-6" />
+
+                    <View className="flex-row justify-between items-center pt-4 border-t border-zinc-50">
+                        <View className="w-16 h-8 bg-zinc-50 rounded-xl" />
+                        <View className="w-24 h-9 bg-zinc-100 rounded-xl" />
+                    </View>
+                </View>
+            </Animated.View>
+        );
+    };
+
     return (
         <View className="flex-1 bg-[#FAFAFA]">
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top']}>
                 {/* Responsive Modern Header - Tighter Padding */}
-                <View className="px-5 pt-4">
+                <View className="px-5 pt-4 flex-1">
                     <View className="flex-row justify-between items-center mb-5">
                         <View className="flex-1 mr-4">
                             <Text className="text-zinc-900 text-xl font-black uppercase tracking-tight">Ecosystem Directory</Text>
@@ -198,8 +240,13 @@ const CommunityListScreen = () => {
                         />
                     </View>
 
-                    {loading ? (
-                        <View className="mt-20 items-center"><ActivityIndicator size="small" color="#1a1a1a" /></View>
+                    {loading && !refreshing ? (
+                        <FlatList 
+                            data={[1, 2, 3]}
+                            keyExtractor={(item) => item.toString()}
+                            renderItem={() => <CommunitySkeleton />}
+                            showsVerticalScrollIndicator={false}
+                        />
                     ) : (
                         <FlatList 
                             data={filtered}

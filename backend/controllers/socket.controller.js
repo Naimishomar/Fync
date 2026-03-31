@@ -521,7 +521,8 @@ export const socketController = (io) => {
           sender: senderId,
           message: text?.trim() || "",
           messageType: type || 'text',
-          fileUrl: mediaUrl || ""
+          fileUrl: mediaUrl || "",
+          replyTo: data.replyTo || null
         });
         nightMsg = await nightMsg.populate("sender", "name username avatar");
         let msgObj = nightMsg.toObject();
@@ -536,6 +537,7 @@ export const socketController = (io) => {
     });
 
     // --- END 12 AM CLUB LOGIC ---
+    
 
     socket.on("disconnect", () => {
       console.log("Socket disconnected:", socket.id);

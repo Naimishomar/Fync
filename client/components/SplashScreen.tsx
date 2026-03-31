@@ -30,7 +30,7 @@ export default function SplashScreen({ navigation }: any) {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-black justify-center items-center">
+    <SafeAreaView className="flex-1 bg-white justify-center items-center">
       <Animated.Image
         source={LogoImage}
         className="w-56 h-56 object-contain rounded-full"

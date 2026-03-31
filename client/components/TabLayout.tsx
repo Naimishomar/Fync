@@ -137,7 +137,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
           className="w-[60px] h-[60px] rounded-full overflow-hidden"
         >
           <LinearGradient
-            colors={['#ec4899', '#7e22ce']}
+            colors={['#ec4899', '#8f358aff']}
             className="flex-1 items-center justify-center"
           >
             <Animated.View style={{ transform: [{ rotate: rotation }] }}>

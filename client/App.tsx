@@ -1,8 +1,8 @@
 import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
-import React, { useEffect } from "react";
-import { View, ActivityIndicator, Image, Alert, KeyboardAvoidingView, Platform, Text } from "react-native";
-import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
+import React from "react";
+import { View, ActivityIndicator, Image, Text } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
@@ -93,7 +93,8 @@ import DriveFolderScreen from './components/studyMaterial/DriveFolderScreen';
 import PDFViewerScreen from './components/studyMaterial/PDFViewerScreen';
 
 // OLX & Notice Board
-import MarketplaceScreen from './components/marketplace/MarketplaceScreen';
+import OLXMarketplaceScreen from './components/olx/MarketplaceScreen';
+import RewardsMarketplaceScreen from './components/marketplace/MarketplaceScreen';
 import LostAndFound from './components/LostAndFound';
 import NoticeBoard from './components/NoticeBoard';
 
@@ -115,6 +116,7 @@ import EditSubGroupScreen from './components/club/EditSubGroupScreen';
 import SubGroupChat from './components/club/SubGroupChat';
 import ClubAdminPanel from './components/club/ClubAdminPanel';
 import FyncMediaFeed from './components/FyncMediaFeed';
+import FocusProductivity from './components/focus/FocusProductivity';
 
 import SubscriptionGuard from './components/newFeatures/SubscriptionGuard';
 import PlacementPredictor from './components/newFeatures/PlacementPredictor';
@@ -210,6 +212,7 @@ export type RootStackParamList = {
   InterviewSetup: undefined;
   ActiveInterview: undefined;
   BunkOMeter: undefined;
+  FocusProductivity: undefined;
   ConfessionFeed: undefined;
   TwelveAMHomeCard: undefined;
   TwelveAMClub: undefined;
@@ -219,7 +222,8 @@ export type RootStackParamList = {
   DriveFolderScreen: undefined;
   PDFViewerScreen: undefined;
   IndividualPostOrShort: { postId: string };
-  MarketplaceScreen: undefined;
+  RewardsMarketplace: undefined;
+  OLXMarketplace: undefined;
   LostAndFound: undefined;
   NoticeBoard: undefined;
   PaidGigs: undefined;
@@ -347,7 +351,8 @@ function AppStack() {
       <Stack.Screen name="DriveFolderScreen" component={DriveFolderScreen} />
       <Stack.Screen name="PDFViewerScreen" component={PDFViewerScreen} />
       <Stack.Screen name="IndividualPostOrShort" component={IndividualPostOrShort} />
-      <Stack.Screen name="MarketplaceScreen" component={MarketplaceScreen} />
+      <Stack.Screen name="RewardsMarketplace" component={RewardsMarketplaceScreen} />
+      <Stack.Screen name="OLXMarketplace" component={OLXMarketplaceScreen} />
       <Stack.Screen name="LostAndFound" component={LostAndFound} />
       <Stack.Screen name="NoticeBoard" component={NoticeBoard} />
       <Stack.Screen name="PaidGigs" component={PaidGigs} />
@@ -374,6 +379,7 @@ function AppStack() {
       <Stack.Screen name="EditSubGroup" component={EditSubGroupScreen} />
       <Stack.Screen name="SubGroupChat" component={SubGroupChat} />
       <Stack.Screen name="ClubAdminPanel" component={ClubAdminPanel} />
+      <Stack.Screen name="FocusProductivity" component={FocusProductivity} />
       <Stack.Screen name="TermsAndCondition" component={TermsAndCondition} />
       <Stack.Screen name="FyncMediaFeed" component={FyncMediaFeed} />
     </Stack.Navigator>

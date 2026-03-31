@@ -143,32 +143,18 @@ export default function TwelveAMLockScreen() {
                 }
             </Text>
 
-            <TouchableOpacity
-                disabled={!isOpen}
-                onPress={handleEnter}
-                activeOpacity={0.8}
-            >
-                <LinearGradient
-                    // Button Gradient: Pink -> Indigo (Matches the screen vibe)
-                    colors={isOpen ? ['#ec4899', '#6366f1'] : ['#1f2937', '#111827']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    className={`w-full py-4 rounded-2xl items-center flex-row justify-center border ${
-                        isOpen ? 'border-pink-400' : 'border-gray-700'
-                    }`}
-                >
-                    {isOpen ? (
-                        <Pressable className="flex-row items-center rounded-2xl" onPress={handleEnter}>
-                            <Text className="text-white font-bold text-lg mr-2">ENTER CLUB</Text>
-                            <Ionicons name="arrow-forward" size={20} color="white" />
-                        </Pressable>
-                    ) : (
-                        <>
-                            <Ionicons name="lock-closed" size={20} color="#6b7280" style={{ marginRight: 8 }} />
-                            <Text className="text-gray-500 font-bold text-lg">LOCKED</Text>
-                        </>
-                    )}
-                </LinearGradient>
+            <TouchableOpacity disabled={!isOpen} onPress={handleEnter} activeOpacity={0.8}>
+                {isOpen ? (
+                    <Pressable className="flex-row items-center justify-center rounded-full bg-pink-500 py-3" onPress={handleEnter}>
+                        <Text className="text-white font-bold text-lg mr-2">ENTER CLUB</Text>
+                        <Ionicons name="arrow-forward" size={20} color="white" />
+                    </Pressable>
+                ) : (
+                    <View className="flex-row items-center justify-center bg-pink-500/20 py-3 rounded-full">
+                        <Ionicons name="lock-closed" size={20} color="#6b7280" style={{ marginRight: 8 }} />
+                        <Text className="text-gray-500 font-bold text-lg">LOCKED</Text>
+                    </View>
+                )}
             </TouchableOpacity>
         </View>
 

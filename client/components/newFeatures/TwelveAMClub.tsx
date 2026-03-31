@@ -1,20 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, Image, KeyboardAvoidingView, Platform, StatusBar, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, Image, KeyboardAvoidingView, Platform, StatusBar, Alert, ActivityIndicator, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { differenceInSeconds, addDays, startOfDay } from 'date-fns';
-import * as ImagePicker from 'expo-image-picker'; // Image Library
-import * as WebBrowser from 'expo-web-browser';
+import * as ImagePicker from 'expo-image-picker'; 
 import { useAuth } from '../../context/auth.context';
 import socket from '../../utils/socket'; 
 import axios from '../../context/axiosConfig';
 
-// High-Res Night Sky Background
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
 
-// --- 🎭 IDENTITY GENERATOR ---
 const ADJECTIVES = ["Neon", "Silent", "Hollow", "Cyber", "Mist", "Void", "Lunar", "Solar", "Glitch", "Shadow", "Retro", "Lost", "Vivid", "Dark", "Pale"];
 const NOUNS = ["Walker", "Ghost", "Echo", "Mind", "Rider", "Surfer", "Drifter", "Phantom", "Signal", "Soul", "Viper", "Nomad", "Wolf", "Owl", "Rebel"];
 
@@ -36,15 +33,14 @@ export default function TwelveAMClub() {
   const [timeLeft, setTimeLeft] = useState(""); 
   const [messages, setMessages] = useState<any[]>([]);
   const [inputText, setInputText] = useState("");
-  
   const [isProcessing, setIsProcessing] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<any>(null);
 
   const { user } = useAuth();
   const CURRENT_USER_ID = user?._id || user?.id; 
   const myIdentity = getNightIdentity(CURRENT_USER_ID);
   const flatListRef = useRef<FlatList>(null);
 
-  // --- 1. TIME CHECKER LOGIC ---
   useEffect(() => {
     const checkTime = () => {
       const now = new Date();
@@ -65,7 +61,6 @@ export default function TwelveAMClub() {
     return () => clearInterval(timer);
   }, []);
 
-  // --- 2. SOCKET EVENT LISTENERS ---
   useEffect(() => {
     if (!isOpen) return;
     socket.emit("join_night_club");
@@ -109,20 +104,33 @@ export default function TwelveAMClub() {
       const optimisticMsg = {
           _id: tempId, tempId, message: "", messageType: 'image', fileUrl: uri,
           sender: { _id: CURRENT_USER_ID, username: user?.username || "Me", avatar: user?.avatar },
-          createdAt: new Date().toISOString(), pending: true 
+          createdAt: new Date().toISOString(), pending: true,
+          replyTo: replyingTo ? {
+              messageId: replyingTo._id,
+              text: replyingTo.messageType === 'image' ? 'Image' : replyingTo.message,
+              senderName: getNightIdentity(replyingTo.sender._id).username
+          } : null
       };
 
       setMessages(prev => [optimisticMsg, ...prev]);
 
       try {
           const formData = new FormData();
-          formData.append("file", { uri, name: "night_club.jpg", type: "image/jpeg" } as any);
+          const cleanUri = Platform.OS === 'android' ? uri : uri.replace('file://', '');
+          formData.append("file", { 
+              uri: cleanUri, 
+              name: "night_club.jpg", 
+              type: "image/jpeg" 
+          } as any);
           
-          const res = await axios.post("/night-chat/upload", formData);
+          const res = await axios.post("/night-chat/upload", formData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+          });
 
           if (res.data.success) {
               socket.emit("send_night_message", {
-                  senderId: CURRENT_USER_ID, text: "", tempId, type: 'image', mediaUrl: res.data.fileUrl
+                  senderId: CURRENT_USER_ID, text: "", tempId, type: 'image', mediaUrl: res.data.fileUrl,
+                  replyTo: optimisticMsg.replyTo
               });
           }
       } catch (e) {
@@ -131,6 +139,7 @@ export default function TwelveAMClub() {
           Alert.alert("Error", "Failed to send image.");
       } finally {
           setIsProcessing(false);
+          setReplyingTo(null);
       }
   };
 
@@ -139,7 +148,7 @@ export default function TwelveAMClub() {
       if (status !== 'granted') {
           Alert.alert('Permission needed', 'Access to gallery required.');
           return;
-      }
+          }
       const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
           quality: 0.3,
@@ -149,8 +158,6 @@ export default function TwelveAMClub() {
       }
   };
 
-
-  // --- 4. TEXT MESSAGE ---
   const sendMessage = () => {
     if (!inputText.trim() || !CURRENT_USER_ID) return;
     const textToSend = inputText.trim();
@@ -159,16 +166,82 @@ export default function TwelveAMClub() {
     const optimisticMsg = {
         _id: tempId, tempId, message: textToSend, type: 'text',
         sender: { _id: CURRENT_USER_ID, username: user?.username || "Me", avatar: user?.avatar },
-        createdAt: new Date().toISOString(), pending: true 
+        createdAt: new Date().toISOString(), pending: true,
+        replyTo: replyingTo ? {
+            messageId: replyingTo._id,
+            text: replyingTo.messageType === 'image' ? 'Image' : replyingTo.message,
+            senderName: getNightIdentity(replyingTo.sender._id).username
+        } : null
     };
 
     setMessages(prev => [optimisticMsg, ...prev]);
     setInputText("");
 
     socket.emit("send_night_message", {
-      senderId: CURRENT_USER_ID, text: textToSend, tempId, type: 'text'
+      senderId: CURRENT_USER_ID, text: textToSend, tempId, type: 'text',
+      replyTo: optimisticMsg.replyTo
     });
+
+    setReplyingTo(null);
   };
+
+  const renderMessage = ({ item }: { item: any }) => {
+    const isMe = item.sender._id === CURRENT_USER_ID;
+    const identity = getNightIdentity(item.sender._id);
+
+    return (
+        <View className={`mb-4 flex-row ${isMe ? 'justify-end' : 'justify-start'}`}>
+            {!isMe && (
+                <Image 
+                    source={{ uri: identity.avatar }} 
+                    className="w-8 h-8 rounded-full bg-zinc-800 border border-white/10 mr-2 self-end mb-1" 
+                />
+            )}
+            <View className={`max-w-[80%] rounded-xl px-4 py-3 ${isMe ? 'bg-gray-800' : 'bg-zinc-900/90 border border-white/5'}`}>
+                <Pressable
+                  onLongPress={() => setReplyingTo(item)}
+                  delayLongPress={300}
+                >
+                    {!isMe && (
+                        <Text className="text-white/60 font-black text-[10px] mb-1 uppercase tracking-widest">{identity.username}</Text>
+                    )}
+
+                    {item.replyTo && (
+                        <View className="bg-zinc-950/50 border-l-2 border-indigo-500 rounded-md mb-2 p-2">
+                             <Text className="text-indigo-400 text-[10px] font-black uppercase tracking-widest">{item.replyTo.senderName}</Text>
+                             <Text className="text-white/50 text-[12px]" numberOfLines={1}>{item.replyTo.text}</Text>
+                        </View>
+                    )}
+                    
+                    {item.messageType === 'image' || item.type === 'image' ? (
+                        <View className="mb-1">
+                            <Image 
+                                source={{ uri: item.fileUrl || item.mediaUrl }} 
+                                style={{ width: 220, height: 160, borderRadius: 12 }} 
+                                resizeMode="cover" 
+                            />
+                            {item.pending && (
+                                <View className="absolute inset-0 items-center justify-center bg-black/30 rounded-xl">
+                                    <ActivityIndicator size="small" color="white" />
+                                </View>
+                            )}
+                        </View>
+                    ) : (
+                        <Text className="text-white text-[15px] leading-5 font-medium">
+                            {item.message}
+                        </Text>
+                    )}
+
+                    <View className="flex-row justify-end mt-1.5">
+                         <Text className={`text-[8px] font-bold ${isMe ? 'text-indigo-200/50' : 'text-zinc-500'}`}>
+                            {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                    </View>
+                </Pressable>
+            </View>
+        </View>
+    );
+};
 
   if (!isOpen) {
     return (
@@ -176,9 +249,10 @@ export default function TwelveAMClub() {
         <Image source={{ uri: BG_IMAGE }} className="absolute w-full h-full opacity-60" />
         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.95)']} className="absolute w-full h-full" />
         <View className="items-center p-10 bg-black/40 rounded-[40px] border border-white/10 shadow-2xl w-[85%]">
-            <Ionicons name="lock-closed" size={42} color="#6b7280" />
-            <Text className="text-white text-3xl font-black mt-4">CLUB LOCKED</Text>
+            <Ionicons name="lock-closed" size={42} color="#818cf8" />
+            <Text className="text-white text-3xl font-black mt-4 uppercase tracking-tighter">Club Locked</Text>
             <Text className="text-indigo-400 font-mono text-xl font-bold mt-2">{timeLeft}</Text>
+            <Text className="text-gray-500 text-[10px] uppercase font-black tracking-[4px] mt-8 text-center">Doors Open At Midnight</Text>
         </View>
       </View>
     );
@@ -186,110 +260,98 @@ export default function TwelveAMClub() {
 
   return (
     <View className="flex-1 bg-black">
-      <StatusBar barStyle="light-content" />
-      <Image source={{ uri: BG_IMAGE }} className="absolute w-full h-full opacity-50" />
-      <LinearGradient colors={['rgba(236, 72, 153, 0.15)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
+        <StatusBar barStyle="light-content" />
+        <Image source={{ uri: BG_IMAGE }} className="absolute w-full h-full opacity-30" />
+        <LinearGradient colors={['rgba(79, 70, 229, 0.1)', 'rgba(0,0,0,0.9)', '#000000']} className="absolute w-full h-full" />
 
-      <SafeAreaView className="flex-1" edges={['top']}>
-        {/* Header */}
-        <BlurView intensity={80} tint="dark" className="px-4 py-3 flex-row items-center justify-between border-b border-white/10 z-10">
-            <View className="flex-row items-center">
-                <View className="bg-pink-500/10 p-2 rounded-xl border border-pink-500/20 mr-3">
-                    <MaterialCommunityIcons name="moon-waning-crescent" size={22} color="#f472b6" />
+        <SafeAreaView className="flex-1" edges={['top']}>
+            <BlurView intensity={40} tint="dark" className="px-5 py-4 flex-row items-center justify-between border-b border-white/5">
+                <View className="flex-row items-center">
+                    <View className="bg-indigo-500/20 p-2 rounded-xl border border-indigo-500/30 mr-3">
+                        <MaterialCommunityIcons name="moon-waning-crescent" size={22} color="#818cf8" />
+                    </View>
+                    <View>
+                        <Text className="text-white font-black uppercase text-xs tracking-widest">12 AM Night Club</Text>
+                        <Text className="text-indigo-400 font-bold text-[8px] uppercase tracking-widest">Ephemeral Connection</Text>
+                    </View>
                 </View>
-                <View>
-                    <Text className="text-white text-lg font-black tracking-tight shadow-md">The 12 AM Club</Text>
-                    <Text className="text-pink-400/80 text-[10px] font-bold tracking-[2px] uppercase">Ephemeral Chat</Text>
+                <View className="flex-row items-center bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/20">
+                    <View className="w-1.5 h-1.5 rounded-full bg-red-500 mr-2" />
+                    <Text className="text-red-400 text-[10px] font-black uppercase tracking-widest">Live</Text>
                 </View>
+            </BlurView>
+
+            <View className="flex-1">
+                <FlatList
+                    ref={flatListRef}
+                    data={messages}
+                    inverted
+                    keyExtractor={(item) => item._id || item.tempId || Math.random().toString()}
+                    contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+                    showsVerticalScrollIndicator={false}
+                    renderItem={renderMessage}
+                />
             </View>
-            <View className="bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/20 flex-row items-center">
-                <View className="w-1.5 h-1.5 rounded-full bg-red-500 mr-2 animate-pulse" />
-                <Text className="text-red-400 text-[10px] font-bold">LIVE</Text>
-            </View>
-        </BlurView>
 
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}>
-            <FlatList
-                ref={flatListRef}
-                data={messages}
-                inverted
-                keyExtractor={(item) => item._id || item.tempId || Math.random().toString()}
-                contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 20, paddingTop: 10 }}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => {
-                    const isMe = item.sender._id === CURRENT_USER_ID;
-                    const identity = getNightIdentity(item.sender._id);
-
-                    return (
-                        <View className={`mb-2 flex-row items-center ${isMe ? 'justify-end' : 'justify-start'}`}>
-                            {!isMe && <Image source={{ uri: identity.avatar }} width={25} height={25} className="w-7 h-7 rounded-full border border-white/10 mr-2 mb-1 bg-white/10" />}
-                            
-                            <View className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'}`}>
-                                {!isMe && <Text className="text-gray-500 text-[10px] ml-2 font-medium">{identity.username}</Text>}
-
-                                {/* BUBBLE CONTAINER */}
-                                <View className={`px-2 py-2 ${isMe ? 'border border-gray-700 rounded-full rounded-br-md' : 'bg-[#262626] rounded-[22px] rounded-bl-md'}`}>
-                            
-                                    {item.messageType === 'image' || item.type === 'image' ? (
-                                        <Image 
-                                            source={{ uri: item.fileUrl || item.mediaUrl }} 
-                                            style={{ width: 200, height: 150, borderRadius: 10 }} 
-                                            resizeMode="cover" 
-                                        />
-                                    ) : (
-                                        <Text className={`${isMe ? 'text-pink-300' : 'text-white'} text-[15px] leading-5 font-normal`}>
-                                            {item.message}
-                                        </Text>
-                                    )}
-                                    
-                                </View>
-                            </View>
-                        </View>
-                    );
-                }}
-            />
-
-            {/* Input Area */}
-            <View className="px-3 pt-2 pb-8 bg-black/80 border-t border-white/5 mb-5"> 
-                <View className="flex-row items-center bg-[#1a1a1a] rounded-full px-1 py-1 border border-white/10 min-h-[44px]">
-                    
-                    {/* CAMERA BUTTON (Now Functional) */}
-                    <TouchableOpacity onPress={pickImage} disabled={isProcessing} className="w-9 h-9 rounded-full bg-blue-500/20 items-center justify-center ml-1">
-                         {isProcessing ? <ActivityIndicator size="small" color="#3b82f6" /> : <Ionicons name="camera" size={20} color="#3b82f6" />}
-                    </TouchableOpacity>
-
-                    <TextInput 
-                        placeholder={isProcessing ? "Sending..." : `Posting as ${myIdentity.username}...`}
-                        placeholderTextColor="#9ca3af"
-                        multiline
-                        maxLength={500}
-                        editable={!isProcessing}
-                        className="flex-1 text-white text-[15px] px-3 py-2 max-h-24 leading-5"
-                        value={inputText}
-                        onChangeText={setInputText}
-                    />
-
-                    {inputText.trim().length > 0 ? (
-                        <TouchableOpacity onPress={sendMessage} className="mr-1 mb-0.5">
-                            <Text className="text-pink-500 font-bold text-base px-3 py-2">Send</Text>
-                        </TouchableOpacity>
-                    ) : (
-                        <View className="flex-row mr-2 space-x-3">
-                             <TouchableOpacity onPress={pickImage} disabled={isProcessing}>
-                                <Ionicons name="image-outline" size={24} color="white" />
-                             </TouchableOpacity>
-                        </View>
-                    )}
-                </View>
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}>
                 
-                <View className="items-center mt-3">
-                    <Text className="text-gray-600 text-[10px] font-medium tracking-wide">
-                        ✨ Be gentle. No harm. Zero history. ✨
+                {replyingTo && (
+                  <BlurView intensity={80} tint="dark" className="px-5 py-3 border-t border-white/5 flex-row items-center justify-between">
+                    <View className="border-l-2 border-indigo-500 pl-3 flex-1">
+                      <Text className="text-indigo-400 text-[10px] font-black uppercase tracking-widest">
+                        Replying to {getNightIdentity(replyingTo.sender._id).username}
+                      </Text>
+                      <Text className="text-white/60 text-xs" numberOfLines={1}>
+                        {replyingTo.messageType === 'image' ? 'Shared an image' : replyingTo.message}
+                      </Text>
+                    </View>
+                    <TouchableOpacity onPress={() => setReplyingTo(null)}>
+                      <Ionicons name="close-circle" size={20} color="#6b7280" />
+                    </TouchableOpacity>
+                  </BlurView>
+                )}
+
+                <View className="bg-zinc-950/80 px-5 pt-4 pb-8 border-t border-white/5">
+                    <View className="flex-row items-end gap-3">
+                        <TouchableOpacity 
+                            onPress={pickImage}
+                            disabled={isProcessing}
+                            className="w-11 h-11 bg-zinc-900 rounded-2xl items-center justify-center mb-1 border border-white/5"
+                        >
+                            {isProcessing ? (
+                                <ActivityIndicator size="small" color="#818cf8" />
+                            ) : (
+                                <Feather name="image" size={20} color="#818cf8" />
+                            )}
+                        </TouchableOpacity>
+                        
+                        <View className="flex-1 min-h-[44px] max-h-32 bg-zinc-900/50 rounded-2xl px-4 border border-white/5 justify-center">
+                            <TextInput 
+                                placeholder={isProcessing ? "Sending binary data..." : `Posting as ${myIdentity.username}...`}
+                                placeholderTextColor="#4b5563"
+                                className="text-white text-sm font-semibold"
+                                multiline
+                                value={inputText}
+                                onChangeText={setInputText}
+                                editable={!isProcessing}
+                            />
+                        </View>
+
+                        <TouchableOpacity 
+                            onPress={sendMessage}
+                            disabled={isProcessing || !inputText.trim()}
+                            className={`w-11 h-11 rounded-2xl items-center justify-center mb-1 ${inputText.trim() ? 'bg-indigo-600' : 'bg-zinc-800'}`}
+                        >
+                            <Feather name="arrow-up" size={24} color={inputText.trim() ? "white" : "#4b5563"} />
+                        </TouchableOpacity>
+                    </View>
+                    
+                    <Text className="text-zinc-600 text-[10px] font-black uppercase tracking-[2px] text-center mt-4">
+                        Doors close at 6 AM
                     </Text>
                 </View>
-            </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     </View>
   );
 }

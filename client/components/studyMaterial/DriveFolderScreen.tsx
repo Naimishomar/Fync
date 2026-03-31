@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Image, Animated } from 'react-native';
 import { fetchDriveData } from '../../utils/handleDrive';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,10 +32,42 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
     }
   };
 
+  const SkeletonItem = () => {
+    const pulseAnim = useRef(new Animated.Value(0.3)).current;
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
+                Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
+            ])
+        ).start();
+    }, []);
+
+    return (
+        <Animated.View 
+            style={{ opacity: pulseAnim }}
+            className="flex-row items-center p-4 mx-4 mb-3 bg-zinc-900 rounded-2xl border border-zinc-800"
+        >
+            <View className="w-10 h-10 bg-zinc-800 rounded-lg" />
+            <View className="ml-4 flex-1">
+                <View className="h-4 bg-zinc-800 rounded w-3/4 mb-2" />
+                <View className="h-3 bg-zinc-800 rounded w-1/2" />
+            </View>
+            <View className="w-4 h-4 bg-zinc-800 rounded-full" />
+        </Animated.View>
+    );
+  };
+
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center bg-black">
-        <ActivityIndicator size="large" color="#EF4444" />
+      <View className="flex-1 bg-black py-12">
+        <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
+        <View className='flex-row items-center gap-1 px-4 mb-6'>
+            <Ionicons name="arrow-back-outline" size={24} color="white" />
+            <Text className='text-2xl font-bold text-white uppercase italic'>Loading Notes</Text>
+        </View>
+        {[1, 2, 3, 4, 5, 6].map((i) => <SkeletonItem key={i} />)}
       </View>
     );
   }

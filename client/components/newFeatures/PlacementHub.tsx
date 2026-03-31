@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
     View, Text, ScrollView, TouchableOpacity, TextInput,
     FlatList, Modal, ActivityIndicator, Alert, RefreshControl,
-    KeyboardAvoidingView, Platform, Image
+    KeyboardAvoidingView, Platform, Image, Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
@@ -201,6 +201,54 @@ const PlacementHub = () => {
         </View>
     );
 
+    const QuestionSkeleton = () => {
+        const pulseAnim = useRef(new Animated.Value(0.3)).current;
+
+        useEffect(() => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
+                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
+                ])
+            ).start();
+        }, []);
+
+        return (
+            <Animated.View 
+                style={{ opacity: pulseAnim }}
+                className="bg-[#1e1e1e]/50 p-6 rounded-[32px] mb-4 mx-5 border border-white/5"
+            >
+                <View className="flex-row items-center mb-5">
+                    <View className="w-10 h-10 bg-zinc-800 rounded-2xl" />
+                    <View className="ml-4 flex-1">
+                        <View className="h-4 bg-zinc-800 rounded w-2/3 mb-2" />
+                        <View className="h-3 bg-zinc-800 rounded w-1/3" />
+                    </View>
+                    <View className="w-12 h-5 bg-zinc-800 rounded-full" />
+                </View>
+                <View className="h-4 bg-zinc-800 rounded w-full mb-3" />
+                <View className="h-4 bg-zinc-800 rounded w-4/5 mb-6" />
+                
+                <View className="flex-row gap-2 mb-6">
+                    <View className="w-16 h-4 bg-zinc-800 rounded-lg" />
+                    <View className="w-16 h-4 bg-zinc-800 rounded-lg" />
+                </View>
+
+                <View className="flex-row justify-between items-center pt-4 border-t border-white/5">
+                    <View className="flex-row items-center">
+                        <View className="w-5 h-5 bg-zinc-800 rounded-full" />
+                        <View className="w-20 h-3 bg-zinc-800 rounded ml-2" />
+                    </View>
+                    <View className="flex-row gap-4">
+                        <View className="w-6 h-6 bg-zinc-800 rounded-full" />
+                        <View className="w-6 h-6 bg-zinc-800 rounded-full" />
+                        <View className="w-6 h-6 bg-zinc-800 rounded-full" />
+                    </View>
+                </View>
+            </Animated.View>
+        );
+    };
+
     const renderQuestionCard = ({ item }: { item: any }) => {
         const isUpvoted = item.upvotes.includes(CURRENT_USER_ID);
         const isSaved = item.savedBy.includes(CURRENT_USER_ID);
@@ -301,7 +349,7 @@ const PlacementHub = () => {
                     showsVerticalScrollIndicator={false}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366f1" />}
                 >
-                    {/* AI Placement Predictor CTA */}
+                    {/* ... (Previous predictive/predictor section same) */}
                     <View className="px-5 mb-8">
                         <TouchableOpacity 
                             onPress={() => navigation.navigate("PlacementPredictor")}
@@ -379,6 +427,7 @@ const PlacementHub = () => {
                                     <TouchableOpacity
                                         key={i}
                                         onPress={async () => { 
+                                            /* same discussion logic */ 
                                             try {
                                                 const res = await axios.get(`/placement/comments/${item._id}`);
                                                 if(res.data.success) {
@@ -387,12 +436,12 @@ const PlacementHub = () => {
                                                 }
                                             } catch(e) {}
                                         }}
-                                        className="bg-gray-900/50 mr-4 p-4 rounded-3xl border border-white/5 w-[200px]"
+                                        className="bg-zinc-900/50 mr-4 p-5 rounded-[32px] border border-white/5 w-[220px]"
                                     >
                                         <Text className="text-white font-black text-xs" numberOfLines={1}>{item.company}</Text>
                                         <Text className="text-gray-500 text-[10px] font-bold mt-1 uppercase" numberOfLines={1}>{item.role}</Text>
-                                        <View className="h-[2px] w-8 bg-indigo-500 my-3 rounded-full" />
-                                        <Text className="text-gray-400 text-[10px] italic" numberOfLines={2}>"{item.question}"</Text>
+                                        <View className="h-[2px] w-8 bg-indigo-500 my-4 rounded-full" />
+                                        <Text className="text-gray-400 text-[10px] italic leading-4" numberOfLines={2}>"{item.question}"</Text>
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
@@ -402,7 +451,9 @@ const PlacementHub = () => {
                     {/* Main Feed */}
                     <Text className="text-gray-400 font-black text-[10px] uppercase ml-6 mb-4 tracking-widest">Recent Questions</Text>
                     {loading && !refreshing ? (
-                        <ActivityIndicator size="large" color="#6366f1" className="mt-10" />
+                        <View>
+                            {[1, 2, 3].map(i => <QuestionSkeleton key={i} />)}
+                        </View>
                     ) : (
                         <FlatList
                             data={questions}
