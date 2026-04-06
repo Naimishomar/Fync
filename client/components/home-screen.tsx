@@ -429,6 +429,7 @@ export default function HomeScreen() {
   const [hasMore, setHasMore] = useState(true);
 
   const [unreadCount, setUnreadCount] = useState(0);
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
   const { user } = useAuth();
 
   const [isCommentModalVisible, setCommentModalVisible] = useState(false);
@@ -535,9 +536,15 @@ export default function HomeScreen() {
     useCallback(() => {
       const getCount = async () => {
         try {
-          const res = await axios.get('/notifications/count');
-          if (res.data.success) {
-            setUnreadCount(res.data.count);
+          const [notifRes, chatRes] = await Promise.all([
+            axios.get('/notifications/count'),
+            axios.get('/chat/unread-count')
+          ]);
+          if (notifRes.data.success) {
+            setUnreadCount(notifRes.data.count);
+          }
+          if (chatRes.data.success) {
+            setChatUnreadCount(chatRes.data.count);
           }
         } catch (error) {
           console.log("Badge Error:", error);
@@ -617,7 +624,16 @@ export default function HomeScreen() {
           </View>
         </Pressable>
         <Pressable onPress={() => navigation.navigate('ChatList')}>
-          <Ionicons name="chatbubble-ellipses-outline" size={26} color="#1A1A1A" />
+          <View>
+            <Ionicons name="chatbubble-ellipses-outline" size={26} color="#1A1A1A" />
+            {chatUnreadCount > 0 && (
+              <View className="absolute -top-1 -right-1 bg-pink-500 rounded-full w-5 h-5 justify-center items-center border border-white">
+                <Text className="text-white text-[10px] font-bold">
+                  {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
+                </Text>
+              </View>
+            )}
+          </View>
         </Pressable>
       </View>
 

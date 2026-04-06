@@ -25,7 +25,8 @@ export const getConversations = async (req, res) => {
   const userId = req.user.id;
 
   const conversations = await Conversation.find({
-    participants: userId
+    participants: userId,
+    lastMessage: { $exists: true, $ne: null }
   })
     .populate("participants", "name username avatar")
     .populate("lastMessage")
@@ -115,4 +116,20 @@ export const deleteMessage = async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, message: "Server error" });
     }
+};
+export const getUnreadCount = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const conversations = await Conversation.find({ participants: userId });
+        let total = 0;
+        conversations.forEach(c => {
+            if (c.unreadCount) {
+                const count = (typeof c.unreadCount.get === 'function') ? c.unreadCount.get(userId) : c.unreadCount[userId];
+                total += (count || 0);
+ }
+ });
+ res.json({ success: true, count: total });
+ } catch (error) {
+ res.status(500).json({ success: false });
+ }
 };
