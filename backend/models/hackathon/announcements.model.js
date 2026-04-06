@@ -33,8 +33,7 @@ const announcementSchema = mongoose.Schema({
             user:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
             emoji:{type:String}
         }
-    ]
-    ,
+    ],
     readby:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"User"

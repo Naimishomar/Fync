@@ -4,7 +4,7 @@ import {
     createHackathon , 
     addjudge , 
     removeJudge , 
-    updatestatus , 
+    updatestatus ,  
     updatehackathon ,
     deletehackathon 
 } from "../../controllers/hackathon/hackathon.controller";

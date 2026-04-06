@@ -30,7 +30,8 @@
           "isAccessMediaLocationEnabled": true
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-router"
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -50,8 +51,17 @@
     },
     "android": {
       "permissions": [
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_BACKGROUND_LOCATION"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO"
       ],
       "usesCleartextTraffic": true,
       "adaptiveIcon": {
@@ -60,6 +70,13 @@
       },
       "package": "com.anonymous.client",
       "softwareKeyboardLayoutMode": "pan"
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "676601fd-e13d-4c84-b51e-0a9639a27b34"
+      }
+    },
+    "owner": "nexus_91"
   }
 }

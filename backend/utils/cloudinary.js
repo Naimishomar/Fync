@@ -41,31 +41,17 @@ export const getCloudinaryPublicId = (url, isRaw = false) => {
 // --------------------
 export const deleteFromCloudinary = async (url, resourceType = "image") => {
   try {
-<<<<<<< HEAD
-    const publicId = getCloudinaryPublicId(url);
-
-    if (publicId) {
-      await cloudinary.uploader.destroy(publicId, {
-        resource_type: resourceType,
-      });
-=======
     const isRaw = resourceType === "raw";
     const pubId = getCloudinaryPublicId(url, isRaw);
     if (pubId) {
       await cloudinary.uploader.destroy(pubId, { resource_type: resourceType });
       // console.log(`🗑️ Cloudinary: Deleted ${pubId} (${resourceType})`);
->>>>>>> fa9933b0e1a507513d8f0279be9eb4b20b6315d6
     }
   } catch (error) {
     console.error(`Cloudinary Delete Error (${resourceType}):`, error.message);
   }
 };
 
-<<<<<<< HEAD
-// --------------------
-// Cloudinary Initialization
-// --------------------
-=======
 export const uploadToCloudinary = async (file, folder = "fync_events") => {
   try {
     const result = await cloudinary.uploader.upload(file, {
@@ -79,7 +65,6 @@ export const uploadToCloudinary = async (file, folder = "fync_events") => {
   }
 };
 
->>>>>>> fa9933b0e1a507513d8f0279be9eb4b20b6315d6
 try {
   if (
     !process.env.CLOUDINARY_CLOUD_NAME ||
@@ -162,9 +147,6 @@ try {
 
   collegeChatUpload = multer({
     storage: collegeChatStorage,
-<<<<<<< HEAD
-    limits: { fileSize: 50 * 1024 * 1024 },
-=======
     limits: { fileSize: 1024 * 1024 * 5 }, // 5MB for whatsapp-like limits
   });
 
@@ -185,7 +167,6 @@ try {
   resumeUpload = multer({
     storage: resumeStorage,
     limits: { fileSize: 1024 * 1024 * 5 }, // 5MB limit for resumes
->>>>>>> fa9933b0e1a507513d8f0279be9eb4b20b6315d6
   });
 
   console.log("✅ Cloudinary initialized successfully");
@@ -194,11 +175,5 @@ try {
   process.exit(1);
 }
 
-<<<<<<< HEAD
-// --------------------
-// Export Modules
-// --------------------
-export { cloudinary, upload, videoUpload, audioUpload, collegeChatUpload };
-=======
 export { cloudinary, upload, videoUpload, audioUpload, collegeChatUpload, mentorshipUpload, resumeUpload };
->>>>>>> fa9933b0e1a507513d8f0279be9eb4b20b6315d6
+

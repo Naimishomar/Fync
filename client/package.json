@@ -12,14 +12,14 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
-    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "8.4.4",
     "@react-native-community/netinfo": "^11.4.1",
     "@react-navigation/bottom-tabs": "^7.12.0",
     "@react-navigation/drawer": "^7.5.0",
     "@react-navigation/native": "^7.1.8",
     "@react-navigation/native-stack": "^7.3.16",
-    "axios": "^1.13.2",
+    "axios": "^1.13.6",
     "date-fns": "^4.1.0",
     "expo": "~54.0.31",
     "expo-av": "~16.0.8",
@@ -41,6 +41,7 @@
     "expo-location": "~19.0.8",
     "expo-media-library": "~18.2.1",
     "expo-print": "^15.0.8",
+    "expo-router": "~6.0.23",
     "expo-sharing": "^14.0.8",
     "expo-speech": "~14.0.8",
     "expo-status-bar": "~3.0.9",
@@ -49,7 +50,7 @@
     "expo-web-browser": "~15.0.10",
     "jwt-decode": "^4.0.0",
     "moment": "^2.30.1",
-    "nativewind": "latest",
+    "nativewind": "^4.2.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
@@ -74,7 +75,8 @@
     "react-native-worklets": "0.5.1",
     "react-router-native": "^6.30.0",
     "socket.io-client": "^4.8.3",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
@@ -86,7 +88,7 @@
     "eslint-config-prettier": "^10.1.2",
     "prettier": "^3.2.5",
     "prettier-plugin-tailwindcss": "^0.5.11",
-    "tailwindcss": "^3.4.0",
+    "tailwindcss": "^3.3.2",
     "typescript": "~5.9.2"
   },
   "expo": {

@@ -23,7 +23,6 @@ export const gethackathon = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-}
 
 // get api /api/hackathons
 
@@ -293,4 +292,6 @@ export const setreaction = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-}
+};
+
+
