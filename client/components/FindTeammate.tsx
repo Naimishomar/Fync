@@ -184,12 +184,12 @@ export default function FindTeammate() {
               </Text>
           </View>
 
-          <TouchableOpacity onPress={() => handleMessage(item)} disabled={connectingId !== null} className='rounded-2xl'>
+          <TouchableOpacity onPress={() => handleMessage(item)} disabled={connectingId !== null} className='rounded-full'>
               <LinearGradient
                   colors={['#6366f1', '#a855f7']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
-                  className="px-6 py-2 rounded-2xl flex-row items-center shadow-md shadow-indigo-500/30"
+                  className="px-6 py-2 rounded-full flex-row items-center shadow-md shadow-indigo-500/30"
               >
                   {connectingId === item._id ? (
                       <ActivityIndicator size="small" color="white" />

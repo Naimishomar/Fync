@@ -329,7 +329,7 @@ export const login = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const { about, skills, experience, interest, hobbies, github_id, linkedIn_id, leetcode, gfg, upiId } = req.body;
+    const { name, username, bio, about, skills, experience, interest, hobbies, github_id, linkedIn_id, leetcode, gfg, upiId } = req.body;
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
@@ -352,6 +352,9 @@ export const updateUser = async (req, res) => {
       req.user.id,
       {
         $set: {
+          ...(name && { name }),
+          ...(username && { username }),
+          ...(bio && { bio }),
           ...(about && { about }),
           ...(skills && { skills }),
           ...(experience && { experience }),
@@ -369,8 +372,17 @@ export const updateUser = async (req, res) => {
       { new: true, runValidators: true }
     ).select("-password");
 
-    clearCache(`profile/${req.user.id}`).catch(() => { });
-    clearCache(`profile`).catch(() => { });
+    // Clear cache for current user profile and ANY public profiling of this user
+    try {
+      await Promise.all([
+        clearCache(`profile`), // Clears all profile related keys (private or list)
+        clearCache(`${req.user.id}`), // Clears anything specifically tied to this user ID
+        clearCache(`developers`)
+      ]);
+      console.log(`✅ Cache cleared for user update: ${req.user.id}`);
+    } catch (cacheErr) {
+      console.error("Cache Clear failed on Update:", cacheErr);
+    }
 
     return res.status(200).json({ success: true, message: "User updated successfully", user: updatedUser });
   } catch (error) {

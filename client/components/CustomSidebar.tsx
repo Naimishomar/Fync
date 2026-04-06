@@ -41,15 +41,17 @@ export default function CustomSidebar(props: any) {
         <View className="flex-1 bg-black">
             <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 0 }}>
                 {/* Header Profile Section */}
-                <View className="bg-gray-900 px-5 pt-12 pb-8 border-b border-gray-800">
+                <View className="bg-gray-900 px-5 pt-12 pb-8 border-b border-gray-800 flex-row items-center gap-4">
                     <Pressable onPress={() => props.navigation.navigate('Profile')}>
                         <Image
                             source={{ uri: user?.avatar || `https://ui-avatars.com/api/?name=${user?.username || 'User'}` }}
                             className="h-20 w-20 rounded-full border-2 border-pink-500 mb-4"
                         />
                     </Pressable>
-                    <Text className="text-white text-xl font-bold">{user?.fullName || user?.username || "Fync User"}</Text>
-                    <Text className="text-gray-400 text-sm">@{user?.username || "username"}</Text>
+                    <View>
+                        <Text className="text-white text-xl font-bold">{user?.fullName || user?.username || "Fync User"}</Text>
+                        <Text className="text-gray-400 text-sm">@{user?.username || "username"}</Text>
+                    </View>
                 </View>
 
                 {/* Menu Items */}
@@ -347,12 +349,12 @@ export default function CustomSidebar(props: any) {
             </DrawerContentScrollView>
 
             {/* Footer / Logout */}
-            <View className="p-5 border-t border-gray-800 mb-5">
+            {/* <View className="p-5 border-t border-gray-800 mb-5">
                 <Pressable onPress={logout} className="flex-row items-center px-4 py-2">
                     <Ionicons name="log-out-outline" size={24} color="#ef4444" />
                     <Text className="text-red-500 ml-4 font-medium text-lg">Sign Out</Text>
                 </Pressable>
-            </View>
+            </View> */}
         </View>
     );
 }

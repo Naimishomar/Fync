@@ -1,15 +1,16 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import {
-    View, Text, ActivityIndicator, Image, TouchableOpacity,
+    View, Text, ActivityIndicator, TouchableOpacity,
     Modal, TextInput, KeyboardAvoidingView, Platform, FlatList, Alert,
-    Pressable, Dimensions, ScrollView, Share
+    Pressable, Dimensions, ScrollView, Share,
+    Image as RNImage
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Video, ResizeMode } from 'expo-av';
 import axios from "../context/axiosConfig";
 import { useAuth } from '../context/auth.context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Image as ExpoImage } from 'expo-image';
 import { memo } from 'react';
 import Avatar from './Avatar';
@@ -43,7 +44,7 @@ const CommentItem = ({
 }: any) => (
     <View className={`${isReply ? 'ml-10 mt-3' : 'mb-5'}`}>
         <View className="flex-row">
-            <Image source={{ uri: comment.commentor?.avatar || 'https://ui-avatars.com/api/?name=User' }} className={`${isReply ? 'h-7 w-7' : 'h-9 w-9'} rounded-full mr-3 bg-gray-700`} />
+            <RNImage source={{ uri: comment.commentor?.avatar || 'https://ui-avatars.com/api/?name=User' }} className={`${isReply ? 'h-7 w-7' : 'h-9 w-9'} rounded-full mr-3 bg-gray-700`} />
             <View className="flex-1">
                 <View className="flex flex-row items-center gap-1">
                     <Text className="text-white font-semibold text-[13px]">{comment.commentor?.name}</Text>
@@ -282,6 +283,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
     const { postId, shortId } = route.params;
     const isShort = !!shortId;
     const id = shortId || postId;
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const { user: currentUser } = useAuth();
 
@@ -304,6 +306,48 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
         }
         loadData();
     }, [id]);
+
+    const formatTime = (dateString: string) => {
+        if (!dateString) return "Just now";
+        const now = new Date();
+        const date = new Date(dateString);
+        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+        if (diffInSeconds < 60) return "Just now";
+        const diffInMinutes = Math.floor(diffInSeconds / 60);
+        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        if (diffInHours < 24) return `${diffInHours}h ago`;
+        const diffInDays = Math.floor(diffInHours / 24);
+        if (diffInDays < 7) return `${diffInDays}d ago`;
+        
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+
+    const [menuVisible, setMenuVisible] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editDescription, setEditDescription] = useState('');
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    // --- NEW MEDIA STATE ---
+    const [newImages, setNewImages] = useState<any[]>([]); // for posts
+    const [newVideo, setNewVideo] = useState<any>(null);  // for shorts
+
+    const pickMedia = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: isShort ? ImagePicker.MediaTypeOptions.Videos : ImagePicker.MediaTypeOptions.Images,
+            allowsMultipleSelection: !isShort,
+            quality: 0.7,
+        });
+
+        if (!result.canceled) {
+            if (isShort) {
+                setNewVideo(result.assets[0]);
+            } else {
+                setNewImages(result.assets);
+            }
+        }
+    };
 
     const endpoints = useMemo(() => getEndpoints(isShort, id), [isShort, id]);
 
@@ -376,177 +420,259 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
 
     if (!data) return null;
 
-    // --- RENDER SHORT (Same UI as your Shorts.tsx) ---
-    if (isShort) {
-        return (
-            <View style={{ flex: 1, backgroundColor: 'black' }}>
-                {/* Back Button Overlay */}
-                <Pressable
-                    onPress={() => navigation.goBack()}
-                    className="absolute top-12 left-4 z-50 bg-black/20 p-2 rounded-full"
-                >
-                    <Ionicons name="arrow-back" size={28} color="white" />
-                </Pressable>
-
-                {/* Video */}
-                <Pressable onPress={() => {
-                    // Optional: Toggle Play/Pause on Tap
-                    // videoRef.current?.pauseAsync(); 
-                }} style={{ flex: 1 }}>
-                    <Video
-                        ref={videoRef}
-                        source={{ uri: data.video }}
-                        style={{ width: width, height: height, backgroundColor: 'black' }}
-                        resizeMode={ResizeMode.COVER}
-                        shouldPlay={true}
-                        isLooping
-                        useNativeControls={false}
-                    />
-                </Pressable>
-
-                {/* Bottom Overlay Info & Buttons */}
-                <View className="relative bottom-[20%] left-4 right-4 flex-row justify-between items-end">
-                    {/* LEFT INFO */}
-                    <View className="flex-1 pr-6">
-                        <Pressable
-                            onPress={() => navigation.navigate("PublicProfile", { user: data.user })}
-                            className="flex-row items-center mb-3"
-                        >
-                            <Avatar 
-                                user={data.user as any} 
-                                size={40} 
-                            />
-                            <View>
-                                <Text className="text-white font-bold text-base shadow-md">
-                                    {data.user?.name || data.user?.username}
-                                </Text>
-                                <Text className="text-gray-300 text-xs shadow-md">
-                                    @{data.user?.username}
-                                </Text>
-                            </View>
-                        </Pressable>
-                        <Text className="text-white text-sm font-medium mb-1 shadow-md">{data.title}</Text>
-                        <Text className="text-gray-300 text-xs shadow-md" numberOfLines={3}>{data.description}</Text>
-                    </View>
-
-                    {/* RIGHT ACTIONS */}
-                    <View className="items-center gap-4">
-                        <View className="items-center">
-                            <TouchableOpacity onPress={handleLike} className="p-2">
-                                <Ionicons name={isLiked ? "heart" : "heart-outline"} size={34} color={isLiked ? "red" : "white"} />
-                            </TouchableOpacity>
-                            <Text className="text-white text-xs font-bold shadow-md">{likeCount}</Text>
-                        </View>
-
-                        <View className="items-center">
-                            <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="p-2">
-                                <Ionicons name="chatbubble-outline" size={32} color="white" />
-                            </TouchableOpacity>
-                            <Text className="text-white text-xs font-bold shadow-md">{commentCount}</Text>
-                        </View>
-
-                        <View className="items-center">
-                            <Ionicons name="eye-outline" size={32} color="white" />
-                            <Text className="text-white text-xs font-bold shadow-md">{data.views || 0}</Text>
-                        </View>
-
-                        <TouchableOpacity onPress={handleShare}>
-                            <Ionicons name="paper-plane-outline" size={32} color="white" />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-
-                {/* MODAL */}
-                <UnifiedCommentsModal
-                    isVisible={isCommentModalVisible}
-                    id={id}
-                    isShort={true}
-                    currentUser={currentUser}
-                    onClose={() => setCommentModalVisible(false)}
-                    onCommentAdded={handleCommentAdded}
-                />
-            </View>
-        );
-    }
-
-    // --- RENDER POST (Keep Existing Logic) ---
+    // --- RENDER SHORT (Same UI as your Shorts.tsx) ---    // --- FINAL RENDER ---
     return (
-        <SafeAreaView className="flex-1 bg-black">
-            <View className="bg-black flex-1">
-                {/* Header */}
-                <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-900">
-                    <View className="flex-row items-center gap-3">
-                        <Pressable onPress={() => navigation.goBack()}>
-                            <Ionicons name="arrow-back" size={24} color="white" />
-                        </Pressable>
-                        <Pressable className="flex-row items-center" onPress={() => navigation.navigate("PublicProfile", { user: data?.user })}>
-                            <Avatar 
-                                user={data.user as any} 
-                                size={36} 
-                            />
-                            <View className="ml-3">
-                                <Text className="text-white font-bold text-sm">{data.user?.username}</Text>
-                                {data.college && <Text className="text-gray-500 text-[10px] uppercase tracking-wide">{data.college}</Text>}
-                            </View>
-                        </Pressable>
-                    </View>
-                    <Ionicons name="ellipsis-horizontal" size={20} color="gray" />
-                </View>
-
-                {/* Content */}
-                <ScrollView>
-                    <Pressable onPress={() => setResizeMode(prev => !prev)}>
-                        <View className="w-full bg-gray-900 aspect-square">
-                            <ExpoImage
-                                source={{ uri: data.image?.[0] }}
-                                style={{ width: width, height: width }}
-                                contentFit={resizeMode ? "contain" : "cover"}
-                                cachePolicy="disk"
-                                transition={300}
-                            />
-                        </View>
+        <SafeAreaView className={`flex-1 ${isShort ? 'bg-black' : 'bg-white'}`}>
+            {isShort ? (
+                /* --- SHORTS VIEW --- */
+                <View style={{ flex: 1, backgroundColor: 'black' }}>
+                    <Pressable onPress={() => navigation.goBack()} className="absolute top-12 left-4 z-50 bg-black/20 p-2 rounded-full">
+                        <Ionicons name="arrow-back" size={28} color="white" />
+                    </Pressable>
+                    <Pressable onPress={() => setMenuVisible(true)} className="absolute top-12 right-4 z-50 bg-black/20 p-2 rounded-full">
+                        <Ionicons name="ellipsis-horizontal" size={24} color="white" />
                     </Pressable>
 
-                    {/* Actions */}
-                    <View className="px-3 pt-3 flex-row items-center gap-4">
-                        <TouchableOpacity onPress={handleLike}>
-                            <Ionicons
-                                name={isLiked ? "heart" : "heart-outline"}
-                                size={28}
-                                color={isLiked ? "#FF3040" : "white"}
-                            />
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setCommentModalVisible(true)}>
-                            <Ionicons name="chatbubble-outline" size={26} color="white" />
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={handleShare}>
-                            <Ionicons name="paper-plane-outline" size={26} color="white" style={{ transform: [{ rotate: '-0deg' }], marginTop: -3 }} />
-                        </TouchableOpacity>
+                    <Pressable style={{ flex: 1 }}>
+                        <Video
+                            ref={videoRef}
+                            source={{ uri: data.video }}
+                            style={{ width: width, height: height, backgroundColor: 'black' }}
+                            resizeMode={ResizeMode.COVER}
+                            shouldPlay={true}
+                            isLooping
+                        />
+                    </Pressable>
+
+                    <View className="relative bottom-[20%] left-4 right-4 flex-row justify-between items-end">
+                        <View className="flex-1 pr-6">
+                            <Pressable onPress={() => navigation.navigate("PublicProfile", { user: data.user })} className="flex-row items-center mb-3">
+                                <Avatar user={data.user as any} size={40} />
+                                <View className="ml-2">
+                                    <Text className="text-white font-bold text-base shadow-md">{data.user?.name || data.user?.username}</Text>
+                                    <Text className="text-gray-300 text-xs shadow-md">@{data.user?.username}</Text>
+                                </View>
+                            </Pressable>
+                            <Text className="text-white text-sm font-medium mb-1 shadow-md">{data.title}</Text>
+                            <View className="flex-row items-center gap-2">
+                                <Text className="text-gray-300 text-xs shadow-md" numberOfLines={3}>{data.description}</Text>
+                                {isShort && currentUser?._id === data.user?._id && <View className="h-1 w-1 bg-white/40 rounded-full" />}
+                            </View>
+                            <Text className="text-white/60 text-[10px] mt-2 uppercase tracking-widest font-bold">{formatTime(data.createdAt)}</Text>
+                        </View>
+
+                        <View className="items-center gap-4">
+                            <TouchableOpacity onPress={handleLike} className="items-center">
+                                <Ionicons name={isLiked ? "heart" : "heart-outline"} size={34} color={isLiked ? "red" : "white"} />
+                                <Text className="text-white text-xs font-bold">{likeCount}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="items-center">
+                                <Ionicons name="chatbubble-outline" size={32} color="white" />
+                                <Text className="text-white text-xs font-bold">{commentCount}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity className="items-center">
+                                <Ionicons name="eye-outline" size={32} color="white" />
+                                <Text className="text-white text-xs font-bold">{data.views || 0}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={handleShare}>
+                                <Ionicons name="paper-plane-outline" size={32} color="white" />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            ) : (
+                /* --- POST VIEW --- */
+                <View className="bg-white flex-1">
+                    <View className="flex-row items-center justify-between px-4 py-3">
+                        <View className="flex-row items-center gap-3">
+                            <Pressable onPress={() => navigation.goBack()}><Ionicons name="arrow-back" size={24} color="black" /></Pressable>
+                            <Pressable onPress={() => navigation.navigate("PublicProfile", { user: data?.user })} className="flex-row items-center">
+                                <Avatar user={data.user as any} size={36} />
+                                <View className="ml-3">
+                                    <Text className="text-black font-bold text-sm">{data.user?.username}</Text>
+                                    {data.college && <Text className="text-gray-500 text-[10px] uppercase tracking-wide">{data.college}</Text>}
+                                </View>
+                            </Pressable>
+                        </View>
+                        {data.user?._id === currentUser?._id && (
+                            <Pressable onPress={() => setMenuVisible(true)}><Ionicons name="ellipsis-horizontal" size={20} color="gray" /></Pressable>
+                        )}
                     </View>
 
-                    {/* Likes & Caption */}
-                    <View className="px-3 pt-2 pb-10">
-                        <Text className="text-white font-bold text-sm">{likeCount} likes</Text>
-                        <View className="mt-2">
-                            <Text className="text-white text-sm leading-5">
-                                <Text className="font-bold text-gray-300">{data.user?.username} </Text>
-                                {data.description}
-                            </Text>
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                        <View className="relative">
+                            <FlatList
+                                data={data.image || []}
+                                horizontal pagingEnabled showsHorizontalScrollIndicator={false}
+                                keyExtractor={(item, index) => `${item}-${index}`}
+                                onScroll={(e) => setCurrentImageIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
+                                renderItem={({ item }) => (
+                                    <Pressable onPress={() => setResizeMode(prev => !prev)}>
+                                        <ExpoImage source={{ uri: item }} style={{ width: width, height: width }} contentFit={resizeMode ? "contain" : "cover"} cachePolicy="disk" transition={300} />
+                                    </Pressable>
+                                )}
+                            />
+                            {data.image?.length > 1 && (
+                                <View className="absolute bottom-3 left-0 right-0 flex-row justify-center gap-1.5">
+                                    {data.image.map((_: any, i: number) => (
+                                        <View key={i} className={`h-1.5 w-1.5 rounded-full ${i === currentImageIndex ? 'bg-white shadow-sm' : 'bg-white/40'}`} />
+                                    ))}
+                                </View>
+                            )}
                         </View>
-                        <Pressable onPress={() => setCommentModalVisible(true)} className="mt-1">
-                            <Text className="text-gray-500 text-sm">
-                                {commentCount > 0 ? `View all ${commentCount} comments` : "Add a comment..."}
+
+                        <View className="px-3 pt-3 flex-row items-center gap-4">
+                            <TouchableOpacity onPress={handleLike}><Ionicons name={isLiked ? "heart" : "heart-outline"} size={28} color={isLiked ? "#FF3040" : "black"} /></TouchableOpacity>
+                            <TouchableOpacity onPress={() => setCommentModalVisible(true)}><Ionicons name="chatbubble-outline" size={26} color="black" /></TouchableOpacity>
+                            <TouchableOpacity onPress={handleShare}><Ionicons name="paper-plane-outline" size={26} color="black" /></TouchableOpacity>
+                        </View>
+
+                        <View className="px-3 pt-2 pb-10">
+                            <Text className="text-black font-bold text-sm">{likeCount} likes</Text>
+                            <Text className="text-black text-sm leading-5 mt-2">
+                                <Text className="text-gray-500">{data.user?.username} </Text>{data.description}
                             </Text>
-                        </Pressable>
-                        <Text className="text-gray-600 text-xs mt-1 uppercase">Just now</Text>
+                            <Pressable onPress={() => setCommentModalVisible(true)} className="mt-1">
+                                <Text className="text-gray-500 text-sm py-2">{commentCount > 0 ? `View all ${commentCount} comments` : "Add a comment..."}</Text>
+                            </Pressable>
+                            <Text className="text-gray-500 text-[10px] mt-1 uppercase tracking-widest font-bold">{formatTime(data.createdAt)}</Text>
+                        </View>
+                    </ScrollView>
+                </View>
+            )}
+
+            {/* --- MODALS --- */}
+            <Modal visible={menuVisible} transparent animationType="fade">
+                <Pressable className="flex-1 bg-black/40" onPress={() => setMenuVisible(false)}>
+                    <View className="absolute bottom-10 left-4 right-4 bg-white rounded-3xl overflow-hidden shadow-xl">
+                        {currentUser?._id === data.user?._id && (
+                            <>
+                                <Pressable 
+                                    onPress={() => { setMenuVisible(false); setEditDescription(isShort ? data.title : data.description || ''); setIsEditing(true); }}
+                                    className="py-5 items-center border-b border-gray-100 flex-row justify-center gap-2"
+                                >
+                                    <Ionicons name="create-outline" size={20} color="black" />
+                                    <Text className="text-black font-bold text-base">Edit {isShort ? 'Short' : 'Post'}</Text>
+                                </Pressable>
+                                <Pressable 
+                                    onPress={async () => {
+                                        setMenuVisible(false);
+                                        Alert.alert(`Delete ${isShort ? 'Short' : 'Post'}`, "Are you sure? This cannot be undone.", [
+                                            { text: "Cancel", style: "cancel" },
+                                            { text: "Delete", style: "destructive", onPress: async () => {
+                                                try {
+                                                    const res = await axios.delete(isShort ? `/shorts/${id}` : `/post/${id}`);
+                                                    if (res.data.success) navigation.goBack();
+                                                } catch (err) { Alert.alert("Error", "Failed to delete."); }
+                                            }}
+                                        ]);
+                                    }}
+                                    className="py-5 items-center flex-row justify-center gap-2"
+                                >
+                                    <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                                    <Text className="text-red-500 font-bold text-base">Delete {isShort ? 'Short' : 'Post'}</Text>
+                                </Pressable>
+                            </>
+                        )}
+                        <Pressable onPress={() => setMenuVisible(false)} className="py-5 bg-gray-50 items-center"><Text className="text-gray-400 font-semibold">Cancel</Text></Pressable>
                     </View>
-                </ScrollView>
-            </View>
+                </Pressable>
+            </Modal>
+
+            <Modal visible={isEditing} transparent animationType="slide">
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1 bg-black/60">
+                    <View className="flex-1" />
+                    <View className="bg-white rounded-t-[40px] p-6 shadow-2xl">
+                            <View className="flex-row justify-between items-center mb-6">
+                                <Text className="text-black text-xl font-bold">Edit Content</Text>
+                                <Pressable onPress={() => { setIsEditing(false); setNewVideo(null); setNewImages([]); }}>
+                                    <Ionicons name="close" size={28} color="black" />
+                                </Pressable>
+                            </View>
+
+                            {/* Media Preview / Picker */}
+                            <Pressable 
+                                onPress={pickMedia}
+                                className="mb-4 aspect-video w-full bg-gray-100 rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 justify-center items-center"
+                            >
+                                {isShort ? (
+                                    newVideo ? (
+                                        <Video source={{ uri: newVideo.uri }} style={{ width: '100%', height: '100%' }} resizeMode={ResizeMode.COVER} isMuted />
+                                    ) : (
+                                        <View className="items-center">
+                                            <Ionicons name="videocam-outline" size={40} color="#6B7280" />
+                                            <Text className="text-gray-500 font-semibold mt-2">Change Video</Text>
+                                        </View>
+                                    )
+                                ) : (
+                                    newImages.length > 0 ? (
+                                        <ScrollView horizontal className="w-full">
+                                            {newImages.map((img, i) => (
+                                                <RNImage key={i} source={{ uri: img.uri }} className="w-40 h-40 rounded-xl m-2" />
+                                            ))}
+                                        </ScrollView>
+                                    ) : (
+                                        <View className="items-center">
+                                            <Ionicons name="images-outline" size={40} color="#6B7280" />
+                                            <Text className="text-gray-500 font-semibold mt-2">Replace Photos</Text>
+                                        </View>
+                                    )
+                                )}
+                            </Pressable>
+
+                            <TextInput multiline value={editDescription} onChangeText={setEditDescription} placeholder="Write something..." placeholderTextColor="#9CA3AF" className="bg-gray-100 rounded-2xl p-4 text-black text-base min-h-[120px]" autoFocus />
+                            <Pressable 
+                                onPress={async () => {
+                                    setIsUpdating(true);
+                                    try {
+                                        const formData = new FormData();
+                                        if (isShort) {
+                                            formData.append('title', editDescription);
+                                            if (newVideo) {
+                                                const uri = Platform.OS === 'ios' ? newVideo.uri.replace('file://', '') : newVideo.uri;
+                                                const name = uri.split('/').pop();
+                                                const type = `video/${name?.split('.').pop()}`;
+                                                formData.append('video', { uri, name, type } as any);
+                                            }
+                                        } else {
+                                            formData.append('description', editDescription);
+                                            newImages.forEach((img, i) => {
+                                                const uri = Platform.OS === 'ios' ? img.uri.replace('file://', '') : img.uri;
+                                                const name = uri.split('/').pop() || `image_${i}.jpg`;
+                                                const type = `image/${name.split('.').pop()}`;
+                                                formData.append('image', { uri, name, type } as any);
+                                            });
+                                        }
+
+                                        const res = await axios.post(
+                                            isShort ? `/shorts/update/${id}` : `/post/${id}`, 
+                                            formData,
+                                            { headers: { 'Content-Type': 'multipart/form-data' } }
+                                        );
+
+                                        if (res.data.success) {
+                                            const updated = isShort ? res.data.short : res.data.post;
+                                            setData(updated);
+                                            setIsEditing(false);
+                                            setNewVideo(null);
+                                            setNewImages([]);
+                                            if (!isShort && updated.image) setCurrentImageIndex(0);
+                                        }
+                                    } catch (err) { Alert.alert("Error", "Update failed."); } finally { setIsUpdating(false); }
+                                }}
+                                disabled={isUpdating}
+                                className="bg-black py-4 rounded-2xl mt-6 items-center shadow-lg"
+                            >
+                                {isUpdating ? <ActivityIndicator color="white" /> : <Text className="text-white font-bold text-lg">Save Changes</Text>}
+                            </Pressable>
+                    </View>
+                </KeyboardAvoidingView>
+            </Modal>
 
             <UnifiedCommentsModal
                 isVisible={isCommentModalVisible}
                 id={id}
-                isShort={false}
+                isShort={isShort}
                 currentUser={currentUser}
                 onClose={() => setCommentModalVisible(false)}
                 onCommentAdded={handleCommentAdded}

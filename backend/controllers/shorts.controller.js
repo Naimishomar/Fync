@@ -95,12 +95,20 @@ export const updateShort = async (req, res) => {
         if (short.user.toString() !== req.user.id.toString()) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
+        let video = "";
+        if (req.file) {
+            video = req.file.path;
+            if (short.video) {
+                await deleteFromR2(short.video);
+            }
+        }
         const updatedShort = await Shorts.findByIdAndUpdate(
             req.params.id,
             {
                 $set: {
                     ...(req.body.title && { title: req.body.title }),
                     ...(req.body.description && { description: req.body.description }),
+                    ...(video && { video }),
                 },
             },
             { new: true, runValidators: true }

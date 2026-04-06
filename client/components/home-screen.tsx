@@ -16,7 +16,8 @@ import {
   ViewToken,
   TouchableOpacity,
   Share,
-  DeviceEventEmitter
+  DeviceEventEmitter,
+  ScrollView
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { Layout, FadeIn, FadeOut } from 'react-native-reanimated';
@@ -655,50 +656,69 @@ export default function HomeScreen() {
   };
 
   const features = useMemo(() => [
-    { id: 'marketplace', name: 'Rewards', icon: 'cart-outline', color: '#10b981', onPress: () => navigation.navigate('RewardsMarketplace') },
-    { id: 'jobs', name: 'Alumni Jobs', icon: 'business-outline', color: '#f87171', onPress: () => navigation.navigate('AlumniJobs') },
-    { id: 'fync_media', name: 'Fync Media', icon: 'play-circle-outline', color: '#ec4899', onPress: () => navigation.navigate('FyncMediaFeed') },
-    { id: 'events', name: 'Speaker Hub', icon: 'mic-outline', color: '#ec4899', onPress: () => navigation.navigate('SpeakerSessionScreen') },
-    { id: 'bootcamp', name: 'Bootcamp', icon: 'rocket-outline', color: '#6366f1', onPress: () => navigation.navigate('BootcampScreen') },
+    { id: 'internships', name: 'Internships', iconUri: 'https://cdn-icons-png.flaticon.com/512/3281/3281289.png', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') }, // Just placeholders for now
+    { id: 'jobs', name: 'Jobs', iconUri: 'https://d8it4huxumps7.cloudfront.net/uploads/images/avif/jobs-new.png', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
+    { id: 'competitions', name: 'Reward', iconUri: 'https://i.pinimg.com/736x/3c/a8/e7/3ca8e7290bf156916a8a3c9bea521238.jpg', sparkle: false, onPress: () => navigation.navigate('BootcampScreen') },
+    { id: 'mock_tests', name: 'Mock Tests', iconUri: 'https://cdn-icons-png.flaticon.com/512/3389/3389152.png', sparkle: true, onPress: () => navigation.navigate('BootcampScreen') },
+    { id: 'interviews', name: 'Mock Interviews', iconUri: 'https://cdn-icons-png.flaticon.com/512/10416/10416390.png', sparkle: false, onPress: () => navigation.navigate('SpeakerSessionScreen') },
+    { id: 'mentorships', name: 'Mentorships', iconUri: 'https://cdn-icons-png.flaticon.com/512/4737/4737213.png', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
+    { id: 'events', name: 'Events', iconUri: 'https://cdn-icons-png.flaticon.com/512/10416/10416390.png', sparkle: false, onPress: () => navigation.navigate('SpeakerSessionScreen') },
+    { id: 'mentorship', name: 'Mentorships', iconUri: 'https://cdn-icons-png.flaticon.com/512/4737/4737213.png', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
   ], [user, navigation]);
 
   const displayedFeatures = useMemo(() => features.slice(0, 6), [features]);
 
-  const renderFeatureStories = () => {
-    return (
-      <Animated.View
-        layout={Layout.duration(400).springify().damping(20).stiffness(90)}
-        className="bg-white py-4 border-b border-gray-200 px-2 overflow-hidden rounded-2xl mt-3 mx-3 shadow-sm shadow-black/5"
-      >
-        <Animated.View
-          layout={Layout}
-          className="flex-row flex-wrap justify-between"
-        >
-          {displayedFeatures.map((item, index) => (
-            <Animated.View
-              key={item.id}
-              entering={FadeIn.delay(index * 20)}
-              className="items-center"
-              style={{ width: '20%' }}
+const renderFeatureStories = () => {
+  return (
+    <View className="bg-white py-6">
+      {/* Header */}
+      <View className="flex-row justify-between items-center px-4 mb-4">
+        <Text className="text-zinc-900 font-bold text-lg tracking-tight">
+          Focus & Growth
+        </Text>
+      </View>
+
+      {/* Grid */}
+      <View className="flex-row flex-wrap px-3">
+        {features.map((item, index) => (
+          <Animated.View
+            key={item.id}
+            entering={FadeIn.delay(index * 50)}
+            className="p-2"
+            style={{ width: '25%' }}
+          >
+            <Pressable
+              onPress={item.onPress}
+              className="bg-white rounded-xl p-3 items-center justify-center shadow-md"
+              style={{ elevation: 3 }}
             >
-              <Pressable onPress={item.onPress}>
-                <View
-                  className="w-14 h-14 rounded-full items-center justify-center border border-gray-100 bg-gray-50"
-                >
-                  <View className="w-12 h-12 rounded-full bg-white items-center justify-center shadow-sm shadow-black/10">
-                    <Ionicons name={item.icon as any} size={20} color={item.color || "#1A1A1A"} />
-                  </View>
-                </View>
-              </Pressable>
-              <Text className="text-zinc-600 text-[9px] mt-2 font-bold text-center px-1" numberOfLines={1}>
+              {/* Title */}
+              <Text
+                className="text-zinc-900 font-semibold text-sm mb-2 text-center"
+                numberOfLines={1}
+              >
                 {item.name}
               </Text>
-            </Animated.View>
-          ))}
-        </Animated.View>
-      </Animated.View>
-    );
-  };
+
+              {/* Image */}
+              <Image
+                source={{ uri: item.iconUri }}
+                className="w-14 h-14"
+              />
+
+              {/* Sparkle badge */}
+              {item.sparkle && (
+                <View className="absolute top-2 right-2">
+                  <Ionicons name="sparkles" size={14} color="#818cf8" />
+                </View>
+              )}
+            </Pressable>
+          </Animated.View>
+        ))}
+      </View>
+    </View>
+  );
+};
 
 
   return (

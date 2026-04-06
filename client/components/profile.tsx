@@ -19,8 +19,9 @@ import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import Avatar from './Avatar';
-import { cacheDirectory, getInfoAsync, readDirectoryAsync, deleteAsync } from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Image as ExpoImage } from 'expo-image';
+import { StatusBar } from 'expo-status-bar';
 
 const { width } = Dimensions.get('window');
 const COLUMN_SIZE = width / 3;
@@ -41,6 +42,12 @@ type UserType = {
   hobbies?: string;
   github_id?: string;
   linkedIn_id?: string;
+  banner?: string;
+  upiId?: string;
+  codingProfiles?: {
+    leetcode?: string;
+    gfg?: string;
+  };
   followers?: any[];
   following?: any[];
 };
@@ -69,7 +76,7 @@ function Profile() {
   const [posts, setPosts] = useState<PostType[]>([]);
   const [shorts, setShorts] = useState<ShortType[]>([]);
 
-  const [activeTab, setActiveTab] = useState<'grid' | 'list' | 'tags'>('grid');
+  const [activeTab, setActiveTab] = useState<'posts' | 'shorts' | 'about'>('posts');
   const [refreshing, setRefreshing] = useState(false);
 
   const [postsPage, setPostsPage] = useState(1);
@@ -137,9 +144,9 @@ function Profile() {
 
   const handleLoadMore = () => {
     if (isLoadingMore) return;
-    if (activeTab === 'grid' && hasMorePosts) {
+    if (activeTab === 'posts' && hasMorePosts) {
       getPosts(postsPage + 1);
-    } else if (activeTab === 'list' && hasMoreShorts) {
+    } else if (activeTab === 'shorts' && hasMoreShorts) {
       getShorts(shortsPage + 1);
     }
   };
@@ -177,19 +184,19 @@ function Profile() {
 
   const clearAppCache = async () => {
     try {
-      if (cacheDirectory) {
-        const cacheDirInfo = await getInfoAsync(cacheDirectory);
+      if (FileSystem.cacheDirectory) {
+        const cacheDirInfo = await FileSystem.getInfoAsync(FileSystem.cacheDirectory);
         if (cacheDirInfo.exists) {
-          const content = await readDirectoryAsync(cacheDirectory);
+          const content = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory);
 
           let totalFreed = 0;
           for (const item of content) {
-            const itemPath = `${cacheDirectory}${item}`;
-            const itemInfo = await getInfoAsync(itemPath, { size: true });
+            const itemPath = `${FileSystem.cacheDirectory}${item}`;
+            const itemInfo = await FileSystem.getInfoAsync(itemPath);
             if (itemInfo.exists && !itemInfo.isDirectory) {
               totalFreed += itemInfo.size || 0;
             }
-            await deleteAsync(itemPath, { idempotent: true });
+            await FileSystem.deleteAsync(itemPath, { idempotent: true });
           }
 
           await ExpoImage.clearDiskCache();
@@ -209,152 +216,199 @@ function Profile() {
     }
   };
 
-  // --- ABOUT SECTION ---
-  const AboutSection = () => (
-    <View className="px-4 py-6 bg-black pb-20">
-      {user?.about && (
-        <View className="mb-6">
-          <Text className="text-gray-500 text-xs font-bold uppercase mb-2 tracking-wider">About</Text>
-          <Text className="text-gray-200 text-base leading-relaxed">{user.about}</Text>
-        </View>
-      )}
-      {user?.skills && user.skills.length > 0 ? (
-        <View className="mb-6">
-          <Text className="text-gray-500 text-xs font-bold uppercase mb-2 tracking-wider">Skills</Text>
-          <View className="flex-row flex-wrap gap-2">
-            {user.skills.map((skill: string, index: number) => (
-              <View key={index} className="bg-blue-900/20 px-3 py-1.5 rounded-lg border border-blue-500/30">
-                <Text className="text-blue-300 font-medium text-sm">{skill}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      ) : null}
-      {user?.experience ? (
-        <View className="mb-6">
-          <Text className="text-gray-500 text-xs font-bold uppercase mb-2 tracking-wider">Experience</Text>
-          <View className="flex-row items-start bg-gray-900/50 p-3 rounded-xl border border-gray-800">
-            <View className="bg-gray-800 p-2 rounded-lg mr-3">
-              <Ionicons name="briefcase" size={20} color="#f9a8d4" />
-            </View>
-            <Text className="text-white text-base flex-1 mt-1">{user.experience}</Text>
-          </View>
-        </View>
-      ) : null}
-      {/* Linkedin/Github */}
-      {(user?.github_id || user?.linkedIn_id) ? (
-        <View className="mb-6">
-          <Text className="text-gray-500 text-xs font-bold uppercase mb-2 tracking-wider">Socials</Text>
-          <View className="gap-3">
-            {user?.github_id ? (
-              <Pressable
-                onPress={() => Linking.openURL(user.github_id!)}
-                className="flex-row items-center bg-gray-900/50 px-4 py-3 rounded-xl border border-gray-800"
-              >
-                <Ionicons name="logo-github" size={22} color="gray" />
-                <Text className="text-gray-400 ml-3 font-medium">GitHub Profile</Text>
-                <Ionicons name="open-outline" size={16} color="gray" style={{ marginLeft: 'auto' }} />
-              </Pressable>
-            ) : null}
-            {user?.linkedIn_id ? (
-              <Pressable
-                onPress={() => Linking.openURL(user.linkedIn_id!)}
-                className="flex-row items-center bg-gray-900/50 px-4 py-3 rounded-xl border border-gray-800"
-              >
-                <Ionicons name="logo-linkedin" size={22} color="#0077b5" />
-                <Text className="text-blue-400 ml-3 font-medium">LinkedIn Profile</Text>
-                <Ionicons name="open-outline" size={16} color="gray" style={{ marginLeft: 'auto' }} />
-              </Pressable>
-            ) : null}
-          </View>
-        </View>
-      ) : null}
-    </View>
-  );
-
-  // --- HEADER & INFO ---
-  const renderHeader = () => (
-    <View className="flex-row justify-between items-center px-4 py-2 border-b border-gray-900">
-      <View className="flex-row items-center gap-1">
-        <Ionicons name="lock-closed-outline" size={16} color="white" />
-        <Text className="text-xl font-bold text-white">{user?.username}</Text>
-        <Ionicons name="chevron-down" size={16} color="white" />
-      </View>
-      <View className="flex-row gap-5">
-        <Pressable>
-          <Ionicons name="add-circle-outline" size={28} color="white" />
-        </Pressable>
-        <Pressable onPress={() => {
-          Alert.alert("Clear Cache Storage", "Do you want to clear temporary videos, images, and map data to free up space?", [
-            { text: "Cancel", style: "cancel" },
-            { text: "Clear Cache", style: "destructive", onPress: clearAppCache }
-          ]);
-        }}>
-          <Ionicons name="trash-bin-outline" size={26} color="#ef4444" />
-        </Pressable>
-        <Pressable onPress={handleLogout}>
-          <Ionicons name="menu-outline" size={28} color="white" />
-        </Pressable>
-      </View>
-    </View>
-  );
-
+  // --- PROFILE INFO ---
   const renderProfileInfo = () => (
-    <View className="px-4 pt-4">
-      <View className="flex-row items-center justify-between">
-        <View>
+    <View className="bg-white">
+      {/* Cover Photo */}
+      <View className="h-64 w-full relative">
+        <ExpoImage 
+          source={{ uri: user?.banner || 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1000&auto=format&fit=crop' }} 
+          style={{ width: '100%', height: '100%' }}
+          contentFit="cover"
+          cachePolicy="disk"
+        />
+        {/* Dark overlay for top icons visibility */}
+        <View className="absolute inset-0 bg-black/10" />
+        
+        {/* Top Icons */}
+        <View className="absolute top-12 right-4 flex-row gap-5 bg-white p-2 rounded-full">
+          <Pressable onPress={() => {
+            Alert.alert("Logout", "Are you sure you want to logout?", [
+              { text: "Cancel", style: "cancel" },
+              { text: "Logout", onPress: handleLogout, style: 'destructive' },
+            ]);
+          }}>
+            <Ionicons name="log-out-outline" size={24} color="red" />
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Profile Details Container */}
+      <View className="items-center pb-4 px-4 bg-white rounded-t-[30px]">
+        {/* Avatar with white ring - Half on cover, half on container */}
+        <View className="-mt-[54px] p-1 bg-white rounded-full shadow-lg">
           <Avatar 
             user={user as any} 
-            size={96} 
+            size={100} 
           />
-          <View className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-1 border-2 border-black">
-            <Ionicons name="add" size={16} color="white" />
+        </View>
+
+        {/* Name and Edit Icon */}
+        <View className="flex-row items-center mt-3 gap-2">
+          <Text className="text-2xl font-bold text-gray-900">{user?.name || user?.username}</Text>
+          <Pressable onPress={() => navigation.navigate('EditProfile')} className='bg-blue-300 rounded-full p-1'>
+            <Ionicons name="shield-checkmark-outline" size={15} color="#4b5563"/>
+          </Pressable>
+        </View>
+
+        {/* Bio / Description */}
+        <Text className="text-gray-400 text-center mt-1 px-10 text-xs leading-4">
+          {user?.bio || user?.about || "I'm delighted to introduce myself as a fync member"} 💫
+        </Text>
+
+        <View className="flex-row items-center mt-1 px-3 py-1 bg-gray-100 rounded-full mt-2 gap-1">
+          <Ionicons name="school-outline" size={15} color="#4b5563"/>
+          <Text className="text-gray-400 text-sm font-semibold">{user?.college}</Text>
+        </View>
+
+        {/* Stats Row */}
+        <View className="flex-row w-full justify-around mt-6 border-t border-b border-gray-50 py-4">
+          <View className="items-center flex-1">
+            <Text className="text-lg font-bold text-gray-900">{posts.length}</Text>
+            <Text className="text-gray-400 text-[10px] uppercase tracking-tighter">Posts</Text>
           </View>
-        </View>
-        <View className="flex-1 flex-row justify-around ml-4">
-          <Pressable className="items-center">
-            <Text className="text-white text-lg font-bold">{posts.length}</Text>
-            <Text className="text-white text-sm">Posts</Text>
+          <View className="w-[1px] h-6 self-center bg-gray-100" />
+          <Pressable className="items-center flex-1" onPress={() => navigation.navigate('FollowersAndFollowing', { userId: user._id, type: 'followers' })}>
+            <Text className="text-lg font-bold text-gray-900">{user?.followers?.length || 0}</Text>
+            <Text className="text-gray-400 text-[10px] uppercase tracking-tighter">Followers</Text>
           </Pressable>
-          <Pressable className="items-center" onPress={() => navigation.navigate('FollowersAndFollowing', { userId: user._id, type: 'followers' })}>
-            <Text className="text-white text-lg font-bold">{user?.followers?.length || 0}</Text>
-            <Text className="text-white text-sm">Followers</Text>
-          </Pressable>
-          <Pressable className="items-center" onPress={() => navigation.navigate('FollowersAndFollowing', { userId: user._id, type: 'following' })}>
-            <Text className="text-white text-lg font-bold">{user?.following?.length || 0}</Text>
-            <Text className="text-white text-sm">Following</Text>
+          <View className="w-[1px] h-6 self-center bg-gray-100" />
+          <Pressable className="items-center flex-1" onPress={() => navigation.navigate('FollowersAndFollowing', { userId: user._id, type: 'following' })}>
+            <Text className="text-lg font-bold text-gray-900">{user?.following?.length || 0}</Text>
+            <Text className="text-gray-400 text-[10px] uppercase tracking-tighter">Followings</Text>
           </Pressable>
         </View>
+
+        {/* Action Buttons */}
+        <View className="flex-row gap-3 mt-6 w-full">
+          <Pressable onPress={() => navigation.navigate('EditProfile')} className="flex-1 bg-white border border-gray-100 py-2.5 rounded-xl items-center shadow-sm">
+            <Text className="text-gray-900 font-semibold">Edit Profile</Text>
+          </Pressable>
+          <Pressable onPress={logout} className="flex-1 bg-blue-50 border border-blue-100 py-2.5 rounded-xl items-center shadow-sm">
+            <Text className="text-blue-500 font-semibold">Fync Resume</Text>
+          </Pressable>
+        </View>
       </View>
-      <View className="mt-3">
-        <Text className="text-white font-bold text-sm">{user?.name}</Text>
-        <Text className="text-gray-300 text-sm">{user?.college || "College Student"}</Text>
-        <Text className="text-white text-sm">{user?.bio || user?.about || ""}</Text>
-      </View>
-      <View className="flex-row gap-2 mt-4">
-        <Pressable className="flex-1 bg-gray-800 py-2 rounded-lg items-center" onPress={() => navigation.navigate('EditProfile')}>
-          <Text className="text-white font-semibold">Edit profile</Text>
-        </Pressable>
-        <Pressable className="flex-1 bg-gray-800 py-2 rounded-lg items-center">
-          <Text className="text-white font-semibold">Share profile</Text>
-        </Pressable>
-        <Pressable className="bg-gray-800 p-2 rounded-lg items-center justify-center">
-          <Ionicons name="person-add-outline" size={20} color="white" />
-        </Pressable>
-      </View>
+    </View>
+  );
+
+  // --- ABOUT SECTION (Light Mode) ---
+  const AboutSection = () => (
+    <View className="px-4 py-6 bg-white flex-1 min-h-[500px]">
+        {/* About Card */}
+        <View className="bg-gray-50 rounded-2xl p-5 border border-gray-100 mb-6 shadow-sm">
+            <Text className="text-pink-500 text-[10px] font-bold uppercase mb-2 tracking-widest">About You</Text>
+            <Text className="text-gray-700 text-sm leading-relaxed">
+                {user?.about || user?.experience || "You haven't shared your story yet. Add some details in Edit Profile!"}
+            </Text>
+        </View>
+
+        {/* Details Grid */}
+        <View className="gap-4 mb-6">
+            {user?.experience && (
+                <View className="w-full bg-gray-50 p-4 rounded-2xl border border-gray-100 flex-row items-center">
+                    <View className="bg-indigo-50 p-2 rounded-lg mr-3">
+                        <Ionicons name="briefcase" size={20} color="#6366f1" />
+                    </View>
+                    <View className="flex-1">
+                        <Text className="text-indigo-600 text-[10px] font-bold uppercase tracking-wider">Experience</Text>
+                        <Text className="text-gray-700 text-sm mt-0.5">{user.experience}</Text>
+                    </View>
+                </View>
+            )}
+        </View>
+
+        {/* Tags Collection */}
+        {(user?.skills?.length || user?.hobbies || user?.interest) && (
+            <View className="mb-6">
+                <Text className="text-gray-400 text-[10px] font-bold uppercase mb-3 tracking-wider ml-1">Tags & Interests</Text>
+                <View className="flex-row flex-wrap gap-2">
+                    {user?.skills?.map((skill: string, i: number) => (
+                        <View key={i} className="bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
+                            <Text className="text-blue-600 text-xs font-bold">{skill}</Text>
+                        </View>
+                    ))}
+                    {user?.interest && (
+                        <View className="bg-pink-50 px-3 py-1.5 rounded-lg border border-pink-100">
+                            <Text className="text-pink-600 text-xs font-bold">♥ {user.interest}</Text>
+                        </View>
+                    )}
+                    {user?.hobbies && (
+                        <View className="bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
+                            <Text className="text-emerald-600 text-xs font-bold">★ {user.hobbies}</Text>
+                        </View>
+                    )}
+                </View>
+            </View>
+        )}
+
+        {/* Social Links */}
+        <Text className="text-gray-400 text-[10px] font-bold uppercase mb-3 tracking-wider ml-1">Connect & Social</Text>
+        <View className="gap-3">
+            {user?.github_id && (
+                <Pressable onPress={() => Linking.openURL(user.github_id!)} className="flex-row items-center bg-gray-50 px-4 py-3 rounded-xl border border-gray-100">
+                    <Ionicons name="logo-github" size={22} color="#1F2937" />
+                    <Text className="text-gray-700 ml-3 font-medium">GitHub</Text>
+                    <Ionicons name="open-outline" size={16} color="#9CA3AF" style={{ marginLeft: 'auto' }} />
+                </Pressable>
+            )}
+            {user?.linkedIn_id && (
+                <Pressable onPress={() => Linking.openURL(user.linkedIn_id!)} className="flex-row items-center bg-gray-50 px-4 py-3 rounded-xl border border-gray-100">
+                    <Ionicons name="logo-linkedin" size={22} color="#0077b5" />
+                    <Text className="text-gray-700 ml-3 font-medium">LinkedIn</Text>
+                    <Ionicons name="open-outline" size={16} color="#9CA3AF" style={{ marginLeft: 'auto' }} />
+                </Pressable>
+            )}
+            {user?.codingProfiles?.leetcode && (
+                <Pressable onPress={() => Linking.openURL(`https://leetcode.com/${user.codingProfiles?.leetcode}`)} className="flex-row items-center bg-gray-50 px-4 py-3 rounded-xl border border-gray-100">
+                    <Image source={{ uri: "https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/leetcode-xp0gbbxtpmnkjk8uhdrmhg.png/leetcode-jj5yfhjdsmrt5j9xb3sec.png?_a=DATAiZiuZAA0" }} className="w-5 h-5" />
+                    <Text className="text-gray-700 ml-3 font-medium">LeetCode</Text>
+                    <Ionicons name="open-outline" size={16} color="#9CA3AF" style={{ marginLeft: 'auto' }} />
+                </Pressable>
+            )}
+            {user?.codingProfiles?.gfg && (
+                <Pressable onPress={() => Linking.openURL(`https://www.geeksforgeeks.org/user/${user.codingProfiles?.gfg}`)} className="flex-row items-center bg-gray-50 px-4 py-3 rounded-xl border border-gray-100">
+                    <Image source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/e/eb/GeeksForGeeks_logo.png" }} className="w-5 h-5" />
+                    <Text className="text-gray-700 ml-3 font-medium">GeeksForGeeks</Text>
+                    <Ionicons name="open-outline" size={16} color="#9CA3AF" style={{ marginLeft: 'auto' }} />
+                </Pressable>
+            )}
+            {user?.upiId && (
+                <View className="flex-row items-center bg-green-50 px-4 py-3 rounded-xl border border-green-100">
+                    <Ionicons name="wallet-outline" size={22} color="#059669" />
+                    <View className="ml-3">
+                        <Text className="text-green-800 text-[10px] font-bold uppercase">UPI ID</Text>
+                        <Text className="text-green-700 font-medium">{user.upiId}</Text>
+                    </View>
+                </View>
+            )}
+        </View>
     </View>
   );
 
   const renderTabBar = () => (
-    <View className="flex-row mt-6 border-t border-gray-900">
-      <Pressable onPress={() => setActiveTab('grid')} className={`flex-1 items-center py-3 ${activeTab === 'grid' ? 'border-b-2 border-white' : ''}`}>
-        <MaterialCommunityIcons name="grid" size={28} color={activeTab === 'grid' ? "white" : "gray"} />
+    <View className="flex-row bg-white border-t border-gray-50 py-1">
+      <Pressable onPress={() => setActiveTab('posts')} className="flex-1 items-center py-3">
+        <MaterialCommunityIcons name="grid" size={26} color={activeTab === 'posts' ? "black" : "#d1d5db"} />
+        {activeTab === 'posts' && <View className="absolute bottom-1 w-8 h-0.5 bg-black rounded-full" />}
       </Pressable>
-      <Pressable onPress={() => setActiveTab('list')} className={`flex-1 items-center py-3 ${activeTab === 'list' ? 'border-b-2 border-white' : ''}`}>
-        <MaterialCommunityIcons name="movie-play-outline" size={28} color={activeTab === 'list' ? "white" : "gray"} />
+      <Pressable onPress={() => setActiveTab('shorts')} className="flex-1 items-center py-3">
+        <MaterialCommunityIcons name="movie-play-outline" size={26} color={activeTab === 'shorts' ? "black" : "#d1d5db"} />
+        {activeTab === 'shorts' && <View className="absolute bottom-1 w-8 h-0.5 bg-black rounded-full" />}
       </Pressable>
-      <Pressable onPress={() => setActiveTab('tags')} className={`flex-1 items-center py-3 ${activeTab === 'tags' ? 'border-b-2 border-white' : ''}`}>
-        <MaterialCommunityIcons name="account-box-outline" size={28} color={activeTab === 'tags' ? "white" : "gray"} />
+      <Pressable onPress={() => setActiveTab('about')} className="flex-1 items-center py-3">
+        <MaterialCommunityIcons name="account-details-outline" size={30} color={activeTab === 'about' ? "black" : "#d1d5db"} />
+        {activeTab === 'about' && <View className="absolute bottom-1 w-8 h-0.5 bg-black rounded-full" />}
       </Pressable>
     </View>
   );
@@ -383,22 +437,21 @@ function Profile() {
           ]
         );
       }}
-      className="border border-black relative"
-      style={{ width: COLUMN_SIZE, height: isShort ? COLUMN_SIZE * 1.5 : COLUMN_SIZE }}
+      className="m-[0.5px]"
+      style={{ width: (width / 3) - 1, height: isShort ? (width / 2) : (width / 3), overflow: 'hidden' }}
     >
 
       {/* Thumbnail / Image / Video Frame */}
       {isShort ? (
-        <View className="w-full h-full bg-gray-900 overflow-hidden">
+        <View className="w-full h-full bg-gray-100 overflow-hidden">
           <Video
             source={{ uri: item.video }}
             style={{ width: '100%', height: '100%' }}
             resizeMode={ResizeMode.COVER}
             shouldPlay={false}
-            positionMillis={100} // Small offset to ensure first frame is rendered
+            positionMillis={100}
           />
-          {/* Dark gradient overlay for title/views visibility */}
-          <View className="absolute bottom-0 w-full h-1/2 bg-gradient-to-t from-black/80 to-transparent" />
+          <View className="absolute inset-0 bg-black/10" />
         </View>
       ) : (item.image && item.image.length > 0) ? (
         <Image
@@ -407,92 +460,75 @@ function Profile() {
           resizeMode="cover"
         />
       ) : (
-        <View className="w-full h-full bg-gray-800 items-center justify-center">
-          <Text className="text-gray-500 text-xs p-2 text-center" numberOfLines={3}>{item.title}</Text>
+        <View className="w-full h-full bg-gray-50 items-center justify-center">
+          <Text className="text-gray-400 text-xs p-2 text-center" numberOfLines={3}>{item.title}</Text>
         </View>
       )}
 
-      {/* --- MULTIPLE IMAGES INDICATOR (LIKE INSTA) --- */}
+      {/* Overlay info */}
       {!isShort && item.image && item.image.length > 1 && (
-        <View className="absolute top-2 right-2 bg-black/50 px-2 py-1 rounded-full flex-row items-center gap-1">
-          <Ionicons name="copy-outline" size={12} color="white" />
-          <Text className="text-white text-[10px] font-bold">{item.image.length}</Text>
+        <View className="absolute top-2 right-2 bg-black/30 px-2 py-1 rounded-full">
+          <Ionicons name="copy" size={10} color="white" />
         </View>
       )}
 
-      {/* Shorts Overlay */}
       {isShort && (
-        <View className="absolute inset-0 items-center justify-center bg-black/20">
-          <Ionicons name="play-outline" size={32} color="white" />
-          <Text className="text-white text-xs font-bold absolute bottom-2 left-2">{item.views || 0} views</Text>
+        <View className="absolute bottom-2 left-2 flex-row items-center gap-1">
+          <Ionicons name="play" size={12} color="white" />
+          <Text className="text-white text-[10px] font-bold">{item.views || 0}</Text>
         </View>
       )}
     </Pressable>
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
-      {renderHeader()}
-
+    <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+      <StatusBar style="dark" />
       <FlatList
         key={activeTab}
-
         data={
-          activeTab === 'grid' ? posts :
-            activeTab === 'list' ? shorts :
-              ['ABOUT_VIEW'] as any
+          (activeTab === 'posts' ? posts :
+            activeTab === 'shorts' ? shorts :
+              activeTab === 'about' ? (['ABOUT']) :
+                []) as any
         }
-        keyExtractor={(item, index) => (typeof item === 'string' ? item : item._id)}
-
-        numColumns={activeTab === 'tags' ? 1 : 3}
-
+        keyExtractor={(item, index) => (typeof item === 'string' ? item : item._id + index)}
+        numColumns={activeTab === 'about' ? 1 : 3}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#000" />
         }
-
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
-
         ListHeaderComponent={
           <>
             {renderProfileInfo()}
             {renderTabBar()}
           </>
         }
-
         renderItem={({ item }) => {
-          if (activeTab === 'tags') {
-            return <AboutSection />;
-          }
-          if (activeTab === 'grid') {
+          if (activeTab === 'about') return <AboutSection />;
+          if (activeTab === 'posts') {
             return renderGridItem({ item: item as PostType, isShort: false });
           }
-          if (activeTab === 'list') {
+          if (activeTab === 'shorts') {
             return renderGridItem({ item: item as unknown as ShortType, isShort: true });
           }
           return null;
         }}
-
         ListFooterComponent={
           isLoadingMore ? (
             <View className="py-4">
-              <ActivityIndicator size="small" color="#ffffff" />
+              <ActivityIndicator size="small" color="#000000" />
             </View>
           ) : null
         }
-
         ListEmptyComponent={
-          activeTab !== 'tags' ? (
-            <View className="items-center justify-center py-20">
-              <View className="w-24 h-24 rounded-full border-2 border-white items-center justify-center mb-4">
-                <Ionicons name={activeTab === 'list' ? "videocam-outline" : "camera-outline"} size={48} color="white" />
-              </View>
-              <Text className="text-white text-xl font-bold">
-                {activeTab === 'list' ? "No Shorts Yet" : "No Posts Yet"}
-              </Text>
-            </View>
-          ) : null
+          <View className="items-center justify-center py-20">
+            <Ionicons name="images-outline" size={48} color="#d1d5db" />
+            <Text className="text-gray-400 mt-4 font-medium">No content here yet</Text>
+          </View>
         }
+        contentContainerStyle={{ paddingBottom: 40 }}
       />
     </SafeAreaView>
   );

@@ -18,7 +18,7 @@ router.post('/smart', authMiddleware, getSmartShorts);
 
 router.get('/feed/:userId', authMiddleware, cacheMiddleware(1), getShortsByUserId);
 
-router.post('/update/:id', authMiddleware, updateShort);
+router.post('/update/:id', authMiddleware, videoUpload.single('video'), r2UploadMiddleware({ __single__: 'video' }), updateShort);
 router.post('/delete/:id', authMiddleware, deleteShort);
 router.delete('/delete/:id', authMiddleware, deleteShort); // Keep DELETE for compatibility
 

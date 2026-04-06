@@ -51,6 +51,25 @@ export default function EditProfile() {
   const [banner, setBanner] = useState(user?.banner || null);
   const [newBanner, setNewBanner] = useState<any>(null);
 
+  // --- CHANGE DETECTION ---
+  const initialSkills = user?.skills || [];
+  const hasChanges = 
+    name !== (user?.name || '') ||
+    username !== (user?.username || '') ||
+    bio !== (user?.bio || '') ||
+    about !== (user?.about || '') ||
+    experience !== (user?.experience || '') ||
+    hobbies !== (user?.hobbies || '') ||
+    interest !== (user?.interest || '') ||
+    githubId !== (user?.github_id || '') ||
+    linkedinId !== (user?.linkedIn_id || '') ||
+    leetcodeId !== (user?.codingProfiles?.leetcode || '') ||
+    gfgId !== (user?.codingProfiles?.gfg || '') ||
+    upiId !== (user?.upiId || '') ||
+    JSON.stringify(skills) !== JSON.stringify(initialSkills) ||
+    newAvatar !== null ||
+    newBanner !== null;
+
   // --- IMAGE PICKER ---
   const pickImage = async (type: 'avatar' | 'banner') => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -150,18 +169,22 @@ export default function EditProfile() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
+    <SafeAreaView className="flex-1 bg-white">
       {/* --- Header --- */}
-      <View className="flex-row items-center justify-between px-4 py-2 border-b border-gray-900 bg-black z-10">
+      <View className="flex-row items-center justify-between px-4 py-2 border-b border-black/5 bg-white z-10">
         <Pressable onPress={() => navigation.goBack()}>
-          <Text className="text-white text-lg">Cancel</Text>
+          <Text className="text-black text-lg">Cancel</Text>
         </Pressable>
-        <Text className="text-white font-bold text-lg">Edit Profile</Text>
-        <Pressable onPress={handleUpdate} disabled={loading}>
+        <Text className="text-black font-bold text-lg">Edit Profile</Text>
+        <Pressable 
+          onPress={handleUpdate} 
+          disabled={loading || !hasChanges}
+          style={{ opacity: (loading || !hasChanges) ? 0.5 : 1 }}
+        >
           {loading ? (
-            <ActivityIndicator color="#3b82f6" />
+            <ActivityIndicator size="small" color="#3b82f6" />
           ) : (
-            <Text className="text-blue-500 text-lg font-bold">Save</Text>
+            <Text className={`text-lg font-bold ${!hasChanges ? 'text-gray-400' : 'text-blue-500'}`}>Save</Text>
           )}
         </Pressable>
       </View>
@@ -170,29 +193,29 @@ export default function EditProfile() {
 
         {/* --- Banner Image --- */}
         <Pressable onPress={() => pickImage('banner')} className="mb-6">
-          <View className="h-32 w-full bg-gray-800 rounded-xl overflow-hidden border border-gray-700 justify-center items-center">
+          <View className="h-32 w-full bg-gray-100 rounded-xl overflow-hidden border border-gray-200 justify-center items-center">
             {banner ? (
               <Image source={{ uri: banner }} className="w-full h-full" resizeMode="cover" />
             ) : (
               <View className="items-center">
-                <Ionicons name="image-outline" size={30} color="#9ca3af" />
-                <Text className="text-gray-400 text-xs mt-1">Tap to add banner</Text>
+                <Ionicons name="image-outline" size={30} color="#6b7280" />
+                <Text className="text-gray-500 text-xs mt-1">Tap to add banner</Text>
               </View>
             )}
-            <View className="absolute bg-black/40 p-2 rounded-full">
+            <View className="absolute bg-black/20 p-2 rounded-full">
               <Ionicons name="camera-outline" size={20} color="white" />
             </View>
           </View>
         </Pressable>
 
         {/* --- Avatar Image --- */}
-        <View className="items-center -mt-16 mb-6">
+        <View className="items-center -mt-16 mb-1">
           <Pressable onPress={() => pickImage('avatar')}>
             <Image
               source={{ uri: avatar || `https://ui-avatars.com/api/?name=${username}` }}
-              className="h-24 w-24 rounded-full border-4 border-black bg-gray-800"
+              className="h-24 w-24 rounded-full border-4 border-white bg-gray-100"
             />
-            <View className="absolute bottom-0 right-0 bg-blue-600 p-1.5 rounded-full border-2 border-black">
+            <View className="absolute bottom-0 right-0 bg-blue-600 p-1.5 rounded-full border-2 border-white">
               <Ionicons name="pencil" size={14} color="white" />
             </View>
           </Pressable>
@@ -200,7 +223,7 @@ export default function EditProfile() {
         </View>
 
         {/* --- Form Fields --- */}
-        <View className="space-y-5 pb-10">
+        <View className="space-y-5 pb-10 gap-5">
 
           <InputGroup label="Name" value={name} onChange={setName} placeholder="Your Name" />
           <InputGroup label="Username" value={username} onChange={setUsername} placeholder="username" />
@@ -210,13 +233,13 @@ export default function EditProfile() {
 
           {/* --- Skills Tag Input --- */}
           <View>
-            <Text className="text-gray-400 text-sm mb-2 ml-1">Skills (Type & comma to add)</Text>
-            <View className="bg-gray-900 rounded-xl p-3 flex-row flex-wrap gap-2 border border-gray-800">
+            <Text className="text-gray-500 text-sm mb-2 ml-1">Skills (Type & comma to add)</Text>
+            <View className="bg-gray-100 rounded-xl p-3 flex-row flex-wrap gap-2 border border-gray-200">
               {skills.map((skill, index) => (
-                <View key={index} className="bg-blue-900/50 border border-blue-500/30 px-3 py-1.5 rounded-full flex-row items-center">
-                  <Text className="text-blue-100 font-medium mr-1">{skill}</Text>
+                <View key={index} className="bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-full flex-row items-center">
+                  <Text className="text-blue-800 font-medium mr-1">{skill}</Text>
                   <Pressable onPress={() => removeSkill(index)}>
-                    <Ionicons name="close-circle" size={16} color="#93c5fd" />
+                    <Ionicons name="close-circle" size={16} color="#3b82f6" />
                   </Pressable>
                 </View>
               ))}
@@ -224,8 +247,8 @@ export default function EditProfile() {
                 value={skillInput}
                 onChangeText={handleSkillInput}
                 placeholder={skills.length > 0 ? "" : "React, Node.js, Design..."}
-                placeholderTextColor="#6b7280"
-                className="text-white min-w-[100px] flex-1 py-1"
+                placeholderTextColor="#9ca3af"
+                className="text-black min-w-[100px] flex-1 py-1"
               />
             </View>
           </View>
@@ -247,56 +270,55 @@ export default function EditProfile() {
           </View>
 
           {/* --- Social & Coding Links --- */}
-          <View className="pt-4 border-t border-gray-800 mt-2">
-            <Text className="text-gray-300 font-bold mb-4 text-lg">Social & Coding Profiles</Text>
+          <View className="pt-4 border-t border-gray-200 mt-2">
+            <Text className="text-gray-800 font-bold mb-4 text-lg">Social & Coding Profiles</Text>
 
             {/* GitHub */}
-            <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800 mb-3">
-              <Ionicons name="logo-github" size={24} color="white" />
+            <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
+              <Ionicons name="logo-github" size={24} color="#1A1A1A" />
               <TextInput
                 value={githubId}
                 onChangeText={setGithubId}
                 placeholder="Github Username"
-                placeholderTextColor="#666"
-                className="flex-1 text-white p-3.5 ml-2"
+                placeholderTextColor="#9ca3af"
+                className="flex-1 text-black p-3.5"
               />
             </View>
 
             {/* LinkedIn */}
-            <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800 mb-3">
+            <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
               <Ionicons name="logo-linkedin" size={24} color="#0077b5" />
               <TextInput
                 value={linkedinId}
                 onChangeText={setLinkedinId}
                 placeholder="LinkedIn Profile URL"
-                placeholderTextColor="#666"
-                className="flex-1 text-white p-3.5 ml-2"
+                placeholderTextColor="#9ca3af"
+                className="flex-1 text-black p-3.5"
               />
             </View>
 
             {/* LeetCode */}
-            <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800 mb-3">
+            <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
               <Image
-                source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png" }}
+                source={{ uri: "https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/leetcode-xp0gbbxtpmnkjk8uhdrmhg.png/leetcode-jj5yfhjdsmrt5j9xb3sec.png?_a=DATAiZiuZAA0" }}
                 width={16} height={16}
                 className="w-6 h-6"
-                style={{ tintColor: '#facc15' }}
                 resizeMode="contain"
               />
               <TextInput
                 value={leetcodeId}
                 onChangeText={setLeetcodeId}
                 placeholder="LeetCode Username"
-                placeholderTextColor="#666"
-                className="flex-1 text-white p-3.5 ml-2"
+                placeholderTextColor="#9ca3af"
+                className="flex-1 text-black p-3.5"
               />
             </View>
 
             {/* GeeksForGeeks */}
-            <View className="flex-row items-center bg-gray-900 rounded-xl px-3 border border-gray-800 mb-3">
+            <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
               <Image
-                source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/4/43/GeeksforGeeks.svg" }}
-                width={6} height={6}
+                source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/e/eb/GeeksForGeeks_logo.png" }}
+                width={16} height={16}
                 className="w-6 h-6"
                 resizeMode="contain"
               />
@@ -304,8 +326,8 @@ export default function EditProfile() {
                 value={gfgId}
                 onChangeText={setGfgId}
                 placeholder="GeeksforGeeks Username"
-                placeholderTextColor="#666"
-                className="flex-1 text-white p-3.5 ml-2"
+                placeholderTextColor="#9ca3af"
+                className="flex-1 text-black p-3.5"
               />
             </View>
           </View>
@@ -319,13 +341,13 @@ export default function EditProfile() {
 // --- Reusable Input Component ---
 const InputGroup = ({ label, value, onChange, placeholder, multiline = false }: any) => (
   <View>
-    <Text className="text-gray-400 text-sm mb-1.5 ml-1">{label}</Text>
+    <Text className="text-gray-500 text-sm mb-1.5 ml-1">{label}</Text>
     <TextInput
       value={value}
       onChangeText={onChange}
-      className={`bg-gray-900 text-white p-3.5 rounded-xl text-base border border-gray-800 ${multiline ? 'min-h-[80px]' : ''}`}
+      className={`bg-gray-100 text-black p-3.5 rounded-xl text-base border border-gray-200 ${multiline ? 'min-h-[80px]' : ''}`}
       placeholder={placeholder}
-      placeholderTextColor="#525252"
+      placeholderTextColor="#9ca3af"
       multiline={multiline}
       textAlignVertical={multiline ? 'top' : 'center'}
     />
