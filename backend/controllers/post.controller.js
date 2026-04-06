@@ -399,7 +399,7 @@ export const getFeed = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
-        const posts = await Post.find({ college: req.user.college, isPrivate: { $ne: true } })
+        const posts = await Post.find({ isPrivate: { $ne: true } })
             .populate("user", "name username avatar")
             .populate({
                 path: "comments",

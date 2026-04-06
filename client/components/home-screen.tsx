@@ -40,6 +40,7 @@ import {
   markPostsAsSeen,
   resetSeenPosts,
 } from '../utils/feedSession';
+import { BlurView } from 'expo-blur';
 
 const { width } = Dimensions.get('window');
 
@@ -672,10 +673,11 @@ const renderFeatureStories = () => {
   return (
     <View className="bg-white py-3">
       {/* Header */}
-      <View className="flex-row justify-between items-center px-4 my-2">
-        <Text className="text-zinc-900 font-bold text-2xl tracking-tight">
+      <View className="flex-row justify-between items-center px-4 mb-5">
+        <Text className="text-zinc-900 font-bold text-3xl italic w-full">
           Focus & Growth!
         </Text>
+        <Image source={{ uri: 'https://d8it4huxumps7.cloudfront.net/uploads/images/avif/home_heading_after.png' }} className="w-52 h-10 object-contain absolute left-12 top-6" />
       </View>
 
       {/* Grid */}
@@ -689,7 +691,7 @@ const renderFeatureStories = () => {
           >
             <Pressable
               onPress={item.onPress}
-              className="bg-white rounded-xl p-3 items-center justify-center shadow-md"
+              className="bg-gray-50 rounded-xl p-3 items-center justify-center shadow-md"
               style={{ elevation: 3 }}
             >
               {/* Title */}
