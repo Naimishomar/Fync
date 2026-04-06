@@ -1,7 +1,9 @@
 import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 import React from "react";
-import { View, ActivityIndicator, Image, Text } from "react-native";
+import { View, ActivityIndicator, Image, Text, Alert } from "react-native";
+import NetInfo from "@react-native-community/netinfo";
+import NoInternetScreen from "./components/NoInternetScreen";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -101,6 +103,7 @@ import NoticeBoard from './components/NoticeBoard';
 // Paid Gigs
 import PaidGigs from './components/PaidGigs';
 import CreateShorts from 'components/CreateShorts';
+import CreateFundingFeed from './components/CreateFundingFeed';
 import SpeakerSessionScreen from './components/events/SpeakerSessionScreen';
 import BootcampScreen from './components/events/BootcampScreen';
 import EventCommunityChat from './components/events/EventCommunityChat';
@@ -252,6 +255,7 @@ export type RootStackParamList = {
   SubGroupChat: { subGroupId: string; subGroupName: string; clubId: string };
   ClubAdminPanel: { clubId: string };
   FyncMediaFeed: undefined;
+  CreateFundingFeed: { project?: any } | undefined;
 };
 
 
@@ -382,6 +386,7 @@ function AppStack() {
       <Stack.Screen name="FocusProductivity" component={FocusProductivity} />
       <Stack.Screen name="TermsAndCondition" component={TermsAndCondition} />
       <Stack.Screen name="FyncMediaFeed" component={FyncMediaFeed} />
+      <Stack.Screen name="CreateFundingFeed" component={CreateFundingFeed} />
     </Stack.Navigator>
   );
 }
@@ -421,6 +426,23 @@ const linking = {
 };
 
 export default function App() {
+  const [isConnected, setIsConnected] = React.useState(true);
+
+  React.useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      setIsConnected(state.isConnected !== false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  if (!isConnected) {
+    return (
+      <View className="flex-1">
+        <NoInternetScreen onRetry={() => setIsConnected(true)} />
+      </View>
+    );
+  }
+
   return (
     <AuthProvider>
       <SafeAreaProvider>

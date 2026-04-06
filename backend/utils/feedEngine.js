@@ -76,7 +76,7 @@ export async function getCandidatePool(college, PostModel, poolSize = 100) {
 
     // Cache miss — hit MongoDB (only happens once every 5 min per college)
     const posts = await PostModel
-        .find({ college })
+        .find({ college, isPrivate: { $ne: true } })
         .sort({ createdAt: -1 })
         .limit(poolSize)
         .populate('user', 'name username avatar user_access')

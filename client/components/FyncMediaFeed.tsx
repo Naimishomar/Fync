@@ -642,7 +642,7 @@ export default function FyncMediaFeed() {
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const isAdmin = user?.user_access === "admin" || user?.email === "anandks8013@gmail.com";
+  const isAdmin = user?.isMediaAdmin;
 
   const fetchMedia = async (pageNum = 1, shouldRefresh = false) => {
     if (!hasMore && !shouldRefresh && pageNum !== 1) return;

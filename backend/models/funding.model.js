@@ -58,7 +58,7 @@ const fundingProjectSchema = new mongoose.Schema({
         type: String,
         required: false
     }
-})
+}, { timestamps: true });
 
 const FundingProject = mongoose.model('FundingProject', fundingProjectSchema);
 export default FundingProject;

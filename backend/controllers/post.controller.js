@@ -4,13 +4,14 @@ import Post from '../models/post.model.js';
 import Comment from '../models/comment.model.js';
 import User from '../models/user.model.js';
 import Notification from '../models/notification.model.js';
+import { sendPushNotification } from '../utils/notification.js';
 import { deleteFromR2 } from '../utils/r2.js';
 import { getCandidatePool, getUserInterestProfile, rankFeed, invalidatePool } from '../utils/feedEngine.js';
 import { clearCache } from '../middlewares/cache.middleware.js';
 
 export const createPost = async (req, res) => {
     try {
-        const { description } = req.body;
+            const { description, mentions, isPrivate } = req.body;
         if (!description) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
@@ -23,15 +24,51 @@ export const createPost = async (req, res) => {
             if (req.files && req.files.length > 0) {
                 image = req.files.map(file => file.path);
             }
+            
+            let parsedMentions = [];
+            if (mentions) {
+                try {
+                    parsedMentions = typeof mentions === 'string' ? JSON.parse(mentions) : mentions;
+                } catch(e) {
+                    parsedMentions = [];
+                }
+            }
+
             const post = await Post.create({
                 description,
                 image,
                 user: req.user.id,
                 college: req.user.college,
+                mentions: parsedMentions,
+                isPrivate: isPrivate === 'true' || isPrivate === true,
                 likes: 0,
                 liked_by: [],
                 comments: []
             })
+            
+            // Notify mentioned users
+            if (parsedMentions && parsedMentions.length > 0) {
+               for (const mentionedUserId of parsedMentions) {
+                   if (mentionedUserId.toString() !== req.user.id.toString()) {
+                       await Notification.create({
+                           recipient: mentionedUserId,
+                           sender: req.user.id,
+                           type: 'mention',
+                           post: post._id,
+                       });
+                       
+                       const mentionedUser = await User.findById(mentionedUserId);
+                       if (mentionedUser && mentionedUser.expoPushToken) {
+                           await sendPushNotification(
+                               mentionedUser.expoPushToken,
+                               "You were mentioned! 📣",
+                               `${user.username} tagged you in a new post.`,
+                               { url: `fync://view?postId=${post._id}` }
+                           );
+                       }
+                   }
+               }
+            }
             // Invalidate Redis pool so next fetch picks up the new post
             invalidatePool(req.user.college, 'posts').catch(() => { });
             clearCache('feed').catch(() => { });
@@ -76,7 +113,7 @@ export const getPosts = async (req, res) => {
 
 export const updatePost = async (req, res) => {
     try {
-        const { description } = req.body;
+        const { description, isPrivate } = req.body;
         const post = await Post.findById(req.params.id);
         if (!post) {
             return res.status(404).json({ success: false, message: "Post not found" });
@@ -101,10 +138,17 @@ export const updatePost = async (req, res) => {
                     $set: {
                         ...(description && { description }),
                         ...(image.length > 0 && { image }),
+                        ...(isPrivate !== undefined && { isPrivate: isPrivate === 'true' || isPrivate === true }),
                     },
                 },
                 { new: true, runValidators: true }
             ).populate("user");
+            
+            clearCache('feed').catch(() => { });
+            clearCache('posts').catch(() => { });
+            clearCache(`individual/${req.params.id}`).catch(() => { });
+            invalidatePool(req.user.college, 'posts').catch(() => { });
+            
             return res.status(200).json({ success: true, message: "Post updated successfully", post: updatedPost });
         }
     } catch (error) {
@@ -355,7 +399,7 @@ export const getFeed = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
-        const posts = await Post.find({ college: req.user.college })
+        const posts = await Post.find({ college: req.user.college, isPrivate: { $ne: true } })
             .populate("user", "name username avatar")
             .populate({
                 path: "comments",
@@ -385,7 +429,7 @@ export const getFollowingPosts = async (req, res) => {
         const limit = 10;
         const skip = (page - 1) * limit;
         const followingList = user.following;
-        const posts = await Post.find({ user: { $in: followingList } })
+        const posts = await Post.find({ user: { $in: followingList }, isPrivate: { $ne: true } })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
@@ -406,6 +450,9 @@ export const getPostsByUserId = async (req, res) => {
         const skip = (page - 1) * limit;
 
         const query = { user: new mongoose.Types.ObjectId(userId) };
+        if (req.user.id !== userId) {
+            query.isPrivate = { $ne: true };
+        }
         const posts = await Post.find(query)
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -463,7 +510,7 @@ export const getSmartFeed = async (req, res) => {
     // If ANY step of the smart feed fails, we silently fall back
     // to the original simple feed query so users NEVER see a 500.
     const simpleFallback = async () => {
-        const posts = await Post.find({ college: req.user.college })
+        const posts = await Post.find({ college: req.user.college, isPrivate: { $ne: true } })
             .populate('user', 'name username avatar user_access')
             .populate({ path: 'comments', populate: { path: 'commentor', select: 'name avatar username' } })
             .sort({ createdAt: -1 })

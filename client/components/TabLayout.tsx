@@ -101,7 +101,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
       {/* Sub Button 2 (e.g., Create Post) */}
       <Animated.View style={[item1Style]} className="absolute items-center">
         <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => navigation.navigate('CreatePost')}>
-          <Ionicons name="aperture-outline" size={20} color="#7e22ce" />
+          <Ionicons name="aperture-outline" size={20} color="#c37effff" />
         </TouchableOpacity>
         <Text className="text-white text-[10px] font-bold mt-1 uppercase tracking-tighter shadow-black">Add Post</Text>
       </Animated.View>
@@ -109,14 +109,14 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
       {/* Sub Button 1 (e.g., Create Video) */}
       <Animated.View style={[item2Style]} className="absolute items-center">
         <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => navigation.navigate('CreateShorts')}>
-          <Ionicons name="videocam" size={20} color="#ec4899" />
+          <Ionicons name="videocam" size={20} color="#ff5badff" />
         </TouchableOpacity>
         <Text className="text-white text-[10px] whitespace-nowrap font-bold mt-1 uppercase tracking-tighter shadow-black">Add Shorts</Text>
       </Animated.View>
 
       <Animated.View style={[item3Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => { toggleMenu(); navigation.navigate('Funding'); }}>
-          <Ionicons name="bulb-outline" size={20} color="#7e22ce" />
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => { toggleMenu(); navigation.navigate('CreateFundingFeed'); }}>
+          <Ionicons name="bulb-outline" size={20} color="#c37effff" />
         </TouchableOpacity>
         <Text className="text-white text-[10px] font-bold mt-1 uppercase tracking-tighter shadow-black">Add Startup</Text>
       </Animated.View>
@@ -163,7 +163,7 @@ export default function TabLayout() {
             position: "absolute",
             bottom: 40,
             marginHorizontal: width * 0.05,
-            backgroundColor: "rgba(20, 20, 20, 0.77)",
+            backgroundColor: "rgba(20, 20, 20, 0.86)",
             borderRadius: 40,
             height: 60,
             borderWidth: 1,

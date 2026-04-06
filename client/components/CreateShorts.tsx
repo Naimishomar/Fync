@@ -137,7 +137,7 @@ const CreateShorts = () => {
         </View>
 
         {/* Gallery Grid */}
-        <View className="flex-1 bg-zinc-900 mt-1">
+        <View className="flex-1 bg-white/10 mt-1">
           <View className="px-4 py-3 bg-black flex-row justify-between items-center">
             <Text className="text-white font-bold">Recent Videos ({assets.length})</Text>
             <Ionicons name="camera" size={20} color="white" />

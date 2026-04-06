@@ -19,7 +19,8 @@ import {
   sendAlumniOTP, 
   verifyAlumniOTP,
   registerAlumni,
-  getAlumniByCollege
+  getAlumniByCollege,
+  savePushToken
 } from '../controllers/auth.controller.js';
 import { getDevelopers } from '../controllers/developer.controller.js'
 import { otpLimiter } from '../middlewares/otpLimiter.js';
@@ -50,6 +51,7 @@ router.post('/unfollow/:id', authMiddleware, unfollowUser);
 router.get('/followers/:id', authMiddleware, cacheMiddleware(3600), getFollowers);
 router.get('/following/:id', authMiddleware, cacheMiddleware(3600), getFollowing);
 router.get('/logout', authMiddleware, logout);
+router.post('/save-push-token', authMiddleware, savePushToken);
 
 //Developer Routes
 router.get('/find-team', authMiddleware, getDevelopers);

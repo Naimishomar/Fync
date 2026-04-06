@@ -33,12 +33,12 @@ import { RAZORPAY_KEY_ID } from "../constants/keys";
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width - 32; 
 
-/* ---------- TYPES ---------- */
 interface User {
   _id: string;
   name: string;
   username: string;
   avatar?: string;
+  college?: string;
 }
 
 interface Project {
@@ -283,6 +283,14 @@ const ProjectCard = ({
     setCurrentImageIndex(index);
   };
 
+  const mediaData: { type: 'video' | 'image'; uri: string }[] = [];
+  if (item.video) {
+    mediaData.push({ type: 'video', uri: item.video });
+  }
+  if (item.image && item.image.length > 0) {
+    item.image.forEach(img => mediaData.push({ type: 'image', uri: img }));
+  }
+
   const [isExpanded, setIsExpanded] = useState(false);
   const words = item.description ? item.description.split(" ") : [];
   const isLong = words.length > 25; 
@@ -302,7 +310,7 @@ const ProjectCard = ({
           <Image source={{ uri: item.user.avatar || 'https://ui-avatars.com/api/?name=User' }} className="h-10 w-10 rounded-full mr-3 border border-gray-100 bg-gray-50" />
           <View>
             <Text className="font-bold text-zinc-900 text-[14px]">{item.user.username || item.user.name}</Text>
-            <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Project Lead</Text>
+            <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{item.user.college || "PROJECT LEAD"}</Text>
           </View>
         </TouchableOpacity>
 
@@ -319,37 +327,43 @@ const ProjectCard = ({
       </View>
 
       {/* Media Slider */}
-      {item.video ? (
-        <YouTubeVideoPlayer
-          source={item.video.replace(/^http:\/\//i, 'https://')}
-          thumbnail={item.image && item.image.length > 0 ? item.image[0] : undefined}
-        />
-      ) : item.image && item.image.length > 0 ? (
+      {mediaData.length > 0 ? (
         <View>
           <FlatList
             horizontal
-            data={item.image}
-            keyExtractor={(img, index) => index.toString()}
+            data={mediaData}
+            keyExtractor={(_, index) => index.toString()}
             showsHorizontalScrollIndicator={false}
             pagingEnabled
             onScroll={handleScroll}
             scrollEventThrottle={16}
-            renderItem={({ item: imgUri }) => {
-              const secureUrl = imgUri ? imgUri.replace(/^http:\/\//i, 'https://') : '';
-              return (
-                <Image
-                  source={{ uri: secureUrl }}
-                  style={{ width: CARD_WIDTH, height: 280 }}
-                  resizeMode="cover"
-                  className="bg-gray-50"
-                />
-              );
+            renderItem={({ item: media }) => {
+              if (media.type === 'video') {
+                return (
+                  <View style={{ width: CARD_WIDTH, height: 300 }}>
+                    <YouTubeVideoPlayer
+                      source={media.uri.replace(/^http:\/\//i, 'https://')}
+                      thumbnail={item.image && item.image.length > 0 ? item.image[0] : undefined}
+                    />
+                  </View>
+                );
+              } else {
+                const secureUrl = media.uri ? media.uri.replace(/^http:\/\//i, 'https://') : '';
+                return (
+                  <Image
+                    source={{ uri: secureUrl }}
+                    style={{ width: CARD_WIDTH, height: 300 }}
+                    resizeMode="cover"
+                    className="bg-gray-50 bg-black"
+                  />
+                );
+              }
             }}
           />
-          {item.image.length > 1 && (
-            <View className="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-full border border-gray-100 shadow-sm">
+          {mediaData.length > 1 && (
+            <View pointerEvents="none" className="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-full border border-gray-100 shadow-sm z-10">
               <Text className="text-zinc-900 text-[10px] font-black tracking-tighter">
-                {currentImageIndex + 1} / {item.image.length}
+                {currentImageIndex + 1} / {mediaData.length}
               </Text>
             </View>
           )}
@@ -430,24 +444,6 @@ export default function FundingFeed() {
   const [loadingMore, setLoadingMore] = useState(false);
 
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [deployedUrl, setDeployedUrl] = useState("");
-  const [githubUrl, setGithubUrl] = useState("");
-
-  const [images, setImages] = useState<any[]>([]); 
-  const [video, setVideo] = useState<any>(null);   
-  const [oldImages, setOldImages] = useState<string[]>([]); 
-  const [oldVideo, setOldVideo] = useState<string | null>(null);
-
-  const [submitting, setSubmitting] = useState(false);
-
-  const [showPaymentParams, setShowPaymentParams] = useState<any>(null);
-
   const fetchProjects = async (pageNum: number = 1, shouldAppend: boolean = false) => {
     if (pageNum > 1) setLoadingMore(true);
     else if (!refreshing) setLoading(true);
@@ -497,199 +493,8 @@ export default function FundingFeed() {
   };
 
 
-  const openCreateModal = () => {
-    setIsEditing(false);
-    setEditingId(null);
-    setTitle("");
-    setDescription("");
-    setDeployedUrl("");
-    setGithubUrl("");
-    setImages([]);
-    setVideo(null);
-    setOldImages([]);
-    setOldVideo(null);
-    setModalVisible(true);
-  };
-
   const openEditModal = (project: Project) => {
-    setIsEditing(true);
-    setEditingId(project._id);
-    setTitle(project.title);
-    setDescription(project.description);
-    setDeployedUrl(project.deployed_url || "");
-    setGithubUrl(project.github_url || "");
-    setOldImages(project.image || []);
-    setOldVideo(project.video || null);
-    setImages([]);
-    setVideo(null);
-    setModalVisible(true);
-  };
-
-  const pickImages = async () => {
-    if (images.length >= 5) return Alert.alert("Limit reached", "Max 5 images allowed");
-
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Please allow access to your photo library to add images.');
-      return;
-    }
-
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsMultipleSelection: true,
-      selectionLimit: 5 - images.length,
-      quality: 0.8,
-    });
-    if (!res.canceled) {
-      setOldImages([]); 
-      setOldVideo(null);
-      setVideo(null);
-      setImages((prev) => [...prev, ...res.assets].slice(0, 5));
-    }
-  };
-
-  const pickVideo = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Please allow access to your photo library to add a video.');
-      return;
-    }
-
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['videos'],
-      quality: 1,
-    });
-    if (!res.canceled) {
-      setOldImages([]);
-      setOldVideo(null);
-      setImages([]); 
-      setVideo(res.assets[0]);
-    }
-  };
-
-  const handleFinalSubmit = async (paymentData?: { paymentRefId: string, razorpay_order_id: string, razorpay_signature: string }) => {
-    setSubmitting(true);
-    try {
-      const formData = new FormData();
-      formData.append("title", title);
-      formData.append("description", description);
-      formData.append("deployed_url", deployedUrl);
-      formData.append("github_url", githubUrl);
-
-      images.forEach((img, index) => {
-        formData.append("image", { uri: img.uri, name: `image_${index}.jpg`, type: "image/jpeg" } as any);
-      });
-      if (video) {
-        formData.append("video", { uri: video.uri, name: "video.mp4", type: "video/mp4" } as any);
-      }
-
-      if (paymentData) {
-        formData.append("paymentRefId", paymentData.paymentRefId);
-        formData.append("razorpay_order_id", paymentData.razorpay_order_id);
-        formData.append("razorpay_signature", paymentData.razorpay_signature);
-      } else if (!isEditing) {
-        formData.append("isEditing", "false");
-      }
-
-      if (isEditing && editingId) {
-        formData.append("isEditing", "true");
-        await axios.post(`/funding/update/${editingId}`, formData, { headers: { "Content-Type": "multipart/form-data" } });
-        Alert.alert("Success", "Project updated successfully");
-      } else {
-        await axios.post("/funding/create", formData, { headers: { "Content-Type": "multipart/form-data" } });
-        Alert.alert("Success 🎉", "Project posted successfully!");
-      }
-
-      setModalVisible(false);
-      fetchProjects(1, false);
-    } catch (error) {
-      console.error("Submit error", error);
-      Alert.alert("Error", "Failed to save project");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleInitiateProjectPost = async () => {
-    if (!title || !description || !deployedUrl) {
-      return Alert.alert("Missing fields", "Fill all required fields");
-    }
-
-    if (images.length === 0 && !video && oldImages.length === 0 && !oldVideo) {
-      return Alert.alert("Add media", "Add at least one image or video");
-    }
-
-    if (isEditing) {
-      handleFinalSubmit();
-    } else {
-      setSubmitting(true);
-      try {
-        const orderRes = await axios.post('/payment/order', {
-          amount: 249,
-        });
-        const currentOrder = orderRes.data;
-
-        const content = `
-        <html>
-        <body style="background-color: #F5F7FA;">
-            <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-            <script>
-            var options = {
-                key: "${RAZORPAY_KEY_ID}",
-                amount: "${currentOrder.amount}",
-                currency: "INR",
-                name: "Fync",
-                description: "Post Startup Project Fee",
-                order_id: "${currentOrder.id}",
-                prefill: {
-                    name: "${user?.name || ''}",
-                    email: "${user?.email || ''}",
-                    contact: "${user?.mobileNumber || ''}"
-                },
-                theme: { color: "#ec4899" },
-                handler: function (response) {
-                    window.ReactNativeWebView.postMessage(JSON.stringify({
-                        event: "SUCCESS",
-                        data: response
-                    }));
-                },
-                modal: {
-                    ondismiss: function () {
-                        window.ReactNativeWebView.postMessage(JSON.stringify({
-                            event: "FAILED"
-                        }));
-                    }
-                }
-            };
-            var rzp1 = new Razorpay(options);
-            rzp1.open();
-            </script>
-        </body>
-        </html>
-        `;
-        setShowPaymentParams({ html: content });
-      } catch (err) {
-        console.error("Order error", err);
-        Alert.alert("Oops!", "Could not initiate payment.");
-      } finally {
-        setSubmitting(false);
-      }
-    }
-  };
-
-  const handleWebViewMessage = (event: any) => {
-    const msg = JSON.parse(event.nativeEvent.data);
-    if (msg.event === "SUCCESS") {
-      setShowPaymentParams(null);
-      handleFinalSubmit({
-        paymentRefId: msg.data.razorpay_payment_id,
-        razorpay_order_id: msg.data.razorpay_order_id,
-        razorpay_signature: msg.data.razorpay_signature
-      });
-    } else {
-      setShowPaymentParams(null);
-      Alert.alert("Payment Cancelled", "Payment is required to post a project.");
-    }
+    navigation.navigate("CreateFundingFeed", { project });
   };
 
   const handleDeleteProject = (id: string) => {
@@ -785,25 +590,22 @@ export default function FundingFeed() {
 
   return (
     <GestureHandlerRootView className="flex-1">
-      <View className="flex-1 bg-[#F5F7FA]">
-        <StatusBar barStyle="dark-content" />
+      <View className="flex-1 bg-white">
+        <StatusBar barStyle="light-content" />
         <SafeAreaView className="flex-1">
-        <View className="px-6 pt-4 pb-4 flex-row justify-between items-center bg-white border-b border-gray-100 shadow-sm">
+        <View className="px-6 pb-4 flex-row justify-between items-center bg-white border-b border-gray-100 shadow-sm">
           <View className="flex-row items-center">
             <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 bg-gray-50 rounded-full mr-3 border border-gray-100">
               <Ionicons name="arrow-back" size={22} color="#1A1A1A" />
             </TouchableOpacity>
-            <Text className="text-zinc-900 text-2xl font-black italic tracking-tighter">PROJECT<Text className="text-pink-500">FEED</Text> 🚀</Text>
+            <Text className="text-zinc-900 text-2xl font-black italic tracking-tighter">PROJECT <Text className="text-pink-500">FEED</Text> 🚀</Text>
           </View>
-          <TouchableOpacity onPress={openCreateModal} className="p-2.5 rounded-full border border-pink-100 bg-pink-500 shadow-sm shadow-pink-500/30">
-            <Ionicons name="add" size={22} color="white" />
-          </TouchableOpacity>
         </View>
 
         {loading ? (
           <ActivityIndicator size="large" color="#ec4899" className="mt-20" />
         ) : (
-          <FlatList
+          <FlatList 
             data={projects}
             renderItem={({ item }) => (
               <ProjectCard
@@ -841,94 +643,6 @@ export default function FundingFeed() {
           />
         )}
 
-        {/* CREATE / EDIT PROJECT MODAL */}
-        <Modal visible={modalVisible} transparent={true} animationType="slide" onRequestClose={() => setModalVisible(false)}>
-            <View className="flex-1 bg-black/40 justify-end">
-              <Pressable className="flex-1" onPress={() => setModalVisible(false)} />
-              <View className="bg-white h-[90%] rounded-t-3xl border-t border-gray-100 p-6 shadow-2xl">
-                <View className="w-12 h-1 bg-gray-200 rounded-full self-center mb-6" />
-
-                <View className="flex-row justify-between items-center mb-6">
-                  <Text className="text-zinc-900 text-2xl font-black italic tracking-tighter">{isEditing ? "Edit" : "Post"} <Text className="text-pink-500">Project</Text></Text>
-                  <TouchableOpacity onPress={() => setModalVisible(false)} className="p-1 bg-gray-100 rounded-full">
-                    <Ionicons name="close" size={24} color="#1A1A1A" />
-                  </TouchableOpacity>
-                </View>
-
-                <ScrollView showsVerticalScrollIndicator={false}>
-                  <View className="bg-gray-50 rounded-2xl p-5 border border-gray-100 mb-5">
-                    <Text className="text-gray-400 font-black text-[10px] uppercase tracking-widest mb-3">Project Overview</Text>
-                    <TextInput placeholder="Project Title" placeholderTextColor="#9ca3af" value={title} onChangeText={setTitle} className="text-zinc-900 bg-white p-4 rounded-xl mb-4 font-bold border border-gray-100" />
-                    <TextInput placeholder="Tell everyone about your project..." placeholderTextColor="#9ca3af" value={description} onChangeText={setDescription} multiline numberOfLines={4} textAlignVertical="top" className="text-zinc-900 bg-white p-4 rounded-xl mb-3 font-medium border border-gray-100 min-h-[120px]" />
-                  </View>
-
-                  <View className="bg-gray-50 rounded-2xl p-5 border border-gray-100 mb-5">
-                    <Text className="text-gray-400 font-black text-[10px] uppercase tracking-widest mb-3">Live Links</Text>
-                    <View className="flex-row items-center bg-white p-4 rounded-xl mb-4 border border-gray-100 shadow-sm shadow-black/5">
-                      <Ionicons name="link-outline" size={20} color="#ec4899" />
-                      <TextInput placeholder="Deployed URL (Required)" placeholderTextColor="#9ca3af" value={deployedUrl} onChangeText={setDeployedUrl} className="text-zinc-900 font-bold flex-1 ml-3" autoCapitalize="none" />
-                    </View>
-                    <View className="flex-row items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm shadow-black/5">
-                      <Ionicons name="logo-github" size={20} color="#1A1A1A" />
-                      <TextInput placeholder="Github URL (Optional)" placeholderTextColor="#9ca3af" value={githubUrl} onChangeText={setGithubUrl} className="text-zinc-900 font-bold flex-1 ml-3" autoCapitalize="none" />
-                    </View>
-                  </View>
-
-                  <View className="bg-gray-50 rounded-2xl p-5 border border-gray-100 mb-8">
-                    <Text className="text-gray-400 font-black text-[10px] uppercase tracking-widest mb-1">Showcase Media</Text>
-                    <Text className="text-gray-400 text-[10px] mb-4 font-medium italic">High quality media helps you stand out!</Text>
-
-                    <View className="flex-row gap-4 mb-5">
-                      <TouchableOpacity onPress={pickImages} className="flex-1 bg-white py-4 rounded-2xl flex-row items-center justify-center border border-gray-100 shadow-sm shadow-black/5">
-                        <Ionicons name="images-outline" size={20} color="#ec4899" />
-                        <Text className="text-zinc-900 font-black italic tracking-tighter ml-2 uppercase text-xs">Images</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={pickVideo} className="flex-1 bg-white py-4 rounded-2xl flex-row items-center justify-center border border-gray-100 shadow-sm shadow-black/5">
-                        <Ionicons name="videocam-outline" size={20} color="#ec4899" />
-                        <Text className="text-zinc-900 font-black italic tracking-tighter ml-2 uppercase text-xs">Video</Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    {images.length > 0 && (
-                      <FlatList horizontal data={images} keyExtractor={(_, i) => i.toString()} showsHorizontalScrollIndicator={false} className="mb-4" renderItem={({ item, index }) => (
-                        <View className="mr-3 relative shadow-sm">
-                          <Image source={{ uri: item.uri }} className="h-24 w-24 rounded-2xl bg-gray-200" />
-                          <TouchableOpacity onPress={() => setImages((prev) => prev.filter((_, i) => i !== index))} className="absolute -top-1 -right-1 bg-white rounded-full p-1 border border-gray-100 shadow-sm">
-                            <Ionicons name="close" size={14} color="#ef4444" />
-                          </TouchableOpacity>
-                        </View>
-                      )} />
-                    )}
-                    {video && (
-                      <View className="mb-4 relative w-full shadow-sm rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800">
-                        <YouTubeVideoPlayer 
-                          source={video.uri} 
-                        />
-                        <TouchableOpacity onPress={() => setVideo(null)} className="absolute top-2 right-2 bg-white rounded-full p-2 border border-gray-100 shadow-sm z-10">
-                          <Ionicons name="close" size={18} color="#ef4444" />
-                        </TouchableOpacity>
-                      </View>
-                    )}
-
-                    {images.length === 0 && !video && oldImages.length > 0 && (
-                      <View className="mb-4">
-                        <Text className="text-zinc-900 text-[10px] font-bold mb-2 uppercase tracking-tight">Active Images:</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                          {oldImages.map((uri, idx) => <Image key={idx} source={{ uri: uri.replace(/^http:\/\//i, 'https://') }} className="h-20 w-20 rounded-xl bg-gray-100 mr-2 border border-gray-200" />)}
-                        </ScrollView>
-                      </View>
-                    )}
-                  </View>
-
-                  <TouchableOpacity onPress={handleInitiateProjectPost} disabled={submitting} className={`py-5 rounded-2xl items-center shadow-lg shadow-pink-500/30 mb-12 ${submitting ? 'bg-pink-400' : 'bg-pink-500'}`}>
-                    {submitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-black text-lg italic tracking-tighter uppercase">{isEditing ? "Update Project" : "Post Project for ₹249"}</Text>}
-                  </TouchableOpacity>
-                </ScrollView>
-              </View>
-            </View>
-        </Modal>
-
-        {/* COMMENTS MODAL */}
         <Modal visible={commentModal} transparent={true} animationType="slide" onRequestClose={() => setCommentModal(false)}>
             <View className="flex-1 bg-black/40 justify-end">
               <Pressable className="flex-1" onPress={() => { setCommentModal(false); setReplyingTo(null); }} />
@@ -990,29 +704,9 @@ export default function FundingFeed() {
               </View>
             </View>
         </Modal>
-
-        {/* PAYMENT MODAL */}
-        <Modal visible={!!showPaymentParams} animationType="slide" transparent={false} onRequestClose={() => setShowPaymentParams(null)}>
-          <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F7FA' }}>
-            <View className="flex-row items-center px-4 py-3 bg-white border-b border-gray-100">
-              <TouchableOpacity onPress={() => setShowPaymentParams(null)} className="p-2">
-                <Ionicons name="close" size={24} color="#000" />
-              </TouchableOpacity>
-              <Text className="ml-4 font-black italic tracking-tighter text-lg">Secure Gateway</Text>
-            </View>
-            <WebView
-              source={showPaymentParams}
-              onMessage={handleWebViewMessage}
-              javaScriptEnabled={true}
-              domStorageEnabled={true}
-              startInLoadingState={true}
-              renderLoading={() => <ActivityIndicator color="#ec4899" size="large" style={{ position: 'absolute', top: '50%', left: '45%' }} />}
-            />
-          </SafeAreaView>
-        </Modal>
       </SafeAreaView>
     </View>
     </GestureHandlerRootView>
   );
 }
-
+

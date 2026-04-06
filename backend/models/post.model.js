@@ -14,10 +14,23 @@ const postSchema = new mongoose.Schema({
     required: true,
     index: true,
   },
+  mentions: {
+    type: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    default: [],
+  },
   college:{
     type: String,
     required: true,
     index: true,
+  },
+  isPrivate: {
+    type: Boolean,
+    default: false,
   },
   likes: {
     type: Number,

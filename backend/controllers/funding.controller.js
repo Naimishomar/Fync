@@ -7,9 +7,6 @@ import crypto from 'crypto';
 const getCloudinaryPublicId = (url) => {
     try {
         if (!url || typeof url !== 'string' || !url.includes('cloudinary.com')) return null;
-
-        // This regex safely extracts the folder and filename regardless of versions
-        // Example: https://.../upload/v12345/folder/filename.jpg -> folder/filename
         const matches = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-z0-9]+$/i);
         if (matches && matches[1]) {
             return matches[1];

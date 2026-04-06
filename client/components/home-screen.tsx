@@ -302,7 +302,7 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
   };
 
   return (
-    <View className="bg-white border-b border-gray-100 py-2 mb-3 shadow-sm shadow-black/5">
+    <View className="bg-gray-50 border-b border-gray-100 py-2 mb-3 shadow-sm shadow-black/5 rounded-2xl">
       {/* Post Header */}
       <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })}>
@@ -347,7 +347,7 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
             <Pressable onPress={() => setResizeMode(prev => !prev)}>
               <ExpoImage
                 source={{ uri: imageUrl }}
-                style={{ width: width, height: width, borderRadius: 5 }}
+                style={{ width: width, height: width }}
                 contentFit={resizeMode ? "contain" : "cover"}
                 cachePolicy="disk"
                 transition={200}
@@ -656,9 +656,9 @@ export default function HomeScreen() {
   };
 
   const features = useMemo(() => [
-    { id: 'internships', name: 'Internships', iconUri: 'https://cdn-icons-png.flaticon.com/512/3281/3281289.png', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') }, // Just placeholders for now
+    { id: 'fyncMedia', name: 'Fync Media', iconUri: 'https://images.vexels.com/media/users/3/208346/isolated/preview/e421cb442008fe3a78068efe05254987-microphone-icon-black.png', sparkle: false, onPress: () => navigation.navigate('FyncMediaFeed') },
     { id: 'jobs', name: 'Jobs', iconUri: 'https://d8it4huxumps7.cloudfront.net/uploads/images/avif/jobs-new.png', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
-    { id: 'competitions', name: 'Reward', iconUri: 'https://i.pinimg.com/736x/3c/a8/e7/3ca8e7290bf156916a8a3c9bea521238.jpg', sparkle: false, onPress: () => navigation.navigate('BootcampScreen') },
+    { id: 'competitions', name: 'Reward', iconUri: 'https://i.pinimg.com/736x/3c/a8/e7/3ca8e7290bf156916a8a3c9bea521238.jpg', sparkle: false, onPress: () => navigation.navigate('RewardsMarketplace') },
     { id: 'mock_tests', name: 'Mock Tests', iconUri: 'https://cdn-icons-png.flaticon.com/512/3389/3389152.png', sparkle: true, onPress: () => navigation.navigate('BootcampScreen') },
     { id: 'interviews', name: 'Mock Interviews', iconUri: 'https://cdn-icons-png.flaticon.com/512/10416/10416390.png', sparkle: false, onPress: () => navigation.navigate('SpeakerSessionScreen') },
     { id: 'mentorships', name: 'Mentorships', iconUri: 'https://cdn-icons-png.flaticon.com/512/4737/4737213.png', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
@@ -670,11 +670,11 @@ export default function HomeScreen() {
 
 const renderFeatureStories = () => {
   return (
-    <View className="bg-white py-6">
+    <View className="bg-white py-3">
       {/* Header */}
-      <View className="flex-row justify-between items-center px-4 mb-4">
-        <Text className="text-zinc-900 font-bold text-lg tracking-tight">
-          Focus & Growth
+      <View className="flex-row justify-between items-center px-4 my-2">
+        <Text className="text-zinc-900 font-bold text-2xl tracking-tight">
+          Focus & Growth!
         </Text>
       </View>
 
@@ -716,13 +716,14 @@ const renderFeatureStories = () => {
           </Animated.View>
         ))}
       </View>
+      <View className="border-b border-gray-100 mx-4 mt-3"></View>
     </View>
   );
 };
 
 
   return (
-    <View className="flex-1 bg-[#F5F7FA]">
+    <View className="flex-1 bg-white">
       {renderHeader()}
 
       <FlatList
@@ -742,7 +743,7 @@ const renderFeatureStories = () => {
             <View className="bg-[#F5F7FA]">
               <AdCarousel />
               {renderFeatureStories()}
-              <CreatePost />
+              {/* <CreatePost /> */}
             </View>
           </View>
         }

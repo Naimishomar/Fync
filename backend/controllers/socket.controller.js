@@ -1,4 +1,5 @@
 import Message from "../models/chat.model.js";
+import { sendPushNotification } from "../utils/notification.js";
 import Conversation from "../models/conversation.model.js";
 import Room from "../models/quiz/room.model.js";
 import Submission from "../models/quiz/submission.model.js";
@@ -104,13 +105,13 @@ export const socketController = (io) => {
       try {
         if (!conversationId || !senderId || !text?.trim()) return;
 
-        const conversation = await Conversation.findById(conversationId);
+        const conversation = await Conversation.findById(conversationId).populate("participants", "name username expoPushToken");
         if (!conversation) return;
-        const receiverId = conversation.participants.find(
-          id => id.toString() !== senderId
-        );
 
-        if (!receiverId) return;
+        const sender = conversation.participants.find(p => p._id.toString() === senderId);
+        const receiver = conversation.participants.find(p => p._id.toString() !== senderId);
+
+        if (!receiver) return;
 
         let message = await Message.create({
           conversationId,
@@ -121,7 +122,7 @@ export const socketController = (io) => {
 
         await Conversation.findByIdAndUpdate(conversationId, {
           lastMessage: message._id,
-          $inc: { [`unreadCount.${receiverId}`]: 1 }
+          $inc: { [`unreadCount.${receiver._id}`]: 1 }
         });
 
         message = await Message.findById(message._id)
@@ -133,8 +134,18 @@ export const socketController = (io) => {
 
         io.to(conversationId).emit("newMessage", message);
 
+        // Notify via Push Notification
+        if (receiver.expoPushToken) {
+          sendPushNotification(
+            receiver.expoPushToken, 
+            `${sender?.username || "Someone"} sent you a message`, 
+            text, 
+            { conversationId, type: 'message' }
+          );
+        }
+
         // Notify receiver's ChatList to update unread count in real-time
-        const receiverSocketId = onlineUsers.get(receiverId.toString());
+        const receiverSocketId = onlineUsers.get(receiver._id.toString());
         if (receiverSocketId) {
           io.to(receiverSocketId).emit("unreadUpdate", {
             conversationId,

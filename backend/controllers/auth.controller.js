@@ -321,7 +321,10 @@ export const login = async (req, res) => {
     }
     await user.save();
 
-    res.status(200).json({ message: "Login successful", success: true, token: accessToken, refreshToken, user });
+    const userObj = user.toObject();
+    userObj.isMediaAdmin = user.email === process.env.MEDIA_ADMIN_EMAIL;
+
+    res.status(200).json({ message: "Login successful", success: true, token: accessToken, refreshToken, user: userObj });
   } catch (err) {
     res.status(500).json({ success: false });
   }
@@ -398,7 +401,9 @@ export const getProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found, please login" });
     }
-    return res.status(200).json({ success: true, message: "User fetched successfully", user });
+    const userObj = user.toObject();
+    userObj.isMediaAdmin = user.email === process.env.MEDIA_ADMIN_EMAIL;
+    return res.status(200).json({ success: true, message: "User fetched successfully", user: userObj });
   } catch (error) {
     console.error("Fetch Error:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
@@ -692,6 +697,26 @@ export const verifyResetPassword = async (req, res) => {
     return res.status(200).json({ success: true, message: "Password reset successfully" });
   } catch (error) {
     console.error(error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+export const savePushToken = async (req, res) => {
+  try {
+    const { pushToken } = req.body;
+    if (!pushToken) {
+      return res.status(400).json({ success: false, message: "Push token is required" });
+    }
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { expoPushToken: pushToken },
+      { new: true }
+    );
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    return res.status(200).json({ success: true, message: "Push token saved successfully" });
+  } catch (error) {
+    console.error("Save Push Token Error:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

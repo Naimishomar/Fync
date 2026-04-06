@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Fync",
-    "slug": "fync-app",
+    "slug": "fync",
     "scheme": "fync",
     "version": "1.0.0",
     "icon": "./assets/Fync.jpg",
@@ -31,7 +31,8 @@
         }
       ],
       "expo-web-browser",
-      "react-native-compressor"
+      "react-native-compressor",
+      "expo-notifications"
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -51,8 +52,17 @@
     },
     "android": {
       "permissions": [
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_BACKGROUND_LOCATION"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO"
       ],
       "usesCleartextTraffic": true,
       "adaptiveIcon": {
@@ -61,6 +71,12 @@
       },
       "package": "com.anonymous.client",
       "softwareKeyboardLayoutMode": "pan"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2ac54640-5d53-44b3-994b-5cefbc77b576"
+      }
+    },
+    "owner": "naimishomar"
   }
 }

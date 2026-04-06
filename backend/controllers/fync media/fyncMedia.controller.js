@@ -106,7 +106,8 @@ export const updateMedia = async (req, res) => {
         if (!media) {
             return res.status(404).json({ success: false, message: "Media not found" });
         }
-        if (media.admin.toString() !== req.user.id.toString()) {
+        const adminUser = await User.findOne({ email: process.env.MEDIA_ADMIN_EMAIL });
+        if (!adminUser || req.user.id.toString() !== adminUser._id.toString()) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
         const { title, description, tags, duration } = req.body;
@@ -158,7 +159,8 @@ export const deleteMedia = async (req, res) => {
         if (!media) {
             return res.status(404).json({ success: false, message: "Media not found" });
         }
-        if (media.admin.toString() !== req.user.id.toString()) {
+        const adminUser = await User.findOne({ email: process.env.MEDIA_ADMIN_EMAIL });
+        if (!adminUser || req.user.id.toString() !== adminUser._id.toString()) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
         if (media.video_link) {

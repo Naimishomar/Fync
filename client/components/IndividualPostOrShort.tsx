@@ -554,6 +554,27 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                     <Ionicons name="create-outline" size={20} color="black" />
                                     <Text className="text-black font-bold text-base">Edit {isShort ? 'Short' : 'Post'}</Text>
                                 </Pressable>
+                                {!isShort && (
+                                    <Pressable 
+                                        onPress={async () => {
+                                            setMenuVisible(false);
+                                            try {
+                                                const newStatus = !data?.isPrivate;
+                                                const formData = new FormData();
+                                                formData.append('isPrivate', newStatus ? 'true' : 'false');
+                                                const res = await axios.post(`/post/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+                                                if (res.data.success) {
+                                                    setData({ ...data, isPrivate: newStatus });
+                                                    Alert.alert("Success", `Post is now ${newStatus ? 'Private' : 'Public'}`);
+                                                }
+                                            } catch (err) { Alert.alert("Error", "Failed to update visibility."); }
+                                        }}
+                                        className="py-5 items-center border-b border-gray-100 flex-row justify-center gap-2"
+                                    >
+                                        <Ionicons name={data?.isPrivate ? "lock-open-outline" : "lock-closed-outline"} size={20} color="black" />
+                                        <Text className="text-black font-bold text-base">Make it {data?.isPrivate ? 'Public' : 'Private'}</Text>
+                                    </Pressable>
+                                )}
                                 <Pressable 
                                     onPress={async () => {
                                         setMenuVisible(false);
