@@ -322,7 +322,6 @@ export const login = async (req, res) => {
     await user.save();
 
     const userObj = user.toObject();
-    userObj.isMediaAdmin = user.email === process.env.MEDIA_ADMIN_EMAIL;
 
     res.status(200).json({ message: "Login successful", success: true, token: accessToken, refreshToken, user: userObj });
   } catch (err) {
@@ -402,7 +401,6 @@ export const getProfile = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found, please login" });
     }
     const userObj = user.toObject();
-    userObj.isMediaAdmin = user.email === process.env.MEDIA_ADMIN_EMAIL;
     return res.status(200).json({ success: true, message: "User fetched successfully", user: userObj });
   } catch (error) {
     console.error("Fetch Error:", error);
@@ -720,3 +718,4 @@ export const savePushToken = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+

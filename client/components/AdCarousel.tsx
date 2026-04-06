@@ -1,36 +1,43 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, FlatList, Image, useWindowDimensions } from "react-native";
-
-const AD_IMAGES = [
-  "https://mercatusmantra.wordpress.com/wp-content/uploads/2023/01/blue-ecommerce-online-shopping-linkedin-banner.png",
-  "https://blog.swiggy.com/wp-content/uploads/2023/10/Post-Order-Blog-Banner-1000x486.jpeg",
-  "https://carousels-ads.swiggy.com/images/slider/2.jpg",
-];
+import { View, FlatList, Image, useWindowDimensions, ActivityIndicator, TouchableOpacity, Linking } from "react-native";
+import axios from "../context/axiosConfig";
 
 const AdCarousel = () => {
   const flatListRef = useRef<FlatList>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [ads, setAds] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
   const imageHeight = isTablet ? 224 : 132;
 
   useEffect(() => {
+    fetchAds();
+  }, []);
+
+  const fetchAds = async () => {
+    try {
+      const res = await axios.get("/ads");
+      if (res.data.success && res.data.ads.length > 0) {
+        setAds(res.data.ads);
+      }
+    } catch (error) {
+      console.error("AdCarousel fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (ads.length <= 1) return;
     const interval = setInterval(() => {
       let nextIndex = currentIndex + 1;
-      if (nextIndex >= AD_IMAGES.length) {
-        nextIndex = 0;
-      }
-
-      flatListRef.current?.scrollToIndex({
-        index: nextIndex,
-        animated: true,
-      });
-      
+      if (nextIndex >= ads.length) nextIndex = 0;
+      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
       setCurrentIndex(nextIndex);
     }, 3000);
-
     return () => clearInterval(interval);
-  }, [currentIndex]);
+  }, [currentIndex, ads.length]);
 
   const onScrollEnd = (event: any) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
@@ -38,35 +45,56 @@ const AdCarousel = () => {
     setCurrentIndex(index);
   };
 
+  const handleAdPress = (ad: any) => {
+    if (ad.linkUrl) {
+      Linking.openURL(ad.linkUrl).catch(() => {});
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={{ height: imageHeight }} className="items-center justify-center bg-gray-100">
+        <ActivityIndicator color="#ec4899" />
+      </View>
+    );
+  }
+
+  if (ads.length === 0) return null;
+
   return (
     <View>
       <FlatList
         ref={flatListRef}
-        data={AD_IMAGES}
+        data={ads}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={onScrollEnd}
-        keyExtractor={(_, index) => index.toString()}
+        keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <Image
-            source={{ uri: item }}
-            style={{ width: width, height: imageHeight }} 
-            resizeMode="cover"
-          />
+          <TouchableOpacity activeOpacity={item.linkUrl ? 0.85 : 1} onPress={() => handleAdPress(item)}>
+            <Image
+              source={{ uri: item.imageUrl }}
+              style={{ width, height: imageHeight }}
+              resizeMode="cover"
+            />
+          </TouchableOpacity>
         )}
       />
-      
-      <View className="absolute bottom-3 w-full flex-row justify-center gap-2">
-        {AD_IMAGES.map((_, index) => (
-          <View
-            key={index}
-            className={`h-2 w-2 rounded-full ${
-              currentIndex === index ? "bg-pink-500 w-4" : "bg-white/50"
-            }`}
-          />
-        ))}
-      </View>
+
+      {/* Dot indicators */}
+      {ads.length > 1 && (
+        <View className="absolute bottom-3 w-full flex-row justify-center gap-2">
+          {ads.map((_, index) => (
+            <View
+              key={index}
+              className={`h-2 rounded-full transition-all ${
+                currentIndex === index ? "bg-pink-500 w-4" : "bg-white/60 w-2"
+              }`}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 };

@@ -26,8 +26,7 @@ export const createFyncMedia = async(req,res)=>{
             return res.status(400).json({message: "Missing required fields", success: false});
         }
 
-        const adminUser = await User.findOne({ email: process.env.MEDIA_ADMIN_EMAIL });
-        if (!adminUser || req.user.id.toString() !== adminUser._id.toString()) {
+        if (req.user.user_access !== 'admin') {
             return res.status(401).json({
                 message: "Unauthorized user",
                 success: false
@@ -50,7 +49,7 @@ export const createFyncMedia = async(req,res)=>{
             description,
             thumbnail,
             video_link: video,
-            admin: adminUser._id,
+            admin: req.user.id,
             date: Date.now(),
             likes: 0,
             comment: [],
@@ -106,8 +105,7 @@ export const updateMedia = async (req, res) => {
         if (!media) {
             return res.status(404).json({ success: false, message: "Media not found" });
         }
-        const adminUser = await User.findOne({ email: process.env.MEDIA_ADMIN_EMAIL });
-        if (!adminUser || req.user.id.toString() !== adminUser._id.toString()) {
+        if (req.user.user_access !== 'admin') {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
         const { title, description, tags, duration } = req.body;
@@ -159,8 +157,7 @@ export const deleteMedia = async (req, res) => {
         if (!media) {
             return res.status(404).json({ success: false, message: "Media not found" });
         }
-        const adminUser = await User.findOne({ email: process.env.MEDIA_ADMIN_EMAIL });
-        if (!adminUser || req.user.id.toString() !== adminUser._id.toString()) {
+        if (req.user.user_access !== 'admin') {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
         if (media.video_link) {

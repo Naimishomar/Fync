@@ -9,7 +9,7 @@ export const createProduct = async(req,res)=>{
         if(!product_name || !product_description || !coins_required){
             return res.status(400).json({message: "All fields are required", success: false});
         }
-        if(req.user.email.toString() !== process.env.MARKETPLACE_ADMIN_EMAIL.toString()){
+        if(req.user.user_access !== 'admin'){
             return res.status(403).json({message: "Unauthorized", success: false});
         }
         
@@ -44,7 +44,7 @@ export const getProduct = async(req,res)=>{
             return res.status(404).json({message: "No products found", success: false});
         }
         // Compute admin status server-side — never trust the client for this
-        const isAdmin = req.user.email === process.env.MARKETPLACE_ADMIN_EMAIL || req.user.user_access === 'admin';
+        const isAdmin = req.user.user_access === 'admin';
         return res.status(200).json({message: "Products fetched successfully", success: true, products, isAdmin});
     } catch (error) {
         console.log("Internal server error", error);
@@ -59,7 +59,7 @@ export const updateProduct = async(req,res)=>{
         if(!product_id){
             return res.status(400).json({message: "Product ID is required", success: false});
         }
-        if(req.user.email.toString() !== process.env.MARKETPLACE_ADMIN_EMAIL.toString()){
+        if(req.user.user_access !== 'admin'){
             return res.status(403).json({message: "Unauthorized", success: false});
         }
         const product = await MarketPlace.findById(product_id);
@@ -89,7 +89,7 @@ export const deleteProduct = async(req,res)=>{
         if(!product_id){
             return res.status(400).json({message: "Product ID is required", success: false});
         }
-        if(req.user.email.toString() !== process.env.MARKETPLACE_ADMIN_EMAIL.toString()){
+        if(req.user.user_access !== 'admin'){
             return res.status(403).json({message: "Unauthorized", success: false});
         }
         const product = await MarketPlace.findById(product_id);

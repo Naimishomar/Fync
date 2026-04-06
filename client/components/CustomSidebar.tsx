@@ -343,7 +343,19 @@ export default function CustomSidebar(props: any) {
                         <Text className="text-white text-lg ml-4 font-medium">Placement Hub</Text>
                     </Pressable>
 
-
+                    {/* Admin Only — Manage Ads */}
+                    {user?.user_access === 'admin' && (
+                        <Pressable
+                            onPress={() => props.navigation.navigate('ManageAds')}
+                            className="flex-row items-center px-4 py-4 rounded-xl mb-1 mt-2 bg-pink-500/10 border border-pink-500/20 active:bg-pink-500/20"
+                        >
+                            <Ionicons name="megaphone-outline" size={24} color="#ec4899" />
+                            <Text className="text-pink-400 text-lg ml-4 font-semibold">Manage Ads</Text>
+                            <View className="ml-2 bg-pink-500/20 px-2 py-0.5 rounded-full border border-pink-500/30">
+                                <Text className="text-[9px] text-pink-400 font-bold">ADMIN</Text>
+                            </View>
+                        </Pressable>
+                    )}
 
                 </View>
             </DrawerContentScrollView>

@@ -36,6 +36,7 @@ import communityRoute from './routes/community/community.routes.js';
 import fyncMediaRoute from './routes/fyncMedia.route.js';
 import clubRoute from './routes/club/club.routes.js';
 import marketplaceRoute from './routes/marketplace/marketplace.route.js';
+import adRoute from './routes/ad.route.js';
 
 import { setCollegeChatIo } from './controllers/collegeChat.controller.js';
 import { setAlumniChatIo } from './controllers/alumniChat.controller.js';
@@ -151,6 +152,7 @@ app.use('/bootcamp', bootcampRoute);
 app.use('/fync-media', fyncMediaRoute);
 app.use('/clubs', clubRoute);
 app.use('/api/marketplace', marketplaceRoute);
+app.use('/ads', adRoute);
 
 
 socketController(io);

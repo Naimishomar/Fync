@@ -673,12 +673,12 @@ const renderFeatureStories = () => {
   return (
     <View className="bg-white py-3">
       {/* Header */}
-      <View className="flex-row justify-between items-center px-4 mb-5">
+      {/* <View className="flex-row justify-between items-center px-4 mb-5">
         <Text className="text-zinc-900 font-bold text-3xl italic w-full">
           Focus & Growth!
         </Text>
         <Image source={{ uri: 'https://d8it4huxumps7.cloudfront.net/uploads/images/avif/home_heading_after.png' }} className="w-52 h-10 object-contain absolute left-12 top-6" />
-      </View>
+      </View> */}
 
       {/* Grid */}
       <View className="flex-row flex-wrap px-3">

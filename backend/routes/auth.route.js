@@ -42,7 +42,7 @@ router.post('/register-alumni', upload.single('avatar'), r2UploadMiddleware({ __
 router.post('/refresh-token', refreshToken);
 router.post('/login', login);
 router.post('/update', authMiddleware, upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), r2UploadMiddleware({ avatar: 'avatar', banner: 'banner' }), updateUser);
-router.get('/profile', authMiddleware, cacheMiddleware(300), getProfile);
+router.get('/profile', authMiddleware, getProfile);
 router.get('/get-alumni', authMiddleware, cacheMiddleware(600), getAlumniByCollege);
 router.post('/search', authMiddleware, getUserProfileByName);
 router.get('/profile/:id', authMiddleware, cacheMiddleware(600), getUserProfile);

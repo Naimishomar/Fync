@@ -120,6 +120,7 @@ import SubGroupChat from './components/club/SubGroupChat';
 import ClubAdminPanel from './components/club/ClubAdminPanel';
 import FyncMediaFeed from './components/FyncMediaFeed';
 import FocusProductivity from './components/focus/FocusProductivity';
+import ManageAds from './components/admin/ManageAds';
 
 import SubscriptionGuard from './components/newFeatures/SubscriptionGuard';
 import PlacementPredictor from './components/newFeatures/PlacementPredictor';
@@ -256,6 +257,7 @@ export type RootStackParamList = {
   ClubAdminPanel: { clubId: string };
   FyncMediaFeed: undefined;
   CreateFundingFeed: { project?: any } | undefined;
+  ManageAds: undefined;
 };
 
 
@@ -387,6 +389,7 @@ function AppStack() {
       <Stack.Screen name="TermsAndCondition" component={TermsAndCondition} />
       <Stack.Screen name="FyncMediaFeed" component={FyncMediaFeed} />
       <Stack.Screen name="CreateFundingFeed" component={CreateFundingFeed} />
+      <Stack.Screen name="ManageAds" component={ManageAds} />
     </Stack.Navigator>
   );
 }

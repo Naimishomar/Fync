@@ -13,8 +13,6 @@ import { useAuth } from '../../context/auth.context';
 const MarketplaceScreen = () => {
     const navigation = useNavigation<any>();
     const { user, setUser } = useAuth();
-    // Admin status is determined server-side from GET /api/marketplace
-    const [isAdmin, setIsAdmin] = useState(false);
 
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -35,7 +33,6 @@ const MarketplaceScreen = () => {
             const res = await axios.get('/api/marketplace');
             if (res.data.success) {
                 setProducts(res.data.products);
-                setIsAdmin(res.data.isAdmin); // Backend decides admin status
             }
         } catch (error) {
             console.log("Error fetching products", error);
@@ -264,7 +261,7 @@ const MarketplaceScreen = () => {
                         contentContainerStyle={{ paddingTop: 16, paddingBottom: 100 }}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#000" />}
                         ListHeaderComponent={
-                            isAdmin ? (
+                            user?.user_access === 'admin' ? (
                                 <TouchableOpacity
                                     onPress={() => setShowAddModal(true)}
                                     className="mx-4 mb-6 bg-zinc-900 p-5 rounded-2xl flex-row items-center justify-between shadow-xl shadow-black/20"

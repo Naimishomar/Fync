@@ -39,7 +39,7 @@ export const createGlobalNotice = async (req, res) => {
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
 
-        const isAdmin = req.user.email === "naimishomar@gmail.com" || req.user.email === process.env.ADMIN_EMAIL;
+        const isAdmin = req.user.user_access === 'admin';
 
         if (!isAdmin) {
             if (!paymentRefId || !razorpay_order_id || !razorpay_signature) {
@@ -79,13 +79,9 @@ export const createGlobalNotice = async (req, res) => {
 
 export const getGlobalNotices = async (req, res) => {
     try {
-        const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "naimishomar@gmail.com";
-        const adminUser = await User.findOne({ email: ADMIN_EMAIL });
-
-        let query = { isGlobal: true };
-        if (adminUser) {
-            query = { $or: [{ isGlobal: true }, { user: adminUser._id }] };
-        }
+        const adminUsers = await User.find({ user_access: 'admin' }).select('_id');
+        const adminIds = adminUsers.map(u => u._id);
+        const query = { $or: [{ isGlobal: true }, { user: { $in: adminIds } }] };
 
         const { page = 1, limit = 10 } = req.query;
         const skip = (page - 1) * limit;
