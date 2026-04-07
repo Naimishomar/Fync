@@ -343,6 +343,15 @@ export default function CustomSidebar(props: any) {
                         <Text className="text-white text-lg ml-4 font-medium">Placement Hub</Text>
                     </Pressable>
 
+                    {/* Meet Our Team */}
+                    <Pressable
+                        onPress={() => props.navigation.navigate('ContactUs')}
+                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                    >
+                        <Ionicons name="people-outline" size={24} color="#f9a8d4" />
+                        <Text className="text-white text-lg ml-4 font-medium">Contact Us</Text>
+                    </Pressable>
+
                     {/* Admin Only — Manage Ads */}
                     {user?.user_access === 'admin' && (
                         <Pressable

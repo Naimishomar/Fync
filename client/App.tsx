@@ -126,7 +126,8 @@ import SubscriptionGuard from './components/newFeatures/SubscriptionGuard';
 import PlacementPredictor from './components/newFeatures/PlacementPredictor';
 
 import TermsAndCondition from 'components/T&C';
-
+import ContactUs from './components/ContactUs';
+import MeetOurTeam from 'components/MeetOurTeam';
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -258,6 +259,8 @@ export type RootStackParamList = {
   FyncMediaFeed: undefined;
   CreateFundingFeed: { project?: any } | undefined;
   ManageAds: undefined;
+  ContactUs: undefined;
+  MeetOurTeam: undefined;
 };
 
 
@@ -390,6 +393,8 @@ function AppStack() {
       <Stack.Screen name="FyncMediaFeed" component={FyncMediaFeed} />
       <Stack.Screen name="CreateFundingFeed" component={CreateFundingFeed} />
       <Stack.Screen name="ManageAds" component={ManageAds} />
+      <Stack.Screen name="ContactUs" component={ContactUs} />
+      <Stack.Screen name="MeetOurTeam" component={MeetOurTeam} />
     </Stack.Navigator>
   );
 }
