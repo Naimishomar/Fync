@@ -1,7 +1,7 @@
-import SubmissionModel from "../../models/hackathon/submission.model";
-import Hackathon from "../../models/hackathon/hackathons.model";
-import HackathonTeam from "../../models/hackathon/team.model";
-import verifyTeam from "../../utils/verifyTeamMember";
+import SubmissionModel from "../../models/hackathon/submission.model.js";
+import Hackathon from "../../models/hackathon/hackathons.model.js";
+import HackathonTeam from "../../models/hackathon/team.model.js";
+// import verifyTeam from "../../utils/verifyTeamMember.js";
 // Get  api/submissions?hackathon=Id&status=submitted
 export const getSubmissions = async (req, res, next) => {
     try {

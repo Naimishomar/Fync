@@ -1,7 +1,4 @@
 import mongoose, { Schema } from "mongoose";
-import Hackathon from "./hackathons.model";
-import e from "express";
-
 const hackathonChannelSchema = new mongoose.Schema({
      Hackathon:{
         type:mongoose.Schema.Types.ObjectId,

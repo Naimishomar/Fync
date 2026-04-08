@@ -26,6 +26,7 @@ export default function CustomSidebar(props: any) {
     // State for dropdowns
     const [showOpportunities, setShowOpportunities] = useState(false);
     const [showQuizzes, setShowQuizzes] = useState(false);
+    const [showHackathons, setShowHackathons] = useState(false);
 
     const toggleOpportunities = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -35,6 +36,11 @@ export default function CustomSidebar(props: any) {
     const toggleQuizzes = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setShowQuizzes(!showQuizzes);
+    };
+
+    const toggleHackathons = () => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setShowHackathons(!showHackathons);
     };
 
     return (
@@ -158,6 +164,47 @@ export default function CustomSidebar(props: any) {
                             >
                                 <Ionicons name="book-outline" size={20} color="#9ca3af" />
                                 <Text className="text-gray-300 text-base ml-3 font-medium">Workshops</Text>
+                            </Pressable>
+                        </View>
+                    )}
+
+                    {/* HACKATHON ECOSYSTEM DROPDOWN */}
+                    <Pressable
+                        onPress={toggleHackathons}
+                        className="flex-row items-center justify-between px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                    >
+                        <View className="flex-row items-center">
+                            <Ionicons name="rocket-outline" size={24} color="#f9a8d4" />
+                            <Text className="text-white text-lg ml-4 font-medium">Hackathon Hub</Text>
+                            <View className="ml-2 bg-indigo-500/20 px-2 py-0.5 rounded-full border border-indigo-500/30">
+                                <Text className="text-[9px] text-indigo-400 font-bold">NEW</Text>
+                            </View>
+                        </View>
+                        <Ionicons
+                            name={showHackathons ? "chevron-up-outline" : "chevron-down-outline"}
+                            size={20}
+                            color="#6b7280"
+                        />
+                    </Pressable>
+
+                    {showHackathons && (
+                        <View className="ml-4 border-l-2 border-gray-800 pl-2">
+                            {/* Browse Hackathons */}
+                            <Pressable
+                                onPress={() => props.navigation.navigate('HackathonHub')}
+                                className="flex-row items-center px-4 py-3 rounded-xl mb-1 active:bg-gray-800"
+                            >
+                                <Ionicons name="search-outline" size={20} color="#9ca3af" />
+                                <Text className="text-gray-300 text-base ml-3 font-medium">Browse Hackathons</Text>
+                            </Pressable>
+
+                            {/* External Hackathons (devpost) */}
+                            <Pressable
+                                onPress={() => props.navigation.navigate('HackathonList')}
+                                className="flex-row items-center px-4 py-3 rounded-xl mb-1 active:bg-gray-800"
+                            >
+                                <Ionicons name="globe-outline" size={20} color="#9ca3af" />
+                                <Text className="text-gray-300 text-base ml-3 font-medium">Global Hackathons</Text>
                             </Pressable>
                         </View>
                     )}

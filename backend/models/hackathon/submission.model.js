@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Hackathon from "./hackathons.model";
+// import Hackathon from "./hackathons.model.js";
 const SchemaSubmission = new mongoose.Schema({
      hackathon:{
         type:mongoose.Schema.Types.ObjectId,
@@ -73,5 +73,5 @@ const SchemaSubmission = new mongoose.Schema({
 })
 SchemaSubmission.index({Hackathon:1,team:1},{unique:true})
 
-const SubmissionModel = mongoose.model("Submission",SchemaSubmission);
+const SubmissionModel = mongoose.model("HackathonSubmission", SchemaSubmission);
 export default SubmissionModel;
