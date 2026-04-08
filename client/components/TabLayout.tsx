@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { TouchableOpacity, View, Dimensions, Animated, Pressable, Text, Platform } from "react-native";
+import { TouchableOpacity, View, Dimensions, Animated, Pressable, Text, Platform, Image } from "react-native";
+import { Image as ExpoImage } from 'expo-image';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { LinearGradient } from 'expo-linear-gradient';
@@ -7,8 +7,10 @@ import { useNavigation } from '@react-navigation/native';
 import Shorts from "./Shorts";
 import FundingFeed from "./FundingFeed";
 import HomeScreen from "./home-screen";
-import InterviewSetup from "./interview/InterviewSetup";
 import CreateShorts from "./CreateShorts";
+import Profile from "./profile";
+import { useAuth } from "context/auth.context";
+import { useState } from "react";
 
 const { width } = Dimensions.get('window');
 const Tab = createBottomTabNavigator();
@@ -151,6 +153,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
 };
 
 export default function TabLayout() {
+  const { user } = useAuth();
   return (
     <View className="flex-1 bg-black justify-center">
       <Tab.Navigator
@@ -190,9 +193,36 @@ export default function TabLayout() {
           }}
         />
 
-        <Tab.Screen name="Interview" component={InterviewSetup} options={{ tabBarIcon: ({ color }) => <Ionicons name="people-outline" size={24} color={color} /> }} />
-
-        <Tab.Screen name="Funding" component={FundingFeed} options={{ tabBarIcon: ({ color }) => <Ionicons name="heart-outline" size={24} color={color} /> }} />
+        <Tab.Screen name="Funding" component={FundingFeed} options={{ tabBarIcon: ({ color }) => <Ionicons name="bulb-outline" size={24} color={color} /> }} />
+        
+        <Tab.Screen 
+          name="Profile" 
+          component={Profile} 
+          options={{ 
+            tabBarIcon: ({ color, focused }) => (
+              user?.avatar ? (
+                <View style={{ 
+                  width: 28, 
+                  height: 28, 
+                  borderRadius: 14, 
+                  borderWidth: focused ? 1.5 : 0, 
+                  borderColor: '#ec4899',
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}>
+                  <ExpoImage 
+                    source={{ uri: user.avatar }} 
+                    style={{ width: 28, height: 28, borderRadius: 14 }}
+                    contentFit="cover"
+                    cachePolicy="disk"
+                  />
+                </View>
+              ) : (
+                <Ionicons name="person-outline" size={24} color={color} />
+              )
+            ) 
+          }} 
+        />
       </Tab.Navigator>
     </View>
   );

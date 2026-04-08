@@ -334,7 +334,7 @@ const PlacementHub = () => {
                 {/* Header */}
                 <View className="px-6 pt-2 pb-4 flex-row justify-between items-center">
                     <View>
-                        <Text className="text-white text-3xl font-black italic tracking-tighter">PLACEMENT<Text className="text-indigo-500">HUB</Text></Text>
+                        <Text className="text-white text-3xl font-black italic tracking-tighter">PLACEMENT <Text className="text-indigo-500">HUB</Text></Text>
                         <Text className="text-gray-500 text-xs font-medium">Real questions. Real interviews.</Text>
                     </View>
                     <TouchableOpacity
@@ -350,7 +350,7 @@ const PlacementHub = () => {
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366f1" />}
                 >
                     {/* ... (Previous predictive/predictor section same) */}
-                    <View className="px-5 mb-8">
+                    <View className="px-5 mb-3">
                         <TouchableOpacity 
                             onPress={() => navigation.navigate("PlacementPredictor")}
                             activeOpacity={0.9}
@@ -359,17 +359,43 @@ const PlacementHub = () => {
                                 colors={['#4f46e5', '#7c3aed']}
                                 start={{x: 0, y: 0}}
                                 end={{x: 1, y: 0}}
-                                className="p-6 rounded-[32px] overflow-hidden flex-row items-center border border-white/10 shadow-lg shadow-indigo-500/30"
+                                className="p-6 rounded-[16px] overflow-hidden flex-row items-center border border-white/10 shadow-lg shadow-indigo-500/30"
                             >
                                 <View className="flex-1">
                                     <View className="bg-white/20 self-start px-3 py-1 rounded-full mb-3">
                                         <Text className="text-white text-[8px] font-black uppercase tracking-[2px]">New Feature ✨</Text>
                                     </View>
                                     <Text className="text-white text-xl font-black uppercase">Placement <Text className="text-pink-400">Predictor</Text></Text>
-                                    <Text className="text-white/70 text-[10px] font-bold mt-1 leading-4">AI-powered resume & GPA analysis to predict your dream company match.</Text>
+                                    <Text className="text-white/70 text-[10px] font-bold mt-1 leading-4">AI-powered resume analysis to predict your dream company match.</Text>
                                 </View>
                                 <View className="bg-white/10 w-16 h-16 rounded-3xl items-center justify-center border border-white/20">
                                     <Ionicons name="stats-chart" size={30} color="white" />
+                                </View>
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Interview Setup Feature */}
+                    <View className="px-5 mb-8">
+                        <TouchableOpacity 
+                            onPress={() => navigation.navigate("InterviewSetup")}
+                            activeOpacity={0.9}
+                        >
+                            <LinearGradient
+                                colors={['#ec4899', '#db2777']}
+                                start={{x: 0, y: 0}}
+                                end={{x: 1, y: 0}}
+                                className="p-6 rounded-[16px] overflow-hidden flex-row items-center border border-white/10 shadow-lg shadow-pink-500/30"
+                            >
+                                <View className="flex-1">
+                                    <View className="bg-white/20 self-start px-3 py-1 rounded-full mb-3">
+                                        <Text className="text-white text-[8px] font-black uppercase tracking-[2px]">Premium AI 🤖</Text>
+                                    </View>
+                                    <Text className="text-white text-xl font-black uppercase">Mock <Text className="text-indigo-200">Interview</Text></Text>
+                                    <Text className="text-white/70 text-[10px] font-bold mt-1 leading-4">Simulate real technical interviews with our AI tuned to your resume.</Text>
+                                </View>
+                                <View className="bg-white/10 w-16 h-16 rounded-3xl items-center justify-center border border-white/20">
+                                    <Ionicons name="chatbubbles" size={30} color="white" />
                                 </View>
                             </LinearGradient>
                         </TouchableOpacity>
@@ -436,7 +462,7 @@ const PlacementHub = () => {
                                                 }
                                             } catch(e) {}
                                         }}
-                                        className="bg-zinc-900/50 mr-4 p-5 rounded-[32px] border border-white/5 w-[220px]"
+                                        className="bg-zinc-700/30 mr-4 p-5 rounded-[12px] border border-white/25 w-[220px]"
                                     >
                                         <Text className="text-white font-black text-xs" numberOfLines={1}>{item.company}</Text>
                                         <Text className="text-gray-500 text-[10px] font-bold mt-1 uppercase" numberOfLines={1}>{item.role}</Text>

@@ -17,8 +17,9 @@ const CONFESSION_COLORS = [
 ];
 
 const maskName = (name: string) => {
-    if (!name || name.length <= 4) return name;
-    return `${name.substring(0, 2)}***${name.substring(name.length - 2)}`;
+    if (!name) return 'User';
+    if (name.length <= 2) return name;
+    return `${name[0]}***${name[name.length - 1]}`;
 };
 
 /* ---------------- GLOBAL CACHE ---------------- */
@@ -228,13 +229,13 @@ const ConfessionFeed = () => {
                 <View className="flex-row items-center">
                     <ExpoImage source={{ uri: ANONYMOUS_AVATAR }} className="w-10 h-10 rounded-full bg-white/20" cachePolicy="disk" />
                     <View className="ml-3">
-                        <Text className="text-white font-black text-base">{maskName(user?.name || 'User')}</Text>
+                        <Text className="text-white font-black text-base">{maskName(item.user?.name || 'User')}</Text>
                         <Text className="text-white/60 text-xs font-bold uppercase tracking-tighter">Anonymous Student</Text>
                     </View>
                 </View>
 
                 {/* Manage Menu (Admin/Owner) */}
-                {(item.canManage || user?.user_access === 'admin') && (
+                {(item.canManage) && (
                     <TouchableOpacity 
                         onPress={() => {
                             console.log('Opening menu for item:', item._id);

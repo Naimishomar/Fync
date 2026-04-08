@@ -46,6 +46,7 @@ export const createConfession = async (req, res) => {
         }
 
         const populatedConfessions = await Confession.findById(confession._id)
+            .populate('user', 'name')
             .populate('taggedUser', 'name username avatar user_access');
 
         const confessionWithFlag = {
@@ -69,6 +70,7 @@ export const getConfessions = async (req, res) => {
         const skip = (page - 1) * limit;
 
         const confessions = await Confession.find({ college })
+            .populate('user', 'name')
             .populate('taggedUser', 'name username avatar user_access')
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -76,7 +78,7 @@ export const getConfessions = async (req, res) => {
 
         const confessionsWithFlags = confessions.map(c => ({
             ...c._doc,
-            canManage: c.user.toString() === req.user.id.toString()
+            canManage: c.user?._id?.toString() === req.user.id.toString() || c.user?.toString() === req.user.id.toString()
         }));
 
         return res.status(200).json({ success: true, confessions: confessionsWithFlags, hasMore: confessions.length === limit });
@@ -197,9 +199,9 @@ export const updateConfession = async (req, res) => {
             return res.status(404).json({ success: false, message: "Confession not found" });
         }
 
-        // Admin or Owner
-        if (confession.user.toString() !== req.user.id.toString() && req.user.user_access !== 'admin') {
-            return res.status(403).json({ success: false, message: "Not authorized" });
+        // Only Owner can edit (Admins can only delete, as per user requirement)
+        if (confession.user.toString() !== req.user.id.toString()) {
+            return res.status(403).json({ success: false, message: "Not authorized to edit this confession" });
         }
 
         const updated = await Confession.findByIdAndUpdate(
@@ -212,7 +214,7 @@ export const updateConfession = async (req, res) => {
                 } 
             },
             { new: true }
-        ).populate('taggedUser', 'name username avatar user_access');
+        ).populate('user', 'name').populate('taggedUser', 'name username avatar user_access');
 
         const updatedWithFlag = {
             ...updated._doc,

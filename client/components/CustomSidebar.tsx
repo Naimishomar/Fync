@@ -60,7 +60,7 @@ export default function CustomSidebar(props: any) {
                     {/* 2. QUIZZES DROPDOWN (Parent) */}
                     <Pressable
                         onPress={toggleQuizzes}
-                        className="flex-row items-center justify-between px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                        className="flex-row items-center justify-between px-4 py-4 rounded-xl active:bg-gray-800"
                     >
                         <View className="flex-row items-center">
                             <Ionicons name="game-controller-outline" size={24} color="#f9a8d4" />
@@ -75,7 +75,7 @@ export default function CustomSidebar(props: any) {
 
                     {/* 2a. QUIZZES CHILDREN */}
                     {showQuizzes && (
-                        <View className="ml-4 border-l-2 border-gray-800 pl-2">
+                        <View className="ml-6 border-l-2 border-gray-800 pl-1">
                             {/* 1v1 Quiz */}
                             <Pressable
                                 onPress={() => props.navigation.navigate('OneVsOneSetup')}
@@ -108,7 +108,7 @@ export default function CustomSidebar(props: any) {
                     {/* 3. OPPORTUNITIES DROPDOWN (Parent) */}
                     <Pressable
                         onPress={toggleOpportunities}
-                        className="flex-row items-center justify-between px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                        className="flex-row items-center justify-between px-4 py-4 rounded-xl active:bg-gray-800"
                     >
                         <View className="flex-row items-center">
                             <Ionicons name="briefcase-outline" size={24} color="#f9a8d4" />
@@ -123,7 +123,7 @@ export default function CustomSidebar(props: any) {
 
                     {/* 3a. OPPORTUNITIES CHILDREN */}
                     {showOpportunities && (
-                        <View className="ml-4 border-l-2 border-gray-800 pl-2">
+                        <View className="ml-6 border-l-2 border-gray-800 pl-1">
                             {/* Hackathon */}
                             <Pressable
                                 onPress={() => props.navigation.navigate('HackathonList')}

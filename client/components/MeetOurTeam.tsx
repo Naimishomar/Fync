@@ -18,7 +18,7 @@ const TEAM_MEMBERS = [
     {
         id: '1',
         name: 'Naimish Omar',
-        role: 'Founder & CEO',
+        role: 'Founder',
         image: 'https://i.ibb.co/8gdSMgt8/Screenshot-2026-04-07-233722.png',
         isHighlighted: true,
         linkedin: 'https://www.linkedin.com/in/Naimishomar/',
