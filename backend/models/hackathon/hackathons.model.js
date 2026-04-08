@@ -1,8 +1,8 @@
-import { stringify, v4 as uuidv4 } from "uuid";
 import mongoose from "mongoose";
+
 const hackathonSchema = new mongoose.Schema({
    hackathonId: {
-      type: uuidv4,
+      type: String,
       unique: true,
       required: true
    },
@@ -10,17 +10,18 @@ const hackathonSchema = new mongoose.Schema({
       type: String,
       required: true
    },
-   organiser:{
-      type:mongoose.Schema.Types.ObjectId,
-      require:true,
+   organiser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
    },
    registrationstart: {
+      type: Date,
       required: true,
-      types: Date
    },
-   registrationends:{
+   registrationends: {
+      type: Date,
       required: true,
-      types: Date
    },
    hackathonstarts: {
       type: Date,
@@ -49,15 +50,13 @@ const hackathonSchema = new mongoose.Schema({
          weightage: { type: String },
          description: { type: String }
       }],
-   MaxTeamSize:{
-      require: true,
+   MaxTeamSize: {
       type: Number,
       default: 4
    },
    createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: 'User'
+      ref: 'User',
    },
    tags: {
       type: [{ type: String }]
@@ -65,25 +64,21 @@ const hackathonSchema = new mongoose.Schema({
    status: {
       type: String,
       enum: ["draft", "upcoming", "judging", "completed", "active"],
-      default: "Upcoming"
+      default: "upcoming"
    },
-   createdAt: {
-      type: Date.now()
-   },
-   sponsors:[
-      {name:String , logo:String}
+   sponsors: [
+      { name: String, logo: String }
    ],
-   bannerImage:{
-      type:{
-         String
-      }
+   bannerImage: {
+      type: String
    },
    judges: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-   participants:[{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+   participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 },
- {
-   timestamps: true
-})
-hackathonSchema.index({status:1,tags:1});
+   {
+      timestamps: true
+   })
+
+hackathonSchema.index({ status: 1, tags: 1 });
 const Hackathon = mongoose.model("Hackathon", hackathonSchema);
 export default Hackathon;

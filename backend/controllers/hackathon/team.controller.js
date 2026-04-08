@@ -1,7 +1,7 @@
-import HackathonTeam from "../../models/hackathon/team.model";
-import Hackathon from "../../models/hackathon/hackathons.model";
-import client from "../../utils/redis";
-import HackathonChannel from "../../models/hackathon/Hackathonchannel.model";
+import HackathonTeam from "../../models/hackathon/team.model.js";
+import Hackathon from "../../models/hackathon/hackathons.model.js";
+import client from "../../utils/redis.js";
+import HackathonChannel from "../../models/hackathon/Hackathonchannel.model.js";
 // Post api/teams/
 export const createTeam = async (req, res, next) => {
    try {

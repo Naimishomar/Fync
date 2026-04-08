@@ -38,6 +38,10 @@ import clubRoute from './routes/club/club.routes.js';
 import marketplaceRoute from './routes/marketplace/marketplace.route.js';
 import adRoute from './routes/ad.route.js';
 import contactUsRoute from './routes/contact us/contactUs.route.js';
+import hackathonRoute from './routes/hackathon/hackarthon.route.js';
+import teamRoute from './routes/hackathon/team.route.js';
+import submissionRoute from './routes/hackathon/submission.route.js';
+import announcementRoute from './routes/hackathon/anouncement.route.js';
 
 import { setCollegeChatIo } from './controllers/collegeChat.controller.js';
 import { setAlumniChatIo } from './controllers/alumniChat.controller.js';
@@ -155,6 +159,10 @@ app.use('/clubs', clubRoute);
 app.use('/api/marketplace', marketplaceRoute);
 app.use('/ads', adRoute);
 app.use('/contact-us', contactUsRoute);
+app.use('/hackathons', hackathonRoute);
+app.use('/teams', teamRoute);
+app.use('/submissions', submissionRoute);
+app.use('/announcements', announcementRoute);
 
 
 socketController(io);

@@ -1,10 +1,7 @@
 import express from "express";
-const router = express.Router();
-import { authMiddleware } from "../../middlewares/auth.middleware";
-import { getSubmissions , getSubmission , createSubmission , getMySubmission , finalizeSubmission , removeFile , deleteSubmission , updateSubmission} from "../../controllers/hackathon/submission.controller";
-const{
+import { authMiddleware } from "../../middlewares/auth.middleware.js";
+import {
     getSubmissions,
-    getSubmission,
     getMySubmission,
     createSubmission,
     updateSubmission,
@@ -12,15 +9,30 @@ const{
     addFile,
     removeFile,
     deleteSubmission,
-} = require("../controllers/submission.controller");
-router.get("/", protect, getSubmissions);
-router.get("/my/:hackathonId", protect, getMySubmission);
-router.get("/:id", protect, getSubmission);
-router.post("/", protect, createSubmission);
-router.patch("/:id", protect, updateSubmission);
-router.post("/:id/finalize", protect, finalizeSubmission);
-router.post("/:id/files", protect, addFile);
-router.delete("/:id/files/:fileId", protect, removeFile);
-router.delete("/:id", protect, deleteSubmission);
+} from "../../controllers/hackathon/submission.controller.js";
 
-module.exports = router;
+const router = express.Router();
+
+// All submissions (organiser / judge view)
+router.get("/", authMiddleware, getSubmissions);
+
+// My team's submission for a hackathon
+router.get("/my/:hackathonId", authMiddleware, getMySubmission);
+
+// Create draft submission
+router.post("/", authMiddleware, createSubmission);
+
+// Update draft
+router.patch("/:id", authMiddleware, updateSubmission);
+
+// Finalize (lock and submit)
+router.post("/:id/finalize", authMiddleware, finalizeSubmission);
+
+// File attachments
+router.post("/:id/files", authMiddleware, addFile);
+router.delete("/:id/files/:fileId", authMiddleware, removeFile);
+
+// Delete draft
+router.delete("/:id", authMiddleware, deleteSubmission);
+
+export default router;
