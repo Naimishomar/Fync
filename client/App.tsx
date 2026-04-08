@@ -129,6 +129,12 @@ import TermsAndCondition from 'components/T&C';
 import ContactUs from './components/ContactUs';
 import MeetOurTeam from 'components/MeetOurTeam';
 
+// Hackathon Ecosystem
+import HackathonHub from './components/hackathon/HackathonHub';
+import HackathonDetail from './components/hackathon/HackathonDetail';
+import HackathonTeamScreen from './components/hackathon/HackathonTeamScreen';
+import HackathonSubmission from './components/hackathon/HackathonSubmission';
+
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
   strict: false,
@@ -261,6 +267,11 @@ export type RootStackParamList = {
   ManageAds: undefined;
   ContactUs: undefined;
   MeetOurTeam: undefined;
+  // Hackathon Ecosystem
+  HackathonHub: undefined;
+  HackathonDetail: { hackathonId: string };
+  HackathonTeamScreen: { hackathonId: string; mode?: 'create' | 'browse' };
+  HackathonSubmission: { hackathonId: string };
 };
 
 
@@ -395,6 +406,11 @@ function AppStack() {
       <Stack.Screen name="ManageAds" component={ManageAds} />
       <Stack.Screen name="ContactUs" component={ContactUs} />
       <Stack.Screen name="MeetOurTeam" component={MeetOurTeam} />
+      {/* Hackathon Ecosystem */}
+      <Stack.Screen name="HackathonHub" component={HackathonHub} />
+      <Stack.Screen name="HackathonDetail" component={HackathonDetail} />
+      <Stack.Screen name="HackathonTeamScreen" component={HackathonTeamScreen} />
+      <Stack.Screen name="HackathonSubmission" component={HackathonSubmission} />
     </Stack.Navigator>
   );
 }
