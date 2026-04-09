@@ -55,21 +55,20 @@ export default function SignUpScreen() {
         Toast.show({
           type: 'success',
           text1: 'OTP Sent',
-          text2: 'Check your email',
+          text2: res.data.message || 'Please check your email for the verification code',
         });
       } else {
         Toast.show({
-          type: 'error',
-          text1: 'Failed',
+          type: 'info',
+          text1: 'Sign Up',
           text2: res.data.message,
         });
       }
     } catch (error: any) {
-      console.error("Send OTP Error", error);
       Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: error.response?.data?.message || 'Failed to send OTP',
+        type: 'info',
+        text1: 'Already Registered',
+        text2: error.response?.data?.message || 'This account might already exist.',
       });
     } finally {
       setIsLoading(false);
@@ -103,7 +102,6 @@ export default function SignUpScreen() {
         });
       }
     } catch (error: any) {
-      console.error("Verify OTP Error", error);
       Toast.show({
         type: 'error',
         text1: 'Verification Failed',

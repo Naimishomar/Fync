@@ -1,61 +1,100 @@
-import { View, Text, ScrollView } from "react-native";
+import React from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+
+const TCSection = ({ icon, title, content }: { icon: any; title: string; content: string }) => (
+  <View className="mb-6 bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
+    <View className="flex-row items-center mb-3">
+      <View className="w-10 h-10 rounded-2xl bg-indigo-50 items-center justify-center mr-3">
+        <Ionicons name={icon} size={20} color="#6366f1" />
+      </View>
+      <Text className="text-zinc-900 text-lg font-black italic uppercase tracking-tighter">{title}</Text>
+    </View>
+    <Text className="text-slate-500 text-xs font-semibold leading-5 leading-relaxed">{content}</Text>
+  </View>
+);
 
 export default function TermsAndCondition() {
+  const navigation = useNavigation<any>();
+
   return (
-    <View className="flex-1 bg-white px-4 pt-6">
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <View className="flex-1 bg-[#F8FAFC]">
+      <StatusBar barStyle="dark-content" />
+      <SafeAreaView className="flex-1">
         
-        {/* Title */}
-        <Text className="text-2xl font-bold text-gray-900 mb-4">
-          Terms & Conditions
-        </Text>
+        {/* Header */}
+        <View className="px-6 py-4 flex-row items-center justify-between">
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()}
+            className="w-12 h-12 rounded-2xl bg-white border border-slate-100 items-center justify-center shadow-sm"
+          >
+            <Ionicons name="arrow-back" size={24} color="#1e293b" />
+          </TouchableOpacity>
+          <View className="items-end">
+            <Text className="text-zinc-900 text-xl font-black uppercase tracking-tighter">Legal Hub</Text>
+            <Text className="text-indigo-500 text-[10px] font-black uppercase tracking-widest">Fync Ecosystem</Text>
+          </View>
+          <View className='w-10'></View>
+        </View>
 
-        {/* Intro */}
-        <Text className="text-gray-600 leading-5 mb-3">
-          Welcome to Fync. By using this app, you agree to the following terms and conditions.
-        </Text>
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 40 }}
+        >
+          {/* Hero Section */}
+          <LinearGradient
+            colors={['#6366f1', '#a855f7']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="rounded-[40px] p-8 mb-8 overflow-hidden relative"
+          >
+            <Ionicons name="document-text" size={120} color="rgba(255,255,255,0.1)" style={{ position: 'absolute', right: -20, bottom: -20 }} />
+            <Text className="text-white text-3xl font-black italic tracking-tighter mb-2">Terms & Conditions</Text>
+            <Text className="text-indigo-100 text-xs font-bold leading-5">
+              Please read these terms carefully before joining the exclusive student network.
+            </Text>
+          </LinearGradient>
 
-        {/* Section 1 */}
-        <Text className="text-lg font-semibold text-gray-800 mt-3">
-          1. Usage
-        </Text>
-        <Text className="text-gray-600 leading-5 mt-1">
-          You agree to use this app only for lawful purposes and in a way that does not harm others or violate any laws.
-        </Text>
+          {/* Sections */}
+          <TCSection 
+            icon="shield-checkmark" 
+            title="1.Usage" 
+            content="You agree to use this app only for lawful purposes. Any activity that harms, harasses, or violates the rights of other students is strictly prohibited and may result in permanent termination of your account." 
+          />
 
-        {/* Section 2 */}
-        <Text className="text-lg font-semibold text-gray-800 mt-3">
-          2. User Data
-        </Text>
-        <Text className="text-gray-600 leading-5 mt-1">
-          We may collect and store your data to improve our services. Your data will not be shared without your consent.
-        </Text>
+          <TCSection 
+            icon="lock-closed" 
+            title="2.User Data" 
+            content="Your privacy is our priority. We collect data to improve your experience and match you with relevant opportunities. We will never sell your personal information to third parties without your explicit consent." 
+          />
 
-        {/* Section 3 */}
-        <Text className="text-lg font-semibold text-gray-800 mt-3">
-          3. Payments
-        </Text>
-        <Text className="text-gray-600 leading-5 mt-1">
-          All payments are processed securely via third-party services. We are not responsible for failures caused by them.
-        </Text>
+          <TCSection 
+            icon="card" 
+            title="3.Payments" 
+            content="All financial transactions, including funding and gig payments, are processed through secure, industry-standard third-party providers. Fync is not liable for transaction failures caused by external banking systems." 
+          />
 
-        {/* Section 4 */}
-        <Text className="text-lg font-semibold text-gray-800 mt-3">
-          4. Updates
-        </Text>
-        <Text className="text-gray-600 leading-5 mt-1">
-          We reserve the right to update these terms at any time without prior notice.
-        </Text>
+          <TCSection 
+            icon="sync" 
+            title="4.Updates" 
+            content="The student ecosystem is fast-moving. We reserve the right to modify these terms at any time. Significant changes will be announced via the dashboard or email." 
+          />
 
-        {/* Section 5 */}
-        <Text className="text-lg font-semibold text-gray-800 mt-3">
-          5. Contact
-        </Text>
-        <Text className="text-gray-600 leading-5 mt-1 mb-6">
-          If you have any questions, contact us at fync.dev@gmail.com
-        </Text>
+          <TCSection 
+            icon="mail" 
+            title="5.Contact" 
+            content="Questions or concerns? Reach out to our legal and support team directly at fync.dev@gmail.com — we're here to help you build your future." 
+          />
 
-      </ScrollView>
+          <View className="mt-4 items-center">
+            <Text className="text-slate-300 text-[10px] font-black uppercase tracking-[4px]">Verified By Fync Legal</Text>
+          </View>
+
+        </ScrollView>
+      </SafeAreaView>
     </View>
   );
 }

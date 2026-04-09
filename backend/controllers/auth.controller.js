@@ -32,7 +32,7 @@ export const sendOTP = async (req, res) => {
       if (existingUser.mobileNumber === mobileNumber) conflict = "Mobile Number";
       
       console.log(`DEBUG: Registration conflict - ${conflict} already in use`);
-      return res.status(400).json({
+      return res.status(200).json({
         success: false,
         message: `${conflict} is already in use by another account.`
       });
@@ -48,7 +48,7 @@ export const sendOTP = async (req, res) => {
     await sendMail(email, otp, username);
     return res.status(200).json({
       success: true,
-      message: "OTP sent successfully"
+      message: "OTP sent to your email, please check"
     });
   } catch (error) {
     console.error("DEBUG: OTP Error Full:", error);
@@ -77,7 +77,7 @@ export const sendAlumniOTP = async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       console.log(`DEBUG: Alumni registration conflict - Email ${email} already in use`);
-      return res.status(400).json({
+      return res.status(200).json({
         success: false,
         message: "This work email is already registered with an account."
       });

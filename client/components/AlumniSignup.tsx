@@ -50,14 +50,14 @@ export default function AlumniSignup() {
         Toast.show({
           type: 'success',
           text1: 'OTP Sent',
-          text2: 'Check your work email',
+          text2: res.data.message || 'Check your work email for OTP',
         });
       }
     } catch (error: any) {
       Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: error.response?.data?.message || 'Failed to send OTP',
+        type: 'info',
+        text1: 'Already Registered',
+        text2: error.response?.data?.message || 'This account migth already exist.',
       });
     } finally {
       setIsLoading(false);
