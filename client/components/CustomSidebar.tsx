@@ -132,7 +132,7 @@ export default function CustomSidebar(props: any) {
                         <View className="ml-6 border-l-2 border-gray-800 pl-1">
                             {/* Hackathon */}
                             <Pressable
-                                onPress={() => props.navigation.navigate('HackathonList')}
+                                onPress={() => props.navigation.navigate('HackathonHub')}
                                 className="flex-row items-center px-4 py-3 rounded-xl mb-1 active:bg-gray-800"
                             >
                                 <Ionicons name="code-slash-outline" size={20} color="#9ca3af" />
@@ -196,15 +196,6 @@ export default function CustomSidebar(props: any) {
                             >
                                 <Ionicons name="search-outline" size={20} color="#9ca3af" />
                                 <Text className="text-gray-300 text-base ml-3 font-medium">Browse Hackathons</Text>
-                            </Pressable>
-
-                            {/* External Hackathons (devpost) */}
-                            <Pressable
-                                onPress={() => props.navigation.navigate('HackathonList')}
-                                className="flex-row items-center px-4 py-3 rounded-xl mb-1 active:bg-gray-800"
-                            >
-                                <Ionicons name="globe-outline" size={20} color="#9ca3af" />
-                                <Text className="text-gray-300 text-base ml-3 font-medium">Global Hackathons</Text>
                             </Pressable>
                         </View>
                     )}

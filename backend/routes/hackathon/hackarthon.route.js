@@ -11,6 +11,8 @@ import {
     gethackchannels
 } from "../../controllers/hackathon/hackathon.controller.js";
 import { authMiddleware } from "../../middlewares/auth.middleware.js";
+import { upload } from "../../utils/r2.js";
+import { r2UploadMiddleware } from "../../utils/r2Upload.js";
 import {Router} from "express";
 const router = Router();
 
@@ -21,7 +23,11 @@ router.post("/list", authMiddleware, gethackathons);
 router.get("/:hackathonId", authMiddleware, gethackathon);
 
 // Create hackathon (organizer)
-router.post("/", authMiddleware, createHackathon);
+router.post("/", authMiddleware, 
+    upload.fields([{ name: 'bannerImage', maxCount: 1 }, { name: 'logo', maxCount: 1 }]), 
+    r2UploadMiddleware({ bannerImage: 'hackathons', logo: 'hackathons' }), 
+    createHackathon
+);
 
 // Update hackathon details
 router.patch("/:hackathonId", authMiddleware, updatehackathon);

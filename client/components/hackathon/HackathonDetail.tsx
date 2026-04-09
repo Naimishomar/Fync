@@ -11,6 +11,8 @@ import {
   Alert,
   FlatList,
   RefreshControl,
+  TextInput,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -35,6 +37,7 @@ interface Hackathon {
   _id: string;
   title: string;
   bannerImage?: string;
+  logo?: string;
   status: string;
   hackathonstarts: string;
   hackathonends: string;
@@ -136,13 +139,52 @@ const HackathonDetail = () => {
   const loadAnnouncements = async () => {
     setAnnLoading(true);
     try {
-      // Correct route: GET /announcements/:hackathonId
       const res = await axios.get(`/announcements/${hackathonId}`);
       setAnnouncements(res.data.announcements ?? []);
     } catch {
       // Silent
     } finally {
       setAnnLoading(false);
+    }
+  };
+
+  const [annForm, setAnnForm] = useState({ title: '', body: '', isPinned: false });
+  const [postingAnn, setPostingAnn] = useState(false);
+
+  const isOfficial = () => {
+    if (!hackathon || !user) return false;
+    const isOrg = hackathon.organiser?._id === user.id;
+    const isJdg = hackathon.judges?.some((j: any) => (j._id || j) === user.id || j === user.id);
+    return isOrg || isJdg;
+  };
+
+  const handlePostAnnouncement = async () => {
+    if (!annForm.title || !annForm.body) {
+      Alert.alert('Missing Fields', 'Please enter a title and message');
+      return;
+    }
+    setPostingAnn(true);
+    try {
+      const res = await axios.post(`/announcements/${hackathonId}`, {
+        title: annForm.title,
+        body: annForm.body,
+        isPinned: annForm.isPinned,
+        type: 'general'
+      });
+      if (res.data.success) {
+        Toast.show({ type: 'success', text1: 'Announcement posted!' });
+        setAnnForm({ title: '', body: '', isPinned: false });
+        const newAnn = { ...res.data.announcement, Title: res.data.announcement.Title || res.data.announcement.title };
+        setAnnouncements([newAnn, ...announcements]);
+      }
+    } catch (err: any) {
+      Toast.show({ 
+        type: 'error', 
+        text1: 'Failed to post', 
+        text2: err.response?.data?.message || 'Something went wrong' 
+      });
+    } finally {
+      setPostingAnn(false);
     }
   };
 
@@ -239,15 +281,25 @@ const HackathonDetail = () => {
             className="absolute inset-0"
           />
           {/* Status */}
-          <View className="absolute bottom-4 left-4">
+          <View className="absolute bottom-4 right-4">
             <LinearGradient colors={statusMeta.colors as any} className="px-3 py-1.5 rounded-full self-start">
               <Text className="text-white font-black text-[11px] uppercase tracking-widest">{statusMeta.label}</Text>
             </LinearGradient>
           </View>
+          {/* Logo Overlay */}
+          <View className="absolute top-36 left-6 bg-white p-1 rounded-full shadow-lg border border-slate-50 z-10">
+            {hackathon.logo ? (
+              <Image source={{ uri: hackathon.logo }} className="w-16 h-16 rounded-full" />
+            ) : (
+              <View className="w-16 h-16 rounded-full bg-indigo-50 items-center justify-center">
+                <Ionicons name="rocket" size={28} color="#6366f1" />
+              </View>
+            )}
+          </View>
         </View>
 
         {/* Main Info Card */}
-        <View className="bg-white -mt-6 mx-4 rounded-3xl p-5 mb-4"
+        <View className="bg-white -mt-6 mx-4 rounded-3xl p-5 pt-10 mb-4"
           style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 16, elevation: 6 }}>
 
           <Text className="text-zinc-900 text-2xl font-black italic tracking-tight leading-7 mb-3">{hackathon.title}</Text>
@@ -424,6 +476,67 @@ const HackathonDetail = () => {
           {/* Announcements Tab */}
           {activeTab === 1 && (
             <View>
+              {isOfficial() && (
+                <View className="bg-white mx-5 mt-4 rounded-3xl p-5 border border-indigo-100 shadow-sm mb-6">
+                  <View className="flex-row items-center mb-4">
+                    <View className="w-8 h-8 rounded-xl bg-indigo-100 items-center justify-center mr-3">
+                      <Ionicons name="megaphone" size={16} color="#6366f1" />
+                    </View>
+                    <Text className="text-zinc-900 font-black italic uppercase tracking-tight">Post Announcement</Text>
+                  </View>
+                  
+                  <TextInput
+                    placeholder="Headline (e.g. Schedule Update)"
+                    placeholderTextColor="#94a3b8"
+                    value={annForm.title}
+                    onChangeText={(t) => setAnnForm({...annForm, title: t})}
+                    className="bg-slate-50 rounded-xl px-4 py-3 mb-3 text-zinc-900 font-bold text-sm border border-slate-100"
+                  />
+                  <TextInput
+                    placeholder="What's happening?"
+                    placeholderTextColor="#94a3b8"
+                    value={annForm.body}
+                    onChangeText={(t) => setAnnForm({...annForm, body: t})}
+                    multiline
+                    numberOfLines={3}
+                    className="bg-slate-50 rounded-xl px-4 py-3 mb-4 text-zinc-900 font-semibold text-xs border border-slate-100 min-h-[80px]"
+                    textAlignVertical="top"
+                  />
+
+                  <View className="flex-row items-center justify-between mb-4 px-1">
+                    <View className="flex-row items-center">
+                      <Ionicons name="pin" size={14} color={annForm.isPinned ? '#f59e0b' : '#94a3b8'} />
+                      <Text className="text-[10px] text-slate-500 font-black uppercase tracking-widest ml-2">Pin to Top</Text>
+                    </View>
+                    <Switch
+                      value={annForm.isPinned}
+                      onValueChange={(v) => setAnnForm({...annForm, isPinned: v})}
+                      trackColor={{ false: '#e2e8f0', true: '#c7d2fe' }}
+                      thumbColor={annForm.isPinned ? '#6366f1' : '#f4f4f5'}
+                    />
+                  </View>
+
+                  <TouchableOpacity 
+                    onPress={handlePostAnnouncement}
+                    disabled={postingAnn}
+                    className="overflow-hidden rounded-2xl"
+                  >
+                    <LinearGradient
+                      colors={['#6366f1', '#ec4899']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      className="py-3 items-center"
+                    >
+                      {postingAnn ? (
+                        <ActivityIndicator size="small" color="white" />
+                      ) : (
+                        <Text className="text-white font-black uppercase tracking-widest text-xs">Blast Message</Text>
+                      )}
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
+              )}
+
               {annLoading ? (
                 <View className="py-10 items-center">
                   <ActivityIndicator size="small" color="#6366f1" />

@@ -518,7 +518,7 @@ export const socketController = (io) => {
       });
     });
 
-    socket.on("send_night_message", async ({ senderId, text, tempId, type, mediaUrl }) => {
+    socket.on("send_night_message", async ({ senderId, text, tempId, type, mediaUrl, replyTo }) => {
       const { isOpen } = checkClubStatus();
 
       if (!isOpen) {
@@ -533,7 +533,7 @@ export const socketController = (io) => {
           message: text?.trim() || "",
           messageType: type || 'text',
           fileUrl: mediaUrl || "",
-          replyTo: data.replyTo || null
+          replyTo: replyTo || null
         });
         nightMsg = await nightMsg.populate("sender", "name username avatar");
         let msgObj = nightMsg.toObject();
@@ -547,20 +547,102 @@ export const socketController = (io) => {
       }
     });
 
-    // --- END 12 AM CLUB LOGIC ---
-    
+    // --- 🤫 ANONYMOUS 1-ON-1 CHAT LOGIC ---
 
-    socket.on("disconnect", () => {
+    socket.on("find_night_1v1", async ({ userId }) => {
+      const { isOpen } = checkClubStatus();
+      if (!isOpen) return socket.emit("night_club_error", { message: "Club closed" });
+
+      const queueKey = "queue:night_1v1";
+      
+      // Cleanup previous match if any
+      const oldRoomId = await redisClient.get(`user:night_1v1:${userId}`);
+      if (oldRoomId) {
+        io.to(oldRoomId).emit("night_1v1_partner_left");
+        await redisClient.del(`user:night_1v1:${userId}`);
+      }
+
+      let opponentStr = await redisClient.rPop(queueKey);
+
+      if (!opponentStr) {
+        // No one in queue, join the queue
+        await redisClient.lPush(queueKey, JSON.stringify({ userId, socketId: socket.id }));
+        socket.emit("night_1v1_searching");
+        return;
+      }
+
+      const opponent = JSON.parse(opponentStr);
+      if (opponent.userId === userId) {
+        // Don't match with self, re-queue
+        await redisClient.lPush(queueKey, opponentStr);
+        socket.emit("night_1v1_searching");
+        return;
+      }
+
+      const opponentSocket = io.sockets.sockets.get(opponent.socketId);
+      if (!opponentSocket) {
+        // Opponent disconnected, try again
+        return socket.emit("find_night_1v1", { userId });
+      }
+
+      // Match found!
+      const roomId = `night_1v1:${nanoid(8)}`;
+      socket.join(roomId);
+      opponentSocket.join(roomId);
+
+      await redisClient.set(`user:night_1v1:${userId}`, roomId, { EX: 21600 });
+      await redisClient.set(`user:night_1v1:${opponent.userId}`, roomId, { EX: 21600 });
+
+      io.to(roomId).emit("night_1v1_found", { roomId });
+    });
+
+    socket.on("send_night_1v1_message", async ({ roomId, senderId, text, type, mediaUrl }) => {
+      const { isOpen } = checkClubStatus();
+      if (!isOpen) return;
+
+      // Broadcast to partner in the private room
+      socket.to(roomId).emit("new_night_1v1_message", {
+        senderId,
+        message: text,
+        messageType: type || 'text',
+        fileUrl: mediaUrl || "",
+        createdAt: new Date().toISOString()
+      });
+    });
+
+    socket.on("skip_night_1v1", async ({ userId, roomId }) => {
+      socket.leave(roomId);
+      socket.to(roomId).emit("night_1v1_partner_left");
+      await redisClient.del(`user:night_1v1:${userId}`);
+      
+      // Trigger new search automatically
+      socket.emit("find_night_1v1", { userId });
+    });
+
+    socket.on("leave_night_1v1", async ({ userId, roomId }) => {
+      socket.leave(roomId);
+      socket.to(roomId).emit("night_1v1_partner_left");
+      await redisClient.del(`user:night_1v1:${userId}`);
+    });
+
+    socket.on("disconnect", async () => {
       console.log("Socket disconnected:", socket.id);
 
       if (socket.userId) {
+        // Cleanup 1v1 if they were in a match
+        const roomId = await redisClient.get(`user:night_1v1:${socket.userId}`);
+        if (roomId) {
+          io.to(roomId).emit("night_1v1_partner_left");
+          await redisClient.del(`user:night_1v1:${socket.userId}`);
+        }
+
         onlineUsers.delete(socket.userId);
         io.emit("statusUpdate", { userId: socket.userId, status: "offline" });
       }
 
-      const userId = Object.keys(videoUsers).find(key => videoUsers[key].socketId === socket.id);
-      if (userId) {
-        delete videoUsers[userId];
+      const videoId = Object.keys(videoUsers).find(key => videoUsers[key].socketId === socket.id);
+      if (videoId) {
+        delete videoUsers[videoId];
         io.emit("video_users_update", Object.values(videoUsers));
       }
     });

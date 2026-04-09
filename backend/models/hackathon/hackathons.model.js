@@ -72,6 +72,9 @@ const hackathonSchema = new mongoose.Schema({
    bannerImage: {
       type: String
    },
+   logo: {
+      type: String
+   },
    judges: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 },

@@ -31,10 +31,14 @@ const getNightIdentity = (userId: string | undefined) => {
 export default function TwelveAMClub() {
   const [isOpen, setIsOpen] = useState(false);
   const [timeLeft, setTimeLeft] = useState(""); 
+  const [mode, setMode] = useState<'global' | 'private'>('global'); // Added mode toggle
   const [messages, setMessages] = useState<any[]>([]);
+  const [privateMessages, setPrivateMessages] = useState<any[]>([]); // Messages for 1v1
   const [inputText, setInputText] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [replyingTo, setReplyingTo] = useState<any>(null);
+  const [isSearching, setIsSearching] = useState(false); // Matchmaking state
+  const [matchRoomId, setMatchRoomId] = useState<string | null>(null);
 
   const { user } = useAuth();
   const CURRENT_USER_ID = user?._id || user?.id; 
@@ -82,19 +86,66 @@ export default function TwelveAMClub() {
       });
     };
 
+    // 1v1 Socket Listeners
+    const handleSearching = () => setIsSearching(true);
+    const handleMatchFound = ({ roomId }: { roomId: string }) => {
+        setMatchRoomId(roomId);
+        setIsSearching(false);
+        setPrivateMessages([]);
+        Alert.alert("Matched!", "You are now connected to a stranger. Be nice!");
+    };
+    const handleNewPrivateMessage = (msg: any) => {
+        setPrivateMessages(prev => [msg, ...prev]);
+    };
+    const handlePartnerLeft = () => {
+        setMatchRoomId(null);
+        Alert.alert("Disconnected", "Your partner left the chat. Finding someone new...");
+        findMatch();
+    };
+
     const handleError = (err: any) => Alert.alert("Club Error", err.message);
 
     socket.on("night_club_joined", handleJoined);
     socket.on("new_night_message", handleNewMessage);
     socket.on("night_club_error", handleError);
-    socket.on("connect", () => socket.emit("join_night_club"));
+    
+    // 1v1 Events
+    socket.on("night_1v1_searching", handleSearching);
+    socket.on("night_1v1_found", handleMatchFound);
+    socket.on("new_night_1v1_message", handleNewPrivateMessage);
+    socket.on("night_1v1_partner_left", handlePartnerLeft);
+
+    socket.on("connect", () => {
+        socket.emit("join_night_club");
+        if (mode === 'private' && !matchRoomId && !isSearching) findMatch();
+    });
 
     return () => {
       socket.off("night_club_joined", handleJoined);
       socket.off("new_night_message", handleNewMessage);
       socket.off("night_club_error", handleError);
+      socket.off("night_1v1_searching", handleSearching);
+      socket.off("night_1v1_found", handleMatchFound);
+      socket.off("new_night_1v1_message", handleNewPrivateMessage);
+      socket.off("night_1v1_partner_left", handlePartnerLeft);
     };
-  }, [isOpen]);
+  }, [isOpen, mode, matchRoomId, isSearching]);
+
+  const findMatch = () => {
+      if (!CURRENT_USER_ID) return;
+      setIsSearching(true);
+      setMatchRoomId(null);
+      setPrivateMessages([]);
+      socket.emit("find_night_1v1", { userId: CURRENT_USER_ID });
+  };
+
+  const skipMatch = () => {
+      if (!CURRENT_USER_ID || !matchRoomId) return;
+      socket.emit("skip_night_1v1", { userId: CURRENT_USER_ID, roomId: matchRoomId });
+      setMatchRoomId(null);
+      setPrivateMessages([]);
+      setIsSearching(true);
+  };
 
   const processAndSendMedia = async (uri: string) => {
       if (!CURRENT_USER_ID) return;
@@ -112,7 +163,8 @@ export default function TwelveAMClub() {
           } : null
       };
 
-      setMessages(prev => [optimisticMsg, ...prev]);
+      if (mode === 'global') setMessages(prev => [optimisticMsg, ...prev]);
+      else setPrivateMessages(prev => [optimisticMsg, ...prev]);
 
       try {
           const formData = new FormData();
@@ -128,14 +180,21 @@ export default function TwelveAMClub() {
           });
 
           if (res.data.success) {
-              socket.emit("send_night_message", {
-                  senderId: CURRENT_USER_ID, text: "", tempId, type: 'image', mediaUrl: res.data.fileUrl,
-                  replyTo: optimisticMsg.replyTo
-              });
+              if (mode === 'global') {
+                  socket.emit("send_night_message", {
+                      senderId: CURRENT_USER_ID, text: "", tempId, type: 'image', mediaUrl: res.data.fileUrl,
+                      replyTo: optimisticMsg.replyTo
+                  });
+              } else {
+                  socket.emit("send_night_1v1_message", {
+                      roomId: matchRoomId, senderId: CURRENT_USER_ID, text: "", type: 'image', mediaUrl: res.data.fileUrl
+                  });
+              }
           }
       } catch (e) {
           console.error("Media Error:", e);
-          setMessages(prev => prev.filter(m => m.tempId !== tempId));
+          if (mode === 'global') setMessages(prev => prev.filter(m => m.tempId !== tempId));
+          else setPrivateMessages(prev => prev.filter(m => m._id !== tempId));
           Alert.alert("Error", "Failed to send image.");
       } finally {
           setIsProcessing(false);
@@ -163,31 +222,41 @@ export default function TwelveAMClub() {
     const textToSend = inputText.trim();
     const tempId = Date.now().toString();
 
-    const optimisticMsg = {
-        _id: tempId, tempId, message: textToSend, type: 'text',
-        sender: { _id: CURRENT_USER_ID, username: user?.username || "Me", avatar: user?.avatar },
-        createdAt: new Date().toISOString(), pending: true,
-        replyTo: replyingTo ? {
-            messageId: replyingTo._id,
-            text: replyingTo.messageType === 'image' ? 'Image' : replyingTo.message,
-            senderName: getNightIdentity(replyingTo.sender._id).username
-        } : null
-    };
+    if (mode === 'global') {
+        const optimisticMsg = {
+            _id: tempId, tempId, message: textToSend, type: 'text',
+            sender: { _id: CURRENT_USER_ID, username: user?.username || "Me", avatar: user?.avatar },
+            createdAt: new Date().toISOString(), pending: true,
+            replyTo: replyingTo ? {
+                messageId: replyingTo._id,
+                text: replyingTo.messageType === 'image' ? 'Image' : replyingTo.message,
+                senderName: getNightIdentity(replyingTo.sender._id).username
+            } : null
+        };
+        setMessages(prev => [optimisticMsg, ...prev]);
+        socket.emit("send_night_message", {
+          senderId: CURRENT_USER_ID, text: textToSend, tempId, type: 'text',
+          replyTo: optimisticMsg.replyTo
+        });
+    } else {
+        if (!matchRoomId) return findMatch();
+        const optimisticMsg = {
+            _id: tempId, message: textToSend, senderId: CURRENT_USER_ID,
+            createdAt: new Date().toISOString()
+        };
+        setPrivateMessages(prev => [optimisticMsg, ...prev]);
+        socket.emit("send_night_1v1_message", {
+            roomId: matchRoomId, senderId: CURRENT_USER_ID, text: textToSend, type: 'text'
+        });
+    }
 
-    setMessages(prev => [optimisticMsg, ...prev]);
     setInputText("");
-
-    socket.emit("send_night_message", {
-      senderId: CURRENT_USER_ID, text: textToSend, tempId, type: 'text',
-      replyTo: optimisticMsg.replyTo
-    });
-
     setReplyingTo(null);
   };
 
   const renderMessage = ({ item }: { item: any }) => {
-    const isMe = item.sender._id === CURRENT_USER_ID;
-    const identity = getNightIdentity(item.sender._id);
+    const isMe = (mode === 'global' ? item.sender._id : item.senderId) === CURRENT_USER_ID;
+    const identity = mode === 'global' ? getNightIdentity(item.sender._id) : { username: "Stranger", avatar: "https://api.dicebear.com/9.x/fun-emoji/png?seed=stranger" };
 
     return (
         <View className={`mb-4 flex-row ${isMe ? 'justify-end' : 'justify-start'}`}>
@@ -197,17 +266,17 @@ export default function TwelveAMClub() {
                     className="w-8 h-8 rounded-full bg-zinc-800 border border-white/10 mr-2 self-end mb-1" 
                 />
             )}
-            <View className={`max-w-[80%] rounded-xl px-4 py-3 ${isMe ? 'bg-gray-800' : 'bg-zinc-900/90 border border-white/5'}`}>
+            <View className={`max-w-[80%] rounded-xl px-4 py-3 ${isMe ? 'bg-indigo-600' : 'bg-zinc-900/90 border border-white/5'}`}>
                 <Pressable
-                  onLongPress={() => setReplyingTo(item)}
+                  onLongPress={() => mode === 'global' && setReplyingTo(item)}
                   delayLongPress={300}
                 >
                     {!isMe && (
                         <Text className="text-white/60 font-black text-[10px] mb-1 uppercase tracking-widest">{identity.username}</Text>
                     )}
 
-                    {item.replyTo && (
-                        <View className="bg-zinc-950/50 border-l-2 border-indigo-500 rounded-md mb-2 p-2">
+                    {mode === 'global' && item.replyTo && (
+                        <View className="bg-zinc-950/50 border-l-2 border-indigo-400 rounded-md mb-2 p-2">
                              <Text className="text-indigo-400 text-[10px] font-black uppercase tracking-widest">{item.replyTo.senderName}</Text>
                              <Text className="text-white/50 text-[12px]" numberOfLines={1}>{item.replyTo.text}</Text>
                         </View>
@@ -267,35 +336,72 @@ export default function TwelveAMClub() {
         <SafeAreaView className="flex-1" edges={['top']}>
             <BlurView intensity={40} tint="dark" className="px-5 py-4 flex-row items-center justify-between border-b border-white/5">
                 <View className="flex-row items-center">
-                    <View className="bg-indigo-500/20 p-2 rounded-xl border border-indigo-500/30 mr-3">
-                        <MaterialCommunityIcons name="moon-waning-crescent" size={22} color="#818cf8" />
-                    </View>
+                    <TouchableOpacity 
+                        onPress={() => setMode(mode === 'global' ? 'private' : 'global')}
+                        className="bg-indigo-500/20 p-2 rounded-xl border border-indigo-500/30 mr-3"
+                    >
+                        <MaterialCommunityIcons name={mode === 'global' ? "earth" : "incognito"} size={22} color="#818cf8" />
+                    </TouchableOpacity>
                     <View>
-                        <Text className="text-white font-black uppercase text-xs tracking-widest">12 AM Night Club</Text>
-                        <Text className="text-indigo-400 font-bold text-[8px] uppercase tracking-widest">Ephemeral Connection</Text>
+                        <Text className="text-white font-black uppercase text-xs tracking-widest">{mode === 'global' ? 'Night Club' : 'Secret 1v1'}</Text>
+                        <Text className="text-indigo-400 font-bold text-[8px] uppercase tracking-widest">{mode === 'global' ? 'Ephemeral Group Chat' : 'One-on-One Secrets'}</Text>
                     </View>
                 </View>
-                <View className="flex-row items-center bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/20">
-                    <View className="w-1.5 h-1.5 rounded-full bg-red-500 mr-2" />
-                    <Text className="text-red-400 text-[10px] font-black uppercase tracking-widest">Live</Text>
-                </View>
+
+                {mode === 'private' && matchRoomId && (
+                    <TouchableOpacity 
+                        onPress={skipMatch}
+                        className="bg-zinc-800 px-4 py-2 rounded-full border border-white/10"
+                    >
+                        <Text className="text-indigo-400 text-[10px] font-black uppercase">Next ➔</Text>
+                    </TouchableOpacity>
+                )}
+
+                {mode === 'global' && (
+                    <View className="flex-row items-center bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/20">
+                        <View className="w-1.5 h-1.5 rounded-full bg-red-500 mr-2" />
+                        <Text className="text-red-400 text-[10px] font-black uppercase tracking-widest">Live</Text>
+                    </View>
+                )}
             </BlurView>
 
             <View className="flex-1">
-                <FlatList
-                    ref={flatListRef}
-                    data={messages}
-                    inverted
-                    keyExtractor={(item) => item._id || item.tempId || Math.random().toString()}
-                    contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
-                    showsVerticalScrollIndicator={false}
-                    renderItem={renderMessage}
-                />
+                {mode === 'private' && isSearching ? (
+                    <View className="flex-1 justify-center items-center">
+                        <View className="w-32 h-32 rounded-full border-2 border-indigo-500/30 items-center justify-center">
+                            <ActivityIndicator size="large" color="#818cf8" />
+                        </View>
+                        <Text className="text-white font-black uppercase text-sm tracking-widest mt-6">Searching for souls...</Text>
+                        <Text className="text-gray-500 text-[10px] uppercase mt-2">Connecting you to a random stranger</Text>
+                    </View>
+                ) : mode === 'private' && !matchRoomId ? (
+                    <View className="flex-1 justify-center items-center px-10">
+                        <MaterialCommunityIcons name="comment-search-outline" size={60} color="#4b5563" />
+                        <Text className="text-white text-xl font-black uppercase tracking-tighter mt-4 text-center">Ready to Chat?</Text>
+                        <Text className="text-gray-500 text-sm text-center mt-2 leading-5">Match with someone anonymous and start a private conversation. Completely secret.</Text>
+                        <TouchableOpacity 
+                            onPress={findMatch}
+                            className="bg-indigo-600 px-8 py-4 rounded-2xl mt-8 w-full items-center shadow-lg shadow-indigo-500/40"
+                        >
+                            <Text className="text-white font-black uppercase tracking-widest">Connect Now</Text>
+                        </TouchableOpacity>
+                    </View>
+                ) : (
+                    <FlatList
+                        ref={flatListRef}
+                        data={mode === 'global' ? messages : privateMessages}
+                        inverted
+                        keyExtractor={(item) => item._id || item.tempId || Math.random().toString()}
+                        contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+                        showsVerticalScrollIndicator={false}
+                        renderItem={renderMessage}
+                    />
+                )}
             </View>
 
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}>
                 
-                {replyingTo && (
+                {mode === 'global' && replyingTo && (
                   <BlurView intensity={80} tint="dark" className="px-5 py-3 border-t border-white/5 flex-row items-center justify-between">
                     <View className="border-l-2 border-indigo-500 pl-3 flex-1">
                       <Text className="text-indigo-400 text-[10px] font-black uppercase tracking-widest">
@@ -313,21 +419,23 @@ export default function TwelveAMClub() {
 
                 <View className="bg-zinc-950/80 px-5 pt-4 pb-8 border-t border-white/5">
                     <View className="flex-row items-end gap-3">
-                        <TouchableOpacity 
-                            onPress={pickImage}
-                            disabled={isProcessing}
-                            className="w-11 h-11 bg-zinc-900 rounded-2xl items-center justify-center mb-1 border border-white/5"
-                        >
-                            {isProcessing ? (
-                                <ActivityIndicator size="small" color="#818cf8" />
-                            ) : (
-                                <Feather name="image" size={20} color="#818cf8" />
-                            )}
-                        </TouchableOpacity>
+                        {mode === 'global' && (
+                            <TouchableOpacity 
+                                onPress={pickImage}
+                                disabled={isProcessing}
+                                className="w-11 h-11 bg-zinc-900 rounded-2xl items-center justify-center mb-1 border border-white/5"
+                            >
+                                {isProcessing ? (
+                                    <ActivityIndicator size="small" color="#818cf8" />
+                                ) : (
+                                    <Feather name="image" size={20} color="#818cf8" />
+                                )}
+                            </TouchableOpacity>
+                        )}
                         
                         <View className="flex-1 min-h-[44px] max-h-32 bg-zinc-900/50 rounded-2xl px-4 border border-white/5 justify-center">
                             <TextInput 
-                                placeholder={isProcessing ? "Sending binary data..." : `Posting as ${myIdentity.username}...`}
+                                placeholder={isProcessing ? "Sending binary data..." : mode === 'global' ? `Posting as ${myIdentity.username}...` : "Type a secret message..."}
                                 placeholderTextColor="#4b5563"
                                 className="text-white text-sm font-semibold"
                                 multiline
@@ -347,7 +455,7 @@ export default function TwelveAMClub() {
                     </View>
                     
                     <Text className="text-zinc-600 text-[10px] font-black uppercase tracking-[2px] text-center mt-4">
-                        Doors close at 6 AM
+                        {mode === 'global' ? 'All chat history vanishes at 6 AM' : '1-on-1 chats are not stored and vanish instantly'}
                     </Text>
                 </View>
             </KeyboardAvoidingView>

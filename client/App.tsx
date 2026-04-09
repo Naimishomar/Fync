@@ -131,6 +131,7 @@ import MeetOurTeam from 'components/MeetOurTeam';
 
 // Hackathon Ecosystem
 import HackathonHub from './components/hackathon/HackathonHub';
+import HackathonCreate from './components/hackathon/HackathonCreate';
 import HackathonDetail from './components/hackathon/HackathonDetail';
 import HackathonTeamScreen from './components/hackathon/HackathonTeamScreen';
 import HackathonSubmission from './components/hackathon/HackathonSubmission';
@@ -269,6 +270,7 @@ export type RootStackParamList = {
   MeetOurTeam: undefined;
   // Hackathon Ecosystem
   HackathonHub: undefined;
+  HackathonCreate: undefined;
   HackathonDetail: { hackathonId: string };
   HackathonTeamScreen: { hackathonId: string; mode?: 'create' | 'browse' };
   HackathonSubmission: { hackathonId: string };
@@ -408,6 +410,7 @@ function AppStack() {
       <Stack.Screen name="MeetOurTeam" component={MeetOurTeam} />
       {/* Hackathon Ecosystem */}
       <Stack.Screen name="HackathonHub" component={HackathonHub} />
+      <Stack.Screen name="HackathonCreate" component={HackathonCreate} />
       <Stack.Screen name="HackathonDetail" component={HackathonDetail} />
       <Stack.Screen name="HackathonTeamScreen" component={HackathonTeamScreen} />
       <Stack.Screen name="HackathonSubmission" component={HackathonSubmission} />

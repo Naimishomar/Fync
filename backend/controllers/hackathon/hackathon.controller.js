@@ -5,7 +5,19 @@ import Announcement from "../../models/hackathon/announcements.model.js";
 // POST /hackathons
 export const createHackathon = async (req, res, next) => {
     try {
-        const hack = await Hackathon.create({ ...req.body, organiser: req.user.id });
+        const body = { ...req.body };
+        
+        // Handle image uploads from r2UploadMiddleware
+        if (req.files) {
+            if (req.files.bannerImage?.[0]) {
+                body.bannerImage = req.files.bannerImage[0].path;
+            }
+            if (req.files.logo?.[0]) {
+                body.logo = req.files.logo[0].path;
+            }
+        }
+
+        const hack = await Hackathon.create({ ...body, organiser: req.user.id });
         res.status(200).json({ message: "hackathon created successfully", success: true, hackathon: hack });
     } catch (error) {
         next(error);

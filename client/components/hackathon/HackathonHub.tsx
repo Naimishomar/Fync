@@ -23,6 +23,7 @@ interface Hackathon {
   _id: string;
   title: string;
   bannerImage?: string;
+  logo?: string;
   status: 'draft' | 'upcoming' | 'active' | 'judging' | 'completed';
   hackathonstarts: string;
   hackathonends: string;
@@ -78,6 +79,17 @@ const HackathonCard = memo(({ item, onPress }: { item: Hackathon; onPress: (id: 
             <Ionicons name="rocket" size={48} color="rgba(255,255,255,0.4)" />
           </LinearGradient>
         )}
+
+        {/* Logo Overlay */}
+        <View className="absolute -bottom-6 left-4 bg-white p-1 rounded-2xl shadow-sm border border-slate-50">
+          {item.logo ? (
+            <Image source={{ uri: item.logo }} className="w-12 h-12 rounded-[14px]" />
+          ) : (
+            <View className="w-12 h-12 rounded-[14px] bg-indigo-50 items-center justify-center">
+              <Ionicons name="rocket" size={20} color="#6366f1" />
+            </View>
+          )}
+        </View>
         {/* Status badge */}
         <View
           className="absolute top-3 left-3 flex-row items-center px-3 py-1.5 rounded-full"
@@ -98,7 +110,7 @@ const HackathonCard = memo(({ item, onPress }: { item: Hackathon; onPress: (id: 
       </View>
 
       {/* Content */}
-      <View className="p-4">
+      <View className="p-4 pt-8">
         <Text className="text-zinc-900 text-lg font-black italic tracking-tight leading-6 mb-2" numberOfLines={2}>
           {item.title}
         </Text>
