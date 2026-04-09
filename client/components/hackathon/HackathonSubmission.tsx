@@ -21,16 +21,16 @@ import Toast from 'react-native-toast-message';
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Submission {
   _id?: string;
-  projectName?: string;
-  tagline?: string;
+  ProjectName?: string;    // backend schema uses PascalCase
+  TagLine?: string;
   description?: string;
   techStack?: string[];
   category?: string;
-  githubUrl?: string;
-  demoUrl?: string;
+  GithubUrl?: string;      // backend schema field name
+  demourl?: string;        // backend schema field name (lowercase)
   videoUrl?: string;
   presentationUrl?: string;
-  status?: 'draft' | 'submitted';
+  status?: 'draft' | 'submitted' | 'underReview' | 'scored';
   submittedAt?: string;
   team?: { name: string };
 }
@@ -133,13 +133,13 @@ const HackathonSubmission = () => {
       const sub: Submission = res.data.data;
       setExisting(sub);
       // Populate form
-      setProjectName(sub.projectName ?? '');
-      setTagline(sub.tagline ?? '');
+      setProjectName(sub.ProjectName ?? '');
+      setTagline(sub.TagLine ?? '');
       setDescription(sub.description ?? '');
       setTechStack(sub.techStack ?? []);
       setCategory(sub.category ?? '');
-      setGithubUrl(sub.githubUrl ?? '');
-      setDemoUrl(sub.demoUrl ?? '');
+      setGithubUrl(sub.GithubUrl ?? '');
+      setDemoUrl(sub.demourl ?? '');
       setVideoUrl(sub.videoUrl ?? '');
       setPresentationUrl(sub.presentationUrl ?? '');
     } catch {
@@ -162,22 +162,31 @@ const HackathonSubmission = () => {
     }
     setSaving(true);
     try {
+      // Backend schema field names (note the casing matches the model)
       const payload = {
         hackathon: hackathonId,
-        projectName, tagline, description,
-        techStack, category, githubUrl, demoUrl, videoUrl, presentationUrl,
+        ProjectName: projectName,
+        TagLine: tagline,
+        description,
+        techStack,
+        category,
+        GithubUrl: githubUrl,
+        demourl: demoUrl,
+        videoUrl,
+        presentationUrl,
       };
 
       if (existing?._id) {
         await axios.patch(`/submissions/${existing._id}`, payload);
       } else {
-        // Create (need teamId — fetched from backend via myTeam logic)
+        // Create — fetch the user's team for this hackathon first
         const teamRes = await axios.get('/teams', { params: { hackathon: hackathonId } });
         const teams = teamRes.data.teams ?? [];
-        const myTeam = teams.find((t: any) =>
-          t.leader?._id === 'me' || t.members?.some((m: any) => m.user?._id === 'me')
-        );
-        await axios.post('/submissions', { ...payload, team: myTeam?._id });
+        // Use /submissions/my/:hackathonId to avoid guessing user ID
+        const myTeam = (await axios.get(`/submissions/my/${hackathonId}`).catch(() => null));
+        const teamId = myTeam?.data?.data?.team?._id ||
+          teams.find((t: any) => t.members?.some((m: any) => m.role === 'leader' || m.role === 'member'))?._id;
+        await axios.post('/submissions', { ...payload, team: teamId });
       }
 
       Toast.show({ type: 'success', text1: 'Draft saved ✅' });
@@ -258,7 +267,7 @@ const HackathonSubmission = () => {
             <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
               <LinearGradient colors={['#10b981', '#059669']} className="rounded-3xl p-6 mb-5 items-center">
                 <Text className="text-5xl mb-3">🎉</Text>
-                <Text className="text-white font-black italic text-2xl text-center">{existing?.projectName}</Text>
+                <Text className="text-white font-black italic text-2xl text-center">{existing?.ProjectName}</Text>
                 <Text className="text-emerald-200 text-xs uppercase tracking-widest mt-1">Submitted Successfully</Text>
                 {existing?.submittedAt && (
                   <Text className="text-emerald-300 text-xs mt-2">
@@ -269,10 +278,10 @@ const HackathonSubmission = () => {
 
               {/* Submission details */}
               {[
-                { label: 'Tagline', value: existing?.tagline },
+                { label: 'Tagline', value: existing?.TagLine },
                 { label: 'Category', value: existing?.category },
-                { label: 'GitHub', value: existing?.githubUrl },
-                { label: 'Demo', value: existing?.demoUrl },
+                { label: 'GitHub', value: existing?.GithubUrl },
+                { label: 'Demo', value: existing?.demourl },
               ].filter(x => x.value).map((item, i) => (
                 <View key={i} className="bg-white rounded-2xl px-4 py-3.5 mb-3 border border-slate-100">
                   <Text className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">{item.label}</Text>

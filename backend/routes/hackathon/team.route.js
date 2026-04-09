@@ -28,7 +28,7 @@ router.delete("/:Id", authMiddleware, DeleteTeam);
 
 // Invite flow: leader → user
 router.post("/:Id/invite", authMiddleware, Invite);
-router.post("/:id/invite/respond", authMiddleware, RespondtoInvite);
+router.post("/:Id/invite/respond", authMiddleware, RespondtoInvite);
 
 // Request flow: user → leader
 router.post("/:Id/request", authMiddleware, requesttoJoin);

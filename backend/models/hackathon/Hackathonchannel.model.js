@@ -21,8 +21,8 @@ const hackathonChannelSchema = new mongoose.Schema({
                 enum:["organiser","judge","participant"],
                 default:"participant"
             },
-            joinedAt:{type:Date,default:Date.now()},
-            lastSeen:{type:Date,default:Date.now()}
+            joinedAt:{type:Date,default:Date.now},
+            lastSeen:{type:Date,default:Date.now}
         }
      ],
 },{

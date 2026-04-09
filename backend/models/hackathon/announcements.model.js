@@ -34,10 +34,10 @@ const announcementSchema = mongoose.Schema({
             emoji:{type:String}
         }
     ],
-    readby:{
+    readby:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:"User"
-    }
+    }]
 },{ timestamps: true });
 
 const Announcement = mongoose.model("Announcement",announcementSchema);

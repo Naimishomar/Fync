@@ -1,44 +1,46 @@
 import mongoose from "mongoose";
-import Hackathon from "./hackathons.model";
+
 const ScoreSchema = mongoose.Schema({
-    Hackathon:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"Hackathon",
-        required:true
+    hackathon: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Hackathon",
+        required: true
     },
-    submission:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"Submission",
-        required:true
+    submission: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "HackathonSubmission",  // matches the model name in submission.model.js
+        required: true
     },
-    judde:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"User",
-        required:true
+    judge: {                          // was 'judde' (typo)
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
     },
-    criteria:{
-        name:{
-            type:String,
+    criteria: [{                      // array so multiple criteria can be scored
+        name: {
+            type: String,
         },
-        weightage:{
-            type:Number,
+        weightage: {
+            type: Number,
         },
-        score:{
-            type:Number,
-            min:0,
-            max:10
+        score: {
+            type: Number,
+            min: 0,
+            max: 10
         }
+    }],
+    totalScore: {
+        type: Number
     },
-    totalscore:{
-        type:Number
-    },
-    feedback:{
-        type:String
+    feedback: {
+        type: String
     }
-},{
-    timestamps:true
-})
+}, {
+    timestamps: true
+});
 
-ScoreSchema.index({})
+// Unique: one score entry per judge+submission pair
+ScoreSchema.index({ submission: 1, judge: 1 }, { unique: true });
 
-const Score = new mongoose.model("")
+const Score = mongoose.model("Score", ScoreSchema);
+export default Score;

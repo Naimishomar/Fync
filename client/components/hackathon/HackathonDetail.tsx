@@ -258,6 +258,12 @@ const HackathonDetail = () => {
               <Text className="text-indigo-600 font-black text-xs uppercase tracking-wide">My Team</Text>
             </TouchableOpacity>
           )}
+          <TouchableOpacity
+            onPress={() => navigation.navigate('HackathonLeaderboard', { hackathonId: hackathon._id, hackathonTitle: hackathon.title })}
+            className="bg-amber-400/90 rounded-2xl px-4 py-2 ml-2"
+          >
+            <Text className="text-amber-900 font-black text-xs uppercase tracking-wide">🏆 Board</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
 
@@ -637,7 +643,7 @@ const HackathonDetail = () => {
         </View>
       ) : (
         <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-white border-t border-slate-100">
-          <View className="flex-row gap-3">
+        <View className="flex-row gap-3">
             <TouchableOpacity
               onPress={() => navigation.navigate('HackathonTeamScreen', { hackathonId: hackathon._id })}
               className="flex-1 rounded-2xl bg-indigo-600 py-4 items-center"
@@ -650,6 +656,14 @@ const HackathonDetail = () => {
             >
               <Text className="text-indigo-600 font-black text-sm uppercase tracking-wide">Submit</Text>
             </TouchableOpacity>
+            {isOfficial() && (
+              <TouchableOpacity
+                onPress={() => navigation.navigate('HackathonJudgePanel', { hackathonId: hackathon._id, judgingCriteria: hackathon.judgingcriteria })}
+                className="w-14 rounded-2xl bg-amber-400 py-4 items-center"
+              >
+                <Text className="text-amber-900 font-black text-xs">⚖️</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       )}

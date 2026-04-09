@@ -63,7 +63,7 @@ const SchemaSubmission = new mongoose.Schema({
         },
         editedAt:{
             type:Date,
-            default:Date.now()
+            default:Date.now
         },
         note:{
             type:String,
@@ -71,7 +71,7 @@ const SchemaSubmission = new mongoose.Schema({
 },{
     timestamps:true
 })
-SchemaSubmission.index({Hackathon:1,team:1},{unique:true})
+SchemaSubmission.index({hackathon:1,team:1},{unique:true})
 
 const SubmissionModel = mongoose.model("HackathonSubmission", SchemaSubmission);
 export default SubmissionModel;

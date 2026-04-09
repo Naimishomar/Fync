@@ -135,6 +135,8 @@ import HackathonCreate from './components/hackathon/HackathonCreate';
 import HackathonDetail from './components/hackathon/HackathonDetail';
 import HackathonTeamScreen from './components/hackathon/HackathonTeamScreen';
 import HackathonSubmission from './components/hackathon/HackathonSubmission';
+import HackathonLeaderboard from './components/hackathon/HackathonLeaderboard';
+import HackathonJudgePanel from './components/hackathon/HackathonJudgePanel';
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -274,6 +276,8 @@ export type RootStackParamList = {
   HackathonDetail: { hackathonId: string };
   HackathonTeamScreen: { hackathonId: string; mode?: 'create' | 'browse' };
   HackathonSubmission: { hackathonId: string };
+  HackathonLeaderboard: { hackathonId: string; hackathonTitle?: string };
+  HackathonJudgePanel: { hackathonId: string; judgingCriteria?: any[] };
 };
 
 
@@ -414,6 +418,8 @@ function AppStack() {
       <Stack.Screen name="HackathonDetail" component={HackathonDetail} />
       <Stack.Screen name="HackathonTeamScreen" component={HackathonTeamScreen} />
       <Stack.Screen name="HackathonSubmission" component={HackathonSubmission} />
+      <Stack.Screen name="HackathonLeaderboard" component={HackathonLeaderboard} />
+      <Stack.Screen name="HackathonJudgePanel" component={HackathonJudgePanel} />
     </Stack.Navigator>
   );
 }
