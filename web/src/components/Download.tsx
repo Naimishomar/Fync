@@ -1,6 +1,6 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { Download as DownloadIcon, Smartphone, Info } from 'lucide-react';
+import { Download as DownloadIcon } from 'lucide-react';
+
 
 const Download = () => {
   return (
@@ -34,24 +34,6 @@ const Download = () => {
                 <span className="text-xs text-slate-400 font-bold tracking-wide uppercase">Coming soon to Play Store</span>
               </div>
             </div>
-
-            {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8 pt-8 md:pt-12 border-t border-slate-100">
-              <div className="flex flex-col items-center gap-2 text-center text-xs md:text-sm text-slate-500 font-bold">
-                <Smartphone className="w-5 h-5 text-black" />
-                <span>Early Access v1.2.4</span>
-              </div>
-              <div className="flex flex-col items-center gap-2 text-center text-xs md:text-sm text-slate-500">
-                <Info className="w-5 h-5 text-black" />
-                <span>Last updated 2 days ago</span>
-              </div>
-
-
-
-              <div className="flex flex-col items-center gap-2 text-center text-sm text-gray-400">
-                <span className="font-bold text-white">4.9/5</span>
-                <span>User satisfaction rate</span>
-              </div>
-            </div> */}
           </motion.div>
         </div>
       </div>

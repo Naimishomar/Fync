@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Zap, Globe, Shield, Trophy, ShoppingCart, MessageSquare, Code, Layout, BarChart3 } from 'lucide-react';
 
@@ -50,8 +49,6 @@ const FEATURE_DATA = [
   }
 ];
 
-
-
 const Features = () => {
   return (
     <section id="features" className="py-24 px-6 relative">
@@ -91,8 +88,6 @@ const Features = () => {
             </motion.div>
           ))}
         </div>
-
-
       </div>
     </section>
   );

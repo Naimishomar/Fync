@@ -1,10 +1,10 @@
 import { motion } from 'framer-motion';
-import { Download, ChevronRight, Star } from 'lucide-react';
+import { Download, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import logo from '../assets/Fync.jpg';
 
-
 const Hero = () => {
+
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-32 pb-20 md:pb-12 overflow-hidden">
       <div className="absolute top-1/4 -left-20 w-96 h-96 bg-indigo-100 rounded-full blur-[120px]" />
