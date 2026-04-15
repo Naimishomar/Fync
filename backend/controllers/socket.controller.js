@@ -562,38 +562,42 @@ export const socketController = (io) => {
         await redisClient.del(`user:night_1v1:${userId}`);
       }
 
-      let opponentStr = await redisClient.rPop(queueKey);
+      let matchFound = false;
 
-      if (!opponentStr) {
-        // No one in queue, join the queue
-        await redisClient.lPush(queueKey, JSON.stringify({ userId, socketId: socket.id }));
-        socket.emit("night_1v1_searching");
-        return;
+      while (!matchFound) {
+        const opponentStr = await redisClient.rPop(queueKey);
+
+        if (!opponentStr) {
+          // Queue is empty, add current user to queue
+          await redisClient.lPush(queueKey, JSON.stringify({ userId, socketId: socket.id }));
+          socket.emit("night_1v1_searching");
+          return;
+        }
+
+        const opponent = JSON.parse(opponentStr);
+
+        // 1. Don't match with self (even if different socket)
+        if (opponent.userId === userId) {
+          continue; // Skip and try to find someone else or empty the queue
+        }
+
+        // 2. Check if opponent is still online
+        const opponentSocket = io.sockets.sockets.get(opponent.socketId);
+        if (!opponentSocket) {
+          continue; // Opponent left, skip to next in queue
+        }
+
+        // Match found!
+        matchFound = true;
+        const roomId = `night_1v1:${nanoid(8)}`;
+        socket.join(roomId);
+        opponentSocket.join(roomId);
+
+        await redisClient.set(`user:night_1v1:${userId}`, roomId, { EX: 21600 });
+        await redisClient.set(`user:night_1v1:${opponent.userId}`, roomId, { EX: 21600 });
+
+        io.to(roomId).emit("night_1v1_found", { roomId });
       }
-
-      const opponent = JSON.parse(opponentStr);
-      if (opponent.userId === userId) {
-        // Don't match with self, re-queue
-        await redisClient.lPush(queueKey, opponentStr);
-        socket.emit("night_1v1_searching");
-        return;
-      }
-
-      const opponentSocket = io.sockets.sockets.get(opponent.socketId);
-      if (!opponentSocket) {
-        // Opponent disconnected, try again
-        return socket.emit("find_night_1v1", { userId });
-      }
-
-      // Match found!
-      const roomId = `night_1v1:${nanoid(8)}`;
-      socket.join(roomId);
-      opponentSocket.join(roomId);
-
-      await redisClient.set(`user:night_1v1:${userId}`, roomId, { EX: 21600 });
-      await redisClient.set(`user:night_1v1:${opponent.userId}`, roomId, { EX: 21600 });
-
-      io.to(roomId).emit("night_1v1_found", { roomId });
     });
 
     socket.on("send_night_1v1_message", async ({ roomId, senderId, text, type, mediaUrl }) => {

@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { useNavigation } from '@react-navigation/native';
 import { differenceInSeconds, addDays, startOfDay } from 'date-fns';
 import * as ImagePicker from 'expo-image-picker'; 
 import { useAuth } from '../../context/auth.context';
@@ -41,6 +42,7 @@ export default function TwelveAMClub() {
   const [matchRoomId, setMatchRoomId] = useState<string | null>(null);
 
   const { user } = useAuth();
+  const navigation = useNavigation();
   const CURRENT_USER_ID = user?._id || user?.id; 
   const myIdentity = getNightIdentity(CURRENT_USER_ID);
   const flatListRef = useRef<FlatList>(null);
@@ -65,6 +67,10 @@ export default function TwelveAMClub() {
     return () => clearInterval(timer);
   }, []);
 
+  // Use a ref to prevent stale closures in socket listeners
+  const matchRoomIdRef = useRef<string | null>(null);
+  useEffect(() => { matchRoomIdRef.current = matchRoomId; }, [matchRoomId]);
+
   useEffect(() => {
     if (!isOpen) return;
     socket.emit("join_night_club");
@@ -86,7 +92,6 @@ export default function TwelveAMClub() {
       });
     };
 
-    // 1v1 Socket Listeners
     const handleSearching = () => setIsSearching(true);
     const handleMatchFound = ({ roomId }: { roomId: string }) => {
         setMatchRoomId(roomId);
@@ -108,17 +113,15 @@ export default function TwelveAMClub() {
     socket.on("night_club_joined", handleJoined);
     socket.on("new_night_message", handleNewMessage);
     socket.on("night_club_error", handleError);
-    
-    // 1v1 Events
     socket.on("night_1v1_searching", handleSearching);
     socket.on("night_1v1_found", handleMatchFound);
     socket.on("new_night_1v1_message", handleNewPrivateMessage);
     socket.on("night_1v1_partner_left", handlePartnerLeft);
 
-    socket.on("connect", () => {
+    const onConnect = () => {
         socket.emit("join_night_club");
-        if (mode === 'private' && !matchRoomId && !isSearching) findMatch();
-    });
+    };
+    socket.on("connect", onConnect);
 
     return () => {
       socket.off("night_club_joined", handleJoined);
@@ -128,8 +131,21 @@ export default function TwelveAMClub() {
       socket.off("night_1v1_found", handleMatchFound);
       socket.off("new_night_1v1_message", handleNewPrivateMessage);
       socket.off("night_1v1_partner_left", handlePartnerLeft);
+      socket.off("connect", onConnect);
+      
+      // Notify partner if exiting while in a match
+      if (matchRoomIdRef.current && CURRENT_USER_ID) {
+        socket.emit("leave_night_1v1", { userId: CURRENT_USER_ID, roomId: matchRoomIdRef.current });
+      }
     };
-  }, [isOpen, mode, matchRoomId, isSearching]);
+  }, [isOpen]);
+
+  // Handle mode-based matchmaking triggers
+  useEffect(() => {
+    if (isOpen && mode === 'private' && !matchRoomId && !isSearching) {
+        findMatch();
+    }
+  }, [mode, matchRoomId, isSearching, isOpen]);
 
   const findMatch = () => {
       if (!CURRENT_USER_ID) return;
@@ -334,8 +350,14 @@ export default function TwelveAMClub() {
         <LinearGradient colors={['rgba(79, 70, 229, 0.1)', 'rgba(0,0,0,0.9)', '#000000']} className="absolute w-full h-full" />
 
         <SafeAreaView className="flex-1" edges={['top']}>
-            <BlurView intensity={40} tint="dark" className="px-5 py-4 flex-row items-center justify-between border-b border-white/5">
+            <BlurView intensity={40} tint="dark" className="px-4 py-4 flex-row items-center justify-between border-b border-white/5">
                 <View className="flex-row items-center">
+                    <TouchableOpacity 
+                        onPress={() => navigation.goBack()}
+                        className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/10 items-center justify-center mr-3"
+                    >
+                        <Ionicons name="arrow-back" size={20} color="white" />
+                    </TouchableOpacity>
                     <TouchableOpacity 
                         onPress={() => setMode(mode === 'global' ? 'private' : 'global')}
                         className="bg-indigo-500/20 p-2 rounded-xl border border-indigo-500/30 mr-3"
@@ -343,8 +365,8 @@ export default function TwelveAMClub() {
                         <MaterialCommunityIcons name={mode === 'global' ? "earth" : "incognito"} size={22} color="#818cf8" />
                     </TouchableOpacity>
                     <View>
-                        <Text className="text-white font-black uppercase text-xs tracking-widest">{mode === 'global' ? 'Night Club' : 'Secret 1v1'}</Text>
-                        <Text className="text-indigo-400 font-bold text-[8px] uppercase tracking-widest">{mode === 'global' ? 'Ephemeral Group Chat' : 'One-on-One Secrets'}</Text>
+                        <Text className="text-white font-black uppercase text-[10px] tracking-widest">{mode === 'global' ? 'Night Club' : 'Secret 1v1'}</Text>
+                        <Text className="text-indigo-400 font-bold text-[7px] uppercase tracking-widest">{mode === 'global' ? 'Ephemeral Group Chat' : 'One-on-One Secrets'}</Text>
                     </View>
                 </View>
 
@@ -417,47 +439,50 @@ export default function TwelveAMClub() {
                   </BlurView>
                 )}
 
-                <View className="bg-zinc-950/80 px-5 pt-4 pb-8 border-t border-white/5">
-                    <View className="flex-row items-end gap-3">
-                        {mode === 'global' && (
-                            <TouchableOpacity 
-                                onPress={pickImage}
-                                disabled={isProcessing}
-                                className="w-11 h-11 bg-zinc-900 rounded-2xl items-center justify-center mb-1 border border-white/5"
-                            >
-                                {isProcessing ? (
-                                    <ActivityIndicator size="small" color="#818cf8" />
-                                ) : (
-                                    <Feather name="image" size={20} color="#818cf8" />
-                                )}
-                            </TouchableOpacity>
-                        )}
-                        
-                        <View className="flex-1 min-h-[44px] max-h-32 bg-zinc-900/50 rounded-2xl px-4 border border-white/5 justify-center">
-                            <TextInput 
-                                placeholder={isProcessing ? "Sending binary data..." : mode === 'global' ? `Posting as ${myIdentity.username}...` : "Type a secret message..."}
-                                placeholderTextColor="#4b5563"
-                                className="text-white text-sm font-semibold"
-                                multiline
-                                value={inputText}
-                                onChangeText={setInputText}
-                                editable={!isProcessing}
-                            />
-                        </View>
+                {/* Hide input if searching or no match in private mode */}
+                {!(mode === 'private' && (isSearching || !matchRoomId)) && (
+                  <View className="bg-zinc-950/80 px-5 pt-4 pb-8 border-t border-white/5">
+                      <View className="flex-row items-end gap-3">
+                          {mode === 'global' && (
+                              <TouchableOpacity 
+                                  onPress={pickImage}
+                                  disabled={isProcessing}
+                                  className="w-11 h-11 bg-zinc-900 rounded-2xl items-center justify-center mb-1 border border-white/5"
+                              >
+                                  {isProcessing ? (
+                                      <ActivityIndicator size="small" color="#818cf8" />
+                                  ) : (
+                                      <Feather name="image" size={20} color="#818cf8" />
+                                  )}
+                              </TouchableOpacity>
+                          )}
+                          
+                          <View className="flex-1 min-h-[44px] max-h-32 bg-zinc-900/50 rounded-2xl px-4 border border-white/5 justify-center">
+                              <TextInput 
+                                  placeholder={isProcessing ? "Sending binary data..." : mode === 'global' ? `Posting as ${myIdentity.username}...` : "Type a secret message..."}
+                                  placeholderTextColor="#4b5563"
+                                  className="text-white text-sm font-semibold"
+                                  multiline
+                                  value={inputText}
+                                  onChangeText={setInputText}
+                                  editable={!isProcessing}
+                              />
+                          </View>
 
-                        <TouchableOpacity 
-                            onPress={sendMessage}
-                            disabled={isProcessing || !inputText.trim()}
-                            className={`w-11 h-11 rounded-2xl items-center justify-center mb-1 ${inputText.trim() ? 'bg-indigo-600' : 'bg-zinc-800'}`}
-                        >
-                            <Feather name="arrow-up" size={24} color={inputText.trim() ? "white" : "#4b5563"} />
-                        </TouchableOpacity>
-                    </View>
-                    
-                    <Text className="text-zinc-600 text-[10px] font-black uppercase tracking-[2px] text-center mt-4">
-                        {mode === 'global' ? 'All chat history vanishes at 6 AM' : '1-on-1 chats are not stored and vanish instantly'}
-                    </Text>
-                </View>
+                          <TouchableOpacity 
+                              onPress={sendMessage}
+                              disabled={isProcessing || !inputText.trim()}
+                              className={`w-11 h-11 rounded-2xl items-center justify-center mb-1 ${inputText.trim() ? 'bg-indigo-600' : 'bg-zinc-800'}`}
+                          >
+                              <Feather name="arrow-up" size={24} color={inputText.trim() ? "white" : "#4b5563"} />
+                          </TouchableOpacity>
+                      </View>
+                      
+                      <Text className="text-zinc-600 text-[10px] font-black uppercase tracking-[2px] text-center mt-4">
+                          {mode === 'global' ? 'All chat history vanishes at 6 AM' : '1-on-1 chats are not stored and vanish instantly'}
+                      </Text>
+                  </View>
+                )}
             </KeyboardAvoidingView>
         </SafeAreaView>
     </View>
