@@ -120,7 +120,7 @@ import SubGroupChat from './components/club/SubGroupChat';
 import ClubAdminPanel from './components/club/ClubAdminPanel';
 import FyncMediaFeed from './components/FyncMediaFeed';
 import FocusProductivity from './components/focus/FocusProductivity';
-import ManageAds from './components/admin/ManageAds';
+import AdminPortal from './components/admin/AdminPortal';
 
 import SubscriptionGuard from './components/newFeatures/SubscriptionGuard';
 import PlacementPredictor from './components/newFeatures/PlacementPredictor';
@@ -267,7 +267,7 @@ export type RootStackParamList = {
   ClubAdminPanel: { clubId: string };
   FyncMediaFeed: undefined;
   CreateFundingFeed: { project?: any } | undefined;
-  ManageAds: undefined;
+  AdminPortal: undefined;
   ContactUs: undefined;
   MeetOurTeam: undefined;
   // Hackathon Ecosystem
@@ -409,7 +409,7 @@ function AppStack() {
       <Stack.Screen name="TermsAndCondition" component={TermsAndCondition} />
       <Stack.Screen name="FyncMediaFeed" component={FyncMediaFeed} />
       <Stack.Screen name="CreateFundingFeed" component={CreateFundingFeed} />
-      <Stack.Screen name="ManageAds" component={ManageAds} />
+      <Stack.Screen name="AdminPortal" component={AdminPortal} />
       <Stack.Screen name="ContactUs" component={ContactUs} />
       <Stack.Screen name="MeetOurTeam" component={MeetOurTeam} />
       {/* Hackathon Ecosystem */}

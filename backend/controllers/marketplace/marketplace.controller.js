@@ -131,3 +131,20 @@ export const buyProduct = async(req,res)=>{
     }
 }
 
+export const getRedemptions = async(req,res)=>{
+    try {
+        if(req.user.user_access !== 'admin'){
+            return res.status(403).json({message: "Unauthorized", success: false});
+        }
+        
+        const redemptions = await User.find({ "redeemedItems.0": { $exists: true } })
+            .select("name username redeemedItems college avatar mobileNumber")
+            .populate("redeemedItems");
+            
+        return res.status(200).json({message: "Redemptions fetched successfully", success: true, redemptions});
+    } catch (error) {
+        console.log("Internal server error", error);
+        return res.status(500).json({message: "Internal server error", success: false});
+    }
+}
+
