@@ -21,7 +21,7 @@ const MOCKUPS = [
   },
   {
     id: 2,
-    title: "Global Search",
+    title: "Internships",
     image: ss2
   },
   {
@@ -36,27 +36,27 @@ const MOCKUPS = [
   },
   {
     id: 5,
-    title: "Marketplace",
+    title: "Night Club",
     image: ss5
   },
   {
     id: 6,
-    title: "Funding Feed",
+    title: "Messaging",
     image: ss6
   },
   {
     id: 7,
-    title: "Digital Wallet",
+    title: "Digital Profile",
     image: ss7
   },
   {
     id: 8,
-    title: "Creative Studio",
+    title: "Funding Feed",
     image: ss8
   },
   {
     id: 9,
-    title: "Advanced Stats",
+    title: "Technical Reels",
     image: ss9
   }
 ];
@@ -133,10 +133,28 @@ const Screenshots = () => {
                 className="flex-shrink-0 flex flex-col items-center group snap-center"
               >
                 <div className="relative w-[280px] aspect-[9/19] bg-slate-900 rounded-[3rem] p-[10px] transition-all duration-500 group-hover:-translate-y-2">
+                  {/* Power Button */}
+                  <div className="absolute top-24 -right-[2px] w-[3px] h-12 bg-slate-800 rounded-r-sm" />
+                  {/* Volume Buttons */}
+                  <div className="absolute top-20 -left-[2px] w-[3px] h-8 bg-slate-800 rounded-l-sm" />
+                  <div className="absolute top-32 -left-[2px] w-[3px] h-8 bg-slate-800 rounded-l-sm" />
+
                   {/* Phone Frame Shine */}
-                  <div className="absolute inset-0 rounded-[3rem] bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 rounded-[3rem] bg-gradient-to-tr from-white/10 to-transparent pointer-events-none z-10" />
                   
-                  <div className="w-full h-full rounded-[2.2rem] overflow-hidden bg-black flex items-center justify-center">
+                  <div className="w-full h-full rounded-[2.2rem] overflow-hidden bg-black flex items-center justify-center relative">
+                    {/* Status Bar */}
+                    <div className="absolute top-0 left-0 right-0 h-10 px-6 flex items-center justify-between z-30 text-[10px] text-white/40 font-bold pointer-events-none">
+                      <span>9:41</span>
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 rounded-sm border border-white/20" />
+                        <div className="w-3 h-3 rounded-full bg-white/20" />
+                      </div>
+                    </div>
+
+                    {/* Inner Screen Glow */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none z-20" />
+
                     <img 
                       src={mockup.image} 
                       alt={mockup.title}
@@ -145,8 +163,9 @@ const Screenshots = () => {
                   </div>
 
                   {/* Top Notch Area (Decorative) */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-10 bg-slate-900 rounded-b-3xl z-20 flex items-center justify-center">
-                    <div className="w-10 h-1.5 bg-slate-800 rounded-full" />
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-8 bg-slate-900 rounded-b-3xl z-40 flex items-center justify-center p-1">
+                    <div className="w-10 h-1 bg-slate-800 rounded-full" />
+                    <div className="w-1.5 h-1.5 bg-slate-800 rounded-full ml-2" />
                   </div>
                 </div>
                 

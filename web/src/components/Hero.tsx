@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Download, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import logo from '../assets/Fync.jpg';
+import appScreenshot from '../assets/Screenshot_1776261682.png';
 
 const Hero = () => {
 
@@ -26,7 +26,6 @@ const Hero = () => {
             <span className="text-gradient">Social Ecosystems</span>
           </h1>
 
-          
           <p className="text-lg md:text-xl text-slate-500 mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
             Fync is a premium, high-performance platform for professionals and creators. 
             Connect, trade, and compete in a beautiful, optimized environment.
@@ -50,19 +49,35 @@ const Hero = () => {
           transition={{ duration: 0.8 }}
           className="relative flex items-center justify-center pt-8 lg:pt-0"
         >
-          <div className="relative w-64 md:w-72 h-[520px] md:h-[580px] bg-white rounded-[3rem] border-8 border-slate-100 shadow-xl overflow-hidden">
-            <div className="p-8 h-full flex flex-col items-center justify-center text-center gap-6">
-              <div className="w-16 h-16 md:w-20 md:h-20 overflow-hidden rounded-full shadow-2xl">
-                <img src={logo} alt="Fync" className="w-full h-full object-cover" />
+          {/* Main Phone Mockup */}
+          <div className="relative w-64 md:w-[280px] aspect-[9/19] bg-slate-900 rounded-[3rem] p-[6px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] border-2 border-slate-800/50">
+            {/* Side Buttons */}
+            <div className="absolute top-24 -right-1 w-1 h-12 bg-slate-800 rounded-r-md" />
+            <div className="absolute top-20 -left-1 w-1 h-8 bg-slate-800 rounded-l-md" />
+            
+            {/* Shine */}
+            <div className="absolute inset-0 rounded-[2.9rem] bg-gradient-to-tr from-white/10 to-transparent pointer-events-none z-10" />
+            
+            <div className="w-full h-full rounded-[2.7rem] overflow-hidden bg-black flex items-center justify-center relative">
+              {/* Status Bar */}
+              <div className="absolute top-0 left-0 right-0 h-10 px-6 flex items-center justify-between z-30 text-[10px] text-white/40 font-bold pointer-events-none">
+                <span>9:41</span>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded-sm border border-white/20" />
+                  <div className="w-3 h-3 rounded-full bg-white/20" />
+                </div>
               </div>
 
-              <div>
-                <h3 className="text-xl md:text-2xl font-bold text-slate-900">Fync Ecosystem</h3>
-
-                <p className="text-xs md:text-sm text-slate-400 mt-2 font-medium italic">Empowering your creativity.</p>
-              </div>
+              <img 
+                src={appScreenshot} 
+                alt="Fync App Feed" 
+                className="w-full h-full object-cover" 
+              />
             </div>
           </div>
+
+          {/* Decorative Floating Element */}
+          <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-indigo-600/10 rounded-full blur-3xl -z-10" />
         </motion.div>
       </div>
     </section>
