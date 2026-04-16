@@ -36,128 +36,112 @@ interface Hackathon {
 
 // ─── Status config ────────────────────────────────────────────────────────────
 const STATUS_META: Record<string, { label: string; bg: string; text: string; dot: string }> = {
-  active:    { label: 'Live',     bg: '#d1fae5', text: '#065f46', dot: '#10b981' },
-  upcoming:  { label: 'Upcoming', bg: '#dbeafe', text: '#1e40af', dot: '#3b82f6' },
-  judging:   { label: 'Judging',  bg: '#fef3c7', text: '#92400e', dot: '#f59e0b' },
-  completed: { label: 'Ended',    bg: '#f1f5f9', text: '#475569', dot: '#94a3b8' },
-  draft:     { label: 'Draft',    bg: '#fce7f3', text: '#9d174d', dot: '#ec4899' },
+  active:    { label: 'Live',     bg: '#ecfdf5', text: '#10b981', dot: '#10b981' },
+  upcoming:  { label: 'Upcoming', bg: '#eff6ff', text: '#3b82f6', dot: '#3b82f6' },
+  judging:   { label: 'Judging',  bg: '#fffbeb', text: '#f59e0b', dot: '#f59e0b' },
+  completed: { label: 'Ended',    bg: '#f8fafc', text: '#64748b', dot: '#94a3b8' },
+  draft:     { label: 'Draft',    bg: '#fdf2f8', text: '#ec4899', dot: '#ec4899' },
 };
 
 // ─── Filter tabs ──────────────────────────────────────────────────────────────
 const FILTERS = [
   { label: 'All',       value: '' },
-  { label: '🔥 Live',  value: 'active' },
-  { label: '🔜 Soon',  value: 'upcoming' },
-  { label: '⚖️ Judge', value: 'judging' },
-  { label: '✅ Done',  value: 'completed' },
+  { label: 'LIVE',  value: 'active' },
+  { label: 'SOON',  value: 'upcoming' },
+  { label: 'JUDGE', value: 'judging' },
+  { label: 'DONE',  value: 'completed' },
 ];
 
 // ─── Hackathon Card ───────────────────────────────────────────────────────────
 const HackathonCard = memo(({ item, onPress }: { item: Hackathon; onPress: (id: string) => void }) => {
   const status = STATUS_META[item.status] ?? STATUS_META.upcoming;
-  const start = item.hackathonstarts ? new Date(item.hackathonstarts).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }) : '—';
-  const end   = item.hackathonends   ? new Date(item.hackathonends).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }) : '—';
+  const start = item.hackathonstarts ? new Date(item.hackathonstarts).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—';
+  const end   = item.hackathonends   ? new Date(item.hackathonends).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—';
 
   return (
     <TouchableOpacity
-      activeOpacity={0.88}
+      activeOpacity={1}
       onPress={() => onPress(item._id)}
-      className="bg-white rounded-3xl mb-5 mx-5 overflow-hidden border border-slate-100"
-      style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 4 }}
+      className="bg-zinc-50/50 rounded-[40px] mb-8 mx-6 overflow-hidden border border-gray-100"
     >
       {/* Banner */}
       <View className="relative">
         {item.bannerImage ? (
-          <Image source={{ uri: item.bannerImage }} className="w-full h-44" resizeMode="cover" />
+          <Image source={{ uri: item.bannerImage }} className="w-full h-56" resizeMode="cover" />
         ) : (
-          <LinearGradient
-            colors={['#6366f1', '#ec4899']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            className="w-full h-44 items-center justify-center"
-          >
-            <Ionicons name="rocket" size={48} color="rgba(255,255,255,0.4)" />
-          </LinearGradient>
+          <View className="w-full h-56 bg-zinc-900 items-center justify-center">
+             <LinearGradient colors={['#ec4899', '#f43f5e']} className="absolute inset-0 opacity-20" />
+             <Ionicons name="rocket" size={48} color="white/20" />
+          </View>
         )}
 
-        {/* Logo Overlay */}
-        <View className="absolute -bottom-6 left-4 bg-white p-1 rounded-2xl shadow-sm border border-slate-50">
-          {item.logo ? (
-            <Image source={{ uri: item.logo }} className="w-12 h-12 rounded-[14px]" />
-          ) : (
-            <View className="w-12 h-12 rounded-[14px] bg-indigo-50 items-center justify-center">
-              <Ionicons name="rocket" size={20} color="#6366f1" />
-            </View>
-          )}
-        </View>
         {/* Status badge */}
-        <View
-          className="absolute top-3 left-3 flex-row items-center px-3 py-1.5 rounded-full"
-          style={{ backgroundColor: status.bg }}
-        >
-          <View className="w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: status.dot }} />
-          <Text className="text-xs font-black uppercase tracking-widest" style={{ color: status.text }}>
+        <View className="absolute top-6 left-6 flex-row items-center px-4 py-2 rounded-2xl bg-white/95 shadow-sm">
+          <View className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: status.dot }} />
+          <Text className="text-[10px] font-black uppercase tracking-widest text-zinc-900">
             {status.label}
           </Text>
         </View>
-        {/* Prize badge */}
+
+        {/* Prize Pool Overlay */}
         {item.prizepool && (
-          <View className="absolute top-3 right-3 bg-amber-400 px-3 py-1.5 rounded-full flex-row items-center">
-            <Ionicons name="trophy" size={11} color="#78350f" />
-            <Text className="text-[10px] font-black ml-1 text-amber-900">{item.prizepool}</Text>
+          <View className="absolute top-6 right-6 px-4 py-3 rounded-2xl bg-zinc-900 shadow-xl shadow-black/30">
+             <Text className="text-[10px] text-pink-500 font-black uppercase tracking-widest text-center">Protocol Fund</Text>
+             <Text className="text-white text-sm font-black italic uppercase tracking-tighter">{item.prizepool}</Text>
           </View>
         )}
       </View>
 
       {/* Content */}
-      <View className="p-4 pt-8">
-        <Text className="text-zinc-900 text-lg font-black italic tracking-tight leading-6 mb-2" numberOfLines={2}>
-          {item.title}
-        </Text>
+      <View className="p-8">
+        <View className="flex-row items-center justify-between mb-6">
+           <View className="flex-row items-center flex-1">
+              <View className="w-12 h-12 rounded-[18px] bg-white border border-gray-100 items-center justify-center p-2 mr-4">
+                 {item.logo ? (
+                   <Image source={{ uri: item.logo }} className="w-full h-full rounded-lg" resizeMode="contain" />
+                 ) : (
+                   <Ionicons name="shield-checkmark" size={20} color="#ec4899" />
+                 )}
+              </View>
+              <View>
+                 <Text className="text-gray-400 text-[9px] font-black uppercase tracking-[1px] mb-0.5">Authorised By</Text>
+                 <Text className="text-zinc-900 text-xs font-black uppercase tracking-tight">
+                   {item.organiser?.name || "Fync Governance"}
+                 </Text>
+              </View>
+           </View>
 
-        {/* Meta row */}
-        <View className="flex-row items-center gap-4 mb-3">
-          <View className="flex-row items-center">
-            <Ionicons name="calendar-outline" size={13} color="#94a3b8" />
-            <Text className="text-slate-500 text-[11px] font-semibold ml-1">{start} → {end}</Text>
-          </View>
-          <View className="flex-row items-center">
-            <Ionicons name="people-outline" size={13} color="#94a3b8" />
-            <Text className="text-slate-500 text-[11px] font-semibold ml-1">
-              {item.participants?.length ?? 0} joined
-            </Text>
-          </View>
-          {item.MaxTeamSize && (
-            <View className="flex-row items-center">
-              <Ionicons name="person-outline" size={13} color="#94a3b8" />
-              <Text className="text-slate-500 text-[11px] font-semibold ml-1">≤{item.MaxTeamSize}/team</Text>
-            </View>
-          )}
+           <View className="bg-white px-4 py-2 rounded-2xl border border-gray-100 shadow-sm shadow-black/[0.02]">
+              <Text className="text-zinc-900 text-[10px] font-black uppercase tracking-tighter italic">{start} – {end}</Text>
+           </View>
         </View>
 
-        {/* Tags */}
-        {item.tags && item.tags.length > 0 && (
-          <View className="flex-row flex-wrap gap-1.5 mb-4">
-            {item.tags.slice(0, 4).map((tag, i) => (
-              <View key={i} className="bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">
-                <Text className="text-[10px] text-indigo-500 font-black uppercase tracking-tight">#{tag}</Text>
-              </View>
-            ))}
-          </View>
-        )}
+        <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter leading-8 mb-6 uppercase" numberOfLines={2}>
+          {item.title}
+        </Text>
+        
+        {/* Footer Meta */}
+        <View className="flex-row items-center justify-between pt-6 border-t border-gray-50">
+           <View className="flex-row items-center gap-2 flex-1">
+              {item.tags?.slice(0, 2).map((tag, i) => (
+                <View key={i} className="bg-white px-4 py-2 rounded-xl border border-gray-100">
+                  <Text className="text-[10px] text-slate-400 font-black uppercase tracking-widest">#{tag}</Text>
+                </View>
+              ))}
+              {item.tags && item.tags.length > 2 && (
+                <View className="w-10 h-10 rounded-xl bg-slate-50 items-center justify-center border border-gray-100">
+                    <Text className="text-slate-400 text-[10px] font-black">+{item.tags.length - 2}</Text>
+                </View>
+              )}
+           </View>
 
-        {/* CTA */}
-        <LinearGradient
-          colors={['#6366f1', '#ec4899']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          className="rounded-2xl"
-        >
-          <View className="py-3.5 flex-row items-center justify-center">
-            <Text className="text-white font-black uppercase tracking-widest text-xs mr-2">View Hackathon</Text>
-            <Ionicons name="arrow-forward" size={14} color="white" />
-          </View>
-        </LinearGradient>
+           <TouchableOpacity
+              onPress={() => onPress(item._id)}
+              className="bg-black w-14 h-14 rounded-[22px] items-center justify-center shadow-lg shadow-black/20"
+           >
+              <Ionicons name="arrow-forward" size={24} color="white" />
+           </TouchableOpacity>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -185,7 +169,6 @@ const HackathonHub = () => {
       const payload: any = { page: pageNum, limit: 10 };
       if (status) payload.status = status;
 
-      // Backend gethackathons reads from req.body, so we POST
       const res = await axios.post('/hackathons/list', payload);
       const data: Hackathon[] = res.data.hackathons ?? [];
 
@@ -223,62 +206,85 @@ const HackathonHub = () => {
   );
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
-      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+    <View className="flex-1 bg-white">
+      <StatusBar barStyle="dark-content" />
       <SafeAreaView className="flex-1">
 
         {/* Header */}
-        <View className="px-5 pt-4 pb-2 flex-row items-center justify-between">
-          <View className="flex-row items-center gap-3">
-            <LinearGradient colors={['#6366f1', '#ec4899']} className="w-12 h-12 rounded-2xl items-center justify-center">
-              <Ionicons name="rocket" size={22} color="white" />
-            </LinearGradient>
-            <View>
-              <Text className="text-zinc-900 text-2xl font-black italic tracking-tight uppercase">Hackathons</Text>
-              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Fync Ecosystem</Text>
+        <View className="px-8 pt-8 pb-4">
+            <View className="flex-row items-center justify-between mb-2">
+                <TouchableOpacity 
+                    onPress={() => navigation.goBack()}
+                    className="w-10 h-10 bg-black rounded-full items-center justify-center shadow-lg shadow-black/20"
+                >
+                    <Ionicons name="arrow-back" size={24} color="white" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={() => navigation.navigate('HackathonCreate')}
+                    className="flex-row items-center bg-black px-5 py-2.5 rounded-2xl shadow-lg border border-black"
+                >
+                    <Ionicons name="add" size={20} color="white" />
+                    <Text className="text-white text-[11px] font-black uppercase tracking-widest ml-2">Host Protocol</Text>
+                </TouchableOpacity>
             </View>
-          </View>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('HackathonCreate')}
-            className="w-10 h-10 bg-indigo-100 rounded-2xl items-center justify-center"
-          >
-            <Ionicons name="add" size={22} color="#6366f1" />
-          </TouchableOpacity>
+            
+            <View className="mb-4">
+                <Text className="text-5xl font-[900] text-[#1A1A1A] tracking-[-2px] leading-[50px] uppercase italic">
+                    Hackathon<Text className="text-pink-500"> Hub.</Text>
+                </Text>
+            </View>
+
+            <View className="flex-row justify-between mb-2">
+                <View className="flex-1">
+                    <Text className="text-[11px] text-[#1A1A1A] font-black uppercase tracking-widest italic">Signal Coverage</Text>
+                    <Text className="text-[11px] text-gray-500 font-black uppercase tracking-widest">Global Ecosystem Hub</Text>
+                </View>
+                <View className="flex-1 items-end">
+                    <Text className="text-[11px] text-[#1A1A1A] font-black uppercase tracking-widest italic">{hackathons.length} Protocols</Text>
+                    <Text className="text-[11px] text-pink-500 font-black uppercase tracking-widest">Live Registry</Text>
+                </View>
+            </View>
         </View>
 
-        {/* Search */}
-        <View className="px-5 mb-3">
-          <View className="flex-row items-center bg-white rounded-2xl px-4 py-2.5 border border-slate-200">
-            <Ionicons name="search" size={18} color="#6366f1" />
-            <TextInput
-              placeholder="Search hackathons, tags..."
-              placeholderTextColor="#94a3b8"
-              value={search}
-              onChangeText={setSearch}
-              className="flex-1 ml-2.5 text-zinc-900 text-sm font-semibold"
-            />
-            {search.length > 0 && (
-              <TouchableOpacity onPress={() => setSearch('')}>
-                <Ionicons name="close-circle" size={18} color="#94a3b8" />
-              </TouchableOpacity>
-            )}
-          </View>
+        {/* 🔍 Search Bar */}
+        <View className="px-8 mt-4 mb-2">
+            <View className="flex-row items-center bg-zinc-50/50 rounded-[28px] px-6 py-4 border border-gray-100">
+                <Ionicons name="search" size={20} color="#ec4899" />
+                <TextInput
+                    placeholder="Search ecosystem, tech, protocols..."
+                    placeholderTextColor="#94a3b8"
+                    value={search}
+                    onChangeText={setSearch}
+                    className="flex-1 ml-3 text-zinc-900 text-[14px] font-black italic uppercase tracking-widest"
+                />
+                {search.length > 0 && (
+                    <TouchableOpacity onPress={() => setSearch('')}>
+                        <Ionicons name="close-circle" size={18} color="#94a3b8" />
+                    </TouchableOpacity>
+                )}
+            </View>
         </View>
 
         {/* Filter chips */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 8, gap: 8 }}>
-          {FILTERS.map(f => (
-            <TouchableOpacity
-              key={f.value}
-              onPress={() => { setActiveFilter(f.value); setPage(1); setHasMore(true); }}
-              className={`px-4 py-2 rounded-2xl border ${activeFilter === f.value ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-slate-200'}`}
+        <View className="mt-4 mb-4">
+            <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false} 
+                contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 4, gap: 8 }}
             >
-              <Text className={`text-xs font-black ${activeFilter === f.value ? 'text-white' : 'text-slate-600'}`}>
-                {f.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+            {FILTERS.map(f => (
+                <TouchableOpacity
+                key={f.value}
+                onPress={() => { setActiveFilter(f.value); setPage(1); setHasMore(true); }}
+                className={`px-6 py-3 rounded-[18px] border ${activeFilter === f.value ? 'bg-black border-black shadow-lg shadow-black/20' : 'bg-white border-gray-100'}`}
+                >
+                <Text className={`text-[9px] font-black uppercase tracking-[2px] ${activeFilter === f.value ? 'text-white' : 'text-gray-400'}`}>
+                    {f.label}
+                </Text>
+                </TouchableOpacity>
+            ))}
+            </ScrollView>
+        </View>
 
         {/* List */}
         <FlatList
@@ -287,27 +293,27 @@ const HackathonHub = () => {
           renderItem={({ item }) => (
             <HackathonCard item={item} onPress={(id) => navigation.navigate('HackathonDetail', { hackathonId: id })} />
           )}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#6366f1']} tintColor="#6366f1" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#ec4899']} tintColor="#ec4899" />}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
-          contentContainerStyle={{ paddingBottom: 100, paddingTop: 4 }}
+          contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
           showsVerticalScrollIndicator={false}
           ListFooterComponent={() =>
             loading ? (
               <View className="py-8 items-center">
-                <ActivityIndicator size="small" color="#6366f1" />
+                <ActivityIndicator size="small" color="#ec4899" />
               </View>
             ) : <View className="h-10" />
           }
           ListEmptyComponent={() =>
             !loading ? (
               <View className="items-center mt-24 px-10">
-                <LinearGradient colors={['#ede9fe', '#fce7f3']} className="w-24 h-24 rounded-[32px] items-center justify-center mb-5">
-                  <Ionicons name="rocket-outline" size={44} color="#6366f1" />
-                </LinearGradient>
-                <Text className="text-zinc-900 font-black italic text-xl tracking-tight text-center uppercase mb-2">No Hackathons</Text>
-                <Text className="text-slate-400 text-center font-semibold text-xs uppercase tracking-widest">
-                  {search ? 'No results matched your search.' : 'No hackathons found. Check back soon!'}
+                <View className="w-24 h-24 rounded-[32px] bg-slate-50 items-center justify-center mb-6">
+                  <Ionicons name="rocket-outline" size={44} color="#CBD5E1" />
+                </View>
+                <Text className="text-zinc-900 font-black italic text-xl tracking-tighter text-center uppercase mb-1">Ecosystem Void</Text>
+                <Text className="text-slate-400 text-center font-black text-[10px] uppercase tracking-widest">
+                  {search ? 'Zero protocols matched your signal.' : 'The registry is currently offline.'}
                 </Text>
               </View>
             ) : null
@@ -319,3 +325,4 @@ const HackathonHub = () => {
 };
 
 export default HackathonHub;
+

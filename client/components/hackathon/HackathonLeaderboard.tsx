@@ -29,10 +29,10 @@ interface LeaderboardEntry {
 }
 
 // ─── Rank podium colors ───────────────────────────────────────────────────────
-const RANK_CONFIG: Record<number, { gradient: string[]; medal: string; glow: string }> = {
-  1: { gradient: ['#f59e0b', '#d97706'], medal: '🥇', glow: '#fef3c7' },
-  2: { gradient: ['#94a3b8', '#64748b'], medal: '🥈', glow: '#f1f5f9' },
-  3: { gradient: ['#c2945a', '#a16207'], medal: '🥉', glow: '#fef9c3' },
+const RANK_CONFIG: Record<number, { gradient: string[]; medal: string; glow: string; text: string }> = {
+  1: { gradient: ['#f59e0b', '#d97706'], medal: '🥇', glow: '#fffbeb', text: '#d97706' },
+  2: { gradient: ['#94a3b8', '#64748b'], medal: '🥈', glow: '#f8fafc', text: '#64748b' },
+  3: { gradient: ['#c2945a', '#a16207'], medal: '🥉', glow: '#fffbeb', text: '#a16207' },
 };
 
 // ─── Podium Card (top 3) ──────────────────────────────────────────────────────
@@ -53,53 +53,60 @@ const PodiumCard = ({ entry }: { entry: LeaderboardEntry }) => {
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
       <View
-        className="rounded-3xl mb-4 overflow-hidden"
+        className="rounded-[32px] mb-6 overflow-hidden border border-gray-100"
         style={{
-          backgroundColor: cfg.glow,
-          shadowColor: cfg.gradient[0],
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.25,
-          shadowRadius: 16,
-          elevation: 8,
+          backgroundColor: 'white',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 12 },
+          shadowOpacity: 0.1,
+          shadowRadius: 20,
+          elevation: 10,
         }}
       >
         <LinearGradient
-          colors={cfg.gradient as any}
+          colors={entry.rank === 1 ? ['#000', '#111'] : ['#f8fafc', '#f1f5f9']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          className="px-5 py-4"
+          className="px-6 py-6"
         >
           <View className="flex-row items-center justify-between">
-            <Text className="text-4xl">{cfg.medal}</Text>
+            <View className="w-14 h-14 bg-white/10 rounded-2xl items-center justify-center border border-white/5">
+                <Text className="text-4xl">{cfg.medal}</Text>
+            </View>
             <View className="items-end">
-              <Text className="text-white/70 text-[10px] font-black uppercase tracking-widest">Score</Text>
-              <Text className="text-white text-3xl font-black">{entry.score.toFixed(2)}</Text>
+              <Text className="text-pink-500 text-[10px] font-black uppercase tracking-widest">Protocol Score</Text>
+              <Text className={`${entry.rank === 1 ? 'text-white' : 'text-zinc-900'} text-4xl font-black italic tracking-tighter`}>
+                {entry.score.toFixed(1)}
+              </Text>
             </View>
           </View>
-          <Text className="text-white text-lg font-black italic mt-2 leading-6" numberOfLines={1}>
-            {entry.projectName}
-          </Text>
-          {entry.tagline ? (
-            <Text className="text-white/70 text-xs mt-0.5" numberOfLines={1}>{entry.tagline}</Text>
-          ) : null}
-          <View className="flex-row items-center mt-3">
-            <View className="w-5 h-5 rounded-full bg-white/20 items-center justify-center mr-1.5">
-              <Ionicons name="people" size={10} color="white" />
+          
+          <View className="mt-6">
+            <Text className={`${entry.rank === 1 ? 'text-white' : 'text-zinc-900'} text-2xl font-black italic uppercase tracking-tighter leading-7`} numberOfLines={1}>
+                {entry.projectName}
+            </Text>
+            {entry.tagline ? (
+                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1" numberOfLines={1}>{entry.tagline}</Text>
+            ) : null}
+          </View>
+
+          <View className="flex-row items-center justify-between mt-6">
+            <View className="flex-row items-center bg-zinc-900/10 px-3 py-1.5 rounded-xl">
+                <View className="w-5 h-5 rounded-full bg-pink-500 items-center justify-center mr-2">
+                    <Ionicons name="people" size={10} color="white" />
+                </View>
+                <Text className={`${entry.rank === 1 ? 'text-white/80' : 'text-zinc-700'} text-[10px] font-black uppercase tracking-widest`}>{entry.teamName}</Text>
             </View>
-            <Text className="text-white/90 text-xs font-black">{entry.teamName}</Text>
+            
+            <View className="flex-row gap-1.5">
+                {entry.techStack?.slice(0, 2).map((t, i) => (
+                    <View key={i} className="bg-zinc-500/10 px-2.5 py-1 rounded-lg border border-white/5">
+                        <Text className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{t}</Text>
+                    </View>
+                ))}
+            </View>
           </View>
         </LinearGradient>
-
-        {/* Tech stack */}
-        {entry.techStack?.length > 0 && (
-          <View className="flex-row flex-wrap gap-1.5 px-5 py-3">
-            {entry.techStack.slice(0, 4).map((t, i) => (
-              <View key={i} className="bg-white/60 rounded-lg px-2.5 py-1">
-                <Text className="text-[10px] font-black text-slate-700">{t}</Text>
-              </View>
-            ))}
-          </View>
-        )}
       </View>
     </Animated.View>
   );
@@ -120,37 +127,28 @@ const LeaderboardRow = ({ entry, index }: { entry: LeaderboardEntry; index: numb
   return (
     <Animated.View style={{ transform: [{ translateX }], opacity }}>
       <View
-        className="bg-white rounded-2xl px-4 py-3.5 mb-2.5 flex-row items-center border border-slate-100"
-        style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 }}
+        className="bg-white rounded-[24px] px-5 py-4 mb-3 flex-row items-center border border-gray-100"
+        style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 10, elevation: 2 }}
       >
         {/* Rank */}
-        <View className="w-10 h-10 rounded-xl bg-slate-100 items-center justify-center mr-3">
-          <Text className="text-slate-600 font-black text-base">#{entry.rank}</Text>
+        <View className="w-12 h-12 rounded-2xl bg-zinc-900 items-center justify-center mr-4 border border-zinc-800 shadow-lg shadow-zinc-900/20">
+          <Text className="text-white font-black italic text-lg leading-tight uppercase">#{entry.rank}</Text>
         </View>
 
         {/* Project info */}
-        <View className="flex-1 mr-3">
-          <Text className="text-zinc-900 font-black text-sm italic leading-5" numberOfLines={1}>
+        <View className="flex-1 mr-4">
+          <Text className="text-zinc-900 font-black text-base italic uppercase tracking-tighter leading-5" numberOfLines={1}>
             {entry.projectName}
           </Text>
-          <Text className="text-slate-400 text-[11px] font-semibold mt-0.5" numberOfLines={1}>
+          <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5" numberOfLines={1}>
             {entry.teamName}
           </Text>
-          {entry.techStack?.length > 0 && (
-            <View className="flex-row gap-1.5 mt-1.5 flex-wrap">
-              {entry.techStack.slice(0, 3).map((t, i) => (
-                <View key={i} className="bg-indigo-50 rounded-md px-1.5 py-0.5">
-                  <Text className="text-indigo-500 text-[9px] font-black">{t}</Text>
-                </View>
-              ))}
-            </View>
-          )}
         </View>
 
         {/* Score */}
-        <View className="items-end">
-          <Text className="text-indigo-600 font-black text-lg">{entry.score.toFixed(2)}</Text>
-          <Text className="text-slate-300 text-[10px] font-semibold">pts</Text>
+        <View className="items-end bg-slate-50 px-4 py-2 rounded-2xl border border-gray-100">
+          <Text className="text-pink-500 font-black italic text-xl tracking-tighter">{entry.score.toFixed(1)}</Text>
+          <Text className="text-slate-300 text-[8px] font-black uppercase tracking-widest -mt-1">PTS</Text>
         </View>
       </View>
     </Animated.View>
@@ -193,96 +191,93 @@ const HackathonLeaderboard = () => {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-[#F8FAFC] items-center justify-center">
-        <ActivityIndicator size="large" color="#6366f1" />
+      <View className="flex-1 bg-white items-center justify-center">
+        <ActivityIndicator size="large" color="#ec4899" />
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
-      <StatusBar barStyle="light-content" />
+    <View className="flex-1 bg-white">
+      <StatusBar barStyle="dark-content" />
 
       {/* Hero Header */}
-      <LinearGradient
-        colors={['#1e1b4b', '#312e81', '#4338ca']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        className="pb-6 pt-2"
-      >
-        <SafeAreaView>
-          <View className="flex-row items-center px-5 pt-2 mb-5">
+      <View className="px-8 pt-10 pb-6 bg-white border-b border-slate-50">
+          <View className="flex-row items-center justify-between mb-8">
             <TouchableOpacity
               onPress={() => navigation.goBack()}
-              className="w-10 h-10 rounded-2xl bg-white/10 items-center justify-center mr-3"
+              className="w-12 h-12 rounded-[20px] bg-zinc-900 items-center justify-center shadow-lg shadow-zinc-900/20"
             >
-              <Ionicons name="arrow-back" size={20} color="white" />
+              <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
-            <View className="flex-1">
-              <Text className="text-white text-xl font-black italic tracking-tight">Leaderboard</Text>
-              <Text className="text-indigo-300 text-[10px] font-black uppercase tracking-widest" numberOfLines={1}>
-                {hackathonTitle ?? 'Hackathon'}
-              </Text>
-            </View>
-            <TouchableOpacity onPress={onRefresh} className="w-10 h-10 rounded-2xl bg-white/10 items-center justify-center">
-              <Ionicons name="refresh" size={18} color="white" />
+            <TouchableOpacity onPress={onRefresh} className="w-12 h-12 rounded-[20px] bg-slate-50 items-center justify-center border border-gray-100">
+              <Ionicons name="refresh" size={20} color="#ec4899" />
             </TouchableOpacity>
+          </View>
+
+          <View>
+            <Text className="text-zinc-900 text-5xl font-black italic uppercase tracking-tighter leading-[44px]">Leader</Text>
+            <Text className="text-zinc-900 text-5xl font-black italic uppercase tracking-tighter leading-[44px]">Board</Text>
+            <Text className="text-pink-500 text-[10px] font-black uppercase tracking-widest mt-4" numberOfLines={1}>
+                {hackathonTitle ?? 'Fync Protocol Registry'}
+            </Text>
           </View>
 
           {/* Stats row */}
-          <View className="flex-row px-5 gap-4">
+          <View className="flex-row gap-4 mt-8">
             {[
-              { label: 'Total Teams', val: leaderboard.length, icon: 'people' },
-              { label: 'Top Score', val: leaderboard[0]?.score?.toFixed(2) ?? '—', icon: 'trophy' },
+              { label: 'Signals', val: leaderboard.length, icon: 'people' },
+              { label: 'Peak Score', val: leaderboard[0]?.score?.toFixed(1) ?? '—', icon: 'flash' },
             ].map((s, i) => (
-              <View key={i} className="flex-1 bg-white/10 rounded-2xl px-4 py-3 border border-white/10">
-                <Ionicons name={s.icon as any} size={14} color="rgba(255,255,255,0.6)" />
-                <Text className="text-white/60 text-[10px] font-black uppercase tracking-widest mt-1">{s.label}</Text>
-                <Text className="text-white font-black text-lg">{s.val}</Text>
+              <View key={i} className="flex-1 bg-slate-50 rounded-[24px] px-6 py-4 border border-gray-100">
+                <Ionicons name={s.icon as any} size={14} color="#ec4899" />
+                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-2">{s.label}</Text>
+                <Text className="text-zinc-900 font-black italic text-2xl tracking-tighter mt-1">{s.val}</Text>
               </View>
             ))}
           </View>
-        </SafeAreaView>
-      </LinearGradient>
+      </View>
 
       {leaderboard.length === 0 ? (
         <View className="flex-1 items-center justify-center px-10">
-          <LinearGradient colors={['#ede9fe', '#fce7f3']} className="w-24 h-24 rounded-[32px] items-center justify-center mb-5">
-            <Ionicons name="trophy-outline" size={44} color="#6366f1" />
-          </LinearGradient>
-          <Text className="text-zinc-900 font-black italic text-xl tracking-tight text-center uppercase mb-2">
-            No Scores Yet
+          <View className="w-24 h-24 rounded-[32px] bg-slate-50 items-center justify-center mb-6">
+            <Ionicons name="trophy-outline" size={44} color="#CBD5E1" />
+          </View>
+          <Text className="text-zinc-900 font-black italic text-xl tracking-tighter text-center uppercase mb-1">
+            Registry Dark
           </Text>
-          <Text className="text-slate-400 text-center font-semibold text-xs uppercase tracking-widest">
-            Scores will appear here once judging starts
+          <Text className="text-slate-400 text-center font-black text-[10px] uppercase tracking-widest">
+            No active signals recorded in the ledger yet.
           </Text>
         </View>
       ) : (
         <FlatList
           data={rest}
           keyExtractor={item => item.submissionId}
-          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+          contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#6366f1']} tintColor="#6366f1" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#ec4899']} tintColor="#ec4899" />}
           ListHeaderComponent={() => (
-            <View className="mb-4">
+            <View className="mb-8">
               {/* Trophy banner */}
-              <View className="flex-row items-center mb-4">
-                <View className="flex-1 h-px bg-slate-200" />
-                <View className="mx-3 flex-row items-center bg-amber-100 rounded-full px-3 py-1.5">
-                  <Ionicons name="trophy" size={12} color="#d97706" />
-                  <Text className="text-amber-700 font-black text-[10px] uppercase tracking-widest ml-1">Top 3</Text>
+              <View className="flex-row items-center mb-8">
+                <View className="flex-1 h-[2px] bg-slate-50" />
+                <View className="mx-4 flex-row items-center bg-zinc-900 rounded-2xl px-5 py-2">
+                  <Ionicons name="trophy" size={14} color="#ec4899" />
+                  <Text className="text-white font-black italic text-[10px] uppercase tracking-widest ml-2">Elite Protocols</Text>
                 </View>
-                <View className="flex-1 h-px bg-slate-200" />
+                <View className="flex-1 h-[2px] bg-slate-50" />
               </View>
 
               {podium.map(e => <PodiumCard key={e.submissionId} entry={e} />)}
 
               {rest.length > 0 && (
-                <View className="flex-row items-center my-4">
-                  <View className="flex-1 h-px bg-slate-200" />
-                  <Text className="mx-3 text-slate-400 text-[10px] font-black uppercase tracking-widest">Rankings</Text>
-                  <View className="flex-1 h-px bg-slate-200" />
+                <View className="flex-row items-center my-8">
+                  <View className="flex-1 h-[2px] bg-slate-50" />
+                  <View className="mx-4 bg-slate-50 px-5 py-2 rounded-2xl border border-gray-100">
+                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Ranking Fleet</Text>
+                  </View>
+                  <View className="flex-1 h-[2px] bg-slate-50" />
                 </View>
               )}
             </View>
@@ -293,5 +288,6 @@ const HackathonLeaderboard = () => {
     </View>
   );
 };
+
 
 export default HackathonLeaderboard;

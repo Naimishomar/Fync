@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, memo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -6,102 +6,13 @@ import {
   Image, 
   ActivityIndicator, 
   Pressable, 
-  Linking,
+  Linking, 
   TextInput,
   TouchableOpacity,
   StatusBar
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
-
-// --- 🌌 BACKGROUND IMAGE ---
-const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
-
-const HackathonCard = memo(({ item, onPress }: { item: any; onPress: (url: string) => void }) => {
-  const fixUrl = (url: string) => {
-    if (!url) return 'https://via.placeholder.com/300x150';
-    if (url.startsWith('//')) return `https:${url}`;
-    return url;
-  };
-
-  const stripHtml = (html: string) => {
-    if (!html) return "See details";
-    let cleanText = html.replace(/<[^>]*>?/gm, '');
-    return cleanText.trim();
-  };
-
-  return (
-    <View className="bg-white rounded-2xl mb-8 mx-6 overflow-hidden shadow-sm shadow-black/5 border border-gray-300">
-      <View className="relative">
-        <Image 
-          source={{ uri: fixUrl(item.thumbnail_url) }} 
-          className="w-full h-56 bg-slate-50"
-          resizeMode="cover"
-        />
-        <View className="absolute mt-5 ml-5">
-            <View className={`px-4 py-1.5 rounded-full border shadow-sm ${item.is_online ? "bg-emerald-50 border-emerald-100" : "bg-blue-50 border-blue-100"}`}>
-                <Text className={`text-[10px] font-black uppercase tracking-widest ${item.is_online ? "text-emerald-500" : "text-blue-500"}`}>
-                    {item.is_online ? "Online" : "On-Site"}
-                </Text>
-            </View>
-        </View>
-      </View>
-      
-      <View className="p-4">
-        <View className="bg-slate-50 self-start px-3 py-1 rounded-lg border border-slate-100 mb-3">
-            <Text className="text-[10px] text-slate-500 font-black uppercase tracking-widest">
-                {item.submission_period_dates || "Open Entry"}
-            </Text>
-        </View>
-
-        <Text className="text-2xl font-black italic text-zinc-900 mb-4 tracking-tighter leading-7" numberOfLines={2}>
-            {item.title}
-        </Text>
-        
-        {/* Stats Row */}
-        <View className="flex-row items-center gap-6 mb-6">
-          <View className="flex-row items-center">
-            <View className="w-8 h-8 bg-amber-50 rounded-full items-center justify-center border border-amber-100">
-                <Ionicons name="trophy" size={14} color="#d97706" />
-            </View>
-            <Text className="ml-2 text-zinc-600 font-black italic text-xs tracking-tight uppercase">
-                {stripHtml(item.prize_amount)}
-            </Text>
-          </View>
-          <View className="flex-row items-center">
-            <View className="w-8 h-8 bg-blue-50 rounded-full items-center justify-center border border-blue-100">
-                <Ionicons name="people" size={14} color="#2563eb" />
-            </View>
-            <Text className="ml-2 text-zinc-600 font-black italic text-xs tracking-tight uppercase">
-                {item.registrations_count || "0"} Devs
-            </Text>
-          </View>
-        </View>
-
-        {/* Themes Tags */}
-        <View className="flex-row flex-wrap gap-2 mb-8">
-          {item.themes?.slice(0, 3).map((theme: any, index: number) => (
-            <View key={index} className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-                <Text className="text-[10px] text-slate-500 font-black uppercase tracking-tight">#{theme.name}</Text>
-            </View>
-          ))}
-        </View>
-
-        <TouchableOpacity 
-          activeOpacity={0.9}
-          onPress={() => onPress(item.url)}
-          className="bg-pink-500 rounded-2xl overflow-hidden shadow-xl shadow-black/20"
-        >
-          <View className="py-5 flex-row justify-center items-center">
-            <Text className="text-white font-black italic uppercase tracking-[2px] text-sm mr-2">Access Portal</Text>
-            <Ionicons name="arrow-forward" size={18} color="white" />
-          </View>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-});
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const HackathonList = () => {
   const [hackathons, setHackathons] = useState<any[]>([]);
@@ -119,19 +30,24 @@ const HackathonList = () => {
   const fetchHackathons = async (pageNum: number) => {
     if (loading) return;
     setLoading(true);
-    try {
-      const response = await fetch(`https://devpost.com/api/hackathons?page=${pageNum}`);
-      const data = await response.json();
-      const newHackathons = data.hackathons || [];
 
-      if (newHackathons.length === 0) {
+    try {
+      const response = await fetch(
+        `https://unstop.com/api/public/opportunity/search-result?opportunity=hackathons&page=${pageNum}&per_page=15&oppstatus=open&quickApply=true`
+      );
+      
+      const json = await response.json();
+      const newData = json.data?.data || [];
+
+      if (newData.length === 0) {
         setHasMore(false);
       } else {
         setHackathons((prev) => {
-            const existingIds = new Set(prev.map(i => i.id));
-            const unique = newHackathons.filter((i: any) => !existingIds.has(i.id));
-            return [...prev, ...unique];
+          const combined = [...prev, ...newData];
+          const uniqueMap = new Map(combined.map(item => [item.id, item]));
+          return Array.from(uniqueMap.values());
         });
+        
         setPage(pageNum);
       }
     } catch (error) {
@@ -141,31 +57,110 @@ const HackathonList = () => {
     }
   };
 
-  const handleLinkPress = useCallback((url: string) => {
-    if (url) Linking.openURL(url);
-  }, []);
-
-  const handleLoadMore = useCallback(() => {
+  const handleLoadMore = () => {
     if (hasMore && !loading && searchQuery === "") {
       fetchHackathons(page + 1);
     }
-  }, [hasMore, loading, page, searchQuery]);
+  };
 
   const filteredHackathons = hackathons.filter((item) => {
       const query = searchQuery.toLowerCase();
-      const matchesTitle = item.title?.toLowerCase().includes(query);
-      const matchesTheme = item.themes?.some((t: any) => t.name.toLowerCase().includes(query));
-      
-      return matchesTitle || matchesTheme;
+      return (
+          item.title?.toLowerCase().includes(query) ||
+          item.organisation?.name?.toLowerCase().includes(query)
+      );
   });
 
-  const renderItem = useCallback(({ item }: { item: any }) => (
-    <HackathonCard item={item} onPress={handleLinkPress} />
-  ), [handleLinkPress]);
+  const openLink = (slug: string) => {
+    const url = `https://unstop.com/${slug}`;
+    if (url) Linking.openURL(url);
+  };
+
+  const renderItem = ({ item }: { item: any }) => (
+    <View className="bg-white rounded-2xl mb-5 mx-6 p-6 shadow-sm shadow-black/5 border border-gray-300">
+      
+      {/* Header Row */}
+      <View className="flex-row gap-4 items-center">
+        {/* Logo */}
+        <View className="w-16 h-16 rounded-2xl border border-gray-200 overflow-hidden bg-slate-50 items-center justify-center p-2">
+            <Image 
+                source={{ uri: item.logoUrl2 || item.organisation?.logoUrl || 'https://via.placeholder.com/100' }} 
+                className="w-12 h-12 rounded-xl"
+                resizeMode="contain"
+            />
+        </View>
+
+        {/* Title & Company */}
+        <View className="flex-1">
+            <Text className="text-zinc-900 text-lg font-black italic tracking-tighter uppercase leading-5" numberOfLines={2}>
+                {item.title}
+            </Text>
+            <Text className="text-gray-600 text-[10px] font-black uppercase tracking-widest mt-1">
+                {item.organisation?.name || "Global Organisation"}
+            </Text>
+        </View>
+      </View>
+
+      {/* Tags Row */}
+      <View className="mt-5 flex-row flex-wrap gap-2">
+         {/* Location */}
+         <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-gray-300">
+            <Ionicons name="location-sharp" size={14} color="#64748b" />
+            <Text className="text-[10px] font-black uppercase tracking-tight text-slate-500 ml-1">
+                {item.job_location || "Global"}
+            </Text>
+         </View>
+
+         {/* Region/Deadline */}
+         <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-gray-300">
+            <Ionicons name="calendar" size={14} color="#64748b" />
+            <Text className="text-[10px] font-black uppercase tracking-tight text-slate-500 ml-1">
+                {item.regnEndDate ? new Date(item.regnEndDate).toLocaleDateString() : "Open"}
+            </Text>
+         </View>
+         
+         {item.filters?.slice(0, 1).map((f: any, i: number) => {
+             if(f.type === 'opportunity_type') {
+                 return (
+                    <View key={i} className="bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">
+                        <Text className="text-[10px] font-black uppercase tracking-tight text-blue-500">{f.name}</Text>
+                    </View>
+                 )
+             }
+         })}
+      </View>
+
+      {/* Footer / CTA */}
+      <View className="mt-3 flex-row items-center justify-between">
+            <View>
+              <Text className="text-gray-600 font-black uppercase text-[8px] tracking-[2px]">Opportunity Worth</Text>
+              <Text className="text-zinc-900 text-lg font-black italic mt-0.5 tracking-tighter uppercase">
+                  {item.payment_amount 
+                    ? `₹${item.payment_amount}` 
+                    : "Prizes / Certificates"
+                  }
+              </Text>
+            </View>
+
+            <TouchableOpacity 
+              onPress={() => openLink(item.public_url)}
+              activeOpacity={0.9} 
+              className="bg-pink-500 px-8 py-3.5 rounded-2xl shadow-lg shadow-black/20 border border-pink-300"
+            >
+                <Text className="text-white font-black italic uppercase tracking-widest text-[12px]">Participate</Text>
+            </TouchableOpacity>
+      </View>
+
+    </View>
+  );
 
   const renderFooter = () => {
     if (!loading) return <View className="h-12" />;
-    return <View className="py-10 items-center"><ActivityIndicator size="small" color="#ec4899" /></View>;
+    return (
+      <View className="py-6 items-center">
+        <ActivityIndicator size="small" color="#ec4899" />
+      </View>
+    );
   };
 
   return (
@@ -174,7 +169,7 @@ const HackathonList = () => {
       
       <SafeAreaView className="flex-1">
         
-        {/* Header */}
+        {/* Header Title */}
         <View className="px-8 pt-8 pb-4">
             <View className="flex-row items-center gap-3">
                 <View className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/20">
@@ -192,7 +187,7 @@ const HackathonList = () => {
             <View className="flex-row items-center bg-white rounded-3xl px-6 py-2 border border-gray-300 shadow-sm shadow-black/5">
                 <Ionicons name="search" size={20} color="#ec4899" />
                 <TextInput 
-                    placeholder="Search by tech stack, name..."
+                    placeholder="Search hackathons, companies..."
                     placeholderTextColor="#94a3b8"
                     value={searchQuery}
                     onChangeText={setSearchQuery}
@@ -209,13 +204,8 @@ const HackathonList = () => {
         {/* List */}
         <FlatList
             data={filteredHackathons}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item, index) => item.id?.toString() || `fallback-${index}`}
             renderItem={renderItem}
-            initialNumToRender={5}
-            maxToRenderPerBatch={5}
-            windowSize={5}
-            removeClippedSubviews={true}
-            updateCellsBatchingPeriod={50}
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.5}
             ListFooterComponent={renderFooter}
@@ -225,11 +215,11 @@ const HackathonList = () => {
                 !loading ? (
                     <View className="items-center mt-20 px-10">
                         <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
-                            <Ionicons name="code-slash" size={40} color="#CBD5E1" />
+                            <Ionicons name="search" size={40} color="#CBD5E1" />
                         </View>
-                        <Text className="text-zinc-900 font-black italic text-xl tracking-tight text-center uppercase">Dev Void</Text>
-                        <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-widest">
-                            {searchQuery ? "No hackathons matched your search protocol." : "The global registry is currently updating."}
+                        <Text className="text-zinc-900 font-black italic text-xl tracking-tight text-center uppercase">Zero Hits</Text>
+                        <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-wide">
+                            {searchQuery ? "We couldn't find matches for your search protocol." : "The hackathon vault is currently locked."}
                         </Text>
                     </View>
                 ) : null
@@ -240,4 +230,4 @@ const HackathonList = () => {
   );
 };
 
-export default HackathonList;
+export default HackathonList;
