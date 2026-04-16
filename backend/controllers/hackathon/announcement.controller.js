@@ -59,3 +59,78 @@ export const postAnnouncements = async (req, res, next) => {
         next(error);
     }
 };
+
+// PATCH /announcements/:announcementId/react
+export const reactToAnnouncement = async (req, res, next) => {
+    try {
+        const { emoji } = req.body;
+        const ann = await Announcement.findById(req.params.announcementId);
+        if (!ann) return res.status(404).json({ success: false, message: "Announcement not found" });
+
+        // Remove old reaction from this user if exists
+        ann.reactions = ann.reactions.filter(r => r.user.toString() !== req.user.id.toString());
+        // Add new one
+        ann.reactions.push({ user: req.user.id, emoji });
+        await ann.save();
+
+        const io = req.app.get("io");
+        if (io) {
+            io.to(`hack:${ann.hackathon}`).emit("announcement:reaction", {
+                announcementId: ann._id,
+                userId: req.user.id,
+                emoji
+            });
+        }
+
+        res.status(200).json({ success: true, reactions: ann.reactions });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// PATCH /announcements/:announcementId/pin
+export const pinAnnouncement = async (req, res, next) => {
+    try {
+        const { isPinned } = req.body;
+        const ann = await Announcement.findById(req.params.announcementId).populate("hackathon");
+        if (!ann) return res.status(404).json({ success: false, message: "Announcement not found" });
+
+        // Check if user is organiser of that hackathon
+        const hack = await Hackathon.findById(ann.hackathon);
+        if (hack.organiser.toString() !== req.user.id.toString()) {
+            return res.status(403).json({ success: false, message: "Only organiser can pin" });
+        }
+
+        ann.isPinned = isPinned;
+        await ann.save();
+
+        const io = req.app.get("io");
+        if (io) {
+            io.to(`hack:${ann.hackathon}`).emit("announcement:pinned", {
+                announcementId: ann._id,
+                isPinned
+            });
+        }
+
+        res.status(200).json({ success: true, isPinned: ann.isPinned });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// POST /announcements/:announcementId/read
+export const markAnnouncementRead = async (req, res, next) => {
+    try {
+        const ann = await Announcement.findById(req.params.announcementId);
+        if (!ann) return res.status(404).json({ success: false, message: "Announcement not found" });
+
+        if (!ann.readby.includes(req.user.id)) {
+            ann.readby.push(req.user.id);
+            await ann.save();
+        }
+
+        res.status(200).json({ success: true });
+    } catch (error) {
+        next(error);
+    }
+};
