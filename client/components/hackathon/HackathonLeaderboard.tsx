@@ -15,6 +15,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
+import socket from '../../utils/socket';
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface LeaderboardEntry {
@@ -169,6 +171,20 @@ const HackathonLeaderboard = () => {
 
   useEffect(() => {
     load();
+
+    // Subscribe to real-time updates
+    socket.emit('subscribe:leaderboard', { hackathonId });
+
+    const onUpdate = () => {
+      load(); // Reload data when notified
+      Toast.show({ type: 'info', text1: 'Leaderboard updated! 🏆' });
+    };
+
+    socket.on('leaderboard:updated', onUpdate);
+
+    return () => {
+      socket.off('leaderboard:updated', onUpdate);
+    };
   }, []);
 
   const load = async () => {

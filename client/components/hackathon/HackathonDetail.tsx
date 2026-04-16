@@ -584,128 +584,22 @@ const HackathonDetail = () => {
             </View>
           )}
 
-          {/* Announcements Tab */}
+          {/* Announcements Tab (Now a CTA to the Channel) */}
           {activeTab === 1 && (
-            <View>
-              {isOfficial() && (
-                <View className="bg-white rounded-3xl p-5 border border-indigo-100 mb-5"
-                  style={{ shadowColor: '#6366f1', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4 }}
-                >
-                  <View className="flex-row items-center mb-4">
-                    <LinearGradient colors={['#6366f1', '#8b5cf6']} className="w-9 h-9 rounded-xl items-center justify-center mr-3">
-                      <Ionicons name="megaphone" size={16} color="white" />
-                    </LinearGradient>
-                    <Text className="text-zinc-900 font-black italic uppercase tracking-tight text-base">Post Announcement</Text>
-                  </View>
-
-                  {/* Type picker */}
-                  <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2">Type</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginBottom: 16 }}>
-                    {ANN_TYPES.map(t => (
-                      <TouchableOpacity
-                        key={t.value}
-                        onPress={() => setAnnForm({ ...annForm, type: t.value })}
-                        className="flex-row items-center px-3 py-2 rounded-xl border"
-                        style={{
-                          backgroundColor: annForm.type === t.value ? t.bg : '#f8fafc',
-                          borderColor: annForm.type === t.value ? t.color : '#e2e8f0',
-                        }}
-                      >
-                        <Ionicons name={t.icon as any} size={12} color={annForm.type === t.value ? t.color : '#94a3b8'} />
-                        <Text
-                          className="text-[11px] font-black ml-1.5"
-                          style={{ color: annForm.type === t.value ? t.color : '#94a3b8' }}
-                        >
-                          {t.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-
-                  <TextInput
-                    placeholder="Headline (e.g. Schedule Update)"
-                    placeholderTextColor="#94a3b8"
-                    value={annForm.title}
-                    onChangeText={(text) => setAnnForm({ ...annForm, title: text })}
-                    className="bg-slate-50 rounded-xl px-4 py-3 mb-3 text-zinc-900 font-bold text-sm border border-slate-100"
-                  />
-                  <TextInput
-                    placeholder="What's the update?"
-                    placeholderTextColor="#94a3b8"
-                    value={annForm.body}
-                    onChangeText={(text) => setAnnForm({ ...annForm, body: text })}
-                    multiline
-                    numberOfLines={3}
-                    className="bg-slate-50 rounded-xl px-4 py-3 mb-4 text-zinc-900 font-semibold text-xs border border-slate-100 min-h-[80px]"
-                    textAlignVertical="top"
-                  />
-
-                  {/* Pin toggle */}
-                  <View className="flex-row items-center justify-between mb-4 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
-                    <View className="flex-row items-center">
-                      <Ionicons name="pin" size={14} color={annForm.isPinned ? '#f59e0b' : '#94a3b8'} />
-                      <Text className="text-[11px] text-slate-600 font-black uppercase tracking-widest ml-2">Pin to Top</Text>
-                    </View>
-                    <Switch
-                      value={annForm.isPinned}
-                      onValueChange={(v) => setAnnForm({ ...annForm, isPinned: v })}
-                      trackColor={{ false: '#e2e8f0', true: '#c7d2fe' }}
-                      thumbColor={annForm.isPinned ? '#6366f1' : '#f4f4f5'}
-                    />
-                  </View>
-
-                  <TouchableOpacity
-                    onPress={handlePostAnnouncement}
-                    disabled={postingAnn}
-                    activeOpacity={0.88}
-                    className="overflow-hidden rounded-2xl"
-                  >
-                    <LinearGradient
-                      colors={['#6366f1', '#ec4899']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      className="py-3.5 items-center"
-                    >
-                      {postingAnn ? (
-                        <ActivityIndicator size="small" color="white" />
-                      ) : (
-                        <View className="flex-row items-center">
-                          <Ionicons name="send" size={14} color="white" />
-                          <Text className="text-white font-black uppercase tracking-widest text-xs ml-2">Blast Message 📢</Text>
-                        </View>
-                      )}
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              {annLoading ? (
-                <View className="py-10 items-center">
-                  <ActivityIndicator size="small" color="#6366f1" />
-                </View>
-              ) : announcements.length === 0 ? (
-                <View className="items-center py-12">
-                  <LinearGradient colors={['#ede9fe', '#fce7f3']} className="w-16 h-16 rounded-3xl items-center justify-center mb-4">
-                    <Ionicons name="megaphone-outline" size={30} color="#6366f1" />
-                  </LinearGradient>
-                  <Text className="text-zinc-700 font-black italic text-base uppercase">No Announcements</Text>
-                  <Text className="text-slate-400 text-xs mt-1 font-semibold">Check back soon</Text>
-                </View>
-              ) : (
-                <View>
-                  {announcements.map(ann => (
-                    <AnnCard key={ann._id} ann={ann} onReact={handleReact} />
-                  ))}
-                  {annHasMore && (
-                    <TouchableOpacity
-                      onPress={() => loadAnnouncements(annPage + 1)}
-                      className="py-3 items-center"
-                    >
-                      <Text className="text-indigo-500 font-black text-xs uppercase tracking-widest">Load more ↓</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              )}
+            <View className="items-center py-12 bg-white rounded-3xl border border-slate-100">
+               <LinearGradient colors={['#ede9fe', '#fce7f3']} className="w-20 h-20 rounded-[32px] items-center justify-center mb-5">
+                 <Ionicons name="megaphone-outline" size={40} color="#6366f1" />
+               </LinearGradient>
+               <Text className="text-zinc-900 font-black italic text-xl uppercase mb-2">Live Channel</Text>
+               <Text className="text-slate-400 text-center font-semibold text-xs uppercase tracking-widest px-10 mb-6">
+                 Real-time updates, reactions, and official announcements. Join the conversation!
+               </Text>
+               <TouchableOpacity 
+                 onPress={() => navigation.navigate('HackathonChannel', { hackathonId: hackathon._id, hackathonTitle: hackathon.title })}
+                 className="bg-indigo-600 rounded-2xl px-8 py-3.5"
+               >
+                 <Text className="text-white font-black text-xs uppercase tracking-widest">Enter Channel 📢</Text>
+               </TouchableOpacity>
             </View>
           )}
 
@@ -791,25 +685,27 @@ const HackathonDetail = () => {
         </View>
       ) : (
         <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-white border-t border-slate-100">
-        <View className="flex-row gap-3">
+          <View className="flex-row gap-2">
             <TouchableOpacity
               onPress={() => navigation.navigate('HackathonTeamScreen', { hackathonId: hackathon._id })}
               className="flex-1 rounded-2xl bg-indigo-600 py-4 items-center"
             >
-              <Text className="text-white font-black text-sm uppercase tracking-wide">My Team</Text>
+              <Text className="text-white font-black text-xs uppercase tracking-wide">My Team</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               onPress={() => navigation.navigate('HackathonSubmission', { hackathonId: hackathon._id })}
-              className="flex-1 rounded-2xl border border-indigo-200 py-4 items-center"
+              className="flex-1 rounded-2xl bg-emerald-600 py-4 items-center"
             >
-              <Text className="text-indigo-600 font-black text-sm uppercase tracking-wide">Submit</Text>
+              <Text className="text-white font-black text-xs uppercase tracking-wide">Submit 🚀</Text>
             </TouchableOpacity>
+
             {isOfficial() && (
               <TouchableOpacity
                 onPress={() => navigation.navigate('HackathonJudgePanel', { hackathonId: hackathon._id, judgingCriteria: hackathon.judgingcriteria })}
-                className="w-14 rounded-2xl bg-amber-400 py-4 items-center"
+                className="w-12 rounded-2xl bg-amber-400 py-4 items-center"
               >
-                <Text className="text-amber-900 font-black text-xs">⚖️</Text>
+                <Ionicons name="analytics" size={16} color="#78350f" />
               </TouchableOpacity>
             )}
           </View>

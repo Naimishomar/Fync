@@ -264,15 +264,52 @@ export const socketController = (io) => {
     });
 
     // --- 🚀 HACKATHON ECOSYSTEM ---
-    socket.on("join_hack_room", ({ hackathonId }) => {
-      if (!hackathonId) return;
-      socket.join(`hack:${hackathonId}`);
-      console.log(`🚀 Socket ${socket.id} joined hack room: hack:${hackathonId}`);
+    socket.on("identity", (userId) => {
+      if (!userId) return;
+      socket.userId = userId;
+      socket.join(`user:${userId}`);
+      onlineUsers.set(userId, socket.id);
+      console.log(`👤 User identified: ${userId}`);
     });
 
-    socket.on("leave_hack_room", ({ hackathonId }) => {
+    socket.on("join:hackathon", ({ hackathonId }) => {
+      if (!hackathonId) return;
+      socket.join(`hack:${hackathonId}`);
+      console.log(`🚀 Joined hack room: hack:${hackathonId}`);
+    });
+
+    socket.on("leave:hackathon", ({ hackathonId }) => {
       if (!hackathonId) return;
       socket.leave(`hack:${hackathonId}`);
+    });
+
+    socket.on("join:team", ({ teamId }) => {
+      if (!teamId) return;
+      socket.join(`team:${teamId}`);
+      console.log(`👥 Joined team room: team:${teamId}`);
+    });
+
+    socket.on("leave:team", ({ teamId }) => {
+      if (!teamId) return;
+      socket.leave(`team:${teamId}`);
+    });
+
+    socket.on("subscribe:leaderboard", ({ hackathonId }) => {
+      if (!hackathonId) return;
+      socket.join(`hack:${hackathonId}:leaderboard`);
+    });
+
+    socket.on("typing:start", ({ roomId, userId, username }) => {
+      socket.to(roomId).emit("typing:start", { userId, username });
+    });
+
+    socket.on("typing:stop", ({ roomId, userId }) => {
+      socket.to(roomId).emit("typing:stop", { userId });
+    });
+
+    socket.on("join_hack_room", ({ hackathonId }) => { // Backwards compatibility
+      if (!hackathonId) return;
+      socket.join(`hack:${hackathonId}`);
     });
 
     socket.on("join_custom_room", async ({ roomId, userId }) => {
