@@ -16,6 +16,7 @@ import quizRoute from './routes/quiz.route.js';
 import interviewRoute from './routes/interview.route.js';
 import notificationRoute from './routes/notification.route.js';
 import codingRoute from './routes/coding.route.js';
+import codingArenaRoute from './routes/codingArena.route.js';
 import OLXRoute from './routes/olx.route.js';
 import LostAndFoundRoute from './routes/lostAndFound.route.js';
 import noticeRoute from './routes/notice.route.js';
@@ -63,6 +64,7 @@ import startCleanupCron from './services/cleanup.service.js';
 import { rateLimit } from 'express-rate-limit';
 
 import { socketController } from './controllers/socket.controller.js';
+import codingBattleSockets from './controllers/coding/battle.socket.js';
 import compression from 'compression';
 import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
@@ -141,6 +143,7 @@ app.use('/quiz', quizRoute);
 app.use('/interview', interviewRoute);
 app.use('/notifications', notificationRoute);
 app.use('/leaderboard', codingRoute);
+app.use('/coding-arena', codingArenaRoute);
 app.use('/olx', OLXRoute);
 app.use('/lostAndFound', LostAndFoundRoute);
 app.use('/notice', noticeRoute);
@@ -167,10 +170,7 @@ app.use('/submissions', submissionRoute);
 app.use('/announcements', announcementRoute);
 app.use('/scores', scoreRoute);
 app.use('/hackathon-leaderboard', leaderboardRoute);
-
-
 socketController(io);
-app.set('io', io);  // Make io accessible to controllers via req.app.get('io')
 setCollegeChatIo(io);
 setAlumniChatIo(io);
 setMentorshipIo(io);
@@ -184,11 +184,9 @@ initAlumniChatCleanup();
 initCommunityCleanup();
 initFyncMediaCleanup();
 startCleanupCron();
-
 app.get('/', (req, res) => {
   res.send('Fync never gets down!🚀');
 });
-
 const startServer = async () => {
   try {
     await connectDB();
@@ -201,5 +199,4 @@ const startServer = async () => {
     process.exit(1);
   }
 };
-
 startServer();

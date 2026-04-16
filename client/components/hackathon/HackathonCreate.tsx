@@ -19,6 +19,7 @@ import Toast from 'react-native-toast-message';
 import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
+import { StatusBar } from 'expo-status-bar';
 
 const HackathonCreate = () => {
   const navigation = useNavigation<any>();
@@ -145,7 +146,7 @@ const HackathonCreate = () => {
 
   return (
     <View className="flex-1 bg-[#F8FAFC]">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar backgroundColor="#F8FAFC" />
       <SafeAreaView className="flex-1">
         
         {/* Header */}

@@ -18,8 +18,15 @@ const CONFESSION_COLORS = [
 
 const maskName = (name: string) => {
     if (!name) return 'User';
-    if (name.length <= 2) return name;
-    return `${name[0]}***${name[name.length - 1]}`;
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) {
+        const n = parts[0];
+        if (n.length <= 1) return n.toUpperCase();
+        return `${n[0]}. ${n[n.length - 1]}.`.toUpperCase();
+    }
+    const firstInitial = parts[0][0];
+    const lastInitial = parts[parts.length - 1][0];
+    return `${firstInitial}. ${lastInitial}.`.toUpperCase();
 };
 
 /* ---------------- GLOBAL CACHE ---------------- */
@@ -36,13 +43,13 @@ const ConfessionFeed = () => {
     const [newConfession, setNewConfession] = useState('');
     const [selectedColor, setSelectedColor] = useState(CONFESSION_COLORS[0]);
     const [submitting, setSubmitting] = useState(false);
-    
+
     // Pagination
     const [page, setPage] = useState(globalCurrentPage);
     const [hasMore, setHasMore] = useState(globalHasMore);
     const [loadingMore, setLoadingMore] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
-    
+
     // Edit state
     const [editingConfession, setEditingConfession] = useState<any>(null);
 
@@ -59,10 +66,10 @@ const ConfessionFeed = () => {
     }
 
     // Comments states
-    const [commentsModal, setCommentsModal] = useState<CommentsModalState>({ 
-        visible: false, 
-        confessionId: null, 
-        comments: [] 
+    const [commentsModal, setCommentsModal] = useState<CommentsModalState>({
+        visible: false,
+        confessionId: null,
+        comments: []
     });
     const [newComment, setNewComment] = useState('');
     const [replyTo, setReplyTo] = useState<any>(null);
@@ -75,7 +82,7 @@ const ConfessionFeed = () => {
 
     const fetchConfessions = async (pageNum = 1, shouldRefresh = false) => {
         if (!globalHasMore && !shouldRefresh && pageNum !== 1) return;
-        
+
         if (pageNum === 1 && !shouldRefresh) setLoading(true);
         if (pageNum > 1) setLoadingMore(true);
 
@@ -92,7 +99,7 @@ const ConfessionFeed = () => {
                 }
                 globalCurrentPage = pageNum;
                 globalHasMore = res.data.hasMore;
-                
+
                 setPage(globalCurrentPage);
                 setHasMore(globalHasMore);
             }
@@ -122,10 +129,10 @@ const ConfessionFeed = () => {
         try {
             if (editingConfession) {
                 console.log('UPDATING:', editingConfession._id, { content: newConfession, color: selectedColor, taggedUserId: taggedUser?._id });
-                const res = await axios.put(`/confessions/${editingConfession._id}`, { 
-                    content: newConfession, 
+                const res = await axios.put(`/confessions/${editingConfession._id}`, {
+                    content: newConfession,
                     color: selectedColor,
-                    taggedUserId: taggedUser?._id 
+                    taggedUserId: taggedUser?._id
                 });
                 console.log('UPDATE RES:', res.data);
                 if (res.data.success) {
@@ -134,10 +141,10 @@ const ConfessionFeed = () => {
                 }
             } else {
                 console.log('POSTING NEW:', { content: newConfession, color: selectedColor, taggedUserId: taggedUser?._id });
-                const res = await axios.post('/confessions', { 
-                    content: newConfession, 
+                const res = await axios.post('/confessions', {
+                    content: newConfession,
                     color: selectedColor,
-                    taggedUserId: taggedUser?._id 
+                    taggedUserId: taggedUser?._id
                 });
                 console.log('POST RES:', res.data);
                 if (res.data.success) {
@@ -176,17 +183,19 @@ const ConfessionFeed = () => {
             "This action cannot be undone.",
             [
                 { text: "Cancel", style: "cancel" },
-                { text: "Delete", style: "destructive", onPress: async () => {
-                    try {
-                        const res = await axios.delete(`/confessions/${id}`);
-                        if (res.data.success) {
-                            setConfessions(confessions.filter((c: any) => c._id !== id));
-                            Toast.show({ type: 'success', text1: 'Confession deleted' });
+                {
+                    text: "Delete", style: "destructive", onPress: async () => {
+                        try {
+                            const res = await axios.delete(`/confessions/${id}`);
+                            if (res.data.success) {
+                                setConfessions(confessions.filter((c: any) => c._id !== id));
+                                Toast.show({ type: 'success', text1: 'Confession deleted' });
+                            }
+                        } catch (e) {
+                            Toast.show({ type: 'error', text1: 'Delete failed' });
                         }
-                    } catch (e) {
-                        Toast.show({ type: 'error', text1: 'Delete failed' });
                     }
-                }}
+                }
             ]
         );
     };
@@ -225,7 +234,7 @@ const ConfessionFeed = () => {
 
     const renderConfession = ({ item }: any) => (
         <View style={{ backgroundColor: item.color }} className="p-5 rounded-3xl mb-4 shadow-xl">
-             <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-row items-center justify-between mb-4">
                 <View className="flex-row items-center">
                     <ExpoImage source={{ uri: ANONYMOUS_AVATAR }} className="w-10 h-10 rounded-full bg-white/20" cachePolicy="disk" />
                     <View className="ml-3">
@@ -236,7 +245,7 @@ const ConfessionFeed = () => {
 
                 {/* Manage Menu (Admin/Owner) */}
                 {(item.canManage) && (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={() => {
                             console.log('Opening menu for item:', item._id);
                             Alert.alert(
@@ -248,7 +257,7 @@ const ConfessionFeed = () => {
                                     { text: "Cancel", style: "cancel" }
                                 ]
                             );
-                        }} 
+                        }}
                         className="p-3 bg-black/30 rounded-2xl ml-2 border border-white/10"
                     >
                         <Ionicons name="settings-sharp" size={24} color="white" />
@@ -257,9 +266,9 @@ const ConfessionFeed = () => {
             </View>
 
             <Text className="text-white text-lg font-bold leading-7 mb-2">{item.content}</Text>
-            
+
             {item.taggedUser && (
-                <TouchableOpacity 
+                <TouchableOpacity
                     onPress={() => {
                         console.log('Navigating to PublicProfile:', item.taggedUser?._id);
                         navigation.navigate('PublicProfile', { userId: item.taggedUser?._id });
@@ -275,10 +284,10 @@ const ConfessionFeed = () => {
                 <Text className="text-white/50 text-[10px] uppercase font-bold">{new Date(item.createdAt).toLocaleDateString()}</Text>
                 <View className="flex-row items-center">
                     <TouchableOpacity onPress={() => handleLike(item._id)} className="flex-row items-center mr-4">
-                        <Ionicons 
-                            name={item.liked_by?.includes(user?._id || user?.id) ? "heart" : "heart-outline"} 
-                            size={20} 
-                            color="white" 
+                        <Ionicons
+                            name={item.liked_by?.includes(user?._id || user?.id) ? "heart" : "heart-outline"}
+                            size={20}
+                            color="white"
                         />
                         <Text className="text-white ml-1.5 text-xs font-black">{item.likes || 0}</Text>
                     </TouchableOpacity>
@@ -316,15 +325,15 @@ const ConfessionFeed = () => {
     const handleComment = async () => {
         if (!newComment.trim() || !commentsModal.confessionId) return;
         try {
-            const res = await axios.post(`/confessions/comment/${commentsModal.confessionId}`, { 
+            const res = await axios.post(`/confessions/comment/${commentsModal.confessionId}`, {
                 text: newComment,
-                parentCommentId: replyTo?._id 
+                parentCommentId: replyTo?._id
             });
             if (res.data.success) {
                 if (replyTo) {
                     setCommentsModal({
                         ...commentsModal,
-                        comments: commentsModal.comments.map((c: any) => 
+                        comments: commentsModal.comments.map((c: any) =>
                             c._id === replyTo._id ? { ...c, replies: [...(c.replies || []), res.data.comment] } : c
                         )
                     });
@@ -349,7 +358,7 @@ const ConfessionFeed = () => {
                         <Text className="text-gray-400 text-[10px] font-medium">{new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
                     </View>
                     <Text className="text-zinc-900 text-sm mt-0.5">{item.text}</Text>
-                    
+
                     {!isReply && (
                         <TouchableOpacity onPress={() => {
                             setReplyTo(item);
@@ -390,7 +399,7 @@ const ConfessionFeed = () => {
                         <Text className="text-gray-500 text-sm font-medium">{user?.college} Community</Text>
                     </View>
                 </View>
-                <TouchableOpacity 
+                <TouchableOpacity
                     onPress={() => setIsPostModalOpen(true)}
                     className="bg-pink-500/20 p-3 rounded-full border border-pink-500/30"
                 >
@@ -398,7 +407,7 @@ const ConfessionFeed = () => {
                 </TouchableOpacity>
             </View>
 
-            <FlatList 
+            <FlatList
                 data={confessions}
                 keyExtractor={(item: any) => item._id}
                 renderItem={renderConfession}
@@ -443,7 +452,7 @@ const ConfessionFeed = () => {
                                 </View>
                             )}
 
-                            <TextInput 
+                            <TextInput
                                 placeholder={editingConfession ? "Update your secret..." : "Type your secret (use @ to tag someone)"}
                                 placeholderTextColor="rgba(255,255,255,0.6)"
                                 multiline
@@ -459,8 +468,8 @@ const ConfessionFeed = () => {
                             <View className="absolute top-[100px] left-8 right-8 bg-white rounded-2xl shadow-lg z-50 border border-gray-100 max-h-[200px]">
                                 <ScrollView keyboardShouldPersistTaps="always">
                                     {userSuggestions.map((u: any) => (
-                                        <TouchableOpacity 
-                                            key={u._id} 
+                                        <TouchableOpacity
+                                            key={u._id}
                                             onPress={() => selectUserToTag(u)}
                                             className="flex-row items-center p-4 border-b border-gray-50"
                                         >
@@ -478,12 +487,12 @@ const ConfessionFeed = () => {
                         <Text className="text-gray-500 mb-4 text-[10px] font-black uppercase tracking-widest text-center">Pick Your Mood</Text>
                         <View className="flex-row justify-between mb-10 px-2">
                             {CONFESSION_COLORS.map(color => (
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     key={color}
                                     onPress={() => setSelectedColor(color)}
-                                    style={{ 
-                                        backgroundColor: color, 
-                                        borderWidth: selectedColor === color ? 3 : 0, 
+                                    style={{
+                                        backgroundColor: color,
+                                        borderWidth: selectedColor === color ? 3 : 0,
                                         borderColor: 'white',
                                         transform: [{ scale: selectedColor === color ? 1.2 : 1 }]
                                     }}
@@ -492,7 +501,7 @@ const ConfessionFeed = () => {
                             ))}
                         </View>
 
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             onPress={handlePostConfession}
                             disabled={submitting}
                             className={`py-5 rounded-3xl items-center shadow-md ${submitting ? 'bg-pink-300' : 'bg-pink-500'}`}
@@ -523,7 +532,7 @@ const ConfessionFeed = () => {
                             </TouchableOpacity>
                         </View>
 
-                        <FlatList 
+                        <FlatList
                             data={commentsModal.comments}
                             keyExtractor={(c: any) => c._id}
                             renderItem={({ item }) => renderComment(item)}
@@ -546,7 +555,7 @@ const ConfessionFeed = () => {
 
                         <View className="flex-row items-center bg-gray-50 rounded-[24px] p-2 px-3 border border-gray-100 mb-8">
                             <ExpoImage source={{ uri: user?.avatar || ANONYMOUS_AVATAR }} className="w-8 h-8 rounded-full mr-2 bg-gray-200" cachePolicy="disk" />
-                            <TextInput 
+                            <TextInput
                                 placeholder="Add a comment..."
                                 placeholderTextColor="#9ca3af"
                                 value={newComment}

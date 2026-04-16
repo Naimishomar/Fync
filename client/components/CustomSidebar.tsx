@@ -17,7 +17,10 @@ if (
     Platform.OS === 'android' &&
     UIManager.setLayoutAnimationEnabledExperimental
 ) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
+    // Only call if not in New Architecture or to avoid noisy warning
+    try { 
+        UIManager.setLayoutAnimationEnabledExperimental(true);
+    } catch (e) {}
 }
 
 export default function CustomSidebar(props: any) {
@@ -393,11 +396,11 @@ export default function CustomSidebar(props: any) {
                     {/* Admin Only — Manage Ads */}
                     {user?.user_access === 'admin' && (
                         <Pressable
-                            onPress={() => props.navigation.navigate('ManageAds')}
+                            onPress={() => props.navigation.navigate('AdminPortal')}
                             className="flex-row items-center px-4 py-4 rounded-xl mb-1 mt-2 bg-pink-500/10 border border-pink-500/20 active:bg-pink-500/20"
                         >
-                            <Ionicons name="megaphone-outline" size={24} color="#ec4899" />
-                            <Text className="text-pink-400 text-lg ml-4 font-semibold">Manage Ads</Text>
+                            <Ionicons name="shield-checkmark-outline" size={24} color="#ec4899" />
+                            <Text className="text-pink-400 text-lg ml-4 font-semibold">Admin Portal</Text>
                             <View className="ml-2 bg-pink-500/20 px-2 py-0.5 rounded-full border border-pink-500/30">
                                 <Text className="text-[9px] text-pink-400 font-bold">ADMIN</Text>
                             </View>
