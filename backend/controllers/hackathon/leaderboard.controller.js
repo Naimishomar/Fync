@@ -10,20 +10,17 @@ export const getLeaderboard = async (req, res, next) => {
     const boardKey = `hack:${hackId}:leaderboard`;
 
     // ZREVRANGEBYSCORE — highest score first, with scores
-    const raw = await redisClient.zrevrangebyscore(boardKey, "+inf", "-inf", "WITHSCORES");
+    const raw = await redisClient.zRangeWithScores(boardKey, "-inf", "+inf", { BY: 'SCORE', REV: true });
 
-    if (!raw.length)
+    if (!raw || !raw.length)
       return res.status(200).json({ success: true, leaderboard: [], message: "No scores yet" });
 
-    // Parse flat array [ subId, score, subId, score, ... ] into ranked list
-    const ranked = [];
-    for (let i = 0; i < raw.length; i += 2) {
-      ranked.push({
-        rank:         ranked.length + 1,
-        submissionId: raw[i],
-        score:        parseFloat(parseFloat(raw[i + 1]).toFixed(2)),
-      });
-    }
+    // Parse array of { value, score } into ranked list
+    const ranked = raw.map((entry, index) => ({
+      rank:         index + 1,
+      submissionId: entry.value,
+      score:        parseFloat(parseFloat(entry.score).toFixed(2)),
+    }));
 
     // Hydrate with project + team info from MongoDB
     const subIds = ranked.map((r) => r.submissionId);
@@ -59,16 +56,13 @@ export const getTopN = async (req, res, next) => {
     const boardKey = `hack:${hackathonId}:leaderboard`;
 
     // ZREVRANGE with scores — top N
-    const raw = await redisClient.zrevrange(boardKey, 0, Number(n) - 1, "WITHSCORES");
+    const raw = await redisClient.zRangeWithScores(boardKey, 0, Number(n) - 1, { REV: true });
 
-    const ranked = [];
-    for (let i = 0; i < raw.length; i += 2) {
-      ranked.push({
-        rank:         ranked.length + 1,
-        submissionId: raw[i],
-        score:        parseFloat(parseFloat(raw[i + 1]).toFixed(2)),
-      });
-    }
+    const ranked = raw.map((entry, index) => ({
+      rank:         index + 1,
+      submissionId: entry.value,
+      score:        parseFloat(parseFloat(entry.score).toFixed(2)),
+    }));
 
     const subIds = ranked.map((r) => r.submissionId);
     const subs   = await Submission.find({ _id: { $in: subIds } })
@@ -95,8 +89,8 @@ export const getSubmissionRank = async (req, res, next) => {
     const boardKey = `hack:${req.params.hackathonId}:leaderboard`;
 
     // ZREVRANK returns 0-based rank from top
-    const rank  = await redisClient.zrevrank(boardKey, req.params.submissionId);
-    const score = await redisClient.zscore(boardKey, req.params.submissionId);
+    const rank  = await redisClient.zRevRank(boardKey, req.params.submissionId);
+    const score = await redisClient.zScore(boardKey, req.params.submissionId);
 
     if (rank === null)
       return res.status(404).json({ success: false, message: "Submission not on leaderboard yet" });
@@ -135,12 +129,12 @@ export const rebuildLeaderboard = async (req, res, next) => {
     const boardKey = `hack:${hackId}:leaderboard`;
     await redisClient.del(boardKey);
 
-    // Batch insert with pipeline
-    const pipeline = redisClient.pipeline();
+    // Batch insert with multi (replacement for pipeline in v4)
+    const multi = redisClient.multi();
     Object.entries(map).forEach(([sid, { total, count }]) => {
-      pipeline.zadd(boardKey, parseFloat((total / count).toFixed(4)), sid);
+      multi.zAdd(boardKey, { score: parseFloat((total / count).toFixed(4)), value: sid });
     });
-    await pipeline.exec();
+    await multi.exec();
 
     res.status(200).json({
       success: true,

@@ -23,3 +23,30 @@ export const contactUs = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 }
+
+export const getContactMessages = async (req, res) => {
+    try {
+        if (req.user.user_access !== 'admin') {
+            return res.status(403).json({ message: "Unauthorized", success: false });
+        }
+        const messages = await ContactUs.find().sort({ createdAt: -1 });
+        return res.status(200).json({ success: true, messages });
+    } catch (error) {
+        console.log("Error in getContactMessages", error);
+        return res.status(500).json({ message: "Internal server error", success: false });
+    }
+}
+
+export const deleteContactMessage = async (req, res) => {
+    try {
+        if (req.user.user_access !== 'admin') {
+            return res.status(403).json({ message: "Unauthorized", success: false });
+        }
+        const { id } = req.params;
+        await ContactUs.findByIdAndDelete(id);
+        return res.status(200).json({ message: "Message deleted successfully", success: true });
+    } catch (error) {
+        console.log("Error in deleteContactMessage", error);
+        return res.status(500).json({ message: "Internal server error", success: false });
+    }
+}

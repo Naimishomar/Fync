@@ -385,7 +385,7 @@ export const matchTeams = async (req, res, next) => {
          .slice(0, 10); // top 10 matches
 
       // Cache for 5 minutes
-      await redisClient.setex(cacheKey, 300, JSON.stringify(scored));
+      await redisClient.setEx(cacheKey, 300, JSON.stringify(scored));
 
       res.status(200).json({ success: true, fromCache: false, teams: scored });
    } catch (err) { next(err); }

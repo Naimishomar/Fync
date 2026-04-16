@@ -210,38 +210,51 @@ const HackathonHub = () => {
       <StatusBar barStyle="dark-content" />
       <SafeAreaView className="flex-1">
 
-        {/* Header */}
-        <View className="px-8 pt-8 pb-4">
-            <View className="flex-row items-center justify-between mb-2">
+        {/* Header Section */}
+        <View className="px-6 pt-10 pb-6">
+            <View className="flex-row items-center justify-between mb-8">
                 <TouchableOpacity 
                     onPress={() => navigation.goBack()}
-                    className="w-10 h-10 bg-black rounded-full items-center justify-center shadow-lg shadow-black/20"
+                    className="w-12 h-12 bg-zinc-50 rounded-full items-center justify-center border border-zinc-100 shadow-sm"
                 >
-                    <Ionicons name="arrow-back" size={24} color="white" />
+                    <Ionicons name="chevron-back" size={24} color="#18181b" />
                 </TouchableOpacity>
+
                 <TouchableOpacity
                     onPress={() => navigation.navigate('HackathonCreate')}
-                    className="flex-row items-center bg-black px-5 py-2.5 rounded-2xl shadow-lg border border-black"
+                    className="flex-row items-center bg-zinc-900 px-6 py-3 rounded-2xl shadow-xl shadow-black/20"
                 >
-                    <Ionicons name="add" size={20} color="white" />
-                    <Text className="text-white text-[11px] font-black uppercase tracking-widest ml-2">Host Protocol</Text>
+                    <View className="bg-pink-500 w-5 h-5 rounded-md items-center justify-center mr-2">
+                      <Ionicons name="add" size={16} color="white" />
+                    </View>
+                    <Text className="text-white text-[10px] font-black uppercase tracking-[1.5px]">Host Protocol</Text>
                 </TouchableOpacity>
             </View>
             
-            <View className="mb-4">
-                <Text className="text-5xl font-[900] text-[#1A1A1A] tracking-[-2px] leading-[50px] uppercase italic">
-                    Hackathon<Text className="text-pink-500"> Hub.</Text>
+            <View className="mb-8">
+                <View className="flex-row items-center mb-1">
+                   <View className="w-8 h-[2px] bg-pink-500 mr-2" />
+                   <Text className="text-pink-500 text-[10px] font-black uppercase tracking-[3px]">Ecosystem Explorer</Text>
+                </View>
+                <Text className="text-[52px] font-black text-zinc-900 tracking-[-3px] leading-[54px] uppercase italic">
+                    Hackathon<Text className="text-zinc-300">/</Text><Text className="italic text-zinc-900">Hub</Text>
                 </Text>
             </View>
 
-            <View className="flex-row justify-between mb-2">
-                <View className="flex-1">
-                    <Text className="text-[11px] text-[#1A1A1A] font-black uppercase tracking-widest italic">Signal Coverage</Text>
-                    <Text className="text-[11px] text-gray-500 font-black uppercase tracking-widest">Global Ecosystem Hub</Text>
+            <View className="flex-row items-center gap-6">
+                <View className="flex-1 bg-zinc-50 p-4 rounded-3xl border border-zinc-100">
+                    <Text className="text-[9px] text-zinc-400 font-black uppercase tracking-widest mb-1.5">Active Signal</Text>
+                    <View className="flex-row items-center">
+                       <View className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2 animate-pulse" />
+                       <Text className="text-zinc-900 text-xs font-black uppercase tracking-tighter">Live registry</Text>
+                    </View>
                 </View>
-                <View className="flex-1 items-end">
-                    <Text className="text-[11px] text-[#1A1A1A] font-black uppercase tracking-widest italic">{hackathons.length} Protocols</Text>
-                    <Text className="text-[11px] text-pink-500 font-black uppercase tracking-widest">Live Registry</Text>
+                <View className="flex-1 bg-zinc-900 p-4 rounded-3xl border border-zinc-800 shadow-lg shadow-black/10">
+                    <Text className="text-[9px] text-zinc-500 font-black uppercase tracking-widest mb-1.5">Integrations</Text>
+                    <View className="flex-row items-center">
+                       <Text className="text-white text-xs font-black uppercase tracking-tighter">{hackathons.length} Protocols</Text>
+                       <Ionicons name="stats-chart" size={12} color="#ec4899" className="ml-2" />
+                    </View>
                 </View>
             </View>
         </View>

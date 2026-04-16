@@ -9,7 +9,8 @@ export const setCollegeChatIo = (io) => {
 
 export const sendMessage = async (req, res) => {
     try {
-        const { messageType, content, replyTo } = req.body;
+        const { messageType, content, replyTo, replyToId } = req.body;
+        const actualReplyTo = replyTo || replyToId;
         const collegeName = req.user.college;
 
         if (!collegeName) {
@@ -36,7 +37,7 @@ export const sendMessage = async (req, res) => {
             content: content || "",
             mediaUrl,
             expiresAt,
-            replyTo: replyTo || null
+            replyTo: actualReplyTo || null
         });
 
         const populatedMessage = await CollegeChat.findById(newMessage._id)

@@ -67,7 +67,10 @@ const HackathonList = () => {
       const query = searchQuery.toLowerCase();
       return (
           item.title?.toLowerCase().includes(query) ||
-          item.organisation?.name?.toLowerCase().includes(query)
+          item.organisation?.name?.toLowerCase().includes(query) ||
+          item.job_location?.toLowerCase().includes(query) ||
+          item.region?.toLowerCase().includes(query) ||
+          item.filters?.some((f: any) => f.name?.toLowerCase().includes(query))
       );
   });
 
@@ -103,13 +106,27 @@ const HackathonList = () => {
 
       {/* Tags Row */}
       <View className="mt-5 flex-row flex-wrap gap-2">
-         {/* Location */}
+         {/* Location / Mode */}
          <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-gray-300">
-            <Ionicons name="location-sharp" size={14} color="#64748b" />
+            <Ionicons 
+                name={item.job_location?.toLowerCase().includes('online') ? "globe-outline" : "location-sharp"} 
+                size={14} 
+                color="#64748b" 
+            />
             <Text className="text-[10px] font-black uppercase tracking-tight text-slate-500 ml-1">
                 {item.job_location || "Global"}
             </Text>
          </View>
+
+         {/* Mode (Online/Offline/Region) */}
+         {item.region && item.region.toLowerCase() !== (item.job_location || '').toLowerCase() && (
+            <View className="flex-row items-center bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-100">
+               <Ionicons name="earth" size={14} color="#6366f1" />
+               <Text className="text-[10px] font-black uppercase tracking-tight text-indigo-500 ml-1">
+                   {item.region}
+               </Text>
+            </View>
+         )}
 
          {/* Region/Deadline */}
          <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-gray-300">
@@ -119,14 +136,15 @@ const HackathonList = () => {
             </Text>
          </View>
          
-         {item.filters?.slice(0, 1).map((f: any, i: number) => {
-             if(f.type === 'opportunity_type') {
+         {item.filters?.map((f: any, i: number) => {
+             if(f.type === 'opportunity_type' || f.name?.toLowerCase().includes('online') || f.name?.toLowerCase().includes('offline')) {
                  return (
                     <View key={i} className="bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">
                         <Text className="text-[10px] font-black uppercase tracking-tight text-blue-500">{f.name}</Text>
                     </View>
                  )
              }
+             return null;
          })}
       </View>
 
@@ -134,10 +152,10 @@ const HackathonList = () => {
       <View className="mt-3 flex-row items-center justify-between">
             <View>
               <Text className="text-gray-600 font-black uppercase text-[8px] tracking-[2px]">Opportunity Worth</Text>
-              <Text className="text-zinc-900 text-lg font-black italic mt-0.5 tracking-tighter uppercase">
+              <Text className="text-zinc-900 text-lg font-black mt-0.5 tracking-tighter uppercase">
                   {item.payment_amount 
                     ? `₹${item.payment_amount}` 
-                    : "Prizes / Certificates"
+                    : "Prizes/Certificates"
                   }
               </Text>
             </View>
@@ -230,4 +248,4 @@ const HackathonList = () => {
   );
 };
 
-export default HackathonList;
+export default HackathonList;
