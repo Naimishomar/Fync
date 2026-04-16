@@ -13,7 +13,7 @@ const recalcAndUpdateBoard = async (hackId, subId, io) => {
 
   // Update Redis sorted set
   const boardKey = `hack:${hackId}:leaderboard`;
-  await redisClient.zadd(boardKey, rounded, subId.toString());
+  await redisClient.zAdd(boardKey, { score: rounded, value: subId.toString() });
 
   // Broadcast to all clients watching this hackathon
   if (io) {

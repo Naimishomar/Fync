@@ -205,8 +205,17 @@ const userSchema = new mongoose.Schema({
     },
     redeemedItems: [
         {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "MarketPlace"
+            item: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "MarketPlace"
+            },
+            product_name: String,
+            coins_required: Number,
+            address: String,
+            pincode: String,
+            mobileNumber: String,
+            isProcessed: { type: Boolean, default: false },
+            redeemDate: { type: Date, default: Date.now }
         }
     ],
     expoPushToken: {

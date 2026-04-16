@@ -68,10 +68,10 @@ const STATUS_META: Record<string, { label: string; colors: string[] }> = {
 
 // ─── Announcement type config ──────────────────────────────────────────────────
 const ANN_TYPES: { value: string; label: string; icon: string; color: string; bg: string }[] = [
-  { value: 'general',         label: 'General',        icon: 'megaphone',       color: '#6366f1', bg: '#ede9fe' },
-  { value: 'important',       label: 'Important',      icon: 'alert-circle',    color: '#ef4444', bg: '#fee2e2' },
-  { value: 'schedule_change', label: 'Schedule',       icon: 'calendar',        color: '#f59e0b', bg: '#fef3c7' },
-  { value: 'result',          label: 'Result',         icon: 'trophy',          color: '#10b981', bg: '#d1fae5' },
+  { value: 'general',         label: 'General',        icon: 'megaphone',       color: '#ec4899', bg: '#fdf2f8' },
+  { value: 'important',       label: 'Important',      icon: 'alert-circle',    color: '#f43f5e', bg: '#fff1f2' },
+  { value: 'schedule_change', label: 'Schedule',       icon: 'calendar',        color: '#f59e0b', bg: '#fffbeb' },
+  { value: 'result',          label: 'Result',         icon: 'trophy',          color: '#10b981', bg: '#ecfdf5' },
 ];
 
 const TABS = ['Overview', 'Announcements', 'Teams', 'Prizes'];
@@ -81,52 +81,53 @@ const AnnCard = ({ ann, onReact }: { ann: Announcement; onReact: (annId: string,
   const typeMeta = ANN_TYPES.find(t => t.value === ann.type) ?? ANN_TYPES[0];
   return (
     <View
-      className={`bg-white rounded-2xl p-4 mb-3 border ${ann.isPinned ? 'border-amber-300' : 'border-slate-100'}`}
-      style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}
+      className={`bg-white rounded-3xl p-5 mb-4 border ${ann.isPinned ? 'border-pink-200' : 'border-slate-50'}`}
+      style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 10, elevation: 2 }}
     >
       {/* Type + Pin row */}
-      <View className="flex-row items-center mb-2 gap-2">
-        <View className="flex-row items-center px-2.5 py-1 rounded-lg" style={{ backgroundColor: typeMeta.bg }}>
-          <Ionicons name={typeMeta.icon as any} size={11} color={typeMeta.color} />
-          <Text className="text-[10px] font-black uppercase tracking-widest ml-1" style={{ color: typeMeta.color }}>
+      <View className="flex-row items-center mb-3 gap-2">
+        <View className="flex-row items-center px-3 py-1.5 rounded-xl" style={{ backgroundColor: typeMeta.bg }}>
+          <Ionicons name={typeMeta.icon as any} size={12} color={typeMeta.color} />
+          <Text className="text-[10px] font-black uppercase tracking-widest ml-1.5" style={{ color: typeMeta.color }}>
             {typeMeta.label}
           </Text>
         </View>
         {ann.isPinned && (
-          <View className="flex-row items-center bg-amber-50 px-2.5 py-1 rounded-lg">
-            <Ionicons name="pin" size={11} color="#d97706" />
-            <Text className="text-amber-600 text-[10px] font-black uppercase tracking-widest ml-1">Pinned</Text>
+          <View className="flex-row items-center bg-zinc-900 px-3 py-1.5 rounded-xl">
+            <Ionicons name="pin" size={12} color="#ec4899" />
+            <Text className="text-white text-[10px] font-black uppercase tracking-widest ml-1.5">Pinned</Text>
           </View>
         )}
       </View>
 
-      <Text className="text-zinc-900 text-sm font-black italic mb-1">{ann.Title}</Text>
-      <Text className="text-slate-500 text-xs leading-5 mb-3">{ann.body}</Text>
+      <Text className="text-zinc-900 text-base font-black italic mb-2 tracking-tight uppercase">{ann.Title}</Text>
+      <Text className="text-slate-500 text-xs leading-5 mb-4">{ann.body}</Text>
 
       {/* Footer */}
-      <View className="flex-row items-center justify-between">
+      <View className="flex-row items-center justify-between border-t border-slate-50 pt-4">
         <View className="flex-row items-center">
           {ann.author?.avatar ? (
-            <Image source={{ uri: ann.author.avatar }} className="w-5 h-5 rounded-full mr-1.5" />
+            <Image source={{ uri: ann.author.avatar }} className="w-6 h-6 rounded-full mr-2" />
           ) : (
-            <View className="w-5 h-5 rounded-full bg-indigo-100 items-center justify-center mr-1.5">
-              <Ionicons name="person" size={10} color="#6366f1" />
+            <View className="w-6 h-6 rounded-full bg-slate-100 items-center justify-center mr-2">
+              <Ionicons name="person" size={12} color="#94a3b8" />
             </View>
           )}
-          <Text className="text-xs text-slate-400 font-semibold">{ann.author?.name}</Text>
-          <Text className="text-slate-300 text-xs ml-2">·</Text>
-          <Text className="text-[10px] text-slate-300 font-semibold ml-2">
-            {new Date(ann.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-          </Text>
+          <View>
+             <Text className="text-[10px] text-zinc-900 font-black italic uppercase leading-tight">{ann.author?.name}</Text>
+             <Text className="text-[8px] text-slate-400 font-black uppercase tracking-widest mt-0.5">
+               {new Date(ann.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+             </Text>
+          </View>
         </View>
 
         {/* Quick reactions */}
-        <View className="flex-row gap-1">
+        <View className="flex-row gap-1.5">
           {['👍', '🔥', '❤️'].map(emoji => (
             <TouchableOpacity
               key={emoji}
               onPress={() => onReact(ann._id, emoji)}
-              className="bg-slate-50 rounded-lg px-2 py-1"
+              className="bg-slate-50 rounded-xl px-2.5 py-1.5 border border-slate-100"
             >
               <Text className="text-xs">{emoji}</Text>
             </TouchableOpacity>
@@ -167,11 +168,9 @@ const HackathonDetail = () => {
 
   // ─── Socket: join hack room & listen for real-time announcements ───────────
   useEffect(() => {
-    // Join the hack socket room so we receive broadcasts
     socket.emit('join_hack_room', { hackathonId });
 
     const onNewAnnouncement = (ann: Announcement) => {
-      // Prepend incoming announcement, keep pinned ones at top
       setAnnouncements(prev => {
         const updated = [ann, ...prev];
         return updated.sort((a, b) => {
@@ -180,7 +179,6 @@ const HackathonDetail = () => {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
       });
-      // Show a toast so users know even when on a different tab
       Toast.show({
         type: 'info',
         text1: `📢 ${ann.Title}`,
@@ -226,7 +224,6 @@ const HackathonDetail = () => {
       setAnnPage(page);
       setAnnHasMore(data.length === 20);
     } catch {
-      // Silent
     } finally {
       setAnnLoading(false);
     }
@@ -256,7 +253,6 @@ const HackathonDetail = () => {
       if (res.data.success) {
         Toast.show({ type: 'success', text1: 'Announcement posted! 📢' });
         setAnnForm({ title: '', body: '', isPinned: false, type: 'general' });
-        // The socket event will handle prepending — but also add locally as fallback
         const newAnn = {
           ...res.data.announcement,
           Title: res.data.announcement.Title || res.data.announcement.title,
@@ -282,7 +278,6 @@ const HackathonDetail = () => {
   };
 
   const handleReact = async (annId: string, emoji: string) => {
-    // Optimistic local update
     setAnnouncements(prev =>
       prev.map(a =>
         a._id === annId
@@ -290,7 +285,6 @@ const HackathonDetail = () => {
           : a
       )
     );
-    // No backend endpoint yet — just local for now
   };
 
   const handleJoin = async () => {
@@ -317,8 +311,8 @@ const HackathonDetail = () => {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-[#F8FAFC] items-center justify-center">
-        <ActivityIndicator size="large" color="#6366f1" />
+      <View className="flex-1 bg-white items-center justify-center">
+        <ActivityIndicator size="large" color="#ec4899" />
       </View>
     );
   }
@@ -330,45 +324,47 @@ const HackathonDetail = () => {
   const end   = new Date(hackathon.hackathonends).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-white">
       <StatusBar barStyle="light-content" />
 
       {/* Floating Header (appears on scroll) */}
       <Animated.View
-        className="absolute top-0 left-0 right-0 z-50 bg-white border-b border-slate-100"
+        className="absolute top-0 left-0 right-0 z-50 bg-white border-b border-slate-50"
         style={{ opacity: headerOpacity }}
         pointerEvents="none"
       >
         <SafeAreaView>
-          <View className="flex-row items-center px-4 py-2">
-            <Text className="text-zinc-900 font-black italic text-base flex-1" numberOfLines={1}>{hackathon.title}</Text>
+          <View className="flex-row items-center px-6 py-3">
+            <Text className="text-zinc-900 font-black italic text-lg uppercase tracking-tight flex-1" numberOfLines={1}>{hackathon.title}</Text>
           </View>
         </SafeAreaView>
       </Animated.View>
 
       {/* Back button */}
       <SafeAreaView className="absolute top-0 left-0 right-0 z-50" pointerEvents="box-none">
-        <View className="flex-row items-center justify-between px-4 pt-2">
+        <View className="flex-row items-center justify-between px-6 pt-3">
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            className="w-10 h-10 rounded-2xl bg-black/30 items-center justify-center"
+            className="w-12 h-12 rounded-[20px] bg-black/40 items-center justify-center backdrop-blur-md"
           >
-            <Ionicons name="arrow-back" size={20} color="white" />
+            <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          {isParticipant && (
+          <View className="flex-row gap-3">
+            {isParticipant && (
+                <TouchableOpacity
+                onPress={() => navigation.navigate('HackathonTeamScreen', { hackathonId: hackathon._id })}
+                className="bg-white/90 rounded-2xl px-5 py-2.5 shadow-sm"
+                >
+                <Text className="text-zinc-900 font-black italic text-[10px] uppercase tracking-widest">My Protocol</Text>
+                </TouchableOpacity>
+            )}
             <TouchableOpacity
-              onPress={() => navigation.navigate('HackathonTeamScreen', { hackathonId: hackathon._id })}
-              className="bg-white/90 rounded-2xl px-4 py-2"
+                onPress={() => navigation.navigate('HackathonLeaderboard', { hackathonId: hackathon._id, hackathonTitle: hackathon.title })}
+                className="bg-zinc-900/90 rounded-2xl px-5 py-2.5 shadow-sm border border-zinc-800"
             >
-              <Text className="text-indigo-600 font-black text-xs uppercase tracking-wide">My Team</Text>
+                <Text className="text-white font-black italic text-[10px] uppercase tracking-widest">🏆 Status</Text>
             </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            onPress={() => navigation.navigate('HackathonLeaderboard', { hackathonId: hackathon._id, hackathonTitle: hackathon.title })}
-            className="bg-amber-400/90 rounded-2xl px-4 py-2 ml-2"
-          >
-            <Text className="text-amber-900 font-black text-xs uppercase tracking-wide">🏆 Board</Text>
-          </TouchableOpacity>
+          </View>
         </View>
       </SafeAreaView>
 
@@ -376,78 +372,82 @@ const HackathonDetail = () => {
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadHackathon(); }} tintColor="#6366f1" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadHackathon(); }} tintColor="#ec4899" />}
       >
         {/* Banner */}
-        <View className="h-52 relative">
+        <View className="h-64 relative">
           {hackathon.bannerImage ? (
             <Image source={{ uri: hackathon.bannerImage }} className="w-full h-full" resizeMode="cover" />
           ) : (
-            <LinearGradient colors={statusMeta.colors as any} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} className="w-full h-full items-center justify-center">
-              <Ionicons name="rocket" size={56} color="rgba(255,255,255,0.3)" />
-            </LinearGradient>
+            <View className="w-full h-full bg-zinc-950 items-center justify-center">
+                <LinearGradient colors={['#ec4899', '#f43f5e']} className="absolute inset-0 opacity-20" />
+                <Ionicons name="rocket" size={64} color="white" />
+            </View>
           )}
           <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.6)']}
+            colors={['transparent', 'rgba(0,0,0,0.8)']}
             className="absolute inset-0"
           />
           {/* Status */}
-          <View className="absolute bottom-4 right-4">
-            <LinearGradient colors={statusMeta.colors as any} className="px-3 py-1.5 rounded-full self-start">
-              <Text className="text-white font-black text-[11px] uppercase tracking-widest">{statusMeta.label}</Text>
+          <View className="absolute bottom-10 right-6">
+            <LinearGradient colors={statusMeta.colors as any} className="px-5 py-2 rounded-2xl self-start border border-white/20 shadow-lg">
+              <Text className="text-white font-black italic text-[11px] uppercase tracking-widest">{statusMeta.label}</Text>
             </LinearGradient>
           </View>
           {/* Logo Overlay */}
-          <View className="absolute top-36 left-6 bg-white p-1 rounded-full shadow-lg border border-slate-50 z-10">
+          <View className="absolute top-44 left-8 bg-white p-1 rounded-[24px] shadow-2xl border border-white/50 z-10">
             {hackathon.logo ? (
-              <Image source={{ uri: hackathon.logo }} className="w-16 h-16 rounded-full" />
+              <Image source={{ uri: hackathon.logo }} className="w-20 h-20 rounded-[20px]" resizeMode="contain" />
             ) : (
-              <View className="w-16 h-16 rounded-full bg-indigo-50 items-center justify-center">
-                <Ionicons name="rocket" size={28} color="#6366f1" />
+              <View className="w-20 h-20 rounded-[20px] bg-slate-50 items-center justify-center">
+                <Ionicons name="flash" size={32} color="#ec4899" />
               </View>
             )}
           </View>
         </View>
 
         {/* Main Info Card */}
-        <View className="bg-white -mt-6 mx-4 rounded-3xl p-5 pt-10 mb-4"
-          style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 16, elevation: 6 }}>
+        <View className="bg-white -mt-10 mx-6 rounded-[40px] p-8 pt-16 mb-6 shadow-2xl shadow-black/10 border border-gray-50">
 
-          <Text className="text-zinc-900 text-2xl font-black italic tracking-tight leading-7 mb-3">{hackathon.title}</Text>
+          <Text className="text-zinc-900 text-4xl font-black italic tracking-tighter uppercase leading-[40px] mb-6">
+            {hackathon.title}
+          </Text>
 
           {/* Stats Grid */}
-          <View className="flex-row flex-wrap gap-3 mb-4">
+          <View className="flex-row flex-wrap gap-4 mb-8">
             {[
-              { icon: 'calendar', label: 'Starts', val: start },
-              { icon: 'calendar-clear', label: 'Ends', val: end },
-              { icon: 'people', label: 'Participants', val: String(hackathon.participants?.length ?? 0) },
-              { icon: 'person', label: 'Team Size', val: `Up to ${hackathon.MaxTeamSize ?? 4}` },
+              { icon: 'calendar', label: 'Launch', val: start },
+              { icon: 'calendar-clear', label: 'EOD', val: end },
+              { icon: 'people', label: 'Signals', val: String(hackathon.participants?.length ?? 0) },
+              { icon: 'person', label: 'Group Size', val: `Up to ${hackathon.MaxTeamSize ?? 4}` },
             ].map((s, i) => (
-              <View key={i} className="flex-1 min-w-[45%] bg-slate-50 rounded-2xl p-3 border border-slate-100">
-                <Ionicons name={s.icon as any} size={14} color="#6366f1" />
-                <Text className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">{s.label}</Text>
-                <Text className="text-zinc-800 text-xs font-black mt-0.5">{s.val}</Text>
+              <View key={i} className="flex-1 min-w-[45%] bg-slate-50 rounded-[24px] p-5 border border-gray-100">
+                <Ionicons name={s.icon as any} size={16} color="#ec4899" />
+                <Text className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-2">{s.label}</Text>
+                <Text className="text-zinc-900 text-sm font-black italic uppercase tracking-tight mt-1">{s.val}</Text>
               </View>
             ))}
           </View>
 
           {/* Prize Pool */}
           {hackathon.prizepool && (
-            <LinearGradient colors={['#fef3c7', '#fde68a']} className="rounded-2xl px-4 py-3 flex-row items-center mb-4">
-              <Ionicons name="trophy" size={22} color="#d97706" />
-              <View className="ml-3">
-                <Text className="text-amber-700 text-[10px] font-black uppercase tracking-widest">Prize Pool</Text>
-                <Text className="text-amber-900 text-xl font-black italic">{hackathon.prizepool}</Text>
+            <LinearGradient colors={['#000', '#111']} className="rounded-[28px] px-6 py-5 flex-row items-center mb-8 border border-zinc-800">
+              <View className="w-14 h-14 bg-amber-400 rounded-2xl items-center justify-center shadow-lg shadow-amber-400/20">
+                <Ionicons name="trophy" size={28} color="#000" />
+              </View>
+              <View className="ml-5">
+                <Text className="text-amber-400 text-[10px] font-black uppercase tracking-widest">Ecosystem Prize Pool</Text>
+                <Text className="text-white text-3xl font-black italic uppercase tracking-tighter mt-1">{hackathon.prizepool}</Text>
               </View>
             </LinearGradient>
           )}
 
           {/* Tags */}
           {hackathon.tags && hackathon.tags.length > 0 && (
-            <View className="flex-row flex-wrap gap-2 mb-4">
+            <View className="flex-row flex-wrap gap-2.5 mb-8">
               {hackathon.tags.map((tag, i) => (
-                <View key={i} className="bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-xl">
-                  <Text className="text-[10px] text-indigo-600 font-black uppercase tracking-tight">#{tag}</Text>
+                <View key={i} className="bg-slate-50 border border-gray-100 px-4 py-2 rounded-2xl">
+                  <Text className="text-[10px] text-slate-500 font-black uppercase tracking-tight">#{tag}</Text>
                 </View>
               ))}
             </View>
@@ -455,57 +455,56 @@ const HackathonDetail = () => {
 
           {/* Organiser */}
           {hackathon.organiser && (
-            <View className="flex-row items-center border-t border-slate-100 pt-3">
+            <View className="flex-row items-center border-t border-slate-50 pt-6">
               {hackathon.organiser.avatar ? (
-                <Image source={{ uri: hackathon.organiser.avatar }} className="w-8 h-8 rounded-full" />
+                <Image source={{ uri: hackathon.organiser.avatar }} className="w-10 h-10 rounded-2xl" />
               ) : (
-                <View className="w-8 h-8 rounded-full bg-indigo-100 items-center justify-center">
-                  <Ionicons name="person" size={14} color="#6366f1" />
+                <View className="w-10 h-10 rounded-2xl bg-zinc-900 items-center justify-center">
+                  <Ionicons name="flash" size={18} color="white" />
                 </View>
               )}
-              <View className="ml-2.5">
-                <Text className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Organiser</Text>
-                <Text className="text-xs text-zinc-800 font-black">{hackathon.organiser.name}</Text>
+              <View className="ml-4">
+                <Text className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Control Unit</Text>
+                <Text className="text-base text-zinc-900 font-black italic uppercase tracking-tight">{hackathon.organiser.name}</Text>
               </View>
             </View>
           )}
         </View>
 
         {/* Tabs */}
-        <View className="bg-white mx-4 rounded-2xl border border-slate-100 mb-4 overflow-hidden"
-          style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 8, paddingVertical: 8, gap: 4 }}>
+        <View className="bg-white mx-6 rounded-[28px] border border-gray-100 mb-6 p-2 shadow-sm">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
             {TABS.map((tab, i) => (
               <TouchableOpacity
                 key={i}
                 onPress={() => setActiveTab(i)}
-                className={`px-5 py-2 rounded-2xl ${activeTab === i ? 'bg-indigo-600' : 'bg-transparent'}`}
+                className={`px-8 py-3.5 rounded-[22px] ${activeTab === i ? 'bg-zinc-900 border border-zinc-800' : 'bg-transparent'}`}
               >
-                <Text className={`font-black text-xs uppercase tracking-wide ${activeTab === i ? 'text-white' : 'text-slate-500'}`}>{tab}</Text>
+                <Text className={`font-black italic text-[11px] uppercase tracking-widest ${activeTab === i ? 'text-white' : 'text-slate-400'}`}>{tab}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
 
         {/* Tab Content */}
-        <View className="mx-4 mb-32">
+        <View className="mx-6 mb-40">
 
           {/* Overview Tab */}
           {activeTab === 0 && (
             <View>
               {/* Judging Criteria */}
               {hackathon.judgingcriteria && hackathon.judgingcriteria.length > 0 && (
-                <View className="bg-white rounded-2xl p-4 mb-4 border border-slate-100">
-                  <Text className="text-zinc-900 font-black italic text-base mb-3">⚖️ Judging Criteria</Text>
+                <View className="bg-white rounded-[32px] p-6 mb-6 border border-gray-50 shadow-sm">
+                  <Text className="text-zinc-900 font-black italic text-xl uppercase tracking-tighter mb-4">⚖️ Evaluation Protocol</Text>
                   {hackathon.judgingcriteria.map((c, i) => (
-                    <View key={i} className="mb-3 last:mb-0">
-                      <View className="flex-row items-center justify-between">
-                        <Text className="text-zinc-800 font-black text-sm">{c.name}</Text>
-                        <View className="bg-indigo-100 px-2.5 py-1 rounded-lg">
-                          <Text className="text-indigo-600 font-black text-[11px]">{c.weightage}%</Text>
+                    <View key={i} className="mb-4 last:mb-0 bg-slate-50 p-4 rounded-2xl border border-gray-100">
+                      <View className="flex-row items-center justify-between mb-2">
+                        <Text className="text-zinc-900 font-black italic uppercase text-sm tracking-tight">{c.name}</Text>
+                        <View className="bg-zinc-900 px-3 py-1 rounded-xl">
+                          <Text className="text-white font-black text-[10px]">{c.weightage}%</Text>
                         </View>
                       </View>
-                      {c.description && <Text className="text-slate-500 text-xs mt-1">{c.description}</Text>}
+                      {c.description && <Text className="text-slate-500 text-xs leading-4">{c.description}</Text>}
                     </View>
                   ))}
                 </View>

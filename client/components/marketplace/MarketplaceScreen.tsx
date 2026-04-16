@@ -6,7 +6,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 
@@ -18,15 +17,13 @@ const MarketplaceScreen = () => {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    // Admin Modal State
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [saving, setSaving] = useState(false);
-
-    // Form State
-    const [newImage, setNewImage] = useState<any>(null);
-    const [newName, setNewName] = useState('');
-    const [newDesc, setNewDesc] = useState('');
-    const [newCoins, setNewCoins] = useState('');
+    // Purchase Modal State
+    const [buyModalVisible, setBuyModalVisible] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<any>(null);
+    const [address, setAddress] = useState('');
+    const [phone, setPhone] = useState(user?.mobileNumber || '');
+    const [pincode, setPincode] = useState('');
+    const [purchasing, setPurchasing] = useState(false);
 
     const fetchProducts = async () => {
         try {
@@ -51,28 +48,49 @@ const MarketplaceScreen = () => {
         fetchProducts();
     };
 
-    const handleBuyItem = async (product: any) => {
+    const handleBuyItem = (product: any) => {
         if ((user?.coins || 0) < product.coins_required) {
             return Alert.alert("Insufficient Balance", "You do not have enough coins to purchase this item.");
         }
+        setSelectedProduct(product);
+        setBuyModalVisible(true);
+    };
+
+    const confirmPurchase = async () => {
+        if (purchasing) return;
+        if (!address.trim() || !phone.trim() || !pincode.trim()) {
+            return Alert.alert("Missing Details", "Please provide delivery address, pincode and mobile number.");
+        }
 
         Alert.alert(
-            "Confirm Purchase",
-            `Are you sure you want to buy ${product.product_name} for ${product.coins_required} coins?`,
+            "Final Confirmation",
+            `Are you sure you want to spend ${selectedProduct?.coins_required} coins for ${selectedProduct?.product_name}?`,
             [
                 { text: "Cancel", style: "cancel" },
                 {
-                    text: "Purchase",
+                    text: "Confirm & Buy",
+                    style: "default",
                     onPress: async () => {
+                        setPurchasing(true);
                         try {
-                            const res = await axios.post(`/api/marketplace/${product._id}/buy`);
+                            const res = await axios.post(`/api/marketplace/${selectedProduct._id}/buy`, {
+                                address,
+                                pincode,
+                                mobileNumber: phone
+                            });
+                            
                             if (res.data.success) {
-                                Alert.alert("Success!", "Item purchased successfully!");
-                                // Update local user state immediately
-                                setUser((prev: any) => ({ ...prev, coins: prev.coins - product.coins_required }));
+                                setUser((prev: any) => ({ ...prev, coins: res.data.remaining_coins }));
+                                Alert.alert("Success!", "Your order has been placed successfully!");
+                                setBuyModalVisible(false);
+                                setAddress('');
+                                setPincode('');
                             }
                         } catch (error: any) {
-                            Alert.alert("Failed", error.response?.data?.message || "Purchase failed.");
+                            console.error("PURCHASE FATAL ERROR:", error);
+                            Alert.alert("Purchase Failed", error.response?.data?.message || "Something went wrong.");
+                        } finally {
+                            setPurchasing(false);
                         }
                     }
                 }
@@ -80,77 +98,16 @@ const MarketplaceScreen = () => {
         );
     };
 
-    // --- Admin Functions ---
-    const handlePickImage = async () => {
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [1, 1],   // Square only
-            quality: 0.8,
-        });
 
-        if (!result.canceled) {
-            setNewImage(result.assets[0]);
-        }
-    };
-
-    const handleCreateProduct = async () => {
-        if (!newName || !newDesc || !newCoins || !newImage) {
-            return Alert.alert("Missing Fields", "Please fill all details and select an image.");
-        }
-        if (newName.trim().length < 3) {
-            return Alert.alert("Name Too Short", "Product name must be at least 3 characters.");
-        }
-        if (newDesc.trim().length < 3) {
-            return Alert.alert("Description Too Short", "Please write a longer description (at least 3 characters).");
-        }
-        if (isNaN(Number(newCoins)) || Number(newCoins) <= 0) {
-            return Alert.alert("Invalid Coins", "Please enter a valid coin amount greater than 0.");
-        }
-
-        setSaving(true);
-        try {
-            const formData = new FormData();
-            formData.append('product_name', newName);
-            formData.append('product_description', newDesc);
-            formData.append('coins_required', newCoins);
-
-            const uriParts = newImage.uri.split('.');
-            const fileType = uriParts[uriParts.length - 1];
-            formData.append('product_image', {
-                uri: newImage.uri,
-                name: `marketplace_image.${fileType}`,
-                type: `image/${fileType}`,
-            } as any);
-
-            const res = await axios.post('/api/marketplace/create', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-
-            if (res.data.success) {
-                Alert.alert("Created", "Product successfully added to the marketplace!");
-                setShowAddModal(false);
-                setNewName(''); setNewDesc(''); setNewCoins(''); setNewImage(null);
-                fetchProducts();
-            }
-        } catch (error: any) {
-            Alert.alert("Error Failed", error.response?.data?.message || "Failed to create product.");
-        } finally {
-            setSaving(false);
-        }
-    };
 
     // --- Renders ---
     const renderProduct = ({ item }: { item: any }) => {
         const canAfford = (user?.coins || 0) >= item.coins_required;
 
         return (
-            <TouchableOpacity
-                activeOpacity={0.92}
-                onPress={() => handleBuyItem(item)}
-                disabled={!item.is_available}
+            <View
                 style={{ width: '48%' }}
-                className="bg-white rounded-2xl overflow-hidden mb-4 shadow-sm shadow-black/10 border border-zinc-100"
+                className="bg-white rounded-[24px] overflow-hidden mb-5 shadow-sm shadow-black/10 border border-zinc-100"
             >
                 <View className="bg-zinc-800 w-full items-center justify-center" style={{ aspectRatio: 1 }}>
                     <Image
@@ -160,29 +117,34 @@ const MarketplaceScreen = () => {
                     />
                     {!item.is_available && (
                         <View className="absolute inset-0 bg-black/50 items-center justify-center">
-                            <Text className="text-white font-black text-[10px] uppercase tracking-widest">Out of Stock</Text>
+                            <Text className="text-white font-black text-[10px] uppercase tracking-widest">Sold Out</Text>
                         </View>
                     )}
                 </View>
 
-                {/* Product Name Centered below image */}
-                <Text className="text-zinc-900 font-bold text-sm text-center px-3 pt-2.5 pb-1" numberOfLines={1}>
-                    {item.product_name}
-                </Text>
-
-                {/* Bottom row: description + coin pill */}
-                <View className="flex-row items-center justify-between px-3 pb-3 pt-1">
-                    <Text className="text-zinc-400 text-[11px] flex-1 mr-2" numberOfLines={1}>
+                {/* Content */}
+                <View className="p-3 pb-0">
+                    <Text className="text-zinc-900 font-black text-xs uppercase tracking-tight" numberOfLines={1}>
+                        {item.product_name}
+                    </Text>
+                    <Text className="text-zinc-400 text-[9px] font-bold uppercase tracking-wider mb-2" numberOfLines={1}>
                         {item.product_description}
                     </Text>
-                    <View className={`flex-row items-center px-2.5 py-1.5 rounded-xl ${canAfford && item.is_available ? 'bg-amber-100' : 'bg-zinc-100'}`}>
-                        <Text className={`font-black text-xs mr-1 ${canAfford && item.is_available ? 'text-amber-700' : 'text-zinc-400'}`}>
-                            {item.coins_required.toLocaleString()}
-                        </Text>
-                        <Text className="text-base" style={{ lineHeight: 18 }}>🪙</Text>
-                    </View>
                 </View>
-            </TouchableOpacity>
+
+                {/* Buy Button */}
+                <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => handleBuyItem(item)}
+                    disabled={!item.is_available}
+                    className={`mx-2 mb-2 py-3 rounded-xl items-center justify-center flex-row ${item.is_available ? 'bg-black' : 'bg-zinc-100'}`}
+                >
+                    <Text className={`font-black text-[10px] uppercase tracking-widest ${item.is_available ? 'text-white' : 'text-zinc-400'}`}>
+                        {item.is_available ? `Buy • ${item.coins_required}` : 'Unavailable'}
+                    </Text>
+                    {item.is_available && <Text className="text-[10px] ml-1">🪙</Text>}
+                </TouchableOpacity>
+            </View>
         );
     };
 
@@ -260,25 +222,7 @@ const MarketplaceScreen = () => {
                         columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 16 }}
                         contentContainerStyle={{ paddingTop: 16, paddingBottom: 100 }}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#000" />}
-                        ListHeaderComponent={
-                            user?.user_access === 'admin' ? (
-                                <TouchableOpacity
-                                    onPress={() => setShowAddModal(true)}
-                                    className="mx-4 mb-6 bg-zinc-900 p-5 rounded-2xl flex-row items-center justify-between shadow-xl shadow-black/20"
-                                >
-                                    <View className="flex-row items-center">
-                                        <View className="w-10 h-10 bg-pink-500 rounded-xl items-center justify-center">
-                                            <Ionicons name="add" size={24} color="white" />
-                                        </View>
-                                        <View className="ml-4">
-                                            <Text className="text-white font-black uppercase text-[10px] tracking-widest mb-0.5">Admin Controls</Text>
-                                            <Text className="text-white/60 text-[8px] font-bold uppercase tracking-widest">Publish New Product</Text>
-                                        </View>
-                                    </View>
-                                    <Feather name="chevron-right" size={18} color="white" />
-                                </TouchableOpacity>
-                            ) : null
-                        }
+
                         ListEmptyComponent={
                             <View className="items-center mt-32 p-10">
                                 <MaterialCommunityIcons name="storefront-outline" size={64} color="#e5e7eb" />
@@ -291,104 +235,85 @@ const MarketplaceScreen = () => {
                     />
                 )}
 
-                {/* Admin Add Product Modal */}
-                <Modal visible={showAddModal} animationType="slide" transparent={true} onRequestClose={() => setShowAddModal(false)}>
-                    <View className="flex-1 justify-end bg-black/60">
-                        <TouchableOpacity activeOpacity={1} style={{ flex: 1 }} onPress={() => setShowAddModal(false)} />
-                        
-                        <View className="bg-white rounded-t-[40px] h-[85%] overflow-hidden shadow-2xl">
-                            {/* Grab Handle */}
-                            <View className="items-center pt-3 pb-1">
-                                <View className="w-12 h-1.5 bg-zinc-200 rounded-full" />
-                            </View>
 
-                            <KeyboardAvoidingView 
-                                behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
-                                className="flex-1"
-                            >
-                                <View className="flex-row items-center justify-between px-6 py-4 border-b border-zinc-100">
-                                    <Text className="text-2xl font-black uppercase tracking-tight text-zinc-900">Add Product</Text>
-                                    <TouchableOpacity onPress={() => setShowAddModal(false)} className="bg-zinc-100 w-8 h-8 rounded-full items-center justify-center">
-                                        <Feather name="x" size={18} color="black" />
+                {/* Purchase Details Modal */}
+                <Modal visible={buyModalVisible} animationType="slide" transparent={true}>
+                    <View className="flex-1 justify-end bg-black/60">
+                        <TouchableOpacity activeOpacity={1} style={{ flex: 1 }} onPress={() => setBuyModalVisible(false)} />
+                        
+                        <View className="bg-white rounded-t-[40px] h-[65%] overflow-hidden">
+                            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+                                <View className="p-6 border-b border-zinc-100 flex-row justify-between items-center">
+                                    <View>
+                                        <Text className="text-2xl font-black text-zinc-900">Checkout</Text>
+                                        <Text className="text-zinc-400 text-xs font-bold uppercase tracking-widest mt-0.5">Delivery Details</Text>
+                                    </View>
+                                    <TouchableOpacity onPress={() => setBuyModalVisible(false)} className="bg-zinc-100 w-10 h-10 rounded-full items-center justify-center">
+                                        <Ionicons name="close" size={24} color="#18181b" />
                                     </TouchableOpacity>
                                 </View>
 
-                                <ScrollView className="flex-1 p-6 space-y-5" contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
-                                    {/* Centered square image picker */}
-                                    <View className="items-center mb-6">
-                                        <TouchableOpacity
-                                            onPress={handlePickImage}
-                                            activeOpacity={0.8}
-                                            style={{ width: 160, height: 160 }}
-                                            className={`rounded-3xl overflow-hidden items-center justify-center border-2 border-dashed ${newImage ? 'border-pink-300 bg-zinc-800' : 'border-zinc-200 bg-zinc-50'}`}
-                                        >
-                                            {newImage ? (
-                                                <>
-                                                    <Image source={{ uri: newImage.uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-                                                    <View className="absolute inset-0 bg-black/30 items-center justify-center">
-                                                        <Ionicons name="pencil" size={22} color="white" />
-                                                        <Text className="text-white font-bold text-[9px] mt-1 uppercase tracking-widest">Change</Text>
-                                                    </View>
-                                                </>
-                                            ) : (
-                                                <View className="items-center">
-                                                    <View className="bg-white w-12 h-12 rounded-full items-center justify-center mb-2 shadow-sm border border-zinc-100">
-                                                        <Ionicons name="camera" size={24} color="#52525b" />
-                                                    </View>
-                                                    <Text className="text-zinc-500 font-bold uppercase tracking-widest text-[9px]">Tap to Upload</Text>
-                                                    <Text className="text-zinc-400 text-[8px] mt-0.5">Square Image</Text>
-                                                </View>
-                                            )}
-                                        </TouchableOpacity>
+                                <ScrollView className="flex-1 p-6" showsVerticalScrollIndicator={false}>
+                                    <View className="flex-row items-center bg-zinc-50 p-4 rounded-2xl mb-6 border border-zinc-100">
+                                        <Image source={{ uri: selectedProduct?.product_image }} className="w-16 h-16 rounded-xl bg-white" resizeMode="contain" />
+                                        <View className="ml-4 flex-1">
+                                            <Text className="text-zinc-900 font-bold text-base" numberOfLines={1}>{selectedProduct?.product_name}</Text>
+                                            <View className="flex-row items-center mt-1">
+                                                <Text className="text-amber-600 font-black text-sm">{selectedProduct?.coins_required}</Text>
+                                                <Text className="text-xs ml-1">🪙</Text>
+                                            </View>
+                                        </View>
                                     </View>
 
-                                    <View className="mb-4">
-                                        <Text className="text-zinc-400 font-black text-[10px] uppercase tracking-widest mb-2 ml-1">Product Title</Text>
-                                        <TextInput 
-                                            className="bg-zinc-50 px-5 py-4 rounded-2xl font-bold border border-zinc-100 text-zinc-900"
-                                            placeholder="e.g. Fync Premium Hoodie"
-                                            value={newName}
-                                            onChangeText={setNewName}
-                                        />
+                                    <View className="flex-row gap-4 mb-4">
+                                        <View className="flex-1">
+                                            <Text className="text-zinc-400 font-black text-[10px] uppercase tracking-widest mb-2 ml-1">Mobile Number</Text>
+                                            <TextInput 
+                                                className="bg-zinc-50 px-5 py-4 rounded-2xl font-bold border border-zinc-100 text-zinc-900"
+                                                placeholder="+91..."
+                                                keyboardType="phone-pad"
+                                                value={phone}
+                                                onChangeText={setPhone}
+                                            />
+                                        </View>
+                                        <View className="w-1/3">
+                                            <Text className="text-zinc-400 font-black text-[10px] uppercase tracking-widest mb-2 ml-1">Pincode</Text>
+                                            <TextInput 
+                                                className="bg-zinc-50 px-5 py-4 rounded-2xl font-bold border border-zinc-100 text-zinc-900"
+                                                placeholder="201206"
+                                                keyboardType="numeric"
+                                                maxLength={6}
+                                                value={pincode}
+                                                onChangeText={setPincode}
+                                            />
+                                        </View>
                                     </View>
 
-                                    <View className="mb-4">
-                                        <Text className="text-zinc-400 font-black text-[10px] uppercase tracking-widest mb-2 ml-1">Coins Required</Text>
+                                    <View className="mb-6">
+                                        <Text className="text-zinc-400 font-black text-[10px] uppercase tracking-widest mb-2 ml-1">Delivery Address</Text>
                                         <TextInput 
-                                            className="bg-zinc-50 px-5 py-4 rounded-2xl font-bold border border-zinc-100 text-zinc-900"
-                                            placeholder="500"
-                                            keyboardType="numeric"
-                                            value={newCoins}
-                                            onChangeText={setNewCoins}
-                                        />
-                                    </View>
-
-                                    <View className="mb-8">
-                                        <Text className="text-zinc-400 font-black text-[10px] uppercase tracking-widest mb-2 ml-1">Description</Text>
-                                        <TextInput 
-                                            className="bg-zinc-50 px-5 py-4 rounded-2xl font-semibold border border-zinc-100 text-zinc-900 h-28"
-                                            placeholder="Describe the product..."
+                                            className="bg-zinc-50 px-5 py-4 rounded-2xl font-semibold border border-zinc-100 text-zinc-900 h-24"
+                                            placeholder="Complete address with landmark..."
                                             multiline
-                                            numberOfLines={3}
                                             textAlignVertical="top"
-                                            value={newDesc}
-                                            onChangeText={setNewDesc}
+                                            value={address}
+                                            onChangeText={setAddress}
                                         />
                                     </View>
                                 </ScrollView>
 
-                                <View className="p-4 border-t border-zinc-100 bg-white mb-5">
+                                <View className="p-6 border-t border-zinc-100 bg-white mb-8">
                                     <TouchableOpacity 
-                                        onPress={handleCreateProduct}
-                                        disabled={saving}
-                                        className={`py-4 rounded-2xl items-center justify-center flex-row shadow-lg ${saving ? 'bg-zinc-800' : 'bg-black shadow-black/20'}`}
+                                        onPress={confirmPurchase}
+                                        disabled={purchasing}
+                                        className={`py-4 rounded-2xl items-center justify-center flex-row shadow-lg ${purchasing ? 'bg-zinc-800' : 'bg-black shadow-black/20'}`}
                                     >
-                                        {saving ? (
+                                        {purchasing ? (
                                             <ActivityIndicator color="white" />
                                         ) : (
                                             <>
-                                                <Ionicons name="cloud-upload" size={20} color="white" />
-                                                <Text className="text-white font-black uppercase text-xs ml-2">Publish to Store</Text>
+                                                <Ionicons name="card" size={20} color="white" />
+                                                <Text className="text-white font-black uppercase text-xs ml-2">Confirm & Purchase</Text>
                                             </>
                                         )}
                                     </TouchableOpacity>
@@ -397,6 +322,7 @@ const MarketplaceScreen = () => {
                         </View>
                     </View>
                 </Modal>
+
             </SafeAreaView>
         </View>
     );

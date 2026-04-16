@@ -119,10 +119,8 @@ const CollegeChatScreen = ({ navigation }: any) => {
             const res = await axios.post("/college-chat/send", formData, {
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'multipart/form-data',
+                    // Let axios/browser set the Content-Type with boundary automatically
                 },
-                // Important to prevent Axios from messing with FormData
-                transformRequest: (data) => data,
             });
 
             if (res.data?.success) {
@@ -157,7 +155,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
             const res = await axios.post("/college-chat/send", { 
                 messageType: "text", 
                 content: msg,
-                replyToId: replyTo?._id || null
+                replyTo: replyTo?._id || null
             });
             if (res.data.success) {
                 setMessages((prev) => prev.map(m => m._id === tempId ? res.data.chat : m));

@@ -5,7 +5,7 @@ import { uploadToR2 } from "../../utils/r2.js";
 
 export const createProduct = async(req,res)=>{
     try {
-        const {product_name, product_description, coins_required} = req.body;
+        const {product_name, product_description, coins_required, is_available} = req.body;
         if(!product_name || !product_description || !coins_required){
             return res.status(400).json({message: "All fields are required", success: false});
         }
@@ -28,7 +28,8 @@ export const createProduct = async(req,res)=>{
             product_name,
             product_description,
             coins_required,
-            product_image
+            product_image,
+            is_available: is_available === 'false' ? false : true
         });
         return res.status(201).json({message: "Product created successfully", success: true, product});
     } catch (error) {
@@ -55,7 +56,7 @@ export const getProduct = async(req,res)=>{
 export const updateProduct = async(req,res)=>{
     try {
         const {product_id} = req.params;
-        const {product_name, product_description, coins_required} = req.body;
+        const {product_name, product_description, coins_required, is_available} = req.body;
         if(!product_id){
             return res.status(400).json({message: "Product ID is required", success: false});
         }
@@ -74,6 +75,9 @@ export const updateProduct = async(req,res)=>{
         }
         if(coins_required){
             product.coins_required = coins_required;
+        }
+        if(is_available !== undefined){
+            product.is_available = is_available;
         }
         await product.save();
         return res.status(200).json({message: "Product updated successfully", success: true, product});
@@ -118,15 +122,31 @@ export const buyProduct = async(req,res)=>{
         if(!user){
             return res.status(404).json({message: "User not found", success: false});
         }
+
+        const { address, mobileNumber, pincode } = req.body;
+        if (!address || !mobileNumber || !pincode) {
+            return res.status(400).json({ message: "Address, mobile number, and pincode are required", success: false });
+        }
+
         if(user.coins < product.coins_required){
             return res.status(400).json({message: "Insufficient coins", success: false});
         }
+        
         user.coins -= product.coins_required;
-        user.redeemedItems.push(product);
+        user.redeemedItems.push({
+            item: product._id,
+            product_name: product.product_name,
+            coins_required: product.coins_required,
+            address: address,
+            pincode: pincode,
+            mobileNumber: mobileNumber,
+            redeemDate: new Date()
+        });
+
         await user.save();
-        return res.status(200).json({message: "Product bought successfully", success: true});
+        return res.status(200).json({message: "Product bought successfully", success: true, remaining_coins: user.coins});
     } catch (error) {
-        console.log("Internal server error");
+        console.log("Internal server error in buyProduct:", error);
         return res.status(500).json({message: "Internal server error", success: false});  
     }
 }
@@ -139,12 +159,47 @@ export const getRedemptions = async(req,res)=>{
         
         const redemptions = await User.find({ "redeemedItems.0": { $exists: true } })
             .select("name username redeemedItems college avatar mobileNumber")
-            .populate("redeemedItems");
+            .sort({ "redeemedItems.redeemDate": -1 });
             
         return res.status(200).json({message: "Redemptions fetched successfully", success: true, redemptions});
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({message: "Internal server error", success: false});
+    }
+}
+
+export const toggleRedemptionStatus = async (req, res) => {
+    try {
+        if (req.user.user_access !== 'admin') {
+            return res.status(403).json({ message: "Unauthorized", success: false });
+        }
+
+        const { userId, redemptionId } = req.body;
+        if (!userId || !redemptionId) {
+            return res.status(400).json({ message: "User ID and Redemption ID are required", success: false });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found", success: false });
+        }
+
+        const redemptionItem = user.redeemedItems.id(redemptionId);
+        if (!redemptionItem) {
+            return res.status(404).json({ message: "Redemption record not found", success: false });
+        }
+
+        redemptionItem.isProcessed = !redemptionItem.isProcessed;
+        await user.save();
+
+        return res.status(200).json({ 
+            message: `Item marked as ${redemptionItem.isProcessed ? 'processed' : 'pending'}`, 
+            success: true,
+            isProcessed: redemptionItem.isProcessed
+        });
+    } catch (error) {
+        console.log("Error in toggleRedemptionStatus:", error);
+        return res.status(500).json({ message: "Internal server error", success: false });
     }
 }
 
