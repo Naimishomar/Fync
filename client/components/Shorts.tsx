@@ -397,7 +397,7 @@ export default function Shorts() {
   };
 
   const openComments = async (shortId: string) => {
-    const res = await axios.get(`/shorts/comment/all/${shortId}`);
+    const res = await axios.get(`/shorts/comments/${shortId}`);
     if (res.data.success) setComments(res.data.comments);
     setCommentLoading(null);
   };
@@ -409,7 +409,7 @@ export default function Shorts() {
   const addComment = async () => {
     if (!commentText.trim() || !activeShortId) return;
     await axios.post(
-      `/shorts/comment/add/${activeShortId}`,
+      `/shorts/comment/${activeShortId}`,
       { text: commentText, parentCommentId: replyingTo?._id }
     );
     setCommentText("");

@@ -22,8 +22,8 @@ const getEndpoints = (isShort: boolean, id: string) => ({
     get: isShort ? `/shorts/individual/${id}` : `/post/individual/${id}`,
     like: isShort ? `/shorts/like/${id}` : `/post/like/${id}`,
     view: isShort ? `/shorts/views/${id}` : null,
-    getComments: isShort ? `/shorts/comment/all/${id}` : `/post/comment/${id}`,
-    addComment: isShort ? `/shorts/comment/add/${id}` : `/post/comment/${id}`,
+    getComments: isShort ? `/shorts/comments/${id}` : `/post/comment/${id}`,
+    addComment: isShort ? `/shorts/comment/${id}` : `/post/comment/${id}`,
     updateComment: isShort ? `/shorts/comment/update` : `/post/comment/update`,
     deleteComment: isShort ? `/shorts/comment/delete` : `/post/comment`,
 });
