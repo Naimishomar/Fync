@@ -173,7 +173,7 @@ const HackathonLeaderboard = () => {
 
   const load = async () => {
     try {
-      const res = await axios.get(`/leaderboard/${hackathonId}`);
+      const res = await axios.get(`/hackathon-leaderboard/${hackathonId}`);
       setLeaderboard(res.data.leaderboard ?? []);
     } catch {
       Toast.show({ type: 'error', text1: 'Could not load leaderboard' });

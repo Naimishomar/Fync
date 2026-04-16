@@ -21,6 +21,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import Toast from 'react-native-toast-message';
+import socket from '../../utils/socket';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Announcement {
@@ -31,6 +32,7 @@ interface Announcement {
   isPinned: boolean;
   author: { name: string; avatar?: string; role: string };
   createdAt: string;
+  reactions?: { user: string; emoji: string }[];
 }
 
 interface Hackathon {
@@ -64,37 +66,76 @@ const STATUS_META: Record<string, { label: string; colors: string[] }> = {
   draft:     { label: 'Draft',        colors: ['#ec4899', '#be185d'] },
 };
 
+// ─── Announcement type config ──────────────────────────────────────────────────
+const ANN_TYPES: { value: string; label: string; icon: string; color: string; bg: string }[] = [
+  { value: 'general',         label: 'General',        icon: 'megaphone',       color: '#6366f1', bg: '#ede9fe' },
+  { value: 'important',       label: 'Important',      icon: 'alert-circle',    color: '#ef4444', bg: '#fee2e2' },
+  { value: 'schedule_change', label: 'Schedule',       icon: 'calendar',        color: '#f59e0b', bg: '#fef3c7' },
+  { value: 'result',          label: 'Result',         icon: 'trophy',          color: '#10b981', bg: '#d1fae5' },
+];
+
 const TABS = ['Overview', 'Announcements', 'Teams', 'Prizes'];
 
 // ─── Announcement Card ─────────────────────────────────────────────────────
-const AnnCard = ({ ann }: { ann: Announcement }) => (
-  <View className={`bg-white rounded-2xl p-4 mb-3 border ${ann.isPinned ? 'border-amber-300' : 'border-slate-100'}`}
-    style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}>
-    {ann.isPinned && (
-      <View className="flex-row items-center mb-2">
-        <Ionicons name="pin" size={11} color="#d97706" />
-        <Text className="text-amber-600 text-[10px] font-black uppercase tracking-widest ml-1">Pinned</Text>
-      </View>
-    )}
-    <Text className="text-zinc-900 text-sm font-black italic mb-1">{ann.Title}</Text>
-    <Text className="text-slate-500 text-xs leading-5 mb-3">{ann.body}</Text>
-    <View className="flex-row items-center justify-between">
-      <View className="flex-row items-center">
-        {ann.author?.avatar ? (
-          <Image source={{ uri: ann.author.avatar }} className="w-5 h-5 rounded-full mr-1.5" />
-        ) : (
-          <View className="w-5 h-5 rounded-full bg-indigo-100 items-center justify-center mr-1.5">
-            <Ionicons name="person" size={10} color="#6366f1" />
+const AnnCard = ({ ann, onReact }: { ann: Announcement; onReact: (annId: string, emoji: string) => void }) => {
+  const typeMeta = ANN_TYPES.find(t => t.value === ann.type) ?? ANN_TYPES[0];
+  return (
+    <View
+      className={`bg-white rounded-2xl p-4 mb-3 border ${ann.isPinned ? 'border-amber-300' : 'border-slate-100'}`}
+      style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}
+    >
+      {/* Type + Pin row */}
+      <View className="flex-row items-center mb-2 gap-2">
+        <View className="flex-row items-center px-2.5 py-1 rounded-lg" style={{ backgroundColor: typeMeta.bg }}>
+          <Ionicons name={typeMeta.icon as any} size={11} color={typeMeta.color} />
+          <Text className="text-[10px] font-black uppercase tracking-widest ml-1" style={{ color: typeMeta.color }}>
+            {typeMeta.label}
+          </Text>
+        </View>
+        {ann.isPinned && (
+          <View className="flex-row items-center bg-amber-50 px-2.5 py-1 rounded-lg">
+            <Ionicons name="pin" size={11} color="#d97706" />
+            <Text className="text-amber-600 text-[10px] font-black uppercase tracking-widest ml-1">Pinned</Text>
           </View>
         )}
-        <Text className="text-xs text-slate-400 font-semibold">{ann.author?.name}</Text>
       </View>
-      <Text className="text-[10px] text-slate-300 font-semibold">
-        {new Date(ann.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-      </Text>
+
+      <Text className="text-zinc-900 text-sm font-black italic mb-1">{ann.Title}</Text>
+      <Text className="text-slate-500 text-xs leading-5 mb-3">{ann.body}</Text>
+
+      {/* Footer */}
+      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center">
+          {ann.author?.avatar ? (
+            <Image source={{ uri: ann.author.avatar }} className="w-5 h-5 rounded-full mr-1.5" />
+          ) : (
+            <View className="w-5 h-5 rounded-full bg-indigo-100 items-center justify-center mr-1.5">
+              <Ionicons name="person" size={10} color="#6366f1" />
+            </View>
+          )}
+          <Text className="text-xs text-slate-400 font-semibold">{ann.author?.name}</Text>
+          <Text className="text-slate-300 text-xs ml-2">·</Text>
+          <Text className="text-[10px] text-slate-300 font-semibold ml-2">
+            {new Date(ann.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+          </Text>
+        </View>
+
+        {/* Quick reactions */}
+        <View className="flex-row gap-1">
+          {['👍', '🔥', '❤️'].map(emoji => (
+            <TouchableOpacity
+              key={emoji}
+              onPress={() => onReact(ann._id, emoji)}
+              className="bg-slate-50 rounded-lg px-2 py-1"
+            >
+              <Text className="text-xs">{emoji}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 const HackathonDetail = () => {
@@ -111,6 +152,12 @@ const HackathonDetail = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Announcement form state
+  const [annForm, setAnnForm] = useState({ title: '', body: '', isPinned: false, type: 'general' });
+  const [postingAnn, setPostingAnn] = useState(false);
+  const [annPage, setAnnPage] = useState(1);
+  const [annHasMore, setAnnHasMore] = useState(true);
+
   const scrollY = useRef(new Animated.Value(0)).current;
   const headerOpacity = scrollY.interpolate({ inputRange: [0, 160], outputRange: [0, 1], extrapolate: 'clamp' });
 
@@ -118,8 +165,40 @@ const HackathonDetail = () => {
     loadHackathon();
   }, [hackathonId]);
 
+  // ─── Socket: join hack room & listen for real-time announcements ───────────
   useEffect(() => {
-    if (activeTab === 1) loadAnnouncements();
+    // Join the hack socket room so we receive broadcasts
+    socket.emit('join_hack_room', { hackathonId });
+
+    const onNewAnnouncement = (ann: Announcement) => {
+      // Prepend incoming announcement, keep pinned ones at top
+      setAnnouncements(prev => {
+        const updated = [ann, ...prev];
+        return updated.sort((a, b) => {
+          if (a.isPinned && !b.isPinned) return -1;
+          if (!a.isPinned && b.isPinned) return 1;
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+      });
+      // Show a toast so users know even when on a different tab
+      Toast.show({
+        type: 'info',
+        text1: `📢 ${ann.Title}`,
+        text2: ann.body?.slice(0, 60) + (ann.body?.length > 60 ? '…' : ''),
+        visibilityTime: 4000,
+      });
+    };
+
+    socket.on('announcement:new', onNewAnnouncement);
+
+    return () => {
+      socket.off('announcement:new', onNewAnnouncement);
+      socket.emit('leave_hack_room', { hackathonId });
+    };
+  }, [hackathonId]);
+
+  useEffect(() => {
+    if (activeTab === 1) loadAnnouncements(1, true);
   }, [activeTab]);
 
   const loadHackathon = async () => {
@@ -136,11 +215,16 @@ const HackathonDetail = () => {
     }
   };
 
-  const loadAnnouncements = async () => {
-    setAnnLoading(true);
+  const loadAnnouncements = async (page = 1, reset = false) => {
+    if (page === 1) setAnnLoading(true);
     try {
-      const res = await axios.get(`/announcements/${hackathonId}`);
-      setAnnouncements(res.data.announcements ?? []);
+      const res = await axios.get(`/announcements/${hackathonId}`, {
+        params: { page, limit: 20 }
+      });
+      const data: Announcement[] = res.data.announcements ?? [];
+      setAnnouncements(prev => reset ? data : [...prev, ...data]);
+      setAnnPage(page);
+      setAnnHasMore(data.length === 20);
     } catch {
       // Silent
     } finally {
@@ -148,8 +232,6 @@ const HackathonDetail = () => {
     }
   };
 
-  const [annForm, setAnnForm] = useState({ title: '', body: '', isPinned: false });
-  const [postingAnn, setPostingAnn] = useState(false);
 
   const isOfficial = () => {
     if (!hackathon || !user) return false;
@@ -159,33 +241,56 @@ const HackathonDetail = () => {
   };
 
   const handlePostAnnouncement = async () => {
-    if (!annForm.title || !annForm.body) {
+    if (!annForm.title.trim() || !annForm.body.trim()) {
       Alert.alert('Missing Fields', 'Please enter a title and message');
       return;
     }
     setPostingAnn(true);
     try {
       const res = await axios.post(`/announcements/${hackathonId}`, {
-        title: annForm.title,
-        body: annForm.body,
+        title: annForm.title.trim(),
+        body: annForm.body.trim(),
         isPinned: annForm.isPinned,
-        type: 'general'
+        type: annForm.type,
       });
       if (res.data.success) {
-        Toast.show({ type: 'success', text1: 'Announcement posted!' });
-        setAnnForm({ title: '', body: '', isPinned: false });
-        const newAnn = { ...res.data.announcement, Title: res.data.announcement.Title || res.data.announcement.title };
-        setAnnouncements([newAnn, ...announcements]);
+        Toast.show({ type: 'success', text1: 'Announcement posted! 📢' });
+        setAnnForm({ title: '', body: '', isPinned: false, type: 'general' });
+        // The socket event will handle prepending — but also add locally as fallback
+        const newAnn = {
+          ...res.data.announcement,
+          Title: res.data.announcement.Title || res.data.announcement.title,
+        };
+        setAnnouncements(prev => {
+          const updated = [newAnn, ...prev];
+          return updated.sort((a, b) => {
+            if (a.isPinned && !b.isPinned) return -1;
+            if (!a.isPinned && b.isPinned) return 1;
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          });
+        });
       }
     } catch (err: any) {
-      Toast.show({ 
-        type: 'error', 
-        text1: 'Failed to post', 
-        text2: err.response?.data?.message || 'Something went wrong' 
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to post',
+        text2: err.response?.data?.message || 'Something went wrong'
       });
     } finally {
       setPostingAnn(false);
     }
+  };
+
+  const handleReact = async (annId: string, emoji: string) => {
+    // Optimistic local update
+    setAnnouncements(prev =>
+      prev.map(a =>
+        a._id === annId
+          ? { ...a, reactions: [...(a.reactions ?? []), { user: user?.id, emoji }] }
+          : a
+      )
+    );
+    // No backend endpoint yet — just local for now
   };
 
   const handleJoin = async () => {
@@ -483,60 +588,91 @@ const HackathonDetail = () => {
           {activeTab === 1 && (
             <View>
               {isOfficial() && (
-                <View className="bg-white mx-5 mt-4 rounded-3xl p-5 border border-indigo-100 shadow-sm mb-6">
+                <View className="bg-white rounded-3xl p-5 border border-indigo-100 mb-5"
+                  style={{ shadowColor: '#6366f1', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4 }}
+                >
                   <View className="flex-row items-center mb-4">
-                    <View className="w-8 h-8 rounded-xl bg-indigo-100 items-center justify-center mr-3">
-                      <Ionicons name="megaphone" size={16} color="#6366f1" />
-                    </View>
-                    <Text className="text-zinc-900 font-black italic uppercase tracking-tight">Post Announcement</Text>
+                    <LinearGradient colors={['#6366f1', '#8b5cf6']} className="w-9 h-9 rounded-xl items-center justify-center mr-3">
+                      <Ionicons name="megaphone" size={16} color="white" />
+                    </LinearGradient>
+                    <Text className="text-zinc-900 font-black italic uppercase tracking-tight text-base">Post Announcement</Text>
                   </View>
-                  
+
+                  {/* Type picker */}
+                  <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2">Type</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginBottom: 16 }}>
+                    {ANN_TYPES.map(t => (
+                      <TouchableOpacity
+                        key={t.value}
+                        onPress={() => setAnnForm({ ...annForm, type: t.value })}
+                        className="flex-row items-center px-3 py-2 rounded-xl border"
+                        style={{
+                          backgroundColor: annForm.type === t.value ? t.bg : '#f8fafc',
+                          borderColor: annForm.type === t.value ? t.color : '#e2e8f0',
+                        }}
+                      >
+                        <Ionicons name={t.icon as any} size={12} color={annForm.type === t.value ? t.color : '#94a3b8'} />
+                        <Text
+                          className="text-[11px] font-black ml-1.5"
+                          style={{ color: annForm.type === t.value ? t.color : '#94a3b8' }}
+                        >
+                          {t.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+
                   <TextInput
                     placeholder="Headline (e.g. Schedule Update)"
                     placeholderTextColor="#94a3b8"
                     value={annForm.title}
-                    onChangeText={(t) => setAnnForm({...annForm, title: t})}
+                    onChangeText={(text) => setAnnForm({ ...annForm, title: text })}
                     className="bg-slate-50 rounded-xl px-4 py-3 mb-3 text-zinc-900 font-bold text-sm border border-slate-100"
                   />
                   <TextInput
-                    placeholder="What's happening?"
+                    placeholder="What's the update?"
                     placeholderTextColor="#94a3b8"
                     value={annForm.body}
-                    onChangeText={(t) => setAnnForm({...annForm, body: t})}
+                    onChangeText={(text) => setAnnForm({ ...annForm, body: text })}
                     multiline
                     numberOfLines={3}
                     className="bg-slate-50 rounded-xl px-4 py-3 mb-4 text-zinc-900 font-semibold text-xs border border-slate-100 min-h-[80px]"
                     textAlignVertical="top"
                   />
 
-                  <View className="flex-row items-center justify-between mb-4 px-1">
+                  {/* Pin toggle */}
+                  <View className="flex-row items-center justify-between mb-4 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
                     <View className="flex-row items-center">
                       <Ionicons name="pin" size={14} color={annForm.isPinned ? '#f59e0b' : '#94a3b8'} />
-                      <Text className="text-[10px] text-slate-500 font-black uppercase tracking-widest ml-2">Pin to Top</Text>
+                      <Text className="text-[11px] text-slate-600 font-black uppercase tracking-widest ml-2">Pin to Top</Text>
                     </View>
                     <Switch
                       value={annForm.isPinned}
-                      onValueChange={(v) => setAnnForm({...annForm, isPinned: v})}
+                      onValueChange={(v) => setAnnForm({ ...annForm, isPinned: v })}
                       trackColor={{ false: '#e2e8f0', true: '#c7d2fe' }}
                       thumbColor={annForm.isPinned ? '#6366f1' : '#f4f4f5'}
                     />
                   </View>
 
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     onPress={handlePostAnnouncement}
                     disabled={postingAnn}
+                    activeOpacity={0.88}
                     className="overflow-hidden rounded-2xl"
                   >
                     <LinearGradient
                       colors={['#6366f1', '#ec4899']}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0 }}
-                      className="py-3 items-center"
+                      className="py-3.5 items-center"
                     >
                       {postingAnn ? (
                         <ActivityIndicator size="small" color="white" />
                       ) : (
-                        <Text className="text-white font-black uppercase tracking-widest text-xs">Blast Message</Text>
+                        <View className="flex-row items-center">
+                          <Ionicons name="send" size={14} color="white" />
+                          <Text className="text-white font-black uppercase tracking-widest text-xs ml-2">Blast Message 📢</Text>
+                        </View>
                       )}
                     </LinearGradient>
                   </TouchableOpacity>
@@ -549,14 +685,26 @@ const HackathonDetail = () => {
                 </View>
               ) : announcements.length === 0 ? (
                 <View className="items-center py-12">
-                  <View className="w-16 h-16 bg-indigo-50 rounded-3xl items-center justify-center mb-4">
+                  <LinearGradient colors={['#ede9fe', '#fce7f3']} className="w-16 h-16 rounded-3xl items-center justify-center mb-4">
                     <Ionicons name="megaphone-outline" size={30} color="#6366f1" />
-                  </View>
+                  </LinearGradient>
                   <Text className="text-zinc-700 font-black italic text-base uppercase">No Announcements</Text>
-                  <Text className="text-slate-400 text-xs mt-1 font-semibold">Check back later</Text>
+                  <Text className="text-slate-400 text-xs mt-1 font-semibold">Check back soon</Text>
                 </View>
               ) : (
-                announcements.map(ann => <AnnCard key={ann._id} ann={ann} />)
+                <View>
+                  {announcements.map(ann => (
+                    <AnnCard key={ann._id} ann={ann} onReact={handleReact} />
+                  ))}
+                  {annHasMore && (
+                    <TouchableOpacity
+                      onPress={() => loadAnnouncements(annPage + 1)}
+                      className="py-3 items-center"
+                    >
+                      <Text className="text-indigo-500 font-black text-xs uppercase tracking-widest">Load more ↓</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               )}
             </View>
           )}

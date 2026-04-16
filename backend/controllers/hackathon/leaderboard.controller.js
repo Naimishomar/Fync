@@ -1,16 +1,16 @@
-import client from "../../utils/redis";
+import redisClient from "../../utils/redis.js";
 import Submission from "../../models/hackathon/submission.model.js";
 import Score from "../../models/hackathon/score.model.js";
-import Hackathon from "../../models/hackathon/hackathon.model.js";
+import Hackathon from "../../models/hackathon/hackathons.model.js";
 
 // GET /api/leaderboard/:hackathonId  — live ranked list from Redis
-exports.getLeaderboard = async (req, res, next) => {
+export const getLeaderboard = async (req, res, next) => {
   try {
     const hackId   = req.params.hackathonId;
     const boardKey = `hack:${hackId}:leaderboard`;
 
     // ZREVRANGEBYSCORE — highest score first, with scores
-    const raw = await client.zrevrangebyscore(boardKey, "+inf", "-inf", "WITHSCORES");
+    const raw = await redisClient.zrevrangebyscore(boardKey, "+inf", "-inf", "WITHSCORES");
 
     if (!raw.length)
       return res.status(200).json({ success: true, leaderboard: [], message: "No scores yet" });
@@ -29,7 +29,7 @@ exports.getLeaderboard = async (req, res, next) => {
     const subIds = ranked.map((r) => r.submissionId);
     const subs   = await Submission.find({ _id: { $in: subIds } })
       .populate("team", "name")
-      .select("projectName tagline techStack team status");
+      .select("ProjectName TagLine techStack team status");
 
     const subMap = {};
     subs.forEach((s) => { subMap[s._id.toString()] = s; });
@@ -40,8 +40,8 @@ exports.getLeaderboard = async (req, res, next) => {
         rank:         r.rank,
         submissionId: r.submissionId,
         score:        r.score,
-        projectName:  sub.projectName  || "—",
-        tagline:      sub.tagline      || "",
+        projectName:  sub.ProjectName  || "—",
+        tagline:      sub.TagLine      || "",
         techStack:    sub.techStack    || [],
         teamName:     sub.team?.name   || "—",
         status:       sub.status       || "—",
@@ -53,13 +53,13 @@ exports.getLeaderboard = async (req, res, next) => {
 };
 
 // GET /api/leaderboard/:hackathonId/top/:n  — top N teams
-exports.getTopN = async (req, res, next) => {
+export const getTopN = async (req, res, next) => {
   try {
     const { hackathonId, n } = req.params;
     const boardKey = `hack:${hackathonId}:leaderboard`;
 
     // ZREVRANGE with scores — top N
-    const raw = await client.zrevrange(boardKey, 0, Number(n) - 1, "WITHSCORES");
+    const raw = await redisClient.zrevrange(boardKey, 0, Number(n) - 1, "WITHSCORES");
 
     const ranked = [];
     for (let i = 0; i < raw.length; i += 2) {
@@ -73,15 +73,15 @@ exports.getTopN = async (req, res, next) => {
     const subIds = ranked.map((r) => r.submissionId);
     const subs   = await Submission.find({ _id: { $in: subIds } })
       .populate("team", "name")
-      .select("projectName tagline team");
+      .select("ProjectName TagLine team");
 
     const subMap = {};
     subs.forEach((s) => { subMap[s._id.toString()] = s; });
 
     const enriched = ranked.map((r) => ({
       ...r,
-      projectName: subMap[r.submissionId]?.projectName || "—",
-      tagline:     subMap[r.submissionId]?.tagline     || "",
+      projectName: subMap[r.submissionId]?.ProjectName || "—",
+      tagline:     subMap[r.submissionId]?.TagLine     || "",
       teamName:    subMap[r.submissionId]?.team?.name  || "—",
     }));
 
@@ -90,7 +90,7 @@ exports.getTopN = async (req, res, next) => {
 };
 
 // GET /api/leaderboard/:hackathonId/rank/:submissionId  — get rank of one submission
-exports.getSubmissionRank = async (req, res, next) => {
+export const getSubmissionRank = async (req, res, next) => {
   try {
     const boardKey = `hack:${req.params.hackathonId}:leaderboard`;
 
@@ -111,14 +111,14 @@ exports.getSubmissionRank = async (req, res, next) => {
 };
 
 // POST /api/leaderboard/:hackathonId/rebuild  — rebuild Redis from MongoDB (recovery)
-exports.rebuildLeaderboard = async (req, res, next) => {
+export const rebuildLeaderboard = async (req, res, next) => {
   try {
     const hackId = req.params.hackathonId;
 
     const hack = await Hackathon.findById(hackId);
     if (!hack)
       return res.status(404).json({ success: false, message: "Hackathon not found" });
-    if (hack.organizer.toString() !== req.user._id.toString())
+    if (hack.organiser.toString() !== req.user.id.toString())
       return res.status(403).json({ success: false, message: "Not authorized" });
 
     const scores = await Score.find({ hackathon: hackId });

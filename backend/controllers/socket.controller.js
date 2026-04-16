@@ -263,6 +263,18 @@ export const socketController = (io) => {
       socket.join(roomId);
     });
 
+    // --- 🚀 HACKATHON ECOSYSTEM ---
+    socket.on("join_hack_room", ({ hackathonId }) => {
+      if (!hackathonId) return;
+      socket.join(`hack:${hackathonId}`);
+      console.log(`🚀 Socket ${socket.id} joined hack room: hack:${hackathonId}`);
+    });
+
+    socket.on("leave_hack_room", ({ hackathonId }) => {
+      if (!hackathonId) return;
+      socket.leave(`hack:${hackathonId}`);
+    });
+
     socket.on("join_custom_room", async ({ roomId, userId }) => {
       try {
         const room = await Room.findOne({ roomId });

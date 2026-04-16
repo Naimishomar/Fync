@@ -39,6 +39,14 @@ interface Team {
   hackathon?: { maxTeamSize: number; title: string };
 }
 
+interface JoinRequest {
+  _id: string;
+  user: { _id: string; name: string; avatar?: string; skills?: string[] };
+  message?: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt: string;
+}
+
 interface ScoredTeam {
   team: Team;
   score: number;
@@ -316,6 +324,9 @@ const HackathonTeamScreen = () => {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [sendingRequest, setSendingRequest] = useState(false);
 
+  const [incomingRequests, setIncomingRequests] = useState<JoinRequest[]>([]);
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
+
   useEffect(() => {
     if (activeTab === 0) loadMatchedTeams();
     if (activeTab === 1) loadAllTeams();
@@ -356,10 +367,29 @@ const HackathonTeamScreen = () => {
         t.members?.some(m => m.user?._id === user?._id)
       );
       setMyTeam(mine ?? null);
+
+      if (mine && mine.leader?._id === user?._id) {
+        const reqRes = await axios.get(`/teams/${mine._id}/requests`);
+        setIncomingRequests(reqRes.data.requests ?? []);
+      }
     } catch {
       // Silent
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResponse = async (requestId: string, status: 'accepted' | 'rejected') => {
+    if (!myTeam) return;
+    setRespondingTo(requestId);
+    try {
+      await axios.post(`/teams/${myTeam._id}/respond`, { requestId, status });
+      Toast.show({ type: 'success', text1: `Request ${status === 'accepted' ? 'accepted' : 'rejected'}` });
+      loadMyTeam(); // Refresh
+    } catch (err: any) {
+      Toast.show({ type: 'error', text1: err?.response?.data?.message ?? 'Action failed' });
+    } finally {
+      setRespondingTo(null);
     }
   };
 
@@ -564,6 +594,50 @@ const HackathonTeamScreen = () => {
                             </View>
                           ))}
                         </View>
+                      </View>
+                    )}
+
+                    {/* Incoming Requests (Leader only) */}
+                    {myTeam.leader?._id === user?._id && incomingRequests.length > 0 && (
+                      <View className="mb-4">
+                        <Text className="text-zinc-900 font-black italic mb-3">📬 Pending Requests ({incomingRequests.length})</Text>
+                        {incomingRequests.map((req) => (
+                          <View key={req._id} className="bg-white rounded-2xl p-4 mb-3 border border-indigo-100 border-l-4 border-l-indigo-500">
+                            <View className="flex-row items-center justify-between mb-2">
+                              <View className="flex-row items-center">
+                                {req.user?.avatar ? (
+                                  <Image source={{ uri: req.user.avatar }} className="w-8 h-8 rounded-full" />
+                                ) : (
+                                  <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
+                                    <Ionicons name="person" size={14} color="#64748b" />
+                                  </View>
+                                )}
+                                <Text className="text-zinc-800 font-black text-sm ml-2">{req.user?.name}</Text>
+                              </View>
+                              <View className="flex-row gap-2">
+                                <TouchableOpacity
+                                  onPress={() => handleResponse(req._id, 'rejected')}
+                                  disabled={respondingTo === req._id}
+                                  className="w-8 h-8 rounded-full bg-red-50 items-center justify-center border border-red-100"
+                                >
+                                  <Ionicons name="close" size={16} color="#ef4444" />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  onPress={() => handleResponse(req._id, 'accepted')}
+                                  disabled={respondingTo === req._id}
+                                  className="w-8 h-8 rounded-full bg-green-50 items-center justify-center border border-green-100"
+                                >
+                                  <Ionicons name="checkmark" size={16} color="#10b981" />
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                            {req.message && (
+                              <Text className="text-slate-500 text-xs italic leading-4 bg-slate-50 p-2 rounded-lg">
+                                "{req.message}"
+                              </Text>
+                            )}
+                          </View>
+                        ))}
                       </View>
                     )}
 

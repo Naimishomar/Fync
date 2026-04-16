@@ -173,6 +173,7 @@ const HackathonJudgePanel = () => {
   const { hackathonId, judgingCriteria = [] } = route.params ?? {};
 
   const [pending, setPending] = useState<PendingSubmission[]>([]);
+  const [scoredSubmissions, setScoredSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'pending' | 'scored'>('pending');
 
@@ -186,8 +187,9 @@ const HackathonJudgePanel = () => {
   const parsedCriteria: JudgingCriteria[] = judgingCriteria;
 
   useEffect(() => {
-    loadPending();
-  }, []);
+    if (activeTab === 'pending') loadPending();
+    else loadScored();
+  }, [activeTab]);
 
   const loadPending = async () => {
     setLoading(true);
@@ -201,17 +203,45 @@ const HackathonJudgePanel = () => {
     }
   };
 
-  const openScoring = (sub: PendingSubmission) => {
+  const loadScored = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`/scores/judge/scored/${hackathonId}`);
+      setScoredSubmissions(res.data.scored ?? []);
+    } catch {
+      Toast.show({ type: 'error', text1: 'Could not load scored submissions' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openScoring = (sub: any) => {
     setSelectedSub(sub);
-    // Initialize criteria scores to 0
-    setCriteriaScores(
-      parsedCriteria.map(c => ({
-        name: c.name,
-        weightage: Number(c.weightage) || 0,
-        score: 0,
-      }))
-    );
-    setFeedback('');
+    
+    if (activeTab === 'scored' && sub.scores) {
+      // Pre-fill with existing scores
+      setCriteriaScores(
+        parsedCriteria.map(c => {
+          const match = sub.scores.find((s: any) => s.name === c.name);
+          return {
+            name: c.name,
+            weightage: Number(c.weightage) || 0,
+            score: match ? match.score : 0,
+          };
+        })
+      );
+      setFeedback(sub.feedback || '');
+    } else {
+      // Initialize criteria scores to 0
+      setCriteriaScores(
+        parsedCriteria.map(c => ({
+          name: c.name,
+          weightage: Number(c.weightage) || 0,
+          score: 0,
+        }))
+      );
+      setFeedback('');
+    }
     setScoringModal(true);
   };
 
@@ -289,55 +319,82 @@ const HackathonJudgePanel = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Count badge */}
-          <View className="flex-row px-5 mt-5 gap-3">
-            <View className="flex-1 bg-white/10 rounded-2xl px-4 py-3 border border-white/10">
-              <Ionicons name="time-outline" size={14} color="rgba(255,255,255,0.6)" />
-              <Text className="text-white/60 text-[10px] font-black uppercase tracking-widest mt-1">Pending</Text>
-              <Text className="text-white font-black text-2xl">{pending.length}</Text>
+            {/* Tabs */}
+            <View className="flex-row px-5 mt-5 gap-3">
+              <TouchableOpacity
+                onPress={() => setActiveTab('pending')}
+                className={`flex-1 rounded-2xl px-4 py-3 border ${activeTab === 'pending' ? 'bg-white border-white' : 'bg-white/10 border-white/10'}`}
+              >
+                <Text className={`text-center font-black uppercase tracking-widest text-[10px] ${activeTab === 'pending' ? 'text-indigo-900' : 'text-white/60'}`}>
+                  To Score ({pending.length})
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setActiveTab('scored')}
+                className={`flex-1 rounded-2xl px-4 py-3 border ${activeTab === 'scored' ? 'bg-white border-white' : 'bg-white/10 border-white/10'}`}
+              >
+                <Text className={`text-center font-black uppercase tracking-widest text-[10px] ${activeTab === 'scored' ? 'text-indigo-900' : 'text-white/60'}`}>
+                  Scored ({scoredSubmissions.length})
+                </Text>
+              </TouchableOpacity>
             </View>
-            <View className="flex-1 bg-white/10 rounded-2xl px-4 py-3 border border-white/10">
-              <Ionicons name="checkmark-circle-outline" size={14} color="rgba(255,255,255,0.6)" />
-              <Text className="text-white/60 text-[10px] font-black uppercase tracking-widest mt-1">Criteria</Text>
-              <Text className="text-white font-black text-2xl">{parsedCriteria.length}</Text>
-            </View>
+          </SafeAreaView>
+        </LinearGradient>
+  
+        {/* Content */}
+        {loading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#6366f1" />
           </View>
-        </SafeAreaView>
-      </LinearGradient>
-
-      {/* Content */}
-      {loading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#6366f1" />
-        </View>
-      ) : pending.length === 0 ? (
-        <View className="flex-1 items-center justify-center px-10">
-          <LinearGradient colors={['#d1fae5', '#a7f3d0']} className="w-24 h-24 rounded-[32px] items-center justify-center mb-5">
-            <Ionicons name="checkmark-circle" size={44} color="#10b981" />
-          </LinearGradient>
-          <Text className="text-zinc-900 font-black italic text-xl tracking-tight text-center uppercase mb-2">
-            All Scored!
-          </Text>
-          <Text className="text-slate-400 text-center font-semibold text-xs uppercase tracking-widest">
-            You have scored all submissions for this hackathon.
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={pending}
-          keyExtractor={item => item._id}
-          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={() => (
-            <View className="mb-2">
-              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-3">
-                {pending.length} submission{pending.length !== 1 ? 's' : ''} awaiting your review
+        ) : activeTab === 'pending' ? (
+          pending.length === 0 ? (
+            <View className="flex-1 items-center justify-center px-10">
+              <LinearGradient colors={['#d1fae5', '#a7f3d0']} className="w-24 h-24 rounded-[32px] items-center justify-center mb-5">
+                <Ionicons name="checkmark-circle" size={44} color="#10b981" />
+              </LinearGradient>
+              <Text className="text-zinc-900 font-black italic text-xl tracking-tight text-center uppercase mb-2">
+                All Scored!
+              </Text>
+              <Text className="text-slate-400 text-center font-semibold text-xs uppercase tracking-widest">
+                You have scored all submissions for this hackathon.
               </Text>
             </View>
-          )}
-          renderItem={({ item }) => <PendingCard sub={item} onScore={openScoring} />}
-        />
-      )}
+          ) : (
+            <FlatList
+              data={pending}
+              keyExtractor={item => item._id}
+              contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => <PendingCard sub={item} onScore={openScoring} />}
+            />
+          )
+        ) : (
+          <FlatList
+            data={scoredSubmissions}
+            keyExtractor={item => item._id}
+            contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <View className="bg-white rounded-2xl p-4 mb-3 border border-slate-100 opacity-80">
+                <View className="flex-row items-center justify-between mb-2">
+                  <Text className="text-zinc-900 font-bold flex-1 mr-2">{item.submission?.ProjectName || 'Unknown Project'}</Text>
+                  <View className="bg-indigo-50 px-2 py-1 rounded-lg">
+                    <Text className="text-indigo-600 font-black text-xs">{item.totalScore}/10</Text>
+                  </View>
+                </View>
+                <TouchableOpacity onPress={() => openScoring(item)}>
+                  <Text className="text-indigo-500 font-black text-[10px] uppercase tracking-widest text-right">Edit Score →</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            ListEmptyComponent={() => (
+              <View className="flex-1 items-center justify-center mt-20">
+                <Ionicons name="star-outline" size={48} color="#cbd5e1" />
+                <Text className="text-slate-400 font-black italic mt-4">No scored items yet</Text>
+              </View>
+            )}
+          />
+        ) }
 
       {/* Scoring Modal */}
       <Modal visible={scoringModal} animationType="slide" presentationStyle="pageSheet">

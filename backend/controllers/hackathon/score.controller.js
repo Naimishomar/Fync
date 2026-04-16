@@ -1,7 +1,7 @@
-const Score      = require("../models/Score.model");
-const Submission = require("../models/Submission.model");
-const Hackathon  = require("../models/Hackathon.model");
-const redisClient = require("../config/redis");
+import Score from "../../models/hackathon/score.model.js";
+import Submission from "../../models/hackathon/submission.model.js";
+import Hackathon from "../../models/hackathon/hackathons.model.js";
+import redisClient from "../../utils/redis.js";
 
 // ─── helper: recalculate aggregate score across all judges ───
 const recalcAndUpdateBoard = async (hackId, subId, io) => {
@@ -12,24 +12,23 @@ const recalcAndUpdateBoard = async (hackId, subId, io) => {
   const rounded = parseFloat(avg.toFixed(4));
 
   // Update Redis sorted set
-  // ZADD hack:<id>:leaderboard <score> <submissionId>
   const boardKey = `hack:${hackId}:leaderboard`;
   await redisClient.zadd(boardKey, rounded, subId.toString());
 
   // Broadcast to all clients watching this hackathon
-  io.to(`hack:${hackId}`).emit("leaderboard:updated", {
-    submissionId: subId,
-    newScore:     parseFloat(avg.toFixed(2)),
-    judgeCount:   allScores.length,
-  });
+  if (io) {
+    io.to(`hack:${hackId}`).emit("leaderboard:updated", {
+      submissionId: subId,
+      newScore:     parseFloat(avg.toFixed(2)),
+      judgeCount:   allScores.length,
+    });
+  }
 
   return rounded;
 };
 
-// ─────────────────────────────────────────────────────────────
-
 // POST /api/scores  — judge submits or updates score
-exports.submitScore = async (req, res, next) => {
+export const submitScore = async (req, res, next) => {
   try {
     const { submission: subId, criteria, feedback } = req.body;
 
@@ -40,7 +39,7 @@ exports.submitScore = async (req, res, next) => {
     const hack = sub.hackathon;
 
     // Must be an assigned judge
-    const isJudge = hack.judges.map(String).includes(req.user._id.toString());
+    const isJudge = hack.judges.map(String).includes(req.user.id.toString());
     if (!isJudge)
       return res.status(403).json({ success: false, message: "You are not a judge for this hackathon" });
 
@@ -49,7 +48,7 @@ exports.submitScore = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "Hackathon is not in judging phase" });
 
     // Validate criteria match hackathon's judging criteria
-    const hackCriteria = hack.judgingCriteria.map((c) => c.name);
+    const hackCriteria = hack.judgingcriteria.map((c) => c.name);
     const submittedCriteria = criteria.map((c) => c.name);
     const allValid = submittedCriteria.every((name) => hackCriteria.includes(name));
     if (!allValid)
@@ -57,20 +56,20 @@ exports.submitScore = async (req, res, next) => {
 
     // Upsert: one score per judge per submission
     const score = await Score.findOneAndUpdate(
-      { submission: subId, judge: req.user._id },
+      { submission: subId, judge: req.user.id },
       {
         hackathon:  hack._id,
         submission: subId,
-        judge:      req.user._id,
+        judge:      req.user.id,
         criteria,
         feedback,
       },
       { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true }
     );
 
-    // Mark submission as under_review if still draft/submitted
+    // Mark submission as underReview if still draft/submitted
     if (["submitted", "draft"].includes(sub.status)) {
-      sub.status = "under_review";
+      sub.status = "underReview";
       await sub.save();
     }
 
@@ -84,10 +83,12 @@ exports.submitScore = async (req, res, next) => {
       sub.status = "scored";
       await sub.save();
 
-      io.to(`hack:${hack._id}`).emit("submission:scored", {
-        submissionId: subId,
-        projectName:  sub.projectName,
-      });
+      if (io) {
+        io.to(`hack:${hack._id}`).emit("submission:scored", {
+          submissionId: subId,
+          projectName:  sub.ProjectName,
+        });
+      }
     }
 
     res.status(200).json({ success: true, score });
@@ -95,7 +96,7 @@ exports.submitScore = async (req, res, next) => {
 };
 
 // GET /api/scores/:submissionId  — full score breakdown
-exports.getScores = async (req, res, next) => {
+export const getScores = async (req, res, next) => {
   try {
     const scores = await Score.find({ submission: req.params.submissionId })
       .populate("judge", "name avatar");
@@ -131,20 +132,20 @@ exports.getScores = async (req, res, next) => {
 };
 
 // GET /api/scores/judge/pending/:hackathonId  — submissions a judge hasn't scored yet
-exports.getPendingForJudge = async (req, res, next) => {
+export const getPendingForJudge = async (req, res, next) => {
   try {
     const hackId = req.params.hackathonId;
 
-    // All submitted submissions for this hackathon
+    // All active submissions for this hackathon
     const allSubs = await Submission.find({
       hackathon: hackId,
-      status:    { $in: ["submitted", "under_review"] },
-    }).select("_id projectName team");
+      status:    { $in: ["submitted", "underReview"] },
+    }).select("_id ProjectName team");
 
     // Submissions this judge already scored
     const scored = await Score.find({
       hackathon: hackId,
-      judge:     req.user._id,
+      judge:     req.user.id,
     }).select("submission");
 
     const scoredIds = new Set(scored.map((s) => s.submission.toString()));

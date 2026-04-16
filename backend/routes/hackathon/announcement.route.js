@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../../middlewares/auth.middleware.js";
-import { postAnnouncements , getannouncements } from "../../controllers/hackathon/announcment.controller.js";
+import { postAnnouncements , getannouncements } from "../../controllers/hackathon/announcement.controller.js";
 const router = Router();
 
 router.post("/:hackathonId" , authMiddleware , postAnnouncements);
