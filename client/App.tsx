@@ -139,6 +139,9 @@ import HackathonLeaderboard from './components/hackathon/HackathonLeaderboard';
 import HackathonJudgePanel from './components/hackathon/HackathonJudgePanel';
 import HackathonChannel from './components/hackathon/HackathonChannel';
 
+// Profile Builder
+import FyncProfileBuilder from './components/profile/FyncProfileBuilder';
+
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -281,6 +284,8 @@ export type RootStackParamList = {
   HackathonLeaderboard: { hackathonId: string; hackathonTitle?: string };
   HackathonJudgePanel: { hackathonId: string; judgingCriteria?: any[] };
   HackathonChannel: { hackathonId: string; hackathonTitle?: string };
+  // Profile Builder
+  FyncProfileBuilder: undefined;
 };
 
 
@@ -425,6 +430,8 @@ function AppStack() {
       <Stack.Screen name="HackathonLeaderboard" component={HackathonLeaderboard} />
       <Stack.Screen name="HackathonJudgePanel" component={HackathonJudgePanel} />
       <Stack.Screen name="HackathonChannel" component={HackathonChannel} />
+      {/* Profile Builder */}
+      <Stack.Screen name="FyncProfileBuilder" component={FyncProfileBuilder} />
     </Stack.Navigator>
   );
 }
