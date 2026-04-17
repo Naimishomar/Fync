@@ -221,6 +221,50 @@ const userSchema = new mongoose.Schema({
     expoPushToken: {
         type: String,
         default: null
+    },
+
+    // ─── Fync Profile Builder ────────────────────────────────────────────
+    profileBuilderCompleted: {
+        type: Boolean,
+        default: false
+    },
+    portfolioVisibility: {
+        type: String,
+        enum: ['public', 'fync-only', 'private'],
+        default: 'public'
+    },
+
+    // GitHub OAuth
+    githubUsername: {
+        type: String,
+        default: null,
+        sparse: true
+    },
+    githubAccessToken: {
+        type: String,         // encrypted, never exposed to client
+        default: null,
+        select: false
+    },
+    githubStats: {
+        totalCommits: { type: Number, default: 0 },
+        totalRepos:   { type: Number, default: 0 },
+        totalStars:   { type: Number, default: 0 },
+        topLanguages: { type: [String], default: [] },
+        contributionStreak: { type: Number, default: 0 },
+        avatarUrl:    { type: String, default: null },
+        bio:          { type: String, default: null },
+        lastFetched:  { type: Date,   default: null }
+    },
+
+    // Fync Score (cached from FyncScore collection for quick reads)
+    fyncScore: {
+        type: Number,
+        default: 0
+    },
+    fyncBadge: {
+        type: String,
+        enum: ['Newcomer', 'Explorer', 'Builder', 'Innovator', 'Pioneer', 'Legend'],
+        default: 'Newcomer'
     }
 }, { timestamps: true });
 

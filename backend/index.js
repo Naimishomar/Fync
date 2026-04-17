@@ -45,6 +45,7 @@ import submissionRoute from './routes/hackathon/submission.route.js';
 import announcementRoute from './routes/hackathon/announcement.route.js';
 import scoreRoute from './routes/hackathon/score.route.js';
 import leaderboardRoute from './routes/hackathon/leaderboard.route.js';
+import profileRoute from './routes/profile/profile.route.js';
 
 import { setCollegeChatIo } from './controllers/collegeChat.controller.js';
 import { setAlumniChatIo } from './controllers/alumniChat.controller.js';
@@ -170,6 +171,7 @@ app.use('/submissions', submissionRoute);
 app.use('/announcements', announcementRoute);
 app.use('/scores', scoreRoute);
 app.use('/hackathon-leaderboard', leaderboardRoute);
+app.use('/profile', profileRoute);
 socketController(io);
 setCollegeChatIo(io);
 setAlumniChatIo(io);

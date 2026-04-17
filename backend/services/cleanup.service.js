@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import ClubMessage from '../models/club/clubMessage.model.js';
 import { deleteFromR2 } from '../utils/r2.js';
+import { runNightlyScoreUpdate } from './nightlyScore.service.js';
 
 /**
  * Cleanup Task: Purge messages and media older than 30 days.
@@ -46,6 +47,11 @@ const startCleanupCron = () => {
         } catch (error) {
             console.error("Cleanup cron failed:", error.message);
         }
+    });
+
+    // ─── Nightly Fync Score + GitHub Sync — 2:00 AM IST (20:30 UTC) ──────────
+    cron.schedule('30 20 * * *', async () => {
+        await runNightlyScoreUpdate();
     });
 };
 
