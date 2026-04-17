@@ -30,6 +30,12 @@ export default function CustomSidebar(props: any) {
     const [showOpportunities, setShowOpportunities] = useState(false);
     const [showQuizzes, setShowQuizzes] = useState(false);
     const [showHackathons, setShowHackathons] = useState(false);
+    const [showPortfolio, setShowPortfolio] = useState(false);
+
+    const togglePortfolio = () => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setShowPortfolio(!showPortfolio);
+    };
 
     const toggleOpportunities = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -50,23 +56,54 @@ export default function CustomSidebar(props: any) {
         <View className="flex-1 bg-black">
             <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 0 }}>
                 {/* Header Profile Section */}
-                <View className="bg-gray-900 px-5 pt-12 pb-8 border-b border-gray-800 flex-row items-center gap-4">
-                    <Pressable onPress={() => props.navigation.navigate('Profile')}>
+                <View className="bg-gray-900 px-5 pt-12 pb-6 border-b border-gray-800">
+                    <Pressable onPress={() => props.navigation.navigate('Profile')}
+                        className="flex-row items-center gap-4 mb-3">
                         <Image
                             source={{ uri: user?.avatar || `https://ui-avatars.com/api/?name=${user?.username || 'User'}` }}
-                            className="h-20 w-20 rounded-full border-2 border-pink-500 mb-4"
+                            className="h-16 w-16 rounded-full border-2 border-pink-500"
                         />
+                        <View className="flex-1">
+                            <Text className="text-white text-lg font-bold">{user?.name || user?.username || 'Fync User'}</Text>
+                            <Text className="text-gray-400 text-xs">@{user?.username || 'username'}</Text>
+                        </View>
                     </Pressable>
-                    <View>
-                        <Text className="text-white text-xl font-bold">{user?.fullName || user?.username || "Fync User"}</Text>
-                        <Text className="text-gray-400 text-sm">@{user?.username || "username"}</Text>
-                    </View>
+                    {/* Score + Build Portfolio CTA */}
+                    <Pressable
+                        onPress={() => props.navigation.navigate('FyncProfileBuilder')}
+                        className="flex-row items-center justify-between bg-indigo-500/10 border border-indigo-500/20 px-4 py-2.5 rounded-xl mt-1">
+                        <View className="flex-row items-center gap-2">
+                            <Text style={{ fontSize: 16 }}>{user?.fyncBadge === 'Legend' ? '🌟' : user?.fyncBadge === 'Pioneer' ? '🚀' : user?.fyncBadge === 'Innovator' ? '💡' : user?.fyncBadge === 'Builder' ? '🔨' : user?.fyncBadge === 'Explorer' ? '🗺️' : '🌱'}</Text>
+                            <View>
+                                <Text className="text-indigo-300 text-xs font-bold">{user?.fyncBadge || 'Newcomer'}</Text>
+                                <Text className="text-white text-base font-bold">{user?.fyncScore || 0} <Text className="text-gray-500 text-xs font-normal">/ 1000</Text></Text>
+                            </View>
+                        </View>
+                        <View className="flex-row items-center gap-1 bg-indigo-600 px-3 py-1.5 rounded-lg">
+                            <Text className="text-white text-xs font-bold">Portfolio</Text>
+                            <Ionicons name="arrow-forward" size={12} color="white" />
+                        </View>
+                    </Pressable>
                 </View>
 
                 {/* Menu Items */}
                 <View className="mt-4 px-2">
 
-                    {/* 2. QUIZZES DROPDOWN (Parent) */}
+                    {/* ─── FYNC PORTFOLIO (NEW) ──────────────── */}
+                    <Pressable
+                        onPress={() => props.navigation.navigate('FyncProfileBuilder')}
+                        className="flex-row items-center justify-between px-4 py-4 rounded-xl mb-1 bg-indigo-500/10 border border-indigo-500/20 active:bg-indigo-500/20"
+                    >
+                        <View className="flex-row items-center">
+                            <Ionicons name="person-circle-outline" size={24} color="#818CF8" />
+                            <Text className="text-indigo-300 text-lg ml-4 font-bold">Fync Portfolio</Text>
+                            <View className="ml-2 bg-indigo-500/20 px-2 py-0.5 rounded-full border border-indigo-500/30">
+                                <Text className="text-[9px] text-indigo-400 font-bold">NEW</Text>
+                            </View>
+                        </View>
+                        <Ionicons name="arrow-forward" size={18} color="#818CF8" />
+                    </Pressable>
+
                     <Pressable
                         onPress={toggleQuizzes}
                         className="flex-row items-center justify-between px-4 py-4 rounded-xl active:bg-gray-800"
