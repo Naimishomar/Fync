@@ -494,7 +494,7 @@ export const login = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const { name, username, bio, about, skills, experience, interest, hobbies, github_id, linkedIn_id, leetcode, gfg, upiId } = req.body;
+    const { name, username, bio, about, skills, experience, interest, hobbies, github_id, linkedIn_id, leetcode, gfg, codechef, upiId } = req.body;
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
@@ -531,6 +531,7 @@ export const updateUser = async (req, res) => {
           ...(bannerUrl && { banner: bannerUrl }),
           ...(leetcode && { "codingProfiles.leetcode": leetcode }),
           ...(gfg && { "codingProfiles.gfg": gfg }),
+          ...(codechef && { "codingProfiles.codechef": codechef }),
           ...(upiId && { upiId }),
         },
       },
