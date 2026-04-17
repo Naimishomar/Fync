@@ -278,6 +278,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['Newcomer', 'Explorer', 'Builder', 'Innovator', 'Pioneer', 'Legend'],
         default: 'Newcomer'
+    },
+    resumeUrl: {
+        type: String,
+        default: null
     }
 }, { timestamps: true });
 

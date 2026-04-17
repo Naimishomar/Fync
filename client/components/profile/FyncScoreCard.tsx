@@ -94,7 +94,7 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
   const categories = score.breakdown ? Object.entries(score.breakdown) : [];
 
   return (
-    <View className="mx-4 my-3 rounded-2xl overflow-hidden border border-gray-100 shadow-sm bg-white">
+    <View className="mx-4 my-3 rounded-2xl overflow-hidden border border-gray-100 bg-white">
       {/* Header Row */}
       <Pressable onPress={() => setExpanded(e => !e)} className="flex-row items-center p-4">
         {/* Badge bubble */}

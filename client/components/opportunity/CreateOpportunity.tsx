@@ -8,7 +8,8 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Alert
+  Alert,
+  Switch
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -29,17 +30,24 @@ const CreateOpportunity = () => {
     type: initialType,
     opportunityType: 'Full-Time',
     duration: '',
+    isPaid: false,
     stipend: '',
     description: '',
-    applicationLink: ''
+    applicationLink: '',
+    requireResume: true
   });
 
   const handlePost = async () => {
-    const { title, company, type, description, applicationLink } = formData;
+    const { title, company, type, description, isPaid, stipend } = formData;
     
-    if (!title || !company || !description || !applicationLink) {
-      Alert.alert("Required Fields", "Please fill in all mandatory fields (Title, Company, Description, Link).");
+    if (!title || !company || !description) {
+      Alert.alert("Required Fields", "Please fill in all mandatory fields (Title, Company, Description).");
       return;
+    }
+
+    if (isPaid && !stipend) {
+        Alert.alert("Required Fields", "Please enter the stipend or package amount.");
+        return;
     }
 
     setLoading(true);
@@ -62,18 +70,34 @@ const CreateOpportunity = () => {
     }
   };
 
+  const SelectionGroup = ({ label, options, field }: { label: string, options: string[], field: string }) => (
+    <View className="mb-5">
+      <Text className="text-slate-400 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">{label}</Text>
+      <View className="flex-row flex-wrap gap-2">
+        {options.map((opt) => (
+          <TouchableOpacity 
+            key={opt}
+            onPress={() => setFormData({...formData, [field]: opt})}
+            className={`px-6 py-3 rounded-2xl border ${formData[field as keyof typeof formData] === opt ? 'bg-zinc-900 border-zinc-900' : 'bg-slate-50 border-slate-100'}`}
+          >
+            <Text className={`font-black italic uppercase text-[10px] ${formData[field as keyof typeof formData] === opt ? 'text-white' : 'text-slate-400'}`}>{opt}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView 
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
-        {/* Header */}
         <View className="px-6 py-4 border-b border-gray-100 flex-row items-center justify-between">
           <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 items-center justify-center rounded-full bg-slate-50">
             <Ionicons name="chevron-back" size={24} color="black" />
           </TouchableOpacity>
-          <Text className="text-xl font-black italic uppercase tracking-tighter">Post Opportunity</Text>
+          <Text className="text-xl font-black uppercase tracking-tighter">Post Opportunity</Text>
           <View className="w-10" />
         </View>
 
@@ -109,55 +133,77 @@ const CreateOpportunity = () => {
               onChange={(v: any) => setFormData({...formData, company: v})} 
             />
 
-            <View className="flex-row gap-4">
-              <View className="flex-1">
-                <InputGroup 
-                  label="Location" 
-                  value={formData.location} 
-                  placeholder="Remote / Bangalore"
-                  onChange={(v: any) => setFormData({...formData, location: v})} 
-                />
-              </View>
-              <View className="flex-1">
-                <InputGroup 
-                  label="Work Type" 
-                  value={formData.opportunityType} 
-                  placeholder="Full-time / PPO"
-                  onChange={(v: any) => setFormData({...formData, opportunityType: v})} 
-                />
-              </View>
-            </View>
+            <SelectionGroup 
+              label="Location Mode *" 
+              options={["Remote", "Onsite", "Hybrid"]} 
+              field="location" 
+            />
+
+            <SelectionGroup 
+              label="Work Schedule *" 
+              options={["Full-Time", "Part-Time"]} 
+              field="opportunityType" 
+            />
 
             <View className="flex-row gap-4">
-              <View className="flex-1">
-                <InputGroup 
-                  label="Duration" 
-                  value={formData.duration} 
-                  placeholder="e.g. 6 Months"
-                  onChange={(v: any) => setFormData({...formData, duration: v})} 
-                />
-              </View>
-              <View className="flex-1">
-                <InputGroup 
-                  label={formData.type === 'internship' ? "Stipend" : "Annual Package"} 
-                  value={formData.stipend} 
-                  placeholder="₹20k / ₹15 LPA"
-                  onChange={(v: any) => setFormData({...formData, stipend: v})} 
-                />
-              </View>
+                <View className="flex-1">
+                    <Text className="text-slate-400 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Payment *</Text>
+                    <View className="flex-row gap-2">
+                        {["Unpaid", "Paid"].map(opt => (
+                            <TouchableOpacity 
+                                key={opt}
+                                onPress={() => setFormData({...formData, isPaid: opt === 'Paid'})}
+                                className={`px-6 py-3 rounded-2xl border ${ (formData.isPaid && opt === 'Paid') || (!formData.isPaid && opt === 'Unpaid') ? 'bg-zinc-900 border-zinc-900' : 'bg-slate-50 border-slate-100'}`}
+                            >
+                                <Text className={`font-black italic uppercase text-[10px] ${ (formData.isPaid && opt === 'Paid') || (!formData.isPaid && opt === 'Unpaid') ? 'text-white' : 'text-slate-400'}`}>{opt}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </View>
+                {formData.isPaid && (
+                   <View className="flex-[1.5]">
+                        <InputGroup 
+                            label={formData.type === 'internship' ? "Stipend Amount *" : "Package / Salary *"} 
+                            value={formData.stipend} 
+                            placeholder="e.g. ₹25k / ₹12 LPA"
+                            onChange={(v: any) => setFormData({...formData, stipend: v})} 
+                        />
+                   </View>
+                )}
             </View>
 
             <InputGroup 
-              label="Application Link *" 
+                label="Duration" 
+                value={formData.duration} 
+                placeholder="e.g. 6 Months / Performance Based"
+                onChange={(v: any) => setFormData({...formData, duration: v})} 
+            />
+
+            <InputGroup 
+              label="Application Link (Optional)" 
               value={formData.applicationLink} 
-              placeholder="https://..."
+              placeholder="https://company.com/careers/..."
               onChange={(v: any) => setFormData({...formData, applicationLink: v})} 
             />
+
+            {/* Requirement Toggle */}
+            <View className="bg-slate-50 p-5 rounded-3xl flex-row items-center justify-between border border-slate-100">
+                <View className="flex-1 mr-4">
+                    <Text className="text-zinc-900 font-black italic uppercase text-xs tracking-tighter">Require Resume?</Text>
+                    <Text className="text-slate-400 font-bold text-[9px] uppercase mt-1">Candidates must share their resume to apply</Text>
+                </View>
+                <Switch 
+                   value={formData.requireResume}
+                   onValueChange={(v) => setFormData({...formData, requireResume: v})}
+                   trackColor={{ false: "#e2e8f0", true: "#f9a8d4" }}
+                   thumbColor={formData.requireResume ? "#ec4899" : "#94a3b8"}
+                />
+            </View>
 
             <InputGroup 
               label="Description *" 
               value={formData.description} 
-              placeholder="Responsibilities & requirements..."
+              placeholder="Key responsibilities, skills, and about the role..."
               multiline 
               onChange={(v: any) => setFormData({...formData, description: v})} 
             />
@@ -170,7 +216,7 @@ const CreateOpportunity = () => {
               {loading ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Text className="text-white font-black italic uppercase text-lg">Launch Opportunity</Text>
+                <Text className="text-white font-black uppercase text-lg">Post Live Opportunity</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -190,7 +236,7 @@ const InputGroup = ({ label, value, onChange, placeholder, multiline = false }: 
       placeholderTextColor="#cbd5e1"
       multiline={multiline}
       numberOfLines={multiline ? 4 : 1}
-      className={`bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-zinc-900 font-bold italic ${multiline ? 'h-32 text-top' : ''}`}
+      className={`bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-zinc-900 font-bold italic ${multiline ? 'h-40 text-top' : ''}`}
       textAlignVertical={multiline ? 'top' : 'center'}
     />
   </View>

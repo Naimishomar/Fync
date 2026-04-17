@@ -73,7 +73,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <KeyboardAvoidingView className="flex-1 bg-white" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View className="flex-row items-center justify-between px-4 py-4 border-b border-gray-100">
+        <View className="flex-row items-center justify-between px-4 py-4 mt-10 border-b border-gray-100">
           <Pressable onPress={onClose}><Ionicons name="close" size={24} color="#374151" /></Pressable>
           <Text className="font-bold text-gray-900 text-lg">{isEdit ? 'Edit Experience' : 'Add Experience'}</Text>
           <Pressable onPress={save} disabled={saving} className="bg-indigo-600 px-4 py-2 rounded-xl">

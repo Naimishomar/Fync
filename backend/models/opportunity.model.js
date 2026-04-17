@@ -17,6 +17,7 @@ const opportunitySchema = new mongoose.Schema({
     },
     location: {
         type: String,
+        enum: ["Remote", "Onsite", "Hybrid"],
         default: "Remote"
     },
     type: {
@@ -24,15 +25,20 @@ const opportunitySchema = new mongoose.Schema({
         enum: ["internship", "job"],
         required: true
     },
-    opportunityType: { // e.g. "Full-Time", "Part-Time", "Contract"
+    opportunityType: { 
         type: String,
+        enum: ["Full-Time", "Part-Time"],
         default: "Full-Time"
     },
     duration: {
         type: String,
         default: ""
     },
-    stipend: { // or salary
+    isPaid: {
+        type: Boolean,
+        default: false
+    },
+    stipend: { 
         type: String,
         default: "Unpaid"
     },
@@ -42,7 +48,11 @@ const opportunitySchema = new mongoose.Schema({
     },
     applicationLink: {
         type: String,
-        required: true
+        default: ""
+    },
+    requireResume: {
+        type: Boolean,
+        default: true
     },
     postedBy: {
         type: mongoose.Schema.Types.ObjectId,

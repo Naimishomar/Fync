@@ -9,7 +9,8 @@ import {
   Linking,
   TextInput,
   TouchableOpacity,
-  StatusBar
+  StatusBar,
+  Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -22,7 +23,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
 
 // --- 1. MEMOIZED JOB CARD (Dark Theme) ---
-const JobCard = memo(({ item, onPress }: { item: any; onPress: (url: string) => void }) => {
+const JobCard = memo(({ item, onApply }: { item: any; onApply: (item: any) => void }) => {
   return (
     <View className="bg-white rounded-2xl mb-5 mx-6 p-6 shadow-sm shadow-black/5 border border-gray-300">
       
@@ -78,12 +79,12 @@ const JobCard = memo(({ item, onPress }: { item: any; onPress: (url: string) => 
             <View>
               <Text className="text-gray-600 font-black uppercase text-[8px] tracking-[2px]">Annual Package</Text>
               <Text className="text-zinc-900 text-lg font-black italic mt-0.5 tracking-tighter uppercase">
-                  {item.stipend}
+                  {item.isPaid ? item.stipend : "Unpaid"}
               </Text>
             </View>
 
             <TouchableOpacity 
-              onPress={() => onPress(item.applicationLink)}
+              onPress={() => onApply(item)}
               activeOpacity={0.9}
               className="bg-pink-500 px-8 py-3.5 rounded-2xl shadow-lg shadow-black/20"
             >
@@ -153,16 +154,48 @@ const JobList = () => {
     fetchJobs(1, searchQuery);
   };
 
-  const handleLinkPress = useCallback((url: string) => {
-    if (url) {
-        if (!url.startsWith('http')) url = 'https://' + url;
-        Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+  const handleApply = useCallback(async (item: any) => {
+    if (user?.user_access === 'recruiter') {
+        Alert.alert("Recruiter View", "Recruiters cannot apply for posts.");
+        return;
     }
-  }, []);
+
+    Alert.alert(
+        "Apply Now",
+        `Do you want to apply for ${item.title} at ${item.company}?`,
+        [
+            { text: "Cancel", style: "cancel" },
+            { 
+                text: "Apply on Fync", 
+                onPress: async () => {
+                    try {
+                        const res = await axios.post(`/opportunity/apply/${item._id}`);
+                        if (res.data.success) {
+                            Alert.alert("Success", "Your application has been submitted!");
+                        }
+                    } catch (error: any) {
+                        const msg = error.response?.data?.message || "Application failed";
+                        Alert.alert("Notice", msg);
+                    }
+                }
+            },
+            { 
+                text: "External Link", 
+                onPress: () => {
+                    let url = item.applicationLink;
+                    if (url) {
+                        if (!url.startsWith('http')) url = 'https://' + url;
+                        Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+                    }
+                }
+            }
+        ]
+    );
+  }, [user]);
 
   const renderItem = useCallback(({ item }: { item: any }) => (
-    <JobCard item={item} onPress={handleLinkPress} />
-  ), [handleLinkPress]);
+    <JobCard item={item} onApply={handleApply} />
+  ), [handleApply]);
 
   const renderFooter = () => {
     if (!loading) return <View className="h-12" />;

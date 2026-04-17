@@ -42,7 +42,7 @@ export default function ProjectCard({
   const firstImage = project.images?.[0];
 
   return (
-    <View className="mx-4 mb-4 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <View className="mx-4 mb-4 bg-white rounded-2xl border border-gray-100 overflow-hidden">
       {/* Cover image */}
       {firstImage ? (
         <Image source={{ uri: firstImage }} className="w-full h-36" resizeMode="cover" />

@@ -88,22 +88,6 @@ export default function CustomSidebar(props: any) {
 
                 {/* Menu Items */}
                 <View className="mt-4 px-2">
-
-                    {/* ─── FYNC PORTFOLIO (NEW) ──────────────── */}
-                    <Pressable
-                        onPress={() => props.navigation.navigate('FyncProfileBuilder')}
-                        className="flex-row items-center justify-between px-4 py-4 rounded-xl mb-1 bg-indigo-500/10 border border-indigo-500/20 active:bg-indigo-500/20"
-                    >
-                        <View className="flex-row items-center">
-                            <Ionicons name="person-circle-outline" size={24} color="#818CF8" />
-                            <Text className="text-indigo-300 text-lg ml-4 font-bold">Fync Portfolio</Text>
-                            <View className="ml-2 bg-indigo-500/20 px-2 py-0.5 rounded-full border border-indigo-500/30">
-                                <Text className="text-[9px] text-indigo-400 font-bold">NEW</Text>
-                            </View>
-                        </View>
-                        <Ionicons name="arrow-forward" size={18} color="#818CF8" />
-                    </Pressable>
-
                     <Pressable
                         onPress={toggleQuizzes}
                         className="flex-row items-center justify-between px-4 py-4 rounded-xl active:bg-gray-800"
@@ -170,14 +154,6 @@ export default function CustomSidebar(props: any) {
                     {/* 3a. OPPORTUNITIES CHILDREN */}
                     {showOpportunities && (
                         <View className="ml-6 border-l-2 border-gray-800 pl-1">
-                            {/* Hackathon */}
-                            <Pressable
-                                onPress={() => props.navigation.navigate('HackathonList')}
-                                className="flex-row items-center px-4 py-3 rounded-xl mb-1 active:bg-gray-800"
-                            >
-                                <Ionicons name="code-slash-outline" size={20} color="#9ca3af" />
-                                <Text className="text-gray-300 text-base ml-3 font-medium">Hackathons</Text>
-                            </Pressable>
 
                             {/* Internship */}
                             <Pressable
@@ -205,6 +181,20 @@ export default function CustomSidebar(props: any) {
                                 <Ionicons name="book-outline" size={20} color="#9ca3af" />
                                 <Text className="text-gray-300 text-base ml-3 font-medium">Workshops</Text>
                             </Pressable>
+
+                            {/* Recruiter Portal (Only for recruiters/admin) */}
+                            {(user?.user_access === 'recruiter' || user?.user_access === 'admin') && (
+                                <Pressable
+                                    onPress={() => props.navigation.navigate('RecruiterPortal')}
+                                    className="flex-row items-center px-4 py-3 rounded-xl mb-1 mt-1 bg-pink-500/10 border border-pink-500/20 active:bg-pink-500/20"
+                                >
+                                    <Ionicons name="shield-checkmark-outline" size={18} color="#ec4899" />
+                                    <View className="ml-3">
+                                        <Text className="text-pink-400 text-sm font-bold">Recruiter Portal</Text>
+                                        <Text className="text-pink-300 text-[8px] font-bold uppercase">Applicant Tracking</Text>
+                                    </View>
+                                </Pressable>
+                            )}
                         </View>
                     )}
 
@@ -228,7 +218,7 @@ export default function CustomSidebar(props: any) {
                     </Pressable>
 
                     {showHackathons && (
-                        <View className="ml-4 border-l-2 border-gray-800 pl-2">
+                        <View className="ml-6 border-l-2 border-gray-800 pl-2">
                             {/* Browse Hackathons */}
                             <Pressable
                                 onPress={() => props.navigation.navigate('HackathonHub')}

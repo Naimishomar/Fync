@@ -36,7 +36,7 @@ export default function CertificateCard({ cert, isOwner, onEdit, onDelete }: Pro
   const cat = CAT_CONFIG[cert.category || 'other'] || CAT_CONFIG.other;
 
   return (
-    <View className="bg-white rounded-xl border border-gray-100 shadow-sm p-3.5 flex-row items-center">
+    <View className="bg-white rounded-xl border border-gray-100 p-3.5 flex-row items-center">
       {/* Icon */}
       <View className="w-10 h-10 rounded-xl items-center justify-center mr-3 flex-shrink-0"
         style={{ backgroundColor: cat.bg }}>

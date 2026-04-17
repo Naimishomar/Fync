@@ -23,7 +23,7 @@ import AddCertificateModal from './AddCertificateModal';
 function CompletenessBar({ pct }: { pct: number }) {
   const color = pct >= 80 ? '#059669' : pct >= 50 ? '#D97706' : '#6366F1';
   return (
-    <View className="mx-4 mb-4 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+    <View className="mx-4 mb-4 bg-white rounded-2xl p-4 border border-gray-100">
       <View className="flex-row justify-between mb-2">
         <Text className="text-gray-700 font-bold text-sm">Profile Completeness</Text>
         <Text className="font-bold text-sm" style={{ color }}>{pct}%</Text>

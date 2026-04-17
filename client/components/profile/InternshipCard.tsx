@@ -51,7 +51,7 @@ export default function InternshipCard({ item, isOwner, onEdit, onDelete }: Prop
   }
 
   return (
-    <View className="mx-4 mb-3 bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+    <View className="mx-4 mb-3 bg-white rounded-2xl border border-gray-100 p-4">
       <View className="flex-row">
         <View className="w-11 h-11 rounded-xl items-center justify-center mr-3 flex-shrink-0"
           style={{ backgroundColor: type.bg }}>
