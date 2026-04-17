@@ -46,6 +46,7 @@ import announcementRoute from './routes/hackathon/announcement.route.js';
 import scoreRoute from './routes/hackathon/score.route.js';
 import leaderboardRoute from './routes/hackathon/leaderboard.route.js';
 import profileRoute from './routes/profile/profile.route.js';
+import opportunityRoute from './routes/opportunity.route.js';
 
 import { setCollegeChatIo } from './controllers/collegeChat.controller.js';
 import { setAlumniChatIo } from './controllers/alumniChat.controller.js';
@@ -127,6 +128,7 @@ app.use("/receipts", express.static("receipts"));
 
 app.use('/user', authRoute);
 app.use('/post', postRoute);
+app.use('/opportunity', opportunityRoute);
 app.use('/chat', chatRoute);
 app.use('/chat', chatRoute);
 app.use('/payment', paymentRoute);

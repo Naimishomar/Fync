@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -13,7 +13,9 @@ import {
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import axios from '../../context/axiosConfig';
+import { useAuth } from '../../context/auth.context';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 // --- 🌌 BACKGROUND IMAGE ---
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
@@ -26,33 +28,40 @@ const InternshipList = () => {
   
   // 🔍 Search State
   const [searchQuery, setSearchQuery] = useState("");
+  const { user } = useAuth();
+  const navigation = useNavigation<any>();
 
-  useEffect(() => {
-    fetchInternships(1);
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchInternships(1);
+    }, [searchQuery])
+  );
 
-  const fetchInternships = async (pageNum: number) => {
+  const fetchInternships = async (pageNum: number, term = searchQuery) => {
     if (loading) return;
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `https://unstop.com/api/public/opportunity/search-result?opportunity=internships&page=${pageNum}&per_page=15&oppstatus=open&quickApply=true`
-      );
+      const response = await axios.get(`/opportunity/list?type=internship&page=${pageNum}&limit=15&search=${term}`);
       
-      const json = await response.json();
-      const newData = json.data?.data || [];
+      if (response.data.success) {
+        const newData = response.data.data || [];
 
-      if (newData.length === 0) {
-        setHasMore(false);
-      } else {
-        setInternships((prev) => {
-          const combined = [...prev, ...newData];
-          const uniqueMap = new Map(combined.map(item => [item.id, item]));
-          return Array.from(uniqueMap.values());
-        });
-        
-        setPage(pageNum);
+        if (newData.length === 0 && pageNum === 1) {
+           setInternships([]);
+           setHasMore(false);
+        } else if (newData.length === 0) {
+          setHasMore(false);
+        } else {
+          setInternships((prev) => {
+            if (pageNum === 1) return newData;
+            const combined = [...prev, ...newData];
+            const uniqueMap = new Map(combined.map(item => [item._id, item]));
+            return Array.from(uniqueMap.values());
+          });
+          setHasMore(response.data.hasMore);
+          setPage(pageNum);
+        }
       }
     } catch (error) {
       console.error("Error fetching internships:", error);
@@ -62,22 +71,21 @@ const InternshipList = () => {
   };
 
   const handleLoadMore = () => {
-    if (hasMore && !loading && searchQuery === "") {
+    if (hasMore && !loading) {
       fetchInternships(page + 1);
     }
   };
 
-  const filteredInternships = internships.filter((item) => {
-      const query = searchQuery.toLowerCase();
-      return (
-          item.title?.toLowerCase().includes(query) ||
-          item.organisation?.name?.toLowerCase().includes(query)
-      );
-  });
+  const onSearchSubmit = () => {
+    setInternships([]);
+    fetchInternships(1);
+  };
 
-  const openLink = (slug: string) => {
-    const url = `https://unstop.com/${slug}`;
-    if (url) Linking.openURL(url);
+  const openLink = (url: string) => {
+    if (url) {
+        if (!url.startsWith('http')) url = 'https://' + url;
+        Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+    }
   };
 
   const renderItem = ({ item }: { item: any }) => (
@@ -88,7 +96,7 @@ const InternshipList = () => {
         {/* Logo */}
         <View className="w-16 h-16 rounded-2xl border border-gray-200 overflow-hidden bg-slate-50 items-center justify-center p-2">
             <Image 
-                source={{ uri: item.logoUrl2 || item.organisation?.logoUrl || 'https://via.placeholder.com/100' }} 
+                source={{ uri: item.companyLogo || 'https://via.placeholder.com/100' }} 
                 className="w-12 h-12 rounded-xl"
                 resizeMode="contain"
             />
@@ -100,7 +108,7 @@ const InternshipList = () => {
                 {item.title}
             </Text>
             <Text className="text-gray-600 text-[10px] font-black uppercase tracking-widest mt-1">
-                {item.organisation?.name || "Global Organisation"}
+                {item.company}
             </Text>
         </View>
       </View>
@@ -111,7 +119,7 @@ const InternshipList = () => {
          <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-gray-300">
             <Ionicons name="location-sharp" size={14} color="#64748b" />
             <Text className="text-[10px] font-black uppercase tracking-tight text-slate-500 ml-1">
-                {item.job_location || "Remote"}
+                {item.location}
             </Text>
          </View>
 
@@ -123,36 +131,22 @@ const InternshipList = () => {
             </Text>
          </View>
          
-         {item.filters?.slice(0, 1).map((f: any, i: number) => {
-             if(f.type === 'opportunity_type') {
-                 return (
-                    <View key={i} className="bg-pink-50 px-3 py-1.5 rounded-xl border border-pink-100">
-                        <Text className="text-[10px] font-black uppercase tracking-tight text-pink-500">{f.name}</Text>
-                    </View>
-                 )
-             }
-         })}
+         <View className="bg-pink-50 px-3 py-1.5 rounded-xl border border-pink-100">
+            <Text className="text-[10px] font-black uppercase tracking-tight text-pink-500">{item.opportunityType}</Text>
+         </View>
       </View>
 
-      {/* Footer / CTA */}
+       {/* Footer / CTA */}
       <View className="mt-3 flex-row items-center justify-between">
             <View>
-              <Text className="text-gray-600 font-black uppercase text-[8px] tracking-[2px]">Opportunity Worth</Text>
+              <Text className="text-gray-600 font-black uppercase text-[8px] tracking-[2px]">Monthly Stipend</Text>
               <Text className="text-zinc-900 text-lg font-black italic mt-0.5 tracking-tighter uppercase">
-                  {item.jobDetail?.paid_unpaid === "unpaid" 
-                    ? "Unpaid" 
-                    : (item.payment_amount 
-                        ? `₹${item.payment_amount}` 
-                        : (item.jobDetail?.min_salary 
-                            ? `₹${item.jobDetail.min_salary}+` 
-                            : "Value Package")
-                      )
-                  }
+                  {item.stipend}
               </Text>
             </View>
 
             <TouchableOpacity 
-              onPress={() => openLink(item.public_url)}
+              onPress={() => openLink(item.applicationLink)}
               activeOpacity={0.9} 
               className="bg-pink-500 px-8 py-3.5 rounded-2xl shadow-lg shadow-black/20 border border-pink-300"
             >
@@ -180,14 +174,25 @@ const InternshipList = () => {
         
         {/* Header Title */}
         <View className="px-8 pt-8 pb-4">
-            <View className="flex-row items-center gap-3">
-                <View className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/20">
-                    <Ionicons name="briefcase" size={24} color="white" />
+            <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-3">
+                    <View className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/20">
+                        <Ionicons name="briefcase" size={24} color="white" />
+                    </View>
+                    <View>
+                        <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter uppercase">Internships</Text>
+                        <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">Kickstart Your Digital Career</Text>
+                    </View>
                 </View>
-                <View>
-                    <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter uppercase">Internships</Text>
-                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">Kickstart Your Digital Career</Text>
-                </View>
+
+                {(user?.user_access === 'recruiter' || user?.user_access === 'admin') && (
+                    <TouchableOpacity 
+                        onPress={() => navigation.navigate('CreateOpportunity', { type: 'internship' })}
+                        className="bg-zinc-900 w-10 h-10 rounded-full items-center justify-center shadow-lg"
+                    >
+                        <Ionicons name="add" size={24} color="white" />
+                    </TouchableOpacity>
+                )}
             </View>
         </View>
 
@@ -200,10 +205,12 @@ const InternshipList = () => {
                     placeholderTextColor="#94a3b8"
                     value={searchQuery}
                     onChangeText={setSearchQuery}
+                    onSubmitEditing={onSearchSubmit}
+                    returnKeyType="search"
                     className="flex-1 ml-3 text-zinc-900 text-base font-black italic"
                 />
                 {searchQuery.length > 0 && (
-                    <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-slate-50 p-1 rounded-full">
+                    <TouchableOpacity onPress={() => { setSearchQuery(""); fetchInternships(1, ""); }} className="bg-slate-50 p-1 rounded-full">
                         <Ionicons name="close" size={18} color="#94a3b8" />
                     </TouchableOpacity>
                 )}
@@ -212,8 +219,8 @@ const InternshipList = () => {
 
         {/* List */}
         <FlatList
-            data={filteredInternships}
-            keyExtractor={(item, index) => item.id?.toString() || `fallback-${index}`}
+            data={internships}
+            keyExtractor={(item, index) => item._id || `fallback-${index}`}
             renderItem={renderItem}
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.5}
@@ -226,7 +233,7 @@ const InternshipList = () => {
                         <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
                             <Ionicons name="search" size={40} color="#CBD5E1" />
                         </View>
-                        <Text className="text-zinc-900 font-black italic text-xl tracking-tight text-center uppercase">Zero Hits</Text>
+                        <Text className="text-zinc-900 font-black text-xl tracking-tight text-center uppercase">Zero Hits</Text>
                         <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-wide">
                             {searchQuery ? "We couldn't find matches for your search protocol." : "The internship vault is currently locked."}
                         </Text>

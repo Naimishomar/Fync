@@ -417,6 +417,7 @@ export const registerRecruiter = async (req, res) => {
       companySize: companySize || null,
       linkedIn: linkedIn || null, 
       user_access: 'recruiter',
+      is_subscribed: true,
       deviceId: deviceId || null,
       deviceModel: deviceModel || "another device"
     });

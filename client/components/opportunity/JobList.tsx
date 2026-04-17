@@ -14,6 +14,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
+import axios from '../../context/axiosConfig';
+import { useAuth } from '../../context/auth.context';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 // --- 🌌 BACKGROUND IMAGE ---
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
@@ -28,7 +31,7 @@ const JobCard = memo(({ item, onPress }: { item: any; onPress: (url: string) => 
         {/* Company Logo */}
         <View className="w-16 h-16 rounded-2xl border border-gray-200 overflow-hidden bg-slate-50 items-center justify-center p-2">
             <Image 
-                source={{ uri: item.logoUrl2 || item.organisation?.logoUrl || 'https://via.placeholder.com/100' }} 
+                source={{ uri: item.companyLogo || 'https://via.placeholder.com/100' }} 
                 className="w-12 h-12 rounded-xl"
                 resizeMode="contain"
             />
@@ -40,7 +43,7 @@ const JobCard = memo(({ item, onPress }: { item: any; onPress: (url: string) => 
                 {item.title}
             </Text>
             <Text className="text-gray-600 text-[10px] font-black uppercase tracking-widest mt-1">
-                {item.organisation?.name || "Global Enterprise"}
+                {item.company}
             </Text>
         </View>
       </View>
@@ -51,10 +54,7 @@ const JobCard = memo(({ item, onPress }: { item: any; onPress: (url: string) => 
          <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
             <Ionicons name="briefcase" size={14} color="#64748b" />
             <Text className="text-[10px] font-black uppercase tracking-tight text-slate-500 ml-1">
-                {(item.jobDetail?.min_experience === null || item.jobDetail?.max_experience === null) 
-                    ? "Fresher" 
-                    : `${item.jobDetail?.min_experience}-${item.jobDetail?.max_experience} Yrs`
-                }
+                {item.duration || "Experience Needed"}
             </Text>
          </View>
 
@@ -62,36 +62,28 @@ const JobCard = memo(({ item, onPress }: { item: any; onPress: (url: string) => 
          <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
             <Ionicons name="location-sharp" size={14} color="#64748b" />
             <Text className="text-[10px] font-black uppercase tracking-tight text-slate-500 ml-1">
-                {item.job_location || "Remote"}
+                {item.location}
             </Text>
          </View>
          
          <View className="flex-row items-center bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">
             <Text className="text-[10px] text-blue-500 font-black uppercase tracking-tight">
-                {item.jobDetail?.timing === 'full_time' ? 'Full Time' : 'Contract'}
+                {item.opportunityType}
             </Text>
          </View>
       </View>
 
-      {/* Footer / CTA */}
+       {/* Footer / CTA */}
       <View className="mt-4 flex-row items-center justify-between">
             <View>
               <Text className="text-gray-600 font-black uppercase text-[8px] tracking-[2px]">Annual Package</Text>
               <Text className="text-zinc-900 text-lg font-black italic mt-0.5 tracking-tighter uppercase">
-                  {item.jobDetail?.paid_unpaid === "unpaid" 
-                    ? "Unpaid" 
-                    : (item.payment_amount 
-                        ? `₹${item.payment_amount}` 
-                        : (item.jobDetail?.min_salary 
-                            ? `₹${item.jobDetail.min_salary} - ₹${item.jobDetail.max_salary}` 
-                            : "Competitive Pay")
-                      )
-                  }
+                  {item.stipend}
               </Text>
             </View>
 
             <TouchableOpacity 
-              onPress={() => onPress(item.public_url)}
+              onPress={() => onPress(item.applicationLink)}
               activeOpacity={0.9}
               className="bg-pink-500 px-8 py-3.5 rounded-2xl shadow-lg shadow-black/20"
             >
@@ -109,47 +101,41 @@ const JobList = () => {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const { user } = useAuth();
+  const navigation = useNavigation<any>();
 
-  useEffect(() => {
-    fetchJobs(1);
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchJobs(1);
+    }, [searchQuery])
+  );
 
-  const fetchJobs = async (pageNum: number) => {
+  const fetchJobs = async (pageNum: number, term = searchQuery) => {
     if (loading) return;
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `https://unstop.com/api/public/opportunity/search-result?opportunity=jobs&page=${pageNum}&per_page=50&oppstatus=open&quickApply=true`
-      );
+      const response = await axios.get(`/opportunity/list?type=job&page=${pageNum}&limit=15&search=${term}`);
       
-      const json = await response.json();
-      let rawData = json.data?.data || [];
+      if (response.data.success) {
+        const newData = response.data.data || [];
 
-      if (rawData.length === 0) {
-        setHasMore(false);
+        if (newData.length === 0 && pageNum === 1) {
+           setJobs([]);
+           setHasMore(false);
+        } else if (newData.length === 0) {
+          setHasMore(false);
+        } else {
+          setJobs((prev) => {
+            if (pageNum === 1) return newData;
+            const combined = [...prev, ...newData];
+            const uniqueMap = new Map(combined.map(item => [item._id, item]));
+            return Array.from(uniqueMap.values());
+          });
+          setHasMore(response.data.hasMore);
+          setPage(pageNum);
+        }
       }
-
-      if (searchQuery.trim() !== "") {
-        const lowerTerm = searchQuery.toLowerCase();
-        rawData = rawData.filter((item: any) => {
-           const titleMatch = item.title?.toLowerCase().includes(lowerTerm);
-           const orgMatch = item.organisation?.name?.toLowerCase().includes(lowerTerm);
-           const skillMatch = item.required_skills?.some((s: any) => 
-              s.skill_name?.toLowerCase().includes(lowerTerm)
-           );
-           return titleMatch || orgMatch || skillMatch;
-        });
-      }
-
-      setJobs((prev) => {
-          const combined = [...prev, ...rawData];
-          const uniqueMap = new Map(combined.map(item => [item.id, item]));
-          return Array.from(uniqueMap.values());
-      });
-      
-      setPage(pageNum);
-
     } catch (error) {
       console.error("Error fetching jobs:", error);
     } finally {
@@ -164,13 +150,14 @@ const JobList = () => {
   }, [hasMore, loading, page]);
 
   const onSearchSubmit = () => {
-    setJobs([]); 
-    fetchJobs(1); 
+    fetchJobs(1, searchQuery);
   };
 
-  const handleLinkPress = useCallback((slug: string) => {
-    const url = `https://unstop.com/${slug}`;
-    if (url) Linking.openURL(url);
+  const handleLinkPress = useCallback((url: string) => {
+    if (url) {
+        if (!url.startsWith('http')) url = 'https://' + url;
+        Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+    }
   }, []);
 
   const renderItem = useCallback(({ item }: { item: any }) => (
@@ -194,14 +181,25 @@ const JobList = () => {
         
         {/* Header Title */}
         <View className="px-8 pt-8 pb-4">
-            <View className="flex-row items-center gap-3">
-                <View className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/20">
-                    <Ionicons name="megaphone" size={24} color="white" />
+            <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-3">
+                    <View className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/20">
+                        <Ionicons name="megaphone" size={24} color="white" />
+                    </View>
+                    <View>
+                        <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter uppercase">Find Jobs</Text>
+                        <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">Scale Your Professional Impact</Text>
+                    </View>
                 </View>
-                <View>
-                    <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter uppercase">Find Jobs</Text>
-                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">Scale Your Professional Impact</Text>
-                </View>
+
+                {(user?.user_access === 'recruiter' || user?.user_access === 'admin') && (
+                    <TouchableOpacity 
+                        onPress={() => navigation.navigate('CreateOpportunity', { type: 'job' })}
+                        className="bg-zinc-900 w-10 h-10 rounded-full items-center justify-center shadow-lg"
+                    >
+                        <Ionicons name="add" size={24} color="white" />
+                    </TouchableOpacity>
+                )}
             </View>
         </View>
 
@@ -219,7 +217,7 @@ const JobList = () => {
                     className="flex-1 ml-3 text-zinc-900 text-base font-black italic"
                 />
                 {searchQuery.length > 0 && (
-                    <TouchableOpacity onPress={() => { setSearchQuery(""); onSearchSubmit(); }} className="bg-slate-50 p-1 rounded-full">
+                    <TouchableOpacity onPress={() => { setSearchQuery(""); fetchJobs(1, ""); }} className="bg-slate-50 p-1 rounded-full">
                         <Ionicons name="close" size={18} color="#94a3b8" />
                     </TouchableOpacity>
                 )}
@@ -229,7 +227,7 @@ const JobList = () => {
         {/* List */}
         <FlatList
             data={jobs}
-            keyExtractor={(item, index) => item.id ? item.id.toString() : `fallback-${index}`}
+            keyExtractor={(item, index) => item._id || `fallback-${index}`}
             renderItem={renderItem}
             initialNumToRender={5}
             maxToRenderPerBatch={5}
@@ -247,7 +245,7 @@ const JobList = () => {
                         <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
                             <Ionicons name="briefcase" size={40} color="#CBD5E1" />
                         </View>
-                        <Text className="text-zinc-900 font-black italic text-xl tracking-tight text-center uppercase">Zero Matches</Text>
+                        <Text className="text-zinc-900 font-black text-xl tracking-tight text-center uppercase">Zero Matches</Text>
                         <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-wide">
                             {searchQuery ? "No job signals found in this sector." : "The career portal is currently silent."}
                         </Text>

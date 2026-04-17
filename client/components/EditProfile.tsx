@@ -270,67 +270,69 @@ export default function EditProfile() {
           </View>
 
           {/* --- Social & Coding Links --- */}
-          <View className="pt-4 border-t border-gray-200 mt-2">
-            <Text className="text-gray-800 font-bold mb-4 text-lg">Social & Coding Profiles</Text>
+          {user?.user_access !== 'recruiter' && (
+            <View className="pt-4 border-t border-gray-200 mt-2">
+              <Text className="text-gray-800 font-bold mb-4 text-lg">Social & Coding Profiles</Text>
 
-            {/* GitHub */}
-            <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
-              <Ionicons name="logo-github" size={24} color="#1A1A1A" />
-              <TextInput
-                value={githubId}
-                onChangeText={setGithubId}
-                placeholder="Github Username"
-                placeholderTextColor="#9ca3af"
-                className="flex-1 text-black p-3.5"
-              />
-            </View>
+              {/* GitHub */}
+              <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
+                <Ionicons name="logo-github" size={24} color="#1A1A1A" />
+                <TextInput
+                  value={githubId}
+                  onChangeText={setGithubId}
+                  placeholder="Github Username"
+                  placeholderTextColor="#9ca3af"
+                  className="flex-1 text-black p-3.5"
+                />
+              </View>
 
-            {/* LinkedIn */}
-            <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
-              <Ionicons name="logo-linkedin" size={24} color="#0077b5" />
-              <TextInput
-                value={linkedinId}
-                onChangeText={setLinkedinId}
-                placeholder="LinkedIn Profile URL"
-                placeholderTextColor="#9ca3af"
-                className="flex-1 text-black p-3.5"
-              />
-            </View>
+              {/* LinkedIn */}
+              <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
+                <Ionicons name="logo-linkedin" size={24} color="#0077b5" />
+                <TextInput
+                  value={linkedinId}
+                  onChangeText={setLinkedinId}
+                  placeholder="LinkedIn Profile URL"
+                  placeholderTextColor="#9ca3af"
+                  className="flex-1 text-black p-3.5"
+                />
+              </View>
 
-            {/* LeetCode */}
-            <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
-              <Image
-                source={{ uri: "https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/leetcode-xp0gbbxtpmnkjk8uhdrmhg.png/leetcode-jj5yfhjdsmrt5j9xb3sec.png?_a=DATAiZiuZAA0" }}
-                width={16} height={16}
-                className="w-6 h-6"
-                resizeMode="contain"
-              />
-              <TextInput
-                value={leetcodeId}
-                onChangeText={setLeetcodeId}
-                placeholder="LeetCode Username"
-                placeholderTextColor="#9ca3af"
-                className="flex-1 text-black p-3.5"
-              />
-            </View>
+              {/* LeetCode */}
+              <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
+                <Image
+                  source={{ uri: "https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/leetcode-xp0gbbxtpmnkjk8uhdrmhg.png/leetcode-jj5yfhjdsmrt5j9xb3sec.png?_a=DATAiZiuZAA0" }}
+                  width={16} height={16}
+                  className="w-6 h-6"
+                  resizeMode="contain"
+                />
+                <TextInput
+                  value={leetcodeId}
+                  onChangeText={setLeetcodeId}
+                  placeholder="LeetCode Username"
+                  placeholderTextColor="#9ca3af"
+                  className="flex-1 text-black p-3.5"
+                />
+              </View>
 
-            {/* GeeksForGeeks */}
-            <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
-              <Image
-                source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/e/eb/GeeksForGeeks_logo.png" }}
-                width={16} height={16}
-                className="w-6 h-6"
-                resizeMode="contain"
-              />
-              <TextInput
-                value={gfgId}
-                onChangeText={setGfgId}
-                placeholder="GeeksforGeeks Username"
-                placeholderTextColor="#9ca3af"
-                className="flex-1 text-black p-3.5"
-              />
+              {/* GeeksForGeeks */}
+              <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
+                <Image
+                  source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/e/eb/GeeksForGeeks_logo.png" }}
+                  width={16} height={16}
+                  className="w-6 h-6"
+                  resizeMode="contain"
+                />
+                <TextInput
+                  value={gfgId}
+                  onChangeText={setGfgId}
+                  placeholder="GeeksforGeeks Username"
+                  placeholderTextColor="#9ca3af"
+                  className="flex-1 text-black p-3.5"
+                />
+              </View>
             </View>
-          </View>
+          )}
 
         </View>
       </ScrollView>

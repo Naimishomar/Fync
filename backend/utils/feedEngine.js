@@ -44,7 +44,7 @@ function getGenAI() {
 // ─── Cache TTLs ──────────────────────────────────────────────
 const CANDIDATE_POOL_TTL = 5 * 60;        // 5 minutes — post/shorts pool per college
 const USER_INTEREST_PROFILE_TTL = 24 * 60 * 60; // 24 hours — AI interest profile per user
-const FEED_POOL_KEY = (college, type) => `fync:pool:${type}:${encodeURIComponent(college)}`;
+const FEED_POOL_KEY = (type) => `fync:pool:${type}:global`;
 const USER_PROFILE_KEY = (userId) => `fync:profile:${userId}`;
 
 // ─── Safe Redis wrapper (never crashes the app if Redis is down) ──
@@ -65,8 +65,8 @@ async function rSet(key, value, ttl) {
  * Returns a cached pool of posts for a college.
  * DB is hit at most once every 5 minutes per college.
  */
-export async function getCandidatePool(college, PostModel, poolSize = 100) {
-    const cacheKey = FEED_POOL_KEY(college, 'posts');
+export async function getCandidatePool(PostModel, poolSize = 150) {
+    const cacheKey = FEED_POOL_KEY('posts');
 
     // Try Redis first
     const cached = await rGet(cacheKey);
@@ -74,9 +74,9 @@ export async function getCandidatePool(college, PostModel, poolSize = 100) {
         return JSON.parse(cached);
     }
 
-    // Cache miss — hit MongoDB (only happens once every 5 min per college)
+    // Cache miss — hit MongoDB (only happens once every 5 min)
     const posts = await PostModel
-        .find({ college, isPrivate: { $ne: true } })
+        .find({ isPrivate: { $ne: true } })
         .sort({ createdAt: -1 })
         .limit(poolSize)
         .populate('user', 'name username avatar user_access')
@@ -323,10 +323,10 @@ export function rankFeed({ candidates, seenIds = [], interestProfile, page = 1, 
  * Invalidate the Redis pool for a college when a new post is created.
  * Call this from createPost/createShorts controllers.
  */
-export async function invalidatePool(college, type = 'posts') {
+export async function invalidatePool(type = 'posts') {
     try {
-        await redisClient.del(FEED_POOL_KEY(college, type));
-        if (type === 'shorts') await redisClient.del(FEED_POOL_KEY('global', 'shorts'));
+        await redisClient.del(FEED_POOL_KEY(type));
+        if (type === 'shorts') await redisClient.del(FEED_POOL_KEY('shorts'));
     } catch { /* silent */ }
 }
 

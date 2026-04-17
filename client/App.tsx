@@ -63,6 +63,7 @@ import HackathonList from "./components/opportunity/HackathonList";
 import InternshipList from "./components/opportunity/InternshipList";
 import JobList from "./components/opportunity/JobList";
 import WorkshopList from './components/opportunity/WorkshopList';
+import CreateOpportunity from './components/opportunity/CreateOpportunity';
 import IndividualPostOrShort from './components/IndividualPostOrShort';
 
 //Interview
@@ -227,6 +228,7 @@ export type RootStackParamList = {
   InternshipList: undefined;
   JobList: undefined;
   WorkshopList: undefined;
+  CreateOpportunity: { type: 'internship' | 'job' };
   PostItem: undefined;
   CommentsModal: undefined;
   InterviewSetup: undefined;
@@ -379,6 +381,7 @@ function AppStack() {
       <Stack.Screen name="InternshipList" component={InternshipList} />
       <Stack.Screen name="JobList" component={JobList} />
       <Stack.Screen name="WorkshopList" component={WorkshopList} />
+      <Stack.Screen name="CreateOpportunity" component={CreateOpportunity} />
       <Stack.Screen name="InterviewSetup" component={InterviewSetup} />
       <Stack.Screen name="ActiveInterview" component={ActiveInterview} />
       <Stack.Screen name="BunkOMeter" component={BunkOMeter} />

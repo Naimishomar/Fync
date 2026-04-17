@@ -88,7 +88,17 @@ export const verifySubscriptionPayment = async (req, res) => {
 };
 
 export const getSubscriptionStatus = async (req, res) => {
-    try {
+    try{
+        const user = await User.findById(req.user.id);
+        if (user && user.user_access === 'recruiter') {
+            return res.status(200).json({
+                success: true,
+                status: 'active',
+                isLifetime: true,
+                message: "Recruiters have free lifetime access"
+            });
+        }
+
         const subscription = await Subscription.findOne({
             user: req.user.id,
             status: 'active'

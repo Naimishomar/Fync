@@ -70,7 +70,7 @@ export const createPost = async (req, res) => {
                }
             }
             // Invalidate Redis pool so next fetch picks up the new post
-            invalidatePool(req.user.college, 'posts').catch(() => { });
+            invalidatePool('posts').catch(() => { });
             clearCache('feed').catch(() => { });
             clearCache('posts').catch(() => { });
             return res.status(200).json({ success: true, message: 'Post created successfully', post });
@@ -147,7 +147,7 @@ export const updatePost = async (req, res) => {
             clearCache('feed').catch(() => { });
             clearCache('posts').catch(() => { });
             clearCache(`individual/${req.params.id}`).catch(() => { });
-            invalidatePool(req.user.college, 'posts').catch(() => { });
+            invalidatePool('posts').catch(() => { });
             
             return res.status(200).json({ success: true, message: "Post updated successfully", post: updatedPost });
         }
@@ -213,7 +213,7 @@ export const likePost = async (req, res) => {
             clearCache('posts').catch(() => { });
             clearCache(`individual/${req.params.id}`).catch(() => { });
             clearCache(`feed/${post.user}`).catch(() => { });
-            invalidatePool(post.college, 'posts').catch(() => { });
+            invalidatePool('posts').catch(() => { });
 
             return res.status(200).json({ success: true, message: "Post unliked successfully", post: updatedPost });
         } else {
@@ -244,7 +244,7 @@ export const likePost = async (req, res) => {
             clearCache('posts').catch(() => { });
             clearCache(`individual/${req.params.id}`).catch(() => { });
             clearCache(`feed/${post.user}`).catch(() => { });
-            invalidatePool(post.college, 'posts').catch(() => { });
+            invalidatePool('posts').catch(() => { });
 
             return res.status(200).json({ success: true, message: "Post liked successfully", post: updatedPost });
         }
@@ -505,12 +505,8 @@ export const getSmartFeed = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-
-    // ── HARD FALLBACK ─────────────────────────────────────────
-    // If ANY step of the smart feed fails, we silently fall back
-    // to the original simple feed query so users NEVER see a 500.
     const simpleFallback = async () => {
-        const posts = await Post.find({ college: req.user.college, isPrivate: { $ne: true } })
+        const posts = await Post.find({ isPrivate: { $ne: true } })
             .populate('user', 'name username avatar user_access')
             .populate({ path: 'comments', populate: { path: 'commentor', select: 'name avatar username' } })
             .sort({ createdAt: -1 })
@@ -523,7 +519,7 @@ export const getSmartFeed = async (req, res) => {
         const seenIds = Array.isArray(req.body?.seenIds) ? req.body.seenIds : [];
 
         const [candidates, interestProfile] = await Promise.all([
-            getCandidatePool(req.user.college, Post, 150),
+            getCandidatePool(Post, 150),
             User.findById(req.user.id)
                 .select('interest hobbies skills major about')
                 .lean()
