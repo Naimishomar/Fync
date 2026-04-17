@@ -29,6 +29,8 @@ import ProfileSetup2 from "./components/profile-setup-2";
 import AlumniSignup from "./components/AlumniSignup";
 import AlumniProfileSetup from "./components/AlumniProfileSetup";
 import AlumniAvatarSetup from "./components/AlumniAvatarSetup";
+import RecruiterSignup from "./components/RecruiterSignup";
+import RecruiterProfileSetup from "./components/RecruiterProfileSetup";
 import ForgotPassword from "./components/ForgotPassword";
 
 // Core Components
@@ -161,6 +163,8 @@ export type RootStackParamList = {
   Signup: undefined;
   ForgotPassword: { email?: string };
   AlumniSignup: undefined;
+  RecruiterSignup: undefined;
+  RecruiterProfileSetup: { email: string; phoneNumber: string; username: string };
   AlumniProfileSetup: { 
     email: string; 
     username: string; 
@@ -329,6 +333,12 @@ function AuthStack() {
       </Stack.Screen>
       <Stack.Screen name="AlumniAvatarSetup">
         {() => <AlumniAvatarSetup />}
+      </Stack.Screen>
+      <Stack.Screen name="RecruiterSignup">
+        {() => <RecruiterSignup />}
+      </Stack.Screen>
+      <Stack.Screen name="RecruiterProfileSetup">
+        {() => <RecruiterProfileSetup />}
       </Stack.Screen>
       <Stack.Screen name="TermsAndCondition">
         {() => <TermsAndCondition />}

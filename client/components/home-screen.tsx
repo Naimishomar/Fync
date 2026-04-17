@@ -676,11 +676,11 @@ export default function HomeScreen() {
     { id: 'fyncMedia', name: 'Fync Media', iconUri: 'https://images.vexels.com/media/users/3/208346/isolated/preview/e421cb442008fe3a78068efe05254987-microphone-icon-black.png', sparkle: false, onPress: () => navigation.navigate('FyncMediaFeed') },
     { id: 'jobs', name: 'Jobs', iconUri: 'https://d8it4huxumps7.cloudfront.net/uploads/images/avif/jobs-new.png', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
     { id: 'competitions', name: 'Reward', iconUri: 'https://i.pinimg.com/736x/3c/a8/e7/3ca8e7290bf156916a8a3c9bea521238.jpg', sparkle: false, onPress: () => navigation.navigate('RewardsMarketplace') },
-    { id: 'mock_tests', name: 'Mock Tests', iconUri: 'https://cdn-icons-png.flaticon.com/512/3389/3389152.png', sparkle: true, onPress: () => navigation.navigate('BootcampScreen') },
-    { id: 'interviews', name: 'Mock Interviews', iconUri: 'https://cdn-icons-png.flaticon.com/512/10416/10416390.png', sparkle: false, onPress: () => navigation.navigate('SpeakerSessionScreen') },
-    { id: 'mentorships', name: 'Mentorships', iconUri: 'https://cdn-icons-png.flaticon.com/512/4737/4737213.png', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
-    { id: 'events', name: 'Events', iconUri: 'https://cdn-icons-png.flaticon.com/512/10416/10416390.png', sparkle: false, onPress: () => navigation.navigate('SpeakerSessionScreen') },
-    { id: 'mentorship', name: 'Mentorships', iconUri: 'https://cdn-icons-png.flaticon.com/512/4737/4737213.png', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
+    { id: 'bootcamps', name: 'Bootcamps', iconUri: 'https://cdn-icons-png.flaticon.com/512/3389/3389152.png', sparkle: true, onPress: () => navigation.navigate('BootcampScreen') },
+    { id: 'codingLeaderboard', name: 'Coding Leaderboard', iconUri: 'https://cdn-icons-png.flaticon.com/512/10416/10416390.png', sparkle: false, onPress: () => navigation.navigate('CodingLeaderboard') },
+    { id: 'confessions', name: 'Confessions', iconUri: 'https://cdn-icons-png.flaticon.com/512/4737/4737213.png', sparkle: false, onPress: () => navigation.navigate('ConfessionFeed') },
+    { id: 'speakers', name: 'Speakers', iconUri: 'https://cdn-icons-png.flaticon.com/512/10416/10416390.png', sparkle: false, onPress: () => navigation.navigate('SpeakerSessionScreen') },
+    { id: 'college_clubs', name: 'College Clubs', iconUri: 'https://cdn-icons-png.flaticon.com/512/4737/4737213.png', sparkle: false, onPress: () => navigation.navigate('ClubList') },
   ], [user, navigation]);
 
   const displayedFeatures = useMemo(() => features.slice(0, 6), [features]);

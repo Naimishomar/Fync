@@ -33,25 +33,25 @@ const userSchema = new mongoose.Schema({
     },
     dob: {
         type: Date,
-        required: true
+        required: function() { return this.user_access === 'user'; }
     },
     college: {
         type: String,
-        required: true,
+        required: function() { return this.user_access === 'user'; },
         index: true
     },
     year: {
         type: Number,
-        required: true
+        required: function() { return this.user_access === 'user'; }
     },
     major: {
         type: String,
-        required: true
+        required: function() { return this.user_access === 'user'; }
     },
     gender: {
         type: String,
-        required: true,
-        enum: ['Male', 'Female']
+        required: function() { return this.user_access === 'user' || this.user_access === 'alumni'; },
+        enum: ['Male', 'Female', 'Other']
     },
     avatar: {
         type: String,
@@ -89,7 +89,7 @@ const userSchema = new mongoose.Schema({
     },
     user_access: {
         type: String,
-        enum: ['admin', 'user', 'alumni'],
+        enum: ['admin', 'user', 'alumni', 'recruiter'],
         default: 'user'
     },
     about: {
@@ -140,6 +140,19 @@ const userSchema = new mongoose.Schema({
             type: String,
             default: null
         }
+    },
+    // Recruiter specific fields
+    companyWebsite: {
+        type: String,
+        default: null
+    },
+    industry: {
+        type: String,
+        default: null
+    },
+    companySize: {
+        type: String,
+        default: null
     },
     codingStats: {
         totalSolved: {

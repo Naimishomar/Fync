@@ -20,7 +20,10 @@ import {
   verifyAlumniOTP,
   registerAlumni,
   getAlumniByCollege,
-  savePushToken
+  savePushToken,
+  registerRecruiter,
+  sendRecruiterOTP,
+  verifyRecruiterOTP
 } from '../controllers/auth.controller.js';
 import { getDevelopers } from '../controllers/developer.controller.js'
 import { otpLimiter } from '../middlewares/otpLimiter.js';
@@ -32,13 +35,16 @@ const router = express.Router();
 
 router.post('/send-email-otp', sendOTP);
 router.post('/send-alumni-otp', sendAlumniOTP);
+router.post('/send-recruiter-otp', sendRecruiterOTP);
 // router.post('/send-phone-otp', sendnumberOTP);
 router.post('/verify-email-otp', verifyEmailOTP);
 router.post('/verify-alumni-otp', verifyAlumniOTP);
+router.post('/verify-recruiter-otp', verifyRecruiterOTP);
 router.post('/reset-password', resetPassword);
 router.post('/verify-reset-password', verifyResetPassword);
 router.post('/register', upload.single('avatar'), r2UploadMiddleware({ __single__: 'avatar' }), register);
 router.post('/register-alumni', upload.single('avatar'), r2UploadMiddleware({ __single__: 'avatar' }), registerAlumni);
+router.post('/register-recruiter', upload.single('avatar'), r2UploadMiddleware({ __single__: 'avatar' }), registerRecruiter);
 router.post('/refresh-token', refreshToken);
 router.post('/login', login);
 router.post('/update', authMiddleware, upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), r2UploadMiddleware({ avatar: 'avatar', banner: 'banner' }), updateUser);

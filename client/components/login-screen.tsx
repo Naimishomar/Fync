@@ -136,14 +136,22 @@ export default function LoginScreen() {
                 </Pressable>
               </View>
 
-              <View className="mt-5 border-t border-gray-50 pt-3">
-                 <Text className="text-center text-gray-500 mb-3">Are you an Alumni?</Text>
-                 <Pressable 
-                  className="rounded-full border border-black py-3 items-center"
-                  onPress={() => navigation.navigate('AlumniSignup')}
-                 >
-                    <Text className="text-black font-semibold">Join as Alumni</Text>
-                 </Pressable>
+              <View className="mt-4 border-t border-gray-50 pt-4">
+                 <Text className="text-center text-gray-500 mb-3 text-xs uppercase tracking-widest font-bold">Other ways to join</Text>
+                 <View className="flex-row gap-3">
+                    <Pressable 
+                      className="flex-1 rounded-xl border border-black py-3 items-center"
+                      onPress={() => navigation.navigate('AlumniSignup')}
+                    >
+                        <Text className="text-black font-semibold">Join as Alumni</Text>
+                    </Pressable>
+                    <Pressable 
+                      className="flex-1 rounded-xl border border-black bg-black py-3 items-center"
+                      onPress={() => navigation.navigate('RecruiterSignup')}
+                    >
+                        <Text className="text-white font-semibold flex-1">Join as Recruiter</Text>
+                    </Pressable>
+                 </View>
               </View>
             </View>
           </ScrollView>

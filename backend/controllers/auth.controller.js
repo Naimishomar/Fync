@@ -140,6 +140,95 @@ export const verifyAlumniOTP = async (req, res) => {
   }
 };
 
+export const sendRecruiterOTP = async (req, res) => {
+  try {
+    let { email, username, mobileNumber } = req.body;
+    if (email) email = email.toLowerCase().trim();
+    if (username) username = username.trim();
+
+    if (!email || !username) {
+      return res.status(400).json({
+        success: false,
+        message: "Work email and username are required"
+      });
+    }
+
+    // Work Email Domain Validation
+    const publicDomains = ['yahoo.com', 'yahoo.in', 'hotmail.com', 'outlook.com', 'icloud.com', 'aol.com', 'protonmail.com', 'zoho.com', 'rediffmail.com'];
+    const domain = email.split('@')[1];
+    
+    if (publicDomains.includes(domain)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please use a valid company/work email. Public domains are not allowed for recruiters."
+      });
+    }
+
+    const existingUser = await User.findOne({ $or: [{email}, {username}, {mobileNumber}] });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "This email, username, or phone number is already registered."
+      });
+    }
+
+    await OTP.deleteMany({ email, purpose: "recruiter-register" });
+    const otp = customAlphabet("1234567890", 6)();
+    
+    await OTP.create({
+      email,
+      otp,
+      purpose: "recruiter-register"
+    });
+    
+    await sendMail(email, otp, username);
+
+    return res.status(200).json({
+      success: true,
+      message: "Verification OTP sent to your work email"
+    });
+  } catch (error) {
+    console.error("Recruiter OTP Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to send OTP",
+      error: error.message
+    });
+  }
+};
+
+export const verifyRecruiterOTP = async (req, res) => {
+  try {
+    let { email, otp } = req.body;
+    if (email) email = email.toLowerCase().trim();
+    if (otp) otp = otp.trim();
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required"
+      });
+    }
+    const otpDoc = await OTP.findOne({ email, otp, purpose: "recruiter-register" });
+    if (!otpDoc) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP"
+      });
+    }
+    await OTP.deleteMany({ email, purpose: "recruiter-register" });
+    return res.status(200).json({
+      success: true,
+      message: "Work email verified successfully"
+    });
+  } catch (error) {
+    console.error("Verify Recruiter OTP Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
+
 export const verifyEmailOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -234,11 +323,14 @@ export const register = async (req, res) => {
 
 export const registerAlumni = async (req, res) => {
   try {
-    const { 
+    let { 
       email, username, mobileNumber, password, name, dob, college, 
       graduationYear, company, role, experienceLevel, domains, linkedIn,
       deviceId, deviceModel, gender, major 
     } = req.body;
+
+    if (email) email = email.toLowerCase().trim();
+    if (username) username = username.trim();
 
     if (!email || !username || !mobileNumber || !password || !name || !college || !graduationYear || !company || !role || !experienceLevel) {
       return res.status(400).json({ success: false, message: "Missing required alumni fields" });
@@ -285,12 +377,82 @@ export const registerAlumni = async (req, res) => {
   }
 };
 
+export const registerRecruiter = async (req, res) => {
+  try {
+    let { 
+      email, username, mobileNumber, password, name, 
+      company, role, experienceLevel, professionalEmail,
+      companyWebsite, industry, companySize, linkedIn,
+      deviceId, deviceModel 
+    } = req.body;
+
+    if (email) email = email.toLowerCase().trim();
+    if (username) username = username.trim();
+    if (professionalEmail) professionalEmail = professionalEmail.toLowerCase().trim();
+
+    console.log("DEBUG: Incoming Recruiter payload:", { email, username, mobileNumber });
+
+    if (!email || !username || !mobileNumber || !password || !name || !company || !role || !professionalEmail) {
+      return res.status(400).json({ success: false, message: "Missing required recruiter fields" });
+    }
+
+    const existing = await User.findOne({ $or: [{ email }, { username }, { mobileNumber }] });
+    if (existing) {
+      return res.status(400).json({ success: false, message: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await User.create({
+      email,
+      username,
+      mobileNumber,
+      password: hashedPassword,
+      name,
+      company,
+      role,
+      experienceLevel: experienceLevel || 'Other',
+      professionalEmail,
+      companyWebsite: companyWebsite || null,
+      industry: industry || null,
+      companySize: companySize || null,
+      linkedIn: linkedIn || null, 
+      user_access: 'recruiter',
+      deviceId: deviceId || null,
+      deviceModel: deviceModel || "another device"
+    });
+
+    console.log("DEBUG: Recruiter Created Successfully:", newUser.email);
+
+    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    return res.status(200).json({ success: true, message: "Recruiter registered successfully", token, user: newUser });
+  } catch (error) {
+    console.error("Recruiter Register Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
+
 export const login = async (req, res) => {
   try {
     let { email, password, deviceId, deviceModel } = req.body;
     if (email) email = email.toLowerCase().trim();
 
-    const user = await User.findOne({ $or: [{ email }, { username: email }, { mobileNumber: email }], });
+    console.log("DEBUG: Login Attempt for identifier:", email);
+
+    // Look for user by email, username, mobileNumber, OR professionalEmail
+    // Let's also do a case-insensitive regex search just to be 100% sure
+    const user = await User.findOne({ 
+      $or: [
+        { email: { $regex: new RegExp("^" + email + "$", "i") } }, 
+        { username: { $regex: new RegExp("^" + email + "$", "i") } }, 
+        { mobileNumber: email },
+        { professionalEmail: { $regex: new RegExp("^" + email + "$", "i") } }
+      ] 
+    });
+    
+    console.log("DEBUG: Database search result:", user ? `Found User ID: ${user._id}, Access: ${user.user_access}` : "NOT FOUND");
     if (!user) {
       return res.status(400).json({ success: false, message: "User not found" });
     }

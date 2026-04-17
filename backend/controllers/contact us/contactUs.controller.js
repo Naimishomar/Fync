@@ -50,3 +50,28 @@ export const deleteContactMessage = async (req, res) => {
         return res.status(500).json({ message: "Internal server error", success: false });
     }
 }
+
+export const toggleContactMessageReadState = async (req, res) => {
+    try {
+        if (req.user.user_access !== 'admin') {
+            return res.status(403).json({ message: "Unauthorized", success: false });
+        }
+        const { id } = req.params;
+        const message = await ContactUs.findById(id);
+        if (!message) {
+            return res.status(404).json({ message: "Message not found", success: false });
+        }
+        
+        message.isRead = !message.isRead;
+        await message.save();
+        
+        return res.status(200).json({ 
+            message: message.isRead ? "Message marked as read" : "Message marked as unread", 
+            success: true, 
+            isRead: message.isRead 
+        });
+    } catch (error) {
+        console.log("Error in toggleContactMessageReadState", error);
+        return res.status(500).json({ message: "Internal server error", success: false });
+    }
+}

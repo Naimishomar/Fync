@@ -236,6 +236,21 @@ const AdminPortal = ({ navigation }: any) => {
         }
     };
 
+    const handleToggleMessageReadStatus = async (id: string) => {
+        try {
+            const res = await axios.patch(`/contact-us/messages/${id}/read`);
+            if (res.data.success) {
+                setMessages(prev => prev.map(msg => 
+                    msg._id === id ? { ...msg, isRead: res.data.isRead } : msg
+                ));
+                Toast.show({ type: 'success', text1: res.data.message });
+            }
+        } catch (error) {
+            console.error(error);
+            Toast.show({ type: 'error', text1: 'Failed to update message status' });
+        }
+    };
+
     useEffect(() => {
         if (activeTab === 'ads') {
             fetchAds();
@@ -436,17 +451,32 @@ const AdminPortal = ({ navigation }: any) => {
         </View>
     );
 
-    const ContactMessageItem = ({ item, onDelete }: any) => (
-        <View className="bg-white rounded-2xl mb-4 p-4 border border-gray-100">
+    const ContactMessageItem = ({ item, onDelete, onToggleRead }: any) => (
+        <View className={`bg-white rounded-2xl mb-4 p-4 border ${item.isRead ? 'border-gray-100' : 'border-indigo-200 bg-indigo-50/10'}`}>
             <View className="flex-row justify-between items-start mb-3">
                 <View className="flex-1">
-                    <Text className="text-zinc-900 font-bold text-base">{item.name}</Text>
+                    <View className="flex-row items-center gap-2">
+                        <Text className="text-zinc-900 font-bold text-base">{item.name}</Text>
+                        {!item.isRead && (
+                            <View className="bg-indigo-100 px-1.5 py-0.5 rounded">
+                                <Text className="text-indigo-600 text-[8px] font-black uppercase">New</Text>
+                            </View>
+                        )}
+                    </View>
                     <Text className="text-gray-500 text-xs italic">{item.email}</Text>
                     <Text className="text-gray-400 text-[10px] mt-1">{new Date(item.createdAt).toLocaleString()}</Text>
                 </View>
-                <TouchableOpacity onPress={() => onDelete(item._id, 'message')} className="w-9 h-9 bg-red-50 rounded-full items-center justify-center border border-red-100">
-                    <Ionicons name="trash" size={16} color="#ef4444" />
-                </TouchableOpacity>
+                <View className="flex-row gap-2">
+                    <TouchableOpacity 
+                        onPress={() => onToggleRead(item._id)}
+                        className={`w-9 h-9 rounded-full items-center justify-center border ${item.isRead ? 'bg-green-500 border-green-500' : 'bg-white border-gray-200'}`}
+                    >
+                        <Ionicons name="checkmark" size={16} color={item.isRead ? "white" : "#d1d5db"} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => onDelete(item._id, 'message')} className="w-9 h-9 bg-red-50 rounded-full items-center justify-center border border-red-100">
+                        <Ionicons name="trash" size={16} color="#ef4444" />
+                    </TouchableOpacity>
+                </View>
             </View>
             <View className="bg-zinc-50 rounded-xl p-3 mb-3">
                 <Text className="text-zinc-800 text-sm leading-5">{item.message}</Text>
@@ -543,7 +573,7 @@ const AdminPortal = ({ navigation }: any) => {
                         <MarketPlaceItem item={item} onEdit={handleEdit} onDelete={handleDelete} /> :
                         activeTab === 'rewards' ?
                         <RedemptionItem item={item} navigation={navigation} onToggleStatus={handleToggleStatus} /> :
-                        <ContactMessageItem item={item} onDelete={handleDelete} />
+                        <ContactMessageItem item={item} onDelete={handleDelete} onToggleRead={handleToggleMessageReadStatus} />
                     }
                     contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
                     showsVerticalScrollIndicator={false}
