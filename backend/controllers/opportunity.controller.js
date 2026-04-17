@@ -14,6 +14,10 @@ export const createOpportunity = async (req, res) => {
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
 
+        if (!req.file || !req.file.path) {
+            return res.status(400).json({ success: false, message: "Company logo is required" });
+        }
+
         const user = await User.findById(req.user.id);
         if (!user || (user.user_access !== 'recruiter' && user.user_access !== 'admin')) {
             return res.status(403).json({ success: false, message: "Unauthorized. Only recruiters can post opportunities." });
@@ -22,16 +26,16 @@ export const createOpportunity = async (req, res) => {
         const newOpportunity = await Opportunity.create({
             title,
             company,
-            companyLogo: user.avatar || "",
+            companyLogo: req.file.path,
             location,
             type,
             opportunityType,
             duration,
-            isPaid,
-            stipend: isPaid ? stipend : "Unpaid",
+            isPaid: isPaid === 'true' || isPaid === true,
+            stipend: (isPaid === 'true' || isPaid === true) ? stipend : "Unpaid",
             description,
             applicationLink,
-            requireResume,
+            requireResume: requireResume === 'true' || requireResume === true,
             postedBy: req.user.id
         });
 

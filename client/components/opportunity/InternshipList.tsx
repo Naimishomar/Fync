@@ -180,13 +180,15 @@ const InternshipList = () => {
           </Text>
         </View>
 
-        <TouchableOpacity
-          onPress={() => handleApply(item)}
-          activeOpacity={0.9}
-          className="bg-pink-500 px-8 py-3.5 rounded-2xl shadow-lg shadow-black/20 border border-pink-300"
-        >
-          <Text className="text-white font-black italic uppercase tracking-widest text-[12px]">Apply Now</Text>
-        </TouchableOpacity>
+        {user?.user_access !== 'recruiter' && (
+          <TouchableOpacity
+            onPress={() => handleApply(item)}
+            activeOpacity={0.9}
+            className="bg-pink-500 px-8 py-3.5 rounded-2xl shadow-lg shadow-black/20 border border-pink-300"
+          >
+            <Text className="text-white font-black italic uppercase tracking-widest text-[12px]">Apply Now</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
     </View>

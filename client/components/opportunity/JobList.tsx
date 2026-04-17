@@ -23,7 +23,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
 
 // --- 1. MEMOIZED JOB CARD (Dark Theme) ---
-const JobCard = memo(({ item, onApply }: { item: any; onApply: (item: any) => void }) => {
+const JobCard = memo(({ item, onApply, hideApply }: { item: any; onApply: (item: any) => void; hideApply?: boolean }) => {
   return (
     <View className="bg-white rounded-2xl mb-5 mx-6 p-6 shadow-sm shadow-black/5 border border-gray-300">
       
@@ -83,13 +83,15 @@ const JobCard = memo(({ item, onApply }: { item: any; onApply: (item: any) => vo
               </Text>
             </View>
 
-            <TouchableOpacity 
-              onPress={() => onApply(item)}
-              activeOpacity={0.9}
-              className="bg-pink-500 px-8 py-3.5 rounded-2xl shadow-lg shadow-black/20"
-            >
-                <Text className="text-white font-black italic uppercase tracking-widest text-[12px]">Apply Now</Text>
-            </TouchableOpacity>
+            {!hideApply && (
+              <TouchableOpacity 
+                onPress={() => onApply(item)}
+                activeOpacity={0.9}
+                className="bg-pink-500 px-8 py-3.5 rounded-2xl shadow-lg shadow-black/20"
+              >
+                  <Text className="text-white font-black italic uppercase tracking-widest text-[12px]">Apply Now</Text>
+              </TouchableOpacity>
+            )}
       </View>
 
     </View>
@@ -193,9 +195,11 @@ const JobList = () => {
     );
   }, [user]);
 
+  const isRecruiter = user?.user_access === 'recruiter';
+
   const renderItem = useCallback(({ item }: { item: any }) => (
-    <JobCard item={item} onApply={handleApply} />
-  ), [handleApply]);
+    <JobCard item={item} onApply={handleApply} hideApply={isRecruiter} />
+  ), [handleApply, isRecruiter]);
 
   const renderFooter = () => {
     if (!loading) return <View className="h-12" />;

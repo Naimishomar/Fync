@@ -186,11 +186,11 @@ const RecruiterPortal = () => {
             <View className="bg-white px-6 pb-6 pt-2 border-b border-slate-100">
                  <View className="flex-row gap-3">
                     <View className="flex-1 bg-zinc-900 p-4 rounded-3xl">
-                        <Text className="text-white/50 text-[8px] font-black uppercase tracking-widest">Active Posts</Text>
+                        <Text className="text-white text-[8px] font-black uppercase tracking-widest">Active Posts</Text>
                         <Text className="text-white text-2xl font-black italic mt-1">{posts.length}</Text>
                     </View>
                     <View className="flex-1 bg-pink-500 p-4 rounded-3xl">
-                        <Text className="text-white/20 text-[8px] font-black uppercase tracking-widest">New Applicants</Text>
+                        <Text className="text-white text-[8px] font-black uppercase tracking-widest">New Applicants</Text>
                         <Text className="text-white text-2xl font-black italic mt-1">{applications.filter(a => a.status === 'applied').length}</Text>
                     </View>
                  </View>

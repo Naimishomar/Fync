@@ -9,13 +9,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  Switch
+  Switch,
+  Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
+import * as ImagePicker from 'expo-image-picker';
 
 const CreateOpportunity = () => {
   const navigation = useNavigation<any>();
@@ -23,6 +25,7 @@ const CreateOpportunity = () => {
   const initialType = route.params?.type || 'internship';
 
   const [loading, setLoading] = useState(false);
+  const [logoUri, setLogoUri] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     company: '',
@@ -37,22 +40,65 @@ const CreateOpportunity = () => {
     requireResume: true
   });
 
+  const pickLogo = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets?.[0]) {
+      setLogoUri(result.assets[0].uri);
+    }
+  };
+
   const handlePost = async () => {
-    const { title, company, type, description, isPaid, stipend } = formData;
+    const { title, company, description, isPaid, stipend } = formData;
     
     if (!title || !company || !description) {
-      Alert.alert("Required Fields", "Please fill in all mandatory fields (Title, Company, Description).");
+      Alert.alert("Required Fields", "Please fill in Title, Company, and Description.");
+      return;
+    }
+
+    if (!logoUri) {
+      Alert.alert("Company Logo Required", "Please upload your company logo.");
       return;
     }
 
     if (isPaid && !stipend) {
-        Alert.alert("Required Fields", "Please enter the stipend or package amount.");
-        return;
+      Alert.alert("Required Fields", "Please enter the stipend or package amount.");
+      return;
     }
 
     setLoading(true);
     try {
-      const res = await axios.post('/opportunity/create', formData);
+      const data = new FormData();
+      data.append('title', formData.title);
+      data.append('company', formData.company);
+      data.append('location', formData.location);
+      data.append('type', formData.type);
+      data.append('opportunityType', formData.opportunityType);
+      data.append('duration', formData.duration);
+      data.append('isPaid', String(formData.isPaid));
+      data.append('stipend', formData.isPaid ? formData.stipend : 'Unpaid');
+      data.append('description', formData.description);
+      data.append('applicationLink', formData.applicationLink);
+      data.append('requireResume', String(formData.requireResume));
+      
+      // Append logo image
+      const uriParts = logoUri.split('.');
+      const fileType = uriParts[uriParts.length - 1];
+      data.append('companyLogo', {
+        uri: logoUri,
+        name: `logo.${fileType}`,
+        type: `image/${fileType}`,
+      } as any);
+
+      const res = await axios.post('/opportunity/create', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
       if (res.data.success) {
         Toast.show({
           type: 'success',
@@ -119,6 +165,32 @@ const CreateOpportunity = () => {
           </View>
 
           <View className="mt-8 gap-5 pb-10">
+
+            {/* Company Logo Picker */}
+            <View>
+              <Text className="text-slate-400 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Company Logo *</Text>
+              <TouchableOpacity 
+                onPress={pickLogo}
+                activeOpacity={0.8}
+                className="items-center justify-center bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-6"
+              >
+                {logoUri ? (
+                  <View className="items-center">
+                    <Image source={{ uri: logoUri }} className="w-24 h-24 rounded-2xl" resizeMode="contain" />
+                    <Text className="text-pink-500 font-bold text-[10px] uppercase mt-3">Tap to change</Text>
+                  </View>
+                ) : (
+                  <View className="items-center">
+                    <View className="w-16 h-16 bg-slate-100 rounded-2xl items-center justify-center mb-3">
+                      <Ionicons name="image-outline" size={28} color="#94a3b8" />
+                    </View>
+                    <Text className="text-zinc-600 font-black uppercase text-xs">Upload Company Logo</Text>
+                    <Text className="text-slate-400 text-[10px] mt-1">PNG, JPG • Square recommended</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+
             <InputGroup 
               label="Role Title *" 
               value={formData.title} 
@@ -186,10 +258,10 @@ const CreateOpportunity = () => {
               onChange={(v: any) => setFormData({...formData, applicationLink: v})} 
             />
 
-            {/* Requirement Toggle */}
+            {/* Require Resume Toggle */}
             <View className="bg-slate-50 p-5 rounded-3xl flex-row items-center justify-between border border-slate-100">
                 <View className="flex-1 mr-4">
-                    <Text className="text-zinc-900 font-black italic uppercase text-xs tracking-tighter">Require Resume?</Text>
+                    <Text className="text-zinc-900 font-black uppercase text-xs tracking-tighter">Require Resume?</Text>
                     <Text className="text-slate-400 font-bold text-[9px] uppercase mt-1">Candidates must share their resume to apply</Text>
                 </View>
                 <Switch 
