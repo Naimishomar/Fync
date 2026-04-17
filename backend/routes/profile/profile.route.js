@@ -9,6 +9,7 @@ import { getScore, recalculateScore } from "../../controllers/profile/fyncScore.
 import { getGitHubOAuthUrl, githubOAuthCallback, syncGitHub, disconnectGitHub } from "../../controllers/profile/github.controller.js";
 import { getFullProfile, updateVisibility } from "../../controllers/profile/profile.controller.js";
 import { generateResumePDF } from "../../controllers/profile/resume.controller.js";
+import { addEducation, updateEducation, deleteEducation, updateCodingStats } from "../../controllers/profile/education.controller.js";
 
 const router = express.Router();
 
@@ -51,6 +52,13 @@ router.delete("/github/disconnect",               verifyToken, disconnectGitHub)
 // ─── Resume ───────────────────────────────────────────────────────────────────
 // PDF download (no auth — shareable public link)
 router.get("/resume/:userId/pdf",                 generateResumePDF);
-// Shareable link: the web/ Next.js app handles the actual HTML page at /u/:username
+
+// ─── Education ────────────────────────────────────────────────────────────────
+router.post("/education",                         verifyToken, addEducation);
+router.patch("/education/:eduId",                 verifyToken, updateEducation);
+router.delete("/education/:eduId",               verifyToken, deleteEducation);
+
+// ─── Coding Stats (Self-reported) ─────────────────────────────────────────────
+router.patch("/coding-stats",                    verifyToken, updateCodingStats);
 
 export default router;

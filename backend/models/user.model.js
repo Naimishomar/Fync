@@ -139,6 +139,10 @@ const userSchema = new mongoose.Schema({
         gfg: {
             type: String,
             default: null
+        },
+        codechef: {
+            type: String,
+            default: null
         }
     },
     codingStats: {
@@ -150,7 +154,23 @@ const userSchema = new mongoose.Schema({
             type: Number,
             default: 0
         },
+        leetcodeRating: {
+            type: Number,
+            default: 0
+        },
         gfgSolved: {
+            type: Number,
+            default: 0
+        },
+        gfgRating: {
+            type: Number,
+            default: 0
+        },
+        codechefSolved: {
+            type: Number,
+            default: 0
+        },
+        codechefRating: {
             type: Number,
             default: 0
         },
@@ -173,6 +193,20 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+
+    // ─── Education History ────────────────────────────────────────────────
+    education: [
+        {
+            institution: { type: String, required: true },
+            degree:      { type: String },          // e.g. B.Tech, 12th, 10th
+            field:       { type: String },          // e.g. Computer Science
+            grade:       { type: String },          // e.g. 9.1 CGPA, 92%
+            startYear:   { type: Number },
+            endYear:     { type: Number },
+            isCurrent:   { type: Boolean, default: false },
+            description: { type: String }
+        }
+    ],
     deviceId: {
         type: String,
         default: null

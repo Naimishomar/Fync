@@ -43,6 +43,7 @@ export default function EditProfile() {
   // --- Coding Profiles (New) ---
   const [leetcodeId, setLeetcodeId] = useState(user?.codingProfiles?.leetcode || '');
   const [gfgId, setGfgId] = useState(user?.codingProfiles?.gfg || '');
+  const [codechefId, setCodechefId] = useState(user?.codingProfiles?.codechef || '');
   const [upiId, setUpiId] = useState(user?.upiId || '');
 
   // --- Images ---
@@ -65,6 +66,7 @@ export default function EditProfile() {
     linkedinId !== (user?.linkedIn_id || '') ||
     leetcodeId !== (user?.codingProfiles?.leetcode || '') ||
     gfgId !== (user?.codingProfiles?.gfg || '') ||
+    codechefId !== (user?.codingProfiles?.codechef || '') ||
     upiId !== (user?.upiId || '') ||
     JSON.stringify(skills) !== JSON.stringify(initialSkills) ||
     newAvatar !== null ||
@@ -123,6 +125,7 @@ export default function EditProfile() {
       formData.append('linkedIn_id', linkedinId);
       formData.append('leetcode', leetcodeId);
       formData.append('gfg', gfgId);
+      formData.append('codechef', codechefId);
       formData.append('upiId', upiId);
 
       skills.forEach((skill) => {
@@ -330,6 +333,18 @@ export default function EditProfile() {
                 className="flex-1 text-black p-3.5"
               />
             </View>
+            {/* CodeChef */}
+            <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
+              <Text style={{ fontSize: 20 }}>👨‍🍳</Text>
+              <TextInput
+                value={codechefId}
+                onChangeText={setCodechefId}
+                placeholder="CodeChef Username"
+                placeholderTextColor="#9ca3af"
+                className="flex-1 text-black p-3.5"
+              />
+            </View>
+
           </View>
 
         </View>
