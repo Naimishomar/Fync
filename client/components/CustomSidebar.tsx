@@ -182,19 +182,7 @@ export default function CustomSidebar(props: any) {
                                 <Text className="text-gray-300 text-base ml-3 font-medium">Workshops</Text>
                             </Pressable>
 
-                            {/* Recruiter Portal (Only for recruiters/admin) */}
-                            {(user?.user_access === 'recruiter' || user?.user_access === 'admin') && (
-                                <Pressable
-                                    onPress={() => props.navigation.navigate('RecruiterPortal')}
-                                    className="flex-row items-center px-4 py-3 rounded-xl mb-1 mt-1 bg-pink-500/10 border border-pink-500/20 active:bg-pink-500/20"
-                                >
-                                    <Ionicons name="shield-checkmark-outline" size={18} color="#ec4899" />
-                                    <View className="ml-3">
-                                        <Text className="text-pink-400 text-sm font-bold">Recruiter Portal</Text>
-                                        <Text className="text-pink-300 text-[8px] font-bold uppercase">Applicant Tracking</Text>
-                                    </View>
-                                </Pressable>
-                            )}
+
                         </View>
                     )}
 

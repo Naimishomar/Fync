@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import RecruiterPortal from "./opportunity/RecruiterPortal";
 import RecruiterProfile from "./RecruiterProfile";
-import RecruiterFeed from "./RecruiterFeed";
+import SearchScreen from "./SearchScreen";
 import ChatList from "./ChatList";
 import { useAuth } from "context/auth.context";
 
@@ -77,8 +77,8 @@ export default function RecruiterTabLayout() {
             shadowOffset: { width: 0, height: 10 },
             shadowOpacity: 0.3,
             shadowRadius: 15,
-            paddingTop: 8,
-            paddingBottom: 56,
+            paddingTop: 10,
+            paddingBottom: 46,
           },
         }}
       >
@@ -91,12 +91,12 @@ export default function RecruiterTabLayout() {
           }}
         />
 
-        {/* Global Campus Feed */}
+        {/* Find Talent */}
         <Tab.Screen
-          name="Feed"
-          component={RecruiterFeed}
+          name="FindTalent"
+          component={SearchScreen}
           options={{
-            tabBarIcon: ({ color }) => <Ionicons name="albums-outline" size={25} color={color} />,
+            tabBarIcon: ({ color }) => <Ionicons name="search-outline" size={25} color={color} />,
           }}
         />
 

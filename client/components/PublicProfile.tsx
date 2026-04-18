@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     View, Text, Image, Pressable, ScrollView, Dimensions,
-    ActivityIndicator, Modal, Linking, FlatList
+    ActivityIndicator, Modal, Linking, FlatList, TouchableOpacity
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,6 +13,7 @@ import axios from "../context/axiosConfig";
 import { useAuth } from '../context/auth.context';
 import Avatar from './Avatar';
 import { ProfileSkeleton } from './Skeleton';
+import { Image as ExpoImage } from 'expo-image';
 
 const { width } = Dimensions.get('window');
 
@@ -22,7 +23,7 @@ interface User {
     username: string;
     name: string;
     avatar?: string;
-    user_access?: 'admin' | 'user' | 'alumni';
+    user_access?: 'admin' | 'user' | 'alumni'| 'recruiter';
     followers: string[];
     following: string[];
     about?: string;
@@ -367,14 +368,153 @@ const PublicProfile = () => {
         </View>
     );
 
+    // --- RECRUITER PROFILE LAYOUT ---
+    const RecruiterProfileLayout = () => {
+        const [recruiterStats, setRecruiterStats] = useState({ active: 0, total: 0 });
+
+        useEffect(() => {
+            if (profileUser?._id) {
+                axios.get(`/opportunity/list?recruiterId=${profileUser._id}`).then(res => {
+                    if (res.data.success) {
+                        const recPosts = res.data.data;
+                        setRecruiterStats({
+                            active: recPosts.filter((p: any) => p.isActive !== false).length,
+                            total: recPosts.length
+                        });
+                    }
+                }).catch(() => {});
+            }
+        }, [profileUser]);
+
+        return (
+            <ScrollView className="flex-1 bg-slate-50" showsVerticalScrollIndicator={false}>
+                {/* Banner & Actions */}
+                <View className="h-48 w-full relative">
+                    <ExpoImage
+                        source={{ uri: (profileUser as any)?.banner || 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000' }}
+                        style={{ width: '100%', height: '100%' }}
+                        contentFit="cover"
+                    />
+                    <View className="absolute inset-0 bg-black/30" />
+                    <TouchableOpacity 
+                        onPress={() => navigation.goBack()}
+                        className="absolute top-12 left-4 bg-white/20 p-2 rounded-full"
+                    >
+                        <Ionicons name="chevron-back" size={24} color="white" />
+                    </TouchableOpacity>
+                </View>
+
+                {/* Info Card Overlay */}
+                <View className="px-5 -mt-12 pb-6">
+                    <View className="flex-row items-end justify-between">
+                        <View className="p-1.5 bg-white rounded-full shadow-xl">
+                            <Avatar user={profileUser as any} size={100} />
+                        </View>
+                        <View className="flex-row gap-2 mb-2">
+                            <TouchableOpacity onPress={startChat} className="bg-zinc-900 px-6 py-2.5 rounded-2xl flex-row items-center gap-2">
+                                <Ionicons name="chatbubble-ellipses-outline" size={18} color="white" />
+                                <Text className="text-white font-black uppercase text-[10px] tracking-widest">Message</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    <View className="mt-4">
+                        <View className="flex-row items-center gap-2">
+                            <Text className="text-2xl font-black text-zinc-900 italic uppercase">
+                                {(profileUser as any)?.company || profileUser?.name}
+                            </Text>
+                            <MaterialCommunityIcons name="check-decagram" size={22} color="#6366f1" />
+                        </View>
+                        <Text className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">
+                            {(profileUser as any)?.industry || 'Corporate Partner'} • {(profileUser as any)?.companySize || 'Growing Team'}
+                        </Text>
+                    </View>
+
+                    {/* Quick Stats */}
+                    <View className="flex-row bg-zinc-900 rounded-3xl p-5 mt-6 shadow-xl border border-zinc-800">
+                        <View className="flex-1 items-center border-r border-zinc-800">
+                            <Text className="text-white text-xl font-black italic">{recruiterStats.active}</Text>
+                            <Text className="text-zinc-500 text-[8px] font-black uppercase tracking-widest mt-1">Active Roles</Text>
+                        </View>
+                        <View className="flex-1 items-center">
+                            <Text className="text-white text-xl font-black italic">{recruiterStats.total}</Text>
+                            <Text className="text-zinc-500 text-[8px] font-black uppercase tracking-widest mt-1">Total Posts</Text>
+                        </View>
+                    </View>
+
+                    {/* About */}
+                    <View className="mt-8 bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm">
+                         <View className="flex-row items-center gap-2 mb-4">
+                            <View className="w-1 h-5 rounded-full bg-indigo-500" />
+                            <Text className="text-zinc-900 font-black italic uppercase text-xs tracking-widest">About Organization</Text>
+                        </View>
+                        <Text className="text-slate-500 text-xs leading-5 italic">
+                            {profileUser?.about || "We're committed to finding the best talent and building the future of innovation."}
+                        </Text>
+
+                        <View className="gap-4 mt-6">
+                            <View className="flex-row items-center gap-4">
+                                <View className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center">
+                                    <Ionicons name="location-outline" size={20} color="#ef4444" />
+                                </View>
+                                <View>
+                                    <Text className="text-slate-400 text-[8px] font-black uppercase tracking-widest">Headquarters</Text>
+                                    <Text className="text-zinc-900 font-bold text-sm tracking-tight">{(profileUser as any)?.college || 'India (Remote)'}</Text>
+                                </View>
+                            </View>
+                            {(profileUser as any)?.companyWebsite && (
+                                <TouchableOpacity 
+                                    onPress={() => Linking.openURL((profileUser as any).companyWebsite)}
+                                    className="flex-row items-center gap-4"
+                                >
+                                    <View className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center">
+                                        <Ionicons name="globe-outline" size={20} color="#6366f1" />
+                                    </View>
+                                    <View>
+                                        <Text className="text-slate-400 text-[8px] font-black uppercase tracking-widest">Official Website</Text>
+                                        <Text className="text-indigo-600 font-bold text-sm tracking-tight underline">Visit Page</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    </View>
+
+                    {/* CTA Buttons */}
+                    <View className="flex-row gap-3 mt-8">
+                        <TouchableOpacity 
+                            onPress={() => navigation.navigate('InternshipList', { recruiterId: profileUser?._id })}
+                            className="flex-1 bg-pink-600 p-4 rounded-2xl items-center shadow-lg shadow-pink-200"
+                        >
+                            <Ionicons name="school-outline" size={20} color="white" className="mb-1" />
+                            <Text className="text-white font-black italic uppercase text-[10px] tracking-widest">View Internships</Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity 
+                            onPress={() => navigation.navigate('JobList', { recruiterId: profileUser?._id })}
+                            className="flex-1 bg-zinc-900 p-4 rounded-2xl items-center shadow-lg shadow-zinc-200"
+                        >
+                            <Ionicons name="briefcase-outline" size={20} color="white" className="mb-1" />
+                            <Text className="text-white font-black italic uppercase text-[10px] tracking-widest">View Job Openings</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <View className="h-20" />
+            </ScrollView>
+        );
+    };
+
     if (loading || !profileUser) {
         return <ProfileSkeleton />;
+    }
+
+    // Switch between Recruiter and Student layouts
+    if (profileUser.user_access === 'recruiter') {
+        return <RecruiterProfileLayout />;
     }
 
     return (
         <View className="flex-1 bg-black">
             <SafeAreaView className="flex-1">
-
                 {/* Header */}
                 <View className="flex-row items-center px-4 py-2 z-10">
                     <Pressable onPress={() => navigation.goBack()} className="bg-white/10 p-2 rounded-full border border-white/10">

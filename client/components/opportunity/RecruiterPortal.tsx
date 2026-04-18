@@ -495,22 +495,17 @@ const RecruiterPortal = () => {
     const renderMainHeader = () => (
         <>
             {/* Top bar */}
-            <View className="px-6 pb-4 flex-row items-center justify-between border-b border-slate-100">
-                <View>
-                    <Text className="text-2xl font-black italic uppercase tracking-tighter">
+            <View className="px-6 py-4 flex-row items-center justify-between bg-white border-b border-slate-100">
+                <View className="w-10" />
+                <View className="items-center">
+                    <Text className="text-xl font-black italic uppercase tracking-tighter">
                         Recruiter <Text className="text-pink-500">Portal</Text>
                     </Text>
                     <Text className="text-slate-400 text-[8px] font-bold tracking-[2px] uppercase">
                         Applicant Tracking
                     </Text>
                 </View>
-                <View className="flex-row items-center gap-2">
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate('SearchScreen')} 
-                        className="w-10 h-10 items-center justify-center"
-                    >
-                        <Ionicons name="search-outline" size={25} color="#000" />
-                    </TouchableOpacity>
+                <View className="flex-row items-center gap-3">
                     <TouchableOpacity
                         onPress={() => navigation.navigate('Notification')}
                         className="w-10 h-10 items-center justify-center"

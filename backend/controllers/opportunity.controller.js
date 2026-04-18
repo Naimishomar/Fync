@@ -52,10 +52,11 @@ export const createOpportunity = async (req, res) => {
 
 export const getOpportunities = async (req, res) => {
     try {
-        const { type, page = 1, limit = 15, search = "" } = req.query;
+        const { type, page = 1, limit = 15, search = "", recruiterId } = req.query;
         const filter = { isActive: true };
         
         if (type) filter.type = type;
+        if (recruiterId) filter.postedBy = recruiterId;
         if (search) {
             filter.$or = [
                 { title: new RegExp(search, 'i') },

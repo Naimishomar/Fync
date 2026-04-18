@@ -177,6 +177,7 @@ export default function TabLayout() {
             shadowOpacity: 0.3,
             shadowRadius: 15,
             paddingTop: 10,
+            paddingBottom: 46,
           },
         }}
       >

@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 
 // --- 🌌 BACKGROUND IMAGE ---
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
@@ -111,6 +111,8 @@ const JobCard = memo(({ item, onApply, hideApply }: { item: any; onApply: (item:
 });
 
 const JobList = () => {
+  const route = useRoute<any>();
+  const recruiterId = route.params?.recruiterId;
   const [jobs, setJobs] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -133,7 +135,8 @@ const JobList = () => {
     setLoading(true);
 
     try {
-      const response = await axios.get(`/opportunity/list?type=job&page=${pageNum}&limit=15&search=${term}`);
+      const recruiterParam = recruiterId ? `&recruiterId=${recruiterId}` : "";
+      const response = await axios.get(`/opportunity/list?type=job&page=${pageNum}&limit=15&search=${term}${recruiterParam}`);
       
       if (response.data.success) {
         const newData = response.data.data || [];
