@@ -495,7 +495,11 @@ export const login = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const { name, username, bio, about, skills, experience, interest, hobbies, github_id, linkedIn_id, leetcode, gfg, codechef, upiId } = req.body;
+    const { 
+      name, username, bio, about, skills, experience, interest, hobbies, 
+      github_id, linkedIn_id, leetcode, gfg, codechef, upiId,
+      company, role, industry, companySize, companyWebsite, college 
+    } = req.body;
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
@@ -543,6 +547,13 @@ export const updateUser = async (req, res) => {
           ...(codechef && { "codingProfiles.codechef": codechef }),
           ...(upiId && { upiId }),
           ...(resumeUrlStr && { resumeUrl: resumeUrlStr }),
+          // Recruiter / Alumni fields
+          ...(company && { company }),
+          ...(role && { role }),
+          ...(industry && { industry }),
+          ...(companySize && { companySize }),
+          ...(companyWebsite && { companyWebsite }),
+          ...(college && { college }),
         },
       },
       { new: true, runValidators: true }

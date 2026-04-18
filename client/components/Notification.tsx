@@ -19,16 +19,18 @@ import { useAuth } from '../context/auth.context';
 // --- TYPES ---
 interface NotificationItem {
   _id: string;
-  type: 'follow' | 'tag' | 'like' | 'comment' | 'story_like' | 'story_comment' | 'split_request' | 'split_paid';
+  type: 'follow' | 'tag' | 'like' | 'comment' | 'story_like' | 'story_comment' | 'split_request' | 'split_paid' | 'opportunity' | string;
   sender: {
     _id: string;
     username: string;
     avatar: string;
+    name?: string;
   };
   post?: {
     _id: string;
     image?: string[];
   };
+  message?: string;
   commentText?: string;
   isRead: boolean;
   createdAt: string;
@@ -170,6 +172,19 @@ const Notification = () => {
         iconColor = '#34d399'; // emerald-400
         iconBg = 'rgba(52, 211, 153, 0.2)';
         break;
+      case 'opportunity':
+        message = item.message || 'sent you an opportunity update.';
+        iconName = 'briefcase';
+        iconColor = '#ec4899'; // pink-500
+        iconBg = 'rgba(236, 72, 153, 0.15)';
+        break;
+      default:
+        // Fallback: always show backend message if available
+        message = item.message || item.commentText || 'sent you a notification.';
+        iconName = 'notifications';
+        iconColor = '#a855f7';
+        iconBg = 'rgba(168, 85, 247, 0.15)';
+        break;
     }
 
     return (
@@ -196,17 +211,28 @@ const Notification = () => {
         {/* Text Section */}
         <View className="flex-1">
           <Text className="text-zinc-600 text-[13px] leading-5">
-            <Text className="font-bold text-zinc-900 text-[14px]">
-              {item.sender.username}
-            </Text> {message}
+            {item.type === 'opportunity' ? (
+              // Opportunity notifications: show full message without username prefix
+              <Text className="text-zinc-800 text-[13px]">{message}</Text>
+            ) : (
+              <>
+                <Text className="font-bold text-zinc-900 text-[14px]">
+                  {item.sender?.username || item.sender?.name || 'Fync'}
+                </Text>{' '}{message}
+              </>
+            )}
           </Text>
           <Text className="text-gray-400 text-[10px] mt-1 font-bold uppercase tracking-wider">
             {getTimeAgo(item.createdAt)}
           </Text>
         </View>
 
-        {/* Right Side: Post Image or Follow Button */}
-        {item.type !== 'follow' && item.post?.image && item.post.image.length > 0 ? (
+        {/* Right Side: Post Image / Follow Button / Opportunity Icon */}
+        {item.type === 'opportunity' ? (
+          <View style={{ backgroundColor: 'rgba(236,72,153,0.12)', borderRadius: 10, padding: 8 }}>
+            <Ionicons name="briefcase" size={18} color="#ec4899" />
+          </View>
+        ) : item.type !== 'follow' && item.post?.image && item.post.image.length > 0 ? (
           <Image
             source={{ uri: item.post.image[0] }}
             className="w-12 h-12 rounded-lg border border-gray-100 ml-2"

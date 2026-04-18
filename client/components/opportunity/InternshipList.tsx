@@ -246,14 +246,6 @@ const InternshipList = () => {
               </View>
             </View>
 
-            {(user?.user_access === 'recruiter' || user?.user_access === 'admin') && (
-              <TouchableOpacity
-                onPress={() => navigation.navigate('CreateOpportunity', { type: 'internship' })}
-                className="bg-zinc-900 w-10 h-10 rounded-full items-center justify-center shadow-lg"
-              >
-                <Ionicons name="add" size={24} color="white" />
-              </TouchableOpacity>
-            )}
           </View>
         </View>
 

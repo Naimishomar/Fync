@@ -243,16 +243,8 @@ const JobList = () => {
                     </View>
                 </View>
 
-                {(user?.user_access === 'recruiter' || user?.user_access === 'admin') && (
-                    <TouchableOpacity 
-                        onPress={() => navigation.navigate('CreateOpportunity', { type: 'job' })}
-                        className="bg-zinc-900 w-10 h-10 rounded-full items-center justify-center shadow-lg"
-                    >
-                        <Ionicons name="add" size={24} color="white" />
-                    </TouchableOpacity>
-                )}
+                </View>
             </View>
-        </View>
 
         {/* 🔍 Search Bar */}
         <View className="px-6 mt-4 mb-4">

@@ -267,13 +267,13 @@ export const updateApplicationStatus = async (req, res) => {
         // Populate after saving to avoid ID/Object conflicts and satisfy notification needs
         await application.populate("opportunity");
 
-        // Send individual notification if shortlisted
+        // ── Notify candidate based on status change ───────────────────────
         if (status === 'shortlisted') {
             const candidate = await User.findById(application.candidate);
-            if (candidate && candidate.expoPushToken) {
+            if (candidate?.expoPushToken) {
                 await sendPushNotification(
                     candidate.expoPushToken,
-                    "Application Update!",
+                    "🎉 You've been Shortlisted!",
                     `Congratulations! You have been shortlisted for ${application.opportunity.title}. Check your dashboard.`
                 );
             }
@@ -281,7 +281,27 @@ export const updateApplicationStatus = async (req, res) => {
                 recipient: application.candidate,
                 sender: req.user.id,
                 type: 'opportunity',
-                message: `You were shortlisted for ${application.opportunity.title}!`
+                message: `🎉 You were shortlisted for "${application.opportunity.title}"! The recruiter will reach out soon.`
+            });
+        }
+
+        if (status === 'rejected') {
+            const candidate = await User.findById(application.candidate);
+            const recruiter = await User.findById(req.user.id).select('name company');
+            const companyName = recruiter?.company || recruiter?.name || 'the company';
+
+            if (candidate?.expoPushToken) {
+                await sendPushNotification(
+                    candidate.expoPushToken,
+                    "Application Update",
+                    `We're sorry, your application for ${application.opportunity.title} at ${companyName} was not selected. Keep applying!`
+                ).catch(e => console.log("Push error:", e));
+            }
+            await Notification.create({
+                recipient: application.candidate,
+                sender: req.user.id,
+                type: 'opportunity',
+                message: `Your application for "${application.opportunity.title}" at ${companyName} was not selected. Don't give up — keep exploring opportunities on Fync!`
             });
         }
 
@@ -327,14 +347,6 @@ export const notifyShortlistedCandidates = async (req, res) => {
                     message
                 ).catch(e => console.log("Push error", e));
             }
-
-            // In-app Notification
-            Notification.create({
-                recipient: candidate._id,
-                sender: req.user.id,
-                type: 'opportunity',
-                message: message
-            }).catch(e => console.log("DB Notification error", e));
 
             // In-app Notification
             Notification.create({

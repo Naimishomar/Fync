@@ -36,8 +36,11 @@ import ForgotPassword from "./components/ForgotPassword";
 // Core Components
 import TabLayout from "./components/TabLayout";
 import CustomSidebar from "./components/CustomSidebar";
+import RecruiterTabLayout from "./components/RecruiterTabLayout";
 import Profile from "./components/profile";
+import RecruiterProfile from "./components/RecruiterProfile";
 import EditProfile from "./components/EditProfile";
+import RecruiterEditProfile from "./components/RecruiterEditProfile";
 import CreatePost from "./components/create-post";
 import Shorts from "./components/Shorts";
 import SearchScreen from "./components/SearchScreen";
@@ -318,6 +321,8 @@ function HomeDrawer() {
   );
 }
 
+
+
 function AuthStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
@@ -359,13 +364,14 @@ function AuthStack() {
 function AppStack() {
   const { user } = useAuth();
 
+  const isRecruiter = user?.user_access === 'recruiter';
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: "simple_push" }}>
       <Stack.Screen name="SplashScreen" component={SplashScreen} />
-      <Stack.Screen name="Tabs" component={HomeDrawer} />
-      <Stack.Screen name="Profile" component={Profile} />
-      <Stack.Screen name="EditProfile" component={EditProfile} />
+      <Stack.Screen name="Tabs" component={isRecruiter ? RecruiterTabLayout : HomeDrawer} />
+      <Stack.Screen name="Profile" component={isRecruiter ? RecruiterProfile : Profile} />
+      <Stack.Screen name="EditProfile" component={isRecruiter ? RecruiterEditProfile : EditProfile} />
       <Stack.Screen name="CreatePost" component={CreatePost} />
       <Stack.Screen name="CreateShorts" component={CreateShorts} />
       <Stack.Screen name="RazorpayWebView" component={RazorpayWebView} />
