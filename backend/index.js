@@ -38,7 +38,7 @@ import fyncMediaRoute from './routes/fyncMedia.route.js';
 import clubRoute from './routes/club/club.routes.js';
 import marketplaceRoute from './routes/marketplace/marketplace.route.js';
 import adRoute from './routes/ad.route.js';
-import contactUsRoute from './routes/contact us/contactUs.route.js';
+import contactUsRoute from './routes/contactUs/contactUs.route.js';
 import hackathonRoute from './routes/hackathon/hackathon.route.js';
 import teamRoute from './routes/hackathon/team.route.js';
 import submissionRoute from './routes/hackathon/submission.route.js';

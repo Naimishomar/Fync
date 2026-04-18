@@ -1,4 +1,4 @@
-import ContactUs from "../../models/contact us/ContactUs.model.js";
+import ContactUs from "../../models/contactUs/contactUs.model.js";
 
 export const contactUs = async (req, res) => {
     try {
