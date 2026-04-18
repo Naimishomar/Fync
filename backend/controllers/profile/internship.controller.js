@@ -1,5 +1,6 @@
 import Internship from "../../models/profile/internship.model.js";
 import { calculateFyncScore } from "../../services/fyncScore.service.js";
+import { deleteFromR2 } from "../../utils/r2.js";
 
 // ─── Add Internship / Work Experience ─────────────────────────────────────────
 export const createInternship = async (req, res) => {
@@ -7,12 +8,25 @@ export const createInternship = async (req, res) => {
         const userId = req.user._id;
         const {
             company, companyLogo, role, type, description, techStack,
-            startDate, endDate, isCurrentlyWorking,
+            startDate, endDate,
             location, workMode, isPublic
         } = req.body;
 
+        const isCurrentlyWorking = req.body.isCurrentlyWorking === 'true' || req.body.isCurrentlyWorking === true;
+
         if (!company || !role || !startDate)
             return res.status(400).json({ success: false, message: "company, role and startDate are required" });
+
+        const offerLetterUrl = req.files?.offerLetter?.[0]?.path || null;
+        const completionCertificateUrl = req.files?.completionCertificate?.[0]?.path || null;
+
+        // Validation based on status
+        if (isCurrentlyWorking && !offerLetterUrl) {
+            return res.status(400).json({ success: false, message: "Offer letter is required for in-progress work" });
+        }
+        if (!isCurrentlyWorking && !completionCertificateUrl) {
+            return res.status(400).json({ success: false, message: "Completion certificate is required for finished work" });
+        }
 
         const internship = await Internship.create({
             user: userId,
@@ -21,11 +35,13 @@ export const createInternship = async (req, res) => {
             description,
             techStack: techStack || [],
             startDate: new Date(startDate),
-            endDate: endDate ? new Date(endDate) : null,
-            isCurrentlyWorking: isCurrentlyWorking || false,
+            endDate: (endDate && !isCurrentlyWorking) ? new Date(endDate) : null,
+            isCurrentlyWorking,
             location,
             workMode: workMode || "remote",
-            isPublic: isPublic !== false
+            isPublic: isPublic !== false,
+            offerLetterUrl,
+            completionCertificateUrl
         });
 
         calculateFyncScore(userId).catch(() => {});
@@ -65,9 +81,37 @@ export const updateInternship = async (req, res) => {
 
         const allowed = [
             "company", "companyLogo", "role", "type", "description", "techStack",
-            "startDate", "endDate", "isCurrentlyWorking", "location", "workMode", "isPublic"
+            "startDate", "endDate", "location", "workMode", "isPublic"
         ];
-        allowed.forEach((f) => { if (req.body[f] !== undefined) internship[f] = req.body[f]; });
+        
+        allowed.forEach((f) => { 
+            if (req.body[f] !== undefined) internship[f] = req.body[f]; 
+        });
+
+        if (req.body.isCurrentlyWorking !== undefined) {
+            internship.isCurrentlyWorking = req.body.isCurrentlyWorking === 'true' || req.body.isCurrentlyWorking === true;
+        }
+
+        // Handle File Updates
+        if (req.files?.offerLetter?.[0]?.path) {
+            if (internship.offerLetterUrl) await deleteFromR2(internship.offerLetterUrl);
+            internship.offerLetterUrl = req.files.offerLetter[0].path;
+        }
+        if (req.files?.completionCertificate?.[0]?.path) {
+            if (internship.completionCertificateUrl) await deleteFromR2(internship.completionCertificateUrl);
+            internship.completionCertificateUrl = req.files.completionCertificate[0].path;
+        }
+
+        // Status-based Validation
+        if (internship.isCurrentlyWorking && !internship.offerLetterUrl) {
+            return res.status(400).json({ success: false, message: "Offer letter is required for in-progress work" });
+        }
+        if (!internship.isCurrentlyWorking && !internship.completionCertificateUrl) {
+            return res.status(400).json({ success: false, message: "Completion certificate is required for finished work" });
+        }
+
+        if (internship.isCurrentlyWorking) internship.endDate = null;
+
         await internship.save();
 
         calculateFyncScore(req.user._id).catch(() => {});
@@ -85,6 +129,10 @@ export const deleteInternship = async (req, res) => {
         if (!internship) return res.status(404).json({ success: false, message: "Not found" });
         if (internship.user.toString() !== req.user._id.toString())
             return res.status(403).json({ success: false, message: "Not authorized" });
+
+        // Cleanup R2 Files
+        if (internship.offerLetterUrl) await deleteFromR2(internship.offerLetterUrl);
+        if (internship.completionCertificateUrl) await deleteFromR2(internship.completionCertificateUrl);
 
         await internship.deleteOne();
         calculateFyncScore(req.user._id).catch(() => {});

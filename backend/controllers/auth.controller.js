@@ -462,12 +462,13 @@ export const login = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid credentials" });
     }
 
-    // STRICT DEVICE BINDING CHECK
-    if (user.deviceId) {
+    // STRICT DEVICE BINDING CHECK (Exempt recruiters)
+    if (user.user_access !== 'recruiter' && user.deviceId) {
       if (!deviceId || user.deviceId !== deviceId) {
         return res.status(400).json({
           success: false,
-          message: `This account is already logged into ${user.deviceModel || 'another device'}. You cannot log in from multiple devices.`
+          color: "red", // UI hint
+          message: `This account is already logged into ${user.deviceModel || 'another device'}. Students and Alumni are restricted to a single device for security.`
         });
       }
     }
@@ -501,6 +502,8 @@ export const updateUser = async (req, res) => {
     }
     let avatarUrl = "";
     let bannerUrl = "";
+    let resumeUrlStr = "";
+
     if (req.files?.avatar) {
       if (user.avatar) {
         await deleteFromR2(user.avatar);
@@ -512,6 +515,12 @@ export const updateUser = async (req, res) => {
         await deleteFromR2(user.banner);
       }
       bannerUrl = req.files.banner[0].path;
+    }
+    if (req.files?.resume) {
+      if (user.resumeUrl) {
+        await deleteFromR2(user.resumeUrl);
+      }
+      resumeUrlStr = req.files.resume[0].path;
     }
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
@@ -533,6 +542,7 @@ export const updateUser = async (req, res) => {
           ...(gfg && { "codingProfiles.gfg": gfg }),
           ...(codechef && { "codingProfiles.codechef": codechef }),
           ...(upiId && { upiId }),
+          ...(resumeUrlStr && { resumeUrl: resumeUrlStr }),
         },
       },
       { new: true, runValidators: true }

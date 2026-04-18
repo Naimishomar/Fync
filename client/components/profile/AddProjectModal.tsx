@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
   Modal, View, Text, TextInput, Pressable, ScrollView,
-  ActivityIndicator, KeyboardAvoidingView, Platform
+  ActivityIndicator, KeyboardAvoidingView, Platform, Image
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 
@@ -21,6 +22,8 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
     title: '', tagline: '', description: '', techStack: '',
     githubUrl: '', liveUrl: '', status: 'completed',
   });
+  const [images, setImages] = useState<any[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const isEdit = !!initial?._id;
 
@@ -35,28 +38,74 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
         liveUrl: initial.liveUrl || '',
         status: initial.status || 'completed',
       });
+      setExistingImages(initial.images || []);
+      setImages([]);
     } else {
       setForm({ title: '', tagline: '', description: '', techStack: '', githubUrl: '', liveUrl: '', status: 'completed' });
+      setExistingImages([]);
+      setImages([]);
     }
   }, [initial, visible]);
+
+  const pickImages = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      selectionLimit: 5 - existingImages.length,
+      quality: 0.5,
+    });
+
+    if (!result.canceled) {
+      setImages([...images, ...result.assets]);
+    }
+  };
+
+  const removeImage = (idx: number, isExisting: boolean) => {
+    if (isExisting) setExistingImages(prev => prev.filter((_, i) => i !== idx));
+    else setImages(prev => prev.filter((_, i) => i !== idx));
+  };
 
   const save = async () => {
     if (!form.title.trim()) return Toast.show({ type: 'error', text1: 'Project title is required' });
     setSaving(true);
     try {
-      const payload = {
-        ...form,
-        techStack: form.techStack.split(',').map(s => s.trim()).filter(Boolean),
-      };
+      const formData = new FormData();
+      formData.append('title', form.title);
+      formData.append('tagline', form.tagline);
+      formData.append('description', form.description);
+      formData.append('status', form.status);
+      formData.append('githubUrl', form.githubUrl);
+      formData.append('liveUrl', form.liveUrl);
+      
+      form.techStack.split(',').map(s => s.trim()).filter(Boolean).forEach(s => {
+        formData.append('techStack', s);
+      });
+
+      existingImages.forEach(img => {
+        formData.append('images', img);
+      });
+
+      images.forEach(img => {
+        const fileName = img.uri.split('/').pop();
+        const fileType = fileName?.split('.').pop();
+        formData.append('images', {
+          uri: Platform.OS === 'ios' ? img.uri.replace('file://', '') : img.uri,
+          name: fileName,
+          type: `image/${fileType}`,
+        } as any);
+      });
+
+      const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+
       if (isEdit) {
-        await axios.patch(`/profile/projects/${initial._id}`, payload);
+        await axios.patch(`/profile/projects/${initial._id}`, formData, config);
         Toast.show({ type: 'success', text1: 'Project updated!' });
       } else {
-        await axios.post('/profile/projects', payload);
+        await axios.post('/profile/projects', formData, config);
         Toast.show({ type: 'success', text1: 'Project added!' });
       }
       onSuccess();
     } catch (e) {
+      console.error(e);
       Toast.show({ type: 'error', text1: 'Failed to save project' });
     } finally {
       setSaving(false);
@@ -109,6 +158,44 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
                 <Text className={`text-xs font-semibold capitalize ${form.status === s ? 'text-white' : 'text-gray-600'}`}>{s}</Text>
               </Pressable>
             ))}
+          </View>
+
+          {/* Screenshot picking */}
+          <View className="mb-10">
+            <View className="flex-row justify-between items-center mb-3">
+              <Text className="text-gray-700 font-semibold text-sm">Screenshots (max 5)</Text>
+              {existingImages.length + images.length < 5 && (
+                 <Pressable onPress={pickImages} className="flex-row items-center gap-1">
+                   <Ionicons name="add-circle-outline" size={18} color="#6366F1" />
+                   <Text className="text-indigo-600 text-xs font-bold">Add Images</Text>
+                 </Pressable>
+              )}
+            </View>
+            
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+               {existingImages.map((uri, i) => (
+                 <View key={`ex-${i}`} className="mr-3 w-24 h-24 rounded-xl overflow-hidden border border-gray-100 relative">
+                   <Image source={{ uri }} className="w-full h-full" resizeMode="cover" />
+                   <Pressable onPress={() => removeImage(i, true)} className="absolute top-1 right-1 bg-black/50 rounded-full p-1">
+                     <Ionicons name="close" size={12} color="white" />
+                   </Pressable>
+                 </View>
+               ))}
+               {images.map((img, i) => (
+                 <View key={`new-${i}`} className="mr-3 w-24 h-24 rounded-xl overflow-hidden border border-gray-100 relative">
+                   <Image source={{ uri: img.uri }} className="w-full h-full" resizeMode="cover" />
+                   <Pressable onPress={() => removeImage(i, false)} className="absolute top-1 right-1 bg-black/50 rounded-full p-1">
+                     <Ionicons name="close" size={12} color="white" />
+                   </Pressable>
+                 </View>
+               ))}
+               {existingImages.length + images.length === 0 && (
+                 <Pressable onPress={pickImages} className="w-full h-24 border-2 border-dashed border-gray-200 rounded-2xl items-center justify-center flex-1">
+                   <Ionicons name="image-outline" size={24} color="#9CA3AF" />
+                   <Text className="text-gray-400 text-xs mt-1">Upload project screenshots</Text>
+                 </Pressable>
+               )}
+            </ScrollView>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

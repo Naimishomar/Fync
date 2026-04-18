@@ -289,7 +289,7 @@ const HackathonHub = () => {
                 <TouchableOpacity
                 key={f.value}
                 onPress={() => { setActiveFilter(f.value); setPage(1); setHasMore(true); }}
-                className={`px-6 py-3 rounded-[18px] border ${activeFilter === f.value ? 'bg-black border-black shadow-lg shadow-black/20' : 'bg-white border-gray-100'}`}
+                className={`px-6 py-3 rounded-[18px] border ${activeFilter === f.value ? 'bg-black border-black' : 'bg-white border-gray-100'}`}
                 >
                 <Text className={`text-[9px] font-black uppercase tracking-[2px] ${activeFilter === f.value ? 'text-white' : 'text-gray-400'}`}>
                     {f.label}

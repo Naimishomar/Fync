@@ -10,7 +10,8 @@ import {
   TextInput,
   TouchableOpacity,
   StatusBar,
-  Alert
+  Alert,
+  Modal
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -31,6 +32,9 @@ const InternshipList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
   const navigation = useNavigation<any>();
+  const [applyModalVisible, setApplyModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [applying, setApplying] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -82,43 +86,42 @@ const InternshipList = () => {
     fetchInternships(1);
   };
 
-  const handleApply = async (item: any) => {
+  const handleApply = (item: any) => {
     if (user?.user_access === 'recruiter') {
       Alert.alert("Recruiter View", "You are viewing this as a recruiter. Recruiters cannot apply for their own or other's posts.");
       return;
     }
 
-    Alert.alert(
-      "Apply Now",
-      `Do you want to apply for ${item.title} at ${item.company}?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Apply on Fync",
-          onPress: async () => {
-            try {
-              const res = await axios.post(`/opportunity/apply/${item._id}`);
-              if (res.data.success) {
-                Alert.alert("Success", "Your application has been submitted!");
-              }
-            } catch (error: any) {
-              const msg = error.response?.data?.message || "Application failed";
-              Alert.alert("Notice", msg);
-            }
-          }
-        },
-        {
-          text: "External Link",
-          onPress: () => {
-            let url = item.applicationLink;
-            if (url) {
-              if (!url.startsWith('http')) url = 'https://' + url;
-              Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
-            }
-          }
-        }
-      ]
-    );
+    if (item.applicationLink) {
+      let url = item.applicationLink;
+      if (!url.startsWith('http')) url = 'https://' + url;
+      Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+      return;
+    }
+
+    setSelectedItem(item);
+    setApplyModalVisible(true);
+  };
+
+  const confirmApplication = async () => {
+    if (!selectedItem || applying) return;
+
+    setApplying(true);
+    try {
+      const res = await axios.post(`/opportunity/apply/${selectedItem._id}`, {});
+      if (res.data.success) {
+        setApplyModalVisible(false);
+        Alert.alert("Success", "Your application has been submitted!");
+        setInternships(prev => prev.map(opt => 
+          opt._id === selectedItem._id ? { ...opt, hasApplied: true } : opt
+        ));
+      }
+    } catch (error: any) {
+      const msg = error.response?.data?.message || "Application failed";
+      Alert.alert("Notice", msg);
+    } finally {
+      setApplying(false);
+    }
   };
 
   const renderItem = ({ item }: { item: any }) => (
@@ -167,7 +170,26 @@ const InternshipList = () => {
         <View className="bg-pink-50 px-3 py-1.5 rounded-xl border border-pink-100">
           <Text className="text-[10px] font-black uppercase tracking-tight text-pink-500">{item.opportunityType}</Text>
         </View>
+        
+        {item.experience && (
+            <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-gray-300">
+                <Ionicons name="school-outline" size={14} color="#64748b" />
+                <Text className="text-[10px] font-black uppercase tracking-tight text-slate-500 ml-1">
+                    {item.experience}
+                </Text>
+            </View>
+        )}
       </View>
+
+      {/* Description */}
+      {item.description && (
+        <View className="mt-4 bg-slate-50/50 p-4 rounded-xl border border-dashed border-slate-200">
+          <Text className="text-slate-400 font-black uppercase text-[8px] tracking-widest mb-2">Detailed Description</Text>
+          <Text className="text-slate-600 text-[11px] leading-5">
+            {item.description}
+          </Text>
+        </View>
+      )}
 
       {/* Footer / CTA */}
       <View className="mt-3 flex-row items-center justify-between">
@@ -176,17 +198,19 @@ const InternshipList = () => {
             {item.type === 'job' ? 'Annual Package' : 'Monthly Stipend'}
           </Text>
           <Text className="text-zinc-900 text-lg font-black italic mt-0.5 tracking-tighter uppercase">
-            {item.isPaid ? item.stipend : "Unpaid"}
+            {item.isPaid ? (item.stipend.startsWith('₹') ? item.stipend : `₹${item.stipend}`) : "Unpaid"}
           </Text>
         </View>
 
         {user?.user_access !== 'recruiter' && (
           <TouchableOpacity
-            onPress={() => handleApply(item)}
-            activeOpacity={0.9}
-            className="bg-pink-500 px-8 py-3.5 rounded-2xl shadow-lg shadow-black/20 border border-pink-300"
+            onPress={() => !item.hasApplied && handleApply(item)}
+            activeOpacity={item.hasApplied ? 1 : 0.9}
+            className={`${item.hasApplied ? 'bg-gray-200 border-gray-300' : 'bg-pink-500 border-pink-300'} px-8 py-3.5 rounded-2xl shadow-lg shadow-black/20 border`}
           >
-            <Text className="text-white font-black italic uppercase tracking-widest text-[12px]">Apply Now</Text>
+            <Text className={`${item.hasApplied ? 'text-gray-500' : 'text-white'} font-black italic uppercase tracking-widest text-[12px]`}>
+              {item.hasApplied ? 'Applied' : 'Apply Now'}
+            </Text>
           </TouchableOpacity>
         )}
       </View>
@@ -254,6 +278,19 @@ const InternshipList = () => {
           </View>
         </View>
 
+        {/* 📝 Important Note */}
+        {user?.user_access !== 'recruiter' && (
+          <View className="mx-6 mb-4 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex-row items-center">
+            <Ionicons name="information-circle-outline" size={20} color="#6366f1" />
+            <View className="ml-3 flex-1">
+              <Text className="text-indigo-900 font-black uppercase text-[10px] tracking-tight">Pro Tip for Fyncers</Text>
+              <Text className="text-indigo-600/80 text-[10px] font-bold leading-4 mt-0.5">
+                Upload your resume in 'Edit Profile' & maintain your Fync Portfolio. Recruiters will receive both!
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* List */}
         <FlatList
           data={internships}
@@ -278,6 +315,86 @@ const InternshipList = () => {
             ) : null
           }
         />
+
+        {/* Application Preview Modal */}
+        <Modal
+            animationType="slide"
+            transparent={true}
+            visible={applyModalVisible}
+            onRequestClose={() => setApplyModalVisible(false)}
+        >
+            <View className="flex-1 bg-black/60 justify-end">
+                <View className="bg-white rounded-t-[40px] p-8 pb-12 shadow-2xl">
+                    <View className="items-center mb-6">
+                        <View className="w-12 h-1.5 bg-slate-100 rounded-full mb-6" />
+                        <Text className="text-zinc-900 text-2xl font-black italic uppercase tracking-tighter">Review Application</Text>
+                        <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Check your credentials before sending</Text>
+                    </View>
+
+                    <View className="bg-slate-50 rounded-3xl p-6 border border-slate-100 mb-8">
+                        <Text className="text-pink-500 font-black uppercase text-[10px] tracking-widest mb-4">You are applying as:</Text>
+                        
+                        <View className="flex-row items-center gap-4 mb-5 pb-5 border-b border-slate-100">
+                             <Image source={{ uri: user?.avatar || 'https://via.placeholder.com/100' }} className="w-12 h-12 rounded-2xl" />
+                             <View>
+                                <Text className="text-zinc-900 font-black text-base">{user?.name}</Text>
+                                <Text className="text-slate-500 text-xs font-bold">{user?.username} • {user?.college || 'No College Set'}</Text>
+                             </View>
+                        </View>
+
+                        <View className="gap-4">
+                            <View className="flex-row items-center justify-between">
+                                <View className="flex-row items-center gap-2">
+                                    <Ionicons name="document-text-outline" size={18} color="#64748b" />
+                                    <Text className="text-slate-600 font-bold text-xs uppercase">Resume Attached</Text>
+                                </View>
+                                <Ionicons 
+                                    name={user?.resumeUrl ? "checkmark-circle" : "close-circle"} 
+                                    size={20} 
+                                    color={user?.resumeUrl ? "#10b981" : "#ef4444"} 
+                                />
+                            </View>
+
+                            <View className="flex-row items-center justify-between">
+                                <View className="flex-row items-center gap-2">
+                                    <Ionicons name="globe-outline" size={18} color="#64748b" />
+                                    <Text className="text-slate-600 font-bold text-xs uppercase">Fync Portfolio PDF</Text>
+                                </View>
+                                <Ionicons name="checkmark-circle" size={20} color="#10b981" />
+                            </View>
+                        </View>
+
+                        {!user?.resumeUrl && selectedItem?.requireResume && (
+                            <View className="mt-4 p-4 bg-rose-50 rounded-2xl border border-rose-100 flex-row items-center">
+                                <Ionicons name="warning" size={20} color="#ef4444" />
+                                <Text className="text-rose-600 text-[10px] font-bold flex-1 ml-3 leading-4">
+                                    This role requires a resume. Please upload one in your profile before applying.
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+
+                    <View className="flex-row gap-4">
+                        <TouchableOpacity 
+                            onPress={() => setApplyModalVisible(false)}
+                            className="flex-1 h-16 rounded-2xl items-center justify-center bg-slate-100"
+                        >
+                            <Text className="text-slate-500 font-black uppercase tracking-widest text-xs">Back</Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity 
+                            onPress={confirmApplication}
+                            disabled={applying || (!user?.resumeUrl && selectedItem?.requireResume)}
+                            className={`flex-[2] h-16 rounded-2xl items-center justify-center shadow-lg shadow-pink-200 ${(!user?.resumeUrl && selectedItem?.requireResume) ? 'bg-slate-300' : 'bg-pink-500'}`}
+                        >
+                            {applying ? <ActivityIndicator color="white" /> : (
+                                <Text className="text-white font-black italic uppercase tracking-widest text-sm">Send Application</Text>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Modal>
       </SafeAreaView>
     </View>
   );

@@ -1,13 +1,16 @@
 import Opportunity from "../models/opportunity.model.js";
 import User from "../models/user.model.js";
 import Application from "../models/application.model.js";
+import Notification from "../models/notification.model.js";
+import { sendPushNotification } from "../utils/notification.js";
+import sendMail from "../utils/emailOtp.js";
 
 export const createOpportunity = async (req, res) => {
     try {
         const { 
             title, company, location, type, opportunityType, 
             duration, stipend, description, applicationLink,
-            isPaid, requireResume
+            isPaid, requireResume, experience
         } = req.body;
 
         if (!title || !company || !type || !description) {
@@ -36,6 +39,7 @@ export const createOpportunity = async (req, res) => {
             description,
             applicationLink,
             requireResume: requireResume === 'true' || requireResume === true,
+            experience: experience || "fresher",
             postedBy: req.user.id
         });
 
@@ -70,9 +74,22 @@ export const getOpportunities = async (req, res) => {
 
         const total = await Opportunity.countDocuments(filter);
 
+        // Enrich with hasApplied if user is logged in
+        const userId = req.user?.id;
+        let enrichedData = opportunities;
+        if (userId) {
+            enrichedData = await Promise.all(opportunities.map(async (opt) => {
+                const hasApplied = await Application.exists({ 
+                    opportunity: opt._id, 
+                    candidate: userId 
+                });
+                return { ...opt.toObject(), hasApplied: !!hasApplied };
+            }));
+        }
+
         res.status(200).json({ 
             success: true, 
-            data: opportunities, 
+            data: enrichedData, 
             hasMore: skip + opportunities.length < total 
         });
     } catch (error) {
@@ -100,12 +117,54 @@ export const deleteOpportunity = async (req, res) => {
     }
 };
 
+export const updateOpportunity = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const opportunity = await Opportunity.findById(id);
+        
+        if (!opportunity) {
+            return res.status(404).json({ success: false, message: "Opportunity not found" });
+        }
+
+        if (opportunity.postedBy.toString() !== req.user.id && req.user.user_access !== 'admin') {
+            return res.status(403).json({ success: false, message: "Unauthorized" });
+        }
+
+        const allowed = [
+            "title", "company", "location", "type", "opportunityType", 
+            "duration", "stipend", "description", "applicationLink",
+            "isPaid", "requireResume", "isActive", "experience"
+        ];
+
+        allowed.forEach(field => {
+            if (req.body[field] !== undefined) {
+                // Handle booleans from multipart/form-data
+                if (field === 'isPaid' || field === 'requireResume' || field === 'isActive') {
+                    opportunity[field] = req.body[field] === 'true' || req.body[field] === true;
+                } else {
+                    opportunity[field] = req.body[field];
+                }
+            }
+        });
+
+        if (req.file) {
+            opportunity.companyLogo = req.file.path;
+        }
+
+        await opportunity.save();
+        res.status(200).json({ success: true, message: "Opportunity updated", data: opportunity });
+    } catch (error) {
+        console.error("Error updating opportunity:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
 // --- CANDIDATE ENDPOINTS ---
 
 export const applyToOpportunity = async (req, res) => {
     try {
         const { id } = req.params;
-        const { coverLetter, resume } = req.body;
+        const { coverLetter } = req.body || {};
 
         const opportunity = await Opportunity.findById(id);
         if (!opportunity) {
@@ -126,18 +185,18 @@ export const applyToOpportunity = async (req, res) => {
         if (!candidate) return res.status(404).json({ success: false, message: "User not found" });
 
         // If recruiter requires resume and candidate doesn't have one
-        if (opportunity.requireResume && !resume && !candidate.resumeUrl) {
+        if (opportunity.requireResume && !candidate.resumeUrl) {
             return res.status(400).json({ success: false, message: "This opportunity requires a resume. Please upload one in your profile first." });
         }
 
-        const portfolioUrl = `https://fync.in/portfolio/${candidate.username}`;
+        const portfolioUrl = `/profile/resume/${candidate._id}/pdf`;
 
         const application = await Application.create({
             opportunity: id,
             candidate: req.user.id,
             recruiter: opportunity.postedBy,
             coverLetter,
-            resume: resume || candidate.resumeUrl || "", 
+            resume: candidate.resumeUrl || "", 
             portfolioUrl: portfolioUrl
         });
 
@@ -191,7 +250,7 @@ export const getRecruiterApplications = async (req, res) => {
 export const updateApplicationStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
+        const { status } = req.body || {};
 
         const application = await Application.findById(id);
         if (!application) {
@@ -205,9 +264,92 @@ export const updateApplicationStatus = async (req, res) => {
         application.status = status;
         await application.save();
 
+        // Populate after saving to avoid ID/Object conflicts and satisfy notification needs
+        await application.populate("opportunity");
+
+        // Send individual notification if shortlisted
+        if (status === 'shortlisted') {
+            const candidate = await User.findById(application.candidate);
+            if (candidate && candidate.expoPushToken) {
+                await sendPushNotification(
+                    candidate.expoPushToken,
+                    "Application Update!",
+                    `Congratulations! You have been shortlisted for ${application.opportunity.title}. Check your dashboard.`
+                );
+            }
+            await Notification.create({
+                recipient: application.candidate,
+                sender: req.user.id,
+                type: 'opportunity',
+                message: `You were shortlisted for ${application.opportunity.title}!`
+            });
+        }
+
         res.status(200).json({ success: true, message: `Application status updated to ${status}` });
     } catch (error) {
         console.error("Error updating status:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+export const notifyShortlistedCandidates = async (req, res) => {
+    try {
+        const { opportunityId, message } = req.body;
+        if (!opportunityId || !message) {
+            return res.status(400).json({ success: false, message: "Opportunity ID and message are required" });
+        }
+
+        const opportunity = await Opportunity.findById(opportunityId);
+        if (!opportunity) return res.status(404).json({ success: false, message: "Opportunity not found" });
+
+        if (opportunity.postedBy.toString() !== req.user.id && req.user.user_access !== 'admin') {
+            return res.status(403).json({ success: false, message: "Unauthorized" });
+        }
+
+        const applications = await Application.find({ 
+            opportunity: opportunityId, 
+            status: 'shortlisted' 
+        }).populate("candidate", "name email expoPushToken");
+
+        if (applications.length === 0) {
+            return res.status(200).json({ success: true, message: "No shortlisted candidates to notify" });
+        }
+
+        const notificationPromises = applications.map(async (app) => {
+            const candidate = app.candidate;
+            if (!candidate) return;
+
+            // Push Notification
+            if (candidate.expoPushToken) {
+                sendPushNotification(
+                    candidate.expoPushToken,
+                    `Update: ${opportunity.title}`,
+                    message
+                ).catch(e => console.log("Push error", e));
+            }
+
+            // In-app Notification
+            Notification.create({
+                recipient: candidate._id,
+                sender: req.user.id,
+                type: 'opportunity',
+                message: message
+            }).catch(e => console.log("DB Notification error", e));
+
+            // In-app Notification
+            Notification.create({
+                recipient: candidate._id,
+                sender: req.user.id,
+                type: 'opportunity',
+                message: message
+            }).catch(e => console.log("DB Notification error", e));
+        });
+
+        await Promise.all(notificationPromises);
+
+        res.status(200).json({ success: true, message: `Notifications sent to ${applications.length} candidates` });
+    } catch (error) {
+        console.error("Error notifying candidates:", error);
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };

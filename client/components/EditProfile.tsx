@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/auth.context';
 import axios from '../context/axiosConfig';
@@ -51,6 +52,8 @@ export default function EditProfile() {
   const [newAvatar, setNewAvatar] = useState<any>(null);
   const [banner, setBanner] = useState(user?.banner || null);
   const [newBanner, setNewBanner] = useState<any>(null);
+  const [resumeUrl, setResumeUrl] = useState(user?.resumeUrl || null);
+  const [newResume, setNewResume] = useState<any>(null);
 
   // --- CHANGE DETECTION ---
   const initialSkills = user?.skills || [];
@@ -70,7 +73,8 @@ export default function EditProfile() {
     upiId !== (user?.upiId || '') ||
     JSON.stringify(skills) !== JSON.stringify(initialSkills) ||
     newAvatar !== null ||
-    newBanner !== null;
+    newBanner !== null ||
+    newResume !== null;
 
   // --- IMAGE PICKER ---
   const pickImage = async (type: 'avatar' | 'banner') => {
@@ -89,6 +93,21 @@ export default function EditProfile() {
         setBanner(result.assets[0].uri);
         setNewBanner(result.assets[0]);
       }
+    }
+  };
+
+  const pickDocument = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled) {
+        setNewResume(result.assets[0]);
+      }
+    } catch (err) {
+      console.error("Document picking error:", err);
     }
   };
 
@@ -151,6 +170,15 @@ export default function EditProfile() {
           uri: Platform.OS === 'ios' ? newBanner.uri.replace('file://', '') : newBanner.uri,
           name: fileName,
           type: `image/${fileType}`,
+        } as any);
+      }
+
+      // Append Resume
+      if (newResume) {
+        formData.append('resume', {
+          uri: Platform.OS === 'ios' ? newResume.uri.replace('file://', '') : newResume.uri,
+          name: newResume.name,
+          type: 'application/pdf',
         } as any);
       }
 
@@ -269,6 +297,32 @@ export default function EditProfile() {
             />
             <Text className="text-green-500/60 text-[10px] mt-1 ml-1 font-medium italic">
               * Other users will use this ID to pay you for your content.
+            </Text>
+          </View>
+
+          {/* --- Resume Upload Section --- */}
+          <View className="bg-blue-50/50 p-4 rounded-2xl border border-blue-200/50 mt-2">
+            <Text className="text-blue-900 font-bold mb-3">Resume / CV</Text>
+            
+            <View className="flex-row items-center justify-between bg-white p-3 rounded-xl border border-blue-100">
+              <View className="flex-1 mr-3">
+                <Text className="text-gray-600 text-xs uppercase font-bold tracking-widest mb-1">Current Resume</Text>
+                <Text className="text-blue-600 text-sm font-medium" numberOfLines={1}>
+                  {newResume ? newResume.name : (resumeUrl ? "Resume Uploaded ✅" : "No Resume Uploaded")}
+                </Text>
+              </View>
+              
+              <Pressable 
+                onPress={pickDocument}
+                className="bg-blue-600 px-4 py-2 rounded-lg"
+              >
+                <Text className="text-white font-bold text-xs">
+                  {resumeUrl || newResume ? "Replace PDF" : "Upload PDF"}
+                </Text>
+              </Pressable>
+            </View>
+            <Text className="text-gray-400 text-[10px] mt-2 italic ml-1">
+              * Required for job applications. PDF format only.
             </Text>
           </View>
 

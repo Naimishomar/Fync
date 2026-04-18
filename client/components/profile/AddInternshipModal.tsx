@@ -4,6 +4,7 @@ import {
   ActivityIndicator, KeyboardAvoidingView, Platform, Switch
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 
@@ -23,6 +24,10 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
     techStack: '', startDate: '', endDate: '', isCurrentlyWorking: false,
     location: '', workMode: 'remote',
   });
+  const [offerLetter, setOfferLetter] = useState<any>(null);
+  const [completionCertificate, setCompletionCertificate] = useState<any>(null);
+  const [existingOfferLetter, setExistingOfferLetter] = useState<string | null>(null);
+  const [existingCertificate, setExistingCertificate] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const isEdit = !!initial?._id;
 
@@ -40,30 +45,87 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
         location: initial.location || '',
         workMode: initial.workMode || 'remote',
       });
+      setExistingOfferLetter(initial.offerLetterUrl || null);
+      setExistingCertificate(initial.completionCertificateUrl || null);
+      setOfferLetter(null);
+      setCompletionCertificate(null);
     } else {
       setForm({ company: '', role: '', type: 'internship', description: '', techStack: '', startDate: '', endDate: '', isCurrentlyWorking: false, location: '', workMode: 'remote' });
+      setExistingOfferLetter(null);
+      setExistingCertificate(null);
+      setOfferLetter(null);
+      setCompletionCertificate(null);
     }
   }, [initial, visible]);
+
+  const pickDocument = async (field: 'offer' | 'cert') => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets?.[0]) {
+        if (field === 'offer') setOfferLetter(result.assets[0]);
+        else setCompletionCertificate(result.assets[0]);
+      }
+    } catch (err) {
+      Toast.show({ type: 'error', text1: 'Error picking document' });
+    }
+  };
 
   const save = async () => {
     if (!form.company.trim() || !form.role.trim() || !form.startDate)
       return Toast.show({ type: 'error', text1: 'Company, role and start date are required' });
 
+    // Enforce Verification Documents
+    if (form.isCurrentlyWorking && !offerLetter && !existingOfferLetter) {
+        return Toast.show({ type: 'error', text1: 'Offer letter is required for current jobs' });
+    }
+    if (!form.isCurrentlyWorking && !completionCertificate && !existingCertificate) {
+        return Toast.show({ type: 'error', text1: 'Completion certificate is required for past jobs' });
+    }
+
     setSaving(true);
     try {
-      const payload = {
-        ...form,
-        techStack: form.techStack.split(',').map(s => s.trim()).filter(Boolean),
-      };
+      const formData = new FormData();
+      Object.entries(form).forEach(([key, val]) => {
+          if (key === 'techStack') {
+              val.split(',').map((s: string) => s.trim()).filter(Boolean).forEach((s: string) => {
+                  formData.append('techStack', s);
+              });
+          } else {
+              formData.append(key, String(val));
+          }
+      });
+
+      if (offerLetter) {
+          formData.append('offerLetter', {
+              uri: Platform.OS === 'ios' ? offerLetter.uri.replace('file://', '') : offerLetter.uri,
+              name: offerLetter.name || 'offer_letter.pdf',
+              type: 'application/pdf'
+          } as any);
+      }
+      if (completionCertificate) {
+          formData.append('completionCertificate', {
+              uri: Platform.OS === 'ios' ? completionCertificate.uri.replace('file://', '') : completionCertificate.uri,
+              name: completionCertificate.name || 'certificate.pdf',
+              type: 'application/pdf'
+          } as any);
+      }
+
+      const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+
       if (isEdit) {
-        await axios.patch(`/profile/internships/${initial._id}`, payload);
+        await axios.patch(`/profile/internships/${initial._id}`, formData, config);
         Toast.show({ type: 'success', text1: 'Experience updated!' });
       } else {
-        await axios.post('/profile/internships', payload);
+        await axios.post('/profile/internships', formData, config);
         Toast.show({ type: 'success', text1: 'Experience added!' });
       }
       onSuccess();
-    } catch {
+    } catch (e) {
+      console.error(e);
       Toast.show({ type: 'error', text1: 'Failed to save' });
     } finally {
       setSaving(false);
@@ -144,6 +206,46 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
               </Pressable>
             ))}
           </View>
+
+          {/* Document Section */}
+          <View className="mb-8 p-4 bg-indigo-50 border border-indigo-100 rounded-2xl">
+             <View className="flex-row items-center mb-2">
+               <Ionicons name="shield-checkmark" size={18} color="#4F46E5" />
+               <Text className="text-indigo-900 font-bold text-sm ml-2">Verification Required</Text>
+             </View>
+             
+             {form.isCurrentlyWorking ? (
+               <View>
+                 <Text className="text-indigo-600 text-[10px] uppercase font-black tracking-widest mb-3">Please upload your Offer Letter (PDF)</Text>
+                 <Pressable onPress={() => pickDocument('offer')} 
+                   className="bg-white border border-indigo-200 p-4 rounded-xl flex-row items-center justify-between">
+                    <View className="flex-row items-center flex-1">
+                      <Ionicons name="document-text" size={20} color="#6366F1" />
+                      <Text className="text-gray-700 text-xs ml-3 font-semibold" numberOfLines={1}>
+                        {offerLetter ? offerLetter.name : (existingOfferLetter ? 'Offer Letter Uploaded ✅' : 'Select Offer Letter PDF')}
+                      </Text>
+                    </View>
+                    <Ionicons name="cloud-upload-outline" size={18} color="#6366F1" />
+                 </Pressable>
+               </View>
+             ) : (
+               <View>
+                 <Text className="text-indigo-600 text-[10px] uppercase font-black tracking-widest mb-3">Please upload Completion Certificate (PDF)</Text>
+                 <Pressable onPress={() => pickDocument('cert')} 
+                   className="bg-white border border-indigo-200 p-4 rounded-xl flex-row items-center justify-between">
+                    <View className="flex-row items-center flex-1">
+                      <Ionicons name="ribbon" size={20} color="#6366F1" />
+                      <Text className="text-gray-700 text-xs ml-3 font-semibold" numberOfLines={1}>
+                        {completionCertificate ? completionCertificate.name : (existingCertificate ? 'Certificate Uploaded ✅' : 'Select Certificate PDF')}
+                      </Text>
+                    </View>
+                    <Ionicons name="cloud-upload-outline" size={18} color="#6366F1" />
+                 </Pressable>
+               </View>
+             )}
+          </View>
+          
+          <View className="h-10" />
         </ScrollView>
       </KeyboardAvoidingView>
     </Modal>

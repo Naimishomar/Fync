@@ -5,7 +5,9 @@ import {
     applyToOpportunity,
     getRecruiterPosts,
     getRecruiterApplications,
-    updateApplicationStatus
+    updateApplicationStatus,
+    notifyShortlistedCandidates,
+    updateOpportunity
 } from "../controllers/opportunity.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { upload } from "../utils/r2.js";
@@ -20,9 +22,11 @@ router.post("/apply/:id", authMiddleware, applyToOpportunity);
 
 // Recruiter/Admin Only
 router.post("/create", authMiddleware, upload.single('companyLogo'), r2UploadMiddleware({ __single__: 'company_logos' }), createOpportunity);
+router.patch("/update/:id", authMiddleware, upload.single('companyLogo'), r2UploadMiddleware({ __single__: 'company_logos' }), updateOpportunity);
 router.delete("/delete/:id", authMiddleware, deleteOpportunity);
 router.get("/recruiter/posts", authMiddleware, getRecruiterPosts);
 router.get("/recruiter/applications", authMiddleware, getRecruiterApplications);
 router.patch("/recruiter/application-status/:id", authMiddleware, updateApplicationStatus);
+router.post("/recruiter/notify-shortlisted", authMiddleware, notifyShortlistedCandidates);
 
 export default router;

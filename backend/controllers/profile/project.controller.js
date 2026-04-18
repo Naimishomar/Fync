@@ -19,7 +19,7 @@ export const createProject = async (req, res) => {
             title, tagline, description, longDescription,
             techStack: techStack || [],
             githubUrl, liveUrl,
-            images: images || [],
+            images: req.files?.map(f => f.path) || [],
             videoDemo, status,
             startDate: startDate ? new Date(startDate) : null,
             endDate: endDate ? new Date(endDate) : null,
@@ -97,6 +97,12 @@ export const updateProject = async (req, res) => {
         allowed.forEach((field) => {
             if (req.body[field] !== undefined) project[field] = req.body[field];
         });
+
+        // Add new uploaded images if any
+        if (req.files && req.files.length > 0) {
+            const newImages = req.files.map(f => f.path);
+            project.images = [...(project.images || []), ...newImages];
+        }
 
         await project.save();
         calculateFyncScore(req.user._id).catch(() => {});

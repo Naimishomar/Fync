@@ -482,6 +482,9 @@ const linking = {
       IndividualPostOrShort: {
         path: 'view',
       },
+      FyncProfileBuilder: {
+        path: 'github-connected',
+      },
     },
   },
 };

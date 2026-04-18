@@ -11,7 +11,9 @@ export const createCertificate = async (req, res) => {
             title, issuer,
             issueDate: issueDate ? new Date(issueDate) : null,
             expiryDate: expiryDate ? new Date(expiryDate) : null,
-            credentialUrl, imageUrl, credentialId,
+            credentialUrl, 
+            imageUrl: req.file?.path || imageUrl, 
+            credentialId,
             category: category || "other",
             source: source || "manual",
             isPublic: isPublic !== false
@@ -51,6 +53,11 @@ export const updateCertificate = async (req, res) => {
 
         const allowed = ["title", "issuer", "issueDate", "expiryDate", "credentialUrl", "imageUrl", "credentialId", "category", "source", "isPublic"];
         allowed.forEach((f) => { if (req.body[f] !== undefined) cert[f] = req.body[f]; });
+        
+        if (req.file) {
+            cert.imageUrl = req.file.path;
+        }
+
         await cert.save();
 
         return res.json({ success: true, cert });

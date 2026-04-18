@@ -4,6 +4,7 @@ import Internship from "../../models/profile/internship.model.js";
 import Certificate from "../../models/profile/certificate.model.js";
 import FyncScore from "../../models/profile/fyncScore.model.js";
 import PDFDocument from "pdfkit";
+import { deleteFromR2 } from "../../utils/r2.js";
 
 // ─── Badge emoji map ──────────────────────────────────────────────────────────
 const BADGE_EMOJI = {
@@ -157,4 +158,36 @@ export const generateResumePDF = async (req, res) => {
     }
 };
 
+
+// ─── Upload Custom Resume ───────────────────────────────────────────────────
+export const uploadResume = async (req, res) => {
+    try {
+        if (!req.file || !req.file.path) {
+            return res.status(400).json({ success: false, message: "No resume file uploaded" });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+        // Delete old resume from R2 if it exists
+        if (user.resumeUrl) {
+            console.log(`🗑️ Deleting old resume: ${user.resumeUrl}`);
+            await deleteFromR2(user.resumeUrl);
+        }
+
+        user.resumeUrl = req.file.path;
+        await user.save();
+
+        res.status(200).json({ 
+            success: true, 
+            message: "Resume uploaded successfully", 
+            resumeUrl: user.resumeUrl 
+        });
+    } catch (error) {
+        console.error("uploadResume error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
 const capitalize = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
+

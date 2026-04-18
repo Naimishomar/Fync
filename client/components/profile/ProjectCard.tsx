@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, Linking, Image } from 'react-native';
+import { View, Text, Pressable, Linking, Image, ScrollView } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
@@ -43,12 +43,27 @@ export default function ProjectCard({
 
   return (
     <View className="mx-4 mb-4 bg-white rounded-2xl border border-gray-100 overflow-hidden">
-      {/* Cover image */}
-      {firstImage ? (
-        <Image source={{ uri: firstImage }} className="w-full h-36" resizeMode="cover" />
+      {/* Images Slider */}
+      {project.images && project.images.length > 0 ? (
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          className="bg-gray-50/50"
+          contentContainerStyle={{ padding: 8 }}
+        >
+           {project.images.map((img, i) => (
+             <Image 
+                key={i} 
+                source={{ uri: img }} 
+                className="w-64 h-40 rounded-xl mr-3 border border-gray-100" 
+                resizeMode="cover" 
+             />
+           ))}
+        </ScrollView>
       ) : (
-        <View className="w-full h-20 bg-gradient-to-br from-indigo-50 to-purple-50 items-center justify-center">
+        <View className="w-full h-24 bg-slate-50 items-center justify-center border-b border-gray-100">
           <MaterialCommunityIcons name="code-braces" size={32} color="#C4B5FD" />
+          <Text className="text-[10px] text-slate-400 font-bold uppercase mt-2 tracking-widest">No Screenshots Added</Text>
         </View>
       )}
 

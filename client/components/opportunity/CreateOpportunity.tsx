@@ -23,21 +23,24 @@ const CreateOpportunity = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const initialType = route.params?.type || 'internship';
+  const initialData = route.params?.initialData;
+  const isEdit = !!initialData;
 
   const [loading, setLoading] = useState(false);
-  const [logoUri, setLogoUri] = useState<string | null>(null);
+  const [logoUri, setLogoUri] = useState<string | null>(initialData?.companyLogo || null);
   const [formData, setFormData] = useState({
-    title: '',
-    company: '',
-    location: 'Remote',
-    type: initialType,
-    opportunityType: 'Full-Time',
-    duration: '',
-    isPaid: false,
-    stipend: '',
-    description: '',
-    applicationLink: '',
-    requireResume: true
+    title: initialData?.title || '',
+    company: initialData?.company || '',
+    location: initialData?.location || 'Remote',
+    type: initialData?.type || initialType,
+    opportunityType: initialData?.opportunityType || 'Full-Time',
+    duration: initialData?.duration || '',
+    isPaid: initialData?.isPaid || false,
+    stipend: initialData?.stipend || '',
+    description: initialData?.description || '',
+    applicationLink: initialData?.applicationLink || '',
+    requireResume: initialData?.requireResume !== false,
+    experience: initialData?.experience || 'Fresher'
   });
 
   const pickLogo = async () => {
@@ -85,25 +88,34 @@ const CreateOpportunity = () => {
       data.append('description', formData.description);
       data.append('applicationLink', formData.applicationLink);
       data.append('requireResume', String(formData.requireResume));
+      data.append('experience', formData.experience);
+      // Append logo image if newly picked
+      if (logoUri && !logoUri.startsWith('http')) {
+        const uriParts = logoUri.split('.');
+        const fileType = uriParts[uriParts.length - 1];
+        data.append('companyLogo', {
+          uri: logoUri,
+          name: `logo.${fileType}`,
+          type: `image/${fileType}`,
+        } as any);
+      }
       
-      // Append logo image
-      const uriParts = logoUri.split('.');
-      const fileType = uriParts[uriParts.length - 1];
-      data.append('companyLogo', {
-        uri: logoUri,
-        name: `logo.${fileType}`,
-        type: `image/${fileType}`,
-      } as any);
-
-      const res = await axios.post('/opportunity/create', data, {
+      const config = {
         headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      };
+
+      let res;
+      if (isEdit) {
+        res = await axios.patch(`/opportunity/update/${initialData._id}`, data, config);
+      } else {
+        res = await axios.post('/opportunity/create', data, config);
+      }
 
       if (res.data.success) {
         Toast.show({
           type: 'success',
-          text1: 'Opportunity Posted!',
-          text2: 'Your post is now live for all candidates.'
+          text1: isEdit ? 'Opportunity Updated!' : 'Opportunity Posted!',
+          text2: 'Your changes are now live.'
         });
         navigation.goBack();
       }
@@ -140,10 +152,10 @@ const CreateOpportunity = () => {
         className="flex-1"
       >
         <View className="px-6 py-4 border-b border-gray-100 flex-row items-center justify-between">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 items-center justify-center rounded-full bg-slate-50">
+           <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 items-center justify-center rounded-full bg-slate-50">
             <Ionicons name="chevron-back" size={24} color="black" />
           </TouchableOpacity>
-          <Text className="text-xl font-black uppercase tracking-tighter">Post Opportunity</Text>
+          <Text className="text-xl font-black uppercase tracking-tighter">{isEdit ? 'Edit Opportunity' : 'Post Opportunity'}</Text>
           <View className="w-10" />
         </View>
 
@@ -217,6 +229,12 @@ const CreateOpportunity = () => {
               field="opportunityType" 
             />
 
+            <SelectionGroup 
+              label="Experience Required *" 
+              options={["Fresher", "Entry Level", "1-2 Years", "3-5 Years", "5+ Years"]} 
+              field="experience" 
+            />
+
             <View className="flex-row gap-4">
                 <View className="flex-1">
                     <Text className="text-slate-400 font-black uppercase text-[10px] tracking-widest mb-3 ml-1">Payment *</Text>
@@ -244,12 +262,14 @@ const CreateOpportunity = () => {
                 )}
             </View>
 
-            <InputGroup 
-                label="Duration" 
-                value={formData.duration} 
-                placeholder="e.g. 6 Months / Performance Based"
-                onChange={(v: any) => setFormData({...formData, duration: v})} 
-            />
+            {formData.type === 'internship' && (
+              <InputGroup 
+                  label="Duration" 
+                  value={formData.duration} 
+                  placeholder="e.g. 6 Months / Performance Based"
+                  onChange={(v: any) => setFormData({...formData, duration: v})} 
+              />
+            )}
 
             <InputGroup 
               label="Application Link (Optional)" 
@@ -288,7 +308,7 @@ const CreateOpportunity = () => {
               {loading ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Text className="text-white font-black uppercase text-lg">Post Live Opportunity</Text>
+                <Text className="text-white font-black uppercase text-lg">{isEdit ? 'Update Changes' : 'Post Live Opportunity'}</Text>
               )}
             </TouchableOpacity>
           </View>

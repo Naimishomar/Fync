@@ -30,6 +30,10 @@ const opportunitySchema = new mongoose.Schema({
         enum: ["Full-Time", "Part-Time"],
         default: "Full-Time"
     },
+    experience: {
+        type: String,
+        default: "fresher"  // fresher, 1-2 years, etc
+    },
     duration: {
         type: String,
         default: ""

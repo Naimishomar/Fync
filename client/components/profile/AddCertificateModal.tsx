@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
   Modal, View, Text, TextInput, Pressable, ScrollView,
-  ActivityIndicator, KeyboardAvoidingView, Platform
+  ActivityIndicator, KeyboardAvoidingView, Platform, Image
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 
@@ -21,6 +22,8 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
     title: '', issuer: '', issueDate: '', expiryDate: '',
     credentialUrl: '', credentialId: '', category: 'other',
   });
+  const [image, setImage] = useState<any>(null);
+  const [existingImage, setExistingImage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const isEdit = !!initial?._id;
 
@@ -35,25 +38,57 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
         credentialId: initial.credentialId || '',
         category: initial.category || 'other',
       });
+      setExistingImage(initial.imageUrl || null);
     } else {
       setForm({ title: '', issuer: '', issueDate: '', expiryDate: '', credentialUrl: '', credentialId: '', category: 'other' });
+      setExistingImage(null);
     }
   }, [initial, visible]);
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.5,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0]);
+    }
+  };
 
   const save = async () => {
     if (!form.title.trim() || !form.issuer.trim())
       return Toast.show({ type: 'error', text1: 'Title and issuer are required' });
     setSaving(true);
     try {
+      const formData = new FormData();
+      Object.entries(form).forEach(([key, val]) => {
+        formData.append(key, val);
+      });
+
+      if (image) {
+        const fileName = image.uri.split('/').pop();
+        const fileType = fileName?.split('.').pop();
+        formData.append('image', {
+          uri: Platform.OS === 'ios' ? image.uri.replace('file://', '') : image.uri,
+          name: fileName,
+          type: `image/${fileType}`,
+        } as any);
+      }
+
+      const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+
       if (isEdit) {
-        await axios.patch(`/profile/certificates/${initial._id}`, form);
+        await axios.patch(`/profile/certificates/${initial._id}`, formData, config);
         Toast.show({ type: 'success', text1: 'Certificate updated!' });
       } else {
-        await axios.post('/profile/certificates', form);
+        await axios.post('/profile/certificates', formData, config);
         Toast.show({ type: 'success', text1: 'Certificate added!' });
       }
       onSuccess();
-    } catch {
+    } catch (e) {
+      console.error(e);
       Toast.show({ type: 'error', text1: 'Failed to save' });
     } finally {
       setSaving(false);
@@ -106,6 +141,32 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
               />
             </View>
           ))}
+
+          {/* Image Picker */}
+          <Text className="text-gray-700 font-semibold text-sm mb-2">Certificate Image / Proof</Text>
+          <Pressable onPress={pickImage} className="mb-8">
+            {image ? (
+               <View className="w-full h-40 rounded-2xl overflow-hidden border border-gray-100">
+                 <Image source={{ uri: image.uri }} className="w-full h-full" resizeMode="contain" />
+                 <View className="absolute top-2 right-2 bg-black/50 rounded-full p-1.5">
+                   <Ionicons name="pencil" size={14} color="white" />
+                 </View>
+               </View>
+            ) : existingImage ? (
+               <View className="w-full h-40 rounded-2xl overflow-hidden border border-gray-100">
+                 <Image source={{ uri: existingImage }} className="w-full h-full" resizeMode="contain" />
+                 <View className="absolute top-2 right-2 bg-black/50 rounded-full p-1.5">
+                    <Ionicons name="pencil" size={14} color="white" />
+                 </View>
+               </View>
+            ) : (
+               <View className="w-full h-40 border-2 border-dashed border-gray-200 rounded-2xl items-center justify-center bg-gray-50">
+                 <Ionicons name="cloud-upload-outline" size={32} color="#9CA3AF" />
+                 <Text className="text-gray-400 text-xs mt-2 font-medium">Upload certificate image or screenshot</Text>
+               </View>
+            )}
+          </Pressable>
+          
           <View className="h-6" />
         </ScrollView>
       </KeyboardAvoidingView>

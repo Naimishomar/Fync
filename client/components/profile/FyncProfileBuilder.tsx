@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../context/auth.context';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
@@ -67,6 +67,7 @@ function SectionHeader({ title, icon, onAdd, addLabel }: {
 export default function FyncProfileBuilder() {
   const { user } = useAuth();
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
 
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -93,6 +94,19 @@ export default function FyncProfileBuilder() {
   };
 
   useEffect(() => { fetchProfile(); }, []);
+
+  useEffect(() => {
+    if (route.params?.username) {
+      Toast.show({
+        type: 'success',
+        text1: 'GitHub Connected!',
+        text2: `Connected as ${route.params.username}`
+      });
+      fetchProfile();
+      // Clear params to prevent re-toast
+      navigation.setParams({ username: undefined });
+    }
+  }, [route.params?.username]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -196,6 +210,15 @@ export default function FyncProfileBuilder() {
         return (
           <>
             <CompletenessBar pct={pct} />
+            
+            {/* 📝 Coding Profile Note */}
+            <View className="mx-4 mb-4 p-3 bg-amber-50 border border-amber-100 rounded-xl flex-row items-center">
+              <Ionicons name="link-outline" size={18} color="#D97706" />
+              <Text className="text-amber-700 text-[10px] font-bold ml-2 flex-1">
+                Pro Tip: Add your LeetCode, CodeChef, and other coding profiles in 'Edit Profile' to showcase your skills to recruiters!
+              </Text>
+            </View>
+
             <FyncScoreCard userId={user?._id!} isOwner onRecalculate={fetchProfile} />
             <GitHubStatsCard
               username={profile?.user?.githubUsername}

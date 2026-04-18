@@ -60,6 +60,14 @@ const internshipSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    offerLetterUrl: {
+        type: String,
+        default: null
+    },
+    completionCertificateUrl: {
+        type: String,
+        default: null
+    },
     isPublic: {
         type: Boolean,
         default: true

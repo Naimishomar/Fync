@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, Linking } from 'react-native';
+import { View, Text, Pressable, Linking, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const CAT_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
@@ -19,6 +19,7 @@ interface Certificate {
   issuer: string;
   issueDate?: string;
   credentialUrl?: string;
+  imageUrl?: string;
   category?: string;
 }
 
@@ -37,11 +38,19 @@ export default function CertificateCard({ cert, isOwner, onEdit, onDelete }: Pro
 
   return (
     <View className="bg-white rounded-xl border border-gray-100 p-3.5 flex-row items-center">
-      {/* Icon */}
-      <View className="w-10 h-10 rounded-xl items-center justify-center mr-3 flex-shrink-0"
-        style={{ backgroundColor: cat.bg }}>
-        <Ionicons name={cat.icon as any} size={20} color={cat.color} />
-      </View>
+      {/* Image or Icon */}
+      {cert.imageUrl ? (
+        <Image 
+          source={{ uri: cert.imageUrl }} 
+          className="w-14 h-14 rounded-lg mr-3 flex-shrink-0 border border-slate-200"
+          resizeMode="cover"
+        />
+      ) : (
+        <View className="w-14 h-14 rounded-lg items-center justify-center mr-3 flex-shrink-0"
+          style={{ backgroundColor: cat.bg }}>
+          <Ionicons name={cat.icon as any} size={24} color={cat.color} />
+        </View>
+      )}
 
       {/* Content */}
       <View className="flex-1">

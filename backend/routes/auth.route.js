@@ -47,7 +47,7 @@ router.post('/register-alumni', upload.single('avatar'), r2UploadMiddleware({ __
 router.post('/register-recruiter', upload.single('avatar'), r2UploadMiddleware({ __single__: 'avatar' }), registerRecruiter);
 router.post('/refresh-token', refreshToken);
 router.post('/login', login);
-router.post('/update', authMiddleware, upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), r2UploadMiddleware({ avatar: 'avatar', banner: 'banner' }), updateUser);
+router.post('/update', authMiddleware, upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'banner', maxCount: 1 }, { name: 'resume', maxCount: 1 }]), r2UploadMiddleware({ avatar: 'avatar', banner: 'banner', resume: 'resumes' }), updateUser);
 router.get('/profile', authMiddleware, getProfile);
 router.get('/get-alumni', authMiddleware, cacheMiddleware(600), getAlumniByCollege);
 router.post('/search', authMiddleware, getUserProfileByName);
