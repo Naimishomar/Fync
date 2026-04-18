@@ -36,6 +36,7 @@ import ForgotPassword from "./components/ForgotPassword";
 // Core Components
 import TabLayout from "./components/TabLayout";
 import CustomSidebar from "./components/CustomSidebar";
+import AlumniSidebar from "./components/AlumniSidebar";
 import RecruiterTabLayout from "./components/RecruiterTabLayout";
 import Profile from "./components/profile";
 import RecruiterProfile from "./components/RecruiterProfile";
@@ -302,10 +303,13 @@ export type RootStackParamList = {
 
 
 function HomeDrawer() {
+  const { user } = useAuth();
+  const isAlumni = user?.user_access === 'alumni';
+
   return (
     <Drawer.Navigator
       id="LeftDrawer"
-      drawerContent={(props) => <CustomSidebar {...props} />}
+      drawerContent={(props) => isAlumni ? <AlumniSidebar {...props} /> : <CustomSidebar {...props} />}
       screenOptions={{
         headerShown: false,
         drawerStyle: {
@@ -513,13 +517,52 @@ export default function App() {
     );
   }
 
+  const toastConfig = {
+    success: (props: any) => (
+      <View className="mx-5 my-2 p-4 bg-white rounded-3xl flex-row items-center shadow-xl border border-slate-100">
+        <View className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center mr-3 border border-slate-100 overflow-hidden">
+          <Image source={require('./assets/Fync.jpg')} className="w-full h-full" resizeMode="cover" />
+        </View>
+        <View className="flex-1">
+          <Text className="text-zinc-900 font-bold text-sm tracking-tight">{props.text1}</Text>
+          {props.text2 && <Text className="text-slate-500 text-xs mt-0.5">{props.text2}</Text>}
+        </View>
+        <View className="bg-green-500 w-1.5 h-6 rounded-full ml-2" />
+      </View>
+    ),
+    info: (props: any) => (
+      <View className="mx-5 my-2 p-4 bg-zinc-900 rounded-3xl flex-row items-center shadow-2xl">
+        <View className="w-10 h-10 bg-zinc-800 rounded-2xl items-center justify-center mr-3 border border-zinc-700 overflow-hidden">
+          <Image source={require('./assets/Fync.jpg')} className="w-full h-full" resizeMode="cover" />
+        </View>
+        <View className="flex-1">
+          <Text className="text-white font-bold text-sm tracking-tight">{props.text1}</Text>
+          {props.text2 && <Text className="text-zinc-400 text-xs mt-0.5">{props.text2}</Text>}
+        </View>
+        <View className="bg-indigo-500 w-1.5 h-6 rounded-full ml-2" />
+      </View>
+    ),
+    error: (props: any) => (
+      <View className="mx-5 my-2 p-4 bg-white rounded-3xl flex-row items-center shadow-xl border border-red-50">
+        <View className="w-10 h-10 bg-red-50 rounded-2xl items-center justify-center mr-3 border border-red-100 overflow-hidden">
+          <Image source={require('./assets/Fync.jpg')} className="w-full h-full" resizeMode="cover" />
+        </View>
+        <View className="flex-1">
+          <Text className="text-red-900 font-bold text-sm tracking-tight">{props.text1}</Text>
+          {props.text2 && <Text className="text-red-400 text-xs mt-0.5">{props.text2}</Text>}
+        </View>
+        <View className="bg-red-500 w-1.5 h-6 rounded-full ml-2" />
+      </View>
+    ),
+  };
+
   return (
     <AuthProvider>
       <SafeAreaProvider>
         <NavigationContainer ref={navigationRef} linking={linking}>
           <StatusBar style="dark" backgroundColor="#ffffff" />
           <RootNavigator />
-          <Toast position="top" />
+          <Toast config={toastConfig} position="top" visibilityTime={4000} topOffset={60} />
         </NavigationContainer>
       </SafeAreaProvider>
     </AuthProvider>

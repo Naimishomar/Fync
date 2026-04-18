@@ -136,11 +136,12 @@ const AdminPortal = ({ navigation }: any) => {
         }
     }, [user]);
 
-    const [activeTab, setActiveTab] = useState<'ads' | 'rewards' | 'marketplace' | 'messages'>('ads');
+    const [activeTab, setActiveTab] = useState<'ads' | 'rewards' | 'marketplace' | 'messages' | 'media'>('ads');
     const [ads, setAds] = useState<any[]>([]);
     const [redemptions, setRedemptions] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
     const [messages, setMessages] = useState<any[]>([]);
+    const [fyncMedia, setFyncMedia] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -154,7 +155,9 @@ const AdminPortal = ({ navigation }: any) => {
     const [coins, setCoins] = useState('');
     const [isActive, setIsActive] = useState(true);
     const [imageUri, setImageUri] = useState<string | null>(null);
+    const [videoUri, setVideoUri] = useState<string | null>(null);
     const [imageUrl, setImageUrl] = useState('');
+    const [tags, setTags] = useState('');
 
     const fetchAds = async () => {
         try {
@@ -191,6 +194,19 @@ const AdminPortal = ({ navigation }: any) => {
         } catch (e) {
             console.error(e);
             Toast.show({ type: 'error', text1: 'Failed to fetch items' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchFyncMedia = async () => {
+        try {
+            setLoading(true);
+            const res = await axios.get('/fync-media/all?limit=50');
+            if (res.data.success) setFyncMedia(res.data.data);
+        } catch (e) {
+            console.error(e);
+            Toast.show({ type: 'error', text1: 'Failed to fetch Media' });
         } finally {
             setLoading(false);
         }
@@ -258,6 +274,8 @@ const AdminPortal = ({ navigation }: any) => {
             fetchRedemptions();
         } else if (activeTab === 'marketplace') {
             fetchProducts();
+        } else if (activeTab === 'media') {
+            fetchFyncMedia();
         } else {
             fetchContactMessages();
         }
@@ -267,10 +285,22 @@ const AdminPortal = ({ navigation }: any) => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             quality: 0.8,
+            aspect: [16, 9],
+            allowsEditing: true
         });
         if (!result.canceled) {
             setImageUri(result.assets[0].uri);
             setImageUrl('');
+        }
+    };
+
+    const pickVideo = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+            quality: 0.8,
+        });
+        if (!result.canceled) {
+            setVideoUri(result.assets[0].uri);
         }
     };
 
@@ -279,6 +309,8 @@ const AdminPortal = ({ navigation }: any) => {
         setLinkUrl('');
         setDescription('');
         setCoins('');
+        setVideoUri(null);
+        setTags('');
         setIsActive(true);
         setImageUri(null);
         setImageUrl('');
@@ -293,9 +325,15 @@ const AdminPortal = ({ navigation }: any) => {
         }
 
         const isMarketplace = activeTab === 'marketplace';
+        const isMedia = activeTab === 'media';
         
         if (isMarketplace && (!title || !description || !coins)) {
             Toast.show({ type: 'error', text1: 'All fields are required' });
+            return;
+        }
+
+        if (isMedia && (!title || !description || (!imageUri && !imageUrl) || !videoUri)) {
+            Toast.show({ type: 'error', text1: 'Title, Description, Thumbnail and Video are required' });
             return;
         }
 
@@ -335,6 +373,37 @@ const AdminPortal = ({ navigation }: any) => {
                     Toast.show({ type: 'success', text1: 'Item created!' });
                 }
                 fetchProducts();
+            } else if (isMedia) {
+                const mediaData = new FormData();
+                mediaData.append('title', title);
+                mediaData.append('description', description);
+                mediaData.append('tags', tags);
+
+                if (imageUri) {
+                    const filename = imageUri.split('/').pop() || 'thumb.jpg';
+                    const ext = filename.split('.').pop() || 'jpg';
+                    mediaData.append('thumbnail', {
+                        uri: Platform.OS === 'android' ? imageUri : imageUri.replace('file://', ''),
+                        name: filename,
+                        type: `image/${ext}`,
+                    } as any);
+                }
+
+                if (videoUri) {
+                    const vidFilename = videoUri.split('/').pop() || 'media.mp4';
+                    const vidExt = vidFilename.split('.').pop() || 'mp4';
+                    mediaData.append('video', {
+                        uri: Platform.OS === 'android' ? videoUri : videoUri.replace('file://', ''),
+                        name: vidFilename,
+                        type: `video/${vidExt}`,
+                    } as any);
+                }
+
+                await axios.post('/fync-media/create', mediaData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
+                Toast.show({ type: 'success', text1: 'Media published!' });
+                fetchFyncMedia();
             } else {
                 formData.append('title', title);
                 formData.append('linkUrl', linkUrl);
@@ -376,6 +445,9 @@ const AdminPortal = ({ navigation }: any) => {
                         } else if (type === 'product') {
                             await axios.delete(`/api/marketplace/${id}`);
                             setProducts(prev => prev.filter(p => p._id !== id));
+                        } else if (type === 'media') {
+                            await axios.delete(`/fync-media/delete/${id}`);
+                            setFyncMedia(prev => prev.filter(m => m._id !== id));
                         } else {
                             await axios.delete(`/contact-us/messages/${id}`);
                             setMessages(prev => prev.filter(m => m._id !== id));
@@ -408,6 +480,29 @@ const AdminPortal = ({ navigation }: any) => {
         }
         setModalVisible(true);
     };
+
+    const MediaItem = ({ item, onDelete }: any) => (
+        <View className="bg-white rounded-2xl mb-4 border border-gray-100 overflow-hidden">
+            <View className="w-full aspect-video bg-gray-100">
+                <Image source={{ uri: item.thumbnail }} className="w-full h-full" resizeMode="cover" />
+                <View className="absolute top-3 right-3">
+                    <TouchableOpacity onPress={() => onDelete(item._id, 'media')} className="w-9 h-9 bg-red-500 rounded-full items-center justify-center border border-red-500/20">
+                        <Ionicons name="trash" size={16} color="white" />
+                    </TouchableOpacity>
+                </View>
+            </View>
+            <View className="p-4">
+                <Text className="text-zinc-900 font-bold text-base mb-1" numberOfLines={1}>{item.title}</Text>
+                <Text className="text-gray-500 text-xs" numberOfLines={2}>{item.description}</Text>
+                <View className="flex-row items-center gap-2 mt-3">
+                    {item.tags?.map((tag: string, idx: number) => (
+                        <Text key={idx} className="text-pink-500 text-[10px] font-bold">#{tag}</Text>
+                    ))}
+                    <Text className="text-gray-300 ml-auto text-[10px] font-medium">{new Date(item.date).toLocaleDateString()}</Text>
+                </View>
+            </View>
+        </View>
+    );
 
     const MarketPlaceItem = ({ item, onEdit, onDelete }: any) => (
         <View className="bg-white rounded-2xl mb-4 border border-gray-100 overflow-hidden">
@@ -524,7 +619,7 @@ const AdminPortal = ({ navigation }: any) => {
                             onPress={() => { resetForm(); setModalVisible(true); }}
                             className="bg-zinc-900 px-4 py-2.5 rounded-full"
                         >
-                            <Text className="text-white font-bold text-xs uppercase tracking-widest">+ {activeTab === 'ads' ? 'Add Ad' : 'Add Item'}</Text>
+                            <Text className="text-white font-bold text-xs uppercase tracking-widest">+ {activeTab === 'ads' ? 'Add Ad' : activeTab === 'media' ? 'Add Media' : 'Add Item'}</Text>
                         </TouchableOpacity>
                     )}
                 </View>
@@ -536,6 +631,12 @@ const AdminPortal = ({ navigation }: any) => {
                         className={`px-4 py-2.5 rounded-xl items-center ${activeTab === 'ads' ? 'bg-white' : ''}`}
                     >
                         <Text className={`font-bold text-xs ${activeTab === 'ads' ? 'text-zinc-900' : 'text-gray-500'}`}>Banner Ads</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        onPress={() => setActiveTab('media')}
+                        className={`px-4 py-2.5 rounded-xl items-center ${activeTab === 'media' ? 'bg-white' : ''}`}
+                    >
+                        <Text className={`font-bold text-xs ${activeTab === 'media' ? 'text-zinc-900' : 'text-gray-500'}`}>Fync Media</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
                         onPress={() => setActiveTab('marketplace')}
@@ -569,6 +670,8 @@ const AdminPortal = ({ navigation }: any) => {
                     renderItem={({ item }) => 
                         activeTab === 'ads' ? 
                         <AdItem item={item} onEdit={handleEdit} onDelete={handleDelete} /> : 
+                        activeTab === 'media' ?
+                        <MediaItem item={item} onDelete={handleDelete} /> :
                         activeTab === 'marketplace' ?
                         <MarketPlaceItem item={item} onEdit={handleEdit} onDelete={handleDelete} /> :
                         activeTab === 'rewards' ?
@@ -581,12 +684,14 @@ const AdminPortal = ({ navigation }: any) => {
                         <View className="mt-20 items-center">
                             <Ionicons name={
                                 activeTab === 'ads' ? "image-outline" : 
+                                activeTab === 'media' ? "videocam-outline" :
                                 activeTab === 'marketplace' ? "gift-outline" : 
                                 activeTab === 'rewards' ? "people-outline" :
                                 "mail-outline"
                             } size={48} color="#d1d5db" />
                             <Text className="text-gray-500 mt-4 font-medium text-center">
                                 {activeTab === 'ads' ? 'No ads found' : 
+                                 activeTab === 'media' ? 'No media found' :
                                  activeTab === 'marketplace' ? 'No reward items found' : 
                                  activeTab === 'rewards' ? 'No reward applications found' :
                                  'No messages found'}
@@ -602,7 +707,7 @@ const AdminPortal = ({ navigation }: any) => {
                     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                         <View className="bg-white rounded-t-[36px] p-6 pb-10 border-t border-gray-200">
                             <View className="flex-row justify-between items-center mb-6">
-                                <Text className="text-zinc-900 text-xl font-black">{editingAd || editingProduct ? 'Edit Item' : activeTab === 'ads' ? 'New Ad Banner' : 'New Reward Item'}</Text>
+                                <Text className="text-zinc-900 text-xl font-black">{editingAd || editingProduct ? 'Edit Item' : activeTab === 'ads' ? 'New Ad Banner' : activeTab === 'media' ? 'Publish Fync Media' : 'New Reward Item'}</Text>
                                 <TouchableOpacity onPress={() => { setModalVisible(false); resetForm(); }} className="w-8 h-8 bg-gray-100 rounded-full items-center justify-center">
                                     <Ionicons name="close" size={18} color="#1A1A1A" />
                                 </TouchableOpacity>
@@ -611,16 +716,35 @@ const AdminPortal = ({ navigation }: any) => {
                             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
                                 <TouchableOpacity 
                                     onPress={pickImage} 
-                                    className={`w-full ${activeTab === 'marketplace' ? '' : 'h-40'} bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 items-center justify-center mb-4 overflow-hidden`}
-                                    style={activeTab === 'marketplace' ? { aspectRatio: 1 } : {}}
+                                    className={`w-full ${activeTab === 'marketplace' || activeTab === 'media' ? '' : 'h-40'} bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 items-center justify-center mb-4 overflow-hidden`}
+                                    style={activeTab === 'marketplace' || activeTab === 'media' ? { aspectRatio: 16/9 } : {}}
                                 >
                                     {imageUri ? <Image source={{ uri: imageUri }} className="w-full h-full" resizeMode={activeTab === 'marketplace' ? "contain" : "cover"} /> : imageUrl ? <Image source={{ uri: imageUrl }} className="w-full h-full" resizeMode={activeTab === 'marketplace' ? "contain" : "cover"} /> : (
                                         <View className="items-center">
                                             <Ionicons name="image-outline" size={36} color="#9ca3af" />
-                                            <Text className="text-gray-400 font-medium text-sm mt-2">Pick {activeTab === 'marketplace' ? 'item' : 'banner'} image</Text>
+                                            <Text className="text-gray-400 font-medium text-sm mt-2">Pick {activeTab === 'marketplace' ? 'item' : activeTab === 'media' ? 'thumbnail' : 'banner'} image</Text>
                                         </View>
                                     )}
                                 </TouchableOpacity>
+
+                                {activeTab === 'media' && (
+                                    <TouchableOpacity 
+                                        onPress={pickVideo} 
+                                        className="w-full aspect-video bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 items-center justify-center mb-4 overflow-hidden"
+                                    >
+                                        {videoUri ? (
+                                            <View className="items-center">
+                                                <Ionicons name="videocam" size={36} color="#6366f1" />
+                                                <Text className="text-indigo-600 font-black text-xs mt-2 uppercase">Video Ready</Text>
+                                            </View>
+                                        ) : (
+                                            <View className="items-center">
+                                                <Ionicons name="videocam-outline" size={36} color="#9ca3af" />
+                                                <Text className="text-gray-400 font-medium text-sm mt-2">Pick Video File</Text>
+                                            </View>
+                                        )}
+                                    </TouchableOpacity>
+                                )}
 
                                 <TextInput 
                                     value={imageUrl} 
@@ -631,7 +755,7 @@ const AdminPortal = ({ navigation }: any) => {
                                 <TextInput 
                                     value={title} 
                                     onChangeText={setTitle} 
-                                    placeholder={activeTab === 'ads' ? "Ad Title" : "Product Name"} 
+                                    placeholder={activeTab === 'ads' ? "Ad Title" : activeTab === 'media' ? "Video Title" : "Product Name"} 
                                     className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4" 
                                 />
 
@@ -655,6 +779,25 @@ const AdminPortal = ({ navigation }: any) => {
                                     </>
                                 )}
 
+                                {activeTab === 'media' && (
+                                    <>
+                                        <TextInput 
+                                            value={description} 
+                                            onChangeText={setDescription} 
+                                            placeholder="Video Description" 
+                                            multiline
+                                            className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4 min-h-[100px]" 
+                                            textAlignVertical="top"
+                                        />
+                                        <TextInput 
+                                            value={tags} 
+                                            onChangeText={setTags} 
+                                            placeholder="Tags (comma separated)" 
+                                            className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4" 
+                                        />
+                                    </>
+                                )}
+
                                 {activeTab === 'ads' && (
                                     <TextInput 
                                         value={linkUrl} 
@@ -664,18 +807,20 @@ const AdminPortal = ({ navigation }: any) => {
                                     />
                                 )}
 
-                                <View className="flex-row justify-between items-center bg-gray-50 p-4 rounded-xl mb-6">
-                                    <View>
-                                        <Text className="text-zinc-900 font-bold text-sm">{activeTab === 'ads' ? 'Ad Visible' : 'Item Available'}</Text>
-                                        <Text className="text-gray-400 text-[10px]">Toggling this will hide/show the item</Text>
+                                {activeTab !== 'media' && (
+                                    <View className="flex-row justify-between items-center bg-gray-50 p-4 rounded-xl mb-6">
+                                        <View>
+                                            <Text className="text-zinc-900 font-bold text-sm">{activeTab === 'ads' ? 'Ad Visible' : 'Item Available'}</Text>
+                                            <Text className="text-gray-400 text-[10px]">Toggling this will hide/show the item</Text>
+                                        </View>
+                                        <Switch
+                                            value={isActive}
+                                            onValueChange={setIsActive}
+                                            trackColor={{ false: "#e4e4e7", true: "#fbcfe8" }}
+                                            thumbColor={isActive ? "#ec4899" : "#a1a1aa"}
+                                        />
                                     </View>
-                                    <Switch
-                                        value={isActive}
-                                        onValueChange={setIsActive}
-                                        trackColor={{ false: "#e4e4e7", true: "#fbcfe8" }}
-                                        thumbColor={isActive ? "#ec4899" : "#a1a1aa"}
-                                    />
-                                </View>
+                                )}
 
                                 <TouchableOpacity 
                                     onPress={handleSubmit} 

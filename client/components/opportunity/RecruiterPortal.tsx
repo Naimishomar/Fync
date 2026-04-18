@@ -495,10 +495,9 @@ const RecruiterPortal = () => {
     const renderMainHeader = () => (
         <>
             {/* Top bar */}
-            <View className="px-6 py-4 flex-row items-center justify-between bg-white border-b border-slate-100">
-                <View className="w-10" />
-                <View className="items-center">
-                    <Text className="text-xl font-black italic uppercase tracking-tighter">
+            <View className="px-6 pb-4 flex-row items-center justify-between border-b border-slate-100">
+                <View>
+                    <Text className="text-2xl font-black italic uppercase tracking-tighter">
                         Recruiter <Text className="text-pink-500">Portal</Text>
                     </Text>
                     <Text className="text-slate-400 text-[8px] font-bold tracking-[2px] uppercase">
@@ -519,7 +518,7 @@ const RecruiterPortal = () => {
             </View>
 
             {/* Stats */}
-            <View className="bg-white px-5 pb-5 pt-3 border-b border-slate-100">
+            <View className="px-5 pb-5 pt-3 border-b border-slate-100">
                 <View className="flex-row gap-3">
                     <View className="flex-1 bg-zinc-900 p-4 rounded-2xl items-center">
                         <Text className="text-white text-[8px] font-black uppercase tracking-widest">Active Posts</Text>
