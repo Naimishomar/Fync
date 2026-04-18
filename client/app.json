@@ -8,6 +8,10 @@
     "experiments": {
       "tsconfigPaths": true
     },
+    "notification": {
+      "icon": "./assets/Fync.jpg",
+      "color": "#ffffff"
+    },
     "plugins": [
       [
         "expo-image-picker",

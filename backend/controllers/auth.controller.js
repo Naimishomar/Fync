@@ -361,6 +361,7 @@ export const registerAlumni = async (req, res) => {
       linkedIn: linkedIn || null, 
       user_access: 'alumni',
       isVerifiedAlumni: true,
+      is_subscribed: true,
       deviceId: deviceId || null,
       deviceModel: deviceModel || "another device",
       avatar: req.file?.path || ""
@@ -462,13 +463,13 @@ export const login = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid credentials" });
     }
 
-    // STRICT DEVICE BINDING CHECK (Exempt recruiters)
-    if (user.user_access !== 'recruiter' && user.deviceId) {
+    // STRICT DEVICE BINDING CHECK (Exempt recruiters and alumni)
+    if (user.user_access !== 'recruiter' && user.user_access !== 'alumni' && user.deviceId) {
       if (!deviceId || user.deviceId !== deviceId) {
         return res.status(400).json({
           success: false,
           color: "red", // UI hint
-          message: `This account is already logged into ${user.deviceModel || 'another device'}. Students and Alumni are restricted to a single device for security.`
+          message: `This account is already logged into ${user.deviceModel || 'another device'}. Students are restricted to a single device for security.`
         });
       }
     }

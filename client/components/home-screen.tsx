@@ -592,7 +592,7 @@ export default function HomeScreen() {
 
   const renderHeader = () => (
     <View
-      style={{ paddingTop: insets.top }}
+      style={{ paddingTop: insets.top - 10 }}
       className="flex-row items-center justify-between px-4 bg-white shadow-sm"
     >
       <View className="flex-row items-center py-2 gap-2">

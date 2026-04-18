@@ -288,8 +288,8 @@ const ChatList = () => {
             )}
           </View>
 
-          {/* College Community Chat Button */}
-          {user?.college && search.length === 0 && (
+          {/* College Community Chat Button — Only for Students */}
+          {user?.college && search.length === 0 && user?.user_access === 'user' && (
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => navigation.navigate("CollegeChatScreen")}
@@ -308,8 +308,8 @@ const ChatList = () => {
             </TouchableOpacity>
           )}
 
-          {/* Professional Hub (Student-Alumni Chat) */}
-          {user?.college && search.length === 0 && (
+          {/* Professional Hub — Only for Students and Alumni */}
+          {user?.college && search.length === 0 && (user?.user_access === 'user' || user?.user_access === 'alumni') && (
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => navigation.navigate("ProfessionalHub")}
