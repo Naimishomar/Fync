@@ -367,3 +367,37 @@ export const notifyShortlistedCandidates = async (req, res) => {
     }
 };
 
+
+export const getStudentShortlisted = async (req, res) => {
+    try {
+        const { type } = req.query;
+        let filter = { candidate: req.user.id, status: 'shortlisted' };
+
+        const applications = await Application.find(filter)
+            .populate({
+                path: 'opportunity',
+                match: type ? { type } : {},
+                populate: { path: 'postedBy', select: 'name username avatar company' }
+            })
+            .sort({ updatedAt: -1 });
+
+        // Filter out applications where opportunity didn't match the type
+        const shortlistedOpportunities = applications
+            .filter(app => app.opportunity !== null)
+            .map(app => {
+                const opt = app.opportunity.toObject();
+                return {
+                    ...opt,
+                    applicationStatus: app.status,
+                    appliedAt: app.appliedAt,
+                    shortlistedAt: app.updatedAt,
+                    hasApplied: true // Since they are shortlisted, they must have applied
+                };
+            });
+
+        res.status(200).json({ success: true, data: shortlistedOpportunities });
+    } catch (error) {
+        console.error("Error fetching shortlisted opportunities:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};

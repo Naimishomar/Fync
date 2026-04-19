@@ -596,7 +596,7 @@ export const getProfile = async (req, res) => {
 
 export const getUserProfileByName = async (req, res) => {
   try {
-    const { name } = req.body;
+    const name = req.query.q || req.body.name || req.query.name;
     if (!name) {
       return res.status(200).json({ success: true, users: [] });
     };

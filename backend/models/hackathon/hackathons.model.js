@@ -66,17 +66,54 @@ const hackathonSchema = new mongoose.Schema({
       enum: ["draft", "upcoming", "judging", "completed", "active"],
       default: "upcoming"
    },
+   description: {
+      type: String,
+      default: ""
+   },
+   rules: [{
+      type: String
+   }],
+   faqs: [{
+      question: String,
+      answer: String
+   }],
+   tracks: [{
+      title: String,
+      description: String,
+      prizes: String
+   }],
+   timeline: [{
+      label: String,
+      date: Date,
+      description: String
+   }],
+   aboutTheOrganiser: {
+      type: String,
+      default: ""
+   },
+   contactEmail: String,
+   discordLink: String,
+   websiteLink: String,
+   prizePoolCurrency: {
+      type: String,
+      default: "INR"
+   },
    sponsors: [
-      { name: String, logo: String }
+      { 
+         name: String, 
+         logo: String, 
+         level: { 
+            type: String, 
+            enum: ["Title", "Platinum", "Gold", "Silver", "Bronze", "Partner"],
+            default: "Partner"
+         } 
+      }
    ],
-   bannerImage: {
-      type: String
-   },
-   logo: {
-      type: String
-   },
+   mentors: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
    judges: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+   logo: { type: String },
+   bannerImage: { type: String },
 },
    {
       timestamps: true

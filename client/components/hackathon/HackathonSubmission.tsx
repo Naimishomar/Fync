@@ -6,11 +6,12 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  StatusBar,
+  Platform,
   Alert,
   KeyboardAvoidingView,
-  Platform,
+  Keyboard,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -156,6 +157,7 @@ const HackathonSubmission = () => {
   };
 
   const saveDraft = async () => {
+    Keyboard.dismiss();
     if (!projectName.trim()) {
       Toast.show({ type: 'error', text1: 'Project name is required' });
       return;
@@ -242,7 +244,7 @@ const HackathonSubmission = () => {
 
   return (
     <View className="flex-1 bg-[#F8FAFC]">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar style="dark" />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

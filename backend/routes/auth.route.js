@@ -51,6 +51,7 @@ router.post('/update', authMiddleware, upload.fields([{ name: 'avatar', maxCount
 router.get('/profile', authMiddleware, getProfile);
 router.get('/get-alumni', authMiddleware, cacheMiddleware(600), getAlumniByCollege);
 router.post('/search', authMiddleware, getUserProfileByName);
+router.get('/search', authMiddleware, getUserProfileByName);
 router.get('/profile/:id', authMiddleware, cacheMiddleware(600), getUserProfile);
 router.post('/follow/:id', authMiddleware, followUser);
 router.post('/unfollow/:id', authMiddleware, unfollowUser);

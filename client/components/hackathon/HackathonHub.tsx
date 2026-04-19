@@ -116,9 +116,31 @@ const HackathonCard = memo(({ item, onPress }: { item: Hackathon; onPress: (id: 
            </View>
         </View>
 
-        <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter leading-8 mb-6 uppercase" numberOfLines={2}>
+        <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter leading-8 mb-4 uppercase" numberOfLines={2}>
           {item.title}
         </Text>
+
+        {/* Professional Meta Info */}
+        <View className="flex-row items-center gap-6 mb-8">
+           {(item as any).tracks?.length > 0 && (
+              <View className="flex-row items-center">
+                 <Ionicons name="layers" size={12} color="#ec4899" />
+                 <Text className="text-zinc-400 text-[9px] font-black uppercase tracking-widest ml-2">{(item as any).tracks.length} Tracks</Text>
+              </View>
+           )}
+           {(item as any).sponsors?.length > 0 && (
+              <View className="flex-row items-center">
+                 <Ionicons name="medal" size={12} color="#8b5cf6" />
+                 <Text className="text-zinc-400 text-[9px] font-black uppercase tracking-widest ml-2">{(item as any).sponsors.length} Sponsors</Text>
+              </View>
+           )}
+           {(item as any).mentors?.length > 0 && (
+              <View className="flex-row items-center">
+                 <Ionicons name="school" size={12} color="#10b981" />
+                 <Text className="text-zinc-400 text-[9px] font-black uppercase tracking-widest ml-2">{(item as any).mentors.length} Mentors</Text>
+              </View>
+           )}
+        </View>
         
         {/* Footer Meta */}
         <View className="flex-row items-center justify-between pt-6 border-t border-gray-50">

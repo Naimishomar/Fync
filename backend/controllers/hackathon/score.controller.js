@@ -151,7 +151,26 @@ export const getPendingForJudge = async (req, res, next) => {
     const scoredIds = new Set(scored.map((s) => s.submission.toString()));
 
     const pending = allSubs.filter((s) => !scoredIds.has(s._id.toString()));
+     res.status(200).json({ success: true, pending, pendingCount: pending.length });
+   } catch (err) { next(err); }
+ };
 
-    res.status(200).json({ success: true, pending, pendingCount: pending.length });
+// GET /api/scores/judge/scored/:hackathonId — submissions a judge HAS already scored
+export const getScoredByJudge = async (req, res, next) => {
+  try {
+    const hackId = req.params.hackathonId;
+
+    const scores = await Score.find({
+      hackathon: hackId,
+      judge:     req.user.id,
+    })
+    .populate({
+      path: "submission",
+      select: "_id ProjectName team status",
+      populate: { path: "team", select: "name members" }
+    })
+    .sort({ updatedAt: -1 });
+
+    res.status(200).json({ success: true, scored: scores, scoredCount: scores.length });
   } catch (err) { next(err); }
 };

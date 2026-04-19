@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 import React from "react";
-import { View, ActivityIndicator, Image, Text, Alert } from "react-native";
+import { View, ActivityIndicator, Image, Text, Alert, Keyboard } from "react-native";
 import NetInfo from "@react-native-community/netinfo";
 import NoInternetScreen from "./components/NoInternetScreen";
 import { NavigationContainer } from "@react-navigation/native";

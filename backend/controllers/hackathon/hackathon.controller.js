@@ -7,16 +7,43 @@ export const createHackathon = async (req, res, next) => {
     try {
         const body = { ...req.body };
         
-        // Handle image uploads from r2UploadMiddleware
-        if (req.files) {
-            if (req.files.bannerImage?.[0]) {
-                body.bannerImage = req.files.bannerImage[0].path;
+        // When using multipart/form-data, complex objects/arrays come as strings
+        const jsonFields = [
+            'eligibility', 'judgingcriteria', 'prizes', 'tags', 
+            'rules', 'tracks', 'timeline', 'faqs', 'sponsors', 'mentors', 'judges'
+        ];
+        
+        jsonFields.forEach(field => {
+            if (typeof body[field] === 'string') {
+                try {
+                    body[field] = JSON.parse(body[field]);
+                } catch (e) {
+                    // fall back to original if not valid JSON
+                }
             }
-            if (req.files.logo?.[0]) {
-                body.logo = req.files.logo[0].path;
+        });
+
+        // Handle image uploads
+        if (req.files) {
+            const files = Array.isArray(req.files) ? req.files : [];
+            const findFile = (name) => files.find(f => f.fieldname === name);
+
+            const bannerFile = findFile('bannerImage');
+            if (bannerFile) body.bannerImage = bannerFile.path;
+
+            const logoFile = findFile('logo');
+            if (logoFile) body.logo = logoFile.path;
+
+            // Map sponsor logos
+            if (body.sponsors && Array.isArray(body.sponsors)) {
+                body.sponsors.forEach((sp, i) => {
+                    const spFile = findFile(`sponsorLogo_${i}`);
+                    if (spFile) sp.logo = spFile.path;
+                });
             }
         }
 
+        console.log("Saving Hackathon Body:", JSON.stringify(body, null, 2));
         const hack = await Hackathon.create({ ...body, organiser: req.user.id });
         res.status(200).json({ message: "hackathon created successfully", success: true, hackathon: hack });
     } catch (error) {
@@ -31,7 +58,8 @@ export const gethackathon = async (req, res, next) => {
         // FIX: param is hackathonId not id, populate field is 'organiser' not 'organizer'
         const hack = await Hackathon.findById(req.params.hackathonId)
             .populate("organiser", "name email avatar")
-            .populate("judges", "name email avatar");
+            .populate("judges", "name email avatar")
+            .populate("mentors", "name email avatar");
 
         if (!hack) {
             return res.status(404).json({ success: false, message: "Hackathon not found" });
@@ -73,8 +101,40 @@ export const updatehackathon = async (req, res, next) => {
         if (hack.organiser.toString() !== req.user.id)
             return res.status(403).json({ success: false, message: "Not authorised to update this hackathon" });
 
-        // FIX: was using req.user.id instead of req.params.hackathonId as the filter ID
-        const updatedHack = await Hackathon.findByIdAndUpdate(req.params.hackathonId, req.body, {
+        const body = { ...req.body };
+        const jsonFields = [
+            'eligibility', 'judgingcriteria', 'prizes', 'tags', 
+            'rules', 'tracks', 'timeline', 'faqs', 'sponsors', 'mentors', 'judges'
+        ];
+        
+        jsonFields.forEach(field => {
+            if (typeof body[field] === 'string') {
+                try {
+                    body[field] = JSON.parse(body[field]);
+                } catch (e) {}
+            }
+        });
+
+        if (req.files) {
+            const files = Array.isArray(req.files) ? req.files : [];
+            const findFile = (name) => files.find(f => f.fieldname === name);
+
+            const bannerFile = findFile('bannerImage');
+            if (bannerFile) body.bannerImage = bannerFile.path;
+
+            const logoFile = findFile('logo');
+            if (logoFile) body.logo = logoFile.path;
+
+            if (body.sponsors && Array.isArray(body.sponsors)) {
+                body.sponsors.forEach((sp, i) => {
+                    const spFile = findFile(`sponsorLogo_${i}`);
+                    if (spFile) sp.logo = spFile.path;
+                });
+            }
+        }
+
+        console.log("Updating Hackathon Body:", JSON.stringify(body, null, 2));
+        const updatedHack = await Hackathon.findByIdAndUpdate(req.params.hackathonId, body, {
             new: true,
             runValidators: true
         });

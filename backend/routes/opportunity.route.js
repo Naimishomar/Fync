@@ -7,7 +7,8 @@ import {
     getRecruiterApplications,
     updateApplicationStatus,
     notifyShortlistedCandidates,
-    updateOpportunity
+    updateOpportunity,
+    getStudentShortlisted
 } from "../controllers/opportunity.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { upload } from "../utils/r2.js";
@@ -18,6 +19,7 @@ const router = express.Router();
 
 // General
 router.get("/list", authMiddleware, getOpportunities);
+router.get("/student/shortlisted", authMiddleware, getStudentShortlisted);
 router.post("/apply/:id", authMiddleware, applyToOpportunity);
 
 // Recruiter/Admin Only

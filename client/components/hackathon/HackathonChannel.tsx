@@ -13,8 +13,9 @@ import {
   Platform,
   Alert,
   Switch,
-  StatusBar,
+  Keyboard,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -221,7 +222,7 @@ const HackathonChannel = () => {
 
   return (
     <View className="flex-1 bg-[#F8FAFC]">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar style="dark" />
       <SafeAreaView className="flex-1">
         
         {/* Header */}

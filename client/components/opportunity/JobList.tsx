@@ -25,7 +25,7 @@ const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q
 // --- 1. MEMOIZED JOB CARD (Dark Theme) ---
 const JobCard = memo(({ item, onApply, hideApply }: { item: any; onApply: (item: any) => void; hideApply?: boolean }) => {
   return (
-    <View className="bg-white rounded-2xl mb-5 mx-6 p-6 shadow-sm shadow-black/5 border border-gray-300">
+    <View className="bg-white rounded-2xl mb-5 mx-6 p-6 border border-gray-300">
       
       {/* Header Row */}
       <View className="flex-row gap-4 items-center">
@@ -97,7 +97,7 @@ const JobCard = memo(({ item, onApply, hideApply }: { item: any; onApply: (item:
               <TouchableOpacity 
                 onPress={() => !item.hasApplied && onApply(item)}
                 activeOpacity={item.hasApplied ? 1 : 0.9}
-                className={`${item.hasApplied ? 'bg-gray-200 border-gray-300' : 'bg-pink-500'} px-8 py-3.5 rounded-2xl shadow-lg shadow-black/20`}
+                className={`${item.hasApplied ? 'bg-gray-200 border-gray-300' : 'bg-pink-500'} px-8 py-3.5 rounded-2xl`}
               >
                   <Text className={`${item.hasApplied ? 'text-gray-500' : 'text-white'} font-black italic uppercase tracking-widest text-[12px]`}>
                     {item.hasApplied ? 'Applied' : 'Apply Now'}
@@ -113,7 +113,9 @@ const JobCard = memo(({ item, onApply, hideApply }: { item: any; onApply: (item:
 const JobList = () => {
   const route = useRoute<any>();
   const recruiterId = route.params?.recruiterId;
+  const [activeTab, setActiveTab] = useState<'all' | 'shortlisted'>('all');
   const [jobs, setJobs] = useState<any[]>([]);
+  const [shortlistedItems, setShortlistedItems] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -126,8 +128,12 @@ const JobList = () => {
 
   useFocusEffect(
     useCallback(() => {
-      fetchJobs(1);
-    }, [searchQuery])
+      if (activeTab === 'all') {
+        fetchJobs(1);
+      } else {
+        fetchShortlisted();
+      }
+    }, [searchQuery, activeTab])
   );
 
   const fetchJobs = async (pageNum: number, term = searchQuery) => {
@@ -164,14 +170,31 @@ const JobList = () => {
     }
   };
 
+  const fetchShortlisted = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const response = await axios.get(`/opportunity/student/shortlisted?type=job`);
+      if (response.data.success) {
+        setShortlistedItems(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching shortlisted jobs:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLoadMore = useCallback(() => {
-    if (hasMore && !loading) {
+    if (activeTab === 'all' && hasMore && !loading) {
       fetchJobs(page + 1);
     }
-  }, [hasMore, loading, page]);
+  }, [hasMore, loading, page, activeTab]);
 
   const onSearchSubmit = () => {
-    fetchJobs(1, searchQuery);
+    if (activeTab === 'all') {
+      fetchJobs(1, searchQuery);
+    }
   };
 
   const handleApply = useCallback((item: any) => {
@@ -237,7 +260,7 @@ const JobList = () => {
         <View className="px-8 pt-8 pb-4">
             <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-3">
-                    <View className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/20">
+                    <View className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center">
                         <Ionicons name="megaphone" size={24} color="white" />
                     </View>
                     <View>
@@ -249,26 +272,44 @@ const JobList = () => {
                 </View>
             </View>
 
-        {/* 🔍 Search Bar */}
-        <View className="px-6 mt-4 mb-4">
-            <View className="flex-row items-center bg-white rounded-3xl px-6 py-2 border border-gray-300 shadow-sm shadow-black/5">
-                <Ionicons name="search" size={20} color="#ec4899" />
-                <TextInput 
-                    placeholder="Search by role, skill, company..."
-                    placeholderTextColor="#94a3b8"
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    onSubmitEditing={onSearchSubmit}
-                    returnKeyType="search"
-                    className="flex-1 ml-3 text-zinc-900 text-base font-black italic"
-                />
-                {searchQuery.length > 0 && (
-                    <TouchableOpacity onPress={() => { setSearchQuery(""); fetchJobs(1, ""); }} className="bg-slate-50 p-1 rounded-full">
-                        <Ionicons name="close" size={18} color="#94a3b8" />
-                    </TouchableOpacity>
-                )}
-            </View>
+        {/* Tabs */}
+        <View className="flex-row px-8 mb-4 gap-3">
+          <TouchableOpacity 
+            onPress={() => setActiveTab('all')}
+            className={`flex-1 py-3 rounded-2xl items-center border ${activeTab === 'all' ? 'bg-pink-500 border-pink-400' : 'bg-white border-gray-200'}`}
+          >
+            <Text className={`font-black uppercase italic tracking-tighter text-xs ${activeTab === 'all' ? 'text-white' : 'text-slate-500'}`}>Browse Jobs</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => setActiveTab('shortlisted')}
+            className={`flex-1 py-3 rounded-2xl items-center border ${activeTab === 'shortlisted' ? 'bg-pink-500 border-pink-400' : 'bg-white border-gray-200'}`}
+          >
+            <Text className={`font-black uppercase italic tracking-tighter text-xs ${activeTab === 'shortlisted' ? 'text-white' : 'text-slate-500'}`}>Shortlisted</Text>
+          </TouchableOpacity>
         </View>
+
+        {/* 🔍 Search Bar */}
+        {activeTab === 'all' && (
+            <View className="px-6 mt-4 mb-4">
+                <View className="flex-row items-center bg-white rounded-3xl px-6 py-2 border border-gray-300">
+                    <Ionicons name="search" size={20} color="#ec4899" />
+                    <TextInput 
+                        placeholder="Search by role, skill, company..."
+                        placeholderTextColor="#94a3b8"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        onSubmitEditing={onSearchSubmit}
+                        returnKeyType="search"
+                        className="flex-1 ml-3 text-zinc-900 text-base font-black italic"
+                    />
+                    {searchQuery.length > 0 && (
+                        <TouchableOpacity onPress={() => { setSearchQuery(""); fetchJobs(1, ""); }} className="bg-slate-50 p-1 rounded-full">
+                            <Ionicons name="close" size={18} color="#94a3b8" />
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </View>
+        )}
 
         {/* 📝 Important Note */}
         {user?.user_access !== 'recruiter' && (
@@ -285,7 +326,7 @@ const JobList = () => {
 
         {/* List */}
         <FlatList
-            data={jobs}
+            data={activeTab === 'all' ? jobs : shortlistedItems}
             keyExtractor={(item, index) => item._id || `fallback-${index}`}
             renderItem={renderItem}
             initialNumToRender={5}
@@ -302,11 +343,15 @@ const JobList = () => {
                 !loading ? (
                     <View className="items-center mt-20 px-10">
                         <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
-                            <Ionicons name="briefcase" size={40} color="#CBD5E1" />
+                            <Ionicons name={activeTab === 'all' ? "briefcase" : "star-outline"} size={40} color="#CBD5E1" />
                         </View>
-                        <Text className="text-zinc-900 font-black text-xl tracking-tight text-center uppercase">Zero Matches</Text>
+                        <Text className="text-zinc-900 font-black text-xl tracking-tight text-center uppercase">
+                            {activeTab === 'all' ? "Zero Matches" : "No Shortlists"}
+                        </Text>
                         <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-wide">
-                            {searchQuery ? "No job signals found in this sector." : "The career portal is currently silent."}
+                            {activeTab === 'all' 
+                                ? (searchQuery ? "No job signals found in this sector." : "The career portal is currently silent.")
+                                : "No shortlisted jobs found. Boost your portfolio to attract recruiters!"}
                         </Text>
                     </View>
                 ) : null
@@ -321,7 +366,7 @@ const JobList = () => {
             onRequestClose={() => setApplyModalVisible(false)}
         >
             <View className="flex-1 bg-black/60 justify-end">
-                <View className="bg-white rounded-t-[40px] p-8 pb-12 shadow-2xl">
+                <View className="bg-white rounded-t-[40px] p-8 pb-12">
                     <View className="items-center mb-6">
                         <View className="w-12 h-1.5 bg-slate-100 rounded-full mb-6" />
                         <Text className="text-zinc-900 text-2xl font-black uppercase tracking-tighter">Review Application</Text>
@@ -382,7 +427,7 @@ const JobList = () => {
                         <TouchableOpacity 
                             onPress={confirmApplication}
                             disabled={applying || (!user?.resumeUrl && selectedItem?.requireResume)}
-                            className={`flex-[2] h-16 rounded-2xl items-center justify-center shadow-lg shadow-pink-200 ${(!user?.resumeUrl && selectedItem?.requireResume) ? 'bg-slate-300' : 'bg-pink-500'}`}
+                            className={`flex-[2] h-16 rounded-2xl items-center justify-center ${(!user?.resumeUrl && selectedItem?.requireResume) ? 'bg-slate-300' : 'bg-pink-500'}`}
                         >
                             {applying ? <ActivityIndicator color="white" /> : (
                                 <Text className="text-white font-black italic uppercase tracking-widest text-sm">Send Application</Text>

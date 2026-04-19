@@ -24,13 +24,17 @@ router.get("/:hackathonId", authMiddleware, gethackathon);
 
 // Create hackathon (organizer)
 router.post("/", authMiddleware, 
-    upload.fields([{ name: 'bannerImage', maxCount: 1 }, { name: 'logo', maxCount: 1 }]), 
-    r2UploadMiddleware({ bannerImage: 'hackathons', logo: 'hackathons' }), 
+    upload.any(), 
+    r2UploadMiddleware({}), // Middleware should be updated to handle any() if possible
     createHackathon
 );
 
 // Update hackathon details
-router.patch("/:hackathonId", authMiddleware, updatehackathon);
+router.patch("/:hackathonId", authMiddleware, 
+    upload.any(),
+    r2UploadMiddleware({}),
+    updatehackathon
+);
 
 // Delete hackathon (was incorrectly POST, fixed to DELETE)
 router.delete("/:hackathonId", authMiddleware, deletehackathon);

@@ -1,5 +1,8 @@
 import Announcement from "../../models/hackathon/announcements.model.js";
 import Hackathon from "../../models/hackathon/hackathons.model.js";
+import User from "../../models/user.model.js";
+import Notification from "../../models/notification.model.js";
+import { sendPushNotification } from "../../utils/notification.js";
 
 // GET /announcements/:hackathonId
 export const getannouncements = async (req, res, next) => {
@@ -52,6 +55,43 @@ export const postAnnouncements = async (req, res, next) => {
         const io = req.app.get("io");
         if (io) {
             io.to(`hack:${hack._id}`).emit("announcement:new", announcement);
+        }
+
+        // 🔔 Notify all participants
+        const participants = hack.participants || [];
+        if (participants.length > 0) {
+            // Process notifications in background
+            (async () => {
+                try {
+                    const participantDocs = await User.find({ _id: { $in: participants } }).select("expoPushToken");
+                    
+                    for (const participant of participantDocs) {
+                        // Skip if author
+                        if (participant._id.toString() === req.user.id.toString()) continue;
+
+                        // Create in-app notification
+                        await Notification.create({
+                            recipient: participant._id,
+                            sender: req.user.id,
+                            type: 'hackathon_announcement',
+                            message: `New Signal: ${title || "Important update from organiser"}`,
+                            hackathon: hack._id
+                        });
+
+                        // Send push notification
+                        if (participant.expoPushToken) {
+                            sendPushNotification(
+                                participant.expoPushToken,
+                                `📡 ${hack.title}: NEW SIGNAL`,
+                                body.substring(0, 100) + (body.length > 100 ? "..." : ""),
+                                { hackathonId: hack._id, type: 'announcement' }
+                            ).catch(() => {});
+                        }
+                    }
+                } catch (err) {
+                    console.error("Broadcast Notification Error:", err);
+                }
+            })();
         }
 
         return res.status(200).json({ success: true, message: "Announcement sent", announcement });
