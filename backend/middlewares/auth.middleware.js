@@ -46,3 +46,14 @@ export const authMiddleware = async (req, res, next) => {
     return res.status(401).json({ success: false, message: "Invalid token" });
   }
 };
+
+export const isAdmin = (req, res, next) => {
+  if (req.user && req.user.user_access === 'admin') {
+    next();
+  } else {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied. Admin authorization required."
+    });
+  }
+};
