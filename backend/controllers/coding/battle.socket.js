@@ -1,6 +1,8 @@
 import redisClient from "../../utils/redis.js";
 import { nanoid } from "nanoid";
 import Problem from "../../models/coding/problem.model.js";
+import Judge0Service from "../../services/judge0.service.js";
+import CodingSubmission from "../../models/coding/codingSubmission.model.js";
 
 const codingBattleSockets = (io) => {
   io.on("connection", (socket) => {
@@ -63,24 +65,60 @@ const codingBattleSockets = (io) => {
       socket.to(matchRoomId).emit("opponent_progress", { userId, progress });
     });
 
-    socket.on("submit_solution", async ({ matchRoomId, userId, code, language }) => {
-      // In a real app, you'd call Judge0 or similar here
-      // For demo: randomly pass some test cases
-      const passedCount = Math.floor(Math.random() * 5); // Mock 0-4 cases passed
-      const totalCount = 5;
-      
-      const progress = (passedCount / totalCount) * 100;
-      
-      io.to(matchRoomId).emit("submission_result", { 
-        userId, 
-        passedCount, 
-        totalCount,
-        isSuccess: passedCount === totalCount
-      });
+    socket.on("submit_solution", async ({ matchRoomId, userId, code, languageId }) => {
+      try {
+        const battleDataString = await redisClient.get(matchRoomId);
+        if (!battleDataString) return;
+        const battleData = JSON.parse(battleDataString);
+        const problem = await Problem.findById(battleData.problem._id);
 
-      if (passedCount === totalCount) {
-        io.to(matchRoomId).emit("battle_end", { winnerId: userId });
-        await redisClient.del(matchRoomId);
+        // Notify that submission is processing
+        io.to(matchRoomId).emit("submission_processing", { userId });
+
+        let passedCount = 0;
+        const results = [];
+
+        for (const testCase of problem.testCases) {
+          const token = await Judge0Service.submitCode(code, languageId, testCase.input, testCase.expectedOutput);
+          let result;
+          let attempts = 0;
+          while (attempts < 10) {
+            result = await Judge0Service.getSubmission(token);
+            if (result.status.id > 2) break;
+            await new Promise(r => setTimeout(r, 1000));
+            attempts++;
+          }
+          if (result.status.id === 3) passedCount++;
+          results.push(result);
+        }
+
+        const totalCount = problem.testCases.length;
+        const isSuccess = passedCount === totalCount;
+        
+        // Save to DB
+        await CodingSubmission.create({
+          user: userId,
+          problem: problem._id,
+          code,
+          languageId,
+          status: isSuccess ? 'Accepted' : 'Wrong Answer',
+          passedCount,
+          totalCount
+        });
+
+        io.to(matchRoomId).emit("submission_result", { 
+          userId, 
+          passedCount, 
+          totalCount,
+          isSuccess
+        });
+
+        if (isSuccess) {
+          io.to(matchRoomId).emit("battle_end", { winnerId: userId });
+          await redisClient.del(matchRoomId);
+        }
+      } catch (err) {
+        console.error("Socket Submission Error:", err);
       }
     });
 

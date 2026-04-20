@@ -313,6 +313,19 @@ const userSchema = new mongoose.Schema({
         enum: ['Newcomer', 'Explorer', 'Builder', 'Innovator', 'Pioneer', 'Legend'],
         default: 'Newcomer'
     },
+    // Coding Arena Stats
+    codingRating: {
+        type: Number,
+        default: 1200
+    },
+    contestHistory: [
+        {
+            contest: { type: mongoose.Schema.Types.ObjectId, ref: 'Contest' },
+            rank: Number,
+            ratingChange: Number,
+            date: { type: Date, default: Date.now }
+        }
+    ],
     resumeUrl: {
         type: String,
         default: null
