@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, Text, TouchableOpacity, FlatList, Image, 
-  ActivityIndicator, RefreshControl, Linking, Alert, TextInput, Animated 
+  ActivityIndicator, RefreshControl, Linking, Alert, TextInput, Animated, StatusBar
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -11,7 +11,7 @@ import { useAuth } from '../context/auth.context';
 import axios from '../context/axiosConfig';
 import socket from '../utils/socket';
 
-const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
+const BG_IMAGE = "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000&auto=format&fit=crop";
 
 interface UserProfile {
   _id: string;
@@ -37,13 +37,13 @@ export default function FindTeammate() {
   const [refreshing, setRefreshing] = useState(false);
   const CURRENT_USER_ID = user?._id || user?.id;
   
-  // 🔍 NEW: Search State
+  // 🔍 SEARCH STATE
   const [searchQuery, setSearchQuery] = useState("");
 
   // Track which specific user is being connected to (for the loading spinner)
   const [connectingId, setConnectingId] = useState<string | null>(null);
 
-  // --- 1. FETCH DEVELOPERS ---
+  // --- FETCH DEVELOPERS ---
   const fetchDevelopers = async () => {
     try {
       setLoading(true);
@@ -73,7 +73,7 @@ export default function FindTeammate() {
     fetchDevelopers();
   };
 
-  // --- 🔍 FILTER LOGIC (New) ---
+  // --- 🔍 FILTER LOGIC ---
   const filteredDevelopers = developers.filter((dev) => {
       const query = searchQuery.toLowerCase();
       return (
@@ -118,228 +118,235 @@ export default function FindTeammate() {
     if (url) Linking.openURL(url).catch(() => Alert.alert("Error", "Invalid Link"));
   };
 
-  // --- 3. RENDER CARD ---
+  // --- RENDER CARD ---
   const renderCard = ({ item }: { item: UserProfile }) => (
-    <View className="bg-[#1e1e1e]/80 rounded-3xl p-5 mb-5 border border-white/10 shadow-lg">
+    <View className="bg-white rounded-[32px] p-6 mb-5 border border-slate-100 mx-5">
       
       {/* Header */}
-      <View className="flex-row items-center mb-4">
-        <Image 
-          source={{ uri: item.avatar || `https://ui-avatars.com/api/?name=${item.name}` }} 
-          className="w-14 h-14 rounded-full border-2 border-indigo-500"
-        />
-        <View className="ml-3 flex-1">
-          <Text className="text-white text-lg font-bold">{item.name}</Text>
-          <Text className="text-gray-400 text-xs font-medium">@{item.username}</Text>
-          <View className="flex-row items-center mt-1">
-             <MaterialCommunityIcons name="school" size={12} color="#9ca3af" />
-             <Text className="text-gray-400 text-[10px] ml-1">
-                {item.year}th Year • {item.major}
+      <View className="flex-row items-center mb-5">
+        <View className="p-1 rounded-full border border-slate-100 shadow-sm bg-white">
+            <Image 
+                source={{ uri: item.avatar || `https://ui-avatars.com/api/?name=${item.name}` }} 
+                className="w-16 h-16 rounded-full"
+            />
+        </View>
+        <View className="ml-4 flex-1">
+          <Text className="text-zinc-900 text-lg font-black italic tracking-tighter uppercase">{item.name}</Text>
+          <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">@{item.username}</Text>
+          <View className="flex-row items-center mt-1.5 bg-slate-50 self-start px-2 py-0.5 rounded-full border border-slate-100">
+             <MaterialCommunityIcons name="school" size={12} color="#94a3b8" />
+             <Text className="text-slate-400 text-[9px] font-bold ml-1 uppercase tracking-tighter">
+                {item.year}YR • {item.major}
              </Text>
           </View>
         </View>
         
         {/* Social Icons */}
-        <View className="flex-row gap-3">
+        <View className="flex-row gap-2">
             {item.github_id && (
-                <TouchableOpacity onPress={() => openLink(item.github_id)}>
-                    <FontAwesome name="github" size={20} color="white" />
+                <TouchableOpacity onPress={() => openLink(item.github_id)} className="w-9 h-9 bg-slate-50 rounded-xl items-center justify-center border border-slate-100">
+                    <FontAwesome name="github" size={18} color="#18181b" />
                 </TouchableOpacity>
             )}
             {item.linkedIn_id && (
-                <TouchableOpacity onPress={() => openLink(item.linkedIn_id)}>
-                    <FontAwesome name="linkedin-square" size={20} color="#0077b5" />
+                <TouchableOpacity onPress={() => openLink(item.linkedIn_id)} className="w-9 h-9 bg-blue-50 rounded-xl items-center justify-center border border-blue-100">
+                    <FontAwesome name="linkedin" size={18} color="#0077b5" />
                 </TouchableOpacity>
             )}
         </View>
       </View>
 
       {/* Skills */}
-      <View className="flex-row flex-wrap gap-2 mb-4">
-        {item.skills?.slice(0, 5).map((skill, index) => (
-          <View key={index} className="bg-indigo-500/20 px-3 py-1 rounded-full border border-indigo-500/30">
-            <Text className="text-indigo-300 text-[10px] font-bold uppercase">{skill}</Text>
+      <View className="flex-row flex-wrap gap-2 mb-5">
+        {item.skills?.slice(0, 4).map((skill, index) => (
+          <View key={index} className="bg-white px-4 py-1.5 rounded-2xl border border-pink-100 shadow-sm shadow-pink-500/5">
+            <Text className="text-pink-500 text-[10px] font-black italic uppercase tracking-tight">{skill}</Text>
           </View>
         ))}
-        {item.skills?.length > 5 && (
-             <Text className="text-gray-500 text-xs mt-1">+{item.skills.length - 5} more</Text>
+        {item.skills?.length > 4 && (
+             <View className="bg-slate-50 px-3 py-1.5 rounded-2xl border border-slate-100">
+                <Text className="text-slate-400 text-[10px] font-black uppercase">+{item.skills.length - 4}</Text>
+             </View>
         )}
       </View>
 
       {/* Bio */}
       {(item.about || item.experience) && (
-          <View className="bg-black/30 p-3 rounded-xl mb-4 border border-white/5">
-              <Text className="text-gray-300 text-sm leading-5" numberOfLines={3}>
+          <View className="bg-slate-50/50 p-4 rounded-2xl mb-6 border border-slate-100">
+              <Text className="text-slate-500 text-xs font-medium leading-5 italic" numberOfLines={3}>
                   {item.about || item.experience || "No bio available."}
               </Text>
           </View>
       )}
 
       {/* Footer */}
-      <View className="flex-row justify-between items-center mt-2">
-          <View className="flex-row items-center flex-1 mr-4">
-              <Ionicons name="location-outline" size={14} color="#6b7280" />
-              <Text className="text-gray-500 text-xs ml-1 flex-1" numberOfLines={1}>
+      <View className="flex-row justify-between items-center bg-zinc-900/5 p-2 rounded-[24px] border border-zinc-900/5">
+          <View className="flex-row items-center flex-1 ml-3 mr-4">
+              <Ionicons name="location" size={14} color="#94a3b8" />
+              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-tighter ml-2 flex-1" numberOfLines={1}>
                   {item.college}
               </Text>
           </View>
 
-          <TouchableOpacity onPress={() => handleMessage(item)} disabled={connectingId !== null} className='rounded-full'>
-              <LinearGradient
-                  colors={['#6366f1', '#a855f7']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  className="px-6 py-2 rounded-full flex-row items-center shadow-md shadow-indigo-500/30"
-              >
+          <TouchableOpacity onPress={() => handleMessage(item)} disabled={connectingId !== null} className='rounded-2xl overflow-hidden'>
+              <View className="px-6 py-3 bg-zinc-900 flex-row items-center">
                   {connectingId === item._id ? (
                       <ActivityIndicator size="small" color="white" />
                   ) : (
                       <>
-                        <Ionicons name="chatbubble-ellipses-outline" size={16} color="white" />
-                        <Text className="text-white font-bold ml-2 text-sm">Connect</Text>
+                        <Ionicons name="chatbubble" size={16} color="white" />
+                        <Text className="text-white font-black italic ml-2 text-[10px] uppercase tracking-widest">Chat</Text>
                       </>
                   )}
-              </LinearGradient>
+              </View>
           </TouchableOpacity>
       </View>
 
     </View>
   );
 
-    const TeammateSkeleton = () => {
-        const pulseAnim = useRef(new Animated.Value(0.3)).current;
+  const TeammateSkeleton = () => {
+    const pulseAnim = useRef(new Animated.Value(0.3)).current;
 
-        useEffect(() => {
-            Animated.loop(
-                Animated.sequence([
-                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
-                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
-                ])
-            ).start();
-        }, []);
+    useEffect(() => {
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
+                Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
+            ])
+        ).start();
+    }, []);
 
-        return (
-            <Animated.View 
-                style={{ opacity: pulseAnim }}
-                className="bg-[#1e1e1e]/50 rounded-[32px] p-6 mb-5 border border-white/5 mx-5 mt-2"
-            >
-                <View className="flex-row items-center mb-6">
-                    <View className="w-14 h-14 rounded-full bg-zinc-800 border border-white/5" />
-                    <View className="ml-4 flex-1">
-                        <View className="h-5 bg-zinc-800 rounded w-1/2 mb-2" />
-                        <View className="h-3 bg-zinc-800 rounded w-1/4 mb-3" />
-                        <View className="h-3 bg-zinc-800 rounded w-1/3" />
-                    </View>
-                    <View className="flex-row gap-2">
-                        <View className="w-8 h-8 rounded-lg bg-zinc-800" />
-                        <View className="w-8 h-8 rounded-lg bg-zinc-800" />
-                    </View>
-                </View>
-
-                <View className="flex-row gap-2 mb-6">
-                    {[1, 2, 3].map(i => <View key={i} className="h-6 w-16 bg-zinc-800 rounded-full" />)}
-                </View>
-
-                <View className="bg-black/20 p-4 rounded-2xl mb-6 border border-white/5">
-                    <View className="h-3 bg-zinc-800 rounded w-full mb-2" />
-                    <View className="h-3 bg-zinc-800 rounded w-4/5" />
-                </View>
-
-                <View className="flex-row justify-between items-center">
-                    <View className="h-4 bg-zinc-800 rounded w-1/3" />
-                    <View className="w-24 h-10 bg-zinc-800 rounded-2xl" />
-                </View>
-            </Animated.View>
-        );
-    };
-
-    // --- RENDER MAIN ---
     return (
-        <View className="flex-1 bg-black">
-            {/* 🌸 BACKGROUND GRADIENT & IMAGE 🌸 */}
-            <Image source={{ uri: BG_IMAGE }} className="absolute w-full h-full opacity-50" />
-            <LinearGradient 
-                colors={['rgba(236, 72, 153, 0.40)', 'rgba(0,0,0,0.85)', '#000000']} 
-                className="absolute w-full h-full" 
-            />
+        <Animated.View 
+            style={{ opacity: pulseAnim }}
+            className="bg-white rounded-[32px] p-6 mb-5 border border-slate-100 mx-5 mt-2"
+        >
+            <View className="flex-row items-center mb-6">
+                <View className="w-16 h-16 rounded-full bg-slate-100" />
+                <View className="ml-4 flex-1">
+                    <View className="h-5 bg-slate-100 rounded w-1/2 mb-2" />
+                    <View className="h-3 bg-slate-100 rounded w-1/4 mb-3" />
+                    <View className="h-3 bg-slate-100 rounded w-1/3" />
+                </View>
+            </View>
 
-            <SafeAreaView className="flex-1 px-4">
-                
-                {/* HEADER */}
-                <View className="px-5 pt-2 pb-2">
-                    <Text className="text-white text-3xl font-black shadow-lg">Partner Finder 🚀</Text>
-                    <Text className="text-gray-300 text-sm mt-1 font-medium">
-                        Build your dream team for the next Hackathon.
+            <View className="flex-row gap-2 mb-6">
+                {[1, 2, 3].map(i => <View key={i} className="h-7 w-20 bg-slate-100 rounded-2xl" />)}
+            </View>
+
+            <View className="bg-slate-50 p-4 rounded-2xl mb-6 border border-slate-100">
+                <View className="h-3 bg-slate-100 rounded w-full mb-2" />
+                <View className="h-3 bg-slate-100 rounded w-4/5" />
+            </View>
+
+            <View className="flex-row justify-between items-center">
+                <View className="h-4 bg-slate-100 rounded w-1/3" />
+                <View className="w-24 h-12 bg-slate-100 rounded-2xl" />
+            </View>
+        </Animated.View>
+    );
+  };
+
+  return (
+    <View className="flex-1 bg-[#F8FAFC]">
+        <StatusBar barStyle="dark-content" />
+        
+        {/* HEADER DECORATION */}
+        <View className="absolute top-0 w-full h-80 opacity-40">
+            <LinearGradient 
+                colors={['#ec4899', 'transparent']} 
+                className="w-full h-full"
+            />
+        </View>
+
+        <SafeAreaView className="flex-1">
+            
+            {/* HEADER */}
+            <View className="px-8 pt-8 pb-4 flex-row justify-between items-center">
+                <View>
+                    <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter uppercase">Squad <Text className="text-pink-500">Builder</Text></Text>
+                    <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[2px] mt-0.5">
+                        Build your dream team today.
                     </Text>
                 </View>
+                <TouchableOpacity onPress={() => navigation.goBack()} className="w-12 h-12 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm">
+                    <Ionicons name="close" size={24} color="#18181b" />
+                </TouchableOpacity>
+            </View>
 
-                {/* 🔍 SEARCH BAR (Added) */}
-                <View className="mx-5 mt-4 mb-4">
-                    <View className="flex-row items-center rounded-2xl px-4 border border-white/10 shadow-md">
-                        <Ionicons name="search" size={20} color="#9ca3af" />
-                        <TextInput 
-                            placeholder="Search by skill (e.g. React, Node)..."
-                            placeholderTextColor="#6b7280"
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                            className="flex-1 ml-3 text-white text-base font-medium bg-transparent"
-                        />
-                        {searchQuery.length > 0 && (
-                            <TouchableOpacity onPress={() => setSearchQuery("")}>
-                                <Ionicons name="close-circle" size={20} color="#6b7280" />
-                            </TouchableOpacity>
-                        )}
-                    </View>
-                </View>
-
-                {/* TABS */}
-                <View className="flex-row mb-4 mx-5 bg-[#1a1a1a]/80 p-1 rounded-2xl border border-white/10">
-                    <TouchableOpacity 
-                        className={`flex-1 py-2 rounded-xl items-center justify-center ${activeTab === 'global' ? 'bg-[#333]' : 'bg-transparent'}`}
-                        onPress={() => setActiveTab('global')}
-                    >
-                        <Text className={`font-bold ${activeTab === 'global' ? 'text-white' : 'text-gray-500'}`}>
-                            🌍 Global
-                        </Text>
-                    </TouchableOpacity>
-                    
-                    <TouchableOpacity 
-                        className={`flex-1 py-2 rounded-xl items-center justify-center ${activeTab === 'college' ? 'bg-[#333]' : 'bg-transparent'}`}
-                        onPress={() => setActiveTab('college')}
-                    >
-                        <Text className={`font-bold ${activeTab === 'college' ? 'text-white' : 'text-gray-500'}`}>
-                            🎓 My College
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* LIST (Uses filteredDevelopers now) */}
-                {loading && !refreshing ? (
-                    <View className="mt-2">
-                        {[1, 2, 3].map(i => <TeammateSkeleton key={i} />)}
-                    </View>
-                ) : (
-                    <FlatList
-                        data={filteredDevelopers}
-                        keyExtractor={(item) => item._id}
-                        renderItem={renderCard}
-                        contentContainerStyle={{ paddingBottom: 100 }}
-                        showsVerticalScrollIndicator={false}
-                        refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
-                        }
-                        ListEmptyComponent={
-                            <View className="items-center mt-20">
-                                <MaterialCommunityIcons name="account-search" size={60} color="#333" />
-                                <Text className="text-gray-500 mt-4 text-center px-10">
-                                    {searchQuery ? "No developers found matching your search." : "No developers found yet. Be the first!"}
-                                </Text>
-                            </View>
-                        }
+            {/* SEARCH BAR */}
+            <View className="mx-8 mt-6 mb-6">
+                <View className="flex-row items-center bg-white rounded-3xl px-6 py-4 border border-slate-100 shadow-2xl shadow-black/5">
+                    <Ionicons name="search" size={20} color="#CBD5E1" />
+                    <TextInput 
+                        placeholder="Search by skill or index..."
+                        placeholderTextColor="#CBD5E1"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        className="flex-1 ml-4 text-zinc-900 text-sm font-black italic tracking-tight"
                     />
-                )}
+                    {searchQuery.length > 0 && (
+                        <TouchableOpacity onPress={() => setSearchQuery("")}>
+                            <Ionicons name="close-circle" size={20} color="#CBD5E1" />
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </View>
 
-      </SafeAreaView>
+            {/* TABS */}
+            <View className="flex-row mb-8 mx-8 bg-white p-1.5 rounded-[24px] border border-slate-100 shadow-sm">
+                <TouchableOpacity 
+                    className={`flex-1 py-3.5 rounded-[18px] items-center justify-center flex-row ${activeTab === 'global' ? 'bg-zinc-900' : 'bg-transparent'}`}
+                    onPress={() => setActiveTab('global')}
+                >
+                    <Ionicons name="globe-outline" size={16} color={activeTab === 'global' ? 'white' : '#94a3b8'} />
+                    <Text className={`font-black italic text-[11px] uppercase tracking-widest ml-2 ${activeTab === 'global' ? 'text-white' : 'text-slate-400'}`}>
+                        Global
+                    </Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                    className={`flex-1 py-3.5 rounded-[18px] items-center justify-center flex-row ${activeTab === 'college' ? 'bg-zinc-900' : 'bg-transparent'}`}
+                    onPress={() => setActiveTab('college')}
+                >
+                    <Ionicons name="school-outline" size={16} color={activeTab === 'college' ? 'white' : '#94a3b8'} />
+                    <Text className={`font-black italic text-[11px] uppercase tracking-widest ml-2 ${activeTab === 'college' ? 'text-white' : 'text-slate-400'}`}>
+                        Campus
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* LIST */}
+            {loading && !refreshing ? (
+                <View className="mt-2">
+                    {[1, 2, 3].map(i => <TeammateSkeleton key={i} />)}
+                </View>
+            ) : (
+                <FlatList
+                    data={filteredDevelopers}
+                    keyExtractor={(item) => item._id}
+                    renderItem={renderCard}
+                    contentContainerStyle={{ paddingBottom: 120 }}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ec4899" />
+                    }
+                    ListEmptyComponent={
+                        <View className="items-center mt-20 px-10">
+                            <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6 border border-slate-100">
+                                <MaterialCommunityIcons name="account-search-outline" size={40} color="#CBD5E1" />
+                            </View>
+                            <Text className="text-zinc-900 font-black italic text-xl tracking-tight text-center uppercase">No Talent Found</Text>
+                            <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-wide">
+                                {searchQuery ? "Your criteria returned void results." : "The arena is currently empty."}
+                            </Text>
+                        </View>
+                    }
+                />
+            )}
+
+        </SafeAreaView>
     </View>
   );
 }

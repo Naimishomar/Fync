@@ -93,7 +93,10 @@ const FindAlumni = ({ navigation }: any) => {
     const startChat = async (targetUser: any) => {
         try {
             const res = await axios.post("/chat/start", { userId: targetUser._id });
-            navigation.navigate("Chat", { conversationId: res.data.conversation._id });
+            navigation.navigate("Chat", { 
+                conversationId: res.data.conversation._id,
+                otherUser: targetUser
+            });
         } catch (err) {
             console.log("Start chat error", err);
         }

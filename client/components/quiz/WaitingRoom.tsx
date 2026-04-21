@@ -150,12 +150,12 @@ const WaitingRoom: React.FC<Props> = ({ route, navigation }) => {
         </View>
 
         {/* FOOTER WARNING */}
-        <View className="bg-zinc-900 p-8 rounded-[40px] flex-row items-center shadow-2xl shadow-black/20">
-          <View className="w-12 h-12 bg-zinc-800 rounded-2xl items-center justify-center border border-zinc-700">
+        <View className="bg-white p-8 rounded-[40px] flex-row items-center shadow-2xl shadow-black/5 border border-slate-100">
+          <View className="w-12 h-12 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
             <Ionicons name="shield-checkmark" size={24} color="#ec4899" />
           </View>
-          <Text className="text-slate-500 ml-5 flex-1 text-[10px] font-bold uppercase tracking-wide leading-5">
-            <Text className="font-black text-white italic">Protocol Active.</Text> Maintain active connection. Disconnection will result in session void.
+          <Text className="text-slate-400 ml-5 flex-1 text-[10px] font-bold uppercase tracking-wide leading-5">
+            <Text className="font-black text-zinc-900 italic">Protocol Active.</Text> Maintain active connection. Disconnection will result in session void.
           </Text>
         </View>
 

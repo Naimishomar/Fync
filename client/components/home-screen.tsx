@@ -403,8 +403,17 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
 
       <View className="mb-3 px-1">
         <Text className="text-zinc-900 text-[15px] font-medium leading-6">
-          {item.description}
+          {isExpanded || (item.description?.length || 0) <= MAX_CHAR_LIMIT
+            ? item.description
+            : `${item.description?.slice(0, MAX_CHAR_LIMIT)}...`}
         </Text>
+        {(item.description?.length || 0) > MAX_CHAR_LIMIT && (
+          <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} className="mt-1">
+            <Text className="text-pink-500 font-bold">
+              {isExpanded ? 'Show Less' : 'Show More'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Media (Full Width) */}

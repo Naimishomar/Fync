@@ -180,6 +180,7 @@ export default function AlumniJobs() {
             if (res.data.success) {
                 navigation.navigate("Chat", {
                     conversationId: res.data.conversation._id,
+                    otherUser: alumni
                 });
             }
         } catch (error) {

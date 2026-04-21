@@ -209,7 +209,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
                       setAnswers(newAns);
                     }}
                     className={`p-6 mb-5 rounded-3xl border flex-row items-center transition-all ${
-                      isSelected ? 'bg-zinc-900 border-zinc-900 shadow-lg shadow-black/10' : 'bg-slate-50 border-slate-100'
+                      isSelected ? 'bg-white border-pink-500 shadow-xl shadow-pink-500/10' : 'bg-slate-50 border-slate-100'
                     }`}
                   >
                     <View className={`w-6 h-6 rounded-full border-2 mr-4 items-center justify-center ${
@@ -245,7 +245,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
               <TouchableOpacity 
                 onPress={() => setCurrentIndex(prev => prev + 1)}
                 activeOpacity={0.9}
-                className="py-5 px-16 rounded-[30px] bg-zinc-900 shadow-xl shadow-black/20 flex-row items-center"
+                className="py-5 px-16 rounded-[30px] bg-pink-500 shadow-xl shadow-pink-500/20 flex-row items-center"
               >
                 <Text className="text-white font-black italic uppercase tracking-[2px] text-sm mr-3">Next Step</Text>
                 <Ionicons name="arrow-forward" size={18} color="white" />
@@ -298,7 +298,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
                     
                     <TouchableOpacity 
                         onPress={submitQuiz}
-                        className="flex-1 py-5 bg-zinc-900 rounded-3xl shadow-xl shadow-black/20 items-center"
+                        className="flex-1 py-5 bg-pink-500 rounded-3xl shadow-xl shadow-pink-500/20 items-center"
                     >
                         <Text className="text-white font-black italic uppercase tracking-widest text-[12px]">Confirm</Text>
                     </TouchableOpacity>

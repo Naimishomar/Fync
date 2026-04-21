@@ -242,15 +242,6 @@ export default function CustomSidebar(props: any) {
                         </Pressable>
                     )}
 
-                    {/* Professional Hub (Student-Alumni Mentorship) */}
-                    <Pressable
-                        onPress={() => props.navigation.navigate('ProfessionalHub')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
-                    >
-                        <Ionicons name="briefcase-outline" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">Professional Hub</Text>
-                    </Pressable>
-
                     {/* 5. Bunk O Meter */}
                     <Pressable
                         onPress={() => props.navigation.navigate('BunkOMeter')}

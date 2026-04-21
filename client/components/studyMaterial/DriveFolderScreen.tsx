@@ -1,27 +1,53 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Image, Animated } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Image, Animated, StatusBar, TextInput } from 'react-native';
 import { fetchDriveData } from '../../utils/handleDrive';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const FOLDER_IMG = 'https://cdn-icons-png.flaticon.com/512/716/716784.png'; 
 const PDF_IMG = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
 
 const DriveFolderScreen = ({ route, navigation }: any) => {
   const { folderId, title } = route.params;
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState<any[]>([]);
+  const [filteredItems, setFilteredItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [activeFilter, setActiveFilter] = useState<'all' | 'folders' | 'files'>('all');
 
   useEffect(() => {
     navigation.setOptions({ title: title || "Resources" });
     loadData();
   }, [folderId]);
 
+  useEffect(() => {
+    filterData();
+  }, [search, items, activeFilter]);
+
   const loadData = async () => {
     setLoading(true);
     const data = await fetchDriveData(folderId);
     setItems(data || []);
     setLoading(false);
+  };
+
+  const filterData = () => {
+    let result = items;
+    
+    // Search Filter
+    if (search.trim()) {
+        result = result.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
+    }
+
+    // Type Filter
+    if (activeFilter === 'folders') {
+        result = result.filter(i => i.mimeType === 'application/vnd.google-apps.folder');
+    } else if (activeFilter === 'files') {
+        result = result.filter(i => i.mimeType !== 'application/vnd.google-apps.folder');
+    }
+
+    setFilteredItems(result);
   };
 
   const handlePress = (item: any) => {
@@ -47,80 +73,148 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
     return (
         <Animated.View 
             style={{ opacity: pulseAnim }}
-            className="flex-row items-center p-4 mx-4 mb-3 bg-zinc-900 rounded-2xl border border-zinc-800"
+            className="flex-row items-center p-5 mx-6 mb-4 bg-white rounded-[28px] border border-slate-50"
         >
-            <View className="w-10 h-10 bg-zinc-800 rounded-lg" />
+            <View className="w-12 h-12 bg-slate-50 rounded-2xl" />
             <View className="ml-4 flex-1">
-                <View className="h-4 bg-zinc-800 rounded w-3/4 mb-2" />
-                <View className="h-3 bg-zinc-800 rounded w-1/2" />
+                <View className="h-4 bg-slate-50 rounded w-3/4 mb-2" />
+                <View className="h-3 bg-slate-50 rounded w-1/2" />
             </View>
-            <View className="w-4 h-4 bg-zinc-800 rounded-full" />
+            <View className="w-4 h-4 bg-slate-50 rounded-full" />
         </Animated.View>
     );
   };
 
-  if (loading) {
-    return (
-      <View className="flex-1 bg-black py-12">
-        <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
-        <View className='flex-row items-center gap-1 px-4 mb-6'>
-            <Ionicons name="arrow-back-outline" size={24} color="white" />
-            <Text className='text-2xl font-bold text-white uppercase italic'>Loading Notes</Text>
-        </View>
-        {[1, 2, 3, 4, 5, 6].map((i) => <SkeletonItem key={i} />)}
-      </View>
-    );
-  }
+
 
   return (
-    <View className="flex-1 bg-black py-12">
-      <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
-      <View className='flex-row items-center gap-1 px-4'>
-        <Ionicons name="arrow-back-outline" size={24} color="white" onPress={()=> navigation.goBack()} />
-        <Text className='text-2xl font-bold text-white'>📑NOTES</Text>
+    <View className="flex-1 bg-[#F8FAFC]">
+      <StatusBar barStyle="dark-content" />
+      
+      {/* HEADER DECORATION - MATCHING LEADERBOARD */}
+      <View className="absolute top-0 w-full h-80 opacity-20">
+          <LinearGradient 
+              colors={['#f97316', 'transparent']} 
+              className="w-full h-full"
+          />
       </View>
-      <FlatList
-        data={items}
-        contentContainerStyle={{ paddingVertical: 10 }}
-        keyExtractor={(item: any) => item.id}
-        renderItem={({ item }) => {
-          const isFolder = item.mimeType === 'application/vnd.google-apps.folder';
-          
-          return (
-            <TouchableOpacity 
-              activeOpacity={0.7}
-              className="flex-row items-center p-4 mx-4 mb-3 bg-black/30 rounded-2xl shadow-sm border border-gray-800" 
-              onPress={() => handlePress(item)}
-            >
-              {/* Use uri object for remote images */}
-              <View className="w-12 h-12 items-center justify-center">
-                <Image 
-                  source={{ uri: isFolder ? FOLDER_IMG : PDF_IMG }}
-                  style={{ width: 40, height: 40 }}
-                  className="w-10 h-10"
-                  resizeMode="contain"
-                />
-              </View>
-              
-              <View className="ml-4 flex-1">
-                <Text className="text-white text-base font-bold" numberOfLines={1}>
-                  {item.name}
-                </Text>
-                <Text className="text-gray-200 text-xs mt-1">
-                  {isFolder ? 'Folder • View contents' : 'PDF • Tap to read'}
-                </Text>
-              </View>
 
-              <Text className="text-gray-200 text-xl ml-2">›</Text>
-            </TouchableOpacity>
-          );
-        }}
-        ListEmptyComponent={
-          <View className="items-center mt-20">
-            <Text className="text-gray-200 font-medium">No files available here</Text>
-          </View>
-        }
-      />
+      <SafeAreaView className="flex-1" edges={['top']}>
+        {loading ? (
+            <View>
+                <View className='px-8 pt-8 bg-transparent'>
+                    <View className="flex-row items-center justify-between mb-8">
+                        <View>
+                            <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter uppercase">Fync <Text className="text-orange-500">Drive</Text></Text>
+                            <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[2px] mt-0.5">Campus Resource Arena</Text>
+                        </View>
+                        <TouchableOpacity disabled className="w-12 h-12 rounded-2xl items-center justify-center border border-slate-100 bg-white shadow-sm">
+                            <ActivityIndicator size="small" color="#f97316" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <View className="mt-4">
+                    {[1, 2, 3, 4, 5, 6].map((i) => <SkeletonItem key={i} />)}
+                </View>
+            </View>
+        ) : (
+            <FlatList
+                data={filteredItems}
+                keyExtractor={(item: any) => item.id}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 100 }}
+                ListHeaderComponent={
+                    <View className='px-8 pt-8 bg-transparent'>
+                        <View className="flex-row items-center justify-between mb-8">
+                            <View>
+                                <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter uppercase">Fync <Text className="text-orange-500">Drive</Text></Text>
+                                <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[2px] mt-0.5">Campus Resource Arena</Text>
+                            </View>
+                            <TouchableOpacity onPress={loadData} disabled={loading} className={`w-12 h-12 rounded-2xl items-center justify-center border shadow-sm ${loading ? 'border-orange-100 bg-orange-50' : 'border-slate-100 bg-white'}`}>
+                                {loading ? <ActivityIndicator size="small" color="#f97316" /> : <Ionicons name="refresh" size={20} color="#18181b" />}
+                            </TouchableOpacity>
+                        </View>
+
+                        <View className="flex-row items-center bg-white px-4 py-1 rounded-[20px] border border-slate-100 mb-6">
+                            <Ionicons name="search" size={20} color="#CBD5E1" />
+                            <TextInput 
+                                placeholder="Search resources..." 
+                                placeholderTextColor="#CBD5E1" 
+                                value={search}
+                                onChangeText={setSearch}
+                                className="flex-1 text-zinc-900 font-black italic text-sm tracking-tight p-3" 
+                            />
+                        </View>
+
+                        <View className="flex-row justify-between gap-4 mb-6">
+                            <View className="flex-1 flex-row bg-white rounded-[18px] p-1.5 border border-slate-100">
+                                {[
+                                    { id: 'all', label: 'All' },
+                                    { id: 'folders', label: 'Folders' },
+                                    { id: 'files', label: 'PDFs' }
+                                ].map(chip => (
+                                    <TouchableOpacity 
+                                        key={chip.id}
+                                        onPress={() => setActiveFilter(chip.id as any)}
+                                        className={`flex-1 items-center py-3 rounded-[12px] ${activeFilter === chip.id ? 'bg-zinc-900' : 'bg-transparent'}`}
+                                    >
+                                        <Text className={`font-black italic text-[10px] uppercase tracking-widest ${activeFilter === chip.id ? 'text-white' : 'text-slate-400'}`}>{chip.label}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </View>
+
+                        <View className="mb-6 flex-row items-center">
+                            <View className="bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20 mr-2">
+                                <Text className="text-orange-600 font-black italic text-[8px] uppercase tracking-tighter">Current Path</Text>
+                            </View>
+                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest italic flex-1" numberOfLines={1}>/ {title || "Root Protocol"}</Text>
+                        </View>
+                    </View>
+                }
+                renderItem={({ item }) => {
+                    const isFolder = item.mimeType === 'application/vnd.google-apps.folder';
+                    
+                    return (
+                        <TouchableOpacity 
+                            activeOpacity={0.7}
+                            className="flex-row items-center p-5 mx-6 mb-4 bg-white rounded-[28px] border border-slate-100" 
+                            onPress={() => handlePress(item)}
+                        >
+                            <View className="w-14 h-14 bg-slate-50 rounded-2xl items-center justify-center p-2.5">
+                                <Image 
+                                    source={{ uri: isFolder ? FOLDER_IMG : PDF_IMG }}
+                                    className="w-full h-full"
+                                    resizeMode="contain"
+                                />
+                            </View>
+                            
+                            <View className="ml-4 flex-1">
+                                <Text className="text-zinc-900 text-sm font-black italic uppercase tracking-tight" numberOfLines={1}>
+                                    {item.name}
+                                </Text>
+                                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1 italic">
+                                    {isFolder ? 'Folder' : 'PDF Source'}
+                                </Text>
+                            </View>
+
+                            <View className="w-8 h-8 bg-slate-50 rounded-full items-center justify-center">
+                                <Ionicons name="chevron-forward" size={12} color="#CBD5E1" />
+                            </View>
+                        </TouchableOpacity>
+                    );
+                }}
+                ListEmptyComponent={
+                    <View className="items-center mt-20 px-10">
+                        <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
+                            <Ionicons name="document-text-outline" size={32} color="#CBD5E1" />
+                        </View>
+                        <Text className="text-slate-400 font-black italic text-xs text-center uppercase tracking-widest">No resources found</Text>
+                    </View>
+                }
+            />
+        )}
+      </SafeAreaView>
     </View>
   );
 };

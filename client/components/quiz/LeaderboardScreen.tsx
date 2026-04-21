@@ -187,8 +187,8 @@ const LeaderboardScreen = () => {
         </View>
 
         {/* Score Badge */}
-        <View className="bg-zinc-900 px-4 py-2 rounded-2xl shadow-lg shadow-black/20 transform rotate-2">
-          <Text className="font-black italic text-white text-base">
+        <View className="bg-pink-50 px-4 py-2 rounded-2xl shadow-sm border border-pink-100 transform rotate-2">
+          <Text className="font-black italic text-pink-500 text-base">
             {item.score} <Text className="text-[10px] uppercase tracking-tighter">Pts</Text>
           </Text>
         </View>
@@ -243,11 +243,11 @@ const LeaderboardScreen = () => {
 
         {/* User's Own Score Card (If played) */}
         {myScore !== undefined && (
-          <View className="mx-8 bg-zinc-900 p-8 rounded-[40px] mb-8 shadow-2xl shadow-black/20 items-center overflow-hidden">
-            <View className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full -mr-16 -mt-16" />
+          <View className="mx-8 bg-white p-8 rounded-[40px] mb-8 shadow-2xl shadow-black/5 items-center overflow-hidden border border-slate-100">
+            <View className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-full -mr-16 -mt-16" />
             <Text className="text-pink-500 font-black italic text-[10px] uppercase tracking-[3px] mb-2">My Final Ranking</Text>
-            <Text className="text-white text-6xl font-black italic tracking-tighter">{myScore}</Text>
-            <Text className="text-slate-500 font-black italic text-[10px] uppercase tracking-[2px] mt-2">Points Verified</Text>
+            <Text className="text-zinc-900 text-6xl font-black italic tracking-tighter">{myScore}</Text>
+            <Text className="text-slate-400 font-black italic text-[10px] uppercase tracking-[2px] mt-2">Points Verified</Text>
           </View>
         )}
 
