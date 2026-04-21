@@ -28,7 +28,7 @@ const Chat = ({ route, navigation }: any) => {
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [otherUser, setOtherUser] = useState<any>(null);
+  const [otherUser, setOtherUser] = useState<any>(route?.params?.otherUser || null);
 
   // ✅ NEW STATES
   const [isTyping, setIsTyping] = useState(false);
@@ -49,6 +49,7 @@ const Chat = ({ route, navigation }: any) => {
 
   /* ---------- FETCH USER ---------- */
   const fetchConversationUser = async () => {
+    if (otherUser) return; // Already have user info from params
     try {
       const res = await axios.get(`/chat/conversations`);
       const convo = res.data.conversations.find(
@@ -313,7 +314,7 @@ const Chat = ({ route, navigation }: any) => {
         className="flex-1"
       >
         {/* HEADER */}
-        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100 bg-white shadow-sm">
+        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
           <View className="flex-row items-center">
             <Pressable onPress={() => navigation.goBack()}>
               <Ionicons name="arrow-back" size={24} color="black" />
@@ -334,14 +335,14 @@ const Chat = ({ route, navigation }: any) => {
                       otherUser.avatar ||
                       `https://ui-avatars.com/api/?name=${otherUser.username}`,
                   }}
-                  className="h-8 w-8 rounded-full"
+                  className="h-10 w-10 rounded-full"
                 />
 
-                <View className="ml-2">
-                  <Text className="font-semibold text-base text-sm">
+                <View className="ml-3">
+                  <Text className="font-bold text-zinc-900 text-sm">
                     {otherUser.name}
                   </Text>
-                  <Text className="text-xs text-gray-500 text-xs">
+                  <Text className="text-[10px] text-gray-500 font-black tracking-widest">
                     @{otherUser.username}
                   </Text>
                 </View>

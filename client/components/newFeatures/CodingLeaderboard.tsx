@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, Text, FlatList, Image, TextInput, TouchableOpacity, 
-  ActivityIndicator, RefreshControl, Modal, ScrollView, Alert, Linking, Animated 
+  ActivityIndicator, RefreshControl, Modal, ScrollView, Alert, Linking, Animated, StatusBar 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -11,11 +11,10 @@ import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig'; 
 import { useAuth } from '../../context/auth.context';
 
-const BG_IMAGE = "https://images.unsplash.com/photo-1516116216624-53e697fedbea?q=80&w=1000&auto=format&fit=crop";
 const LC_LOGO = "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png";
 
 export default function CodingLeaderboard() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const navigation = useNavigation<any>();
   
   const [activeScope, setActiveScope] = useState<'global' | 'college'>('college');
@@ -26,11 +25,35 @@ export default function CodingLeaderboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [refreshingStats, setRefreshingStats] = useState(false);
 
+  // Profile Connection State
+  const [lcUsername, setLcUsername] = useState("");
+  const [connecting, setConnecting] = useState(false);
+  const hasLinkedProfile = !!user?.codingProfiles?.leetcode;
+
   // Modal State
   const [modalVisible, setModalVisible] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [lcData, setLcData] = useState<any>(null); 
   const [dbUser, setDbUser] = useState<any>(null); 
+
+  // --- 1. LINK PROFILE HANDLER ---
+  const handleLinkProfile = async () => {
+    if (!lcUsername.trim()) return Alert.alert("Required", "Please enter your LeetCode username.");
+    
+    setConnecting(true);
+    try {
+        const res = await axios.put('/leaderboard/update-profiles', { leetcode: lcUsername });
+        if (res.data.success) {
+            setUser(res.data.user);
+            Alert.alert("Welcome to the Arena! 🏆", "Your profile has been connected. Start coding to climb the ranks.");
+            fetchLeaderboard();
+        }
+    } catch (err: any) {
+        Alert.alert("Link Failed", err.response?.data?.message || "Something went wrong");
+    } finally {
+        setConnecting(false);
+    }
+  };
 
   // --- HELPER: Process Calendar Data ---
   const getActivityData = (calendarString: string) => {
@@ -58,6 +81,7 @@ export default function CodingLeaderboard() {
   };
 
   const fetchLeaderboard = async () => {
+    if (!hasLinkedProfile) return;
     try {
       if (!refreshing) setLoading(true);
       const res = await axios.get(`/leaderboard?scope=${activeScope}&type=${timeFilter}&search=${search}`);
@@ -120,28 +144,42 @@ export default function CodingLeaderboard() {
   useEffect(() => { const t = setTimeout(fetchLeaderboard, 500); return () => clearTimeout(t); }, [search]);
   const onRefresh = () => { setRefreshing(true); fetchLeaderboard(); };
 
+  // --- AUTOMATIC 10-MINUTE SYNC ---
+  useEffect(() => {
+    if (!hasLinkedProfile) return;
+    const interval = setInterval(() => {
+      console.log("⏰ 10 Minute Sync Cycle Triggered");
+      fetchLeaderboard();
+    }, 10 * 60 * 1000); // 10 minutes in milliseconds
+
+    return () => clearInterval(interval);
+  }, [hasLinkedProfile]);
+
   const renderItem = ({ item, index }: { item: any, index: number }) => (
-    <TouchableOpacity onPress={() => openUserProfile(item)} className="flex-row items-center bg-[#1e1e1e]/90 p-4 mb-3 mx-4 rounded-2xl border border-white/10">
-      <View className="w-10 items-center justify-center mr-2">
+    <TouchableOpacity onPress={() => openUserProfile(item)} className="flex-row items-center bg-white p-5 mb-4 mx-5 rounded-[28px] border border-slate-100 shadow-sm shadow-black/5">
+      <View className="w-10 items-center justify-center mr-3">
         {index < 3 ? (
-            <MaterialCommunityIcons name="crown" size={24} color={index === 0 ? "#fbbf24" : index === 1 ? "#94a3b8" : "#78350f"} />
+            <View className={`w-8 h-8 rounded-full items-center justify-center ${index === 0 ? 'bg-amber-50' : index === 1 ? 'bg-slate-50' : 'bg-orange-50'}`}>
+                <MaterialCommunityIcons name="crown" size={18} color={index === 0 ? "#fbbf24" : index === 1 ? "#94a3b8" : "#78350f"} />
+            </View>
         ) : (
-            <Text className="text-gray-400 font-bold text-lg">#{index + 1}</Text>
+            <Text className="text-slate-300 font-black italic text-lg">#{index + 1}</Text>
         )}
       </View>
-      <Image source={{ uri: item.avatar }} className="w-12 h-12 rounded-full border border-white/10 bg-gray-800" />
+      <View className="p-0.5 rounded-full border border-slate-100 bg-white">
+        <Image source={{ uri: item.avatar }} className="w-12 h-12 rounded-full" />
+      </View>
       <View className="flex-1 ml-4">
-        <Text className="text-white font-bold text-base" numberOfLines={1}>{item.name || item.username}</Text>
+        <Text className="text-zinc-900 font-black italic text-sm uppercase tracking-tight" numberOfLines={1}>{item.name || item.username}</Text>
         <View className="flex-row items-center mt-1">
-            <Image source={{ uri: LC_LOGO }} className="w-3 h-3 mr-1" resizeMode="contain" style={{ tintColor: '#ffa116' }} />
-            <Text className="text-gray-500 text-[10px] uppercase">{item.college || "Global"}</Text>
+            <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest">{item.college || "Global Arena"}</Text>
         </View>
       </View>
-      <View className="items-end">
-        <Text className="text-orange-400 font-black text-xl">
+      <View className="items-center bg-slate-50 px-3 py-1.5 rounded-2xl border border-slate-100">
+        <Text className="text-zinc-900 font-black italic text-lg tracking-tighter">
             {timeFilter === 'weekly' ? (item.weeklyStats?.questionsThisWeek || 0) : (item.codingStats?.totalSolved || 0)}
         </Text>
-        <Text className="text-gray-600 text-[10px] uppercase">{timeFilter === 'weekly' ? 'This Week' : 'Solved'}</Text>
+        <Text className="text-slate-400 text-[8px] font-black uppercase tracking-tighter">{timeFilter === 'weekly' ? 'Week' : 'Solved'}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -161,75 +199,141 @@ export default function CodingLeaderboard() {
         return (
             <Animated.View 
                 style={{ opacity: pulseAnim }}
-                className="flex-row items-center bg-[#1e1e1e]/50 p-4 mb-3 mx-4 rounded-2xl border border-white/5"
+                className="flex-row items-center bg-white p-5 mb-4 mx-5 rounded-[28px] border border-slate-100"
             >
-                <View className="w-10 items-center justify-center mr-2">
-                    <View className="w-6 h-6 bg-zinc-800 rounded-md" />
+                <View className="w-10 items-center justify-center mr-3">
+                    <View className="w-8 h-8 bg-slate-50 rounded-full" />
                 </View>
-                <View className="w-12 h-12 rounded-full bg-zinc-800 border border-white/5" />
+                <View className="w-12 h-12 rounded-full bg-slate-50" />
                 <View className="flex-1 ml-4 justify-center">
-                    <View className="h-4 bg-zinc-800 rounded w-1/2 mb-2" />
-                    <View className="h-3 bg-zinc-800 rounded w-1/4" />
+                    <View className="h-4 bg-slate-50 rounded w-1/2 mb-2" />
+                    <View className="h-3 bg-slate-50 rounded w-1/4" />
                 </View>
                 <View className="items-end justify-center">
-                    <View className="h-6 bg-zinc-800 rounded w-10 mb-1" />
-                    <View className="h-2 bg-zinc-800 rounded w-8" />
+                    <View className="h-8 bg-slate-50 rounded-xl w-14" />
                 </View>
             </Animated.View>
         );
     };
 
+    if (!hasLinkedProfile) {
+        return (
+            <View className="flex-1 bg-[#F8FAFC]">
+                <StatusBar barStyle="dark-content" />
+                <LinearGradient colors={['#f97316', 'transparent']} className="absolute top-0 w-full h-80 opacity-20" />
+                
+                <SafeAreaView className="flex-1 items-center justify-center px-8">
+                    <View className="w-24 h-24 bg-white rounded-[40px] items-center justify-center shadow-2xl shadow-orange-500/20 border border-slate-100 mb-8">
+                        <MaterialCommunityIcons name="shield-lock" size={48} color="#f97316" />
+                    </View>
+                    
+                    <Text className="text-zinc-900 text-4xl font-black italic uppercase tracking-tighter text-center">Join The<Text className="text-orange-500"> Arena</Text></Text>
+                    <Text className="text-slate-400 text-center font-black uppercase text-[10px] tracking-widest mt-2 leading-4 px-10">
+                        Connect your coding profiles to unlock the global leaderboard and track your progress.
+                    </Text>
+
+                    <View className="w-full mt-12 bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm">
+                        <View className="flex-row items-center mb-6">
+                            <View className="w-8 h-8 rounded-xl bg-orange-50 items-center justify-center mr-3">
+                                <Image source={{ uri: LC_LOGO }} className="w-4 h-4" resizeMode="contain" />
+                            </View>
+                            <Text className="text-zinc-800 font-black italic uppercase text-xs tracking-tight">LeetCode Username</Text>
+                        </View>
+                        
+                        <TextInput 
+                            placeholder="Enter username (e.g. jdoe22)"
+                            placeholderTextColor="#CBD5E1"
+                            value={lcUsername}
+                            onChangeText={setLcUsername}
+                            className="bg-slate-50 p-5 rounded-2xl text-zinc-900 font-black italic text-sm border border-slate-100"
+                        />
+                        
+                        <TouchableOpacity 
+                            onPress={handleLinkProfile}
+                            disabled={connecting}
+                            className="bg-zinc-900 mt-6 py-5 rounded-2xl items-center shadow-xl shadow-black/10"
+                        >
+                            {connecting ? (
+                                <ActivityIndicator size="small" color="white" />
+                            ) : (
+                                <Text className="text-white font-black italic uppercase tracking-widest text-xs">Link Profile & Enter</Text>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+
+                    <Text className="text-slate-300 text-[8px] font-black uppercase tracking-widest mt-10 text-center px-10">
+                        By entering, your coding stats will be visible to other hunters in the arena.
+                    </Text>
+                </SafeAreaView>
+            </View>
+        );
+    }
+
     return (
-        <View className="flex-1 bg-black">
-            <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
+        <View className="flex-1 bg-[#F8FAFC]">
+            <StatusBar barStyle="dark-content" />
+            
+            {/* HEADER DECORATION */}
+            <View className="absolute top-0 w-full h-80 opacity-40">
+                <LinearGradient 
+                    colors={['#f97316', 'transparent']} 
+                    className="w-full h-full"
+                />
+            </View>
 
             <SafeAreaView className="flex-1">
-                <View className="px-6 pt-4 mb-4 flex-row justify-between items-center">
+                <View className="px-8 pt-8 mb-6 flex-row justify-between items-center">
                     <View>
-                        <Text className="text-3xl font-black italic tracking-tighter text-white">LEET<Text className="text-orange-500">RANK</Text> ⚡</Text>
+                        <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter uppercase">Leet<Text className="text-orange-500">Rank</Text></Text>
+                        <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[2px] mt-0.5">Campus Coding Arena</Text>
                     </View>
-                    <TouchableOpacity onPress={handleManualRefresh} disabled={refreshingStats} className={`p-3 rounded-full border ${refreshingStats ? 'border-orange-500 bg-orange-500/20' : 'border-gray-700 bg-gray-800'}`}>
-                        {refreshingStats ? <ActivityIndicator size="small" color="#fb923c" /> : <Ionicons name="refresh" size={20} color="white" />}
+                    <TouchableOpacity onPress={handleManualRefresh} disabled={refreshingStats} className={`w-12 h-12 rounded-2xl items-center justify-center border shadow-sm ${refreshingStats ? 'border-orange-100 bg-orange-50' : 'border-slate-100 bg-white'}`}>
+                        {refreshingStats ? <ActivityIndicator size="small" color="#f97316" /> : <Ionicons name="refresh" size={20} color="#18181b" />}
                     </TouchableOpacity>
                 </View>
 
-                <View className="px-4 mb-4">
-                    <View className="flex-row items-center bg-gray-900/80 p-3 rounded-xl border border-white/10 mb-4">
-                        <Ionicons name="search" size={20} color="gray" />
-                        <TextInput placeholder="Search..." placeholderTextColor="#666" value={search} onChangeText={setSearch} className="flex-1 ml-3 text-white font-medium" />
+                <View className="px-8 mb-6">
+                    <View className="flex-row items-center bg-white px-4 py-1 rounded-[20px] border border-slate-100 shadow-2xl shadow-black/5 mb-6">
+                        <Ionicons name="search" size={20} color="#CBD5E1" />
+                        <TextInput placeholder="Search hunters..." placeholderTextColor="#CBD5E1" value={search} onChangeText={setSearch} className="flex-1 text-zinc-900 font-black italic uppercase text-sm tracking-tight" />
                     </View>
-                    <View className="flex-row justify-between gap-3">
-                        <View className="flex-1 flex-row bg-gray-900 rounded-lg p-1 border border-white/10">
+                    
+                    <View className="flex-row justify-between gap-4">
+                        <View className="flex-1 flex-row bg-white rounded-[18px] p-1.5 border border-slate-100 shadow-sm">
                             {['college', 'global'].map(scope => (
-                                <TouchableOpacity key={scope} onPress={() => setActiveScope(scope as any)} className={`flex-1 items-center py-2 rounded-md ${activeScope === scope ? 'bg-orange-600' : 'bg-transparent'}`}>
-                                    <Text className={`font-bold text-xs capitalize ${activeScope === scope ? 'text-white' : 'text-gray-400'}`}>{scope}</Text>
+                                <TouchableOpacity key={scope} onPress={() => setActiveScope(scope as any)} className={`flex-1 items-center py-3 rounded-[12px] ${activeScope === scope ? 'bg-zinc-900' : 'bg-transparent'}`}>
+                                    <Text className={`font-black italic text-[10px] uppercase tracking-widest ${activeScope === scope ? 'text-white' : 'text-slate-400'}`}>{scope === 'college' ? 'Campus' : 'Global'}</Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
-                        <View className="flex-1 flex-row bg-gray-900 rounded-lg p-1 border border-white/10">
-                            <TouchableOpacity onPress={() => setTimeFilter('allTime')} className={`flex-1 items-center py-2 rounded-md ${timeFilter === 'allTime' ? 'bg-gray-700' : 'bg-transparent'}`}>
-                                <Text className={`font-bold text-xs ${timeFilter === 'allTime' ? 'text-white' : 'text-gray-400'}`}>All Time</Text>
+                        <View className="flex-1 flex-row bg-white rounded-[18px] p-1.5 border border-slate-100 shadow-sm">
+                            <TouchableOpacity onPress={() => setTimeFilter('allTime')} className={`flex-1 items-center py-3 rounded-[12px] ${timeFilter === 'allTime' ? 'bg-orange-500' : 'bg-transparent'}`}>
+                                <Text className={`font-black italic text-[10px] uppercase tracking-widest ${timeFilter === 'allTime' ? 'text-white' : 'text-slate-400'}`}>All</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => setTimeFilter('weekly')} className={`flex-1 items-center py-2 rounded-md ${timeFilter === 'weekly' ? 'bg-green-600' : 'bg-transparent'}`}>
-                                <Text className={`font-bold text-xs ${timeFilter === 'weekly' ? 'text-white' : 'text-gray-400'}`}>Weekly</Text>
+                            <TouchableOpacity onPress={() => setTimeFilter('weekly')} className={`flex-1 items-center py-3 rounded-[12px] ${timeFilter === 'weekly' ? 'bg-green-500' : 'bg-transparent'}`}>
+                                <Text className={`font-black italic text-[10px] uppercase tracking-widest ${timeFilter === 'weekly' ? 'text-white' : 'text-slate-400'}`}>Week</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                 </View>
 
                 {loading && !refreshing ? (
-                    <View>
-                        {[1, 2, 3, 4, 5, 6].map(i => <LeaderboardSkeleton key={i} />)}
+                    <View className="mt-2">
+                        {[1, 2, 3, 4, 5].map(i => <LeaderboardSkeleton key={i} />)}
                     </View>
                 ) : (
                     <FlatList
                         data={users} keyExtractor={(item) => item._id} renderItem={renderItem}
-                        contentContainerStyle={{ paddingBottom: 20 }}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
+                        contentContainerStyle={{ paddingBottom: 120 }}
+                        showsVerticalScrollIndicator={false}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />}
                         ListEmptyComponent={
-                            <View className="items-center mt-20 opacity-50">
-                                <FontAwesome5 name="code" size={50} color="gray" />
-                                <Text className="text-gray-500 mt-4 font-bold">No LeetCoders found.</Text>
+                            <View className="items-center mt-20 px-10">
+                                <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6 border border-slate-100">
+                                    <FontAwesome5 name="code" size={32} color="#CBD5E1" />
+                                </View>
+                                <Text className="text-zinc-900 font-black italic text-xl tracking-tight text-center uppercase">No Hunters Found</Text>
+                                <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-wide">The arena is currently quiet.</Text>
                             </View>
                         }
                     />
@@ -237,116 +341,106 @@ export default function CodingLeaderboard() {
 
         {/* --- ULTRA DETAILED MODAL --- */}
         <Modal visible={modalVisible} transparent={true} animationType="slide" onRequestClose={() => setModalVisible(false)}>
-            <BlurView intensity={100} tint="dark" className="flex-1 justify-end">
-                
-                {/* 🎨 CHANGED BACKGROUND COLOR HERE: bg-[#1A1A1A] */}
-                <View className="bg-black h-[80%] rounded-t-3xl border-t border-white/10 p-6 shadow-2xl">
-                    <View className="w-12 h-1 bg-gray-600 rounded-full self-center mb-4" />
+            <BlurView intensity={20} tint="light" className="flex-1 justify-end">
+                <TouchableOpacity className="absolute inset-0" onPress={() => setModalVisible(false)} />
+                <View className="bg-white h-[85%] rounded-t-[48px] border-t border-slate-100 p-8 shadow-2xl">
+                    <View className="w-12 h-1.5 bg-slate-100 rounded-full self-center mb-8" />
 
                     {profileLoading || !lcData ? (
-                        <ActivityIndicator size="large" color="#fb923c" className="mt-20" />
+                        <ActivityIndicator size="large" color="#f97316" className="mt-20" />
                     ) : (
                         <ScrollView showsVerticalScrollIndicator={false}>
                             
                             {/* 1. Header Profile */}
-                            <View className="items-center mb-6">
-                                <Image source={{ uri: lcData?.profile?.avatar }} className="w-24 h-24 rounded-full border-4 border-orange-500 bg-[#252525]" />
-                                <Text className="text-white text-2xl font-black mt-3">{lcData.profile?.name || dbUser?.name}</Text>
-                                <Text className="text-gray-400 text-sm">@{dbUser?.codingProfiles?.leetcode}</Text>
+                            <View className="items-center mb-10">
+                                <View className="p-1.5 rounded-full border-2 border-orange-500 bg-white shadow-xl shadow-orange-500/20">
+                                    <Image source={{ uri: lcData?.profile?.avatar }} className="w-24 h-24 rounded-full bg-slate-50" />
+                                </View>
+                                <Text className="text-zinc-900 text-3xl font-black italic uppercase tracking-tighter mt-6">{lcData.profile?.name || dbUser?.name}</Text>
+                                <Text className="text-slate-400 font-black uppercase text-[10px] tracking-widest mt-1">@{dbUser?.codingProfiles?.leetcode}</Text>
                                 
                                 {/* Buttons Row */}
-                                <View className="flex-row mt-4 gap-3">
-                                    {/* View App Profile */}
+                                <View className="flex-row mt-8 gap-4">
                                     <TouchableOpacity 
                                         onPress={navigateToAppProfile}
-                                        className="flex-row items-center bg-[#2C2C2C] px-4 py-2.5 rounded-full border border-gray-700"
+                                        className="flex-row items-center bg-zinc-900 px-6 py-3.5 rounded-[20px] shadow-lg shadow-black/20"
                                     >
-                                        <Text className="text-white font-bold text-xs mr-2">App Profile</Text>
                                         <Ionicons name="person" size={14} color="white" />
+                                        <Text className="text-white font-black italic text-[10px] uppercase tracking-widest ml-2">Profile</Text>
                                     </TouchableOpacity>
-
-                                    {/* 🔥 NEW: Open LeetCode External */}
+ 
                                     <TouchableOpacity 
                                         onPress={openLeetCodeExternal}
-                                        className="flex-row items-center bg-[#2C2C2C] px-4 py-2.5 rounded-full border border-gray-700"
+                                        className="flex-row items-center bg-white px-6 py-3.5 rounded-[20px] border border-slate-100 shadow-sm"
                                     >
-                                        <Text className="text-white font-bold text-xs mr-2">LeetCode</Text>
-                                        <Image source={{ uri: LC_LOGO }} className="w-3.5 h-3.5" style={{ tintColor: '#fb923c' }} />
+                                        <Image source={{ uri: LC_LOGO }} className="w-3.5 h-3.5" />
+                                        <Text className="text-zinc-900 font-black italic text-[10px] uppercase tracking-widest ml-2">LeetCode</Text>
                                     </TouchableOpacity>
                                 </View>
 
                                 {lcData.profile?.about && (
-                                    <Text className="text-gray-400 text-xs text-center mt-4 px-4 leading-5" numberOfLines={3}>
-                                        {lcData.profile.about}
-                                    </Text>
-                                )}
-
-                                {/* Career Info */}
-                                {(lcData.profile?.company || lcData.profile?.school) && (
-                                    <View className="flex-row mt-4 gap-3 bg-[#252525] px-4 py-2 rounded-full border border-white/5">
-                                        {lcData.profile?.company && (
-                                            <View className="flex-row items-center">
-                                                <Ionicons name="briefcase-outline" size={12} color="#9ca3af" />
-                                                <Text className="text-gray-300 text-xs ml-1">{lcData.profile.company}</Text>
-                                            </View>
-                                        )}
-                                        {lcData.profile?.school && (
-                                            <View className="flex-row items-center">
-                                                <Ionicons name="school-outline" size={12} color="#9ca3af" />
-                                                <Text className="text-gray-300 text-xs ml-1" numberOfLines={1}>{lcData.profile.school}</Text>
-                                            </View>
-                                        )}
+                                    <View className="mt-8 px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100 w-full">
+                                        <Text className="text-slate-500 text-xs text-center font-medium leading-5 italic" numberOfLines={3}>
+                                            "{lcData.profile.about}"
+                                        </Text>
                                     </View>
                                 )}
 
                                 {/* Ranking Chips */}
-                                <View className="flex-row mt-4 gap-2">
-                                    <View className="bg-yellow-500/10 px-3 py-1 rounded-full border border-yellow-500/30">
-                                        <Text className="text-yellow-500 font-bold text-xs">Global Rank #{lcData.profile?.ranking || "N/A"}</Text>
+                                <View className="flex-row mt-6 gap-3">
+                                    <View className="bg-amber-50 px-4 py-2 rounded-2xl border border-amber-100">
+                                        <Text className="text-amber-600 font-black italic text-[10px] uppercase tracking-tight">Global Rank #{lcData.profile?.ranking || "N/A"}</Text>
                                     </View>
-                                    <View className="bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/30">
-                                        <Text className="text-purple-400 font-bold text-xs">{lcData.profile?.country || "Global"}</Text>
+                                    <View className="bg-indigo-50 px-4 py-2 rounded-2xl border border-indigo-100">
+                                        <Text className="text-indigo-600 font-black italic text-[10px] uppercase tracking-tight">{lcData.profile?.country || "Earth"}</Text>
                                     </View>
                                 </View>
                             </View>
 
                             {/* 2. Solved Stats */}
-                            <View className="flex-row gap-3 mb-8">
-                                <View className="flex-1 bg-white/5 p-4 rounded-2xl border border-white/5 items-center justify-center">
-                                    <Text className="text-3xl font-black text-white">{lcData.solved?.solvedProblem || 0}</Text>
-                                    <Text className="text-gray-500 text-[10px] uppercase font-bold tracking-widest mt-1">Total</Text>
+                            <View className="flex-row gap-4 mb-8">
+                                <View className="flex-1 bg-zinc-900 p-6 rounded-[32px] items-center justify-center shadow-xl shadow-black/10">
+                                    <Text className="text-4xl font-black italic text-white tracking-tighter">{lcData.solved?.solvedProblem || 0}</Text>
+                                    <View className="mt-1 bg-white/10 px-2 py-0.5 rounded-full">
+                                        <Text className="text-white text-[9px] font-black uppercase tracking-widest">Total</Text>
+                                    </View>
                                 </View>
-                                <View className="flex-1 space-y-2">
-                                    <View className="flex-row justify-between bg-green-400/30 px-3 py-2 rounded-xl border border-green-400">
-                                        <Text className="text-green-400 text-xs font-bold">Easy</Text>
-                                        <Text className="text-white text-xs font-bold">{lcData.solved?.easySolved || 0}</Text>
+                                <View className="flex-1 gap-2">
+                                    <View className="flex-row justify-between bg-emerald-50 px-4 py-3 rounded-2xl border border-emerald-100">
+                                        <Text className="text-emerald-600 text-[10px] font-black uppercase italic">Easy</Text>
+                                        <Text className="text-zinc-900 text-xs font-black italic">{lcData.solved?.easySolved || 0}</Text>
                                     </View>
-                                    <View className="flex-row justify-between bg-yellow-400/10 px-3 py-2 rounded-xl border border-yellow-400">
-                                        <Text className="text-yellow-400 text-xs font-bold">Med</Text>
-                                        <Text className="text-white text-xs font-bold">{lcData.solved?.mediumSolved || 0}</Text>
+                                    <View className="flex-row justify-between bg-amber-50 px-4 py-3 rounded-2xl border border-amber-100">
+                                        <Text className="text-amber-600 text-[10px] font-black uppercase italic">Med</Text>
+                                        <Text className="text-zinc-900 text-xs font-black italic">{lcData.solved?.mediumSolved || 0}</Text>
                                     </View>
-                                    <View className="flex-row justify-between bg-red-400/30 px-3 py-2 rounded-xl border border-red-500/20">
-                                        <Text className="text-red-400 text-xs font-bold">Hard</Text>
-                                        <Text className="text-white text-xs font-bold">{lcData.solved?.hardSolved || 0}</Text>
+                                    <View className="flex-row justify-between bg-rose-50 px-4 py-3 rounded-2xl border border-rose-100">
+                                        <Text className="text-rose-600 text-[10px] font-black uppercase italic">Hard</Text>
+                                        <Text className="text-zinc-900 text-xs font-black italic">{lcData.solved?.hardSolved || 0}</Text>
                                     </View>
                                 </View>
                             </View>
 
                             {/* 3. Activity Heatmap */}
-                            <View className="mb-8 bg-white/5 p-5 rounded-3xl border border-white/5">
-                                <Text className="text-gray-400 font-bold mb-4 text-xs uppercase tracking-wider">Activity (Last 7 Days)</Text>
-                                <View className="flex-row justify-between items-end">
+                            <View className="mb-8 bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm">
+                                <Text className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-6">Activity Snapshot</Text>
+                                <View className="flex-row justify-between items-end px-2">
                                     {getActivityData(lcData.submissionCalendar).map((day: any, i: number) => (
-                                        <View key={i} className="items-center gap-2">
+                                        <View key={i} className="items-center gap-3">
                                             {day.count > 0 ? (
                                                 <View className="items-center">
-                                                    <Text className="text-green-400 text-[9px] font-bold mb-1">{day.count}</Text>
-                                                    <View className="w-3 h-8 bg-green-500 rounded-full shadow-lg shadow-green-500/50" />
+                                                    <View className="bg-emerald-50 px-1 rounded mb-1 border border-emerald-100">
+                                                        <Text className="text-emerald-600 text-[8px] font-black">{day.count}</Text>
+                                                    </View>
+                                                    <View 
+                                                        className="w-4 bg-emerald-500 rounded-full" 
+                                                        style={{ height: Math.min(day.count * 10, 40) }}
+                                                    />
                                                 </View>
                                             ) : (
-                                                <View className="w-3 h-3 bg-white/10 rounded-full" />
+                                                <View className="w-4 h-4 bg-slate-50 rounded-full border border-slate-100" />
                                             )}
-                                            <Text className="text-gray-500 text-[10px] font-bold uppercase">{day.dayName.slice(0,1)}</Text>
+                                            <Text className="text-slate-400 text-[9px] font-black uppercase tracking-tighter">{day.dayName}</Text>
                                         </View>
                                     ))}
                                 </View>
@@ -354,17 +448,17 @@ export default function CodingLeaderboard() {
 
                             {/* 4. Badges (Horizontal Scroll) */}
                             {lcData.badges && lcData.badges.length > 0 && (
-                                <View className="mb-6">
-                                    <Text className="text-gray-400 font-bold mb-3 text-xs uppercase tracking-wider">Badges ({lcData.badges.length})</Text>
-                                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                <View className="mb-8">
+                                    <Text className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-4 ml-1">Elite Badges ({lcData.badges.length})</Text>
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-1">
                                         {lcData.badges.map((badge: any, i: number) => (
-                                            <View key={i} className="mr-4 items-center w-20">
+                                            <View key={i} className="mr-6 items-center w-24 bg-white p-4 rounded-[28px] border border-slate-100 shadow-sm">
                                                 <Image 
                                                     source={{ uri: badge.icon.startsWith("http") ? badge.icon : `https://leetcode.com${badge.icon}` }} 
-                                                    className="w-12 h-12 mb-2" 
+                                                    className="w-14 h-14 mb-3" 
                                                     resizeMode="contain" 
                                                 />
-                                                <Text className="text-gray-500 text-[9px] text-center" numberOfLines={2}>{badge.displayName}</Text>
+                                                <Text className="text-zinc-900 font-black italic text-[8px] text-center uppercase tracking-tight" numberOfLines={2}>{badge.displayName}</Text>
                                             </View>
                                         ))}
                                     </ScrollView>
@@ -373,78 +467,46 @@ export default function CodingLeaderboard() {
 
                             {/* 5. Contest Rating */}
                             {lcData.contest && (
-                                <View className="bg-[#252525] p-4 rounded-xl border border-white/5 mb-6 flex-row justify-between items-center">
+                                <View className="bg-slate-50 p-6 rounded-[32px] border border-slate-100 mb-8 flex-row justify-between items-center">
                                     <View>
-                                        <Text className="text-white font-bold text-base">Contest Rating</Text>
-                                        <Text className="text-gray-500 text-xs">Top {lcData.contest.contestTopPercentage || 0}% Global</Text>
+                                        <Text className="text-zinc-900 font-black italic text-lg tracking-tight uppercase">Contest Rating</Text>
+                                        <Text className="text-slate-500 text-[10px] font-bold uppercase mt-0.5">Top {lcData.contest.contestTopPercentage || 0}% Global</Text>
                                     </View>
-                                    <View className="items-end">
-                                        <Text className="text-2xl font-black text-orange-400">{Math.round(lcData.contest.contestRating || 0)}</Text>
-                                        <Text className="text-gray-600 text-[10px] uppercase">Rating</Text>
-                                    </View>
-                                </View>
-                            )}
-
-                            {/* 6. Skills Breakdown */}
-                            {lcData.skills && (
-                                <View className="mb-6">
-                                    <Text className="text-gray-400 font-bold mb-3 text-xs uppercase tracking-wider">Top Skills</Text>
-                                    <View className="flex-row flex-wrap gap-2">
-                                        {[...(lcData.skills.advanced || []), ...(lcData.skills.intermediate || [])]
-                                            .sort((a:any, b:any) => b.problemsSolved - a.problemsSolved)
-                                            .slice(0, 10)
-                                            .map((skill: any, i: number) => (
-                                                <View key={i} className="bg-[#2C2C2C] px-3 py-1.5 rounded-lg flex-row items-center border border-white/5">
-                                                    <Text className="text-gray-300 text-[10px] font-bold mr-1">{skill.tagName}</Text>
-                                                    <View className="bg-[#404040] px-1.5 rounded">
-                                                        <Text className="text-white text-[9px]">{skill.problemsSolved}</Text>
-                                                    </View>
-                                                </View>
-                                        ))}
-                                    </View>
-                                </View>
-                            )}
-
-                            {/* 7. Languages */}
-                            {lcData.languages && lcData.languages.length > 0 && (
-                                <View className="mb-6">
-                                    <Text className="text-gray-400 font-bold mb-3 text-xs uppercase tracking-wider">Languages</Text>
-                                    <View className="flex-row flex-wrap gap-3">
-                                        {lcData.languages.slice(0, 5).map((lang: any, i: number) => (
-                                            <View key={i} className="flex-row items-center bg-[#252525] px-2 py-1 rounded border border-white/5">
-                                                <Octicons name="dot-fill" size={10} color="#fb923c" />
-                                                <Text className="text-gray-300 text-[10px] ml-1 font-bold">{lang.languageName}</Text>
-                                                <Text className="text-gray-500 text-[10px] ml-1">({lang.problemsSolved})</Text>
-                                            </View>
-                                        ))}
+                                    <View className="items-end bg-white px-5 py-2 rounded-2xl border border-slate-100 shadow-sm">
+                                        <Text className="text-3xl font-black italic text-orange-500 tracking-tighter">{Math.round(lcData.contest.contestRating || 0)}</Text>
                                     </View>
                                 </View>
                             )}
 
                             {/* 8. Recent Questions */}
-                            <Text className="text-gray-400 font-bold mb-3 text-xs uppercase tracking-wider">Recently Solved</Text>
+                            <Text className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-4 ml-1">Recently Mastered</Text>
                             {lcData.recentSubmissions && lcData.recentSubmissions.length > 0 ? (
-                                lcData.recentSubmissions.map((sub: any, i: number) => (
-                                    <View key={i} className="flex-row justify-between items-center bg-[#252525] p-3 rounded-xl mb-2 border border-white/5">
-                                        <View className="flex-1 mr-2">
-                                            <Text className="text-white font-medium text-sm" numberOfLines={1}>{sub.title}</Text>
-                                            <Text className="text-gray-500 text-[10px] mt-0.5">
-                                                {new Date(parseInt(sub.timestamp) * 1000).toLocaleDateString()}
-                                            </Text>
+                                <View className="gap-2 mb-8">
+                                    {lcData.recentSubmissions.slice(0, 5).map((sub: any, i: number) => (
+                                        <View key={i} className="flex-row justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                            <View className="flex-1 mr-4">
+                                                <Text className="text-zinc-900 font-black italic text-sm tracking-tight uppercase" numberOfLines={1}>{sub.title}</Text>
+                                                <Text className="text-slate-400 text-[9px] font-bold uppercase mt-1">
+                                                    {new Date(parseInt(sub.timestamp) * 1000).toLocaleDateString()}
+                                                </Text>
+                                            </View>
+                                            <View className={`px-3 py-1 rounded-full ${sub.statusDisplay === 'Accepted' ? 'bg-emerald-50' : 'bg-rose-50'}`}>
+                                                <Text className={`text-[8px] font-black uppercase tracking-widest ${sub.statusDisplay === 'Accepted' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                    {sub.statusDisplay}
+                                                </Text>
+                                            </View>
                                         </View>
-                                        <View className="items-end">
-                                            <Text className={`text-[10px] font-bold px-2 py-0.5 rounded ${sub.statusDisplay === 'Accepted' ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>
-                                                {sub.statusDisplay}
-                                            </Text>
-                                        </View>
-                                    </View>
-                                ))
+                                    ))}
+                                </View>
                             ) : (
-                                <Text className="text-gray-600 italic ml-1">No recent activity.</Text>
+                                <Text className="text-slate-300 italic mb-8">No recent activity detected.</Text>
                             )}
 
-                            <TouchableOpacity onPress={() => setModalVisible(false)} className="mt-6 bg-[#333] py-4 rounded-xl items-center mb-8 border border-white/10">
-                                <Text className="text-white font-bold">Close Profile</Text>
+                            <TouchableOpacity 
+                                onPress={() => setModalVisible(false)} 
+                                className="bg-zinc-900 py-5 rounded-[24px] items-center mb-10 shadow-xl shadow-black/20"
+                            >
+                                <Text className="text-white font-black italic uppercase tracking-widest text-xs">Dismiss Profile</Text>
                             </TouchableOpacity>
                         </ScrollView>
                     )}
@@ -454,4 +516,4 @@ export default function CodingLeaderboard() {
       </SafeAreaView>
     </View>
   );
-}
+};

@@ -17,10 +17,13 @@ import {
   TouchableOpacity,
   Share,
   DeviceEventEmitter,
-  ScrollView
+  ScrollView,
+  Animated,
+  Easing,
+  useWindowDimensions
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { Layout, FadeIn, FadeOut } from 'react-native-reanimated';
+import Reanimated, { Layout, FadeIn, FadeOut } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../context/auth.context';
@@ -46,6 +49,13 @@ const { width } = Dimensions.get('window');
 
 
 // --- TYPES ---
+// --- HELPERS ---
+const formatCount = (num: number) => {
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+  return num > 0 ? num.toString() : '0';
+};
+
 interface Post {
   _id: string;
   user?: {
@@ -60,6 +70,13 @@ interface Post {
   description: string;
   likes: number;
   liked_by: string[];
+  upvoted_by?: string[];
+  downvoted_by?: string[];
+  score?: number;
+  saved_by?: string[];
+  reposted_by?: string[];
+  reposts?: number;
+  views?: number;
   comments: any[];
   commentCount?: number;
   college?: string;
@@ -241,31 +258,87 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
 
 // --- POST ITEM ---
 const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item: Post, currentUser: any, openComments: (id: string) => void, onDeletePost: (id: string) => void }) => {
-  const [liked, setLiked] = useState(item.liked_by.includes(currentUser?._id));
-  const [likeCount, setLikeCount] = useState(item.likes);
+  const { width } = useWindowDimensions();
+  const [vote, setVote] = useState<'up' | 'down' | null>(
+    item.upvoted_by?.includes(currentUser?._id) ? 'up' : 
+    item.downvoted_by?.includes(currentUser?._id) ? 'down' : null
+  );
+  const [score, setScore] = useState(item.score || (item.likes || 0));
+  const [saved, setSaved] = useState(item.saved_by?.includes(currentUser?._id));
+  const [reposted, setReposted] = useState(item.reposted_by?.includes(currentUser?._id));
+  const [repostCount, setRepostCount] = useState(item.reposts || 0);
+  const [viewCount] = useState(item.views || 0);
+  
   const [resizeMode, setResizeMode] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-
   const [isExpanded, setIsExpanded] = useState(false);
   const MAX_CHAR_LIMIT = 150;
 
+  const springValue = useRef(new Animated.Value(1)).current;
   const navigation = useNavigation<any>();
 
   const displayCommentCount = item.commentCount || item.comments?.length || 0;
   const images = item.image || [];
 
-  const handleLike = async () => {
-    const previousState = liked;
-    const previousCount = likeCount;
-    setLiked(!previousState);
-    setLikeCount(previousState ? previousCount - 1 : previousCount + 1);
-    try {
-      await axios.post(`/post/like/${item._id}`);
-    } catch (error) {
-      console.log("Like failed", error);
-      setLiked(previousState);
-      setLikeCount(previousCount);
+  const animatePress = () => {
+    Animated.sequence([
+      Animated.timing(springValue, { toValue: 0.9, duration: 100, useNativeDriver: true, easing: Easing.out(Easing.quad) }),
+      Animated.spring(springValue, { toValue: 1, friction: 4, tension: 40, useNativeDriver: true })
+    ]).start();
+  };
+
+  const handleVote = async (type: 'up' | 'down') => {
+    animatePress();
+    const prevVote = vote;
+    const prevScore = score;
+    let newVote: 'up' | 'down' | null = type;
+    let scoreDelta = 0;
+
+    if (prevVote === type) {
+      newVote = null;
+      scoreDelta = type === 'up' ? -1 : 1;
+    } else {
+      if (prevVote === null) scoreDelta = type === 'up' ? 1 : -1;
+      else scoreDelta = type === 'up' ? 2 : -2;
     }
+
+    setVote(newVote);
+    setScore(prevScore + scoreDelta);
+
+    try {
+      await axios.post(`/post/vote/${item._id}`, { type: newVote });
+    } catch (error) {
+      setVote(prevVote);
+      setScore(prevScore);
+    }
+  };
+
+  const handleSave = async () => {
+    const prevSaved = saved;
+    setSaved(!prevSaved);
+    try {
+      await axios.post(`/post/save/${item._id}`);
+    } catch (error) {
+      setSaved(prevSaved);
+    }
+  };
+
+  const handleRepost = () => {
+    Alert.alert("Repost", "Share this post on your feed?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Repost", onPress: async () => {
+        const prevReposted = reposted;
+        const prevCount = repostCount;
+        setReposted(!prevReposted);
+        setRepostCount(prevReposted ? prevCount - 1 : prevCount + 1);
+        try {
+          await axios.post(`/post/repost/${item._id}`);
+        } catch (error) {
+          setReposted(prevReposted);
+          setRepostCount(prevCount);
+        }
+      }}
+    ]);
   };
 
   const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -274,13 +347,11 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
     }
   }).current;
 
-  const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 50,
-  }).current;
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
 
   const timeAgo = (dateString: string) => {
     const seconds = Math.floor((new Date().getTime() - new Date(dateString).getTime()) / 1000);
-    if (seconds < 60) return 'Just now';
+    if (seconds < 60) return 'now';
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes}m`;
     const hours = Math.floor(minutes / 60);
@@ -292,10 +363,8 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
   const handleShare = async () => {
     try {
       const shareUrl = `https://fync.app/view?postId=${item._id}`;
-      const playStoreUrl = "https://play.google.com/store/apps/details?id=com.fync.app";
-
       await Share.share({
-        message: `Check out this post by ${item.user?.username} on Fync!\n\n${item.description || ''}\n\nView post: ${shareUrl}\n\nDon't have Fync? Download it here: ${playStoreUrl}`,
+        message: `Check out this post by ${item.user?.username} on Fync!\n\n${item.description || ''}\n\nView post: ${shareUrl}`,
       });
     } catch (error: any) {
       console.log('Share error:', error.message);
@@ -303,41 +372,54 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
   };
 
   return (
-    <View className="bg-gray-50 border-b border-gray-100 py-2 mb-3 shadow-sm shadow-black/5 rounded-2xl">
-      {/* Post Header */}
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })}>
-          <View className="flex-row items-center">
-            <Avatar
-              user={item.user as any}
-              size={30}
-            />
-            <View className="ml-3">
-              <Text className="text-zinc-900 font-bold text-sm">{item.user?.name || "Unknown"}</Text>
-              {item.user?.username && <Text className="text-gray-400 text-[10px] tracking-wide">{item.user?.username}</Text>}
-            </View>
-          </View>
-        </Pressable>
-        {currentUser && currentUser._id === item.user?._id && (
-          <Pressable onPress={() => {
-            Alert.alert(
-              "Delete Post",
-              "Are you sure you want to delete this post?",
-              [
-                { text: "Cancel", style: "cancel" },
-                { text: "Delete", style: "destructive", onPress: () => onDeletePost(item._id) }
-              ]
-            );
-          }}>
-            <Ionicons name="ellipsis-horizontal" size={20} color="gray" />
+    <View className="bg-white border-b border-gray-100 py-4 px-3 mb-2">
+      {/* Top Header Row (Reddit Style) */}
+      <View className="flex-row items-center justify-between mb-3">
+        <View className="flex-row items-center">
+          <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })}>
+            {item.user?.avatar ? (
+              <Avatar user={item.user as any} size={28} />
+            ) : (
+              <View className="w-7 h-7 rounded-full bg-indigo-500 items-center justify-center">
+                <Text className="text-white font-bold text-[10px]">{(item.user?.name || 'U').charAt(0).toUpperCase()}</Text>
+              </View>
+            )}
           </Pressable>
+          <View className="ml-2 flex-row items-center">
+            <Text className="text-zinc-900 font-bold text-[14px]">u/{item.user?.username || "Unknown"}</Text>
+            <Text className="text-gray-400 text-[14px] mx-1">·</Text>
+            <Text className="text-gray-500 text-[14px] font-medium">{timeAgo(item.createdAt)}</Text>
+          </View>
+        </View>
+        <Pressable onPress={() => {
+          Alert.alert("Post Options", null , [
+            { text: "Cancel", style: "cancel"},
+            { text: "Delete Post", style: "destructive", onPress: () => onDeletePost(item._id) }
+          ]);
+        }} className="p-1">
+          <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
+        </Pressable>
+      </View>
+
+      <View className="mb-3 px-1">
+        <Text className="text-zinc-900 text-[15px] font-medium leading-6">
+          {isExpanded || (item.description?.length || 0) <= MAX_CHAR_LIMIT
+            ? item.description
+            : `${item.description?.slice(0, MAX_CHAR_LIMIT)}...`}
+        </Text>
+        {(item.description?.length || 0) > MAX_CHAR_LIMIT && (
+          <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} className="mt-1">
+            <Text className="text-pink-500 font-bold">
+              {isExpanded ? 'Show Less' : 'Show More'}
+            </Text>
+          </TouchableOpacity>
         )}
       </View>
 
-      {/* --- CAROUSEL IMAGE SECTION --- */}
-      <View>
+      {/* Media (Full Width) */}
+      <View className="relative mb-4">
         <FlatList
-          data={images}
+          data={item.image || []}
           keyExtractor={(url, index) => `${item._id}-img-${index}`}
           horizontal
           pagingEnabled
@@ -348,7 +430,7 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
             <Pressable onPress={() => setResizeMode(prev => !prev)}>
               <ExpoImage
                 source={{ uri: imageUrl }}
-                style={{ width: width, height: width }}
+                style={{ width: width - 24, height: width - 24, borderRadius: 12 }}
                 contentFit={resizeMode ? "contain" : "cover"}
                 cachePolicy="disk"
                 transition={200}
@@ -356,60 +438,58 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
             </Pressable>
           )}
         />
-
-        {/* Image Counter */}
-        {images.length > 1 && (
-          <View className="absolute top-3 right-3 bg-white/80 px-3 py-1 rounded-full border border-gray-200">
-            <Text className="text-zinc-900 text-xs font-bold">
-              {activeIndex + 1}/{images.length}
-            </Text>
+        {(item.image?.length || 0) > 1 && (
+          <View className="flex-row justify-center gap-1.5 absolute bottom-4 w-full">
+            {(item.image || []).map((_, i) => (
+              <View key={i} className={`h-1.5 rounded-full ${activeIndex === i ? 'w-4 bg-white' : 'w-1.5 bg-white/50'}`} />
+            ))}
           </View>
         )}
       </View>
 
-      {/* Caption */}
-      <View className="px-3 pt-1 mt-2">
-        <Text className="text-zinc-800 text-sm leading-5">
-          <Text className="font-bold text-pink-500">{item.user?.username} </Text>
-          {item.description?.length > MAX_CHAR_LIMIT && !isExpanded
-            ? `${item.description.substring(0, MAX_CHAR_LIMIT)}...`
-            : item.description
-          }
-          {item.description?.length > MAX_CHAR_LIMIT && (
-            <Text
-              onPress={() => setIsExpanded(!isExpanded)}
-              className="text-gray-400 font-semibold"
-            >
-              {isExpanded ? " show less" : " show more"}
-            </Text>
-          )}
-        </Text>
-      </View>
+      {/* Action Bar (Reddit Style Pills) */}
+      <View className="flex-row items-center gap-2">
+        {/* Vote Pill */}
+        <Animated.View style={{ transform: [{ scale: springValue }] }} className="flex-row items-center bg-gray-50 rounded-full px-1 py-0.5">
+          <Pressable onPress={() => handleVote('up')} className="p-1.5">
+            <Ionicons name={vote === 'up' ? "arrow-up" : "arrow-up-outline"} size={19} color={vote === 'up' ? "#FF4500" : "#536471"} />
+          </Pressable>
+          <Text className={`font-semibold text-[13px] px-1 min-w-[20px] text-center ${vote === 'up' ? 'text-[#FF4500]' : vote === 'down' ? 'text-[#7193FF]' : 'text-[#536471]'}`}>
+            {score === 0 ? 'Vote' : score > 999 ? formatCount(score) : score}
+          </Text>
+          <Pressable onPress={() => handleVote('down')} className="p-1.5">
+            <Ionicons name={vote === 'down' ? "arrow-down" : "arrow-down-outline"} size={19} color={vote === 'down' ? "#7193FF" : "#536471"} />
+          </Pressable>
+        </Animated.View>
 
-      {/* Action Bar */}
-      <View className="flex-row items-center px-3 pt-2 gap-4">
-        <Pressable onPress={handleLike}>
-          <Ionicons
-            name={liked ? "heart" : "heart-outline"}
-            size={28}
-            color={liked ? "#ff3040" : "#1A1A1A"}
-          />
+        {/* Comment Pill */}
+        <Pressable 
+          onPress={() => openComments(item._id)}
+          className="flex-row items-center bg-gray-50 rounded-full px-3 py-1.5"
+        >
+          <Ionicons name="chatbubble-outline" size={17} color="#536471" />
+          <Text className="text-[#536471] font-semibold text-[13px] ml-1.5">{formatCount(displayCommentCount)}</Text>
         </Pressable>
-        <Pressable onPress={() => openComments(item._id)}>
-          <Ionicons name="chatbubble-outline" size={26} color="#1A1A1A" />
+
+        {/* Share Pill */}
+        <Pressable 
+          onPress={handleShare}
+          className="flex-row items-center bg-gray-50 rounded-full px-3 py-1.5"
+        >
+          <Ionicons name="share-social-outline" size={17} color="#536471" />
+          <Text className="text-[#536471] font-semibold text-[13px] ml-1.5">Share</Text>
         </Pressable>
-        <Pressable onPress={handleShare}>
-          <Ionicons name="paper-plane-outline" size={26} color="#1A1A1A" style={{ transform: [{ rotate: '-0deg' }], marginTop: -3 }} />
+
+        <View className="flex-1" />
+
+        {/* Bookmark (Right Aligned) */}
+        <Pressable 
+          onPress={handleSave}
+          className={`p-2 rounded-full ${saved ? 'bg-indigo-50' : 'bg-transparent'}`}
+        >
+          <Ionicons name={saved ? "bookmark" : "bookmark-outline"} size={17} color={saved ? "#1D9BF0" : "#536471"} />
         </Pressable>
       </View>
-
-      {/* Likes */}
-      <View className="px-3">
-        <Text className="text-zinc-500 font-bold text-sm">{likeCount > 0 ? `${likeCount} likes` : 'Be the first to like'}</Text>
-      </View>
-
-      {/* Time */}
-      <Text className="px-3 pt-1 text-gray-400 text-[10px] uppercase tracking-wider">{timeAgo(item.createdAt)} Ago</Text>
     </View>
   );
 });
@@ -699,7 +779,7 @@ const renderFeatureStories = () => {
       {/* Grid */}
       <View className="flex-row flex-wrap px-3">
         {features.map((item, index) => (
-          <Animated.View
+          <Reanimated.View
             key={item.id}
             entering={FadeIn.delay(index * 50)}
             className="p-2"
@@ -731,7 +811,7 @@ const renderFeatureStories = () => {
                 </View>
               )}
             </Pressable>
-          </Animated.View>
+          </Reanimated.View>
         ))}
       </View>
       <View className="border-b border-gray-100 mx-4 mt-3"></View>

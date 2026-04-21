@@ -34,6 +34,90 @@ let globalConfessionsCache: any[] = [];
 let globalCurrentPage = 1;
 let globalHasMore = true;
 
+const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navigation }: any) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const MAX_LIMIT = 200;
+    const isLongText = (item.content?.length || 0) > MAX_LIMIT;
+
+    return (
+        <View style={{ backgroundColor: item.color }} className="p-5 rounded-3xl mb-4 shadow-xl">
+            <View className="flex-row items-center justify-between mb-4">
+                <View className="flex-row items-center">
+                    <ExpoImage source={{ uri: ANONYMOUS_AVATAR }} className="w-10 h-10 rounded-full bg-white/20" cachePolicy="disk" />
+                    <View className="ml-3">
+                        <Text className="text-white font-black text-base">{maskName(item.user?.name || 'User')}</Text>
+                        <Text className="text-white/60 text-xs font-bold uppercase tracking-tighter">Anonymous Student</Text>
+                    </View>
+                </View>
+
+                {/* Manage Menu (Admin/Owner) */}
+                {(item.canManage) && (
+                    <TouchableOpacity
+                        onPress={() => {
+                            Alert.alert(
+                                "Manage Confession",
+                                "Select action",
+                                [
+                                    { text: "Update / Edit", onPress: () => onEdit(item) },
+                                    { text: "Delete Post", style: "destructive", onPress: () => onDelete(item._id) },
+                                    { text: "Cancel", style: "cancel" }
+                                ]
+                            );
+                        }}
+                        className="p-3 bg-black/30 rounded-2xl ml-2 border border-white/10"
+                    >
+                        <Ionicons name="settings-sharp" size={24} color="white" />
+                    </TouchableOpacity>
+                )}
+            </View>
+
+            <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} activeOpacity={0.9}>
+                <Text className="text-white text-lg font-bold leading-7 mb-2">
+                    {isExpanded || !isLongText 
+                        ? item.content 
+                        : `${item.content.substring(0, MAX_LIMIT)}...`}
+                    {isLongText && !isExpanded && (
+                        <Text className="text-white/70 font-black text-[14px]"> Read More</Text>
+                    )}
+                    {isLongText && isExpanded && (
+                        <Text className="text-white/70 font-black text-[14px]"> Show Less</Text>
+                    )}
+                </Text>
+            </TouchableOpacity>
+
+            {item.taggedUser && (
+                <TouchableOpacity
+                    onPress={() => {
+                        navigation.navigate('PublicProfile', { userId: item.taggedUser?._id });
+                    }}
+                    className="flex-row items-center bg-black/20 py-2 px-4 rounded-full self-start mb-4 border border-white/10"
+                >
+                    <Ionicons name="at-outline" size={12} color="white" />
+                    <Text className="text-white font-bold text-sm">{item.taggedUser?.username}</Text>
+                </TouchableOpacity>
+            )}
+
+            <View className="flex-row items-center justify-between border-t border-white/20 pt-4">
+                <Text className="text-white/50 text-[10px] uppercase font-bold">{new Date(item.createdAt).toLocaleDateString()}</Text>
+                <View className="flex-row items-center">
+                    <TouchableOpacity onPress={() => onLike(item._id)} className="flex-row items-center mr-4">
+                        <Ionicons
+                            name={item.liked_by?.includes(user?._id || user?.id) ? "heart" : "heart-outline"}
+                            size={20}
+                            color="white"
+                        />
+                        <Text className="text-white ml-1.5 text-xs font-black">{item.likes || 0}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => onComments(item._id)} className="flex-row items-center">
+                        <Ionicons name="chatbubbles-outline" size={20} color="white" />
+                        <Text className="text-white ml-1.5 text-xs font-black">{item.comments?.length || 0}</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </View>
+    );
+};
+
 const ConfessionFeed = () => {
     const { user } = useAuth();
     const navigation = useNavigation<any>();
@@ -233,71 +317,15 @@ const ConfessionFeed = () => {
     };
 
     const renderConfession = ({ item }: any) => (
-        <View style={{ backgroundColor: item.color }} className="p-5 rounded-3xl mb-4 shadow-xl">
-            <View className="flex-row items-center justify-between mb-4">
-                <View className="flex-row items-center">
-                    <ExpoImage source={{ uri: ANONYMOUS_AVATAR }} className="w-10 h-10 rounded-full bg-white/20" cachePolicy="disk" />
-                    <View className="ml-3">
-                        <Text className="text-white font-black text-base">{maskName(item.user?.name || 'User')}</Text>
-                        <Text className="text-white/60 text-xs font-bold uppercase tracking-tighter">Anonymous Student</Text>
-                    </View>
-                </View>
-
-                {/* Manage Menu (Admin/Owner) */}
-                {(item.canManage) && (
-                    <TouchableOpacity
-                        onPress={() => {
-                            console.log('Opening menu for item:', item._id);
-                            Alert.alert(
-                                "Manage Confession",
-                                "Select action",
-                                [
-                                    { text: "Update / Edit", icon: 'create-outline' as any, onPress: () => openEditModal(item) } as any,
-                                    { text: "Delete Post", style: "destructive", onPress: () => handleDelete(item._id) },
-                                    { text: "Cancel", style: "cancel" }
-                                ]
-                            );
-                        }}
-                        className="p-3 bg-black/30 rounded-2xl ml-2 border border-white/10"
-                    >
-                        <Ionicons name="settings-sharp" size={24} color="white" />
-                    </TouchableOpacity>
-                )}
-            </View>
-
-            <Text className="text-white text-lg font-bold leading-7 mb-2">{item.content}</Text>
-
-            {item.taggedUser && (
-                <TouchableOpacity
-                    onPress={() => {
-                        console.log('Navigating to PublicProfile:', item.taggedUser?._id);
-                        navigation.navigate('PublicProfile', { userId: item.taggedUser?._id });
-                    }}
-                    className="flex-row items-center bg-black/20 py-2 px-4 rounded-full self-start mb-4 border border-white/10"
-                >
-                    <Ionicons name="at-outline" size={12} color="white" />
-                    <Text className="text-white font-bold text-sm">{item.taggedUser?.username}</Text>
-                </TouchableOpacity>
-            )}
-
-            <View className="flex-row items-center justify-between border-t border-white/20 pt-4">
-                <Text className="text-white/50 text-[10px] uppercase font-bold">{new Date(item.createdAt).toLocaleDateString()}</Text>
-                <View className="flex-row items-center">
-                    <TouchableOpacity onPress={() => handleLike(item._id)} className="flex-row items-center mr-4">
-                        <Ionicons
-                            name={item.liked_by?.includes(user?._id || user?.id) ? "heart" : "heart-outline"}
-                            size={20}
-                            color="white"
-                        />
-                        <Text className="text-white ml-1.5 text-xs font-black">{item.likes || 0}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => fetchComments(item._id)} className="flex-row items-center">
-                        <Ionicons name="chatbubbles-outline" size={20} color="white" />
-                        <Text className="text-white ml-1.5 text-xs font-black">{item.comments?.length || 0}</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        </View>
+        <ConfessionItem 
+            item={item} 
+            user={user} 
+            onLike={handleLike} 
+            onComments={fetchComments} 
+            onEdit={openEditModal} 
+            onDelete={handleDelete} 
+            navigation={navigation} 
+        />
     );
 
     const handleLike = async (id: string) => {

@@ -15,6 +15,7 @@ import Toast from 'react-native-toast-message';
 import Avatar from './Avatar';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Image as ExpoImage } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 
 const { width } = Dimensions.get('window');
@@ -41,17 +42,19 @@ type EducationEntry = {
 
 // ─── SECTION HEADER ──────────────────────────────────────────────────────────
 const SH = ({ title, icon, accent = '#6366F1' }: { title: string; icon: string; accent?: string }) => (
-  <View className="flex-row items-center gap-2 mb-3 px-1">
-    <View className="w-1 h-5 rounded-full" style={{ backgroundColor: accent }} />
-    <Ionicons name={icon as any} size={16} color={accent} />
-    <Text className="font-bold text-gray-800 text-sm uppercase tracking-wide">{title}</Text>
+  <View className="flex-row items-center gap-3 mb-4 px-1">
+    <View className="w-1.5 h-6 rounded-full" style={{ backgroundColor: accent, shadowColor: accent, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4 }} />
+    <View className="bg-gray-50 p-1.5 rounded-lg border border-gray-100">
+      <Ionicons name={icon as any} size={18} color={accent} />
+    </View>
+    <Text className="font-extrabold text-gray-900 text-xs uppercase tracking-[2px]">{title}</Text>
   </View>
 );
 
 // ─── SKILL CHIP ───────────────────────────────────────────────────────────────
 const SkillChip = ({ label }: { label: string }) => (
-  <View className="bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full">
-    <Text className="text-indigo-700 text-xs font-semibold">{label}</Text>
+  <View className="bg-white border border-gray-100 px-4 py-2 rounded-2xl shadow-sm mb-1 mr-1">
+    <Text className="text-gray-700 text-[13px] font-bold">{label}</Text>
   </View>
 );
 
@@ -66,16 +69,22 @@ const CodingPlatformCard = ({ icon, name, color, bg, username, solved, rating, p
   return (
     <Pressable
       onPress={() => username && Linking.openURL(profileUrl)}
-      className="flex-1 rounded-2xl border p-3 items-center"
-      style={{ backgroundColor: bg, borderColor: color + '30' }}
+      className="flex-1 rounded-[24px] border p-4 items-center bg-white shadow-sm"
+      style={{ borderColor: color + '20' }}
     >
-      {typeof icon === 'string' && icon.startsWith('http')
-        ? <Image source={{ uri: icon }} className="w-7 h-7 mb-2" resizeMode="contain" />
-        : <Ionicons name={icon} size={24} color={color} style={{ marginBottom: 6 }} />}
-      <Text className="font-bold text-base" style={{ color }}>{solved || 0}</Text>
-      <Text className="text-[10px] text-gray-500 mb-0.5">Problems</Text>
-      {rating ? <Text className="text-[10px] font-bold" style={{ color }}>⭐ {rating}</Text> : null}
-      <Text className="text-[10px] text-gray-400 mt-1 font-medium">{name}</Text>
+      <View className="w-12 h-12 rounded-2xl items-center justify-center mb-3" style={{ backgroundColor: color + '10' }}>
+        {typeof icon === 'string' && icon.startsWith('http')
+          ? <Image source={{ uri: icon }} className="w-7 h-7" resizeMode="contain" />
+          : <Ionicons name={icon} size={26} color={color} />}
+      </View>
+      <Text className="font-black text-xl text-gray-900 leading-tight">{solved || 0}</Text>
+      <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Solved</Text>
+      {rating ? (
+        <View className="bg-gray-50 px-2 py-1 rounded-lg border border-gray-100 mt-1">
+          <Text className="text-[10px] font-black" style={{ color }}>⭐ {rating}</Text>
+        </View>
+      ) : null}
+      <Text className="text-[11px] text-gray-500 font-bold mt-3 text-center">{name}</Text>
     </Pressable>
   );
 };
@@ -85,39 +94,43 @@ const EducationCard = ({ item, isOwner, onEdit, onDelete }: {
   item: EducationEntry; isOwner?: boolean;
   onEdit?: (i: EducationEntry) => void; onDelete?: (id: string) => void;
 }) => (
-  <View className="bg-white rounded-2xl border border-gray-100 p-4 mb-3 shadow-sm">
+  <View className="bg-white rounded-[24px] border border-gray-100 p-5 mb-4 shadow-sm">
     <View className="flex-row">
-      <View className="w-10 h-10 bg-blue-50 rounded-xl items-center justify-center mr-3 flex-shrink-0">
-        <Ionicons name="school" size={22} color="#3B82F6" />
+      <View className="w-12 h-12 bg-indigo-50 rounded-2xl items-center justify-center mr-4">
+        <Ionicons name="school" size={24} color="#6366F1" />
       </View>
       <View className="flex-1">
-        <Text className="text-gray-900 font-bold text-sm">{item.institution}</Text>
-        {item.degree && <Text className="text-gray-600 text-sm">{item.degree}{item.field ? ` · ${item.field}` : ''}</Text>}
-        <View className="flex-row flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-          {(item.startYear || item.endYear) && (
-            <Text className="text-gray-400 text-xs">
+        <Text className="text-gray-900 font-black text-[15px] mb-1">{item.institution}</Text>
+        {item.degree && (
+          <Text className="text-indigo-600 text-xs font-bold uppercase tracking-wider mb-2">
+            {item.degree}{item.field ? ` • ${item.field}` : ''}
+          </Text>
+        )}
+        <View className="flex-row flex-wrap items-center gap-2 mb-2">
+          <View className="bg-gray-100 px-2.5 py-1 rounded-full">
+            <Text className="text-gray-500 text-[10px] font-black uppercase">
               {item.startYear || '?'} — {item.isCurrent ? 'Present' : (item.endYear || '?')}
             </Text>
-          )}
+          </View>
           {item.grade && (
-            <View className="bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-              <Text className="text-emerald-700 text-[10px] font-bold">{item.grade}</Text>
+            <View className="bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+              <Text className="text-emerald-700 text-[10px] font-black">{item.grade}</Text>
             </View>
           )}
           {item.isCurrent && (
-            <View className="bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
-              <Text className="text-blue-600 text-[10px] font-bold">CURRENT</Text>
+            <View className="bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
+              <Text className="text-blue-600 text-[10px] font-black uppercase">Active</Text>
             </View>
           )}
         </View>
-        {item.description && <Text className="text-gray-500 text-xs mt-1.5" numberOfLines={2}>{item.description}</Text>}
+        {item.description && <Text className="text-gray-500 text-[13px] leading-5 font-medium" numberOfLines={3}>{item.description}</Text>}
       </View>
       {isOwner && (
-        <View className="ml-2 gap-2">
-          <Pressable onPress={() => onEdit?.(item)}>
+        <View className="ml-2 gap-3">
+          <Pressable onPress={() => onEdit?.(item)} className="bg-gray-50 p-2 rounded-xl border border-gray-100">
             <Ionicons name="pencil-outline" size={16} color="#6366F1" />
           </Pressable>
-          <Pressable onPress={() => onDelete?.(item._id)}>
+          <Pressable onPress={() => onDelete?.(item._id)} className="bg-red-50 p-2 rounded-xl border border-red-100">
             <Ionicons name="trash-outline" size={16} color="#EF4444" />
           </Pressable>
         </View>
@@ -315,32 +328,42 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
   const hasCoding = cp.leetcode || cp.gfg || cp.codechef || cs.leetcodeSolved || cs.gfgSolved;
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" contentContainerStyle={{ paddingBottom: 60 }}>
+    <ScrollView className="flex-1 bg-gray-50" contentContainerStyle={{ paddingBottom: 100 }}>
 
       {/* ── Fync Score Banner ──────────────────────────────────────────── */}
       {user?.fyncScore !== undefined && (
         <Pressable onPress={() => navigation.navigate('FyncProfileBuilder')}
-          className="mx-4 mt-4 mb-2 bg-indigo-600 rounded-2xl px-5 py-4 flex-row items-center">
-          <Text style={{ fontSize: 28 }}>{BADGE_EMOJI[user.fyncBadge || 'Newcomer']}</Text>
-          <View className="ml-3 flex-1">
-            <Text className="text-white font-bold text-lg">{user.fyncScore} / 1000</Text>
-            <Text className="text-indigo-200 text-xs">{user.fyncBadge || 'Newcomer'} · Tap for full portfolio →</Text>
-          </View>
+          className="mx-4 mt-6 mb-2 rounded-[28px] overflow-hidden">
+          <LinearGradient colors={['#6366F1', '#4F46E5']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} className="px-6 py-5 flex-row items-center">
+            <View className="bg-white/20 w-14 h-14 rounded-2xl items-center justify-center mr-4">
+              <Text style={{ fontSize: 32 }}>{BADGE_EMOJI[user.fyncBadge || 'Newcomer']}</Text>
+            </View>
+            <View className="flex-1">
+              <View className="flex-row items-center justify-between mb-1">
+                <Text className="text-white font-black text-xl">{user.fyncScore}</Text>
+                <Text className="text-indigo-100 text-[10px] font-black uppercase tracking-widest">Score Portfolio</Text>
+              </View>
+              <View className="h-1.5 bg-black/10 rounded-full overflow-hidden mb-2">
+                <View className="h-full bg-white rounded-full" style={{ width: `${(user.fyncScore / 1000) * 100}%` }} />
+              </View>
+              <Text className="text-indigo-100 text-[11px] font-bold">Level: {user.fyncBadge || 'Newcomer'} • Tap to expand →</Text>
+            </View>
+          </LinearGradient>
         </Pressable>
       )}
 
       {/* ── About ──────────────────────────────────────────────────────── */}
       {user?.about && (
-        <View className="mx-4 mt-4 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <SH title="About" icon="person-outline" />
-          <Text className="text-gray-600 text-sm leading-relaxed">{user.about}</Text>
+        <View className="mx-4 mt-4 bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm">
+          <SH title="About Me" icon="person-outline" />
+          <Text className="text-gray-600 text-[15px] leading-[24px] font-medium">{user.about}</Text>
         </View>
       )}
 
       {/* ── Skills ──────────────────────────────────────────────────────── */}
       {skills.length > 0 && (
-        <View className="mx-4 mt-4 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <SH title="Skills" icon="code-slash-outline" accent="#8B5CF6" />
+        <View className="mx-4 mt-4 bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm">
+          <SH title="Skills & Stack" icon="code-slash-outline" accent="#8B5CF6" />
           <View className="flex-row flex-wrap gap-2">
             {skills.map((s, i) => <SkillChip key={i} label={s} />)}
           </View>
@@ -349,17 +372,19 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
 
       {/* ── Interests & Hobbies ─────────────────────────────────────────── */}
       {(user?.interest || user?.hobbies) && (
-        <View className="mx-4 mt-4 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <SH title="Interests & Hobbies" icon="heart-outline" accent="#EC4899" />
-          <View className="flex-row flex-wrap gap-2">
+        <View className="mx-4 mt-4 bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm">
+          <SH title="Vibe & Interests" icon="heart-outline" accent="#EC4899" />
+          <View className="flex-row flex-wrap gap-3">
             {(Array.isArray(user.interest) ? user.interest : [user.interest]).filter(Boolean).map((t, i) => (
-              <View key={`i${i}`} className="bg-pink-50 border border-pink-100 px-3 py-1.5 rounded-full">
-                <Text className="text-pink-700 text-xs font-semibold">♥ {t}</Text>
+              <View key={`i${i}`} className="flex-row items-center bg-pink-50/50 px-4 py-2 rounded-2xl border border-pink-100">
+                <Text className="text-pink-600 text-xs font-black uppercase tracking-wide mr-1.5">♥</Text>
+                <Text className="text-pink-700 text-[13px] font-bold">{t}</Text>
               </View>
             ))}
             {(Array.isArray(user.hobbies) ? user.hobbies : [user.hobbies]).filter(Boolean).map((h, i) => (
-              <View key={`h${i}`} className="bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
-                <Text className="text-emerald-700 text-xs font-semibold">★ {h}</Text>
+              <View key={`h${i}`} className="flex-row items-center bg-emerald-50/50 px-4 py-2 rounded-2xl border border-emerald-100">
+                <Text className="text-emerald-600 text-xs font-black uppercase tracking-wide mr-1.5">★</Text>
+                <Text className="text-emerald-700 text-[13px] font-bold">{h}</Text>
               </View>
             ))}
           </View>
@@ -367,25 +392,30 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
       )}
 
       {/* ── Education ───────────────────────────────────────────────────── */}
-      <View className="mx-4 mt-4">
-        <View className="flex-row items-center justify-between mb-3">
-          <View className="flex-row items-center gap-2">
-            <View className="w-1 h-5 rounded-full bg-blue-500" />
-            <Ionicons name="school-outline" size={16} color="#3B82F6" />
-            <Text className="font-bold text-gray-800 text-sm uppercase tracking-wide">Education</Text>
+      <View className="mx-4 mt-6">
+        <View className="flex-row items-center justify-between mb-4 px-1">
+          <View className="flex-row items-center gap-3">
+            <View className="w-1.5 h-6 rounded-full bg-blue-500" />
+            <View className="bg-blue-50 p-1.5 rounded-lg border border-blue-100">
+              <Ionicons name="school-outline" size={18} color="#3B82F6" />
+            </View>
+            <Text className="font-extrabold text-gray-900 text-xs uppercase tracking-[2px]">Education</Text>
           </View>
           {isOwner && (
             <Pressable onPress={() => { setEditingEdu(undefined); setShowAddEdu(true); }}
-              className="flex-row items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
-              <Ionicons name="add" size={14} color="#3B82F6" />
-              <Text className="text-blue-600 text-xs font-semibold">Add</Text>
+              className="flex-row items-center gap-1.5 bg-white px-4 py-2 rounded-2xl border border-gray-100 shadow-sm">
+              <Ionicons name="add" size={16} color="#3B82F6" />
+              <Text className="text-gray-900 text-xs font-black uppercase tracking-wider">Add</Text>
             </Pressable>
           )}
         </View>
         {education.length === 0 ? (
-          <View className="bg-white rounded-2xl border border-gray-100 p-6 items-center">
-            <Ionicons name="school-outline" size={36} color="#D1D5DB" />
-            <Text className="text-gray-400 text-sm mt-2">No education added yet</Text>
+          <View className="bg-white rounded-[32px] border border-gray-100 p-10 items-center shadow-sm">
+            <View className="w-16 h-16 bg-gray-50 rounded-full items-center justify-center mb-4">
+              <Ionicons name="school-outline" size={32} color="#D1D5DB" />
+            </View>
+            <Text className="text-gray-900 font-bold text-[15px]">No education yet</Text>
+            <Text className="text-gray-400 text-xs mt-1 text-center">Highlight your academic journey here</Text>
           </View>
         ) : education.map(e => (
           <EducationCard key={e._id} item={e} isOwner={isOwner}
@@ -396,100 +426,90 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
 
       {/* ── Coding Platforms ─────────────────────────────────────────────── */}
       {(hasCoding || isOwner) && (
-        <View className="mx-4 mt-4 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <View className="flex-row items-center justify-between mb-3">
-            <SH title="Coding Stats" icon="code-slash-outline" accent="#0EA5E9" />
-            {isOwner && (
-              <Pressable onPress={() => setShowCodingModal(true)}
-                className="flex-row items-center gap-1 bg-sky-50 px-3 py-1.5 rounded-lg border border-sky-100">
-                <Ionicons name="pencil-outline" size={12} color="#0EA5E9" />
-                <Text className="text-sky-600 text-xs font-semibold">Update</Text>
-              </Pressable>
-            )}
-          </View>
-
-          {/* Total solved banner */}
-          {cs.totalSolved ? (
-            <View className="bg-indigo-50 rounded-xl px-4 py-3 mb-3 border border-indigo-100 flex-row items-center justify-between">
-              <Text className="text-indigo-700 font-bold text-sm">Total Problems Solved</Text>
-              <Text className="text-indigo-800 font-black text-xl">{cs.totalSolved}</Text>
+        <View className="mx-4 mt-4 bg-gray-50 rounded-[32px] p-1">
+          <View className="bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm">
+            <View className="flex-row items-center justify-between mb-5">
+              <SH title="Coding Stats" icon="code-slash-outline" accent="#0EA5E9" />
+              {isOwner && (
+                <Pressable onPress={() => setShowCodingModal(true)}
+                  className="bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-100">
+                  <Ionicons name="pencil-outline" size={14} color="#0EA5E9" />
+                </Pressable>
+              )}
             </View>
-          ) : null}
 
-          <View className="flex-row gap-2">
-            <CodingPlatformCard
-              icon="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/leetcode-xp0gbbxtpmnkjk8uhdrmhg.png/leetcode-jj5yfhjdsmrt5j9xb3sec.png?_a=DATAiZiuZAA0"
-              name="LeetCode" color="#F89F1B" bg="#FFFBF0"
-              username={cp.leetcode} solved={cs.leetcodeSolved} rating={cs.leetcodeRating}
-              profileUrl={`https://leetcode.com/${cp.leetcode}`}
-            />
-            <CodingPlatformCard
-              icon="https://upload.wikimedia.org/wikipedia/commons/e/eb/GeeksForGeeks_logo.png"
-              name="GFG" color="#2E8B57" bg="#F0FFF4"
-              username={cp.gfg} solved={cs.gfgSolved} rating={cs.gfgRating}
-              profileUrl={`https://www.geeksforgeeks.org/user/${cp.gfg}`}
-            />
-            <CodingPlatformCard
-              icon="https://cdn.codechef.com/images/cc-logo.svg"
-              name="CodeChef" color="#6F4E37" bg="#FFF8F0"
-              username={cp.codechef} solved={cs.codechefSolved} rating={cs.codechefRating}
-              profileUrl={`https://www.codechef.com/users/${cp.codechef}`}
-            />
+            {/* Total solved banner */}
+            {cs.totalSolved ? (
+              <View className="bg-gray-900 rounded-[24px] px-6 py-5 mb-5 flex-row items-center justify-between shadow-lg shadow-gray-200">
+                <View>
+                  <Text className="text-gray-400 font-black text-[10px] uppercase tracking-widest mb-1">Total Solved</Text>
+                  <Text className="text-white font-black text-2xl">{cs.totalSolved}</Text>
+                </View>
+                <View className="w-12 h-12 bg-white/10 rounded-2xl items-center justify-center">
+                  <Ionicons name="trophy" size={24} color="#F89F1B" />
+                </View>
+              </View>
+            ) : null}
+
+            <View className="flex-row gap-3">
+              <CodingPlatformCard
+                icon="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/leetcode-xp0gbbxtpmnkjk8uhdrmhg.png/leetcode-jj5yfhjdsmrt5j9xb3sec.png?_a=DATAiZiuZAA0"
+                name="LeetCode" color="#F89F1B" bg="#FFFBF0"
+                username={cp.leetcode} solved={cs.leetcodeSolved} rating={cs.leetcodeRating}
+                profileUrl={`https://leetcode.com/${cp.leetcode}`}
+              />
+              <CodingPlatformCard
+                icon="https://upload.wikimedia.org/wikipedia/commons/e/eb/GeeksForGeeks_logo.png"
+                name="GFG" color="#2E8B57" bg="#F0FFF4"
+                username={cp.gfg} solved={cs.gfgSolved} rating={cs.gfgRating}
+                profileUrl={`https://www.geeksforgeeks.org/user/${cp.gfg}`}
+              />
+              <CodingPlatformCard
+                icon="https://cdn.codechef.com/images/cc-logo.svg"
+                name="CodeChef" color="#6F4E37" bg="#FFF8F0"
+                username={cp.codechef} solved={cs.codechefSolved} rating={cs.codechefRating}
+                profileUrl={`https://www.codechef.com/users/${cp.codechef}`}
+              />
+            </View>
           </View>
         </View>
       )}
 
       {/* ── Social Links ─────────────────────────────────────────────────── */}
       {(user?.github_id || user?.linkedIn_id || user?.githubUsername) && (
-        <View className="mx-4 mt-4 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <SH title="Social Links" icon="share-outline" accent="#1F2937" />
-          <View className="gap-2.5">
+        <View className="mx-4 mt-6 bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm">
+          <SH title="Connected Accounts" icon="share-outline" accent="#1F2937" />
+          <View className="gap-3">
             {user?.github_id && (
               <Pressable onPress={() => Linking.openURL(user.github_id!)}
-                className="flex-row items-center bg-gray-50 px-4 py-3 rounded-xl border border-gray-100">
-                <Ionicons name="logo-github" size={22} color="#1F2937" />
-                <Text className="text-gray-700 ml-3 font-medium flex-1">GitHub</Text>
-                <Ionicons name="open-outline" size={16} color="#9CA3AF" />
+                className="flex-row items-center bg-gray-50 px-5 py-4 rounded-[20px] border border-gray-100">
+                <Ionicons name="logo-github" size={24} color="#1F2937" />
+                <View className="ml-4 flex-1">
+                  <Text className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Developer</Text>
+                  <Text className="text-gray-900 font-bold text-[15px]">GitHub</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
               </Pressable>
             )}
             {user?.linkedIn_id && (
               <Pressable onPress={() => Linking.openURL(user.linkedIn_id!)}
-                className="flex-row items-center bg-gray-50 px-4 py-3 rounded-xl border border-gray-100">
-                <Ionicons name="logo-linkedin" size={22} color="#0077B5" />
-                <Text className="text-gray-700 ml-3 font-medium flex-1">LinkedIn</Text>
-                <Ionicons name="open-outline" size={16} color="#9CA3AF" />
-              </Pressable>
-            )}
-            {cp.leetcode && (
-              <Pressable onPress={() => Linking.openURL(`https://leetcode.com/${cp.leetcode}`)}
-                className="flex-row items-center bg-gray-50 px-4 py-3 rounded-xl border border-gray-100">
-                <Image source={{ uri: 'https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/leetcode-xp0gbbxtpmnkjk8uhdrmhg.png/leetcode-jj5yfhjdsmrt5j9xb3sec.png?_a=DATAiZiuZAA0' }} className="w-5 h-5" resizeMode="contain" />
-                <Text className="text-gray-700 ml-3 font-medium flex-1">LeetCode @{cp.leetcode}</Text>
-                <Ionicons name="open-outline" size={16} color="#9CA3AF" />
-              </Pressable>
-            )}
-            {cp.gfg && (
-              <Pressable onPress={() => Linking.openURL(`https://www.geeksforgeeks.org/user/${cp.gfg}`)}
-                className="flex-row items-center bg-gray-50 px-4 py-3 rounded-xl border border-gray-100">
-                <Image source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/e/eb/GeeksForGeeks_logo.png' }} className="w-5 h-5" resizeMode="contain" />
-                <Text className="text-gray-700 ml-3 font-medium flex-1">GFG @{cp.gfg}</Text>
-                <Ionicons name="open-outline" size={16} color="#9CA3AF" />
-              </Pressable>
-            )}
-            {cp.codechef && (
-              <Pressable onPress={() => Linking.openURL(`https://www.codechef.com/users/${cp.codechef}`)}
-                className="flex-row items-center bg-gray-50 px-4 py-3 rounded-xl border border-gray-100">
-                <Text style={{ fontSize: 18, marginRight: 2 }}>👨‍🍳</Text>
-                <Text className="text-gray-700 ml-2 font-medium flex-1">CodeChef @{cp.codechef}</Text>
-                <Ionicons name="open-outline" size={16} color="#9CA3AF" />
+                className="flex-row items-center bg-gray-50 px-5 py-4 rounded-[20px] border border-gray-100">
+                <Ionicons name="logo-linkedin" size={24} color="#0077B5" />
+                <View className="ml-4 flex-1">
+                  <Text className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Professional</Text>
+                  <Text className="text-gray-900 font-bold text-[15px]">LinkedIn</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
               </Pressable>
             )}
             {user?.upiId && (
-              <View className="flex-row items-center bg-green-50 px-4 py-3 rounded-xl border border-green-100">
-                <Ionicons name="wallet-outline" size={22} color="#059669" />
-                <View className="ml-3">
-                  <Text className="text-green-800 text-[10px] font-bold uppercase">UPI ID</Text>
-                  <Text className="text-green-700 font-medium">{user.upiId}</Text>
+              <View className="flex-row items-center bg-emerald-50 px-5 py-4 rounded-[20px] border border-emerald-100">
+                <View className="w-10 h-10 bg-emerald-500 rounded-2xl items-center justify-center">
+                  <Ionicons name="wallet" size={20} color="white" />
+                </View>
+                <View className="ml-4 flex-1">
+                  <Text className="text-emerald-800 text-[10px] font-black uppercase tracking-widest">Payments</Text>
+                  <Text className="text-emerald-700 font-bold text-[15px]">{user.upiId}</Text>
                 </View>
               </View>
             )}
@@ -607,81 +627,76 @@ function Profile() {
   // ── Profile Header ─────────────────────────────────────────────────────
   const renderProfileInfo = () => (
     <View className="bg-white">
-      <View className="h-52 w-full relative">
+      <View className="h-64 w-full relative">
         <ExpoImage
-          source={{ uri: user?.banner || 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=1000' }}
+          source={{ uri: user?.banner || 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000' }}
           style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="disk" />
-        <View className="absolute inset-0 bg-black/15" />
-        <View className="absolute top-12 right-4 flex-row gap-3 bg-white/90 p-2 rounded-2xl">
-          <Pressable onPress={clearAppCache}><Ionicons name="trash-outline" size={20} color="#6B7280" /></Pressable>
+        <LinearGradient colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.2)']} className="absolute inset-0" />
+        
+        <View className="absolute top-12 right-4 flex-row gap-3">
+          <Pressable onPress={clearAppCache} className="bg-white/20 p-2.5 rounded-2xl border border-white/30 backdrop-blur-md">
+            <Ionicons name="trash-outline" size={20} color="white" />
+          </Pressable>
           <Pressable onPress={() => Alert.alert('Logout', 'Are you sure?', [
             { text: 'Cancel', style: 'cancel' },
             { text: 'Logout', onPress: handleLogout, style: 'destructive' }
-          ])}><Ionicons name="log-out-outline" size={20} color="#EF4444" /></Pressable>
+          ])} className="bg-white/20 p-2.5 rounded-2xl border border-white/30 backdrop-blur-md">
+            <Ionicons name="log-out-outline" size={20} color="white" />
+          </Pressable>
         </View>
       </View>
 
-      <View className="items-center pb-4 px-4 bg-white rounded-t-[28px] -mt-6">
-        <View className="-mt-10 p-1 bg-white rounded-full shadow-lg">
-          <Avatar user={user as any} size={90} />
+      <View className="items-center pb-6 px-5 bg-white rounded-t-[40px] -mt-12 shadow-2xl">
+        <View className="-mt-14 p-1.5 bg-white rounded-[40px] shadow-2xl">
+          <View className="rounded-[36px] overflow-hidden border-4 border-white">
+            <Avatar user={user as any} size={110} />
+          </View>
         </View>
 
         {/* Name + badge */}
-        <View className="flex-row items-center mt-2 gap-2">
-          <Text className="text-2xl font-bold text-gray-900">{user?.name || user?.username}</Text>
-          <Pressable onPress={() => navigation.navigate('EditProfile')} className="bg-blue-100 rounded-full p-1">
-            <Ionicons name="pencil" size={14} color="#3B82F6" />
+        <View className="flex-row items-center mt-4 gap-2">
+          <Text className="text-3xl font-black text-gray-900 tracking-tight">{user?.name || user?.username}</Text>
+          <Pressable onPress={() => navigation.navigate('EditProfile')} className="bg-indigo-50 rounded-xl p-2 border border-indigo-100">
+            <Ionicons name="pencil" size={16} color="#6366F1" />
           </Pressable>
         </View>
-        <Text className="text-gray-400 text-sm">@{user?.username}</Text>
+        <Text className="text-indigo-500 font-black text-sm uppercase tracking-widest mt-1">@{user?.username}</Text>
 
-        {/* Fync score badge small */}
-        {user?.fyncScore !== undefined && (
-          <Pressable onPress={() => navigation.navigate('FyncProfileBuilder')}
-            className="flex-row items-center gap-1.5 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full mt-2">
-            <Text style={{ fontSize: 12 }}>{BADGE_EMOJI[user?.fyncBadge || 'Newcomer']}</Text>
-            <Text className="text-indigo-600 text-xs font-bold">{user?.fyncBadge || 'Newcomer'}</Text>
-            <Text className="text-indigo-400 text-xs">·</Text>
-            <Text className="text-indigo-700 text-xs font-black">{user?.fyncScore}</Text>
-            <Text className="text-indigo-400 text-[9px]">/ 1000</Text>
-          </Pressable>
-        )}
-
-        <Text className="text-gray-400 text-center mt-2 px-8 text-xs leading-4">
-          {user?.bio || user?.about || "I'm delighted to introduce myself as a Fync member"} 💫
+        <Text className="text-gray-500 text-center mt-4 px-6 text-[14px] leading-[22px] font-medium">
+          {user?.bio || user?.about || "Elevating the future of networking at Fync 💫"}
         </Text>
 
-        <View className="flex-row items-center mt-2 px-3 py-1.5 bg-gray-100 rounded-full gap-1.5">
-          <Ionicons name="school-outline" size={14} color="#6B7280" />
-          <Text className="text-gray-600 text-xs font-semibold">{user?.college}</Text>
+        <View className="flex-row items-center mt-4 px-4 py-2 bg-gray-50 rounded-2xl border border-gray-100 gap-2">
+          <Ionicons name="location" size={16} color="#6366F1" />
+          <Text className="text-gray-900 text-xs font-black uppercase tracking-wider">{user?.college || 'Earth'}</Text>
         </View>
 
-        {/* Stats */}
-        <View className="flex-row w-full justify-around mt-5 border-t border-b border-gray-50 py-4">
+        {/* Stats Dashboard */}
+        <View className="flex-row w-full bg-gray-900 rounded-[32px] mt-6 p-6 shadow-xl shadow-gray-300">
           {[
             { label: 'Posts', value: posts.length },
             { label: 'Followers', value: user?.followers?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user._id, type: 'followers' }) },
             { label: 'Following', value: user?.following?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user._id, type: 'following' }) },
           ].map((s, i) => (
             <React.Fragment key={i}>
-              {i > 0 && <View className="w-[1px] h-6 self-center bg-gray-100" />}
+              {i > 0 && <View className="w-[1px] h-8 self-center bg-white/10" />}
               <Pressable className="items-center flex-1" onPress={s.onPress}>
-                <Text className="text-lg font-bold text-gray-900">{s.value}</Text>
-                <Text className="text-gray-400 text-[10px] uppercase tracking-wide">{s.label}</Text>
+                <Text className="text-xl font-black text-white">{s.value}</Text>
+                <Text className="text-gray-400 text-[9px] font-black uppercase tracking-widest mt-1">{s.label}</Text>
               </Pressable>
             </React.Fragment>
           ))}
         </View>
 
         {/* Action buttons */}
-        <View className="flex-row gap-3 mt-5 w-full">
+        <View className="flex-row gap-4 mt-6 w-full">
           <Pressable onPress={() => navigation.navigate('EditProfile')}
-            className="flex-1 bg-white border border-gray-200 py-2.5 rounded-xl items-center">
-            <Text className="text-gray-900 font-semibold">Edit Profile</Text>
+            className="flex-1 bg-white border-2 border-gray-100 py-4 rounded-[24px] items-center shadow-sm">
+            <Text className="text-gray-900 font-black uppercase text-xs tracking-widest">Edit Profile</Text>
           </Pressable>
           <Pressable onPress={() => navigation.navigate('FyncProfileBuilder')}
-            className="flex-1 bg-indigo-600 py-2.5 rounded-xl items-center">
-            <Text className="text-white font-semibold">My Portfolio</Text>
+            className="flex-1 bg-indigo-600 py-4 rounded-[24px] items-center shadow-lg shadow-indigo-200">
+            <Text className="text-white font-black uppercase text-xs tracking-widest">Portfolio</Text>
           </Pressable>
         </View>
       </View>
@@ -690,18 +705,23 @@ function Profile() {
 
   // ── Tab Bar ────────────────────────────────────────────────────────────
   const renderTabBar = () => (
-    <View className="flex-row bg-white border-t border-gray-50 py-1">
+    <View className="flex-row bg-white border-t border-gray-100 py-2 px-4 shadow-sm">
       {[
-        { key: 'posts', icon: 'grid' },
-        { key: 'shorts', icon: 'movie-play-outline' },
-        { key: 'about', icon: 'account-details-outline' },
-      ].map((t, i) => (
-        <Pressable key={t.key} onPress={() => setActiveTab(t.key as any)} className="flex-1 items-center py-3 relative">
-          <MaterialCommunityIcons name={t.icon as any} size={i === 2 ? 30 : 26}
-            color={activeTab === t.key ? 'black' : '#d1d5db'} />
-          {activeTab === t.key && <View className="absolute bottom-1 w-8 h-0.5 bg-black rounded-full" />}
-        </Pressable>
-      ))}
+        { key: 'posts', icon: 'grid-outline', activeIcon: 'grid' },
+        { key: 'shorts', icon: 'play-circle-outline', activeIcon: 'play-circle' },
+        { key: 'about', icon: 'person-outline', activeIcon: 'person' },
+      ].map((t, i) => {
+        const isActive = activeTab === t.key;
+        return (
+          <Pressable key={t.key} onPress={() => setActiveTab(t.key as any)} className="flex-1 items-center py-2 relative">
+            <View className={`w-14 h-10 rounded-2xl items-center justify-center ${isActive ? 'bg-indigo-50' : 'bg-transparent'}`}>
+              <Ionicons name={(isActive ? t.activeIcon : t.icon) as any} size={24}
+                color={isActive ? '#6366F1' : '#9CA3AF'} />
+            </View>
+            {isActive && <View className="absolute bottom-[-4px] w-1 h-1 bg-indigo-600 rounded-full" />}
+          </Pressable>
+        );
+      })}
     </View>
   );
 
@@ -713,28 +733,28 @@ function Profile() {
         isShort ? 'Delete Short' : 'Delete Post', 'Are you sure?',
         [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => isShort ? deleteShort(item._id) : deletePost(item._id) }]
       )}
-      className="m-[0.5px]"
-      style={{ width: (width / 3) - 1, height: isShort ? (width / 2) : (width / 3), overflow: 'hidden' }}>
+      className="m-[1px] rounded-lg overflow-hidden"
+      style={{ width: (width / 3) - 2, height: isShort ? (width / 1.8) : (width / 3) }}>
       {isShort ? (
         <View className="w-full h-full bg-gray-100 overflow-hidden">
           <Video source={{ uri: item.video }} style={{ width: '100%', height: '100%' }}
             resizeMode={ResizeMode.COVER} shouldPlay={false} positionMillis={100} />
-          <View className="absolute inset-0 bg-black/10" />
-          <View className="absolute bottom-2 left-2 flex-row items-center gap-1">
+          <LinearGradient colors={['transparent', 'rgba(0,0,0,0.5)']} className="absolute inset-0" />
+          <View className="absolute bottom-2 left-2 flex-row items-center gap-1.5">
             <Ionicons name="play" size={12} color="white" />
-            <Text className="text-white text-[10px] font-bold">{item.views || 0}</Text>
+            <Text className="text-white text-[10px] font-black">{item.views || 0}</Text>
           </View>
         </View>
       ) : item.image?.length > 0 ? (
-        <Image source={{ uri: item.image[0] }} className="w-full h-full" resizeMode="cover" />
+        <ExpoImage source={{ uri: item.image[0] }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
       ) : (
-        <View className="w-full h-full bg-gray-50 items-center justify-center">
-          <Text className="text-gray-400 text-xs p-2 text-center" numberOfLines={3}>{item.title}</Text>
+        <View className="w-full h-full bg-indigo-50/50 items-center justify-center p-3">
+          <Text className="text-indigo-400 text-[10px] font-bold text-center" numberOfLines={4}>{item.title || item.description}</Text>
         </View>
       )}
       {!isShort && item.image?.length > 1 && (
-        <View className="absolute top-2 right-2 bg-black/30 px-1.5 py-0.5 rounded-full">
-          <Ionicons name="copy" size={10} color="white" />
+        <View className="absolute top-2 right-2 bg-black/40 px-1.5 py-1 rounded-lg backdrop-blur-md">
+          <Ionicons name="layers" size={10} color="white" />
         </View>
       )}
     </Pressable>

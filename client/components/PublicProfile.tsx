@@ -218,7 +218,10 @@ const PublicProfile = () => {
         if (!profileUser?._id) return;
         try {
             const res = await axios.post("/chat/start", { userId: profileUser._id });
-            navigation.navigate("Chat", { conversationId: res.data.conversation._id });
+            navigation.navigate("Chat", { 
+                conversationId: res.data.conversation._id,
+                otherUser: profileUser
+            });
         } catch (err) {
             console.log("Start chat error", err);
         }

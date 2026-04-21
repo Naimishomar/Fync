@@ -173,11 +173,11 @@ const CreateRoom = () => {
                 onPress={() => setDomain(d)}
                 className={`px-6 py-3 mr-4 rounded-2xl border transition-all ${
                   domain === d 
-                    ? "bg-zinc-900 border-zinc-900 shadow-lg shadow-black/20" 
+                    ? "bg-white border-pink-500 shadow-lg shadow-pink-500/10" 
                     : "bg-white border-slate-100 shadow-sm"
                 }`}
               >
-                <Text className={`font-black italic uppercase text-[12px] tracking-tight ${domain === d ? "text-white" : "text-slate-400"}`}>
+                <Text className={`font-black italic uppercase text-[12px] tracking-tight ${domain === d ? "text-pink-500" : "text-slate-400"}`}>
                   {d}
                 </Text>
               </TouchableOpacity>
@@ -259,8 +259,8 @@ const CreateRoom = () => {
           {questions.map((q, qIndex) => (
             <View key={qIndex} className="bg-white border border-slate-100 rounded-[40px] p-8 mb-8 shadow-2xl shadow-black/5">
               <View className="flex-row justify-between items-center mb-6">
-                <View className="bg-zinc-900 px-4 py-1.5 rounded-full">
-                    <Text className="font-black italic text-white text-[10px] uppercase tracking-widest">Question {qIndex + 1}</Text>
+                <View className="bg-slate-50 border border-slate-100 px-4 py-1.5 rounded-full">
+                    <Text className="font-black italic text-zinc-900 text-[10px] uppercase tracking-widest">Question {qIndex + 1}</Text>
                 </View>
                 {questions.length > 1 && (
                   <TouchableOpacity 
@@ -303,7 +303,7 @@ const CreateRoom = () => {
                     placeholderTextColor="#94a3b8"
                     onChangeText={(text) => updateOption(qIndex, i, text)}
                     className={`border p-5 rounded-2xl flex-1 font-black italic uppercase tracking-tight text-sm ${
-                        q.correctAnswer === i ? "bg-zinc-900 border-zinc-900 text-white shadow-lg shadow-black/10" : "bg-white border-slate-100 text-slate-500"
+                        q.correctAnswer === i ? "bg-white border-pink-500 text-zinc-900 shadow-lg shadow-pink-500/5" : "bg-white border-slate-100 text-slate-500"
                     }`}
                   />
                 </TouchableOpacity>

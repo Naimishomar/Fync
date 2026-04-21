@@ -98,6 +98,24 @@ export const getLeaderboard = async (req, res) => {
             .sort(sortOption)
             .limit(100);
 
+        // --- BACKGROUND AUTO-SYNC LOGIC ---
+        // Identify users who haven't been updated in the last 10 minutes
+        const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+        const staleUsers = leaderboard.filter(u => 
+            !u.codingStats?.lastUpdated || new Date(u.codingStats.lastUpdated) < tenMinutesAgo
+        );
+
+        if (staleUsers.length > 0) {
+            console.log(`[Leaderboard] Auto-syncing ${staleUsers.length} stale profiles in background...`);
+            // Run refresh in background without awaiting
+            (async () => {
+                for (const u of staleUsers) {
+                    await refreshUserStats(u._id);
+                    await new Promise(r => setTimeout(r, 200)); 
+                }
+            })();
+        }
+
         return res.status(200).json({ success: true, leaderboard });
     } catch (error) {
         console.error("Leaderboard Fetch Error:", error);
@@ -124,7 +142,7 @@ export const getCoderProfile = async (req, res) => {
     }
 };
 
-// 5. FORCE REFRESH
+// 5. FORCE REFRESH SINGLE
 export const forceRefreshStats = async (req, res) => {
     try {
         await refreshUserStats(req.user.id);
@@ -132,5 +150,23 @@ export const forceRefreshStats = async (req, res) => {
         return res.status(200).json({ success: true, user: updatedUser });
     } catch (error) {
         return res.status(500).json({ message: "Refresh failed" });
+    }
+};
+
+// 6. REFRESH ALL USERS
+export const refreshAllStats = async (req, res) => {
+    try {
+        const users = await User.find({ "codingProfiles.leetcode": { $exists: true, $ne: "" } });
+        
+        // Return immediately to not block UI
+        res.status(200).json({ success: true, message: `Syncing ${users.length} users in background` });
+
+        // Process in background with slight delays to prevent rate limiting
+        for (const user of users) {
+            await refreshUserStats(user._id);
+            await new Promise(resolve => setTimeout(resolve, 300));
+        }
+    } catch (error) {
+        console.error("Global Refresh Error:", error);
     }
 };

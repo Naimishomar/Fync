@@ -149,6 +149,7 @@ const ChatList = () => {
       });
       navigation.navigate("Chat", {
         conversationId: res.data.conversation._id,
+        otherUser: targetUser
       });
       setSearch("");
       setResults([]);
@@ -177,7 +178,10 @@ const ChatList = () => {
     return (
       <TouchableOpacity
         className="flex-row items-center px-4 py-4 mx-4 mb-3 bg-white rounded-2xl border border-gray-100 shadow-sm"
-        onPress={() => navigation.navigate("Chat", { conversationId: item._id })}
+        onPress={() => navigation.navigate("Chat", { 
+          conversationId: item._id,
+          otherUser: otherUser
+        })}
         activeOpacity={0.7}
       >
         <View className="relative">
