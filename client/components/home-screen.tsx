@@ -22,6 +22,7 @@ import {
   Easing,
   useWindowDimensions
 } from 'react-native';
+import { Sparkles, Mic, Briefcase, Trophy, Rocket, Crown, MessageCircle, Megaphone, Users } from 'lucide-react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Reanimated, { Layout, FadeIn, FadeOut } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -46,7 +47,6 @@ import {
 import { BlurView } from 'expo-blur';
 
 const { width } = Dimensions.get('window');
-
 
 // --- TYPES ---
 // --- HELPERS ---
@@ -751,73 +751,65 @@ export default function HomeScreen() {
       </View>
     );
   };
-
   const features = useMemo(() => [
-    { id: 'fyncMedia', name: 'Fync Media', iconUri: 'https://images.vexels.com/media/users/3/208346/isolated/preview/e421cb442008fe3a78068efe05254987-microphone-icon-black.png', sparkle: false, onPress: () => navigation.navigate('FyncMediaFeed') },
-    { id: 'jobs', name: 'Jobs', iconUri: 'https://d8it4huxumps7.cloudfront.net/uploads/images/avif/jobs-new.png', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
-    { id: 'competitions', name: 'Reward', iconUri: 'https://i.pinimg.com/736x/3c/a8/e7/3ca8e7290bf156916a8a3c9bea521238.jpg', sparkle: false, onPress: () => navigation.navigate('RewardsMarketplace') },
-    { id: 'bootcamps', name: 'Bootcamps', iconUri: 'https://cdn-icons-png.flaticon.com/512/3389/3389152.png', sparkle: true, onPress: () => navigation.navigate('BootcampScreen') },
-    { id: 'codingLeaderboard', name: 'Coding Leaderboard', iconUri: 'https://cdn-icons-png.flaticon.com/512/10416/10416390.png', sparkle: false, onPress: () => navigation.navigate('CodingLeaderboard') },
-    { id: 'confessions', name: 'Confessions', iconUri: 'https://cdn-icons-png.flaticon.com/512/4737/4737213.png', sparkle: false, onPress: () => navigation.navigate('ConfessionFeed') },
-    { id: 'speakers', name: 'Speakers', iconUri: 'https://cdn-icons-png.flaticon.com/512/10416/10416390.png', sparkle: false, onPress: () => navigation.navigate('SpeakerSessionScreen') },
-    { id: 'college_clubs', name: 'College Clubs', iconUri: 'https://cdn-icons-png.flaticon.com/512/4737/4737213.png', sparkle: false, onPress: () => navigation.navigate('ClubList') },
-  ], [user, navigation]);
-
+    { id: 'fyncMedia', name: 'Fync Media', Icon: Mic, colorHex: '#f43f5e', bgClass: 'bg-rose-50', sparkle: false, onPress: () => navigation.navigate('FyncMediaFeed') },
+    { id: 'jobs', name: 'Jobs', Icon: Briefcase, colorHex: '#3b82f6', bgClass: 'bg-blue-50', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
+    { id: 'competitions', name: 'Reward', Icon: Trophy, colorHex: '#f59e0b', bgClass: 'bg-amber-50', sparkle: false, onPress: () => navigation.navigate('RewardsMarketplace') },
+    { id: 'bootcamps', name: 'Bootcamps', Icon: Rocket, colorHex: '#a855f7', bgClass: 'bg-purple-50', sparkle: true, onPress: () => navigation.navigate('BootcampScreen') },
+    { id: 'codingLeaderboard', name: 'Leaderboard', Icon: Crown, colorHex: '#f97316', bgClass: 'bg-orange-50', sparkle: false, onPress: () => navigation.navigate('CodingLeaderboard') },
+    { id: 'confessions', name: 'Confessions', Icon: MessageCircle, colorHex: '#14b8a6', bgClass: 'bg-teal-50', sparkle: false, onPress: () => navigation.navigate('ConfessionFeed') },
+    { id: 'speakers', name: 'Speakers', Icon: Megaphone, colorHex: '#6366f1', bgClass: 'bg-indigo-50', sparkle: false, onPress: () => navigation.navigate('SpeakerSessionScreen') },
+    { id: 'college_clubs', name: 'Clubs', Icon: Users, colorHex: '#10b981', bgClass: 'bg-emerald-50', sparkle: false, onPress: () => navigation.navigate('ClubList') },
+  ], [navigation]);
   const displayedFeatures = useMemo(() => features.slice(0, 6), [features]);
-
 const renderFeatureStories = () => {
   return (
-    <View className="bg-white py-3">
-      {/* Header */}
-      {/* <View className="flex-row justify-between items-center px-4 mb-5">
-        <Text className="text-zinc-900 font-bold text-3xl italic w-full">
-          Focus & Growth!
-        </Text>
-        <Image source={{ uri: 'https://d8it4huxumps7.cloudfront.net/uploads/images/avif/home_heading_after.png' }} className="w-52 h-10 object-contain absolute left-12 top-6" />
-      </View> */}
-
-      {/* Grid */}
-      <View className="flex-row flex-wrap px-3">
+    <View className="bg-white py-4 px-2 w-full">
+      {/* Grid Container */}
+      <View className="flex-row flex-wrap">
         {features.map((item, index) => (
           <Reanimated.View
             key={item.id}
-            entering={FadeIn.delay(index * 50)}
-            className="p-2"
-            style={{ width: '25%' }}
+            entering={FadeIn.delay(index * 50).duration(500)}
+            className="w-1/4 p-1.5"
           >
             <Pressable
               onPress={item.onPress}
-              className="bg-gray-50 rounded-xl p-3 items-center justify-center shadow-md"
-              style={{ elevation: 3 }}
+              className="w-full bg-white rounded-2xl py-3 px-1 flex flex-col items-center justify-start border border-slate-100 h-28"
+              style={{
+                shadowColor: "#94a3b8",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: 8,
+                elevation: 2
+              }}
             >
-              {/* Title */}
-              <Text
-                className="text-zinc-900 font-semibold text-sm mb-2 text-center"
-                numberOfLines={1}
-              >
+              {/* Icon Container with soft background framing */}
+              <View className={`rounded-full p-2.5 mb-2 relative flex items-center justify-center ${item.bgClass}`}>
+                <item.Icon size={24} color={item.colorHex} strokeWidth={1.5} />
+                
+                {/* Refined Sparkle badge overlapping the icon container */}
+                {item.sparkle && (
+                  <View className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-sm border border-slate-50">
+                    <Sparkles size={12} color={item.colorHex} />
+                  </View>
+                )}
+              </View>
+
+              {/* Title shifted to the bottom for better readability */}
+              <Text className="text-slate-700 font-medium text-[11px] text-center px-1 leading-tight" numberOfLines={2}>
                 {item.name}
               </Text>
-
-              {/* Image */}
-              <Image
-                source={{ uri: item.iconUri }}
-                className="w-14 h-14"
-              />
-
-              {/* Sparkle badge */}
-              {item.sparkle && (
-                <View className="absolute top-2 right-2">
-                  <Ionicons name="sparkles" size={14} color="#818cf8" />
-                </View>
-              )}
             </Pressable>
           </Reanimated.View>
         ))}
       </View>
-      <View className="border-b border-gray-100 mx-4 mt-3"></View>
+      
+      {/* Softer divider */}
+      <View className="border-b border-slate-100 mx-4 mt-4" />
     </View>
   );
-};
+}
 
 
   return (
