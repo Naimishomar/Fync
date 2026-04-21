@@ -3,12 +3,11 @@ import { useNavigation } from '@react-navigation/native';
 import {
     View, Text, ScrollView, TouchableOpacity, TextInput,
     FlatList, Modal, ActivityIndicator, Alert, RefreshControl,
-    KeyboardAvoidingView, Platform, Image, Animated
+    KeyboardAvoidingView, Platform, Image, Animated, StatusBar
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { formatDistanceToNow } from 'date-fns';
@@ -36,15 +35,14 @@ const PlacementHub = () => {
     const [search, setSearch] = useState('');
     const [activeType, setActiveType] = useState('All');
 
-    // Auth User IDs
     const CURRENT_USER_ID = user?._id || user?.id;
 
-    // View Discussion State
     const [selectedQuestion, setSelectedQuestion] = useState<any>(null);
     const [isDiscussionVisible, setDiscussionVisible] = useState(false);
     const [newComment, setNewComment] = useState('');
+    const [replyingTo, setReplyingTo] = useState<any>(null);
+    const commentInputRef = useRef<TextInput>(null);
 
-    // Post Modal State
     const [isPostModalVisible, setPostModalVisible] = useState(false);
     const [form, setForm] = useState({
         company: '',
@@ -58,7 +56,7 @@ const PlacementHub = () => {
 
     const fetchQuestions = async () => {
         try {
-            setLoading(true);
+            if (!refreshing) setLoading(true);
             const res = await axios.get('/placement/questions', {
                 params: {
                     type: activeType === 'All' ? undefined : activeType,
@@ -129,7 +127,7 @@ const PlacementHub = () => {
 
     const handlePost = async () => {
         if (!form.company || !form.role || !form.question) {
-            return Alert.alert("Error", "Please fill required fields");
+            return Alert.alert("Required", "Please fill essential fields.");
         }
         try {
             const res = await axios.post('/placement/add', form);
@@ -140,13 +138,10 @@ const PlacementHub = () => {
                     difficulty: 'Medium', question: '', description: ''
                 });
                 fetchQuestions();
-                Alert.alert("Success", "Question shared with the community!");
+                Alert.alert("Success", "Intelligence shared with HQ.");
             }
-        } catch (error) { Alert.alert("Error", "Failed to post."); }
+        } catch (error) { Alert.alert("Error", "Transmission failed."); }
     };
-
-    const [replyingTo, setReplyingTo] = useState<any>(null);
-    const commentInputRef = React.useRef<TextInput>(null);
 
     const handleComment = async () => {
         if (!newComment.trim() || !selectedQuestion) return;
@@ -156,29 +151,145 @@ const PlacementHub = () => {
                 parentCommentId: replyingTo?._id 
             });
             if (res.data.success) {
-                // Fetch all comments again to get updated structure
                 const commentsRes = await axios.get(`/placement/comments/${selectedQuestion._id}`);
                 if (commentsRes.data.success) {
                     setSelectedQuestion({ ...selectedQuestion, comments: commentsRes.data.comments });
                 }
                 setNewComment('');
                 setReplyingTo(null);
-                fetchQuestions(); // Refresh counts in the main list
+                fetchQuestions();
             }
-        } catch (error) { Alert.alert("Error", "Failed to comment."); }
+        } catch (error) { Alert.alert("Error", "Failed to communicate."); }
+    };
+
+    const renderQuestionCard = ({ item }: { item: any }) => {
+        const isUpvoted = item.upvotes?.includes(CURRENT_USER_ID);
+        const isSaved = item.savedBy?.includes(CURRENT_USER_ID);
+
+        return (
+            <View className="bg-white mx-8 mb-6 rounded-[32px] border border-slate-100 shadow-sm shadow-black/5 overflow-hidden">
+                <View className="p-6">
+                    <View className="flex-row justify-between items-center mb-4">
+                        <View className="bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100">
+                            <Text className="text-zinc-500 text-[8px] font-black uppercase tracking-widest italic">{item.company || 'Gen-Z Tech'}</Text>
+                        </View>
+                        <View className={`px-3 py-1.5 rounded-full border ${
+                            item.difficulty === 'Hard' ? 'bg-rose-50 border-rose-100' :
+                            item.difficulty === 'Medium' ? 'bg-amber-50 border-amber-100' :
+                            'bg-emerald-50 border-emerald-100'
+                        }`}>
+                            <Text className={`text-[8px] font-black uppercase tracking-widest italic ${
+                                item.difficulty === 'Hard' ? 'text-rose-500' :
+                                item.difficulty === 'Medium' ? 'text-amber-500' :
+                                'text-emerald-500'
+                            }`}>{item.difficulty}</Text>
+                        </View>
+                    </View>
+
+                    <Text className="text-zinc-900 text-sm font-black italic uppercase leading-6 mb-6">"{item.question}"</Text>
+
+                    <View className="flex-row flex-wrap gap-2 mb-6">
+                        <View className="bg-zinc-900 px-3 py-1 rounded-lg">
+                            <Text className="text-white text-[7px] font-black uppercase tracking-widest">{item.type}</Text>
+                        </View>
+                        <View className="bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">
+                            <Text className="text-slate-400 text-[7px] font-black uppercase tracking-widest">{item.round}</Text>
+                        </View>
+                    </View>
+
+                    <View className="flex-row justify-between items-center pt-4 border-t border-slate-50">
+                        <View className="flex-row items-center">
+                            <Image 
+                                source={{ uri: item.postedBy?.avatar || `https://ui-avatars.com/api/?name=${item.postedBy?.username}` }} 
+                                className="w-6 h-6 rounded-full border border-slate-200 bg-slate-50" 
+                            />
+                            <View className="ml-2">
+                                <Text className="text-zinc-900 text-[8px] font-black italic uppercase tracking-tighter">@{item.postedBy?.username}</Text>
+                                <Text className="text-slate-400 text-[6px] uppercase font-bold">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}</Text>
+                            </View>
+                        </View>
+
+                        <View className="flex-row gap-4">
+                            <TouchableOpacity onPress={() => handleUpvote(item._id)} className="flex-row items-center">
+                                <Ionicons name={isUpvoted ? "heart" : "heart-outline"} size={16} color={isUpvoted ? "#ec4899" : "#CBD5E1"} />
+                                <Text className={`ml-1 text-[8px] font-black ${isUpvoted ? 'text-pink-500' : 'text-slate-400'}`}>{item.upvotes?.length}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                onPress={async () => { 
+                                    try {
+                                        const res = await axios.get(`/placement/comments/${item._id}`);
+                                        if(res.data.success) {
+                                            setSelectedQuestion({ ...item, comments: res.data.comments });
+                                            setDiscussionVisible(true);
+                                        }
+                                    } catch(e) {}
+                                }}
+                                className="flex-row items-center"
+                            >
+                                <Ionicons name="chatbubble-outline" size={14} color="#CBD5E1" />
+                                <Text className="ml-1 text-[8px] font-black text-slate-400">{item.comments?.length}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => handleSave(item._id)}>
+                                <Ionicons name={isSaved ? "bookmark" : "bookmark-outline"} size={14} color={isSaved ? "#3b82f6" : "#CBD5E1"} />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </View>
+        );
+    };
+
+    const QuestionSkeleton = () => {
+        const pulseAnim = useRef(new Animated.Value(0.3)).current;
+        useEffect(() => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
+                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
+                ])
+            ).start();
+        }, []);
+
+        return (
+            <Animated.View style={{ opacity: pulseAnim }} className="bg-white mx-8 mb-6 rounded-[32px] border border-slate-100 p-8 shadow-sm shadow-black/5">
+                <View className="flex-row justify-between mb-6">
+                    <View className="h-6 bg-slate-50 rounded-full w-24" />
+                    <View className="h-6 bg-slate-50 rounded-full w-20" />
+                </View>
+                <View className="h-4 bg-slate-50 rounded w-full mb-3" />
+                <View className="h-4 bg-slate-50 rounded w-4/5 mb-8" />
+                <View className="flex-row gap-2 mb-8">
+                    <View className="w-16 h-5 bg-slate-50 rounded-lg" />
+                    <View className="w-16 h-5 bg-slate-50 rounded-lg" />
+                </View>
+                <View className="flex-row justify-between items-center pt-6 border-t border-slate-50">
+                    <View className="flex-row items-center">
+                        <View className="w-6 h-6 bg-slate-50 rounded-full" />
+                        <View className="w-20 h-4 bg-slate-50 rounded ml-2" />
+                    </View>
+                    <View className="flex-row gap-4">
+                        <View className="w-6 h-6 bg-slate-50 rounded-full" />
+                        <View className="w-6 h-6 bg-slate-50 rounded-full" />
+                    </View>
+                </View>
+            </Animated.View>
+        );
     };
 
     const CommentItem = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => (
-        <View className={`${isReply ? 'ml-10 mt-4' : 'mb-8'}`}>
+        <View className={`${isReply ? 'ml-10 mt-4' : 'mb-6'}`}>
             <View className="flex-row">
-                <Image source={{ uri: comment.commentor?.avatar || `https://ui-avatars.com/api/?name=${comment.commentor?.username}` }} className={`${isReply ? 'w-7 h-7' : 'w-9 h-9'} rounded-2xl bg-gray-900 border border-white/10`} />
-                <View className="flex-1 ml-4 bg-[#0a0a0a] p-5 rounded-[24px] rounded-tl-none border border-white/5 shadow-2xl">
+                <Image 
+                    source={{ uri: comment.commentor?.avatar || `https://ui-avatars.com/api/?name=${comment.commentor?.username}` }} 
+                    className={`${isReply ? 'w-6 h-6' : 'w-10 h-10'} rounded-2xl bg-slate-50 border border-slate-100 shadow-sm`} 
+                />
+                <View className="flex-1 ml-4 bg-white p-5 rounded-[24px] rounded-tl-none border border-slate-100 shadow-sm">
                     <View className="flex-row justify-between items-center mb-2">
-                        <Text className="text-indigo-400 font-black text-[10px] uppercase tracking-wider">@{comment.commentor?.username}</Text>
-                        <Text className="text-gray-700 text-[8px] font-bold">{comment.createdAt ? formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true }) : ''}</Text>
+                        <Text className="text-zinc-900 font-black italic text-[9px] uppercase tracking-tight">@{comment.commentor?.username}</Text>
+                        <Text className="text-slate-400 text-[7px] font-bold uppercase">{comment.createdAt ? formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true }) : ''}</Text>
                     </View>
-                    <Text className="text-gray-300 text-xs leading-5 font-medium">
-                        {comment.replyToUser && <Text className="text-pink-500">@{comment.replyToUser.username} </Text>}
+                    <Text className="text-zinc-600 text-xs leading-5 font-medium italic">
+                        {comment.replyToUser && <Text className="text-pink-500 font-black">@{comment.replyToUser.username} </Text>}
                         {comment.text}
                     </Text>
                     {!isReply && (
@@ -190,7 +301,7 @@ const PlacementHub = () => {
                             }}
                             className="mt-3"
                         >
-                            <Text className="text-indigo-400/80 text-[9px] font-black uppercase tracking-widest">Reply</Text>
+                            <Text className="text-pink-500 text-[8px] font-black uppercase tracking-widest italic">Protocol Reply</Text>
                         </TouchableOpacity>
                     )}
                 </View>
@@ -201,259 +312,108 @@ const PlacementHub = () => {
         </View>
     );
 
-    const QuestionSkeleton = () => {
-        const pulseAnim = useRef(new Animated.Value(0.3)).current;
-
-        useEffect(() => {
-            Animated.loop(
-                Animated.sequence([
-                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
-                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
-                ])
-            ).start();
-        }, []);
-
-        return (
-            <Animated.View 
-                style={{ opacity: pulseAnim }}
-                className="bg-[#1e1e1e]/50 p-6 rounded-[32px] mb-4 mx-5 border border-white/5"
-            >
-                <View className="flex-row items-center mb-5">
-                    <View className="w-10 h-10 bg-zinc-800 rounded-2xl" />
-                    <View className="ml-4 flex-1">
-                        <View className="h-4 bg-zinc-800 rounded w-2/3 mb-2" />
-                        <View className="h-3 bg-zinc-800 rounded w-1/3" />
-                    </View>
-                    <View className="w-12 h-5 bg-zinc-800 rounded-full" />
-                </View>
-                <View className="h-4 bg-zinc-800 rounded w-full mb-3" />
-                <View className="h-4 bg-zinc-800 rounded w-4/5 mb-6" />
-                
-                <View className="flex-row gap-2 mb-6">
-                    <View className="w-16 h-4 bg-zinc-800 rounded-lg" />
-                    <View className="w-16 h-4 bg-zinc-800 rounded-lg" />
-                </View>
-
-                <View className="flex-row justify-between items-center pt-4 border-t border-white/5">
-                    <View className="flex-row items-center">
-                        <View className="w-5 h-5 bg-zinc-800 rounded-full" />
-                        <View className="w-20 h-3 bg-zinc-800 rounded ml-2" />
-                    </View>
-                    <View className="flex-row gap-4">
-                        <View className="w-6 h-6 bg-zinc-800 rounded-full" />
-                        <View className="w-6 h-6 bg-zinc-800 rounded-full" />
-                        <View className="w-6 h-6 bg-zinc-800 rounded-full" />
-                    </View>
-                </View>
-            </Animated.View>
-        );
-    };
-
-    const renderQuestionCard = ({ item }: { item: any }) => {
-        const isUpvoted = item.upvotes.includes(CURRENT_USER_ID);
-        const isSaved = item.savedBy.includes(CURRENT_USER_ID);
-
-        return (
-            <View className="bg-[#1e1e1e]/90 p-5 rounded-3xl mb-4 mx-5 border border-white/10 shadow-xl">
-                <View className="flex-row justify-between items-start mb-3">
-                    <View className="flex-row items-center">
-                        <View className="bg-gray-800 w-10 h-10 rounded-2xl items-center justify-center border border-white/5">
-                            <MaterialCommunityIcons name="office-building" size={20} color="#6366f1" />
-                        </View>
-                        <View className="ml-3">
-                            <Text className="text-white font-black text-sm tracking-tight">{item.company}</Text>
-                            <Text className="text-gray-500 text-[10px] uppercase font-bold">{item.role}</Text>
-                        </View>
-                    </View>
-                    <View className={`px-3 py-1 rounded-full border ${item.difficulty === 'Hard' ? 'bg-red-500/10 border-red-500/30' :
-                        item.difficulty === 'Medium' ? 'bg-yellow-500/10 border-yellow-500/30' :
-                            'bg-green-500/10 border-green-500/30'
-                        }`}>
-                        <Text className={`text-[8px] font-black uppercase ${item.difficulty === 'Hard' ? 'text-red-500' :
-                            item.difficulty === 'Medium' ? 'text-yellow-500' :
-                                'text-green-500'
-                            }`}>{item.difficulty}</Text>
-                    </View>
-                </View>
-
-                <Text className="text-gray-200 text-sm font-medium leading-5 mb-4" numberOfLines={3}>
-                    {item.question}
-                </Text>
-
-                <View className="flex-row flex-wrap gap-2 mb-4">
-                    <View className="bg-indigo-500/10 px-2 py-1 rounded-lg border border-indigo-500/20">
-                        <Text className="text-indigo-400 text-[8px] font-bold uppercase">{item.type}</Text>
-                    </View>
-                    <View className="bg-gray-800/50 px-2 py-1 rounded-lg border border-white/5">
-                        <Text className="text-gray-400 text-[8px] font-bold uppercase font-mono">{item.round}</Text>
-                    </View>
-                </View>
-
-                <View className="flex-row justify-between items-center pt-3 border-t border-white/5">
-                    <View className="flex-row items-center">
-                        <Image source={{ uri: item.postedBy?.avatar }} className="w-5 h-5 rounded-full border border-white/10" />
-                        <Text className="text-gray-500 text-[10px] ml-2 font-medium">@{item.postedBy?.username}</Text>
-                        <Text className="text-gray-700 text-[10px] mx-1">•</Text>
-                        <Text className="text-gray-600 text-[9px]">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}</Text>
-                    </View>
-
-                    <View className="flex-row gap-3">
-                        <TouchableOpacity onPress={() => handleUpvote(item._id)} className="flex-row items-center">
-                            <Ionicons name={isUpvoted ? "caret-up-circle" : "caret-up-circle-outline"} size={20} color={isUpvoted ? "#ec4899" : "#666"} />
-                            <Text className={`ml-1 text-[10px] font-bold ${isUpvoted ? 'text-pink-500' : 'text-gray-600'}`}>{item.upvotes.length}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                            onPress={async () => { 
-                                try {
-                                    const res = await axios.get(`/placement/comments/${item._id}`);
-                                    if(res.data.success) {
-                                        setSelectedQuestion({ ...item, comments: res.data.comments });
-                                        setDiscussionVisible(true);
-                                    }
-                                } catch(e) {}
-                            }} 
-                            className="flex-row items-center"
-                        >
-                            <Ionicons name="chatbubble-outline" size={18} color="#666" />
-                            <Text className="ml-1 text-[10px] text-gray-600 font-bold">{item.comments.length}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => handleSave(item._id)}>
-                            <Ionicons name={isSaved ? "bookmark" : "bookmark-outline"} size={18} color={isSaved ? "#6366f1" : "#666"} />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </View>
-        );
-    };
-
     return (
-        <View className="flex-1 bg-black">
-            <LinearGradient colors={['rgba(99, 102, 241, 0.25)', 'rgba(0,0,0,0.9)', '#000000']} className="absolute w-full h-full" />
+        <View className="flex-1 bg-[#F8FAFC]">
+            <StatusBar barStyle="dark-content" />
+            <View className="absolute top-0 w-full h-80 opacity-10">
+                <LinearGradient colors={['#3b82f6', 'transparent']} className="w-full h-full" />
+            </View>
 
-            <SafeAreaView className="flex-1">
-                {/* Header */}
-                <View className="px-6 pt-2 pb-4 flex-row justify-between items-center">
-                    <View>
-                        <Text className="text-white text-3xl font-black italic tracking-tighter">PLACEMENT <Text className="text-indigo-500">HUB</Text></Text>
-                        <Text className="text-gray-500 text-xs font-medium">Real questions. Real interviews.</Text>
+            <SafeAreaView className="flex-1" edges={['top']}>
+                <View className="px-8 pt-6">
+                    <View className="flex-row justify-between items-center mb-8">
+                        <View>
+                            <Text className="text-zinc-900 text-3xl font-black italic uppercase tracking-tighter leading-tight">Career <Text className="text-blue-500">Hub</Text></Text>
+                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-0.5">Corporate Intelligence Unit</Text>
+                        </View>
+                        <TouchableOpacity
+                            onPress={() => setPostModalVisible(true)}
+                            activeOpacity={0.8}
+                            className="w-14 h-14 rounded-2xl bg-zinc-900 items-center justify-center shadow-2xl shadow-black/40"
+                        >
+                            <Ionicons name="add" size={28} color="white" />
+                        </TouchableOpacity>
                     </View>
-                    <TouchableOpacity
-                        onPress={() => setPostModalVisible(true)}
-                        className="bg-indigo-600 w-12 h-12 rounded-2xl items-center justify-center shadow-lg shadow-indigo-500/40"
-                    >
-                        <Ionicons name="add" size={28} color="white" />
-                    </TouchableOpacity>
+
+                    <View className="bg-white flex-row items-center p-4 rounded-3xl border border-slate-100 mb-6 shadow-sm overflow-hidden">
+                        <Ionicons name="search" size={20} color="#CBD5E1" />
+                        <TextInput
+                            placeholder="Search Interview Ledgers..."
+                            placeholderTextColor="#CBD5E1"
+                            value={search}
+                            onChangeText={setSearch}
+                            className="flex-1 ml-3 text-zinc-900 font-black italic uppercase text-[10px]"
+                        />
+                    </View>
                 </View>
 
-                <ScrollView
+                <ScrollView 
                     showsVerticalScrollIndicator={false}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366f1" />}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3b82f6" />}
                 >
-                    {/* ... (Previous predictive/predictor section same) */}
-                    <View className="px-5 mb-3">
+                    {/* Feature Cards */}
+                    <View className="px-8 mb-8 flex-row gap-4">
                         <TouchableOpacity 
                             onPress={() => navigation.navigate("PlacementPredictor")}
-                            activeOpacity={0.9}
+                            className="flex-1"
                         >
-                            <LinearGradient
-                                colors={['#4f46e5', '#7c3aed']}
-                                start={{x: 0, y: 0}}
-                                end={{x: 1, y: 0}}
-                                className="p-6 rounded-[16px] overflow-hidden flex-row items-center border border-white/10 shadow-lg shadow-indigo-500/30"
-                            >
-                                <View className="flex-1">
-                                    <View className="bg-white/20 self-start px-3 py-1 rounded-full mb-3">
-                                        <Text className="text-white text-[8px] font-black uppercase tracking-[2px]">New Feature ✨</Text>
-                                    </View>
-                                    <Text className="text-white text-xl font-black uppercase">Placement <Text className="text-pink-400">Predictor</Text></Text>
-                                    <Text className="text-white/70 text-[10px] font-bold mt-1 leading-4">AI-powered resume analysis to predict your dream company match.</Text>
-                                </View>
-                                <View className="bg-white/10 w-16 h-16 rounded-3xl items-center justify-center border border-white/20">
-                                    <Ionicons name="stats-chart" size={30} color="white" />
-                                </View>
+                            <LinearGradient colors={['#4f46e5', '#3730a3']} className="p-5 rounded-[32px] h-40 justify-center">
+                                <Ionicons name="stats-chart" size={28} color="white" />
+                                <Text className="text-white text-xs font-black italic uppercase mt-4 tracking-tighter">Predictor</Text>
+                                <Text className="text-white/50 text-[7px] font-black uppercase mt-1">AI Resume Scan</Text>
                             </LinearGradient>
                         </TouchableOpacity>
-                    </View>
-
-                    {/* Interview Setup Feature */}
-                    <View className="px-5 mb-8">
                         <TouchableOpacity 
                             onPress={() => navigation.navigate("InterviewSetup")}
-                            activeOpacity={0.9}
+                            className="flex-1"
                         >
-                            <LinearGradient
-                                colors={['#ec4899', '#db2777']}
-                                start={{x: 0, y: 0}}
-                                end={{x: 1, y: 0}}
-                                className="p-6 rounded-[16px] overflow-hidden flex-row items-center border border-white/10 shadow-lg shadow-pink-500/30"
-                            >
-                                <View className="flex-1">
-                                    <View className="bg-white/20 self-start px-3 py-1 rounded-full mb-3">
-                                        <Text className="text-white text-[8px] font-black uppercase tracking-[2px]">Premium AI 🤖</Text>
-                                    </View>
-                                    <Text className="text-white text-xl font-black uppercase">Mock <Text className="text-indigo-200">Interview</Text></Text>
-                                    <Text className="text-white/70 text-[10px] font-bold mt-1 leading-4">Simulate real technical interviews with our AI tuned to your resume.</Text>
-                                </View>
-                                <View className="bg-white/10 w-16 h-16 rounded-3xl items-center justify-center border border-white/20">
-                                    <Ionicons name="chatbubbles" size={30} color="white" />
-                                </View>
+                            <LinearGradient colors={['#ec4899', '#be185d']} className="p-5 rounded-[32px] h-40 justify-center">
+                                <Ionicons name="mic" size={28} color="white" />
+                                <Text className="text-white text-xs font-black italic uppercase mt-4 tracking-tighter">Mock Sync</Text>
+                                <Text className="text-white/50 text-[7px] font-black uppercase mt-1">Real-time Simulation</Text>
                             </LinearGradient>
                         </TouchableOpacity>
                     </View>
 
-                    {/* Top Companies Section */}
-                    <View className="mb-8">
-                        <Text className="text-gray-400 font-black text-[10px] uppercase ml-6 mb-4 tracking-widest">Target Top Companies</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
+                    {/* Companies */}
+                    <View className="mb-10">
+                        <Text className="text-slate-400 font-black text-[9px] uppercase ml-8 mb-4 tracking-widest italic">Strategic Targets</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24 }}>
                             {COMPANIES.map((c, i) => (
-                                <TouchableOpacity key={i} onPress={() => setSearch(c.name)} className="mr-4 items-center">
-                                    <View className="bg-gray-900 w-16 h-16 rounded-3xl items-center justify-center border border-white/5 shadow-2xl">
+                                <TouchableOpacity key={i} onPress={() => setSearch(c.name)} className="mr-6 items-center">
+                                    <View className="bg-white w-16 h-16 rounded-[24px] items-center justify-center border border-slate-100 shadow-sm shadow-black/5">
                                         <FontAwesome5 name={c.icon} size={24} color={c.color} />
                                     </View>
-                                    <Text className="text-gray-500 text-[10px] mt-2 font-bold">{c.name}</Text>
+                                    <Text className="text-slate-400 text-[8px] mt-3 font-black uppercase italic tracking-tighter">{c.name}</Text>
                                 </TouchableOpacity>
                             ))}
                         </ScrollView>
                     </View>
 
-                    {/* Search & Global Filters */}
-                    <View className="px-5 mb-6">
-                        <View className="bg-white/5 flex-row items-center p-4 rounded-3xl border border-white/5 mb-4 shadow-sm">
-                            <Ionicons name="search" size={20} color="#666" />
-                            <TextInput
-                                placeholder="Search: 'Amazon SDE', 'Dynamic Programming'..."
-                                placeholderTextColor="#444"
-                                value={search}
-                                onChangeText={setSearch}
-                                className="flex-1 ml-3 text-white font-medium"
-                            />
-                        </View>
-
+                    {/* Filters */}
+                    <View className="px-8 mb-8">
                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                             {['All', ...QUESTION_TYPES].map((type, i) => (
                                 <TouchableOpacity
                                     key={i}
                                     onPress={() => setActiveType(type)}
-                                    className={`mr-2 px-6 py-2 rounded-full border ${activeType === type ? 'bg-indigo-600 border-indigo-500' : 'bg-gray-900 border-white/5'}`}
+                                    className={`mr-3 px-6 py-3 rounded-2xl border ${activeType === type ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-slate-100 shadow-sm'}`}
                                 >
-                                    <Text className={`text-[10px] font-black uppercase tracking-widest ${activeType === type ? 'text-white' : 'text-gray-500'}`}>{type}</Text>
+                                    <Text className={`text-[9px] font-black italic uppercase tracking-widest ${activeType === type ? 'text-white' : 'text-slate-400'}`}>{type}</Text>
                                 </TouchableOpacity>
                             ))}
                         </ScrollView>
                     </View>
 
-                    {/* Trending Section */}
+                    {/* Trending Header */}
                     {trending.length > 0 && (
-                        <View className="mb-8">
-                            <View className="flex-row justify-between items-center px-6 mb-4">
-                                <Text className="text-indigo-400 font-black text-[10px] uppercase tracking-widest">Trending Now 🔥</Text>
-                            </View>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
+                        <View className="mb-10">
+                            <Text className="text-zinc-900 font-black text-[10px] uppercase ml-8 mb-4 tracking-widest italic">Trending <Text className="text-blue-500">Signals</Text> 🔥</Text>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24 }}>
                                 {trending.map((item, i) => (
                                     <TouchableOpacity
                                         key={i}
                                         onPress={async () => { 
-                                            /* same discussion logic */ 
                                             try {
                                                 const res = await axios.get(`/placement/comments/${item._id}`);
                                                 if(res.data.success) {
@@ -462,12 +422,12 @@ const PlacementHub = () => {
                                                 }
                                             } catch(e) {}
                                         }}
-                                        className="bg-zinc-700/30 mr-4 p-5 rounded-[12px] border border-white/25 w-[220px]"
+                                        className="bg-white mr-4 p-6 rounded-[32px] border border-blue-100 w-[240px] shadow-sm shadow-blue-500/5"
                                     >
-                                        <Text className="text-white font-black text-xs" numberOfLines={1}>{item.company}</Text>
-                                        <Text className="text-gray-500 text-[10px] font-bold mt-1 uppercase" numberOfLines={1}>{item.role}</Text>
-                                        <View className="h-[2px] w-8 bg-indigo-500 my-4 rounded-full" />
-                                        <Text className="text-gray-400 text-[10px] italic leading-4" numberOfLines={2}>"{item.question}"</Text>
+                                        <Text className="text-zinc-900 font-black italic text-xs uppercase" numberOfLines={1}>{item.company}</Text>
+                                        <Text className="text-blue-500 text-[8px] font-black uppercase tracking-widest mt-1 italic" numberOfLines={1}>{item.type}</Text>
+                                        <View className="h-[2px] w-8 bg-blue-500 my-4 rounded-full" />
+                                        <Text className="text-slate-500 text-[10px] font-medium leading-5 italic" numberOfLines={2}>"{item.question}"</Text>
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
@@ -475,11 +435,9 @@ const PlacementHub = () => {
                     )}
 
                     {/* Main Feed */}
-                    <Text className="text-gray-400 font-black text-[10px] uppercase ml-6 mb-4 tracking-widest">Recent Questions</Text>
+                    <Text className="text-slate-400 font-black text-[9px] uppercase ml-8 mb-4 tracking-widest italic">Global Intel Stream</Text>
                     {loading && !refreshing ? (
-                        <View>
-                            {[1, 2, 3].map(i => <QuestionSkeleton key={i} />)}
-                        </View>
+                        <View>{[1, 2, 3].map(i => <QuestionSkeleton key={i} />)}</View>
                     ) : (
                         <FlatList
                             data={questions}
@@ -487,9 +445,9 @@ const PlacementHub = () => {
                             keyExtractor={(item) => item._id}
                             renderItem={renderQuestionCard}
                             ListEmptyComponent={
-                                <View className="items-center py-20 opacity-20">
-                                    <Ionicons name="documents-outline" size={64} color="white" />
-                                    <Text className="text-white font-bold mt-4 uppercase text-[10px] tracking-widest">No matching questions found</Text>
+                                <View className="items-center py-20 px-8">
+                                    <Ionicons name="document-text-outline" size={48} color="#CBD5E1" />
+                                    <Text className="text-zinc-400 font-black uppercase text-xs tracking-widest mt-6 text-center italic">No Intelligence Found</Text>
                                 </View>
                             }
                         />
@@ -497,234 +455,150 @@ const PlacementHub = () => {
                 </ScrollView>
 
                 {/* --- POST MODAL --- */}
-                <Modal visible={isPostModalVisible} animationType="slide" transparent={true}>
-                    <View className="flex-1 bg-black">
-                        <SafeAreaView className="flex-1">
-                            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
-                                {/* Enhanced Header */}
-                                <View className="flex-row justify-between items-center px-6 py-5 border-b border-white/5">
-                                    <TouchableOpacity
-                                        onPress={() => setPostModalVisible(false)}
-                                        className="bg-white/5 w-10 h-10 rounded-full items-center justify-center border border-white/10"
-                                    >
-                                        <Ionicons name="close" size={24} color="#9ca3af" />
-                                    </TouchableOpacity>
-                                    <View className="items-center">
-                                        <Text className="text-white font-black uppercase tracking-[3px] text-xs">Share Insight</Text>
-                                        <Text className="text-indigo-400 text-[8px] font-bold uppercase mt-1">Helping the community grow</Text>
-                                    </View>
-                                    <TouchableOpacity
-                                        onPress={handlePost}
-                                        className="bg-indigo-600 px-6 py-2 rounded-2xl shadow-lg shadow-indigo-500/40"
-                                    >
-                                        <Text className="text-white font-black text-[10px] uppercase">Submit</Text>
-                                    </TouchableOpacity>
+                <Modal visible={isPostModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setPostModalVisible(false)}>
+                    <View className="flex-1 bg-[#F8FAFC]">
+                        <StatusBar barStyle="dark-content" />
+                        <View className="flex-row justify-between items-center px-8 py-6 border-b border-slate-100 bg-white">
+                            <View>
+                                <Text className="text-xl font-black text-zinc-900 italic tracking-tighter uppercase leading-tight">Contribution <Text className="text-blue-500">Ledger</Text></Text>
+                                <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest mt-0.5">Share Interview Intelligence</Text>
+                            </View>
+                            <TouchableOpacity onPress={() => setPostModalVisible(false)} className="bg-slate-50 p-2 rounded-2xl border border-slate-100">
+                                <Ionicons name="close" size={20} color="#18181b" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+                            <ScrollView className="p-8" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+                                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Core Context</Text>
+                                <View className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm mb-8">
+                                    <TextInput
+                                        placeholder="Company Name" placeholderTextColor="#CBD5E1"
+                                        value={form.company} onChangeText={t => setForm({ ...form, company: t })}
+                                        className="text-zinc-900 font-black italic uppercase text-xs mb-6 border-b border-slate-50 pb-4"
+                                    />
+                                    <TextInput
+                                        placeholder="Role Assigned" placeholderTextColor="#CBD5E1"
+                                        value={form.role} onChangeText={t => setForm({ ...form, role: t })}
+                                        className="text-zinc-900 font-black italic uppercase text-xs mb-6 border-b border-slate-50 pb-4"
+                                    />
+                                    <TextInput
+                                        placeholder="Interview Round" placeholderTextColor="#CBD5E1"
+                                        value={form.round} onChangeText={t => setForm({ ...form, round: t })}
+                                        className="text-zinc-900 font-black italic uppercase text-[10px]"
+                                    />
                                 </View>
 
-                                <ScrollView className="px-6 pt-8" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
-
-                                    {/* Section 1: Experience Context */}
-                                    <View className="mb-10">
-                                        <View className="flex-row items-center mb-4">
-                                            <View className="w-1 h-4 bg-indigo-500 rounded-full mr-3" />
-                                            <Text className="text-gray-400 text-[10px] font-black uppercase tracking-widest">Experience Details</Text>
-                                        </View>
-                                        <View className="bg-black/90 rounded-[24px] p-4 border border-white/10">
-                                            <View className="flex-row items-center mb-2 border-b border-white/5 pb-0.5">
-                                                <MaterialCommunityIcons name="office-building" size={16} color="#444" />
-                                                <TextInput
-                                                    placeholder="Target Company"
-                                                    placeholderTextColor="#333"
-                                                    value={form.company}
-                                                    onChangeText={t => setForm({ ...form, company: t })}
-                                                    className="flex-1 ml-2 text-white font-black text-sm"
-                                                />
-                                            </View>
-                                            <View className="flex-row items-center mb-2 border-b border-white/5 pb-0.5">
-                                                <MaterialCommunityIcons name="account-tie" size={16} color="#444" />
-                                                <TextInput
-                                                    placeholder="Job Role (e.g. Frontend Associate)"
-                                                    placeholderTextColor="#333"
-                                                    value={form.role}
-                                                    onChangeText={t => setForm({ ...form, role: t })}
-                                                    className="flex-1 ml-2 text-white font-bold text-xs"
-                                                />
-                                            </View>
-                                            <View className="flex-row items-center border-b border-white/5 pb-0.5">
-                                                <MaterialCommunityIcons name="clock-outline" size={16} color="#444" />
-                                                <TextInput
-                                                    placeholder="Interview Round"
-                                                    placeholderTextColor="#333"
-                                                    value={form.round}
-                                                    onChangeText={t => setForm({ ...form, round: t })}
-                                                    className="flex-1 ml-2 text-white font-medium text-[10px]"
-                                                />
-                                            </View>
-                                        </View>
-                                    </View>
-
-                                    {/* Section 2: Classification */}
-                                    <View className="mb-10">
-                                        <View className="flex-row items-center mb-4">
-                                            <View className="w-1 h-4 bg-pink-500 rounded-full mr-3" />
-                                            <Text className="text-gray-400 text-[10px] font-black uppercase tracking-widest">Classification</Text>
-                                        </View>
-
-                                        <View className="mb-6">
-                                            <Text className="text-gray-600 text-[8px] font-black uppercase mb-3 ml-1">Question Category</Text>
-                                            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
-                                                {QUESTION_TYPES.map(t => (
-                                                    <TouchableOpacity
-                                                        key={t}
-                                                        onPress={() => setForm({ ...form, type: t })}
-                                                        className={`mr-2 px-5 py-2.5 rounded-xl border ${form.type === t ? 'bg-indigo-600 border-indigo-400' : 'bg-white/5 border-white/5'}`}
-                                                    >
-                                                        <Text className={`text-[9px] font-black uppercase ${form.type === t ? 'text-white' : 'text-gray-500'}`}>{t}</Text>
-                                                    </TouchableOpacity>
-                                                ))}
-                                            </ScrollView>
-                                        </View>
-
-                                        <View>
-                                            <Text className="text-gray-600 text-[8px] font-black uppercase mb-3 ml-1">Expected Difficulty</Text>
-                                            <View className="flex-row gap-2.5">
-                                                {DIFFICULTIES.map(d => (
-                                                    <TouchableOpacity
-                                                        key={d}
-                                                        onPress={() => setForm({ ...form, difficulty: d })}
-                                                        className={`flex-1 items-center py-3.5 rounded-xl border ${form.difficulty === d
-                                                            ? (d === 'Hard' ? 'bg-red-600 border-red-400' : d === 'Medium' ? 'bg-yellow-600 border-yellow-400' : 'bg-green-600 border-green-400')
-                                                            : 'bg-white/5 border-white/5'
-                                                            }`}
-                                                    >
-                                                        <Text className={`text-[9px] font-black uppercase ${form.difficulty === d ? 'text-white' : 'text-gray-500'}`}>{d}</Text>
-                                                    </TouchableOpacity>
-                                                ))}
-                                            </View>
-                                        </View>
-                                    </View>
-
-                                    {/* Section 3: The Content */}
-                                    <View className="mb-24">
-                                        <View className="flex-row items-center mb-4">
-                                            <View className="w-1 h-4 bg-emerald-500 rounded-full mr-3" />
-                                            <Text className="text-gray-400 text-[10px] font-black uppercase tracking-widest">Question & Context</Text>
-                                        </View>
-
-                                        <View className="bg-black/80 rounded-[28px] p-5 border border-white/10 shadow-2xl">
-                                            <TextInput
-                                                placeholder="What was the question exactly?"
-                                                placeholderTextColor="#222"
-                                                multiline
-                                                value={form.question}
-                                                onChangeText={t => setForm({ ...form, question: t })}
-                                                className="text-white font-bold text-sm min-h-[120px]"
-                                                textAlignVertical="top"
-                                            />
-                                            <View className="h-[1px] bg-white/5 w-full my-4" />
-                                            <View className="flex-row mb-3">
-                                                <MaterialCommunityIcons name="lightbulb-on" size={14} color="#333" />
-                                                <Text className="text-gray-600 text-[8px] font-black uppercase ml-2">Approach / Hints (Optional)</Text>
-                                            </View>
-                                            <TextInput
-                                                placeholder="Help others with a hint or initial approach..."
-                                                placeholderTextColor="#1a1a1a"
-                                                multiline
-                                                value={form.description}
-                                                onChangeText={t => setForm({ ...form, description: t })}
-                                                className="text-gray-400 font-medium text-[11px] min-h-[100px]"
-                                                textAlignVertical="top"
-                                            />
-                                        </View>
-                                    </View>
+                                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Categorization</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-8">
+                                    {QUESTION_TYPES.map(t => (
+                                        <TouchableOpacity
+                                            key={t} onPress={() => setForm({ ...form, type: t })}
+                                            className={`mr-3 px-6 py-3 rounded-2xl border ${form.type === t ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-slate-100'}`}
+                                        >
+                                            <Text className={`text-[9px] font-black italic uppercase tracking-widest ${form.type === t ? 'text-white' : 'text-slate-400'}`}>{t}</Text>
+                                        </TouchableOpacity>
+                                    ))}
                                 </ScrollView>
-                            </KeyboardAvoidingView>
-                        </SafeAreaView>
+
+                                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Intelligence Details</Text>
+                                <View className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm mb-12">
+                                    <TextInput
+                                        placeholder="Establish the question..." placeholderTextColor="#CBD5E1"
+                                        multiline value={form.question} onChangeText={t => setForm({ ...form, question: t })}
+                                        className="text-zinc-900 font-black italic uppercase text-xs min-h-[120px] mb-4"
+                                        textAlignVertical="top"
+                                    />
+                                    <View className="h-[1px] bg-slate-50 w-full mb-6" />
+                                    <TextInput
+                                        placeholder="Internal Approach / Hints (Optional)" placeholderTextColor="#CBD5E1"
+                                        multiline value={form.description} onChangeText={t => setForm({ ...form, description: t })}
+                                        className="text-slate-400 font-medium italic text-[11px] min-h-[100px]"
+                                        textAlignVertical="top"
+                                    />
+                                </View>
+
+                                <TouchableOpacity 
+                                    onPress={handlePost}
+                                    className="bg-blue-600 py-6 rounded-[24px] items-center shadow-xl shadow-blue-500/20"
+                                >
+                                    <Text className="text-white font-black italic uppercase tracking-widest text-xs">Deploy Intel to Hub</Text>
+                                </TouchableOpacity>
+                            </ScrollView>
+                        </KeyboardAvoidingView>
                     </View>
                 </Modal>
 
                 {/* --- DISCUSSION MODAL --- */}
-                <Modal visible={isDiscussionVisible} animationType="slide" transparent={true}>
-                    <View className="flex-1 bg-black">
-                        <SafeAreaView className="flex-1">
-                            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
-                                <View className="p-6 border-b border-white/5 flex-row justify-between items-center bg-black">
-                                    <View>
-                                        <Text className="text-white font-black uppercase tracking-[3px] text-xs">Discussion Hub</Text>
-                                        <Text className="text-indigo-400 text-[8px] font-bold uppercase mt-1">Deep Dive into solutions</Text>
+                <Modal visible={isDiscussionVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setDiscussionVisible(false)}>
+                    <View className="flex-1 bg-[#F8FAFC]">
+                        <StatusBar barStyle="dark-content" />
+                        <View className="flex-row justify-between items-center px-8 py-6 border-b border-slate-100 bg-white shadow-sm">
+                            <View>
+                                <Text className="text-xl font-black text-zinc-900 italic tracking-tighter uppercase leading-tight">Intelligence <Text className="text-indigo-500">Sync</Text></Text>
+                                <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest mt-0.5">Deep Dive Protocol</Text>
+                            </View>
+                            <TouchableOpacity onPress={() => { setDiscussionVisible(false); setReplyingTo(null); }} className="bg-slate-50 p-2 rounded-2xl border border-slate-100">
+                                <Ionicons name="close" size={20} color="#18181b" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+                            <ScrollView className="flex-1 p-8" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+                                {selectedQuestion && (
+                                    <View className="mb-10 bg-white p-8 rounded-[40px] border border-indigo-100 shadow-sm shadow-indigo-500/5">
+                                        <View className="bg-indigo-50 self-start px-3 py-1.5 rounded-full border border-indigo-100 mb-6">
+                                            <Text className="text-indigo-600 font-black italic text-[9px] uppercase tracking-widest">{selectedQuestion.company}</Text>
+                                        </View>
+                                        <Text className="text-zinc-900 text-lg leading-7 font-black italic uppercase italic">"{selectedQuestion.question}"</Text>
+
+                                        {selectedQuestion.description && (
+                                            <View className="mt-8 pt-8 border-t border-slate-50">
+                                                <Text className="text-slate-400 text-[8px] font-black uppercase tracking-widest mb-4 italic">Intel Input</Text>
+                                                <Text className="text-zinc-500 text-xs italic leading-6 font-medium">"{selectedQuestion.description}"</Text>
+                                            </View>
+                                        )}
                                     </View>
-                                    <TouchableOpacity
-                                        onPress={() => { setDiscussionVisible(false); setReplyingTo(null); }}
-                                        className="bg-white/5 w-10 h-10 rounded-full items-center justify-center border border-white/10"
-                                    >
-                                        <Ionicons name="close" size={24} color="white" />
-                                    </TouchableOpacity>
+                                )}
+
+                                <View className="flex-row items-center mb-8 px-2">
+                                    <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest italic">Response Ledger</Text>
+                                    <View className="h-[1px] bg-slate-100 flex-1 ml-4" />
                                 </View>
 
-                                <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-                                    {selectedQuestion && (
-                                        <View className="mb-10 bg-white/5 p-6 rounded-[32px] border border-white/10">
-                                            <View className="flex-row items-center mb-3">
-                                                <View className="w-1 h-4 bg-indigo-500 rounded-full mr-3" />
-                                                <Text className="text-indigo-400 font-black text-xs uppercase tracking-widest">{selectedQuestion.company}</Text>
-                                            </View>
-                                            <Text className="text-white text-lg leading-7 font-black mb-4">{selectedQuestion.question}</Text>
+                                {selectedQuestion?.comments?.map((c: any, i: number) => (
+                                    <CommentItem key={i} comment={c} />
+                                ))}
+                            </ScrollView>
 
-                                            {selectedQuestion.description && (
-                                                <View className="bg-indigo-600/10 p-5 rounded-2xl border border-indigo-500/20">
-                                                    <View className="flex-row items-center mb-2">
-                                                        <MaterialCommunityIcons name="lightbulb-on" size={14} color="#6366f1" />
-                                                        <Text className="text-indigo-300 text-[10px] font-black uppercase ml-2 tracking-widest">Initial Insight</Text>
-                                                    </View>
-                                                    <Text className="text-gray-400 text-xs italic leading-5">{selectedQuestion.description}</Text>
-                                                </View>
-                                            )}
-                                        </View>
-                                    )}
-
-                                    <View className="flex-row items-center mb-6 px-1">
-                                        <Text className="text-gray-600 text-[9px] uppercase font-black tracking-[2px]">Community Feedback</Text>
-                                        <View className="h-[1px] bg-white/5 flex-1 ml-4" />
-                                        <Text className="text-gray-600 text-[9px] ml-4 font-black">{selectedQuestion?.comments?.length || 0} TOTAL</Text>
-                                    </View>
-
-                                    {selectedQuestion?.comments?.map((c: any, i: number) => (
-                                        <CommentItem key={i} comment={c} />
-                                    ))}
-                                </ScrollView>
-
-                                <View className="p-6 bg-black border-t border-white/5">
-                                    {replyingTo && (
-                                        <View className="flex-row items-center justify-between bg-white/5 px-3 py-2 mb-2 rounded-lg">
-                                            <Text className="text-gray-400 text-xs text-white">Replying to <Text className="font-bold">@{replyingTo.commentor?.username}</Text></Text>
-                                            <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                                                <Ionicons name="close-circle" size={18} color="#9ca3af" />
-                                            </TouchableOpacity>
-                                        </View>
-                                    )}
-                                    <View className="flex-row items-center">
-                                        <View className="flex-1 flex-row items-center bg-[#080808] border border-white/10 rounded-2xl px-4 mr-3 h-14">
-                                            <MaterialCommunityIcons name="comment-text-outline" size={18} color="#444" />
-                                            <TextInput
-                                                ref={commentInputRef}
-                                                placeholder={replyingTo ? "Add a reply..." : "Write a response..."}
-                                                placeholderTextColor="#222"
-                                                value={newComment}
-                                                onChangeText={setNewComment}
-                                                className="flex-1 text-white ml-3 font-bold text-sm"
-                                                multiline
-                                            />
-                                        </View>
-                                        <TouchableOpacity
-                                            onPress={handleComment}
-                                            className="bg-indigo-600 w-14 h-14 rounded-2xl items-center justify-center shadow-lg shadow-indigo-500/40"
-                                        >
-                                            <Ionicons name="send" size={20} color="white" />
+                            <View className="p-8 bg-white border-t border-slate-100 shadow-2xl">
+                                {replyingTo && (
+                                    <View className="flex-row items-center justify-between bg-pink-50 px-4 py-2.5 mb-4 rounded-xl border border-pink-100">
+                                        <Text className="text-pink-500 text-[10px] font-black italic uppercase">Sync: @{replyingTo.commentor?.username}</Text>
+                                        <TouchableOpacity onPress={() => setReplyingTo(null)}>
+                                            <Ionicons name="close-circle" size={16} color="#ec4899" />
                                         </TouchableOpacity>
                                     </View>
+                                )}
+                                <View className="flex-row items-center gap-4">
+                                    <View className="flex-1 bg-[#F8FAFC] border border-slate-100 rounded-3xl px-6 h-16 justify-center">
+                                        <TextInput
+                                            ref={commentInputRef}
+                                            placeholder="Establish intelligence..." placeholderTextColor="#CBD5E1"
+                                            value={newComment} onChangeText={setNewComment}
+                                            className="text-zinc-900 font-black italic uppercase text-[10px]"
+                                            multiline
+                                        />
+                                    </View>
+                                    <TouchableOpacity
+                                        onPress={handleComment}
+                                        className="bg-zinc-900 w-16 h-16 rounded-[24px] items-center justify-center shadow-2xl shadow-black/40"
+                                    >
+                                        <Ionicons name="paper-plane" size={20} color="white" />
+                                    </TouchableOpacity>
                                 </View>
-                            </KeyboardAvoidingView>
-                        </SafeAreaView>
+                            </View>
+                        </KeyboardAvoidingView>
                     </View>
                 </Modal>
             </SafeAreaView>

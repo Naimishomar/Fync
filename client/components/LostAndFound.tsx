@@ -11,6 +11,8 @@ import * as ImagePicker from 'expo-image-picker';
 import axios from '../context/axiosConfig'; 
 import { useAuth } from '../context/auth.context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+import socket from '../utils/socket';
 
 // --- TYPES ---
 interface LostAndFoundItem {
@@ -43,6 +45,7 @@ const LostAndFound = () => {
   const [newItemPlace, setNewItemPlace] = useState('');
   const [newItemImage, setNewItemImage] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
+  const navigation = useNavigation<any>();
 
   // --- FETCH ITEMS ---
   const fetchItems = async () => {
@@ -51,7 +54,7 @@ const LostAndFound = () => {
       const endpoint = activeTab === 'lost' ? '/lostAndFound/get/lost' : '/lostAndFound/get/found';
       const res = await axios.get(endpoint);
       if (res.data.success) {
-        const sorted = res.data.items.sort((a: any, b: any) => {
+        const sorted = (res.data.items || []).sort((a: any, b: any) => {
             const aStatus = activeTab === 'lost' ? a.is_lost_item_found : a.is_found_item_claimed;
             const bStatus = activeTab === 'lost' ? b.is_lost_item_found : b.is_found_item_claimed;
             return Number(aStatus) - Number(bStatus);
@@ -138,7 +141,7 @@ const LostAndFound = () => {
                 ? `/lostAndFound/claimed/lost/${itemId}` 
                 : `/lostAndFound/claimed/found/${itemId}`;
 
-            const res = await axios.post(endpoint, { claimed_by: user._id }); 
+            const res = await axios.post(endpoint, { claimed_by: user?._id }); 
 
             if (res.data.success) {
                 Alert.alert("HQ Synced", "Incident status updated.");
@@ -152,70 +155,101 @@ const LostAndFound = () => {
     ]);
   };
 
+  const handleMessage = async (targetUser: any) => {
+    if (!targetUser?._id) return;
+    try {
+        const response = await axios.post("/chat/start", { userId: targetUser._id });
+        const conversationId = response.data.conversation._id;
+        
+        socket.emit("join", { conversationId });
+
+        navigation.navigate("Chat", {
+            conversationId,
+            otherUser: {
+                _id: targetUser._id,
+                name: targetUser.name || targetUser.username,
+                username: targetUser.username,
+                avatar: targetUser.avatar || `https://ui-avatars.com/api/?name=${targetUser.username}`
+            }
+        });
+    } catch (error: any) {
+        Alert.alert("Error", "Could not initiate contact protocol.");
+    }
+  };
+
   const renderItem = ({ item }: { item: LostAndFoundItem }) => {
-    const isOwner = item.found_or_lost_by._id === user._id;
+    const isOwner = item.found_or_lost_by?._id === user?._id;
     const isResolved = activeTab === 'lost' ? item.is_lost_item_found : item.is_found_item_claimed;
 
     return (
-      <View className={`mx-8 mb-4 bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm ${isResolved ? 'opacity-50' : ''}`}>
-        <View className="p-4 flex-row">
-          <View className="w-20 h-20 bg-slate-50 rounded-xl mr-4 overflow-hidden border border-slate-100 items-center justify-center relative">
+      <View className={`mx-8 mb-6 bg-white rounded-[32px] overflow-hidden border border-slate-100 shadow-sm shadow-black/5 ${isResolved ? 'opacity-50' : ''}`}>
+        <View className="p-6 flex-row">
+          <View className="w-24 h-24 bg-slate-50 rounded-3xl mr-6 overflow-hidden border border-slate-100 items-center justify-center relative">
              {item.image ? (
                  <Image source={{ uri: item.image }} className="w-full h-full" resizeMode="cover" />
              ) : (
-                 <Ionicons name="cube-outline" size={24} color="#CBD5E1" />
+                 <Ionicons name="cube-outline" size={28} color="#CBD5E1" />
              )}
              {isResolved && (
                  <View className="absolute inset-0 bg-white/40 items-center justify-center">
-                     <Ionicons name="checkmark-circle" size={28} color="#f97316" />
+                     <Ionicons name="checkmark-circle" size={32} color="#f97316" />
                  </View>
              )}
           </View>
 
-          <View className="flex-1 justify-between">
+          <View className="flex-1 justify-between py-1">
              <View>
-                 <View className="flex-row justify-between items-start">
-                     <Text className="text-zinc-900 text-base font-bold flex-1 mr-2" numberOfLines={1}>
+                 <View className="flex-row justify-between items-start mb-1">
+                     <Text className="text-zinc-900 text-lg font-black italic uppercase tracking-tighter flex-1 mr-2" numberOfLines={1}>
                         {item.item}
                      </Text>
-                     <View className={`px-2 py-0.5 rounded ${activeTab === 'lost' ? 'bg-rose-50' : 'bg-emerald-50'}`}>
+                     <View className={`px-3 py-1 rounded-full ${activeTab === 'lost' ? 'bg-rose-50' : 'bg-emerald-50'}`}>
                          <Text className={`text-[7px] font-black uppercase tracking-widest ${activeTab === 'lost' ? 'text-rose-500' : 'text-emerald-600'}`}>
                              {activeTab === 'lost' ? 'Lost' : 'Found'}
                          </Text>
                      </View>
                  </View>
                  
-                 <View className="flex-row items-center mt-1.5">
-                     <Ionicons name="location" size={10} color="#94A3B8" />
-                     <Text className="text-slate-400 text-[9px] font-bold uppercase tracking-tight ml-1" numberOfLines={1}>{item.place}</Text>
+                 <View className="flex-row items-center">
+                     <Ionicons name="location" size={10} color="#CBD5E1" />
+                     <Text className="text-slate-400 text-[8px] font-black uppercase tracking-widest italic ml-1.5" numberOfLines={1}>{item.place}</Text>
                  </View>
              </View>
 
-             <View className="flex-row items-center justify-between pt-2">
+             <View className="flex-row items-center justify-between pt-4 mt-2 border-t border-slate-50">
                 <View className="flex-row items-center">
                     <Image 
                         source={{ uri: item.found_or_lost_by.avatar || `https://ui-avatars.com/api/?name=${item.found_or_lost_by.username}` }} 
-                        className="w-4 h-4 rounded-full bg-slate-100 border border-slate-200 mr-1.5"
+                        className="w-5 h-5 rounded-full bg-slate-50 border border-slate-200 mr-2"
                     />
-                    <Text className="text-slate-400 text-[8px] font-bold uppercase tracking-tighter">
+                    <Text className="text-slate-400 text-[8px] font-black italic uppercase tracking-tighter">
                        @{item.found_or_lost_by.username}
                     </Text>
                 </View>
                 
                 {isResolved ? (
-                    <View className="bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                    <View className="bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
                         <Text className="text-slate-400 font-black text-[7px] uppercase tracking-widest">
                            Resolved
                         </Text>
                     </View>
                 ) : (
-                    isOwner && (
+                    isOwner ? (
                         <TouchableOpacity 
                            onPress={() => handleClaimItem(item._id)}
-                           className="bg-zinc-900 px-3 py-1.5 rounded-lg shadow-sm"
+                           className="bg-zinc-900 px-4 py-2.5 rounded-2xl shadow-lg shadow-black/10"
                         >
-                            <Text className="text-white font-black text-[7px] uppercase tracking-widest">
+                            <Text className="text-white font-black italic text-[7px] uppercase tracking-widest">
                                Update Status
+                            </Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity 
+                           onPress={() => handleMessage(item.found_or_lost_by)}
+                           className="bg-orange-500 px-4 py-2.5 rounded-2xl shadow-lg shadow-orange-500/20"
+                        >
+                            <Text className="text-white font-black italic text-[7px] uppercase tracking-widest">
+                               Contact Owner
                             </Text>
                         </TouchableOpacity>
                     )

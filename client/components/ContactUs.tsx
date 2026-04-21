@@ -10,6 +10,7 @@ import {
     ActivityIndicator,
     Image,
     Pressable,
+    StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -136,142 +137,147 @@ const ContactUs = () => {
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-white px-5">
+        <SafeAreaView className="flex-1 bg-[#F8FAFC]">
+            <StatusBar barStyle="dark-content" />
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 className="flex-1"
             >
-                <ScrollView showsVerticalScrollIndicator={false}>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
                     {/* Header Section */}
-                    <View className="pt-5 pb-6">
+                    <View className="px-8 pt-10 pb-10">
                         <TouchableOpacity 
                             onPress={() => navigation.goBack()}
-                            className="mb-5"
+                            className="w-12 h-12 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm mb-10"
                         >
-                            <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
+                            <Ionicons name="arrow-back" size={24} color="#18181b" />
                         </TouchableOpacity>
                         
-                        <View className="mb-4">
-                            <Text className="text-6xl font-[900] text-[#1A1A1A] tracking-[-2px]">
-                                Need Any Help?<Text className="text-pink-500">.</Text>
+                        <View className="mb-10">
+                            <Text className="text-zinc-900 text-5xl font-black italic uppercase tracking-tighter leading-[50px]">
+                                Establish <Text className="text-pink-500">Contact</Text>
                             </Text>
+                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[3px] mt-2">Intelligence Support Protocol</Text>
                         </View>
 
-                        <View className="flex-row justify-between mb-4">
-                            <View className="flex-1">
-                                <Text className="text-[13px] text-[#1A1A1A] font-semibold leading-5 italic">KIET Deemed To Be University</Text>
-                                <Text className="text-[13px] text-[#1A1A1A] font-semibold leading-5 text-gray-500">Ghaziabad, Uttar Pradesh</Text>
+                        <View className="flex-row justify-between items-end bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm shadow-black/5">
+                            <View>
+                                <Text className="text-[10px] text-zinc-900 font-black italic uppercase tracking-tight">Main HQ</Text>
+                                <Text className="text-[10px] text-slate-400 font-black italic uppercase mt-1">KIET Deemed University</Text>
+                                <Text className="text-[9px] text-slate-300 font-bold uppercase mt-0.5">Ghaziabad, Uttar Pradesh</Text>
                             </View>
-                            <View className="flex-1 items-end">
-                                <Text className="text-[13px] text-[#1A1A1A] font-semibold leading-5">+91 9838612359</Text>
-                                <Text className="text-[13px] text-[#1A1A1A] font-semibold leading-5 text-pink-500">dev.fync@gmail.com</Text>
+                            <View className="items-end">
+                                <Text className="text-[10px] text-pink-500 font-black italic uppercase">dev.fync@gmail.com</Text>
+                                <Text className="text-[9px] text-slate-400 font-bold uppercase mt-1">+91 98386*****</Text>
                             </View>
                         </View>
                     </View>
 
                     {/* Form Section */}
-                    <View className="border border-gray-100 rounded-3xl px-5 pt-8 pb-8 flex-1 bg-zinc-50/50 mb-10">
-                        <View className="mb-6">
-                            <Text className="text-[12px] font-bold text-gray-400 uppercase tracking-[2px] mb-1">Name</Text>
-                            <TextInput
-                                className="border-b border-gray-200 py-2 text-lg text-[#1A1A1A] font-medium"
-                                placeholder="Naimish Omar"
-                                placeholderTextColor="#ccc"
-                                value={formData.name}
-                                onChangeText={(text) => setFormData({ ...formData, name: text })}
-                            />
-                        </View>
-
-                        <View className="mb-6">
-                            <Text className="text-[12px] font-bold text-gray-400 uppercase tracking-[2px] mb-1">Phone</Text>
-                            <TextInput
-                                className="border-b border-gray-200 py-2 text-lg text-[#1A1A1A] font-medium"
-                                placeholder="+91 1234567890"
-                                placeholderTextColor="#ccc"
-                                keyboardType="phone-pad"
-                                value={formData.phone}
-                                onChangeText={(text) => setFormData({ ...formData, phone: text })}
-                            />
-                        </View>
-
-                        <View className="mb-6">
-                            <Text className="text-[12px] font-bold text-gray-400 uppercase tracking-[2px] mb-1">Email</Text>
-                            <TextInput
-                                className="border-b border-gray-200 py-2 text-lg text-[#1A1A1A] font-medium"
-                                placeholder="dev.fync@email.com"
-                                placeholderTextColor="#ccc"
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                value={formData.email}
-                                onChangeText={(text) => setFormData({ ...formData, email: text })}
-                            />
-                        </View>
-
-                        <View className="mb-6">
-                            <Text className="text-[12px] font-bold text-gray-400 uppercase tracking-[2px] mb-1">Message</Text>
-                            <TextInput
-                                className="border-b border-gray-200 py-2 text-lg text-[#1A1A1A] font-medium min-h-[100px]"
-                                placeholder='Tell us more...'
-                                placeholderTextColor="#ccc"
-                                multiline
-                                numberOfLines={4}
-                                value={formData.message}
-                                onChangeText={(text) => setFormData({ ...formData, message: text })}
-                                textAlignVertical="top"
-                            />
-                        </View>
-
-                        {/* Photo Section */}
-                        <View className="mb-8">
-                            <View className="flex-row justify-between items-center mb-3">
-                                <Text className="text-[12px] font-bold text-gray-400 uppercase tracking-[2px]">Photos (Optional, Max 3)</Text>
-                                <Text className="text-xs text-gray-400">{selectedImages.length}/3</Text>
+                    <View className="px-8">
+                        <View className="bg-white border border-slate-100 rounded-[48px] px-8 pt-10 pb-10 shadow-2xl shadow-black/5">
+                            <View className="mb-8">
+                                <Text className="text-[9px] font-black text-slate-400 uppercase tracking-[2px] mb-3 ml-2 italic">Operator Identity</Text>
+                                <TextInput
+                                    className="bg-slate-50 p-5 rounded-3xl text-xs text-zinc-900 font-black italic uppercase tracking-tight"
+                                    placeholder="e.g. Naimish Omar"
+                                    placeholderTextColor="#CBD5E1"
+                                    value={formData.name}
+                                    onChangeText={(text) => setFormData({ ...formData, name: text })}
+                                />
                             </View>
-                            
-                            <View className="flex-row gap-3">
-                                {selectedImages.map((uri, index) => (
-                                    <View key={index} className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-100">
-                                        <Image source={{ uri }} className="w-full h-full" />
-                                        <TouchableOpacity 
-                                            onPress={() => removeImage(index)}
-                                            className="absolute top-1 right-1 bg-black/50 rounded-full p-1"
-                                        >
-                                            <Ionicons name="close" size={14} color="white" />
-                                        </TouchableOpacity>
-                                    </View>
-                                ))}
+
+                            <View className="mb-8">
+                                <Text className="text-[9px] font-black text-slate-400 uppercase tracking-[2px] mb-3 ml-2 italic">Signal Frequency (Phone)</Text>
+                                <TextInput
+                                    className="bg-slate-50 p-5 rounded-3xl text-xs text-zinc-900 font-black italic uppercase tracking-tight"
+                                    placeholder="+91 1234567890"
+                                    placeholderTextColor="#CBD5E1"
+                                    keyboardType="phone-pad"
+                                    value={formData.phone}
+                                    onChangeText={(text) => setFormData({ ...formData, phone: text })}
+                                />
+                            </View>
+
+                            <View className="mb-8">
+                                <Text className="text-[9px] font-black text-slate-400 uppercase tracking-[2px] mb-3 ml-2 italic">Digital Ledger (Email)</Text>
+                                <TextInput
+                                    className="bg-slate-50 p-5 rounded-3xl text-xs text-zinc-900 font-black italic uppercase tracking-tight"
+                                    placeholder="dev.fync@email.com"
+                                    placeholderTextColor="#CBD5E1"
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
+                                    value={formData.email}
+                                    onChangeText={(text) => setFormData({ ...formData, email: text })}
+                                />
+                            </View>
+
+                            <View className="mb-10">
+                                <Text className="text-[9px] font-black text-slate-400 uppercase tracking-[2px] mb-3 ml-2 italic">Transmission Content</Text>
+                                <TextInput
+                                    className="bg-slate-50 p-6 rounded-[32px] text-xs text-zinc-700 font-medium italic min-h-[150px]"
+                                    placeholder='Define the requirements / issues...'
+                                    placeholderTextColor="#CBD5E1"
+                                    multiline
+                                    numberOfLines={4}
+                                    value={formData.message}
+                                    onChangeText={(text) => setFormData({ ...formData, message: text })}
+                                    textAlignVertical="top"
+                                />
+                            </View>
+
+                            {/* Photo Section */}
+                            <View className="mb-12">
+                                <View className="flex-row justify-between items-center mb-4 px-2">
+                                    <Text className="text-[9px] font-black text-slate-400 uppercase tracking-[2px] italic">Visual Evidence (Max 3)</Text>
+                                    <Text className="text-[9px] text-slate-400 font-black italic">{selectedImages.length}/3</Text>
+                                </View>
                                 
-                                {selectedImages.length < 3 && (
-                                    <TouchableOpacity 
-                                        onPress={pickImages}
-                                        className="w-20 h-20 rounded-xl border border-dashed border-gray-300 justify-center items-center bg-white"
-                                    >
-                                        <Ionicons name="camera-outline" size={24} color="#999" />
-                                        <Text className="text-[10px] text-gray-400 mt-1">Add Photo</Text>
-                                    </TouchableOpacity>
-                                )}
+                                <View className="flex-row gap-4">
+                                    {selectedImages.map((uri, index) => (
+                                        <View key={index} className="relative w-20 h-20 rounded-[20px] overflow-hidden bg-slate-50 border border-slate-100">
+                                            <Image source={{ uri }} className="w-full h-full" />
+                                            <TouchableOpacity 
+                                                onPress={() => removeImage(index)}
+                                                className="absolute top-1.5 right-1.5 bg-black/60 rounded-full p-1"
+                                            >
+                                                <Ionicons name="close" size={12} color="white" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    ))}
+                                    
+                                    {selectedImages.length < 3 && (
+                                        <TouchableOpacity 
+                                            onPress={pickImages}
+                                            className="w-20 h-20 rounded-[20px] border border-dashed border-slate-200 justify-center items-center bg-white"
+                                        >
+                                            <Ionicons name="camera-outline" size={24} color="#CBD5E1" />
+                                            <Text className="text-[8px] font-black text-slate-300 mt-1 uppercase italic">Attach</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
                             </View>
+
+                            <TouchableOpacity 
+                                className={`bg-zinc-900 py-6 items-center rounded-[24px] shadow-2xl shadow-black/20 ${isLoading ? 'opacity-70' : ''}`}
+                                onPress={handleSubmit}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <ActivityIndicator color="white" />
+                                ) : (
+                                    <Text className="text-white text-xs font-black italic uppercase tracking-widest">Deploy Transmission</Text>
+                                )}
+                            </TouchableOpacity>
+
+                            <TouchableOpacity 
+                                activeOpacity={0.8}
+                                className="bg-pink-50 py-5 items-center mt-6 rounded-[24px] border border-pink-100"
+                                onPress={() => navigation.navigate('MeetOurTeam')}
+                            >
+                                <Text className="text-pink-500 text-[10px] font-black italic uppercase tracking-widest">Meet Team HQ</Text>
+                            </TouchableOpacity>
                         </View>
-
-                        <TouchableOpacity 
-                            className={`bg-zinc-900 py-5 items-center rounded-2xl shadow-lg ${isLoading ? 'opacity-70' : ''}`}
-                            onPress={handleSubmit}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <ActivityIndicator color="white" />
-                            ) : (
-                                <Text className="text-white text-base font-bold uppercase tracking-[2px]">Send Message</Text>
-                            )}
-                        </TouchableOpacity>
-
-                        <TouchableOpacity 
-                            activeOpacity={0.8}
-                            className="bg-pink-500 py-5 items-center mt-4 rounded-2xl border border-pink-100"
-                            onPress={() => navigation.navigate('MeetOurTeam')}
-                        >
-                            <Text className="text-white text-base font-bold uppercase tracking-widest">Meet Our Team</Text>
-                        </TouchableOpacity>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>

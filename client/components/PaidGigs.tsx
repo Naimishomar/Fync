@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View, Text, FlatList, TouchableOpacity, ActivityIndicator,
-    Alert, RefreshControl, Image, Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform, Pressable, Animated
+    Alert, RefreshControl, Image, Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform, Pressable, Animated,
+    StatusBar
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -37,64 +38,69 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
     const posterName = item.postedBy?.name || (isOwner ? currentUser?.name : 'Anonymous');
 
     return (
-        <View className="bg-[#1e1e1e]/80 mx-5 mb-5 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
-            <View className="absolute left-0 top-0 bottom-0 w-[5px] bg-pink-500" />
+        <View className="bg-white mx-8 mb-6 rounded-[32px] border border-slate-100 shadow-sm shadow-black/5 overflow-hidden">
+            <View className="absolute left-0 top-0 bottom-0 w-[6px] bg-pink-500" />
 
-            <View className="p-3 pl-6">
-                <View className="flex-row justify-between items-center">
-                    <Text className="text-white text-lg font-bold flex-1 pr-3 leading-6" numberOfLines={2}>
-                        {item.title}
-                    </Text>
+            <View className="p-6 pl-8">
+                <View className="flex-row justify-between items-start mb-4">
+                    <View className="flex-1 mr-4">
+                        <Text className="text-zinc-900 font-black italic text-lg uppercase tracking-tight leading-tight" numberOfLines={2}>
+                            {item.title}
+                        </Text>
+                        <Text className="text-slate-400 text-[10px] mt-1 uppercase tracking-widest font-black italic">
+                            {moment(item.createdAt).fromNow()}
+                        </Text>
+                    </View>
                     {isOwner && (
-                        <View className="flex-row gap-3 bg-black/40 p-1.5 rounded-full border border-white/5">
-                            <TouchableOpacity onPress={() => onEdit(item)} className="p-1.5 bg-white/10 rounded-full">
-                                <Ionicons name="pencil" size={14} color="#9ca3af" />
+                        <View className="flex-row gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
+                            <TouchableOpacity onPress={() => onEdit(item)} className="p-2 bg-white rounded-xl border border-slate-100">
+                                <Ionicons name="pencil" size={12} color="#18181b" />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => onDelete(item._id)} className="p-1.5 bg-red-500/20 rounded-full">
-                                <Ionicons name="trash" size={14} color="#ef4444" />
+                            <TouchableOpacity onPress={() => onDelete(item._id)} className="p-2 bg-rose-50 rounded-xl border border-rose-100">
+                                <Ionicons name="trash" size={12} color="#f43f5e" />
                             </TouchableOpacity>
                         </View>
                     )}
                 </View>
 
-                <View className="flex-row items-center bg-green-500/10 self-start px-3 py-1.5 rounded-lg border border-green-500/20 mb-3">
-                    <Ionicons name="cash-outline" size={16} color="#4ade80" />
-                    <Text className="text-green-400 text-xs font-black ml-1.5 tracking-wider">
-                        {item.stipend || 'Not disclosed'}
+                <View className="flex-row items-center bg-emerald-50 self-start px-3 py-1.5 rounded-xl border border-emerald-100 mb-6">
+                    <Ionicons name="cash-outline" size={14} color="#10b981" />
+                    <Text className="text-emerald-600 text-[10px] font-black ml-1.5 uppercase tracking-widest">
+                        {item.stipend || 'Pay: Open'}
                     </Text>
                 </View>
 
-                <Text className="text-gray-300 text-sm leading-6 mb-4">
-                    {item.description.length > MAX_CHAR && !isExpanded
+                <Text className="text-slate-600 text-sm leading-6 mb-6 font-medium italic">
+                    "{item.description.length > MAX_CHAR && !isExpanded
                         ? `${item.description.substring(0, MAX_CHAR)}...`
                         : item.description
-                    }
+                    }"
                     {item.description.length > MAX_CHAR && (
-                        <Text onPress={() => setIsExpanded(!isExpanded)} className="text-pink-400 font-bold ml-1">
-                            {isExpanded ? " Show less" : " Show more"}
+                        <Text onPress={() => setIsExpanded(!isExpanded)} className="text-pink-500 font-black ml-1 uppercase text-[10px]">
+                            {isExpanded ? " Less" : " Read More"}
                         </Text>
                     )}
                 </Text>
 
-                <View className="h-[1px] bg-white/10 w-full mb-4" />
+                <View className="h-[1px] bg-slate-50 w-full mb-6" />
 
-                <View className="flex-row justify-between items-center mb-4">
-                    <View className="flex-row items-center flex-1">
+                <View className="flex-row justify-between items-center mb-6">
+                    <View className="flex-row items-center">
                         <Image
                             source={{ uri: avatarUrl }}
-                            className="w-10 h-10 rounded-full border border-white/20 bg-gray-800"
+                            className="w-10 h-10 rounded-2xl border border-slate-200 bg-slate-50"
                         />
-                        <View className="ml-3 flex-1">
-                            <Text className="text-white text-sm font-bold" numberOfLines={1}>{posterName}</Text>
-                            <Text className="text-gray-500 text-[10px] tracking-wider uppercase font-bold mt-0.5">
-                                {moment(item.createdAt).fromNow()}
+                        <View className="ml-3">
+                            <Text className="text-[8px] text-slate-400 uppercase tracking-widest font-black italic">Poster</Text>
+                            <Text className="text-zinc-900 text-xs font-black italic uppercase mt-0.5 tracking-tight" numberOfLines={1}>
+                                {posterName}
                             </Text>
                         </View>
                     </View>
 
                     {!isOwner && (
-                        <View className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg max-w-[40%]">
-                            <Text className="text-gray-400 font-bold text-[9px] uppercase tracking-widest text-center" numberOfLines={1}>
+                        <View className="bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100">
+                            <Text className="text-slate-400 font-black text-[8px] uppercase tracking-widest" numberOfLines={1}>
                                 {item.postedUserCollege}
                             </Text>
                         </View>
@@ -104,29 +110,30 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                 {isOwner ? (
                     <TouchableOpacity
                         onPress={() => onCloseGig(item._id, 'Closed')}
-                        className="w-full py-3 bg-red-500/10 border border-red-500/30 rounded-xl items-center justify-center flex-row"
+                        className="w-full py-5 bg-rose-50 border border-rose-100 rounded-3xl items-center justify-center flex-row shadow-sm"
                     >
-                        <Ionicons name="close-circle-outline" size={18} color="#ef4444" />
-                        <Text className="text-red-400 font-black text-xs uppercase tracking-widest ml-2">Close Gig</Text>
+                        <Ionicons name="close-circle" size={18} color="#f43f5e" />
+                        <Text className="text-rose-500 font-black text-[10px] uppercase tracking-widest ml-2 italic">Terminate Gig</Text>
                     </TouchableOpacity>
                 ) : (
                     <TouchableOpacity
                         onPress={() => onMessage(item._id, item.postedBy)}
                         disabled={connectingId !== null}
-                        className="w-full rounded-xl overflow-hidden shadow-lg shadow-pink-500/20"
+                        activeOpacity={0.8}
+                        className="w-full rounded-3xl overflow-hidden shadow-lg shadow-pink-500/20"
                     >
                         <LinearGradient
                             colors={['#ec4899', '#be185d']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
-                            className="py-3.5 flex-row items-center justify-center"
+                            className="py-5 flex-row items-center justify-center"
                         >
                             {connectingId === item._id ? (
                                 <ActivityIndicator size="small" color="white" />
                             ) : (
                                 <>
                                     <Ionicons name="chatbubble-ellipses" size={18} color="white" />
-                                    <Text className="text-white font-black text-xs uppercase tracking-widest ml-2">Message Freelancer</Text>
+                                    <Text className="text-white font-black text-[10px] uppercase tracking-[2px] ml-2 italic">Initiate Contact</Text>
                                 </>
                             )}
                         </LinearGradient>
@@ -359,85 +366,81 @@ export default function PaidGigs({ navigation }: any) {
         return (
             <Animated.View 
                 style={{ opacity: pulseAnim }}
-                className="bg-[#1e1e1e]/50 mx-5 mb-5 rounded-[32px] border border-white/5 overflow-hidden"
+                className="bg-white mx-8 mb-6 rounded-[32px] border border-slate-100 p-8 shadow-sm shadow-black/5"
             >
-                <View className="absolute left-0 top-0 bottom-0 w-[5px] bg-pink-500/30" />
-                <View className="p-6 pl-8">
-                    <View className="h-6 bg-zinc-800 rounded w-3/4 mb-4" />
-                    <View className="w-24 h-8 bg-zinc-800 rounded-xl mb-6" />
-                    
-                    <View className="h-4 bg-zinc-800 rounded w-full mb-3" />
-                    <View className="h-4 bg-zinc-800 rounded w-4/5 mb-8" />
+                <View className="flex-row justify-between items-center mb-6">
+                    <View className="h-6 bg-slate-50 rounded w-2/3" />
+                    <View className="w-10 h-10 bg-slate-50 rounded-2xl" />
+                </View>
+                <View className="h-8 bg-slate-50 rounded-xl w-32 mb-8" />
+                
+                <View className="h-4 bg-slate-50 rounded w-full mb-3" />
+                <View className="h-4 bg-slate-50 rounded w-4/5 mb-10" />
 
-                    <View className="h-[1px] bg-white/5 w-full mb-6" />
-
-                    <View className="flex-row justify-between items-center mb-6">
-                        <View className="flex-row items-center">
-                            <View className="w-10 h-10 bg-zinc-800 rounded-full" />
-                            <View className="ml-3">
-                                <View className="h-4 bg-zinc-800 rounded w-20 mb-1.5" />
-                                <View className="h-3 bg-zinc-800 rounded w-12" />
-                            </View>
-                        </View>
-                        <View className="w-20 h-6 bg-zinc-800 rounded-lg" />
+                <View className="flex-row justify-between items-center pt-6 border-t border-slate-50">
+                    <View className="flex-row items-center">
+                        <View className="w-10 h-10 bg-slate-50 rounded-2xl" />
+                        <View className="ml-3"><View className="h-4 bg-slate-50 rounded w-20" /></View>
                     </View>
-
-                    <View className="w-full h-14 bg-zinc-800 rounded-2xl" />
+                    <View className="w-24 h-10 bg-slate-50 rounded-2xl" />
                 </View>
             </Animated.View>
         );
     };
 
     return (
-        <View className="flex-1 bg-black">
-            <LinearGradient colors={['rgba(236, 72, 153, 0.4)', 'rgba(0,0,0,0.85)', '#000000']} className="absolute w-full h-full" />
+        <View className="flex-1 bg-[#F8FAFC]">
+            <StatusBar barStyle="dark-content" />
+            <View className="absolute top-0 w-full h-80 opacity-10">
+                <LinearGradient colors={['#ec4899', 'transparent']} className="w-full h-full" />
+            </View>
 
             <SafeAreaView className="flex-1" edges={['top']}>
-                <View className="px-6 py-4 flex-row justify-between items-center z-10">
-                    <View>
-                        <Text className="text-3xl font-black italic text-white tracking-tighter">
-                            PAID <Text className="text-pink-500">GIGS</Text> 💰
-                        </Text>
-                        <Text className="text-gray-400 text-xs mt-1 uppercase tracking-widest font-bold">Find & post freelance work</Text>
-                    </View>
-                    <TouchableOpacity
-                        onPress={openCreateModal}
-                        className="p-3 bg-pink-600/20 rounded-full border border-pink-500/50 shadow-lg shadow-pink-500/30"
-                    >
-                        <Ionicons name="add" size={24} color="#ec4899" />
-                    </TouchableOpacity>
-                </View>
-
-                <View className="flex-row bg-[#2a2a2a] p-1.5 rounded-2xl mx-6 mt-2 mb-4 border border-white/10 shadow-lg">
-                    {[
-                        { key: 'college', label: 'College' },
-                        { key: 'global', label: 'Global' },
-                        { key: 'mine', label: 'My Gigs' }
-                    ].map((t) => (
-                        <Pressable
-                            key={t.key}
-                            onPress={() => setActiveTab(t.key as any)}
-                            className={`flex-1 py-3 rounded-xl items-center ${activeTab === t.key ? 'bg-pink-600/20 border border-pink-500' : ''
-                                }`}
-                        >
-                            <Text className={`font-black tracking-widest text-[10px] uppercase ${activeTab === t.key ? 'text-pink-400' : 'text-gray-500'}`}>
-                                {t.label}
+                <View className="px-8 pt-6">
+                    <View className="flex-row justify-between items-center mb-8">
+                        <View>
+                            <Text className="text-3xl font-black italic text-zinc-900 tracking-tighter uppercase leading-tight">
+                                Paid <Text className="text-pink-500">Gigs</Text> 💰
                             </Text>
-                        </Pressable>
-                    ))}
+                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-0.5">Freelance Work Protocol</Text>
+                        </View>
+                        <TouchableOpacity
+                            onPress={openCreateModal}
+                            activeOpacity={0.8}
+                            className="w-14 h-14 rounded-2xl bg-zinc-900 items-center justify-center shadow-2xl shadow-black/40"
+                        >
+                            <Ionicons name="add" size={28} color="white" />
+                        </TouchableOpacity>
+                    </View>
+
+                    <View className="flex-row bg-white p-1.5 rounded-[22px] mb-8 border border-slate-100 shadow-sm">
+                        {[
+                            { key: 'college', label: 'College' },
+                            { key: 'global', label: 'Global' },
+                            { key: 'mine', label: 'Mine' }
+                        ].map((t) => (
+                            <TouchableOpacity
+                                key={t.key}
+                                onPress={() => setActiveTab(t.key as any)}
+                                className={`flex-1 py-3.5 items-center rounded-[18px] ${activeTab === t.key ? 'bg-zinc-900 shadow-lg shadow-black/20' : 'bg-transparent'}`}
+                            >
+                                <Text className={`font-black tracking-widest text-[10px] italic uppercase ${activeTab === t.key ? 'text-white' : 'text-slate-400'}`}>
+                                    {t.label}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
                 </View>
 
                 {loading && !refreshing ? (
-                    <View>
-                        {[1, 2, 3].map(i => <GigSkeleton key={i} />)}
-                    </View>
+                    <View>{[1, 2, 3].map(i => <GigSkeleton key={i} />)}</View>
                 ) : (
                     <FlatList
                         data={gigs}
                         keyExtractor={(item) => item._id}
                         showsVerticalScrollIndicator={false}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ec4899" />}
-                        contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
+                        contentContainerStyle={{ paddingBottom: 120, paddingTop: 10 }}
                         renderItem={({ item }) => (
                             <GigCard
                                 item={item}
@@ -456,12 +459,15 @@ export default function PaidGigs({ navigation }: any) {
                                 <View className="py-6 items-center">
                                     <ActivityIndicator size="small" color="#ec4899" />
                                 </View>
-                            ) : <View className="h-20" />
+                            ) : <View className="h-10" />
                         )}
                         ListEmptyComponent={
-                            <View className="items-center justify-center mt-20 opacity-50">
-                                <Ionicons name="briefcase-outline" size={64} color="gray" />
-                                <Text className="text-gray-400 mt-4 font-bold text-lg">No gigs available right now.</Text>
+                            <View className="items-center justify-center mt-20 px-10">
+                                <View className="w-20 h-20 bg-white rounded-[32px] items-center justify-center mb-6 border border-slate-100 shadow-sm">
+                                    <Ionicons name="briefcase-outline" size={32} color="#CBD5E1" />
+                                </View>
+                                <Text className="text-zinc-400 font-black italic uppercase text-xs tracking-widest text-center">No Gigs Active</Text>
+                                <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center">Transmission silence detected.</Text>
                             </View>
                         }
                     />
@@ -470,74 +476,76 @@ export default function PaidGigs({ navigation }: any) {
 
             {/* CREATE / EDIT MODAL */}
             <Modal visible={modalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeModal}>
-                <View className="flex-1 bg-[#1e1e1e]">
-                    <View className="flex-row justify-between items-center px-6 py-5 border-b border-white/10 bg-black/20">
-                        <Text className="text-xl font-black text-white italic tracking-tighter">
-                            {editMode ? 'EDIT' : 'NEW'} <Text className="text-pink-500">GIG</Text>
+                <View className="flex-1 bg-[#F8FAFC]">
+                    <StatusBar barStyle="dark-content" />
+                    <View className="flex-row justify-between items-center px-8 py-6 border-b border-slate-100 bg-white">
+                        <Text className="text-xl font-black text-zinc-900 italic tracking-tighter uppercase leading-tight">
+                            {editMode ? 'Edit' : 'New'} <Text className="text-pink-500">Gig Protocol</Text>
                         </Text>
-                        <TouchableOpacity onPress={closeModal} className="p-1 bg-white/10 rounded-full border border-white/10">
-                            <Ionicons name="close" size={24} color="white" />
+                        <TouchableOpacity onPress={closeModal} className="bg-slate-50 p-2 rounded-2xl border border-slate-100">
+                            <Ionicons name="close" size={20} color="#18181b" />
                         </TouchableOpacity>
                     </View>
 
                     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
-                        <ScrollView className="p-6" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+                        <ScrollView className="p-8" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
 
-                            <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2 ml-1">Gig Title</Text>
+                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Subject Matter</Text>
                             <TextInput
                                 value={title} onChangeText={setTitle}
-                                placeholder="e.g. Need a React Native dev for 1 week"
-                                placeholderTextColor="#6b7280"
-                                className="bg-[#2a2a2a] p-4 rounded-2xl mb-6 border border-white/10 text-white font-bold text-base"
+                                placeholder="Requirement Heading"
+                                placeholderTextColor="#CBD5E1"
+                                className="bg-white p-5 rounded-3xl mb-6 border border-slate-100 shadow-sm text-zinc-900 font-black italic uppercase text-xs"
                             />
 
-                            <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2 ml-1">Visibility Target</Text>
-                            <View className="flex-row bg-[#2a2a2a] p-1.5 rounded-2xl mb-6 border border-white/10">
+                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Visible Radius</Text>
+                            <View className="flex-row bg-white p-1.5 rounded-[22px] mb-8 border border-slate-100 shadow-sm">
                                 <TouchableOpacity
                                     onPress={() => setVisibility('College')}
-                                    className={`flex-1 py-3 rounded-xl items-center ${visibility === 'College' ? 'bg-pink-600/20 border border-pink-500' : ''}`}
+                                    className={`flex-1 py-3.5 items-center rounded-[18px] ${visibility === 'College' ? 'bg-zinc-900' : 'bg-transparent'}`}
                                 >
-                                    <Text className={`font-bold text-xs uppercase tracking-widest ${visibility === 'College' ? 'text-pink-400' : 'text-gray-500'}`}>
-                                        My College
+                                    <Text className={`font-black tracking-widest text-[10px] italic uppercase ${visibility === 'College' ? 'text-white' : 'text-slate-400'}`}>
+                                        Campus Only
                                     </Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     onPress={() => setVisibility('Global')}
-                                    className={`flex-1 py-3 rounded-xl items-center ${visibility === 'Global' ? 'bg-pink-600/20 border border-pink-500' : ''}`}
+                                    className={`flex-1 py-3.5 items-center rounded-[18px] ${visibility === 'Global' ? 'bg-pink-500' : 'bg-transparent'}`}
                                 >
-                                    <Text className={`font-bold text-xs uppercase tracking-widest ${visibility === 'Global' ? 'text-pink-400' : 'text-gray-500'}`}>
-                                        Global
+                                    <Text className={`font-black tracking-widest text-[10px] italic uppercase ${visibility === 'Global' ? 'text-white' : 'text-slate-400'}`}>
+                                        Global Unit
                                     </Text>
                                 </TouchableOpacity>
                             </View>
 
-                            <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2 ml-1">Description</Text>
+                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Transmission Intel</Text>
                             <TextInput
                                 value={description} onChangeText={setDescription}
                                 multiline numberOfLines={5} textAlignVertical="top"
-                                placeholder="Explain the exact requirements, skills needed, and timeframe..."
-                                placeholderTextColor="#6b7280"
-                                className="bg-[#2a2a2a] p-4 rounded-2xl mb-6 border border-white/10 text-white font-medium min-h-[120px]"
+                                placeholder="Establish the requirements..."
+                                placeholderTextColor="#CBD5E1"
+                                className="bg-white p-5 rounded-3xl mb-6 border border-slate-100 shadow-sm text-zinc-700 leading-6 min-h-[150px] font-medium text-xs italic"
                             />
 
-                            <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2 ml-1">Stipend / Budget (Optional)</Text>
+                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Stipend Allocation</Text>
                             <TextInput
                                 value={stipend} onChangeText={setStipend}
-                                placeholder="e.g. ₹5000, 2k-4k, or 'Negotiable'"
-                                placeholderTextColor="#6b7280"
-                                className="bg-[#2a2a2a] p-4 rounded-2xl mb-8 border border-white/10 text-green-400 font-bold"
+                                placeholder="Credit Amount (Optional)"
+                                placeholderTextColor="#CBD5E1"
+                                className="bg-white p-5 rounded-3xl mb-10 border border-slate-100 shadow-sm text-emerald-600 font-black italic uppercase text-xs"
                             />
 
                             <TouchableOpacity
                                 onPress={handleSubmit} disabled={submitting}
-                                className="py-5 rounded-2xl items-center shadow-lg border border-pink-500/50 bg-pink-600 flex-row justify-center mt-2"
+                                activeOpacity={0.8}
+                                className={`py-5 rounded-[24px] items-center shadow-xl flex-row justify-center ${submitting ? 'bg-slate-100' : 'bg-zinc-900 shadow-black/20'}`}
                             >
-                                {submitting ? <ActivityIndicator color="white" /> : (
+                                {submitting ? <ActivityIndicator color="#ec4899" /> : (
                                     <>
-                                        <Text className="text-white font-black text-lg tracking-widest uppercase mr-2">
-                                            {editMode ? 'Save Changes' : 'Post Gig'}
+                                        <Text className="text-white font-black italic uppercase tracking-widest text-xs mr-3">
+                                            {editMode ? 'Sync Changes' : 'Deploy Gig'}
                                         </Text>
-                                        <Ionicons name={editMode ? "checkmark-circle" : "rocket"} size={20} color="white" />
+                                        <Ionicons name={editMode ? "checkmark-circle" : "paper-plane"} size={16} color="white" />
                                     </>
                                 )}
                             </TouchableOpacity>
