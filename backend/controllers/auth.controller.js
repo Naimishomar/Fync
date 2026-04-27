@@ -498,7 +498,7 @@ export const updateUser = async (req, res) => {
   try {
     const { 
       name, username, bio, about, skills, experience, interest, hobbies, 
-      github_id, linkedIn_id, leetcode, gfg, codechef, upiId,
+      github_id, linkedIn_id, leetcode, gfg, codechef, codeforces, hackerrank, upiId,
       company, role, industry, companySize, companyWebsite, college 
     } = req.body;
     const user = await User.findById(req.user.id);
@@ -546,6 +546,8 @@ export const updateUser = async (req, res) => {
           ...(leetcode && { "codingProfiles.leetcode": leetcode }),
           ...(gfg && { "codingProfiles.gfg": gfg }),
           ...(codechef && { "codingProfiles.codechef": codechef }),
+          ...(codeforces && { "codingProfiles.codeforces": codeforces }),
+          ...(hackerrank && { "codingProfiles.hackerrank": hackerrank }),
           ...(upiId && { upiId }),
           ...(resumeUrlStr && { resumeUrl: resumeUrlStr }),
           // Recruiter / Alumni fields

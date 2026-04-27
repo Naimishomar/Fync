@@ -143,6 +143,14 @@ const userSchema = new mongoose.Schema({
         codechef: {
             type: String,
             default: null
+        },
+        codeforces: {
+            type: String,
+            default: null
+        },
+        hackerrank: {
+            type: String,
+            default: null
         }
     },
     // Recruiter specific fields
@@ -184,6 +192,22 @@ const userSchema = new mongoose.Schema({
             default: 0
         },
         codechefRating: {
+            type: Number,
+            default: 0
+        },
+        codeforcesSolved: {
+            type: Number,
+            default: 0
+        },
+        codeforcesRating: {
+            type: Number,
+            default: 0
+        },
+        hackerrankSolved: {
+            type: Number,
+            default: 0
+        },
+        hackerrankRating: {
             type: Number,
             default: 0
         },

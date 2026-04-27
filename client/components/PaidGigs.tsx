@@ -392,7 +392,7 @@ export default function PaidGigs({ navigation }: any) {
         <View className="flex-1 bg-[#F8FAFC]">
             <StatusBar barStyle="dark-content" />
             <View className="absolute top-0 w-full h-80 opacity-10">
-                <LinearGradient colors={['#ec4899', 'transparent']} className="w-full h-full" />
+                <LinearGradient colors={['#f97316', 'transparent']} className="w-full h-full" />
             </View>
 
             <SafeAreaView className="flex-1" edges={['top']}>
@@ -413,7 +413,7 @@ export default function PaidGigs({ navigation }: any) {
                         </TouchableOpacity>
                     </View>
 
-                    <View className="flex-row bg-white p-1.5 rounded-[22px] mb-8 border border-slate-100 shadow-sm">
+                    <View className="flex-row bg-white p-1.5 rounded-[22px] mb-8 border border-slate-100">
                         {[
                             { key: 'college', label: 'College' },
                             { key: 'global', label: 'Global' },
@@ -422,7 +422,7 @@ export default function PaidGigs({ navigation }: any) {
                             <TouchableOpacity
                                 key={t.key}
                                 onPress={() => setActiveTab(t.key as any)}
-                                className={`flex-1 py-3.5 items-center rounded-[18px] ${activeTab === t.key ? 'bg-zinc-900 shadow-lg shadow-black/20' : 'bg-transparent'}`}
+                                className={`flex-1 py-3.5 items-center rounded-[18px] ${activeTab === t.key ? 'bg-zinc-900' : 'bg-transparent'}`}
                             >
                                 <Text className={`font-black tracking-widest text-[10px] italic uppercase ${activeTab === t.key ? 'text-white' : 'text-slate-400'}`}>
                                     {t.label}

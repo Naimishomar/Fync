@@ -45,6 +45,8 @@ export default function EditProfile() {
   const [leetcodeId, setLeetcodeId] = useState(user?.codingProfiles?.leetcode || '');
   const [gfgId, setGfgId] = useState(user?.codingProfiles?.gfg || '');
   const [codechefId, setCodechefId] = useState(user?.codingProfiles?.codechef || '');
+  const [codeforcesId, setCodeforcesId] = useState(user?.codingProfiles?.codeforces || '');
+  const [hackerrankId, setHackerrankId] = useState(user?.codingProfiles?.hackerrank || '');
   const [upiId, setUpiId] = useState(user?.upiId || '');
 
   // --- Images ---
@@ -70,6 +72,8 @@ export default function EditProfile() {
     leetcodeId !== (user?.codingProfiles?.leetcode || '') ||
     gfgId !== (user?.codingProfiles?.gfg || '') ||
     codechefId !== (user?.codingProfiles?.codechef || '') ||
+    codeforcesId !== (user?.codingProfiles?.codeforces || '') ||
+    hackerrankId !== (user?.codingProfiles?.hackerrank || '') ||
     upiId !== (user?.upiId || '') ||
     JSON.stringify(skills) !== JSON.stringify(initialSkills) ||
     newAvatar !== null ||
@@ -145,6 +149,8 @@ export default function EditProfile() {
       formData.append('leetcode', leetcodeId);
       formData.append('gfg', gfgId);
       formData.append('codechef', codechefId);
+      formData.append('codeforces', codeforcesId);
+      formData.append('hackerrank', hackerrankId);
       formData.append('upiId', upiId);
 
       skills.forEach((skill) => {
@@ -401,6 +407,30 @@ export default function EditProfile() {
                   value={gfgId}
                   onChangeText={setGfgId}
                   placeholder="GeeksforGeeks Username"
+                  placeholderTextColor="#9ca3af"
+                  className="flex-1 text-black p-3.5"
+                />
+              </View>
+
+              {/* Codeforces */}
+              <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
+                <Ionicons name="code-working" size={24} color="#3b82f6" />
+                <TextInput
+                  value={codeforcesId}
+                  onChangeText={setCodeforcesId}
+                  placeholder="Codeforces Username"
+                  placeholderTextColor="#9ca3af"
+                  className="flex-1 text-black p-3.5"
+                />
+              </View>
+
+              {/* HackerRank */}
+              <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
+                <Ionicons name="terminal" size={24} color="#2ec866" />
+                <TextInput
+                  value={hackerrankId}
+                  onChangeText={setHackerrankId}
+                  placeholder="HackerRank Username"
                   placeholderTextColor="#9ca3af"
                   className="flex-1 text-black p-3.5"
                 />

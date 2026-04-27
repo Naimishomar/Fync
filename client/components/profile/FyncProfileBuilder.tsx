@@ -18,6 +18,7 @@ import GitHubStatsCard from './GitHubStatsCard';
 import AddProjectModal from './AddProjectModal';
 import AddInternshipModal from './AddInternshipModal';
 import AddCertificateModal from './AddCertificateModal';
+import CodingProfilesModal from './CodingProfilesModal';
 
 // ─── Completeness Bar ─────────────────────────────────────────────────────────
 function CompletenessBar({ pct }: { pct: number }) {
@@ -81,6 +82,7 @@ export default function FyncProfileBuilder() {
   const [editingProject, setEditingProject]   = useState<any>(null);
   const [editingInternship, setEditingInternship] = useState<any>(null);
   const [editingCert, setEditingCert]         = useState<any>(null);
+  const [showCodingModal, setShowCodingModal] = useState(false);
 
   const fetchProfile = async () => {
     try {
@@ -212,12 +214,19 @@ export default function FyncProfileBuilder() {
             <CompletenessBar pct={pct} />
             
             {/* 📝 Coding Profile Note */}
-            <View className="mx-4 mb-4 p-3 bg-amber-50 border border-amber-100 rounded-xl flex-row items-center">
-              <Ionicons name="link-outline" size={18} color="#D97706" />
-              <Text className="text-amber-700 text-[10px] font-bold ml-2 flex-1">
-                Pro Tip: Add your LeetCode, CodeChef, and other coding profiles in 'Edit Profile' to showcase your skills to recruiters!
-              </Text>
-            </View>
+            <Pressable 
+              onPress={() => setShowCodingModal(true)}
+              className="mx-4 mb-4 p-3 bg-indigo-50 border border-indigo-100 rounded-xl flex-row items-center active:bg-indigo-100"
+            >
+              <View className="bg-indigo-600 p-1.5 rounded-lg mr-3">
+                <Ionicons name="code-working" size={16} color="white" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-indigo-900 text-xs font-bold">Coding Profiles</Text>
+                <Text className="text-indigo-600 text-[10px]">Add LeetCode, Codeforces & more to boost your score</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color="#6366F1" />
+            </Pressable>
 
             <FyncScoreCard userId={user?._id!} isOwner onRecalculate={fetchProfile} />
             <GitHubStatsCard
@@ -374,6 +383,12 @@ export default function FyncProfileBuilder() {
         initial={editingCert}
         onClose={() => setShowAddCert(false)}
         onSuccess={() => { setShowAddCert(false); fetchProfile(); }}
+      />
+      <CodingProfilesModal
+        visible={showCodingModal}
+        initialData={profile?.user?.codingProfiles}
+        onClose={() => setShowCodingModal(false)}
+        onSuccess={() => { setShowCodingModal(false); fetchProfile(); }}
       />
     </SafeAreaView>
   );

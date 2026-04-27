@@ -49,6 +49,7 @@ import profileRoute from './routes/profile/profile.route.js';
 import opportunityRoute from './routes/opportunity.route.js';
 import arenaRoute from './routes/coding/arena.route.js';
 import arenaAdminRoute from './routes/coding/arenaAdmin.route.js';
+import entertainmentRoute from './routes/entertainment.routes.js';
 import ContestManager from './services/contestManager.js';
 
 import { setCollegeChatIo } from './controllers/collegeChat.controller.js';
@@ -179,6 +180,7 @@ app.use('/hackathon-leaderboard', leaderboardRoute);
 app.use('/profile', profileRoute);
 app.use('/arena', arenaRoute);
 app.use('/arena/admin', arenaAdminRoute);
+app.use('/entertainment', entertainmentRoute);
 
 // Start Contest Monitor (runs every 60s)
 setInterval(() => {

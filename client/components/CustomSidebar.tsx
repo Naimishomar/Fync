@@ -290,10 +290,22 @@ export default function CustomSidebar(props: any) {
 
                     {/*10. Drive */}
                     <Pressable
-                        onPress={() => props.navigation.navigate('DriveFolderScreen', { folderId: '1iebOEYcCJKexGpo8TbRs6BxqUZ8zDjMr', title: 'B.Tech' })}
+                        onPress={() => props.navigation.navigate('DriveFolderScreen', { folderId: '1idOWdlHnISpZVvvY0Ett8O_uJALAf_Qv', title: 'B.Tech' })}
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800">
                         <Ionicons name="folder-outline" size={24} color="#f9a8d4" />
                         <Text className="text-white text-lg ml-4 font-medium">Study Material</Text>
+                    </Pressable>
+
+                    {/* Entertainment Module */}
+                    <Pressable
+                        onPress={() => props.navigation.navigate('EntertainmentHome')}
+                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                    >
+                        <Ionicons name="film-outline" size={24} color="#f9a8d4" />
+                        <Text className="text-white text-lg ml-4 font-medium">Entertainment</Text>
+                        <View className="ml-2 bg-pink-500/20 px-2 py-0.5 rounded-full border border-pink-500/30">
+                            <Text className="text-[10px] text-pink-400 font-bold italic">OTT</Text>
+                        </View>
                     </Pressable>
 
                     {/* 10. Campus OLX (Peer-to-Peer) */}

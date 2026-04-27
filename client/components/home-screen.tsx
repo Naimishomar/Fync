@@ -752,6 +752,7 @@ export default function HomeScreen() {
     );
   };
   const features = useMemo(() => [
+    { id: 'entertainment', name: 'Movies', Icon: Mic, colorHex: '#e11d48', bgClass: 'bg-rose-50', sparkle: true, onPress: () => navigation.navigate('EntertainmentHome') },
     { id: 'fyncMedia', name: 'Fync Media', Icon: Mic, colorHex: '#f43f5e', bgClass: 'bg-rose-50', sparkle: false, onPress: () => navigation.navigate('FyncMediaFeed') },
     { id: 'jobs', name: 'Jobs', Icon: Briefcase, colorHex: '#3b82f6', bgClass: 'bg-blue-50', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
     { id: 'competitions', name: 'Reward', Icon: Trophy, colorHex: '#f59e0b', bgClass: 'bg-amber-50', sparkle: false, onPress: () => navigation.navigate('RewardsMarketplace') },

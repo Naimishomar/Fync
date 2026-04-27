@@ -150,6 +150,13 @@ import HackathonChannel from './components/hackathon/HackathonChannel';
 // Profile Builder
 import FyncProfileBuilder from './components/profile/FyncProfileBuilder';
 
+// Entertainment Module
+import EntertainmentHome from './components/entertainment/EntertainmentHome';
+import MovieDetail from './components/entertainment/MovieDetail';
+import TrailerReels from './components/entertainment/TrailerReels';
+import MovieSearch from './components/entertainment/MovieSearch';
+import MovieList from './components/entertainment/MovieList';
+
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -298,6 +305,12 @@ export type RootStackParamList = {
   HackathonChannel: { hackathonId: string; hackathonTitle?: string };
   // Profile Builder
   FyncProfileBuilder: undefined;
+  // Entertainment Module
+  EntertainmentHome: undefined;
+  MovieDetail: { movieId: number };
+  TrailerReels: { movies?: any[], initialIndex?: number };
+  MovieSearch: undefined;
+  MovieList: { title: string; type: 'trending' | 'popular' | 'upcoming' | 'bollywood' };
 };
 
 
@@ -458,6 +471,13 @@ function AppStack() {
       <Stack.Screen name="HackathonChannel" component={HackathonChannel} />
       {/* Profile Builder */}
       <Stack.Screen name="FyncProfileBuilder" component={FyncProfileBuilder} />
+      
+      {/* Entertainment Module */}
+      <Stack.Screen name="EntertainmentHome" component={EntertainmentHome} />
+      <Stack.Screen name="MovieDetail" component={MovieDetail} />
+      <Stack.Screen name="TrailerReels" component={TrailerReels} />
+      <Stack.Screen name="MovieSearch" component={MovieSearch} />
+      <Stack.Screen name="MovieList" component={MovieList} />
     </Stack.Navigator>
   );
 }
