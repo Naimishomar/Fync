@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Avatar from "./Avatar";
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface User {
   _id: string;
@@ -91,7 +92,7 @@ const SearchScreen = () => {
     <TouchableOpacity 
       onPress={() => handleUserPress(item)}
       activeOpacity={0.8}
-      className="flex-row items-center justify-between p-4 mx-6 bg-white rounded-2xl border border-gray-100 shadow-sm shadow-black/5"
+      className="flex-row items-center justify-between p-3 mb-2 bg-white rounded-xl border border-slate-100 shadow-sm shadow-black/5"
     >
       <View className="flex-row items-center flex-1">
         <Avatar 
@@ -100,10 +101,10 @@ const SearchScreen = () => {
         />
         
         <View className="ml-4">
-          <Text className="text-base font-bold text-zinc-900">
+          <Text className="text-zinc-900 font-black text-xs tracking-tight">
             {item.username}
           </Text>
-          <Text className="text-xs text-gray-500 mt-0.5">
+          <Text className="text-slate-400 text-[10px] font-bold tracking-widest">
             {item.name}
           </Text>
         </View>
@@ -112,53 +113,61 @@ const SearchScreen = () => {
       {isRecent && (
         <TouchableOpacity 
             onPress={() => removeItem(item._id)}
-            className="rounded-full p-2"
+            className="bg-slate-50 p-2 rounded-xl border border-slate-100"
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="close" size={16} color="#9ca3af" />
+          <Ionicons name="close" size={14} color="#94A3B8" />
         </TouchableOpacity>
       )}
     </TouchableOpacity>
   );
 
   return (
-    <View className="flex-1 bg-[#F5F7FA]">
+    <View className="flex-1 bg-[#F8FAFC]">
       <StatusBar barStyle="dark-content" />
-      <SafeAreaView className="flex-1">
-        
-        {/* HEADER */}
-        <View className="flex-row items-center px-6 pt-4 mb-5">
-          <TouchableOpacity 
-            onPress={() => navigation.goBack()} 
-            className="p-2 bg-white rounded-full mr-2 border border-gray-100 shadow-sm"
-          >
-            <Ionicons name="chevron-back" size={18} color="#1A1A1A" />
-          </TouchableOpacity>
-          <Text className="text-zinc-900 text-2xl font-black tracking-tighter">
-            USER <Text className="text-pink-500">SEARCH</Text>
-          </Text>
-        </View>
 
-        {/* SEARCH BAR */}
-        <View className="px-6 mb-4">
-            <View className="flex-row items-center bg-white rounded-2xl px-4 border border-gray-100 shadow-sm">
-                <Ionicons name="search" size={20} color="#ec4899" />
-                <TextInput
-                    className="flex-1 ml-1 text-base text-zinc-900 font-medium"
-                    placeholder="Search for developers..."
-                    placeholderTextColor="#9ca3af"
-                    value={query}
-                    onChangeText={setQuery}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                />
-                {loading && <ActivityIndicator size="small" color="#ec4899" className="mr-2" />}
-                {query.length > 0 && (
-                    <TouchableOpacity onPress={() => setQuery("")} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                        <Ionicons name="close-circle" size={20} color="#9ca3af" />
-                    </TouchableOpacity>
-                )}
+      {/* HEADER DECORATION */}
+      <View className="absolute top-0 w-full h-80 opacity-20">
+        <LinearGradient 
+          colors={['#f97316', 'transparent']} 
+          className="w-full h-full"
+        />
+      </View>
+
+      <SafeAreaView className="flex-1" edges={['top']}>
+        
+        {/* Arena Header */}
+        <View className="px-8 pt-2 bg-transparent">
+          <View className="flex-row items-center justify-between mb-5">
+            <View className="flex-1">
+              <View className="flex-row items-center">
+                <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
+                  Explore <Text className="text-orange-500">Registry</Text>
+                </Text>
+              </View>
+              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[1px]">Global Campus Directory</Text>
             </View>
+          </View>
+
+          {/* SEARCH DOCK */}
+          <View className="flex-row items-center bg-white px-5 py-1 rounded-2xl border border-slate-100 shadow-xl shadow-black/5 mb-5">
+            <Ionicons name="search" size={20} color="#94A3B8" />
+            <TextInput
+              className="flex-1 text-zinc-900 font-bold text-sm tracking-tight p-3"
+              placeholder="Search contacts..."
+              placeholderTextColor="#CBD5E1"
+              value={query}
+              onChangeText={setQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {loading && <ActivityIndicator size="small" color="#f97316" className="mr-2" />}
+            {query.length > 0 && (
+              <TouchableOpacity onPress={() => setQuery("")} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Ionicons name="close-circle" size={18} color="#CBD5E1" />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {/* LIST RENDER */}
@@ -168,7 +177,10 @@ const SearchScreen = () => {
             keyExtractor={(item) => item._id}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => renderUserItem({ item, isRecent: false })}
-            contentContainerStyle={{ paddingBottom: 20 }}
+            contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
+            ListHeaderComponent={() => (
+              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-3">Registry results</Text>
+            )}
             ListEmptyComponent={
               !loading ? (
                 <View className="items-center mt-12 px-10">
@@ -187,11 +199,11 @@ const SearchScreen = () => {
           />
         ) : (
           <>
-            <View className="flex-row justify-between items-center px-6 mt-4 mb-4">
-              <Text className="text-xs font-bold text-gray-400 uppercase tracking-widest">Recent Searches</Text>
+            <View className="flex-row justify-between items-center px-8 mt-4 mb-4">
+              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Recent Registry Lookups</Text>
               {recentSearches.length > 0 && (
                 <TouchableOpacity onPress={clearAll}>
-                  <Text className="text-xs font-bold text-pink-500 uppercase tracking-widest">Clear All</Text>
+                  <Text className="text-[10px] font-black text-orange-500 uppercase tracking-widest">Wipe Data</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -201,18 +213,14 @@ const SearchScreen = () => {
               keyExtractor={(item) => item._id}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => renderUserItem({ item, isRecent: true })}
-              contentContainerStyle={{ paddingBottom: 20 }}
+              contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
               ListEmptyComponent={
                 <View className="items-center mt-12 px-10">
-                    <View className="w-16 h-16 bg-white rounded-full items-center justify-center mb-4 border border-gray-100 shadow-sm">
+                    <View className="w-20 h-20 bg-white rounded-[32px] items-center justify-center mb-6 border border-slate-100 shadow-sm">
                       <Ionicons name="time-outline" size={32} color="#cbd5e1" />
                     </View>
-                    <Text className="text-center text-zinc-900 font-bold text-lg">
-                    No recent searches
-                    </Text>
-                    <Text className="text-center text-gray-500 mt-1">
-                    Start exploring our community!
-                    </Text>
+                    <Text className="text-zinc-400 font-black italic uppercase text-xs tracking-widest text-center">History Empty</Text>
+                    <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center">No previous registry lookups found.</Text>
                 </View>
               }
             />

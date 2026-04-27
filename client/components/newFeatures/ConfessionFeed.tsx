@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Dimensions, ScrollView, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Dimensions, ScrollView, Alert, StatusBar } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import axios from '../../context/axiosConfig';
@@ -8,12 +8,13 @@ import { useAuth } from '../../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import Skeleton, { ConfessionSkeleton } from '../Skeleton';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 const ANONYMOUS_AVATAR = 'https://cdn-icons-png.flaticon.com/512/1177/1177568.png';
 
 const CONFESSION_COLORS = [
-    '#FF6B6B', '#4D96FF', '#6BCB77', '#FFD93D', '#9B59B6', '#E67E22', '#1ABC9C'
+    '#f97316', '#4D96FF', '#6BCB77', '#FFD93D', '#9B59B6', '#E67E22', '#1ABC9C'
 ];
 
 const maskName = (name: string) => {
@@ -40,13 +41,13 @@ const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navi
     const isLongText = (item.content?.length || 0) > MAX_LIMIT;
 
     return (
-        <View style={{ backgroundColor: item.color }} className="p-5 rounded-3xl mb-4 shadow-xl">
-            <View className="flex-row items-center justify-between mb-4">
+        <View style={{ backgroundColor: item.color }} className="p-3 rounded-xl mb-3 shadow-xl shadow-black/10">
+            <View className="flex-row items-center justify-between mb-5">
                 <View className="flex-row items-center">
-                    <ExpoImage source={{ uri: ANONYMOUS_AVATAR }} className="w-10 h-10 rounded-full bg-white/20" cachePolicy="disk" />
-                    <View className="ml-3">
-                        <Text className="text-white font-black text-base">{maskName(item.user?.name || 'User')}</Text>
-                        <Text className="text-white/60 text-xs font-bold uppercase tracking-tighter">Anonymous Student</Text>
+                    <ExpoImage source={{ uri: ANONYMOUS_AVATAR }} className="w-11 h-11 rounded-full bg-white/20" cachePolicy="disk" />
+                    <View className="ml-4">
+                        <Text className="text-white font-black text-[16px] tracking-tighter uppercase italic">{maskName(item.user?.name || 'User')}</Text>
+                        <Text className="text-white/60 text-[10px] font-black uppercase tracking-widest">Anonymous Entity</Text>
                     </View>
                 </View>
 
@@ -55,8 +56,8 @@ const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navi
                     <TouchableOpacity
                         onPress={() => {
                             Alert.alert(
-                                "Manage Confession",
-                                "Select action",
+                                "Manage Content",
+                                "Select protocol action",
                                 [
                                     { text: "Update / Edit", onPress: () => onEdit(item) },
                                     { text: "Delete Post", style: "destructive", onPress: () => onDelete(item._id) },
@@ -64,23 +65,23 @@ const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navi
                                 ]
                             );
                         }}
-                        className="p-3 bg-black/30 rounded-2xl ml-2 border border-white/10"
+                        className="p-3 bg-black/20 rounded-2xl border border-white/10"
                     >
-                        <Ionicons name="settings-sharp" size={24} color="white" />
+                        <Ionicons name="settings" size={20} color="white" />
                     </TouchableOpacity>
                 )}
             </View>
 
             <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} activeOpacity={0.9}>
-                <Text className="text-white text-lg font-bold leading-7 mb-2">
+                <Text className="text-white text-[17px] font-bold leading-7 mb-3 tracking-tight">
                     {isExpanded || !isLongText 
                         ? item.content 
                         : `${item.content.substring(0, MAX_LIMIT)}...`}
                     {isLongText && !isExpanded && (
-                        <Text className="text-white/70 font-black text-[14px]"> Read More</Text>
+                        <Text className="text-white/70 font-black text-[12px] uppercase"> Read More</Text>
                     )}
                     {isLongText && isExpanded && (
-                        <Text className="text-white/70 font-black text-[14px]"> Show Less</Text>
+                        <Text className="text-white/70 font-black text-[12px] uppercase"> Show Less</Text>
                     )}
                 </Text>
             </TouchableOpacity>
@@ -90,27 +91,27 @@ const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navi
                     onPress={() => {
                         navigation.navigate('PublicProfile', { userId: item.taggedUser?._id });
                     }}
-                    className="flex-row items-center bg-black/20 py-2 px-4 rounded-full self-start mb-4 border border-white/10"
+                    className="flex-row items-center bg-black/20 py-2.5 px-5 rounded-full self-start mb-5 border border-white/10"
                 >
-                    <Ionicons name="at-outline" size={12} color="white" />
-                    <Text className="text-white font-bold text-sm">{item.taggedUser?.username}</Text>
+                    <Ionicons name="at" size={14} color="white" />
+                    <Text className="text-white font-black text-[11px] tracking-tighter">{item.taggedUser?.username}</Text>
                 </TouchableOpacity>
             )}
 
-            <View className="flex-row items-center justify-between border-t border-white/20 pt-4">
-                <Text className="text-white/50 text-[10px] uppercase font-bold">{new Date(item.createdAt).toLocaleDateString()}</Text>
+            <View className="flex-row items-center justify-between border-t border-white/10 pt-5">
+                <Text className="text-white/50 text-[9px] uppercase font-black tracking-widest">{new Date(item.createdAt).toLocaleDateString()}</Text>
                 <View className="flex-row items-center">
-                    <TouchableOpacity onPress={() => onLike(item._id)} className="flex-row items-center mr-4">
+                    <TouchableOpacity onPress={() => onLike(item._id)} className="flex-row items-center mr-6">
                         <Ionicons
                             name={item.liked_by?.includes(user?._id || user?.id) ? "heart" : "heart-outline"}
                             size={20}
                             color="white"
                         />
-                        <Text className="text-white ml-1.5 text-xs font-black">{item.likes || 0}</Text>
+                        <Text className="text-white ml-2 text-xs font-black">{item.likes || 0}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => onComments(item._id)} className="flex-row items-center">
                         <Ionicons name="chatbubbles-outline" size={20} color="white" />
-                        <Text className="text-white ml-1.5 text-xs font-black">{item.comments?.length || 0}</Text>
+                        <Text className="text-white ml-2 text-xs font-black">{item.comments?.length || 0}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -377,22 +378,22 @@ const ConfessionFeed = () => {
     };
 
     const renderComment = (item: any, isReply = false) => (
-        <View key={item._id} className={`mb-4 ${isReply ? 'ml-10 border-l-2 border-gray-200 pl-4' : ''}`}>
-            <View className="flex-row items-center mb-2">
-                <ExpoImage source={{ uri: item.commentor?.avatar || ANONYMOUS_AVATAR }} className="w-8 h-8 rounded-full bg-gray-100" cachePolicy="disk" />
-                <View className="ml-2 flex-1">
+        <View key={item._id} className={`mb-5 ${isReply ? 'ml-12 border-l-2 border-slate-100 pl-4' : ''}`}>
+            <View className="flex-row items-center mb-3">
+                <ExpoImage source={{ uri: item.commentor?.avatar || ANONYMOUS_AVATAR }} className="w-9 h-9 rounded-full bg-slate-50" cachePolicy="disk" />
+                <View className="ml-3 flex-1">
                     <View className="flex-row items-center justify-between">
-                        <Text className="text-zinc-800 text-xs font-bold">@{item.commentor?.username}</Text>
-                        <Text className="text-gray-400 text-[10px] font-medium">{new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                        <Text className="text-zinc-900 text-[12px] font-black">@{item.commentor?.username}</Text>
+                        <Text className="text-slate-400 text-[9px] font-black">{new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
                     </View>
-                    <Text className="text-zinc-900 text-sm mt-0.5">{item.text}</Text>
+                    <Text className="text-slate-600 text-[14px] mt-1 font-medium leading-5">{item.text}</Text>
 
                     {!isReply && (
                         <TouchableOpacity onPress={() => {
                             setReplyTo(item);
                             setNewComment(`@${item.commentor?.username} `);
-                        }} className="mt-2">
-                            <Text className="text-pink-500 text-xs font-black uppercase tracking-widest">Reply</Text>
+                        }} className="mt-3">
+                            <Text className="text-orange-500 text-[10px] font-black uppercase tracking-widest">Reply</Text>
                         </TouchableOpacity>
                     )}
                 </View>
@@ -416,42 +417,59 @@ const ConfessionFeed = () => {
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-gray-100 p-4">
-            <View className="flex-row items-center justify-between mb-8">
-                <View className='flex-row gap-2 items-center'>
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 rounded-full bg-gray-100">
-                        <Ionicons name="arrow-back" size={24} color="black" />
-                    </TouchableOpacity>
-                    <View className='flex-col'>
-                        <Text className="text-black text-2xl font-black">Confession Feed</Text>
-                        <Text className="text-gray-500 text-sm font-medium">{user?.college} Community</Text>
+        <View className="flex-1 bg-[#F8FAFC]">
+            <StatusBar barStyle="dark-content" />
+            
+            {/* HEADER DECORATION */}
+            <View className="absolute top-0 w-full h-80 opacity-20">
+              <LinearGradient 
+                colors={['#f97316', 'transparent']} 
+                className="w-full h-full"
+              />
+            </View>
+
+            <SafeAreaView className="flex-1" edges={['top']}>
+                {/* Arena Header */}
+                <View className="px-8 pt-2">
+                    <View className="flex-row items-center justify-between mb-8">
+                        <View className="flex-1">
+                            <View className="flex-row items-center">
+                                <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
+                                    Confessions <Text className="text-orange-500">FEED</Text>
+                                </Text>
+                            </View>
+                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[1px]">{user?.college} Broadcast Registry</Text>
+                        </View>
+                        
+                        <TouchableOpacity
+                            onPress={() => setIsPostModalOpen(true)}
+                            className="w-12 h-12 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-xl shadow-black/5"
+                        >
+                            <Ionicons name="megaphone" size={20} color="#f97316" />
+                        </TouchableOpacity>
                     </View>
                 </View>
-                <TouchableOpacity
-                    onPress={() => setIsPostModalOpen(true)}
-                    className="bg-pink-500/20 p-3 rounded-full border border-pink-500/30"
-                >
-                    <Ionicons name="megaphone-outline" size={24} color="#ec4899" />
-                </TouchableOpacity>
-            </View>
 
             <FlatList
                 data={confessions}
                 keyExtractor={(item: any) => item._id}
                 renderItem={renderConfession}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100, paddingTop: 10 }}
                 onEndReached={loadMore}
                 onEndReachedThreshold={0.5}
                 refreshing={refreshing}
                 onRefresh={handleRefresh}
                 ListFooterComponent={() => (
-                    loadingMore ? <ActivityIndicator color="#ec4899" className="my-4" /> : null
+                    loadingMore ? <ActivityIndicator color="#f97316" className="my-8" /> : <View className="h-20" />
                 )}
                 ListEmptyComponent={
-                    <View className="mt-20 items-center">
-                        <Ionicons name="lock-closed-outline" size={60} color="#333" />
-                        <Text className="text-gray-500 mt-4 text-center font-medium">No confessions yet. Be the first! 🤫</Text>
+                    <View className="mt-20 items-center px-10">
+                        <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6 shadow-inner">
+                            <Ionicons name="lock-closed" size={40} color="#CBD5E1" />
+                        </View>
+                        <Text className="text-zinc-900 font-black italic uppercase text-xl tracking-tighter text-center">Protocol Locked</Text>
+                        <Text className="text-slate-400 text-[11px] mt-2 text-center font-bold uppercase tracking-wide leading-5">No signals detected. Be the first to broadcast anonymously. 🤫</Text>
                     </View>
                 }
             />
@@ -459,22 +477,25 @@ const ConfessionFeed = () => {
             {/* Post/Edit Modal */}
             <Modal visible={isPostModalOpen} animationType="slide" transparent={true}>
                 <View className="flex-1 bg-black/60 justify-end">
-                    <View className="bg-white rounded-t-[40px] p-8 pb-12 border-t border-gray-200 shadow-2xl">
-                        <View className="flex-row justify-between items-center mb-8">
-                            <Text className="text-zinc-900 text-2xl font-black">{editingConfession ? 'Edit Secret' : 'Spill the Beans'}</Text>
-                            <TouchableOpacity onPress={closePostModal} className="w-8 h-8 bg-gray-100 rounded-full items-center justify-center">
-                                <Ionicons name="close" size={20} color="#1A1A1A" />
+                    <View className="bg-white rounded-t-[40px] p-8 pb-12 border-t border-slate-100 shadow-2xl">
+                        <View className="flex-row justify-between items-center mb-10">
+                            <View>
+                                <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
+                                    {editingConfession ? 'Update' : 'Spill'} <Text className="text-orange-500">Beans</Text>
+                                </Text>
+                                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Anonymous Protocol Active</Text>
+                            </View>
+                            <TouchableOpacity onPress={closePostModal} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
+                                <Ionicons name="close" size={20} color="#18181b" />
                             </TouchableOpacity>
                         </View>
 
-                        <View style={{ backgroundColor: selectedColor }} className="p-6 rounded-[32px] mb-6 shadow-lg shadow-black/10">
+                        <View style={{ backgroundColor: selectedColor }} className="p-8 rounded-[32px] mb-8 shadow-xl shadow-black/10 border border-white/20">
                             {taggedUser && !editingConfession && (
-                                <View className="flex-row items-center bg-transparent border border-white p-2 px-3 rounded-full self-start mb-3">
-                                    <View className="flex-row items-center">
-                                        <ExpoImage source={{ uri: taggedUser.avatar || ANONYMOUS_AVATAR }} className="w-5 h-5 rounded-full" />
-                                        <Text className="text-white font-bold ml-2 text-xs">Tagged: {taggedUser.name}</Text>
-                                    </View>
-                                    <TouchableOpacity onPress={() => setTaggedUser(null)} className="ml-2 bg-white/20 rounded-full w-4 h-4 items-center justify-center">
+                                <View className="flex-row items-center bg-white/20 border border-white/30 p-2 px-4 rounded-full self-start mb-5">
+                                    <ExpoImage source={{ uri: taggedUser.avatar || ANONYMOUS_AVATAR }} className="w-5 h-5 rounded-full" />
+                                    <Text className="text-white font-black ml-2 text-[10px] uppercase tracking-widest">Tagged: {taggedUser.name}</Text>
+                                    <TouchableOpacity onPress={() => setTaggedUser(null)} className="ml-3 bg-white/30 rounded-full w-4 h-4 items-center justify-center">
                                         <Ionicons name="close" size={12} color="white" />
                                     </TouchableOpacity>
                                 </View>
@@ -486,25 +507,25 @@ const ConfessionFeed = () => {
                                 multiline
                                 value={newConfession}
                                 onChangeText={handleTextChange}
-                                className="text-white text-xl font-bold min-h-[150px]"
+                                className="text-white text-xl font-bold min-h-[160px] tracking-tight"
                                 maxLength={500}
                                 textAlignVertical="top"
                             />
                         </View>
 
                         {showSuggestions && (
-                            <View className="absolute top-[100px] left-8 right-8 bg-white rounded-2xl shadow-lg z-50 border border-gray-100 max-h-[200px]">
+                            <View className="absolute top-[120px] left-8 right-8 bg-white rounded-2xl shadow-2xl z-50 border border-slate-100 max-h-[250px] overflow-hidden">
                                 <ScrollView keyboardShouldPersistTaps="always">
                                     {userSuggestions.map((u: any) => (
                                         <TouchableOpacity
                                             key={u._id}
                                             onPress={() => selectUserToTag(u)}
-                                            className="flex-row items-center p-4 border-b border-gray-50"
+                                            className="flex-row items-center p-5 border-b border-slate-50"
                                         >
-                                            <ExpoImage source={{ uri: u.avatar || ANONYMOUS_AVATAR }} className="w-8 h-8 rounded-full bg-gray-100" />
-                                            <View className="ml-3">
-                                                <Text className="text-zinc-900 font-bold text-sm">{u.name}</Text>
-                                                <Text className="text-gray-500 text-xs">@{u.username}</Text>
+                                            <ExpoImage source={{ uri: u.avatar || ANONYMOUS_AVATAR }} className="w-10 h-10 rounded-full bg-slate-50" />
+                                            <View className="ml-4">
+                                                <Text className="text-zinc-900 font-black text-sm uppercase tracking-tighter">{u.name}</Text>
+                                                <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">@{u.username}</Text>
                                             </View>
                                         </TouchableOpacity>
                                     ))}
@@ -512,7 +533,7 @@ const ConfessionFeed = () => {
                             </View>
                         )}
 
-                        <Text className="text-gray-500 mb-4 text-[10px] font-black uppercase tracking-widest text-center">Pick Your Mood</Text>
+                        <Text className="text-slate-400 mb-6 text-[10px] font-black uppercase tracking-[2px] text-center italic">Archive Atmosphere</Text>
                         <View className="flex-row justify-between mb-10 px-2">
                             {CONFESSION_COLORS.map(color => (
                                 <TouchableOpacity
@@ -520,11 +541,11 @@ const ConfessionFeed = () => {
                                     onPress={() => setSelectedColor(color)}
                                     style={{
                                         backgroundColor: color,
-                                        borderWidth: selectedColor === color ? 3 : 0,
+                                        borderWidth: selectedColor === color ? 4 : 0,
                                         borderColor: 'white',
                                         transform: [{ scale: selectedColor === color ? 1.2 : 1 }]
                                     }}
-                                    className="w-10 h-10 rounded-full shadow-lg"
+                                    className="w-10 h-10 rounded-full shadow-lg shadow-black/10"
                                 />
                             ))}
                         </View>
@@ -532,13 +553,13 @@ const ConfessionFeed = () => {
                         <TouchableOpacity
                             onPress={handlePostConfession}
                             disabled={submitting}
-                            className={`py-5 rounded-3xl items-center shadow-md ${submitting ? 'bg-pink-300' : 'bg-pink-500'}`}
+                            className={`h-16 rounded-[24px] items-center justify-center shadow-xl ${submitting ? 'bg-slate-200' : 'bg-orange-500 shadow-orange-500/20'}`}
                         >
                             {submitting ? (
                                 <ActivityIndicator color="#fff" />
                             ) : (
-                                <Text className="text-white font-black text-lg tracking-tight">
-                                    {editingConfession ? 'UPDATE CONFESSION ✨' : 'POST ANONYMOUSLY 🤫'}
+                                <Text className="text-white font-black italic uppercase tracking-widest text-[13px]">
+                                    {editingConfession ? 'Execute Update ✨' : 'Secure Broadcast 🤫'}
                                 </Text>
                             )}
                         </TouchableOpacity>
@@ -549,14 +570,19 @@ const ConfessionFeed = () => {
             {/* Comments Modal */}
             <Modal visible={commentsModal.visible} animationType="slide" transparent={true}>
                 <View className="flex-1 bg-black/60 justify-end">
-                    <View className="bg-white rounded-t-[40px] p-6 h-[85%] border-t border-gray-200 shadow-2xl">
-                        <View className="flex-row justify-between items-center mb-8 px-2">
-                            <Text className="text-zinc-900 text-2xl font-black">Comment Thread</Text>
+                    <View className="bg-white rounded-t-[40px] p-8 h-[85%] border-t border-slate-100 shadow-2xl">
+                        <View className="flex-row justify-between items-center mb-10 px-2">
+                            <View>
+                                <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
+                                    Signal <Text className="text-orange-500">Thread</Text>
+                                </Text>
+                                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Encrypted Commentary Archive</Text>
+                            </View>
                             <TouchableOpacity onPress={() => {
                                 setCommentsModal({ ...commentsModal, visible: false });
                                 setReplyTo(null);
-                            }} className="w-8 h-8 bg-gray-100 rounded-full items-center justify-center">
-                                <Ionicons name="close" size={20} color="#1A1A1A" />
+                            }} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
+                                <Ionicons name="close" size={20} color="#18181b" />
                             </TouchableOpacity>
                         </View>
 
@@ -564,40 +590,51 @@ const ConfessionFeed = () => {
                             data={commentsModal.comments}
                             keyExtractor={(c: any) => c._id}
                             renderItem={({ item }) => renderComment(item)}
-                            contentContainerStyle={{ paddingBottom: 100 }}
+                            contentContainerStyle={{ paddingBottom: 150 }}
                             showsVerticalScrollIndicator={false}
-                            ListEmptyComponent={<Text className="text-gray-500 text-center mt-20 font-medium">Silence is golden. Join in!</Text>}
+                            ListEmptyComponent={
+                                <View className="mt-20 items-center">
+                                    <Text className="text-slate-400 text-[11px] font-black uppercase tracking-widest">Silence Detected. Join the frequency.</Text>
+                                </View>
+                            }
                         />
 
-                        {replyTo && (
-                            <View className="bg-pink-500/10 p-3 rounded-t-2xl border-l-4 border-pink-500 flex-row items-center justify-between">
-                                <Text className="text-pink-500 text-xs font-bold">Replying to @{replyTo.commentor?.username}</Text>
-                                <TouchableOpacity onPress={() => {
-                                    setReplyTo(null);
-                                    setNewComment('');
-                                }}>
-                                    <Ionicons name="close" size={16} color="#ec4899" />
+                        <View className="absolute bottom-10 left-8 right-8">
+                            {replyTo && (
+                                <View className="bg-orange-50 p-4 rounded-t-2xl border-l-4 border-orange-500 flex-row items-center justify-between border-t border-r border-orange-100">
+                                    <Text className="text-orange-600 text-[10px] font-black uppercase tracking-widest">Replying to @{replyTo.commentor?.username}</Text>
+                                    <TouchableOpacity onPress={() => {
+                                        setReplyTo(null);
+                                        setNewComment('');
+                                    }}>
+                                        <Ionicons name="close-circle" size={16} color="#f97316" />
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+
+                            <View className={`flex-row items-center bg-white p-3 border border-slate-100 shadow-2xl shadow-black/10 ${replyTo ? 'rounded-b-[24px]' : 'rounded-[24px]'}`}>
+                                <ExpoImage source={{ uri: user?.avatar || ANONYMOUS_AVATAR }} className="w-9 h-9 rounded-full mr-4 bg-slate-50 border border-slate-100 shadow-inner" cachePolicy="disk" />
+                                <TextInput
+                                    placeholder="Broadcast signal..."
+                                    placeholderTextColor="#94a3b8"
+                                    value={newComment}
+                                    onChangeText={setNewComment}
+                                    className="text-zinc-900 flex-1 py-3 font-black italic uppercase text-[11px] tracking-tighter"
+                                />
+                                <TouchableOpacity 
+                                    onPress={handleComment} 
+                                    disabled={!newComment.trim()}
+                                    className={`w-11 h-11 rounded-2xl items-center justify-center ${newComment.trim() ? 'bg-orange-500' : 'bg-slate-50'}`}
+                                >
+                                    <Ionicons name="send" size={18} color={newComment.trim() ? "white" : "#CBD5E1"} />
                                 </TouchableOpacity>
                             </View>
-                        )}
-
-                        <View className="flex-row items-center bg-gray-50 rounded-[24px] p-2 px-3 border border-gray-100 mb-8">
-                            <ExpoImage source={{ uri: user?.avatar || ANONYMOUS_AVATAR }} className="w-8 h-8 rounded-full mr-2 bg-gray-200" cachePolicy="disk" />
-                            <TextInput
-                                placeholder="Add a comment..."
-                                placeholderTextColor="#9ca3af"
-                                value={newComment}
-                                onChangeText={setNewComment}
-                                className="text-zinc-900 flex-1 py-3 font-medium"
-                            />
-                            <TouchableOpacity onPress={handleComment} disabled={!newComment.trim()}>
-                                <Ionicons name="send" size={24} color={newComment.trim() ? "#ec4899" : "#9ca3af"} />
-                            </TouchableOpacity>
                         </View>
                     </View>
                 </View>
             </Modal>
-        </SafeAreaView>
+            </SafeAreaView>
+        </View>
     );
 };
 

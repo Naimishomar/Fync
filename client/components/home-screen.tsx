@@ -392,7 +392,7 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
           </View>
         </View>
         <Pressable onPress={() => {
-          Alert.alert("Post Options", null , [
+          Alert.alert("Post Options", undefined , [
             { text: "Cancel", style: "cancel"},
             { text: "Delete Post", style: "destructive", onPress: () => onDeletePost(item._id) }
           ]);

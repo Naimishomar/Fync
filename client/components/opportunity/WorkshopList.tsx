@@ -35,61 +35,86 @@ interface Workshop {
   };
 }
 
-// --- 1. MEMOIZED WORKSHOP CARD ---
+// --- 1. MEMOIZED WORKSHOP CARD (Arena Theme) ---
 const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: string) => void }) => {
-  const imageUrl = item.banner_mobile?.url || item.logoUrl2 || 'https://via.placeholder.com/300x150?text=No+Image';
+  const imageUrl = item.organisation?.logoUrl || item.logoUrl2 || 'https://via.placeholder.com/100';
+  const bannerUrl = item.banner_mobile?.url;
   const orgName = item.organisation?.name || "Global Organisation";
 
   return (
-    <View className="bg-white rounded-2xl mb-8 mx-6 overflow-hidden shadow-sm shadow-black/5 border border-gray-300">
-      <View className="relative py-4">
-        <Image 
-          source={{ uri: imageUrl }} 
-          className="w-full h-48 bg-white"
-          resizeMode="contain"
-        />
-        <View className="absolute top-4 left-4">
-            <View className="bg-white/90 px-3 py-1.5 rounded-xl backdrop-blur-md border border-gray-300 flex-row items-center shadow-sm">
-                <Ionicons name="calendar-clear" size={14} color="#ec4899" />
-                <Text className="text-[10px] text-zinc-900 font-black italic ml-2 uppercase tracking-tight">
-                    {item.start_date ? new Date(item.start_date).toLocaleDateString() : 'Active Session'}
-                </Text>
-            </View>
+    <View className="bg-white rounded-xl mb-6 mx-6 p-6 border border-slate-100 shadow-sm shadow-black/5">
+      
+      <View className="flex-row gap-4 items-center">
+        {/* Organisation Logo */}
+        <View className="w-16 h-16 rounded-2xl border border-slate-100 overflow-hidden bg-slate-50 items-center justify-center p-2 shadow-inner">
+            <Image 
+                source={{ uri: imageUrl }} 
+                className="w-12 h-12 rounded-xl"
+                resizeMode="contain"
+            />
         </View>
-      </View>
 
-      <View className="p-5">
-        <Text className="text-xl font-black italic text-zinc-900 mb-2 leading-6 tracking-tighter" numberOfLines={2}>
-            {item.title}
-        </Text>
-        
-        <View className="flex-row items-center mb-4">
-            <View className="w-6 h-6 p-1 bg-gray-200 rounded-full items-center justify-center border border-gray-100 mr-2">
-                <Ionicons name="business" size={12} color="#64748b" />
-            </View>
-            <Text className="text-gray-600 text-[10px] font-black uppercase tracking-widest">
+        {/* Title & Organisation */}
+        <View className="flex-1">
+            <Text className="text-zinc-900 text-[16px] font-black italic tracking-tighter uppercase leading-5" numberOfLines={2}>
+                {item.title}
+            </Text>
+            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">
                 {orgName}
             </Text>
         </View>
+      </View>
 
-        {/* Footer */}
-        <View className="flex-row justify-between items-center">
+      {/* Optional Banner */}
+      {bannerUrl && (
+        <View className="mt-5 w-full h-32 rounded-[20px] overflow-hidden border border-slate-100">
+           <Image source={{ uri: bannerUrl }} className="w-full h-full" resizeMode="cover" />
+        </View>
+      )}
+
+      {/* Tags Row */}
+      <View className="mt-5 flex-row flex-wrap gap-2">
+         {/* Start Date */}
+         <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+            <Ionicons name="calendar" size={14} color="#94a3b8" />
+            <Text className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2">
+                {item.start_date ? new Date(item.start_date).toLocaleDateString() : 'Active Session'}
+            </Text>
+         </View>
+
+         {/* Location */}
+         <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+            <Ionicons name="location-sharp" size={14} color="#94a3b8" />
+            <Text className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2">
+                {item.filters?.location || "Remote Hub"}
+            </Text>
+         </View>
+         
+         <View className="flex-row items-center bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-100">
+            <Text className="text-[9px] text-orange-500 font-black uppercase tracking-widest">
+                Workshop
+            </Text>
+         </View>
+      </View>
+
+       {/* Footer / CTA */}
+      <View className="mt-6 flex-row items-center justify-between border-t border-slate-50 pt-5">
             <View>
-                <Text className="text-slate-400 font-black uppercase text-[8px] tracking-[2px]">Registration Ends</Text>
-                <Text className="text-zinc-900 text-sm font-black italic mt-0.5 tracking-tight uppercase">
-                    {item.regn_deadline ? new Date(item.regn_deadline).toLocaleDateString() : "Open Registry"}
-                </Text>
+              <Text className="text-slate-400 font-black uppercase text-[8px] tracking-widest mb-1">Registration Ends</Text>
+              <Text className="text-zinc-900 text-sm font-black italic mt-0.5 tracking-tighter uppercase">
+                  {item.regn_deadline ? new Date(item.regn_deadline).toLocaleDateString() : "Open Registry"}
+              </Text>
             </View>
 
             <TouchableOpacity 
                 activeOpacity={0.9}
                 onPress={() => onPress(item.seo_url)}
-                className="bg-pink-500 px-6 py-4 rounded-xl shadow-lg shadow-black/20"
+                className="bg-zinc-900 px-8 py-3.5 rounded-xl shadow-sm shadow-black/10"
             >
-                <Text className="text-white font-black italic uppercase tracking-widest text-[10px]">Access Portal</Text>
+                <Text className="text-white font-black italic uppercase tracking-widest text-[11px]">Access Portal</Text>
             </TouchableOpacity>
-        </View>
       </View>
+
     </View>
   );
 });
@@ -177,39 +202,57 @@ export default function WorkshopList() {
     <WorkshopCard item={item} onPress={openLink} />
   ), [openLink]);
 
+  const renderFooter = () => {
+    if (!loading && !loadingMore) return <View className="h-12" />;
+    return (
+      <View className="py-10 items-center">
+        <ActivityIndicator size="small" color="#f97316" />
+      </View>
+    );
+  };
+
   return (
     <View className="flex-1 bg-[#F8FAFC]">
       <StatusBar barStyle="dark-content" />
 
-      <SafeAreaView className="flex-1">
+      {/* HEADER DECORATION */}
+      <View className="absolute top-0 w-full h-80 opacity-20">
+        <LinearGradient 
+          colors={['#f97316', 'transparent']} 
+          className="w-full h-full"
+        />
+      </View>
+
+      <SafeAreaView className="flex-1" edges={['top']}>
         
-        {/* Header */}
-        <View className="px-8 pt-8 pb-4">
-            <View className="flex-row items-center gap-3">
-                <View className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/20">
-                    <Ionicons name="construct" size={24} color="white" />
-                </View>
-                <View>
-                    <Text className="text-zinc-900 text-3xl font-black italic tracking-tighter uppercase">Workshops</Text>
-                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">Master Industry-Leading Skills</Text>
+        {/* Arena Header */}
+        <View className="px-8 pt-2">
+            <View className="flex-row items-center justify-between mb-3">
+                <View className="flex-1">
+                    <View className="flex-row items-center">
+                        <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
+                            Workshop <Text className="text-orange-500">Hub</Text>
+                        </Text>
+                    </View>
+                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[1px]">Industry Masterclass Archive</Text>
                 </View>
             </View>
         </View>
 
-        {/* 🔍 Search Bar */}
-        <View className="px-6 mt-4 mb-4">
-            <View className="flex-row items-center bg-white rounded-3xl px-6 py-4 border border-slate-100 shadow-sm shadow-black/5">
-                <Ionicons name="search" size={20} color="#ec4899" />
+        {/* 🔍 Arena Search Dock */}
+        <View className="px-8 mb-3">
+            <View className="flex-row items-center bg-white rounded-2xl px-5 h-14 border border-slate-100 shadow-xl shadow-black/5">
+                <Ionicons name="search" size={20} color="#f97316" />
                 <TextInput 
-                    placeholder="Search masterclasses, labs..."
+                    placeholder="Search labs, workshops, skills..."
                     placeholderTextColor="#94a3b8"
                     value={searchQuery}
                     onChangeText={setSearchQuery}
-                    className="flex-1 ml-3 text-zinc-900 text-base font-black italic"
+                    className="flex-1 ml-3 text-zinc-900 text-sm font-black italic uppercase tracking-tighter"
                 />
                 {searchQuery.length > 0 && (
-                    <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-slate-50 p-1 rounded-full">
-                        <Ionicons name="close" size={18} color="#94a3b8" />
+                    <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-slate-50 p-1.5 rounded-xl">
+                        <Ionicons name="close" size={16} color="#94a3b8" />
                     </TouchableOpacity>
                 )}
             </View>
@@ -225,27 +268,21 @@ export default function WorkshopList() {
             onEndReached={loadMore}
             onEndReachedThreshold={0.5}
             refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ec4899" />
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />
             }
-            ListFooterComponent={
-                loadingMore ? <ActivityIndicator size="small" color="#ec4899" className="py-10" /> : <View className="h-10" />
-            }
+            ListFooterComponent={renderFooter}
             ListEmptyComponent={
                 !loading ? (
                     <View className="items-center mt-20 px-10">
                         <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
-                            <Ionicons name="calendar" size={40} color="#CBD5E1" />
+                            <Ionicons name="construct" size={40} color="#CBD5E1" />
                         </View>
-                        <Text className="text-zinc-900 font-black italic text-xl tracking-tight text-center uppercase">Zero Labs</Text>
+                        <Text className="text-zinc-900 font-black text-xl tracking-tight text-center uppercase">Zero Signals</Text>
                         <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-wide">
-                            {searchQuery ? "No skill modules matched your search protocol." : "The global workshop registry is clear."}
+                            {searchQuery ? "No skill modules matched your search protocol." : "The global workshop registry is currently clear."}
                         </Text>
                     </View>
-                ) : (
-                    <View className="flex-1 justify-center items-center mt-20">
-                        <ActivityIndicator size="large" color="#ec4899" />
-                    </View>
-                )
+                ) : null
             }
         />
       </SafeAreaView>

@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 // --- TYPES ---
 interface NotificationItem {
@@ -189,9 +190,9 @@ const Notification = () => {
 
     return (
       <Pressable
-        className={`flex-row items-center py-4 px-4 mb-3 mx-4 rounded-2xl border ${!item.isRead
-          ? 'bg-white border-pink-100 shadow-sm'
-          : 'bg-white/80 border-gray-100'
+        className={`flex-row items-center p-3 mb-2 rounded-xl border ${!item.isRead
+          ? 'bg-white border-orange-100 shadow-sm'
+          : 'bg-white/80 border-slate-50'
           }`}
         onPress={() => handlePress(item)}
       >
@@ -201,45 +202,45 @@ const Notification = () => {
             source={{
               uri: item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}`
             }}
-            className="w-12 h-12 rounded-full border border-gray-100"
+            className="w-10 h-10 rounded-full border border-slate-100"
           />
           {!item.isRead && (
-            <View className="absolute -top-1 -right-1 w-3 h-3 bg-pink-500 rounded-full border-2 border-white" />
+            <View className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-white" />
           )}
         </View>
 
         {/* Text Section */}
         <View className="flex-1">
-          <Text className="text-zinc-600 text-[13px] leading-5">
+          <Text className="text-zinc-600 text-[12px] leading-5">
             {item.type === 'opportunity' ? (
               // Opportunity notifications: show full message without username prefix
-              <Text className="text-zinc-800 text-[13px]">{message}</Text>
+              <Text className="text-zinc-800 font-bold text-[12px] uppercase italic">{message}</Text>
             ) : (
               <>
-                <Text className="font-bold text-zinc-900 text-[14px]">
+                <Text className="font-black text-zinc-900 text-[13px] uppercase italic tracking-tighter">
                   {item.sender?.username || item.sender?.name || 'Fync'}
                 </Text>{' '}{message}
               </>
             )}
           </Text>
-          <Text className="text-gray-400 text-[10px] mt-1 font-bold uppercase tracking-wider">
+          <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest">
             {getTimeAgo(item.createdAt)}
           </Text>
         </View>
 
         {/* Right Side: Post Image / Follow Button / Opportunity Icon */}
         {item.type === 'opportunity' ? (
-          <View style={{ backgroundColor: 'rgba(236,72,153,0.12)', borderRadius: 10, padding: 8 }}>
-            <Ionicons name="briefcase" size={18} color="#ec4899" />
+          <View style={{ backgroundColor: 'rgba(249,115,22,0.12)', borderRadius: 12, padding: 8 }}>
+            <Ionicons name="briefcase" size={18} color="#f97316" />
           </View>
         ) : item.type !== 'follow' && item.post?.image && item.post.image.length > 0 ? (
           <Image
             source={{ uri: item.post.image[0] }}
-            className="w-12 h-12 rounded-lg border border-gray-100 ml-2"
+            className="w-12 h-12 rounded-xl border border-slate-100 ml-2"
           />
         ) : item.type === 'follow' ? (
-          <View className="bg-pink-500 px-3 py-1.5 rounded-full ml-2">
-            <Text className="text-white text-[10px] font-bold uppercase tracking-tighter">Profile</Text>
+          <View className="bg-zinc-900 px-4 py-2 rounded-xl ml-2 shadow-sm">
+            <Text className="text-white text-[8px] font-black uppercase tracking-widest">Profile</Text>
           </View>
         ) : null}
       </Pressable>
@@ -247,22 +248,38 @@ const Notification = () => {
   };
 
   return (
-    <View className="flex-1 bg-[#F5F7FA]">
+    <View className="flex-1 bg-[#F8FAFC]">
       <StatusBar barStyle="dark-content" />
+
+      {/* HEADER DECORATION */}
+      <View className="absolute top-0 w-full h-80 opacity-20">
+        <LinearGradient 
+          colors={['#f97316', 'transparent']} 
+          className="w-full h-full"
+        />
+      </View>
       
-      <SafeAreaView className="flex-1">
-        {/* Header */}
-        <View className="px-6 pt-4 pb-4 flex flex-row items-center">
-          <Pressable onPress={() => navigation.goBack()} className="p-2 bg-white rounded-full mr-1 border border-gray-100">
-            <Ionicons name="arrow-back" size={20} color="#18181b" />
-          </Pressable>
-          <Text className="text-zinc-900 text-2xl font-black tracking-tighter">Notifications</Text>
+      <SafeAreaView className="flex-1" edges={['top']}>
+        {/* Arena Header */}
+        <View className="px-8 pt-2 bg-transparent">
+          <View className="flex-row items-center justify-between mb-5">
+            <View className="flex-1">
+              <View className="flex-row items-center">
+                <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
+                  Updates <Text className="text-orange-500">Center</Text>
+                </Text>
+              </View>
+              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[1px]">System & Social Logs</Text>
+            </View>
+          </View>
         </View>
 
         {/* List */}
         {loading ? (
-          <View className="flex-1 justify-center items-center">
-            <ActivityIndicator size="large" color="#ec4899" />
+          <View className="flex-1 px-8 pt-6">
+            {[1, 2, 3, 4, 5].map(i => (
+              <View key={i} className="mb-4 h-24 bg-white rounded-[24px] border border-slate-100 shadow-sm opacity-50" />
+            ))}
           </View>
         ) : (
           <FlatList
@@ -270,27 +287,30 @@ const Notification = () => {
             keyExtractor={(item) => item._id}
             renderItem={renderItem}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ec4899" />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />
             }
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.5}
+            ListHeaderComponent={() => (
+              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-3">Recent transmissions</Text>
+            )}
             ListFooterComponent={() => (
               loadingMore ? (
                 <View className="py-6 items-center">
-                  <ActivityIndicator size="small" color="#ec4899" />
+                  <ActivityIndicator size="small" color="#f97316" />
                 </View>
               ) : <View className="h-20" />
             )}
             ListEmptyComponent={
-              <View className="flex-1 justify-center items-center mt-6 px-10">
-                <View className="w-20 h-20 bg-white rounded-full items-center justify-center mb-2 shadow-sm border border-gray-100">
-                  <Ionicons name="notifications-off-outline" size={36} color="#9ca3af" />
+              <View className="items-center justify-center mt-20 px-10">
+                <View className="w-20 h-20 bg-white rounded-[32px] items-center justify-center mb-6 border border-slate-100 shadow-sm">
+                  <Ionicons name="notifications-off-outline" size={32} color="#CBD5E1" />
                 </View>
-                <Text className="text-zinc-900 text-xl font-black">All caught up!</Text>
-                <Text className="text-gray-500 text-sm mt-2 text-center font-medium">No new notifications at the moment. Check back later!</Text>
+                <Text className="text-zinc-400 font-black italic uppercase text-xs tracking-widest text-center">Sync Complete</Text>
+                <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center">No active signals found in the registry.</Text>
               </View>
             }
-            contentContainerStyle={{ paddingTop: 16 }}
+            contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 10 }}
             showsVerticalScrollIndicator={false}
           />
         )}
