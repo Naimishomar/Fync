@@ -39,10 +39,10 @@ interface Announcement {
 }
 
 const ANN_TYPES: { value: string; label: string; icon: string; color: string; bg: string }[] = [
-  { value: 'general',         label: 'General',        icon: 'megaphone',       color: '#6366f1', bg: '#ede9fe' },
-  { value: 'important',       label: 'Important',      icon: 'alert-circle',    color: '#ef4444', bg: '#fee2e2' },
-  { value: 'schedule_change', label: 'Schedule',       icon: 'calendar',        color: '#f59e0b', bg: '#fef3c7' },
-  { value: 'result',          label: 'Result',         icon: 'trophy',          color: '#10b981', bg: '#d1fae5' },
+  { value: 'general', label: 'General', icon: 'megaphone', color: '#6366f1', bg: '#ede9fe' },
+  { value: 'important', label: 'Important', icon: 'alert-circle', color: '#ef4444', bg: '#fee2e2' },
+  { value: 'schedule_change', label: 'Schedule', icon: 'calendar', color: '#f59e0b', bg: '#fef3c7' },
+  { value: 'result', label: 'Result', icon: 'trophy', color: '#10b981', bg: '#d1fae5' },
 ];
 
 const HackathonChannel = () => {
@@ -73,15 +73,15 @@ const HackathonChannel = () => {
     };
 
     const onReact = (data: { announcementId: string; userId: string; emoji: string }) => {
-      setAnnouncements(prev => prev.map(a => 
-        a._id === data.announcementId 
+      setAnnouncements(prev => prev.map(a =>
+        a._id === data.announcementId
           ? { ...a, reactions: [...a.reactions.filter(r => r.user !== data.userId), { user: data.userId, emoji: data.emoji }] }
           : a
       ));
     };
 
     const onPin = (data: { announcementId: string; isPinned: boolean }) => {
-      setAnnouncements(prev => prev.map(a => 
+      setAnnouncements(prev => prev.map(a =>
         a._id === data.announcementId ? { ...a, isPinned: data.isPinned } : a
       ).sort((a, b) => (a.isPinned === b.isPinned ? 0 : a.isPinned ? -1 : 1)));
     };
@@ -159,7 +159,7 @@ const HackathonChannel = () => {
     return (
       <View className={`bg-white rounded-3xl p-5 mb-4 border ${item.isPinned ? 'border-amber-300 bg-amber-50/20' : 'border-slate-100'}`}
         style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 10, elevation: 2 }}>
-        
+
         {/* Header */}
         <View className="flex-row items-center justify-between mb-3">
           <View className="flex-row items-center bg-white px-2.5 py-1 rounded-xl border border-slate-100">
@@ -176,7 +176,7 @@ const HackathonChannel = () => {
           )}
         </View>
 
-        <Text className="text-zinc-900 font-black italic text-base mb-1.5 leading-5">{item.Title}</Text>
+        <Text className="text-zinc-900 font-black  text-base mb-1.5 leading-5">{item.Title}</Text>
         <Text className="text-slate-500 text-xs leading-5 mb-4">{item.body}</Text>
 
         {/* Footer */}
@@ -198,7 +198,7 @@ const HackathonChannel = () => {
           {/* Reactions */}
           <View className="flex-row gap-1.5">
             {['👍', '🔥', '❤️', '🚀'].map(emoji => (
-              <TouchableOpacity 
+              <TouchableOpacity
                 key={emoji}
                 onPress={() => handleReact(item._id, emoji)}
                 className={`w-8 h-8 rounded-xl items-center justify-center border ${myReaction === emoji ? 'bg-indigo-600 border-indigo-600' : 'bg-slate-50 border-slate-100'}`}
@@ -207,7 +207,7 @@ const HackathonChannel = () => {
               </TouchableOpacity>
             ))}
             {isOfficial && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => handlePin(item._id, item.isPinned)}
                 className="w-8 h-8 rounded-xl items-center justify-center bg-slate-100 border border-slate-200"
               >
@@ -224,19 +224,19 @@ const HackathonChannel = () => {
     <View className="flex-1 bg-[#F8FAFC]">
       <StatusBar style="dark" />
       <SafeAreaView className="flex-1">
-        
+
         {/* Header */}
         <View className="flex-row items-center px-5 pt-4 pb-3 border-b border-slate-100 bg-white">
           <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 rounded-2xl bg-slate-50 items-center justify-center mr-3">
             <Ionicons name="arrow-back" size={20} color="#1e293b" />
           </TouchableOpacity>
           <View className="flex-1">
-            <Text className="text-zinc-900 text-xl font-black italic uppercase tracking-tight">Channel</Text>
+            <Text className="text-zinc-900 text-xl font-black  uppercase tracking-tight">Channel</Text>
             <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest" numberOfLines={1}>{hackathonTitle}</Text>
           </View>
           {isOfficial && (
-            <TouchableOpacity 
-              onPress={() => setShowCompose(!showCompose)} 
+            <TouchableOpacity
+              onPress={() => setShowCompose(!showCompose)}
               className={`w-10 h-10 rounded-2xl items-center justify-center ${showCompose ? 'bg-rose-100' : 'bg-indigo-600'}`}
             >
               <Ionicons name={showCompose ? 'close' : 'add'} size={24} color={showCompose ? '#e11d48' : 'white'} />
@@ -250,8 +250,8 @@ const HackathonChannel = () => {
             <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest mb-3">Broadcast New Message</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
               {ANN_TYPES.map(t => (
-                <TouchableOpacity 
-                  key={t.value} 
+                <TouchableOpacity
+                  key={t.value}
                   onPress={() => setDraft({ ...draft, type: t.value })}
                   className={`flex-row items-center px-3 py-2 rounded-xl border mr-2 ${draft.type === t.value ? 'bg-indigo-600 border-indigo-600' : 'bg-slate-50 border-slate-200'}`}
                 >
@@ -260,13 +260,13 @@ const HackathonChannel = () => {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-            <TextInput 
+            <TextInput
               placeholder="Headline..."
               value={draft.title}
               onChangeText={t => setDraft({ ...draft, title: t })}
               className="bg-slate-50 rounded-2xl px-4 py-3 mb-2 font-bold text-zinc-900 border border-slate-100"
             />
-            <TextInput 
+            <TextInput
               placeholder="Detailed message..."
               value={draft.body}
               onChangeText={t => setDraft({ ...draft, body: t })}
@@ -280,9 +280,9 @@ const HackathonChannel = () => {
                 <Ionicons name="pin" size={14} color={draft.isPinned ? '#d97706' : '#94a3b8'} />
                 <Text className="text-[11px] font-black text-slate-500 uppercase ml-2">Pin to top</Text>
               </View>
-              <Switch 
-                value={draft.isPinned} 
-                onValueChange={v => setDraft({ ...draft, isPinned: v })} 
+              <Switch
+                value={draft.isPinned}
+                onValueChange={v => setDraft({ ...draft, isPinned: v })}
                 trackColor={{ false: '#e2e8f0', true: '#c7d2fe' }}
                 thumbColor={draft.isPinned ? '#6366f1' : '#f4f4f5'}
               />
@@ -301,7 +301,7 @@ const HackathonChannel = () => {
             <ActivityIndicator size="large" color="#6366f1" />
           </View>
         ) : (
-          <FlatList 
+          <FlatList
             data={announcements}
             keyExtractor={item => item._id}
             renderItem={renderAnnouncement}
@@ -312,7 +312,7 @@ const HackathonChannel = () => {
                 <LinearGradient colors={['#ede9fe', '#fce7f3']} className="w-20 h-20 rounded-[30px] items-center justify-center mb-5">
                   <Ionicons name="megaphone-outline" size={36} color="#6366f1" />
                 </LinearGradient>
-                <Text className="text-zinc-700 font-black italic text-lg uppercase mb-1">Silence is Golden</Text>
+                <Text className="text-zinc-700 font-black  text-lg uppercase mb-1">Silence is Golden</Text>
                 <Text className="text-slate-400 text-xs font-semibold">No announcements yet. Check back soon!</Text>
               </View>
             )}

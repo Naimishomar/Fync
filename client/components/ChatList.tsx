@@ -178,16 +178,16 @@ const ChatList = () => {
     return (
       <TouchableOpacity
         className="flex-row items-center p-5 mb-4 bg-white rounded-[24px] border border-slate-100 shadow-sm"
-        onPress={() => navigation.navigate("Chat", { 
+        onPress={() => navigation.navigate("Chat", {
           conversationId: item._id,
           otherUser: otherUser
         })}
         activeOpacity={0.7}
       >
         <View className="relative">
-          <Avatar 
-            user={otherUser as any} 
-            size={38} 
+          <Avatar
+            user={otherUser as any}
+            size={38}
           />
           {onlineUsers.has(otherUser?._id) && (
             <View className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
@@ -232,10 +232,10 @@ const ChatList = () => {
       activeOpacity={0.7}
     >
       <View className="relative">
-      <Avatar 
-        user={item as any} 
-        size={48} 
-      />
+        <Avatar
+          user={item as any}
+          size={48}
+        />
         {onlineUsers.has(item._id) && (
           <View className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
         )}
@@ -259,8 +259,8 @@ const ChatList = () => {
 
       {/* HEADER DECORATION */}
       <View className="absolute top-0 w-full h-80 opacity-20">
-        <LinearGradient 
-          colors={['#f97316', 'transparent']} 
+        <LinearGradient
+          colors={['#f97316', 'transparent']}
           className="w-full h-full"
         />
       </View>
@@ -282,12 +282,12 @@ const ChatList = () => {
           {/* SEARCH DOCK */}
           <View className="flex-row items-center bg-white px-5 py-1 rounded-2xl border border-slate-100 shadow-xl shadow-black/5 mb-5">
             <Ionicons name="search" size={20} color="#94A3B8" />
-            <TextInput 
-              placeholder="Search contacts..." 
-              placeholderTextColor="#CBD5E1" 
+            <TextInput
+              placeholder="Search contacts..."
+              placeholderTextColor="#CBD5E1"
               value={search}
               onChangeText={handleSearchChange}
-              className="flex-1 text-zinc-900 font-bold text-sm tracking-tight p-3" 
+              className="flex-1 text-zinc-900 font-bold text-sm tracking-tight p-3"
               autoCapitalize="none"
               autoCorrect={false}
             />
@@ -316,12 +316,12 @@ const ChatList = () => {
             contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 120 }}
             showsVerticalScrollIndicator={false}
             ListHeaderComponent={() => (
-               <>
+              <>
                 {/* Special Channels (Only when not searching) */}
                 {search.length === 0 && (
                   <View className="mb-6">
                     <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4 ml-2">Dedicated Channels</Text>
-                    
+
                     {user?.college && user?.user_access === 'user' && (
                       <TouchableOpacity
                         activeOpacity={0.8}
@@ -333,7 +333,7 @@ const ChatList = () => {
                         </View>
                         <View className="flex-1">
                           <Text className="text-zinc-900 font-black uppercase text-xs tracking-tight">{user.college} Area</Text>
-                          <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1 italic">24h Expiring Zone</Text>
+                          <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1 ">24h Expiring Zone</Text>
                         </View>
                         <View className="bg-orange-500 w-2 h-2 rounded-full" />
                       </TouchableOpacity>
@@ -353,14 +353,14 @@ const ChatList = () => {
                           <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">Global Alumni Network</Text>
                         </View>
                         <View className="bg-zinc-900 px-2 py-0.5 rounded-full">
-                          <Text className="text-[7px] text-white font-black italic">PRO</Text>
+                          <Text className="text-[7px] text-white font-black ">PRO</Text>
                         </View>
                       </TouchableOpacity>
                     )}
                   </View>
                 )}
                 <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4 ml-2">Recent transmissions</Text>
-               </>
+              </>
             )}
             ListEmptyComponent={
               <View className="items-center justify-center mt-20 px-10">
@@ -371,7 +371,7 @@ const ChatList = () => {
                     color="#CBD5E1"
                   />
                 </View>
-                <Text className="text-zinc-400 font-black italic uppercase text-xs tracking-widest text-center">
+                <Text className="text-zinc-400 font-black  uppercase text-xs tracking-widest text-center">
                   {search.length > 0 ? "Registry Empty" : "No Transmissions"}
                 </Text>
                 <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center">

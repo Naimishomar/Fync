@@ -248,103 +248,103 @@ export default function CreateFundingFeed() {
 
         {/* Links Card */}
         <View className="bg-white rounded-[24px] p-5 shadow-sm shadow-black/5 mb-5">
-           <Text className="text-[17px] font-bold text-gray-900 mb-4">Live Links</Text>
-           <View className="flex-row items-center border-b border-gray-100 pb-2 mb-4">
-              <Ionicons name="link-outline" size={20} color="#ec4899" />
-              <TextInput 
-                placeholder="Deployed URL (Required)" 
-                placeholderTextColor="#cbd5e1" 
-                value={deployedUrl} 
-                onChangeText={setDeployedUrl} 
-                className="text-zinc-800 font-bold flex-1 ml-3" 
-                autoCapitalize="none" 
-              />
-           </View>
-           <View className="flex-row items-center">
-              <Ionicons name="logo-github" size={20} color="#1A1A1A" />
-              <TextInput 
-                placeholder="Github URL (Optional)" 
-                placeholderTextColor="#cbd5e1" 
-                value={githubUrl} 
-                onChangeText={setGithubUrl} 
-                className="text-zinc-800 font-bold flex-1 ml-3" 
-                autoCapitalize="none" 
-              />
-           </View>
+          <Text className="text-[17px] font-bold text-gray-900 mb-4">Live Links</Text>
+          <View className="flex-row items-center border-b border-gray-100 pb-2 mb-4">
+            <Ionicons name="link-outline" size={20} color="#ec4899" />
+            <TextInput
+              placeholder="Deployed URL (Required)"
+              placeholderTextColor="#cbd5e1"
+              value={deployedUrl}
+              onChangeText={setDeployedUrl}
+              className="text-zinc-800 font-bold flex-1 ml-3"
+              autoCapitalize="none"
+            />
+          </View>
+          <View className="flex-row items-center">
+            <Ionicons name="logo-github" size={20} color="#1A1A1A" />
+            <TextInput
+              placeholder="Github URL (Optional)"
+              placeholderTextColor="#cbd5e1"
+              value={githubUrl}
+              onChangeText={setGithubUrl}
+              className="text-zinc-800 font-bold flex-1 ml-3"
+              autoCapitalize="none"
+            />
+          </View>
         </View>
 
         {/* Media Card */}
         <View className="bg-white rounded-[24px] p-5 shadow-sm shadow-black/5 mb-5">
-            <Text className="text-[17px] font-bold text-gray-900 mb-1">Showcase Media</Text>
-            <Text className="text-gray-400 text-xs mb-4 font-medium italic">High quality media helps you stand out!</Text>
-            
-            {(images.length > 0 || video || oldImages.length > 0 || oldVideo) && (
-              <View className="mb-4">
-                {images.length > 0 && (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2 flex-grow-0">
-                    {images.map((img, index) => (
-                      <View key={index} className="mr-3 relative">
-                        <Image source={{ uri: img.uri }} className="h-20 w-20 rounded-xl bg-gray-100" />
-                        <Pressable
-                          onPress={() => removeImage(index)}
-                          className="absolute top-1 right-1 bg-black/70 h-6 w-6 rounded-full items-center justify-center"
-                        >
-                          <Text className="text-white text-xs font-bold">✕</Text>
-                        </Pressable>
-                      </View>
+          <Text className="text-[17px] font-bold text-gray-900 mb-1">Showcase Media</Text>
+          <Text className="text-gray-400 text-xs mb-4 font-medium ">High quality media helps you stand out!</Text>
+
+          {(images.length > 0 || video || oldImages.length > 0 || oldVideo) && (
+            <View className="mb-4">
+              {images.length > 0 && (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2 flex-grow-0">
+                  {images.map((img, index) => (
+                    <View key={index} className="mr-3 relative">
+                      <Image source={{ uri: img.uri }} className="h-20 w-20 rounded-xl bg-gray-100" />
+                      <Pressable
+                        onPress={() => removeImage(index)}
+                        className="absolute top-1 right-1 bg-black/70 h-6 w-6 rounded-full items-center justify-center"
+                      >
+                        <Text className="text-white text-xs font-bold">✕</Text>
+                      </Pressable>
+                    </View>
+                  ))}
+                </ScrollView>
+              )}
+
+              {video && (
+                <View className="mb-4 relative w-full h-40 shadow-sm rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800">
+                  <Video source={{ uri: video.uri }} style={{ width: '100%', height: '100%' }} resizeMode={ResizeMode.COVER} isMuted />
+                  <TouchableOpacity onPress={() => setVideo(null)} className="absolute top-2 right-2 bg-black/70 rounded-full h-8 w-8 items-center justify-center z-10">
+                    <Ionicons name="close" size={18} color="white" />
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {images.length === 0 && oldImages.length > 0 && (
+                <View className="mb-4">
+                  <Text className="text-zinc-900 text-[10px] font-bold mb-2 uppercase tracking-tight">Active Images:</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {oldImages.map((uri, idx) => (
+                      <Image key={idx} source={{ uri: uri.replace(/^http:\/\//i, 'https://') }} className="h-20 w-20 rounded-xl bg-gray-100 mr-2 border border-gray-200" />
                     ))}
                   </ScrollView>
-                )}
-
-                {video && (
-                  <View className="mb-4 relative w-full h-40 shadow-sm rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800">
-                    <Video source={{ uri: video.uri }} style={{ width: '100%', height: '100%' }} resizeMode={ResizeMode.COVER} isMuted />
-                    <TouchableOpacity onPress={() => setVideo(null)} className="absolute top-2 right-2 bg-black/70 rounded-full h-8 w-8 items-center justify-center z-10">
-                      <Ionicons name="close" size={18} color="white" />
-                    </TouchableOpacity>
-                  </View>
-                )}
-
-                {images.length === 0 && oldImages.length > 0 && (
-                  <View className="mb-4">
-                    <Text className="text-zinc-900 text-[10px] font-bold mb-2 uppercase tracking-tight">Active Images:</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                      {oldImages.map((uri, idx) => (
-                        <Image key={idx} source={{ uri: uri.replace(/^http:\/\//i, 'https://') }} className="h-20 w-20 rounded-xl bg-gray-100 mr-2 border border-gray-200" />
-                      ))}
-                    </ScrollView>
-                  </View>
-                )}
-                {!video && oldVideo && (
-                  <View className="mb-4 relative w-full h-40 shadow-sm rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800">
-                     <Text className="text-white absolute top-2 left-2 z-10 bg-black/50 px-2 py-1 rounded">Active Video</Text>
-                     <Video source={{ uri: oldVideo.replace(/^http:\/\//i, 'https://') }} style={{ width: '100%', height: '100%' }} resizeMode={ResizeMode.COVER} isMuted />
-                  </View>
-                )}
-              </View>
-            )}
-
-            <View className="flex-row items-center justify-start gap-4 mt-2">
-              <Pressable onPress={pickImages} className="flex-row items-center gap-2 px-4 py-2 rounded-full border border-gray-200 bg-gray-50/50">
-                <Ionicons name="images-outline" size={18} color="#ec4899" />
-                <Text className="text-gray-500 text-[12px] font-bold">Add Images</Text>
-              </Pressable>
-              <Pressable onPress={pickVideo} className="flex-row items-center gap-2 px-4 py-2 rounded-full border border-gray-200 bg-gray-50/50">
-                <Ionicons name="videocam-outline" size={18} color="#ec4899" />
-                <Text className="text-gray-500 text-[12px] font-bold">Add Video</Text>
-              </Pressable>
+                </View>
+              )}
+              {!video && oldVideo && (
+                <View className="mb-4 relative w-full h-40 shadow-sm rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800">
+                  <Text className="text-white absolute top-2 left-2 z-10 bg-black/50 px-2 py-1 rounded">Active Video</Text>
+                  <Video source={{ uri: oldVideo.replace(/^http:\/\//i, 'https://') }} style={{ width: '100%', height: '100%' }} resizeMode={ResizeMode.COVER} isMuted />
+                </View>
+              )}
             </View>
+          )}
+
+          <View className="flex-row items-center justify-start gap-4 mt-2">
+            <Pressable onPress={pickImages} className="flex-row items-center gap-2 px-4 py-2 rounded-full border border-gray-200 bg-gray-50/50">
+              <Ionicons name="images-outline" size={18} color="#ec4899" />
+              <Text className="text-gray-500 text-[12px] font-bold">Add Images</Text>
+            </Pressable>
+            <Pressable onPress={pickVideo} className="flex-row items-center gap-2 px-4 py-2 rounded-full border border-gray-200 bg-gray-50/50">
+              <Ionicons name="videocam-outline" size={18} color="#ec4899" />
+              <Text className="text-gray-500 text-[12px] font-bold">Add Video</Text>
+            </Pressable>
+          </View>
         </View>
 
       </ScrollView>
 
       <View className="px-5 py-4 bg-[#F0F4F8]">
-        <TouchableOpacity 
-          onPress={handleInitiateProjectPost} 
-          disabled={submitting} 
+        <TouchableOpacity
+          onPress={handleInitiateProjectPost}
+          disabled={submitting}
           className={`py-4 rounded-full items-center shadow-lg shadow-black/30 ${submitting ? 'bg-black' : 'bg-black/90'}`}
         >
-           {submitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-black text-lg italic tracking-tighter uppercase">{isEditing ? "Update Project" : "Post Project • ₹249"}</Text>}
+          {submitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-black text-lg  tracking-tighter uppercase">{isEditing ? "Update Project" : "Post Project • ₹249"}</Text>}
         </TouchableOpacity>
       </View>
 
@@ -355,7 +355,7 @@ export default function CreateFundingFeed() {
             <TouchableOpacity onPress={() => setShowPaymentParams(null)} className="p-2">
               <Ionicons name="close" size={24} color="#000" />
             </TouchableOpacity>
-            <Text className="ml-4 font-black italic tracking-tighter text-lg">Secure Gateway</Text>
+            <Text className="ml-4 font-black  tracking-tighter text-lg">Secure Gateway</Text>
           </View>
           <WebView
             source={showPaymentParams}

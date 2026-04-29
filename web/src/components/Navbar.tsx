@@ -17,7 +17,7 @@ const Navbar = () => {
   }
 
   return (
-    <motion.nav 
+    <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       className="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 py-4"
@@ -29,7 +29,7 @@ const Navbar = () => {
         </Link>
 
 
-        
+
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
           <Link to="/" className="hover:text-slate-900 transition-colors">Home</Link>
           <Link to="/features" className="hover:text-slate-900 transition-colors">Features</Link>
@@ -41,14 +41,14 @@ const Navbar = () => {
         <div className="flex items-center gap-4">
           {token && user ? (
             <div className="flex items-center gap-5">
-              <Link 
-                to="/profile" 
+              <Link
+                to="/profile"
                 className="flex items-center gap-3 px-4 py-2 bg-white shadow-sm rounded-2xl border border-slate-200 hover:border-indigo-600 hover:shadow-md transition-all group overflow-hidden relative"
               >
                 <div className="absolute inset-0 bg-indigo-50/50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <img 
-                  src={user.avatar || 'https://cdn-icons-png.freepik.com/512/219/219988.png'} 
-                  alt={user.name} 
+                <img
+                  src={user.avatar || 'https://cdn-icons-png.freepik.com/512/219/219988.png'}
+                  alt={user.name}
                   className="w-8 h-8 rounded-full object-cover border border-slate-100 shadow-sm relative z-10"
                 />
                 <div className="flex flex-col relative z-10">
@@ -56,26 +56,26 @@ const Navbar = () => {
                   <span className="text-[11px] font-black uppercase tracking-tighter text-slate-900 leading-none">{user.name}</span>
                 </div>
               </Link>
-              <button 
+              <button
                 onClick={() => {
                   logout();
                   window.location.href = '/';
-                }} 
+                }}
                 className="hidden sm:block bg-slate-900 hover:bg-black text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
               >
                 Logout
               </button>
             </div>
           ) : (
-            <Link 
-              to="/login" 
+            <Link
+              to="/login"
               className="hidden sm:block bg-black hover:bg-zinc-800 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg active:scale-95"
             >
               Login
             </Link>
           )}
-          
-          <button 
+
+          <button
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden p-2 text-slate-700 hover:text-black transition-colors"
           >
@@ -93,19 +93,19 @@ const Navbar = () => {
             className="absolute top-20 left-4 right-4 glass rounded-[2rem] p-8 shadow-2xl md:hidden flex flex-col gap-6 items-center"
           >
             {token && user && (
-              <Link 
-                to="/profile" 
+              <Link
+                to="/profile"
                 onClick={() => setIsOpen(false)}
                 className="flex flex-col items-center gap-3 p-6 bg-white rounded-3xl w-full border border-slate-100 shadow-sm hover:border-indigo-600 transition-all active:scale-95 group"
               >
-                <img 
-                  src={user.avatar || 'https://cdn-icons-png.freepik.com/512/219/219988.png'} 
-                  alt={user.name} 
+                <img
+                  src={user.avatar || 'https://cdn-icons-png.freepik.com/512/219/219988.png'}
+                  alt={user.name}
                   className="w-16 h-16 rounded-full object-cover border-4 border-slate-50 shadow-md group-hover:scale-105 transition-transform"
                 />
                 <div className="text-center">
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Tactical Commander</p>
-                  <p className="text-lg font-black italic tracking-tighter uppercase text-slate-900 leading-tight">{user.name}</p>
+                  <p className="text-lg font-black  tracking-tighter uppercase text-slate-900 leading-tight">{user.name}</p>
                 </div>
               </Link>
             )}
@@ -115,7 +115,7 @@ const Navbar = () => {
             <Link to="/download" onClick={() => setIsOpen(false)} className="text-lg font-bold text-slate-600 hover:text-slate-900">Download</Link>
             <Link to="/contact" onClick={() => setIsOpen(false)} className="text-lg font-bold text-slate-600 hover:text-slate-900">Contact</Link>
             {token ? (
-               <button 
+              <button
                 onClick={() => {
                   setIsOpen(false);
                   logout();
@@ -126,8 +126,8 @@ const Navbar = () => {
                 Logout Account
               </button>
             ) : (
-              <Link 
-                to="/login" 
+              <Link
+                to="/login"
                 onClick={() => setIsOpen(false)}
                 className="w-full bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl text-center"
               >

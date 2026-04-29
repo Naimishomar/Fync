@@ -23,7 +23,7 @@ interface User {
     username: string;
     name: string;
     avatar?: string;
-    user_access?: 'admin' | 'user' | 'alumni'| 'recruiter';
+    user_access?: 'admin' | 'user' | 'alumni' | 'recruiter';
     followers: string[];
     following: string[];
     about?: string;
@@ -110,7 +110,7 @@ const PublicProfile = () => {
             setShortsPage(1);
             setHasMorePosts(true);
             setHasMoreShorts(true);
-            
+
             // Immediately update the profile info if available in params
             setProfileUser(initialUser || null);
 
@@ -218,7 +218,7 @@ const PublicProfile = () => {
         if (!profileUser?._id) return;
         try {
             const res = await axios.post("/chat/start", { userId: profileUser._id });
-            navigation.navigate("Chat", { 
+            navigation.navigate("Chat", {
                 conversationId: res.data.conversation._id,
                 otherUser: profileUser
             });
@@ -385,7 +385,7 @@ const PublicProfile = () => {
                             total: recPosts.length
                         });
                     }
-                }).catch(() => {});
+                }).catch(() => { });
             }
         }, [profileUser]);
 
@@ -399,7 +399,7 @@ const PublicProfile = () => {
                         contentFit="cover"
                     />
                     <View className="absolute inset-0 bg-black/30" />
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={() => navigation.goBack()}
                         className="absolute top-12 left-4 bg-white/20 p-2 rounded-full"
                     >
@@ -423,7 +423,7 @@ const PublicProfile = () => {
 
                     <View className="mt-4">
                         <View className="flex-row items-center gap-2">
-                            <Text className="text-2xl font-black text-zinc-900 italic uppercase">
+                            <Text className="text-2xl font-black text-zinc-900  uppercase">
                                 {(profileUser as any)?.company || profileUser?.name}
                             </Text>
                             <MaterialCommunityIcons name="check-decagram" size={22} color="#6366f1" />
@@ -436,22 +436,22 @@ const PublicProfile = () => {
                     {/* Quick Stats */}
                     <View className="flex-row bg-zinc-900 rounded-3xl p-5 mt-6 shadow-xl border border-zinc-800">
                         <View className="flex-1 items-center border-r border-zinc-800">
-                            <Text className="text-white text-xl font-black italic">{recruiterStats.active}</Text>
+                            <Text className="text-white text-xl font-black ">{recruiterStats.active}</Text>
                             <Text className="text-zinc-500 text-[8px] font-black uppercase tracking-widest mt-1">Active Roles</Text>
                         </View>
                         <View className="flex-1 items-center">
-                            <Text className="text-white text-xl font-black italic">{recruiterStats.total}</Text>
+                            <Text className="text-white text-xl font-black ">{recruiterStats.total}</Text>
                             <Text className="text-zinc-500 text-[8px] font-black uppercase tracking-widest mt-1">Total Posts</Text>
                         </View>
                     </View>
 
                     {/* About */}
                     <View className="mt-8 bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm">
-                         <View className="flex-row items-center gap-2 mb-4">
+                        <View className="flex-row items-center gap-2 mb-4">
                             <View className="w-1 h-5 rounded-full bg-indigo-500" />
-                            <Text className="text-zinc-900 font-black italic uppercase text-xs tracking-widest">About Organization</Text>
+                            <Text className="text-zinc-900 font-black  uppercase text-xs tracking-widest">About Organization</Text>
                         </View>
-                        <Text className="text-slate-500 text-xs leading-5 italic">
+                        <Text className="text-slate-500 text-xs leading-5 ">
                             {profileUser?.about || "We're committed to finding the best talent and building the future of innovation."}
                         </Text>
 
@@ -466,7 +466,7 @@ const PublicProfile = () => {
                                 </View>
                             </View>
                             {(profileUser as any)?.companyWebsite && (
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     onPress={() => Linking.openURL((profileUser as any).companyWebsite)}
                                     className="flex-row items-center gap-4"
                                 >
@@ -484,20 +484,20 @@ const PublicProfile = () => {
 
                     {/* CTA Buttons */}
                     <View className="flex-row gap-3 mt-8">
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             onPress={() => navigation.navigate('InternshipList', { recruiterId: profileUser?._id })}
                             className="flex-1 bg-pink-600 p-4 rounded-2xl items-center shadow-lg shadow-pink-200"
                         >
                             <Ionicons name="school-outline" size={20} color="white" className="mb-1" />
-                            <Text className="text-white font-black italic uppercase text-[10px] tracking-widest">View Internships</Text>
+                            <Text className="text-white font-black  uppercase text-[10px] tracking-widest">View Internships</Text>
                         </TouchableOpacity>
-                        
-                        <TouchableOpacity 
+
+                        <TouchableOpacity
                             onPress={() => navigation.navigate('JobList', { recruiterId: profileUser?._id })}
                             className="flex-1 bg-zinc-900 p-4 rounded-2xl items-center shadow-lg shadow-zinc-200"
                         >
                             <Ionicons name="briefcase-outline" size={20} color="white" className="mb-1" />
-                            <Text className="text-white font-black italic uppercase text-[10px] tracking-widest">View Job Openings</Text>
+                            <Text className="text-white font-black  uppercase text-[10px] tracking-widest">View Job Openings</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -542,9 +542,9 @@ const PublicProfile = () => {
                             {/* Top Profile Card */}
                             <View className="mx-4 mt-2 mb-6 bg-white/5 rounded-3xl p-5 border border-white/10 shadow-lg">
                                 <View className="flex-row items-center">
-                                    <Avatar 
-                                        user={profileUser as any} 
-                                        size={80} 
+                                    <Avatar
+                                        user={profileUser as any}
+                                        size={80}
                                     />
                                     <View className="flex-1 ml-6 flex-row justify-between pr-4">
                                         <View className="items-center">

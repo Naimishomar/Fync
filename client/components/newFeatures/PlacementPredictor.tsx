@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-  ActivityIndicator,
-  Alert,
-  StatusBar,
+    View,
+    Text,
+    TouchableOpacity,
+    ScrollView,
+    TextInput,
+    ActivityIndicator,
+    Alert,
+    StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -79,7 +79,7 @@ const PlacementPredictor = () => {
                         <TouchableOpacity onPress={() => setResult(null)} className="p-2 bg-slate-50 rounded-full">
                             <Ionicons name="arrow-back" size={24} color="#18181b" />
                         </TouchableOpacity>
-                        <Text className="text-2xl font-black italic uppercase tracking-tighter">Analysis <Text className="text-pink-500">Report</Text></Text>
+                        <Text className="text-2xl font-black  uppercase tracking-tighter">Analysis <Text className="text-pink-500">Report</Text></Text>
                     </View>
 
                     <ScrollView className="flex-1 px-6 mt-6 pb-20" showsVerticalScrollIndicator={false}>
@@ -100,7 +100,7 @@ const PlacementPredictor = () => {
                             <View className="bg-emerald-50 p-4 rounded-3xl border border-emerald-100 flex-row items-center gap-3 mb-6">
                                 <Ionicons name="checkmark-circle" size={24} color="#10b981" />
                                 <View>
-                                    <Text className="text-emerald-700 font-black text-[10px] uppercase tracking-widest italic">Jake's Resume Standard</Text>
+                                    <Text className="text-emerald-700 font-black text-[10px] uppercase tracking-widest ">Jake's Resume Standard</Text>
                                     <Text className="text-emerald-600/70 text-[10px] font-bold">Your format is recruiter-optimized & ATS friendly.</Text>
                                 </View>
                             </View>
@@ -108,7 +108,7 @@ const PlacementPredictor = () => {
                             <View className="bg-amber-50 p-4 rounded-3xl border border-amber-100 flex-row items-center gap-3 mb-6">
                                 <Ionicons name="warning" size={24} color="#f59e0b" />
                                 <View className="flex-1">
-                                    <Text className="text-amber-700 font-black text-[10px] uppercase tracking-widest italic">Formatting Alert</Text>
+                                    <Text className="text-amber-700 font-black text-[10px] uppercase tracking-widest ">Formatting Alert</Text>
                                     <Text className="text-amber-600/70 text-[10px] font-bold">{result.resume_fix_tip}</Text>
                                 </View>
                             </View>
@@ -120,8 +120,8 @@ const PlacementPredictor = () => {
                             className="p-6 rounded-[35px] mb-6 flex-row items-center justify-between"
                         >
                             <View>
-                                <Text className="text-white/60 text-[10px] font-bold uppercase tracking-widest italic">Est. Market Value (INR)</Text>
-                                <Text className="text-white text-xl font-black italic">{result.salary_estimate}</Text>
+                                <Text className="text-white/60 text-[10px] font-bold uppercase tracking-widest ">Est. Market Value (INR)</Text>
+                                <Text className="text-white text-xl font-black ">{result.salary_estimate}</Text>
                             </View>
                             <View className="bg-pink-500/20 w-12 h-12 rounded-2xl items-center justify-center border border-white/10">
                                 <MaterialCommunityIcons name="currency-inr" size={24} color="#ec4899" />
@@ -169,7 +169,7 @@ const PlacementPredictor = () => {
                         {/* Suggestion Roadmap */}
                         <Text className="text-xs font-black uppercase text-slate-400 tracking-widest mt-6 mb-3">Roadmap & Next Steps</Text>
                         <View className="bg-slate-50 p-5 rounded-3xl border border-slate-100 mb-20">
-                            <Text className="text-slate-700 leading-6 italic">{result.suggestion}</Text>
+                            <Text className="text-slate-700 leading-6 ">{result.suggestion}</Text>
                         </View>
                     </ScrollView>
                 </SafeAreaView>
@@ -186,14 +186,14 @@ const PlacementPredictor = () => {
                         <Ionicons name="arrow-back" size={24} color="#18181b" />
                     </TouchableOpacity>
                     <View>
-                        <Text className="text-3xl font-black italic uppercase tracking-tighter">Placement <Text className="text-pink-500">Predictor</Text></Text>
+                        <Text className="text-3xl font-black  uppercase tracking-tighter">Placement <Text className="text-pink-500">Predictor</Text></Text>
                         <Text className="text-[10px] font-black uppercase tracking-widest text-slate-400">AI Career Analysis</Text>
                     </View>
                 </View>
 
                 <ScrollView className="flex-1 px-6 mt-10">
                     <Text className="text-xs font-black uppercase text-slate-400 tracking-widest mb-4">Enter Academic Details</Text>
-                    
+
                     {/* GPA Input */}
                     <View className="bg-slate-50 p-6 rounded-[35px] border border-slate-100 mb-6">
                         <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2">Current CGPA / GPA</Text>
@@ -208,7 +208,7 @@ const PlacementPredictor = () => {
                     </View>
 
                     {/* Resume Picker */}
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={pickDocument}
                         activeOpacity={0.8}
                         className={`p-10 rounded-[35px] border-2 border-dashed items-center justify-center ${resume ? 'bg-pink-50 border-pink-200' : 'bg-slate-50 border-slate-200'}`}
@@ -231,7 +231,7 @@ const PlacementPredictor = () => {
                 </ScrollView>
 
                 <View className="p-6">
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={handlePredict}
                         disabled={loading}
                         activeOpacity={0.9}
@@ -239,15 +239,15 @@ const PlacementPredictor = () => {
                     >
                         <LinearGradient
                             colors={['#ec4899', '#db2777']}
-                            start={{x: 0, y: 0}}
-                            end={{x: 1, y: 0}}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
                             className="py-4 rounded-2xl flex-row justify-center items-center shadow-2xl shadow-pink-500/30"
                         >
                             {loading ? (
                                 <ActivityIndicator color="white" />
                             ) : (
                                 <View className='flex-row rounded-2xl'>
-                                    <Text className="text-white font-black italic text-lg mr-1 uppercase">Generate Prediction</Text>
+                                    <Text className="text-white font-black  text-lg mr-1 uppercase">Generate Prediction</Text>
                                     <Ionicons name="flash" size={22} color="white" />
                                 </View>
                             )}

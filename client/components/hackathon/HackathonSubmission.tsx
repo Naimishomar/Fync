@@ -257,7 +257,7 @@ const HackathonSubmission = () => {
               <Ionicons name="arrow-back" size={22} color="#1e293b" />
             </TouchableOpacity>
             <View className="flex-1">
-              <Text className="text-zinc-900 text-xl font-black italic">Submission</Text>
+              <Text className="text-zinc-900 text-xl font-black ">Submission</Text>
               <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
                 {isSubmitted ? '✅ Finalized' : existing?._id ? '📝 Draft' : 'New'}
               </Text>
@@ -269,7 +269,7 @@ const HackathonSubmission = () => {
             <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }}>
               <LinearGradient colors={['#10b981', '#059669']} className="rounded-3xl p-6 mb-5 items-center">
                 <Text className="text-5xl mb-3">🎉</Text>
-                <Text className="text-white font-black italic text-2xl text-center">{existing?.ProjectName}</Text>
+                <Text className="text-white font-black  text-2xl text-center">{existing?.ProjectName}</Text>
                 <Text className="text-emerald-200 text-xs uppercase tracking-widest mt-1">Submitted Successfully</Text>
                 {existing?.submittedAt && (
                   <Text className="text-emerald-300 text-xs mt-2">

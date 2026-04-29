@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  Image, 
-  TouchableOpacity, 
-  TextInput, 
-  KeyboardAvoidingView, 
-  Platform, 
-  ActivityIndicator,
-  Alert,
-  StatusBar,
-  Dimensions
+import {
+    View,
+    Text,
+    FlatList,
+    Image,
+    TouchableOpacity,
+    TextInput,
+    KeyboardAvoidingView,
+    Platform,
+    ActivityIndicator,
+    Alert,
+    StatusBar,
+    Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -77,7 +77,7 @@ export default function EventCommunityChat({ route }: any) {
             const endpoint = type === 'Bootcamp' ? `/bootcamp/${eventId}` : `/speakers/${eventId}`;
             const res = await axios.get(endpoint);
             if (res.data.success) {
-                const event = res.data.session; 
+                const event = res.data.session;
                 const isOrg = type === 'Bootcamp'
                     ? (event.admin_email === user?.email || event.secondaryAdmins?.some((a: any) => (a.email || a) === user?.email))
                     : (event.admin_email?._id === user?._id || event.admin_email === user?._id || event.secondaryAdmins?.some((a: any) => (a._id || a) === user?._id));
@@ -91,7 +91,7 @@ export default function EventCommunityChat({ route }: any) {
     useEffect(() => {
         fetchMessages();
         fetchEventDetails();
-        
+
         // --- SOCKET JOIN ---
         socket.emit("join_community_room", { eventId });
 
@@ -141,8 +141,8 @@ export default function EventCommunityChat({ route }: any) {
 
             if (res.data.success) {
                 setMessages(prev => {
-                   if (prev.some(m => m._id === res.data.message._id)) return prev;
-                   return [...prev, res.data.message];
+                    if (prev.some(m => m._id === res.data.message._id)) return prev;
+                    return [...prev, res.data.message];
                 });
                 setInputText('');
                 setReplyingTo(null);
@@ -158,9 +158,9 @@ export default function EventCommunityChat({ route }: any) {
     const handleDeleteMessage = (messageId: string) => {
         Alert.alert("Delete Message", "Are you sure you want to delete this message?", [
             { text: "Cancel", style: "cancel" },
-            { 
-                text: "Delete", 
-                style: "destructive", 
+            {
+                text: "Delete",
+                style: "destructive",
                 onPress: async () => {
                     try {
                         const endpoint = type === 'Bootcamp' ? `/bootcamp/community/message/${messageId}` : `/speakers/community/message/${messageId}`;
@@ -171,7 +171,7 @@ export default function EventCommunityChat({ route }: any) {
                     } catch (e: any) {
                         Alert.alert("Error", e.response?.data?.message || "Failed to delete");
                     }
-                } 
+                }
             }
         ]);
     };
@@ -195,19 +195,19 @@ export default function EventCommunityChat({ route }: any) {
 
         if (date.toDateString() === today.toDateString()) return 'Today';
         if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
-        
-        return date.toLocaleDateString('en-US', { 
-            day: 'numeric', 
-            month: 'long', 
-            year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined 
+
+        return date.toLocaleDateString('en-US', {
+            day: 'numeric',
+            month: 'long',
+            year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
         });
     };
 
     const renderMessage = useCallback(({ item, index }: { item: Message, index: number }) => {
         const isMine = item.sender._id === user?._id;
-        
+
         // Date separator logic
-        const showDateSeparator = index === 0 || 
+        const showDateSeparator = index === 0 ||
             new Date(messages[index - 1].createdAt).toDateString() !== new Date(item.createdAt).toDateString();
 
         return (
@@ -222,7 +222,7 @@ export default function EventCommunityChat({ route }: any) {
                     </View>
                 )}
 
-                <TouchableOpacity 
+                <TouchableOpacity
                     onLongPress={() => {
                         const options: any[] = [
                             { text: "Reply", onPress: () => setReplyingTo(item) },
@@ -238,12 +238,12 @@ export default function EventCommunityChat({ route }: any) {
                     className={`flex-row mb-4 ${isMine ? 'justify-end' : 'justify-start'} items-end px-4`}
                 >
                     {!isMine && (
-                        <Image 
-                            source={{ uri: item.sender.avatar || 'https://via.placeholder.com/100' }} 
-                            className="w-8 h-8 rounded-2xl mr-2 mb-1 border-2 border-indigo-50" 
+                        <Image
+                            source={{ uri: item.sender.avatar || 'https://via.placeholder.com/100' }}
+                            className="w-8 h-8 rounded-2xl mr-2 mb-1 border-2 border-indigo-50"
                         />
                     )}
-                    <View 
+                    <View
                         className={`max-w-[75%] shadow-sm ${isMine ? 'bg-indigo-600 rounded-3xl rounded-br-none' : 'bg-white rounded-3xl rounded-bl-none'} overflow-hidden shadow-black/10`}
                         style={{ elevation: 2 }}
                     >
@@ -260,13 +260,13 @@ export default function EventCommunityChat({ route }: any) {
                         )}
 
                         {item.image && (
-                            <Image 
-                                source={{ uri: item.image }} 
-                                className="w-64 h-48" 
-                                resizeMode="cover" 
+                            <Image
+                                source={{ uri: item.image }}
+                                className="w-64 h-48"
+                                resizeMode="cover"
                             />
                         )}
-                        
+
                         <View className="p-3 px-4">
                             {!isMine && (
                                 <Text className="text-[10px] font-black uppercase text-indigo-400 mb-1 tracking-tighter">
@@ -300,9 +300,9 @@ export default function EventCommunityChat({ route }: any) {
                     <TouchableOpacity onPress={() => goBack()} className="w-10 h-10 bg-gray-50 rounded-2xl items-center justify-center">
                         <Ionicons name="chevron-back" size={20} color="#1e1b4b" />
                     </TouchableOpacity>
-                    
+
                     <View className="ml-4 flex-1">
-                        <Text className="text-zinc-900 font-black italic uppercase text-base tracking-tighter" numberOfLines={1}>
+                        <Text className="text-zinc-900 font-black  uppercase text-base tracking-tighter" numberOfLines={1}>
                             {eventName}
                         </Text>
                         <View className="flex-row items-center">
@@ -318,7 +318,7 @@ export default function EventCommunityChat({ route }: any) {
                         <Text className="mt-4 text-gray-400 text-[10px] font-bold uppercase tracking-widest">Encrypting Chat...</Text>
                     </View>
                 ) : (
-                    <FlatList 
+                    <FlatList
                         ref={flatListRef}
                         data={messages}
                         keyExtractor={m => m._id}
@@ -328,8 +328,8 @@ export default function EventCommunityChat({ route }: any) {
                         onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
                     />
                 )}
-                
-                <KeyboardAvoidingView 
+
+                <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
                     keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
                 >
@@ -353,20 +353,20 @@ export default function EventCommunityChat({ route }: any) {
                         )}
 
                         <View className="flex-row items-center bg-gray-50 rounded-[30px] px-2 py-2 border border-blue-50">
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 onPress={pickImage}
                                 className="w-10 h-10 items-center justify-center"
                             >
                                 <Ionicons name="image" size={22} color="#6366f1" />
                             </TouchableOpacity>
-                            <TextInput 
+                            <TextInput
                                 placeholder="Type a message..."
                                 value={inputText}
                                 onChangeText={setInputText}
                                 className="flex-1 h-10 text-zinc-800 font-bold px-2 text-[13px]"
                                 placeholderTextColor="#94a3b8"
                             />
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 onPress={() => handleSend()}
                                 disabled={sending || (!inputText.trim())}
                                 className={`w-10 h-10 rounded-full items-center justify-center ${inputText.trim() ? 'bg-indigo-600 shadow-lg shadow-indigo-300' : 'bg-gray-200'}`}

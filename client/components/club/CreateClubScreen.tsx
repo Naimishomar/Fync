@@ -87,7 +87,7 @@ const CreateClubScreen = () => {
                     <TouchableOpacity onPress={() => navigation.goBack()}>
                         <Ionicons name="close" size={28} color="black" />
                     </TouchableOpacity>
-                    <Text className="text-zinc-900 text-lg font-black uppercase tracking-widest">Generate Club</Text>
+                    <Text className="text-zinc-900 text-lg font-black uppercase tracking-widest">Establish Club</Text>
                     <View className="w-7"></View>
                 </View>
 

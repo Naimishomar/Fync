@@ -7,19 +7,19 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
-import { SafeAreaView } from 'react-native-safe-area-context'; 
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/auth.context';
-import Toast from 'react-native-toast-message'; 
- 
+import Toast from 'react-native-toast-message';
+
 // Using a stable key for navigation to ensure it survives re-renders
 const PUBLIC_PROFILE_SCREEN = 'PublicProfile';
 
 const AdItem = ({ item, onEdit, onDelete }: any) => (
     <View className="bg-white rounded-2xl mb-4 border border-gray-100 overflow-hidden">
-        <Image 
-            source={{ uri: item.imageUrl || 'https://via.placeholder.com/300x150?text=No+Image' }} 
-            className="w-full h-36" 
-            resizeMode="cover" 
+        <Image
+            source={{ uri: item.imageUrl || 'https://via.placeholder.com/300x150?text=No+Image' }}
+            className="w-full h-36"
+            resizeMode="cover"
         />
         <View className="p-4">
             <View className="flex-row justify-between items-start">
@@ -57,17 +57,17 @@ const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
                     <Image source={{ uri: item.avatar || 'https://cdn-icons-png.freepik.com/512/219/219988.png' }} className="w-10 h-10 rounded-full bg-gray-100" />
                     <View>
                         <Text className="text-zinc-900 font-bold text-base">{item.name}</Text>
-                        <Text className="text-gray-500 text-xs text-indigo-500 font-semibold italic">@{item.username}</Text>
+                        <Text className="text-gray-500 text-xs text-indigo-500 font-semibold ">@{item.username}</Text>
                     </View>
                 </View>
-                <TouchableOpacity 
+                <TouchableOpacity
                     onPress={() => item.mobileNumber && Linking.openURL(`tel:${item.mobileNumber}`)}
                     className="p-2 bg-green-50 rounded-full"
                 >
                     <Ionicons name="call" size={18} color="#16a34a" />
                 </TouchableOpacity>
             </View>
-            
+
             <View className="bg-gray-50 rounded-xl p-3">
                 <Text className="text-gray-400 text-[10px] uppercase font-black tracking-widest mb-2">Redemption History</Text>
                 {item.redeemedItems?.map((prod: any, idx: number) => (
@@ -88,7 +88,7 @@ const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
                                         <Text className="text-zinc-900 font-black text-[10px] mt-0.5">Pincode: {prod.pincode}</Text>
                                     </View>
                                 </View>
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     onPress={() => onToggleStatus(item._id, prod._id)}
                                     className={`w-7 h-7 rounded-full items-center justify-center border ${prod.isProcessed ? 'bg-green-500 border-green-500' : 'bg-white border-gray-200'}`}
                                 >
@@ -111,10 +111,10 @@ const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
                     </View>
                 ))}
             </View>
-            
+
             <View className="mt-4 flex-row justify-between items-center">
-                 <Text className="text-gray-400 text-[10px] font-medium">{item.college}</Text>
-                 <TouchableOpacity 
+                <Text className="text-gray-400 text-[10px] font-medium">{item.college}</Text>
+                <TouchableOpacity
                     onPress={handleViewProfile}
                     className="flex-row items-center gap-1"
                 >
@@ -128,7 +128,7 @@ const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
 
 const AdminPortal = ({ navigation }: any) => {
     const { user } = useAuth();
-    
+
     useEffect(() => {
         if (user && user.user_access !== 'admin') {
             Alert.alert("Access Denied", "You do not have permission to view this screen.");
@@ -256,7 +256,7 @@ const AdminPortal = ({ navigation }: any) => {
         try {
             const res = await axios.patch(`/contact-us/messages/${id}/read`);
             if (res.data.success) {
-                setMessages(prev => prev.map(msg => 
+                setMessages(prev => prev.map(msg =>
                     msg._id === id ? { ...msg, isRead: res.data.isRead } : msg
                 ));
                 Toast.show({ type: 'success', text1: res.data.message });
@@ -326,7 +326,7 @@ const AdminPortal = ({ navigation }: any) => {
 
         const isMarketplace = activeTab === 'marketplace';
         const isMedia = activeTab === 'media';
-        
+
         if (isMarketplace && (!title || !description || !coins)) {
             Toast.show({ type: 'error', text1: 'All fields are required' });
             return;
@@ -356,7 +356,7 @@ const AdminPortal = ({ navigation }: any) => {
                 formData.append('product_name', title);
                 formData.append('product_description', description);
                 formData.append('coins_required', coins);
-                
+
                 if (editingProduct) {
                     await axios.put(`/api/marketplace/${editingProduct._id}`, {
                         product_name: title,
@@ -422,7 +422,7 @@ const AdminPortal = ({ navigation }: any) => {
                 }
                 fetchAds();
             }
-            
+
             setModalVisible(false);
             resetForm();
         } catch (e: any) {
@@ -433,7 +433,7 @@ const AdminPortal = ({ navigation }: any) => {
         }
     };
 
-    const handleDelete = (id: string, type: 'ad' | 'product' | 'message' = 'ad') => {
+    const handleDelete = (id: string, type: 'ad' | 'product' | 'message' | 'media' = 'ad') => {
         Alert.alert(type === 'ad' ? 'Delete Ad?' : type === 'product' ? 'Delete Item?' : 'Delete Message?', 'This cannot be undone.', [
             { text: 'Cancel', style: 'cancel' },
             {
@@ -507,10 +507,10 @@ const AdminPortal = ({ navigation }: any) => {
     const MarketPlaceItem = ({ item, onEdit, onDelete }: any) => (
         <View className="bg-white rounded-2xl mb-4 border border-gray-100 overflow-hidden">
             <View style={{ width: '100%', aspectRatio: 1, backgroundColor: '#f9fafb' }}>
-                <Image 
-                    source={{ uri: item.product_image || 'https://via.placeholder.com/300x150?text=No+Image' }} 
+                <Image
+                    source={{ uri: item.product_image || 'https://via.placeholder.com/300x150?text=No+Image' }}
                     style={{ width: '100%', height: '100%' }}
-                    resizeMode="contain" 
+                    resizeMode="contain"
                 />
             </View>
             <View className="p-4">
@@ -558,11 +558,11 @@ const AdminPortal = ({ navigation }: any) => {
                             </View>
                         )}
                     </View>
-                    <Text className="text-gray-500 text-xs italic">{item.email}</Text>
+                    <Text className="text-gray-500 text-xs ">{item.email}</Text>
                     <Text className="text-gray-400 text-[10px] mt-1">{new Date(item.createdAt).toLocaleString()}</Text>
                 </View>
                 <View className="flex-row gap-2">
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={() => onToggleRead(item._id)}
                         className={`w-9 h-9 rounded-full items-center justify-center border ${item.isRead ? 'bg-green-500 border-green-500' : 'bg-white border-gray-200'}`}
                     >
@@ -626,31 +626,31 @@ const AdminPortal = ({ navigation }: any) => {
 
                 {/* Tabs */}
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row p-1 bg-gray-100 rounded-2xl max-h-[50px]">
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={() => setActiveTab('ads')}
                         className={`px-4 py-2.5 rounded-xl items-center ${activeTab === 'ads' ? 'bg-white' : ''}`}
                     >
                         <Text className={`font-bold text-xs ${activeTab === 'ads' ? 'text-zinc-900' : 'text-gray-500'}`}>Banner Ads</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={() => setActiveTab('media')}
                         className={`px-4 py-2.5 rounded-xl items-center ${activeTab === 'media' ? 'bg-white' : ''}`}
                     >
                         <Text className={`font-bold text-xs ${activeTab === 'media' ? 'text-zinc-900' : 'text-gray-500'}`}>Fync Media</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={() => setActiveTab('marketplace')}
                         className={`px-4 py-2.5 rounded-xl items-center ${activeTab === 'marketplace' ? 'bg-white' : ''}`}
                     >
                         <Text className={`font-bold text-xs ${activeTab === 'marketplace' ? 'text-zinc-900' : 'text-gray-500'}`}>Reward Items</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={() => setActiveTab('rewards')}
                         className={`px-4 py-2.5 rounded-xl items-center ${activeTab === 'rewards' ? 'bg-white' : ''}`}
                     >
                         <Text className={`font-bold text-xs ${activeTab === 'rewards' ? 'text-zinc-900' : 'text-gray-500'}`}>Redemptions</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={() => setActiveTab('messages')}
                         className={`px-4 py-2.5 rounded-xl items-center ${activeTab === 'messages' ? 'bg-white' : ''}`}
                     >
@@ -667,34 +667,34 @@ const AdminPortal = ({ navigation }: any) => {
                 <FlatList
                     data={activeTab === 'ads' ? ads : activeTab === 'marketplace' ? products : activeTab === 'rewards' ? redemptions : messages}
                     keyExtractor={item => item._id}
-                    renderItem={({ item }) => 
-                        activeTab === 'ads' ? 
-                        <AdItem item={item} onEdit={handleEdit} onDelete={handleDelete} /> : 
-                        activeTab === 'media' ?
-                        <MediaItem item={item} onDelete={handleDelete} /> :
-                        activeTab === 'marketplace' ?
-                        <MarketPlaceItem item={item} onEdit={handleEdit} onDelete={handleDelete} /> :
-                        activeTab === 'rewards' ?
-                        <RedemptionItem item={item} navigation={navigation} onToggleStatus={handleToggleStatus} /> :
-                        <ContactMessageItem item={item} onDelete={handleDelete} onToggleRead={handleToggleMessageReadStatus} />
+                    renderItem={({ item }) =>
+                        activeTab === 'ads' ?
+                            <AdItem item={item} onEdit={handleEdit} onDelete={handleDelete} /> :
+                            activeTab === 'media' ?
+                                <MediaItem item={item} onDelete={handleDelete} /> :
+                                activeTab === 'marketplace' ?
+                                    <MarketPlaceItem item={item} onEdit={handleEdit} onDelete={handleDelete} /> :
+                                    activeTab === 'rewards' ?
+                                        <RedemptionItem item={item} navigation={navigation} onToggleStatus={handleToggleStatus} /> :
+                                        <ContactMessageItem item={item} onDelete={handleDelete} onToggleRead={handleToggleMessageReadStatus} />
                     }
                     contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
                     showsVerticalScrollIndicator={false}
                     ListEmptyComponent={
                         <View className="mt-20 items-center">
                             <Ionicons name={
-                                activeTab === 'ads' ? "image-outline" : 
-                                activeTab === 'media' ? "videocam-outline" :
-                                activeTab === 'marketplace' ? "gift-outline" : 
-                                activeTab === 'rewards' ? "people-outline" :
-                                "mail-outline"
+                                activeTab === 'ads' ? "image-outline" :
+                                    activeTab === 'media' ? "videocam-outline" :
+                                        activeTab === 'marketplace' ? "gift-outline" :
+                                            activeTab === 'rewards' ? "people-outline" :
+                                                "mail-outline"
                             } size={48} color="#d1d5db" />
                             <Text className="text-gray-500 mt-4 font-medium text-center">
-                                {activeTab === 'ads' ? 'No ads found' : 
-                                 activeTab === 'media' ? 'No media found' :
-                                 activeTab === 'marketplace' ? 'No reward items found' : 
-                                 activeTab === 'rewards' ? 'No reward applications found' :
-                                 'No messages found'}
+                                {activeTab === 'ads' ? 'No ads found' :
+                                    activeTab === 'media' ? 'No media found' :
+                                        activeTab === 'marketplace' ? 'No reward items found' :
+                                            activeTab === 'rewards' ? 'No reward applications found' :
+                                                'No messages found'}
                             </Text>
                         </View>
                     }
@@ -714,10 +714,10 @@ const AdminPortal = ({ navigation }: any) => {
                             </View>
 
                             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-                                <TouchableOpacity 
-                                    onPress={pickImage} 
+                                <TouchableOpacity
+                                    onPress={pickImage}
                                     className={`w-full ${activeTab === 'marketplace' || activeTab === 'media' ? '' : 'h-40'} bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 items-center justify-center mb-4 overflow-hidden`}
-                                    style={activeTab === 'marketplace' || activeTab === 'media' ? { aspectRatio: 16/9 } : {}}
+                                    style={activeTab === 'marketplace' || activeTab === 'media' ? { aspectRatio: 16 / 9 } : {}}
                                 >
                                     {imageUri ? <Image source={{ uri: imageUri }} className="w-full h-full" resizeMode={activeTab === 'marketplace' ? "contain" : "cover"} /> : imageUrl ? <Image source={{ uri: imageUrl }} className="w-full h-full" resizeMode={activeTab === 'marketplace' ? "contain" : "cover"} /> : (
                                         <View className="items-center">
@@ -728,8 +728,8 @@ const AdminPortal = ({ navigation }: any) => {
                                 </TouchableOpacity>
 
                                 {activeTab === 'media' && (
-                                    <TouchableOpacity 
-                                        onPress={pickVideo} 
+                                    <TouchableOpacity
+                                        onPress={pickVideo}
                                         className="w-full aspect-video bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 items-center justify-center mb-4 overflow-hidden"
                                     >
                                         {videoUri ? (
@@ -746,64 +746,64 @@ const AdminPortal = ({ navigation }: any) => {
                                     </TouchableOpacity>
                                 )}
 
-                                <TextInput 
-                                    value={imageUrl} 
-                                    onChangeText={t => { setImageUrl(t); setImageUri(null); }} 
-                                    placeholder="Or paste image URL" 
-                                    className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4" 
+                                <TextInput
+                                    value={imageUrl}
+                                    onChangeText={t => { setImageUrl(t); setImageUri(null); }}
+                                    placeholder="Or paste image URL"
+                                    className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4"
                                 />
-                                <TextInput 
-                                    value={title} 
-                                    onChangeText={setTitle} 
-                                    placeholder={activeTab === 'ads' ? "Ad Title" : activeTab === 'media' ? "Video Title" : "Product Name"} 
-                                    className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4" 
+                                <TextInput
+                                    value={title}
+                                    onChangeText={setTitle}
+                                    placeholder={activeTab === 'ads' ? "Ad Title" : activeTab === 'media' ? "Video Title" : "Product Name"}
+                                    className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4"
                                 />
 
                                 {activeTab === 'marketplace' && (
                                     <>
-                                        <TextInput 
-                                            value={description} 
-                                            onChangeText={setDescription} 
-                                            placeholder="Product Description" 
+                                        <TextInput
+                                            value={description}
+                                            onChangeText={setDescription}
+                                            placeholder="Product Description"
                                             multiline
-                                            className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4 min-h-[100px]" 
+                                            className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4 min-h-[100px]"
                                             textAlignVertical="top"
                                         />
-                                        <TextInput 
-                                            value={coins} 
-                                            onChangeText={setCoins} 
-                                            placeholder="Coins Required" 
+                                        <TextInput
+                                            value={coins}
+                                            onChangeText={setCoins}
+                                            placeholder="Coins Required"
                                             keyboardType="numeric"
-                                            className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4" 
+                                            className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4"
                                         />
                                     </>
                                 )}
 
                                 {activeTab === 'media' && (
                                     <>
-                                        <TextInput 
-                                            value={description} 
-                                            onChangeText={setDescription} 
-                                            placeholder="Video Description" 
+                                        <TextInput
+                                            value={description}
+                                            onChangeText={setDescription}
+                                            placeholder="Video Description"
                                             multiline
-                                            className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4 min-h-[100px]" 
+                                            className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4 min-h-[100px]"
                                             textAlignVertical="top"
                                         />
-                                        <TextInput 
-                                            value={tags} 
-                                            onChangeText={setTags} 
-                                            placeholder="Tags (comma separated)" 
-                                            className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4" 
+                                        <TextInput
+                                            value={tags}
+                                            onChangeText={setTags}
+                                            placeholder="Tags (comma separated)"
+                                            className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4"
                                         />
                                     </>
                                 )}
 
                                 {activeTab === 'ads' && (
-                                    <TextInput 
-                                        value={linkUrl} 
-                                        onChangeText={setLinkUrl} 
-                                        placeholder="Link URL" 
-                                        className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4" 
+                                    <TextInput
+                                        value={linkUrl}
+                                        onChangeText={setLinkUrl}
+                                        placeholder="Link URL"
+                                        className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4"
                                     />
                                 )}
 
@@ -822,9 +822,9 @@ const AdminPortal = ({ navigation }: any) => {
                                     </View>
                                 )}
 
-                                <TouchableOpacity 
-                                    onPress={handleSubmit} 
-                                    disabled={submitting} 
+                                <TouchableOpacity
+                                    onPress={handleSubmit}
+                                    disabled={submitting}
                                     className={`py-4 rounded-xl items-center flex-row justify-center ${submitting ? 'bg-pink-300' : 'bg-pink-500'}`}
                                 >
                                     {submitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-black uppercase tracking-widest text-xs">{editingAd || editingProduct ? 'Save Changes' : activeTab === 'ads' ? 'Publish Ad' : 'Add to Store'}</Text>}

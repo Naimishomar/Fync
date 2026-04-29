@@ -27,83 +27,83 @@ const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q
 const InternshipCard = memo(({ item, onApply, hideApply }: { item: any; onApply: (item: any) => void; hideApply?: boolean }) => {
   return (
     <View className="bg-white rounded-[24px] mb-6 mx-6 p-6 border border-slate-100 shadow-sm shadow-black/5">
-      
+
       <View className="flex-row gap-4 items-center">
         {/* Company Logo */}
         <View className="w-16 h-16 rounded-2xl border border-slate-100 overflow-hidden bg-slate-50 items-center justify-center p-2 shadow-inner">
-            <Image 
-                source={{ uri: item.companyLogo || 'https://via.placeholder.com/100' }} 
-                className="w-12 h-12 rounded-xl"
-                resizeMode="contain"
-            />
+          <Image
+            source={{ uri: item.companyLogo || 'https://via.placeholder.com/100' }}
+            className="w-12 h-12 rounded-xl"
+            resizeMode="contain"
+          />
         </View>
 
         {/* Title & Company */}
         <View className="flex-1">
-            <Text className="text-zinc-900 text-[16px] font-black italic tracking-tighter uppercase leading-5" numberOfLines={2}>
-                {item.title}
-            </Text>
-            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">
-                {item.company}
-            </Text>
+          <Text className="text-zinc-900 text-[16px] font-black  tracking-tighter uppercase leading-5" numberOfLines={2}>
+            {item.title}
+          </Text>
+          <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">
+            {item.company}
+          </Text>
         </View>
       </View>
 
       {/* Tags Row */}
       <View className="mt-5 flex-row flex-wrap gap-2">
-         {/* Experience/Duration */}
-         <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-            <Ionicons name="calendar" size={14} color="#94a3b8" />
-            <Text className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2">
-                {item.duration || "Self-Paced"}
-            </Text>
-         </View>
+        {/* Experience/Duration */}
+        <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+          <Ionicons name="calendar" size={14} color="#94a3b8" />
+          <Text className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2">
+            {item.duration || "Self-Paced"}
+          </Text>
+        </View>
 
-         {/* Location */}
-         <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-            <Ionicons name="location-sharp" size={14} color="#94a3b8" />
-            <Text className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2">
-                {item.location}
-            </Text>
-         </View>
-         
-         <View className="flex-row items-center bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-100">
-            <Text className="text-[9px] text-orange-500 font-black uppercase tracking-widest">
-                {item.opportunityType}
-            </Text>
-         </View>
+        {/* Location */}
+        <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+          <Ionicons name="location-sharp" size={14} color="#94a3b8" />
+          <Text className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2">
+            {item.location}
+          </Text>
+        </View>
+
+        <View className="flex-row items-center bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-100">
+          <Text className="text-[9px] text-orange-500 font-black uppercase tracking-widest">
+            {item.opportunityType}
+          </Text>
+        </View>
       </View>
 
       {/* Description */}
       {item.description && (
         <View className="mt-5 bg-slate-50/50 p-4 rounded-2xl border border-dashed border-slate-200">
-          <Text className="text-slate-400 font-black uppercase text-[8px] tracking-widest mb-2 italic">Protocol Details</Text>
+          <Text className="text-slate-400 font-black uppercase text-[8px] tracking-widest mb-2 ">Protocol Details</Text>
           <Text className="text-slate-600 text-[12px] leading-5 font-medium">
             {item.description}
           </Text>
         </View>
       )}
 
-       {/* Footer / CTA */}
+      {/* Footer / CTA */}
       <View className="mt-6 flex-row items-center justify-between border-t border-slate-50 pt-5">
-            <View>
-              <Text className="text-slate-400 font-black uppercase text-[8px] tracking-widest mb-1">Monthly Stipend</Text>
-              <Text className="text-zinc-900 text-lg font-black italic tracking-tighter uppercase">
-                  {item.isPaid ? (item.stipend.startsWith('₹') ? item.stipend : `₹${item.stipend}`) : "Voluntary"}
-              </Text>
-            </View>
+        <View>
+          <Text className="text-slate-400 font-black uppercase text-[8px] tracking-widest mb-1">Monthly Stipend</Text>
+          <Text className="text-zinc-900 text-lg font-black  tracking-tighter uppercase">
+            {item.isPaid ? (item.stipend.startsWith('₹') ? item.stipend : `₹${item.stipend}`) : "Voluntary"}
+          </Text>
+        </View>
 
-            {!hideApply && (
-              <TouchableOpacity 
-                onPress={() => !item.hasApplied && onApply(item)}
-                activeOpacity={item.hasApplied ? 1 : 0.9}
-                className={`${item.hasApplied ? 'bg-slate-100 border-slate-200' : 'bg-zinc-900'} px-8 py-3.5 rounded-2xl shadow-sm shadow-black/10`}
-              >
-                  <Text className={`${item.hasApplied ? 'text-slate-400' : 'text-white'} font-black italic uppercase tracking-widest text-[11px]`}>
-                    {item.hasApplied ? 'Registered' : 'Apply Now'}
-                  </Text>
-              </TouchableOpacity>
-            )}
+        {!hideApply && (
+          <TouchableOpacity
+            onPress={() => !item.hasApplied && onApply(item)}
+            activeOpacity={item.hasApplied ? 1 : 0.9}
+            className={`${item.hasApplied ? 'bg-slate-100 border-slate-200' : 'bg-zinc-900'} px-8 py-3.5 rounded-2xl shadow-sm shadow-black/10`}
+          >
+            <Text className={`${item.hasApplied ? 'text-slate-400' : 'text-white'} font-black  uppercase tracking-widest text-[11px]`}>
+              {item.hasApplied ? 'Registered' : 'Apply Now'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
     </View>
@@ -223,7 +223,7 @@ const InternshipList = () => {
       if (res.data.success) {
         setApplyModalVisible(false);
         Alert.alert("Success", "Your application has been submitted!");
-        setInternships(prev => prev.map(opt => 
+        setInternships(prev => prev.map(opt =>
           opt._id === selectedItem._id ? { ...opt, hasApplied: true } : opt
         ));
       }
@@ -256,8 +256,8 @@ const InternshipList = () => {
 
       {/* HEADER DECORATION */}
       <View className="absolute top-0 w-full h-80 opacity-20">
-        <LinearGradient 
-          colors={['#f97316', 'transparent']} 
+        <LinearGradient
+          colors={['#f97316', 'transparent']}
           className="w-full h-full"
         />
       </View>
@@ -266,55 +266,55 @@ const InternshipList = () => {
 
         {/* Arena Header */}
         <View className="px-8 pt-2">
-            <View className="flex-row items-center justify-between mb-6">
-                <View className="flex-1">
-                    <View className="flex-row items-center">
-                        <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
-                            Internships <Text className="text-orange-500">Hub</Text>
-                        </Text>
-                    </View>
-                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[1px]">Professional Opportunity Archive</Text>
-                </View>
+          <View className="flex-row items-center justify-between mb-6">
+            <View className="flex-1">
+              <View className="flex-row items-center">
+                <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
+                  Internships <Text className="text-orange-500">Hub</Text>
+                </Text>
+              </View>
+              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[1px]">Professional Opportunity Archive</Text>
             </View>
+          </View>
         </View>
 
         {/* Arena Tabs */}
         <View className="flex-row px-8 mb-4 gap-3">
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => setActiveTab('all')}
             className={`flex-1 py-4 rounded-2xl items-center ${activeTab === 'all' ? 'bg-orange-500 border-orange-400 shadow-orange-500/20' : 'bg-white border-slate-100 shadow-black/5'}`}
           >
-            <Text className={`font-black uppercase italic tracking-widest text-[10px] ${activeTab === 'all' ? 'text-white' : 'text-slate-400'}`}>Market Registry</Text>
+            <Text className={`font-black uppercase  tracking-widest text-[10px] ${activeTab === 'all' ? 'text-white' : 'text-slate-400'}`}>Market Registry</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => setActiveTab('shortlisted')}
             className={`flex-1 py-4 rounded-2xl items-center ${activeTab === 'shortlisted' ? 'bg-orange-500 border-orange-400 shadow-orange-500/20' : 'bg-white border-slate-100 shadow-black/5'}`}
           >
-            <Text className={`font-black uppercase italic tracking-widest text-[10px] ${activeTab === 'shortlisted' ? 'text-white' : 'text-slate-400'}`}>Shortlisted</Text>
+            <Text className={`font-black uppercase  tracking-widest text-[10px] ${activeTab === 'shortlisted' ? 'text-white' : 'text-slate-400'}`}>Shortlisted</Text>
           </TouchableOpacity>
         </View>
 
         {/* 🔍 Arena Search Dock */}
         {activeTab === 'all' && (
-            <View className="px-8 mb-3">
-                <View className="flex-row items-center bg-white rounded-2xl px-5 h-14 border border-slate-100 shadow-xl shadow-black/5">
-                    <Ionicons name="search" size={20} color="#f97316" />
-                    <TextInput 
-                        placeholder="Search roles, skills, or firms..."
-                        placeholderTextColor="#94a3b8"
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                        onSubmitEditing={onSearchSubmit}
-                        returnKeyType="search"
-                        className="flex-1 ml-3 text-zinc-900 text-sm font-black italic uppercase tracking-tighter"
-                    />
-                    {searchQuery.length > 0 && (
-                        <TouchableOpacity onPress={() => { setSearchQuery(""); fetchInternships(1, ""); }} className="bg-slate-50 p-1.5 rounded-xl">
-                            <Ionicons name="close" size={16} color="#94a3b8" />
-                        </TouchableOpacity>
-                    )}
-                </View>
+          <View className="px-8 mb-3">
+            <View className="flex-row items-center bg-white rounded-2xl px-5 h-14 border border-slate-100 shadow-xl shadow-black/5">
+              <Ionicons name="search" size={20} color="#f97316" />
+              <TextInput
+                placeholder="Search roles, skills, or firms..."
+                placeholderTextColor="#94a3b8"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onSubmitEditing={onSearchSubmit}
+                returnKeyType="search"
+                className="flex-1 ml-3 text-zinc-900 text-sm font-black  uppercase tracking-tighter"
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => { setSearchQuery(""); fetchInternships(1, ""); }} className="bg-slate-50 p-1.5 rounded-xl">
+                  <Ionicons name="close" size={16} color="#94a3b8" />
+                </TouchableOpacity>
+              )}
             </View>
+          </View>
         )}
 
         {/* 📝 Technical Note */}
@@ -340,7 +340,7 @@ const InternshipList = () => {
           initialNumToRender={5}
           maxToRenderPerBatch={5}
           windowSize={5}
-          removeClippedSubviews={true} 
+          removeClippedSubviews={true}
           updateCellsBatchingPeriod={50}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
@@ -357,7 +357,7 @@ const InternshipList = () => {
                   {activeTab === 'all' ? "Zero Matches" : "No Shortlists"}
                 </Text>
                 <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-wide">
-                  {activeTab === 'all' 
+                  {activeTab === 'all'
                     ? (searchQuery ? "No internship signals found in this sector." : "The internship vault is currently silent.")
                     : "No shortlisted internships found. Boost your portfolio to attract recruiters!"}
                 </Text>
@@ -368,86 +368,86 @@ const InternshipList = () => {
 
         {/* Application Preview Modal */}
         <Modal
-            animationType="slide"
-            transparent={true}
-            visible={applyModalVisible}
-            onRequestClose={() => setApplyModalVisible(false)}
+          animationType="slide"
+          transparent={true}
+          visible={applyModalVisible}
+          onRequestClose={() => setApplyModalVisible(false)}
         >
-            <View className="flex-1 bg-black/60 justify-end">
-                <View className="bg-white rounded-t-[40px] p-8 pb-12">
-                    <View className="items-center mb-6">
-                        <View className="w-12 h-1.5 bg-slate-100 rounded-full mb-6" />
-                        <Text className="text-zinc-900 text-2xl font-black uppercase tracking-tighter">Review Application</Text>
-                        <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Check your credentials before sending</Text>
-                    </View>
+          <View className="flex-1 bg-black/60 justify-end">
+            <View className="bg-white rounded-t-[40px] p-8 pb-12">
+              <View className="items-center mb-6">
+                <View className="w-12 h-1.5 bg-slate-100 rounded-full mb-6" />
+                <Text className="text-zinc-900 text-2xl font-black uppercase tracking-tighter">Review Application</Text>
+                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Check your credentials before sending</Text>
+              </View>
 
-                    <View className="bg-slate-50 rounded-[32px] p-8 border border-slate-100 mb-10">
-                        <Text className="text-orange-500 font-black uppercase text-[10px] tracking-[2px] mb-6">Candidate Verification</Text>
-                        
-                        <View className="flex-row items-center gap-4 mb-6 pb-6 border-b border-slate-100">
-                             <Image source={{ uri: user?.avatar || 'https://via.placeholder.com/100' }} className="w-14 h-14 rounded-2xl bg-slate-200" />
-                             <View>
-                                <Text className="text-zinc-900 font-black text-lg tracking-tighter uppercase italic">{user?.name}</Text>
-                                <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">{user?.username} • {user?.college || 'External Entity'}</Text>
-                             </View>
-                        </View>
+              <View className="bg-slate-50 rounded-[32px] p-8 border border-slate-100 mb-10">
+                <Text className="text-orange-500 font-black uppercase text-[10px] tracking-[2px] mb-6">Candidate Verification</Text>
 
-                        <View className="gap-5">
-                            <View className="flex-row items-center justify-between">
-                                <View className="flex-row items-center gap-3">
-                                    <View className="bg-white p-2 rounded-lg border border-slate-100">
-                                        <Ionicons name="document-text" size={16} color="#f97316" />
-                                    </View>
-                                    <Text className="text-slate-600 font-black text-[10px] uppercase tracking-widest">Master Resume</Text>
-                                </View>
-                                <Ionicons 
-                                    name={user?.resumeUrl ? "checkmark-circle" : "close-circle"} 
-                                    size={22} 
-                                    color={user?.resumeUrl ? "#10b981" : "#ef4444"} 
-                                />
-                            </View>
-
-                            <View className="flex-row items-center justify-between">
-                                <View className="flex-row items-center gap-3">
-                                    <View className="bg-white p-2 rounded-lg border border-slate-100">
-                                        <Ionicons name="shield-checkmark" size={16} color="#f97316" />
-                                    </View>
-                                    <Text className="text-slate-600 font-black text-[10px] uppercase tracking-widest">Fync Portfolio Sync</Text>
-                                </View>
-                                <Ionicons name="checkmark-circle" size={22} color="#10b981" />
-                            </View>
-                        </View>
-
-                        {!user?.resumeUrl && selectedItem?.requireResume && (
-                            <View className="mt-8 p-5 bg-orange-50 rounded-2xl border border-orange-100 flex-row items-center">
-                                <Ionicons name="alert-circle" size={20} color="#f97316" />
-                                <Text className="text-orange-700 text-[10px] font-black uppercase tracking-tight flex-1 ml-4 leading-4">
-                                    Access Denied: Role requires validated resume. Update Registry profile.
-                                </Text>
-                            </View>
-                        )}
-                    </View>
-
-                    <View className="flex-row gap-4">
-                        <TouchableOpacity 
-                            onPress={() => setApplyModalVisible(false)}
-                            className="flex-1 py-5 rounded-xl items-center justify-center bg-slate-100"
-                        >
-                            <Text className="text-slate-500 font-black uppercase text-[10px]">Cancel</Text>
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity 
-                            onPress={confirmApplication}
-                            disabled={applying || (!user?.resumeUrl && selectedItem?.requireResume)}
-                            className={`flex-1 py-5 rounded-2xl items-center justify-center shadow-lg ${(!user?.resumeUrl && selectedItem?.requireResume) ? 'bg-slate-200' : 'bg-orange-500 shadow-orange-500/20'}`}
-                        >
-                            {applying ? <ActivityIndicator color="white" /> : (
-                                <Text className="text-white font-black uppercase text-xs">Confirm Application</Text>
-                            )}
-                        </TouchableOpacity>
-                    </View>
+                <View className="flex-row items-center gap-4 mb-6 pb-6 border-b border-slate-100">
+                  <Image source={{ uri: user?.avatar || 'https://via.placeholder.com/100' }} className="w-14 h-14 rounded-2xl bg-slate-200" />
+                  <View>
+                    <Text className="text-zinc-900 font-black text-lg tracking-tighter uppercase ">{user?.name}</Text>
+                    <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">{user?.username} • {user?.college || 'External Entity'}</Text>
+                  </View>
                 </View>
+
+                <View className="gap-5">
+                  <View className="flex-row items-center justify-between">
+                    <View className="flex-row items-center gap-3">
+                      <View className="bg-white p-2 rounded-lg border border-slate-100">
+                        <Ionicons name="document-text" size={16} color="#f97316" />
+                      </View>
+                      <Text className="text-slate-600 font-black text-[10px] uppercase tracking-widest">Master Resume</Text>
+                    </View>
+                    <Ionicons
+                      name={user?.resumeUrl ? "checkmark-circle" : "close-circle"}
+                      size={22}
+                      color={user?.resumeUrl ? "#10b981" : "#ef4444"}
+                    />
+                  </View>
+
+                  <View className="flex-row items-center justify-between">
+                    <View className="flex-row items-center gap-3">
+                      <View className="bg-white p-2 rounded-lg border border-slate-100">
+                        <Ionicons name="shield-checkmark" size={16} color="#f97316" />
+                      </View>
+                      <Text className="text-slate-600 font-black text-[10px] uppercase tracking-widest">Fync Portfolio Sync</Text>
+                    </View>
+                    <Ionicons name="checkmark-circle" size={22} color="#10b981" />
+                  </View>
+                </View>
+
+                {!user?.resumeUrl && selectedItem?.requireResume && (
+                  <View className="mt-8 p-5 bg-orange-50 rounded-2xl border border-orange-100 flex-row items-center">
+                    <Ionicons name="alert-circle" size={20} color="#f97316" />
+                    <Text className="text-orange-700 text-[10px] font-black uppercase tracking-tight flex-1 ml-4 leading-4">
+                      Access Denied: Role requires validated resume. Update Registry profile.
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              <View className="flex-row gap-4">
+                <TouchableOpacity
+                  onPress={() => setApplyModalVisible(false)}
+                  className="flex-1 py-5 rounded-xl items-center justify-center bg-slate-100"
+                >
+                  <Text className="text-slate-500 font-black uppercase text-[10px]">Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={confirmApplication}
+                  disabled={applying || (!user?.resumeUrl && selectedItem?.requireResume)}
+                  className={`flex-1 py-5 rounded-2xl items-center justify-center shadow-lg ${(!user?.resumeUrl && selectedItem?.requireResume) ? 'bg-slate-200' : 'bg-orange-500 shadow-orange-500/20'}`}
+                >
+                  {applying ? <ActivityIndicator color="white" /> : (
+                    <Text className="text-white font-black uppercase text-xs">Confirm Application</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
+          </View>
         </Modal>
       </SafeAreaView>
     </View>

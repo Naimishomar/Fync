@@ -106,14 +106,14 @@ const CodingArena: React.FC = () => {
       const isBug = window.location.pathname.includes('/arena/bug/');
       const endpoint = isBug ? `/arena/bug-problems/${problemId}` : `/arena/problems/${problemId}`;
       const query = contestId ? `?contestId=${contestId}` : '';
-      
+
       const res = await axios.get(`${API_URL}${endpoint}${query}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       const prob = res.data.problem;
       setProblem(prob);
-      
+
       // If it's a bug mission, use buggyCode. Otherwise use starterCode.
       if (isBug) {
         setCode(prob.buggyCode || '// No Corrupt Logic Detected');
@@ -161,7 +161,7 @@ const CodingArena: React.FC = () => {
     <div className="flex h-screen items-center justify-center bg-slate-50">
       <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="flex flex-col items-center">
         <div className="w-12 h-12 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-slate-400 font-black italic uppercase text-[10px] tracking-widest mt-4">Initializing Arena...</p>
+        <p className="text-slate-400 font-black  uppercase text-[10px] tracking-widest mt-4">Initializing Arena...</p>
       </motion.div>
     </div>
   );
@@ -171,7 +171,7 @@ const CodingArena: React.FC = () => {
       {/* Top Navigation */}
       <header className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shadow-sm z-10">
         <div className="flex items-center gap-6">
-          <div 
+          <div
             onClick={contestId ? handleAbort : () => navigate('/arena')}
             className="p-2 hover:bg-slate-50 rounded-xl cursor-pointer transition-colors text-slate-400 hover:text-slate-900 group"
           >
@@ -181,26 +181,25 @@ const CodingArena: React.FC = () => {
             <div className="bg-pink-600 p-2 rounded-xl shadow-lg shadow-pink-600/20">
               <Zap size={18} className="text-white" fill="white" />
             </div>
-            <h1 className="text-base font-black italic uppercase tracking-tighter">{problem.title}</h1>
-            <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
-              problem.difficulty === 'Easy' ? 'bg-emerald-100 text-emerald-700' :
-              problem.difficulty === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
-            }`}>
+            <h1 className="text-base font-black  uppercase tracking-tighter">{problem.title}</h1>
+            <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${problem.difficulty === 'Easy' ? 'bg-emerald-100 text-emerald-700' :
+                problem.difficulty === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
+              }`}>
               {problem.difficulty}
             </span>
           </div>
           {timeLeft !== null && (
             <div className="flex items-center gap-3 px-4 py-2 bg-slate-900 rounded-xl shadow-xl shadow-slate-900/10 ml-4">
               <Clock size={14} className="text-pink-500 animate-pulse" />
-              <span className="text-[12px] font-black italic text-white tracking-widest">{formatTime(timeLeft)}</span>
+              <span className="text-[12px] font-black  text-white tracking-widest">{formatTime(timeLeft)}</span>
               <span className="text-[8px] font-black uppercase text-slate-500 ml-1">Mission Clock</span>
             </div>
           )}
         </div>
 
         <div className="flex items-center gap-4">
-          <select 
-            value={language} 
+          <select
+            value={language}
             onChange={(e) => setLanguage(e.target.value)}
             className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-pink-500/20 transition-all"
           >
@@ -232,12 +231,11 @@ const CodingArena: React.FC = () => {
               let label = tab;
               if (tab === 'desc') label = isBug ? 'Sanitization Briefing' : 'Briefing';
               return (
-                <button 
-                  key={tab} 
+                <button
+                  key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl ${
-                    activeTab === tab ? 'text-pink-600 bg-white shadow-sm' : 'text-slate-400 hover:text-slate-600'
-                  }`}
+                  className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl ${activeTab === tab ? 'text-pink-600 bg-white shadow-sm' : 'text-slate-400 hover:text-slate-600'
+                    }`}
                 >
                   {label}
                 </button>
@@ -248,9 +246,9 @@ const CodingArena: React.FC = () => {
           <div className="flex-1 overflow-y-auto p-10">
             <AnimatePresence mode="wait">
               {activeTab === 'desc' && (
-                <motion.div 
-                  initial={{ opacity: 0, x: -10 }} 
-                  animate={{ opacity: 1, x: 0 }} 
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 10 }}
                   className="prose prose-slate max-w-none"
                 >
@@ -264,38 +262,38 @@ const CodingArena: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <h2 className="text-3xl font-black italic tracking-tighter mb-6 uppercase text-slate-900 leading-none">{problem.title}</h2>
-                  
+                  <h2 className="text-3xl font-black  tracking-tighter mb-6 uppercase text-slate-900 leading-none">{problem.title}</h2>
+
                   {window.location.pathname.includes('/arena/bug/') && (
                     <div className="grid grid-cols-3 gap-6 mb-10">
-                       <div className="bg-slate-50 border border-slate-100 p-6 rounded-[24px]">
-                          <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Anomalous Profile</p>
-                          <p className="text-sm font-black italic uppercase italic uppercase text-rose-600">{problem.difficulty} Protocol</p>
-                       </div>
-                       <div className="bg-slate-50 border border-slate-100 p-6 rounded-[24px]">
-                          <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Language Protocol</p>
-                          <p className="text-sm font-black italic uppercase text-indigo-600">{problem.language}</p>
-                       </div>
-                       <div className="bg-slate-50 border border-slate-100 p-6 rounded-[24px]">
-                          <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Corrupt Signature</p>
-                          <p className="text-sm font-black italic uppercase text-slate-900">{problemId?.substring(0, 8)}</p>
-                       </div>
+                      <div className="bg-slate-50 border border-slate-100 p-6 rounded-[24px]">
+                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Anomalous Profile</p>
+                        <p className="text-sm font-black  uppercase  uppercase text-rose-600">{problem.difficulty} Protocol</p>
+                      </div>
+                      <div className="bg-slate-50 border border-slate-100 p-6 rounded-[24px]">
+                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Language Protocol</p>
+                        <p className="text-sm font-black  uppercase text-indigo-600">{problem.language}</p>
+                      </div>
+                      <div className="bg-slate-50 border border-slate-100 p-6 rounded-[24px]">
+                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Corrupt Signature</p>
+                        <p className="text-sm font-black  uppercase text-slate-900">{problemId?.substring(0, 8)}</p>
+                      </div>
                     </div>
                   )}
 
                   <div className="bg-white border-2 border-slate-100 rounded-[32px] p-8 mb-10 shadow-sm relative overflow-hidden group hover:border-indigo-600/20 transition-all">
-                     <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                        <Terminal size={120} />
-                     </div>
-                     <p className="text-slate-600 leading-relaxed text-sm font-medium relative z-10">{problem.description}</p>
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                      <Terminal size={120} />
+                    </div>
+                    <p className="text-slate-600 leading-relaxed text-sm font-medium relative z-10">{problem.description}</p>
                   </div>
-                  
+
                   <div className="space-y-8">
                     <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 px-2">Intelligence Vectors</h4>
                     {problem.testCases?.filter((t: any) => !t.isHidden).map((tc: any, i: number) => (
                       <div key={i} className="bg-slate-50 rounded-[28px] p-8 border border-slate-100 shadow-sm hover:bg-white hover:border-indigo-600/10 transition-all">
                         <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
-                           <Layout size={14} /> Sanitization Case #{i+1}
+                          <Layout size={14} /> Sanitization Case #{i + 1}
                         </h4>
                         <div className="space-y-6">
                           <div>
@@ -321,24 +319,24 @@ const CodingArena: React.FC = () => {
           <div className="flex-1 relative">
             {window.location.pathname.includes('/arena/bug/') && (
               <div className="absolute top-0 left-0 right-0 h-10 bg-rose-900 flex items-center justify-between px-8 z-20 shadow-2xl">
-                 <div className="flex items-center gap-3">
-                    <ShieldAlert size={14} className="text-rose-400 animate-pulse" />
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-rose-100">Sanitization Progress: Diagnostic Mode</span>
-                 </div>
-                 <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2">
-                       <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
-                       <span className="text-[8px] font-black uppercase text-rose-300">Corrupted Logic Signal</span>
-                    </div>
-                    <div className="w-px h-4 bg-rose-800" />
-                    <div className="flex items-center gap-2">
-                       <MonitorCheck size={12} className="text-emerald-500" />
-                       <span className="text-[8px] font-black uppercase text-emerald-400">Target Stabilization</span>
-                    </div>
-                 </div>
+                <div className="flex items-center gap-3">
+                  <ShieldAlert size={14} className="text-rose-400 animate-pulse" />
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-rose-100">Sanitization Progress: Diagnostic Mode</span>
+                </div>
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
+                    <span className="text-[8px] font-black uppercase text-rose-300">Corrupted Logic Signal</span>
+                  </div>
+                  <div className="w-px h-4 bg-rose-800" />
+                  <div className="flex items-center gap-2">
+                    <MonitorCheck size={12} className="text-emerald-500" />
+                    <span className="text-[8px] font-black uppercase text-emerald-400">Target Stabilization</span>
+                  </div>
+                </div>
               </div>
             )}
-            
+
             {window.location.pathname.includes('/arena/bug/') ? (
               <DiffEditor
                 height="100%"
@@ -390,8 +388,8 @@ const CodingArena: React.FC = () => {
                   cursorSmoothCaretAnimation: 'on',
                   renderLineHighlight: 'all',
                   scrollbar: {
-                     verticalScrollbarSize: 8,
-                     horizontalScrollbarSize: 8,
+                    verticalScrollbarSize: 8,
+                    horizontalScrollbarSize: 8,
                   }
                 }}
               />
@@ -410,7 +408,7 @@ const CodingArena: React.FC = () => {
                 <span className="text-[9px] font-black uppercase tracking-widest text-slate-300">Operational</span>
               </div>
             </div>
-            
+
             <div className="flex-1 p-8 overflow-y-auto">
               {!results && !loading && (
                 <div className="h-full flex flex-col items-center justify-center opacity-10">
@@ -428,49 +426,46 @@ const CodingArena: React.FC = () => {
 
               {results && !loading && (
                 <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }}>
-                   <div className="flex items-center gap-6 mb-8">
-                      <div className={`px-6 py-3 rounded-2xl border-2 flex items-center gap-4 shadow-xl ${
-                        results.status === 'Accepted' ? 'bg-emerald-50 border-emerald-500/20 shadow-emerald-500/10' : 'bg-rose-50 border-rose-500/20 shadow-rose-500/10'
+                  <div className="flex items-center gap-6 mb-8">
+                    <div className={`px-6 py-3 rounded-2xl border-2 flex items-center gap-4 shadow-xl ${results.status === 'Accepted' ? 'bg-emerald-50 border-emerald-500/20 shadow-emerald-500/10' : 'bg-rose-50 border-rose-500/20 shadow-rose-500/10'
                       }`}>
-                         <div className={`w-3 h-3 rounded-full ${
-                           results.status === 'Accepted' ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
-                         }`} />
-                         <span className={`text-sm font-black uppercase tracking-[0.1em] ${
-                           results.status === 'Accepted' ? 'text-emerald-700' : 'text-rose-700'
-                         }`}>{results.status}</span>
+                      <div className={`w-3 h-3 rounded-full ${results.status === 'Accepted' ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
+                        }`} />
+                      <span className={`text-sm font-black uppercase tracking-[0.1em] ${results.status === 'Accepted' ? 'text-emerald-700' : 'text-rose-700'
+                        }`}>{results.status}</span>
+                    </div>
+                    <div className="flex items-center gap-10">
+                      <div className="flex flex-col">
+                        <span className="text-[8px] font-black uppercase text-slate-300 mb-1">Compute Time</span>
+                        <div className="flex items-center gap-2">
+                          <Clock size={14} className="text-indigo-500" />
+                          <span className="text-xs font-black tracking-tighter text-slate-700">{results.executionTime}ms</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-10">
-                         <div className="flex flex-col">
-                            <span className="text-[8px] font-black uppercase text-slate-300 mb-1">Compute Time</span>
-                            <div className="flex items-center gap-2">
-                               <Clock size={14} className="text-indigo-500" />
-                               <span className="text-xs font-black tracking-tighter text-slate-700">{results.executionTime}ms</span>
-                            </div>
-                         </div>
-                         <div className="flex flex-col">
-                            <span className="text-[8px] font-black uppercase text-slate-300 mb-1">Memory Matrix</span>
-                            <div className="flex items-center gap-2">
-                               <Layout size={14} className="text-indigo-500" />
-                               <span className="text-xs font-black tracking-tighter text-slate-700">{results.memoryUsage}KB</span>
-                            </div>
-                         </div>
-                         <div className="flex flex-col">
-                            <span className="text-[8px] font-black uppercase text-slate-300 mb-1">Integrity Score</span>
-                            <span className="text-xs font-black text-pink-600 uppercase tracking-tighter">
-                              {results.passedCount} / {results.totalCount} PASSED
-                            </span>
-                         </div>
+                      <div className="flex flex-col">
+                        <span className="text-[8px] font-black uppercase text-slate-300 mb-1">Memory Matrix</span>
+                        <div className="flex items-center gap-2">
+                          <Layout size={14} className="text-indigo-500" />
+                          <span className="text-xs font-black tracking-tighter text-slate-700">{results.memoryUsage}KB</span>
+                        </div>
                       </div>
-                   </div>
-                   
-                   {results.errorOutput && (
-                     <div className="mt-4">
-                        <p className="text-[9px] font-black uppercase text-rose-500 mb-2 px-1">Error Diagnostics</p>
-                        <pre className="bg-rose-50 border border-rose-100 p-6 rounded-2xl text-rose-700 font-mono text-sm overflow-x-auto shadow-inner">
-                          {results.errorOutput}
-                        </pre>
-                     </div>
-                   )}
+                      <div className="flex flex-col">
+                        <span className="text-[8px] font-black uppercase text-slate-300 mb-1">Integrity Score</span>
+                        <span className="text-xs font-black text-pink-600 uppercase tracking-tighter">
+                          {results.passedCount} / {results.totalCount} PASSED
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {results.errorOutput && (
+                    <div className="mt-4">
+                      <p className="text-[9px] font-black uppercase text-rose-500 mb-2 px-1">Error Diagnostics</p>
+                      <pre className="bg-rose-50 border border-rose-100 p-6 rounded-2xl text-rose-700 font-mono text-sm overflow-x-auto shadow-inner">
+                        {results.errorOutput}
+                      </pre>
+                    </div>
+                  )}
                 </motion.div>
               )}
             </div>

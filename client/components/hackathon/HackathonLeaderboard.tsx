@@ -73,39 +73,39 @@ const PodiumCard = ({ entry }: { entry: LeaderboardEntry }) => {
         >
           <View className="flex-row items-center justify-between">
             <View className="w-14 h-14 bg-white/10 rounded-2xl items-center justify-center border border-white/5">
-                <Text className="text-4xl">{cfg.medal}</Text>
+              <Text className="text-4xl">{cfg.medal}</Text>
             </View>
             <View className="items-end">
               <Text className="text-pink-500 text-[10px] font-black uppercase tracking-widest">Protocol Score</Text>
-              <Text className={`${entry.rank === 1 ? 'text-white' : 'text-zinc-900'} text-4xl font-black italic tracking-tighter`}>
+              <Text className={`${entry.rank === 1 ? 'text-white' : 'text-zinc-900'} text-4xl font-black  tracking-tighter`}>
                 {entry.score.toFixed(1)}
               </Text>
             </View>
           </View>
-          
+
           <View className="mt-6">
-            <Text className={`${entry.rank === 1 ? 'text-white' : 'text-zinc-900'} text-2xl font-black italic uppercase tracking-tighter leading-7`} numberOfLines={1}>
-                {entry.projectName}
+            <Text className={`${entry.rank === 1 ? 'text-white' : 'text-zinc-900'} text-2xl font-black  uppercase tracking-tighter leading-7`} numberOfLines={1}>
+              {entry.projectName}
             </Text>
             {entry.tagline ? (
-                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1" numberOfLines={1}>{entry.tagline}</Text>
+              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1" numberOfLines={1}>{entry.tagline}</Text>
             ) : null}
           </View>
 
           <View className="flex-row items-center justify-between mt-6">
             <View className="flex-row items-center bg-zinc-900/10 px-3 py-1.5 rounded-xl">
-                <View className="w-5 h-5 rounded-full bg-pink-500 items-center justify-center mr-2">
-                    <Ionicons name="people" size={10} color="white" />
-                </View>
-                <Text className={`${entry.rank === 1 ? 'text-white/80' : 'text-zinc-700'} text-[10px] font-black uppercase tracking-widest`}>{entry.teamName}</Text>
+              <View className="w-5 h-5 rounded-full bg-pink-500 items-center justify-center mr-2">
+                <Ionicons name="people" size={10} color="white" />
+              </View>
+              <Text className={`${entry.rank === 1 ? 'text-white/80' : 'text-zinc-700'} text-[10px] font-black uppercase tracking-widest`}>{entry.teamName}</Text>
             </View>
-            
+
             <View className="flex-row gap-1.5">
-                {entry.techStack?.slice(0, 2).map((t, i) => (
-                    <View key={i} className="bg-zinc-500/10 px-2.5 py-1 rounded-lg border border-white/5">
-                        <Text className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{t}</Text>
-                    </View>
-                ))}
+              {entry.techStack?.slice(0, 2).map((t, i) => (
+                <View key={i} className="bg-zinc-500/10 px-2.5 py-1 rounded-lg border border-white/5">
+                  <Text className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{t}</Text>
+                </View>
+              ))}
             </View>
           </View>
         </LinearGradient>
@@ -134,12 +134,12 @@ const LeaderboardRow = ({ entry, index }: { entry: LeaderboardEntry; index: numb
       >
         {/* Rank */}
         <View className="w-12 h-12 rounded-2xl bg-zinc-900 items-center justify-center mr-4 border border-zinc-800 shadow-lg shadow-zinc-900/20">
-          <Text className="text-white font-black italic text-lg leading-tight uppercase">#{entry.rank}</Text>
+          <Text className="text-white font-black  text-lg leading-tight uppercase">#{entry.rank}</Text>
         </View>
 
         {/* Project info */}
         <View className="flex-1 mr-4">
-          <Text className="text-zinc-900 font-black text-base italic uppercase tracking-tighter leading-5" numberOfLines={1}>
+          <Text className="text-zinc-900 font-black text-base  uppercase tracking-tighter leading-5" numberOfLines={1}>
             {entry.projectName}
           </Text>
           <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5" numberOfLines={1}>
@@ -149,7 +149,7 @@ const LeaderboardRow = ({ entry, index }: { entry: LeaderboardEntry; index: numb
 
         {/* Score */}
         <View className="items-end bg-slate-50 px-4 py-2 rounded-2xl border border-gray-100">
-          <Text className="text-pink-500 font-black italic text-xl tracking-tighter">{entry.score.toFixed(1)}</Text>
+          <Text className="text-pink-500 font-black  text-xl tracking-tighter">{entry.score.toFixed(1)}</Text>
           <Text className="text-slate-300 text-[8px] font-black uppercase tracking-widest -mt-1">PTS</Text>
         </View>
       </View>
@@ -219,39 +219,39 @@ const HackathonLeaderboard = () => {
 
       {/* Hero Header */}
       <View className="px-8 pt-10 pb-6 bg-white border-b border-slate-50">
-          <View className="flex-row items-center justify-between mb-8">
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              className="w-12 h-12 rounded-[20px] bg-zinc-900 items-center justify-center shadow-lg shadow-zinc-900/20"
-            >
-              <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onRefresh} className="w-12 h-12 rounded-[20px] bg-slate-50 items-center justify-center border border-gray-100">
-              <Ionicons name="refresh" size={20} color="#ec4899" />
-            </TouchableOpacity>
-          </View>
+        <View className="flex-row items-center justify-between mb-8">
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            className="w-12 h-12 rounded-[20px] bg-zinc-900 items-center justify-center shadow-lg shadow-zinc-900/20"
+          >
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onRefresh} className="w-12 h-12 rounded-[20px] bg-slate-50 items-center justify-center border border-gray-100">
+            <Ionicons name="refresh" size={20} color="#ec4899" />
+          </TouchableOpacity>
+        </View>
 
-          <View>
-            <Text className="text-zinc-900 text-5xl font-black italic uppercase tracking-tighter leading-[44px]">Leader</Text>
-            <Text className="text-zinc-900 text-5xl font-black italic uppercase tracking-tighter leading-[44px]">Board</Text>
-            <Text className="text-pink-500 text-[10px] font-black uppercase tracking-widest mt-4" numberOfLines={1}>
-                {hackathonTitle ?? 'Fync Protocol Registry'}
-            </Text>
-          </View>
+        <View>
+          <Text className="text-zinc-900 text-5xl font-black  uppercase tracking-tighter leading-[44px]">Leader</Text>
+          <Text className="text-zinc-900 text-5xl font-black  uppercase tracking-tighter leading-[44px]">Board</Text>
+          <Text className="text-pink-500 text-[10px] font-black uppercase tracking-widest mt-4" numberOfLines={1}>
+            {hackathonTitle ?? 'Fync Protocol Registry'}
+          </Text>
+        </View>
 
-          {/* Stats row */}
-          <View className="flex-row gap-4 mt-8">
-            {[
-              { label: 'Signals', val: leaderboard.length, icon: 'people' },
-              { label: 'Peak Score', val: leaderboard[0]?.score?.toFixed(1) ?? '—', icon: 'flash' },
-            ].map((s, i) => (
-              <View key={i} className="flex-1 bg-slate-50 rounded-[24px] px-6 py-4 border border-gray-100">
-                <Ionicons name={s.icon as any} size={14} color="#ec4899" />
-                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-2">{s.label}</Text>
-                <Text className="text-zinc-900 font-black italic text-2xl tracking-tighter mt-1">{s.val}</Text>
-              </View>
-            ))}
-          </View>
+        {/* Stats row */}
+        <View className="flex-row gap-4 mt-8">
+          {[
+            { label: 'Signals', val: leaderboard.length, icon: 'people' },
+            { label: 'Peak Score', val: leaderboard[0]?.score?.toFixed(1) ?? '—', icon: 'flash' },
+          ].map((s, i) => (
+            <View key={i} className="flex-1 bg-slate-50 rounded-[24px] px-6 py-4 border border-gray-100">
+              <Ionicons name={s.icon as any} size={14} color="#ec4899" />
+              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-2">{s.label}</Text>
+              <Text className="text-zinc-900 font-black  text-2xl tracking-tighter mt-1">{s.val}</Text>
+            </View>
+          ))}
+        </View>
       </View>
 
       {leaderboard.length === 0 ? (
@@ -259,7 +259,7 @@ const HackathonLeaderboard = () => {
           <View className="w-24 h-24 rounded-[32px] bg-slate-50 items-center justify-center mb-6">
             <Ionicons name="trophy-outline" size={44} color="#CBD5E1" />
           </View>
-          <Text className="text-zinc-900 font-black italic text-xl tracking-tighter text-center uppercase mb-1">
+          <Text className="text-zinc-900 font-black  text-xl tracking-tighter text-center uppercase mb-1">
             Registry Dark
           </Text>
           <Text className="text-slate-400 text-center font-black text-[10px] uppercase tracking-widest">
@@ -280,7 +280,7 @@ const HackathonLeaderboard = () => {
                 <View className="flex-1 h-[2px] bg-slate-50" />
                 <View className="mx-4 flex-row items-center bg-zinc-900 rounded-2xl px-5 py-2">
                   <Ionicons name="trophy" size={14} color="#ec4899" />
-                  <Text className="text-white font-black italic text-[10px] uppercase tracking-widest ml-2">Elite Protocols</Text>
+                  <Text className="text-white font-black  text-[10px] uppercase tracking-widest ml-2">Elite Protocols</Text>
                 </View>
                 <View className="flex-1 h-[2px] bg-slate-50" />
               </View>

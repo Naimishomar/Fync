@@ -203,7 +203,7 @@ const RecruiterPortal = () => {
                 {/* Title row */}
                 <View className="flex-row justify-between items-start mb-3">
                     <View className="flex-1 mr-3">
-                        <Text className={`text-lg font-black italic uppercase tracking-tighter ${isActive ? 'text-zinc-900' : 'text-slate-400'
+                        <Text className={`text-lg font-black  uppercase tracking-tighter ${isActive ? 'text-zinc-900' : 'text-slate-400'
                             }`} numberOfLines={2}>
                             {item.title}
                         </Text>
@@ -245,11 +245,11 @@ const RecruiterPortal = () => {
                 {/* Stats row */}
                 <View className="flex-row gap-3 mb-4">
                     <View className="flex-1 bg-slate-50 rounded-2xl p-3 items-center">
-                        <Text className="text-zinc-900 text-xl font-black italic">{appliedCount}</Text>
+                        <Text className="text-zinc-900 text-xl font-black ">{appliedCount}</Text>
                         <Text className="text-slate-400 text-[8px] font-black uppercase tracking-widest mt-0.5">Applied</Text>
                     </View>
                     <View className="flex-1 bg-emerald-50 rounded-2xl p-3 items-center">
-                        <Text className="text-emerald-600 text-xl font-black italic">{shortlistCount}</Text>
+                        <Text className="text-emerald-600 text-xl font-black ">{shortlistCount}</Text>
                         <Text className="text-emerald-400 text-[8px] font-black uppercase tracking-widest mt-0.5">Shortlisted</Text>
                     </View>
                 </View>
@@ -261,14 +261,14 @@ const RecruiterPortal = () => {
                             <Text className="text-slate-400 text-[8px] font-black uppercase tracking-widest">Description</Text>
                             {item.description.length > 60 && (
                                 <TouchableOpacity onPress={() => toggleExpand(item._id)}>
-                                    <Text className="text-pink-500 text-[9px] font-black uppercase italic">
+                                    <Text className="text-pink-500 text-[9px] font-black uppercase ">
                                         {expandedPosts[item._id] ? 'Show Less' : 'Show More'}
                                     </Text>
                                 </TouchableOpacity>
                             )}
                         </View>
                         <Text
-                            className="text-zinc-600 text-[11px] italic leading-5"
+                            className="text-zinc-600 text-[11px]  leading-5"
                             numberOfLines={expandedPosts[item._id] ? undefined : 3}
                         >
                             {item.description}
@@ -293,14 +293,14 @@ const RecruiterPortal = () => {
                         className="flex-1 flex-row items-center justify-center gap-2 bg-zinc-900 h-12 rounded-2xl"
                     >
                         <Ionicons name="people-outline" size={15} color="white" />
-                        <Text className="text-white font-black italic uppercase text-[10px] tracking-wide">Applicants</Text>
+                        <Text className="text-white font-black  uppercase text-[10px] tracking-wide">Applicants</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => openView(item, 'shortlisted')}
                         className="flex-1 flex-row items-center justify-center gap-2 bg-blue-500 h-12 rounded-2xl"
                     >
                         <Ionicons name="star-outline" size={15} color="white" />
-                        <Text className="text-white font-black italic uppercase text-[10px] tracking-wide">Shortlist</Text>
+                        <Text className="text-white font-black  uppercase text-[10px] tracking-wide">Shortlist</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -317,7 +317,7 @@ const RecruiterPortal = () => {
                     className="w-14 h-14 rounded-full"
                 />
                 <View className="flex-1">
-                    <Text className="text-zinc-900 text-base font-black italic uppercase tracking-tighter">
+                    <Text className="text-zinc-900 text-base font-black  uppercase tracking-tighter">
                         {item.candidate?.name}
                     </Text>
                     <Text className="text-slate-500 text-[10px] font-bold uppercase">
@@ -338,7 +338,7 @@ const RecruiterPortal = () => {
             {item.coverLetter ? (
                 <View className="bg-slate-50 p-3 rounded-2xl mb-4">
                     <Text className="text-slate-400 text-[8px] font-bold uppercase mb-1">Note / Pitch</Text>
-                    <Text className="text-zinc-600 text-xs italic leading-4" numberOfLines={3}>
+                    <Text className="text-zinc-600 text-xs  leading-4" numberOfLines={3}>
                         {item.coverLetter}
                     </Text>
                 </View>
@@ -351,7 +351,7 @@ const RecruiterPortal = () => {
                     className="flex-1 bg-slate-100 h-12 rounded-2xl items-center justify-center flex-row gap-2"
                 >
                     <Ionicons name="document-text-outline" size={15} color="#475569" />
-                    <Text className="text-slate-700 font-black italic uppercase text-[10px]">Resume</Text>
+                    <Text className="text-slate-700 font-black  uppercase text-[10px]">Resume</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -362,7 +362,7 @@ const RecruiterPortal = () => {
                     className="flex-1 bg-indigo-50 h-12 rounded-2xl items-center justify-center flex-row gap-2"
                 >
                     <Ionicons name="person-outline" size={15} color="#4f46e5" />
-                    <Text className="text-indigo-600 font-black italic uppercase text-[10px]">Portfolio</Text>
+                    <Text className="text-indigo-600 font-black  uppercase text-[10px]">Portfolio</Text>
                 </TouchableOpacity>
 
                 {/* Status action */}
@@ -379,7 +379,7 @@ const RecruiterPortal = () => {
                             className="flex-1 bg-emerald-500 h-12 rounded-2xl items-center justify-center flex-row gap-1"
                         >
                             <Ionicons name="checkmark-circle-outline" size={15} color="white" />
-                            <Text className="text-white font-black italic uppercase text-[10px]">Approve</Text>
+                            <Text className="text-white font-black  uppercase text-[10px]">Approve</Text>
                         </TouchableOpacity>
                     ) : item.status !== 'shortlisted' ? (
                         // Pending / reviewing → Shortlist or Reject
@@ -393,7 +393,7 @@ const RecruiterPortal = () => {
                             }
                             className="flex-1 bg-pink-500 h-12 rounded-2xl items-center justify-center"
                         >
-                            <Text className="text-white font-black italic uppercase text-[10px]">Action</Text>
+                            <Text className="text-white font-black  uppercase text-[10px]">Action</Text>
                         </TouchableOpacity>
                     ) : null
                 ) : view === 'shortlisted' ? (
@@ -406,7 +406,7 @@ const RecruiterPortal = () => {
                         }
                         className="flex-1 bg-zinc-900 h-12 rounded-2xl items-center justify-center"
                     >
-                        <Text className="text-white font-black italic uppercase text-[10px]">Remove</Text>
+                        <Text className="text-white font-black  uppercase text-[10px]">Remove</Text>
                     </TouchableOpacity>
                 ) : null}
             </View>
@@ -425,7 +425,7 @@ const RecruiterPortal = () => {
                     <Ionicons name="arrow-back" size={18} color="#0f172a" />
                 </TouchableOpacity>
                 <View className="flex-1">
-                    <Text className="text-zinc-900 text-sm font-black italic uppercase tracking-tighter" numberOfLines={1}>
+                    <Text className="text-zinc-900 text-sm font-black  uppercase tracking-tighter" numberOfLines={1}>
                         {selectedPost?.title}
                     </Text>
                     <Text className="text-pink-500 text-[9px] font-black uppercase tracking-widest">
@@ -438,7 +438,7 @@ const RecruiterPortal = () => {
                         className="flex-row items-center gap-1.5 bg-indigo-600 px-3 py-2 rounded-xl"
                     >
                         <Ionicons name="copy-outline" size={13} color="white" />
-                        <Text className="text-white font-black italic uppercase text-[9px]">Copy</Text>
+                        <Text className="text-white font-black  uppercase text-[9px]">Copy</Text>
                     </TouchableOpacity>
                 )}
                 {view === 'shortlisted' && (
@@ -447,7 +447,7 @@ const RecruiterPortal = () => {
                         className="flex-row items-center gap-1.5 bg-red-500 px-3 py-2 rounded-xl"
                     >
                         <Ionicons name="mail-outline" size={13} color="white" />
-                        <Text className="text-white font-black italic uppercase text-[9px]">Gmail</Text>
+                        <Text className="text-white font-black  uppercase text-[9px]">Gmail</Text>
                     </TouchableOpacity>
                 )}
                 {view === 'shortlisted' && (
@@ -456,7 +456,7 @@ const RecruiterPortal = () => {
                         className="flex-row items-center gap-1.5 bg-pink-500 px-3 py-2 rounded-xl"
                     >
                         <Ionicons name="notifications-outline" size={13} color="white" />
-                        <Text className="text-white font-black italic uppercase text-[9px]">Notify</Text>
+                        <Text className="text-white font-black  uppercase text-[9px]">Notify</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -479,7 +479,7 @@ const RecruiterPortal = () => {
                         placeholderTextColor="#94a3b8"
                         value={searchQuery}
                         onChangeText={setSearchQuery}
-                        className="flex-1 ml-2 text-zinc-900 font-bold italic text-xs"
+                        className="flex-1 ml-2 text-zinc-900 font-bold  text-xs"
                     />
                     {searchQuery.length > 0 && (
                         <TouchableOpacity onPress={() => setSearchQuery('')} className="bg-slate-200 p-1 rounded-full">
@@ -497,7 +497,7 @@ const RecruiterPortal = () => {
             {/* Top bar */}
             <View className="px-6 pb-4 flex-row items-center justify-between border-b border-slate-100">
                 <View>
-                    <Text className="text-2xl font-black italic uppercase tracking-tighter">
+                    <Text className="text-2xl font-black  uppercase tracking-tighter">
                         Recruiter <Text className="text-pink-500">Portal</Text>
                     </Text>
                     <Text className="text-slate-400 text-[8px] font-bold tracking-[2px] uppercase">
@@ -522,17 +522,17 @@ const RecruiterPortal = () => {
                 <View className="flex-row gap-3">
                     <View className="flex-1 bg-zinc-900 p-4 rounded-2xl items-center">
                         <Text className="text-white text-[8px] font-black uppercase tracking-widest">Active Posts</Text>
-                        <Text className="text-white text-2xl font-black italic mt-1">{posts.length}</Text>
+                        <Text className="text-white text-2xl font-black  mt-1">{posts.length}</Text>
                     </View>
                     <View className="flex-1 bg-black p-4 rounded-2xl items-center">
                         <Text className="text-white text-[8px] font-black uppercase tracking-widest">New Applicants</Text>
-                        <Text className="text-white text-2xl font-black italic mt-1">
+                        <Text className="text-white text-2xl font-black  mt-1">
                             {applications.filter(a => a.status === 'applied').length}
                         </Text>
                     </View>
                     <View className="flex-1 bg-black p-4 rounded-2xl items-center">
                         <Text className="text-white text-[8px] font-black uppercase tracking-widest">Shortlisted</Text>
-                        <Text className="text-white text-2xl font-black italic mt-1">
+                        <Text className="text-white text-2xl font-black  mt-1">
                             {applications.filter(a => a.status === 'shortlisted').length}
                         </Text>
                     </View>
@@ -542,7 +542,7 @@ const RecruiterPortal = () => {
 
             {/* Quick Access Opportunities */}
             <View className="flex-row px-5 pt-3 gap-3">
-                <TouchableOpacity 
+                <TouchableOpacity
                     onPress={() => navigation.navigate('InternshipList')}
                     activeOpacity={0.7}
                     className="flex-1 bg-white p-4 rounded-3xl border border-slate-100 flex-row items-center gap-3 shadow-sm"
@@ -551,12 +551,12 @@ const RecruiterPortal = () => {
                         <Ionicons name="school-outline" size={20} color="#6366f1" />
                     </View>
                     <View>
-                        <Text className="text-zinc-900 font-black italic uppercase text-[10px]">Internships</Text>
+                        <Text className="text-zinc-900 font-black  uppercase text-[10px]">Internships</Text>
                         <Text className="text-slate-400 text-[8px] font-bold">Hiring</Text>
                     </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity 
+                <TouchableOpacity
                     onPress={() => navigation.navigate('JobList')}
                     activeOpacity={0.7}
                     className="flex-1 bg-white p-4 rounded-3xl border border-slate-100 flex-row items-center gap-3 shadow-sm"
@@ -565,7 +565,7 @@ const RecruiterPortal = () => {
                         <Ionicons name="business-outline" size={20} color="#ec4899" />
                     </View>
                     <View>
-                        <Text className="text-zinc-900 font-black italic uppercase text-[10px]">Jobs</Text>
+                        <Text className="text-zinc-900 font-black  uppercase text-[10px]">Jobs</Text>
                         <Text className="text-slate-400 text-[8px] font-bold">Full-time</Text>
                     </View>
                 </TouchableOpacity>
@@ -599,7 +599,7 @@ const RecruiterPortal = () => {
                             ListEmptyComponent={
                                 <View className="items-center justify-center py-24 px-10">
                                     <Ionicons name="file-tray-outline" size={60} color="#cbd5e1" />
-                                    <Text className="text-slate-400 font-black italic uppercase text-center mt-4">
+                                    <Text className="text-slate-400 font-black  uppercase text-center mt-4">
                                         No posts yet
                                     </Text>
                                     <Text className="text-slate-300 text-[10px] text-center mt-2">
@@ -626,7 +626,7 @@ const RecruiterPortal = () => {
                                     size={60}
                                     color="#cbd5e1"
                                 />
-                                <Text className="text-slate-400 font-black italic uppercase text-center mt-4">
+                                <Text className="text-slate-400 font-black  uppercase text-center mt-4">
                                     {view === 'shortlisted' ? 'No shortlisted candidates' : 'No applicants yet'}
                                 </Text>
                                 <Text className="text-slate-300 text-[10px] text-center mt-2">

@@ -31,7 +31,7 @@ const SearchScreen = () => {
     }
     const timer = setTimeout(() => {
       fetchUsers(normalized);
-    }, 400); 
+    }, 400);
     return () => clearTimeout(timer);
   }, [query]);
 
@@ -89,17 +89,17 @@ const SearchScreen = () => {
   };
 
   const renderUserItem = ({ item, isRecent }: { item: User; isRecent: boolean }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       onPress={() => handleUserPress(item)}
       activeOpacity={0.8}
       className="flex-row items-center justify-between p-3 mb-2 bg-white rounded-xl border border-slate-100 shadow-sm shadow-black/5"
     >
       <View className="flex-row items-center flex-1">
-        <Avatar 
-          user={item as any} 
-          size={34} 
+        <Avatar
+          user={item as any}
+          size={34}
         />
-        
+
         <View className="ml-4">
           <Text className="text-zinc-900 font-black text-xs tracking-tight">
             {item.username}
@@ -111,10 +111,10 @@ const SearchScreen = () => {
       </View>
 
       {isRecent && (
-        <TouchableOpacity 
-            onPress={() => removeItem(item._id)}
-            className="bg-slate-50 p-2 rounded-xl border border-slate-100"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        <TouchableOpacity
+          onPress={() => removeItem(item._id)}
+          className="bg-slate-50 p-2 rounded-xl border border-slate-100"
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <Ionicons name="close" size={14} color="#94A3B8" />
         </TouchableOpacity>
@@ -128,21 +128,21 @@ const SearchScreen = () => {
 
       {/* HEADER DECORATION */}
       <View className="absolute top-0 w-full h-80 opacity-20">
-        <LinearGradient 
-          colors={['#f97316', 'transparent']} 
+        <LinearGradient
+          colors={['#f97316', 'transparent']}
           className="w-full h-full"
         />
       </View>
 
       <SafeAreaView className="flex-1" edges={['top']}>
-        
+
         {/* Arena Header */}
         <View className="px-8 pt-2 bg-transparent">
           <View className="flex-row items-center justify-between mb-5">
             <View className="flex-1">
               <View className="flex-row items-center">
                 <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
-                  Explore <Text className="text-orange-500">Registry</Text>
+                  Find <Text className="text-orange-500">Friends</Text>
                 </Text>
               </View>
               <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[1px]">Global Campus Directory</Text>
@@ -184,15 +184,15 @@ const SearchScreen = () => {
             ListEmptyComponent={
               !loading ? (
                 <View className="items-center mt-12 px-10">
-                    <View className="w-16 h-16 bg-white rounded-full items-center justify-center mb-4 border border-gray-100 shadow-sm">
-                      <Ionicons name="search-outline" size={32} color="#cbd5e1" />
-                    </View>
-                    <Text className="text-center text-zinc-900 font-bold text-lg">
+                  <View className="w-16 h-16 bg-white rounded-full items-center justify-center mb-4 border border-gray-100 shadow-sm">
+                    <Ionicons name="search-outline" size={32} color="#cbd5e1" />
+                  </View>
+                  <Text className="text-center text-zinc-900 font-bold text-lg">
                     No users found
-                    </Text>
-                    <Text className="text-center text-gray-500 mt-1">
+                  </Text>
+                  <Text className="text-center text-gray-500 mt-1">
                     Try searching for a different name or username
-                    </Text>
+                  </Text>
                 </View>
               ) : null
             }
@@ -216,11 +216,11 @@ const SearchScreen = () => {
               contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
               ListEmptyComponent={
                 <View className="items-center mt-12 px-10">
-                    <View className="w-20 h-20 bg-white rounded-[32px] items-center justify-center mb-6 border border-slate-100 shadow-sm">
-                      <Ionicons name="time-outline" size={32} color="#cbd5e1" />
-                    </View>
-                    <Text className="text-zinc-400 font-black italic uppercase text-xs tracking-widest text-center">History Empty</Text>
-                    <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center">No previous registry lookups found.</Text>
+                  <View className="w-20 h-20 bg-white rounded-[32px] items-center justify-center mb-6 border border-slate-100 shadow-sm">
+                    <Ionicons name="time-outline" size={32} color="#cbd5e1" />
+                  </View>
+                  <Text className="text-zinc-400 font-black  uppercase text-xs tracking-widest text-center">History Empty</Text>
+                  <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center">No previous registry lookups found.</Text>
                 </View>
               }
             />

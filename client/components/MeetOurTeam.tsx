@@ -84,7 +84,7 @@ const MeetOurTeam = () => {
                         <Text className="text-4xl font-extrabold text-[#1A1A1A] tracking-[4px]">
                             MEET
                         </Text>
-                        <Text className="text-xl font-serif text-pink-500 mx-2 italic mb-[-5px]">
+                        <Text className="text-xl font-serif text-pink-500 mx-2  mb-[-5px]">
                             the
                         </Text>
                         <Text className="text-4xl font-extrabold text-[#1A1A1A] tracking-[4px]">
@@ -102,11 +102,11 @@ const MeetOurTeam = () => {
                         return (
                             <View key={member.id} style={{ width: '50%' }} className="items-center mb-12 px-3">
                                 {/* Circular Frame */}
-                                <View 
+                                <View
                                     className={`relative w-36 h-36 rounded-full items-center justify-center p-1 overflow-hidden ${member.isHighlighted ? 'bg-cyan-400' : 'bg-gray-100'}`}
                                 >
-                                    <Image 
-                                        source={{ uri: member.image }} 
+                                    <Image
+                                        source={{ uri: member.image }}
                                         className="w-full h-full rounded-full"
                                         resizeMode="cover"
                                     />
@@ -121,10 +121,10 @@ const MeetOurTeam = () => {
                                     <Text className="text-[14px] font-black text-[#1A1A1A] tracking-[1.5px] text-center uppercase">
                                         {member.name}
                                     </Text>
-                                    <Text className="text-[11px] text-gray-400 font-semibold italic mt-1 text-center">
+                                    <Text className="text-[11px] text-gray-400 font-semibold  mt-1 text-center">
                                         {member.role}
                                     </Text>
-                                    
+
                                     {/* Social Icons (matching the UI style) */}
                                     <View className="flex-row mt-3 gap-5">
                                         <TouchableOpacity onPress={() => openLink(member.linkedin)}>

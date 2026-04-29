@@ -34,14 +34,14 @@ const LeaderboardScreen = () => {
     socket.emit("watch_leaderboard", { roomId });
 
     const onUpdate = () => {
-        console.log("🔔 New submission received! Refreshing...");
-        fetchLeaderboard();
+      console.log("🔔 New submission received! Refreshing...");
+      fetchLeaderboard();
     };
 
     socket.on("leaderboard_updated", onUpdate);
 
     return () => {
-        socket.off("leaderboard_updated", onUpdate);
+      socket.off("leaderboard_updated", onUpdate);
     };
   }, [roomId]);
 
@@ -162,11 +162,11 @@ const LeaderboardScreen = () => {
       <View className={`flex-row items-center ${cardBg} p-5 mb-4 mx-6 rounded-3xl border border-slate-100 shadow-sm shadow-black/5`}>
         {/* Rank */}
         <View className="w-10 items-center justify-center mr-3">
-           {index < 3 ? (
-               <Ionicons name="trophy" size={28} color={iconColor} />
-           ) : (
-               <Text className={`text-xl font-black italic ${rankColor}`}>#{index + 1}</Text>
-           )}
+          {index < 3 ? (
+            <Ionicons name="trophy" size={28} color={iconColor} />
+          ) : (
+            <Text className={`text-xl font-black  ${rankColor}`}>#{index + 1}</Text>
+          )}
         </View>
 
         {/* Avatar */}
@@ -174,21 +174,21 @@ const LeaderboardScreen = () => {
           {item.user?.avatar ? (
             <Image source={{ uri: item.user.avatar }} className="w-full h-full rounded-xl" />
           ) : (
-            <Text className="font-black italic text-slate-300 text-xl">{item.user?.username?.[0]?.toUpperCase()}</Text>
+            <Text className="font-black  text-slate-300 text-xl">{item.user?.username?.[0]?.toUpperCase()}</Text>
           )}
         </View>
 
         {/* User Info */}
         <View className="flex-1">
-            <Text className="font-black italic text-zinc-900 text-base uppercase tracking-tight" numberOfLines={1}>
+          <Text className="font-black  text-zinc-900 text-base uppercase tracking-tight" numberOfLines={1}>
             {item.user?.name || item.user?.username || "Global User"}
-            </Text>
-            <Text className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">@{item.user?.username || "unknown"}</Text>
+          </Text>
+          <Text className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">@{item.user?.username || "unknown"}</Text>
         </View>
 
         {/* Score Badge */}
         <View className="bg-pink-50 px-4 py-2 rounded-2xl shadow-sm border border-pink-100 transform rotate-2">
-          <Text className="font-black italic text-pink-500 text-base">
+          <Text className="font-black  text-pink-500 text-base">
             {item.score} <Text className="text-[10px] uppercase tracking-tighter">Pts</Text>
           </Text>
         </View>
@@ -210,44 +210,44 @@ const LeaderboardScreen = () => {
             <Ionicons name="home" size={20} color="#18181b" />
           </TouchableOpacity>
 
-          <Text className="text-3xl font-black italic text-zinc-900 tracking-tighter uppercase">
-             Leader<Text className="text-pink-500">Board</Text>
+          <Text className="text-3xl font-black  text-zinc-900 tracking-tighter uppercase">
+            Leader<Text className="text-pink-500">Board</Text>
           </Text>
 
           {/* ACTION BUTTONS */}
           <View className="flex-row items-center gap-3">
             {/* Animated Refresh Button */}
             <TouchableOpacity onPress={handleManualRefresh} className="w-12 h-12 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm shadow-black/5">
-                <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                    <Ionicons name="refresh" size={20} color="#18181b" />
-                </Animated.View>
+              <Animated.View style={{ transform: [{ rotate: spin }] }}>
+                <Ionicons name="refresh" size={20} color="#18181b" />
+              </Animated.View>
             </TouchableOpacity>
 
             {/* Download Button */}
             <TouchableOpacity onPress={downloadPDF} disabled={downloading} className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/20">
-                {downloading ? (
-                    <ActivityIndicator size="small" color="white" />
-                ) : (
-                    <Ionicons name="download" size={20} color="white" />
-                )}
+              {downloading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Ionicons name="download" size={20} color="white" />
+              )}
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Room ID Badge */}
         <View className="items-center mb-8">
-            <View className="bg-white px-6 py-2 rounded-full border border-slate-100 shadow-sm shadow-black/5">
-                <Text className="text-[10px] font-black italic text-slate-400 tracking-[2px] uppercase">Node: <Text className="text-zinc-900">{roomId}</Text></Text>
-            </View>
+          <View className="bg-white px-6 py-2 rounded-full border border-slate-100 shadow-sm shadow-black/5">
+            <Text className="text-[10px] font-black  text-slate-400 tracking-[2px] uppercase">Node: <Text className="text-zinc-900">{roomId}</Text></Text>
+          </View>
         </View>
 
         {/* User's Own Score Card (If played) */}
         {myScore !== undefined && (
           <View className="mx-8 bg-white p-8 rounded-[40px] mb-8 shadow-2xl shadow-black/5 items-center overflow-hidden border border-slate-100">
             <View className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-full -mr-16 -mt-16" />
-            <Text className="text-pink-500 font-black italic text-[10px] uppercase tracking-[3px] mb-2">My Final Ranking</Text>
-            <Text className="text-zinc-900 text-6xl font-black italic tracking-tighter">{myScore}</Text>
-            <Text className="text-slate-400 font-black italic text-[10px] uppercase tracking-[2px] mt-2">Points Verified</Text>
+            <Text className="text-pink-500 font-black  text-[10px] uppercase tracking-[3px] mb-2">My Final Ranking</Text>
+            <Text className="text-zinc-900 text-6xl font-black  tracking-tighter">{myScore}</Text>
+            <Text className="text-slate-400 font-black  text-[10px] uppercase tracking-[2px] mt-2">Points Verified</Text>
           </View>
         )}
 
@@ -263,13 +263,13 @@ const LeaderboardScreen = () => {
             contentContainerStyle={{ paddingBottom: 40 }}
             ListEmptyComponent={
               <View className="items-center justify-center mt-20 px-10">
-                  <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
-                    <Ionicons name="people" size={40} color="#CBD5E1" />
-                  </View>
-                  <Text className="text-zinc-900 font-black italic text-xl tracking-tight text-center uppercase">Dev Void</Text>
-                  <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-wide">
-                      Awaiting entry from challengers.
-                  </Text>
+                <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
+                  <Ionicons name="people" size={40} color="#CBD5E1" />
+                </View>
+                <Text className="text-zinc-900 font-black  text-xl tracking-tight text-center uppercase">Dev Void</Text>
+                <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-wide">
+                  Awaiting entry from challengers.
+                </Text>
               </View>
             }
           />

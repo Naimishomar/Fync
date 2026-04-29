@@ -146,9 +146,9 @@ const PlacementHub = () => {
     const handleComment = async () => {
         if (!newComment.trim() || !selectedQuestion) return;
         try {
-            const res = await axios.post(`/placement/comment/${selectedQuestion._id}`, { 
+            const res = await axios.post(`/placement/comment/${selectedQuestion._id}`, {
                 text: newComment,
-                parentCommentId: replyingTo?._id 
+                parentCommentId: replyingTo?._id
             });
             if (res.data.success) {
                 const commentsRes = await axios.get(`/placement/comments/${selectedQuestion._id}`);
@@ -171,22 +171,20 @@ const PlacementHub = () => {
                 <View className="p-6">
                     <View className="flex-row justify-between items-center mb-4">
                         <View className="bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100">
-                            <Text className="text-zinc-500 text-[8px] font-black uppercase tracking-widest italic">{item.company || 'Gen-Z Tech'}</Text>
+                            <Text className="text-zinc-500 text-[8px] font-black uppercase tracking-widest ">{item.company || 'Gen-Z Tech'}</Text>
                         </View>
-                        <View className={`px-3 py-1.5 rounded-full border ${
-                            item.difficulty === 'Hard' ? 'bg-rose-50 border-rose-100' :
-                            item.difficulty === 'Medium' ? 'bg-amber-50 border-amber-100' :
-                            'bg-emerald-50 border-emerald-100'
-                        }`}>
-                            <Text className={`text-[8px] font-black uppercase tracking-widest italic ${
-                                item.difficulty === 'Hard' ? 'text-rose-500' :
-                                item.difficulty === 'Medium' ? 'text-amber-500' :
-                                'text-emerald-500'
-                            }`}>{item.difficulty}</Text>
+                        <View className={`px-3 py-1.5 rounded-full border ${item.difficulty === 'Hard' ? 'bg-rose-50 border-rose-100' :
+                                item.difficulty === 'Medium' ? 'bg-amber-50 border-amber-100' :
+                                    'bg-emerald-50 border-emerald-100'
+                            }`}>
+                            <Text className={`text-[8px] font-black uppercase tracking-widest  ${item.difficulty === 'Hard' ? 'text-rose-500' :
+                                    item.difficulty === 'Medium' ? 'text-amber-500' :
+                                        'text-emerald-500'
+                                }`}>{item.difficulty}</Text>
                         </View>
                     </View>
 
-                    <Text className="text-zinc-900 text-sm font-black italic uppercase leading-6 mb-6">"{item.question}"</Text>
+                    <Text className="text-zinc-900 text-sm font-black  uppercase leading-6 mb-6">"{item.question}"</Text>
 
                     <View className="flex-row flex-wrap gap-2 mb-6">
                         <View className="bg-zinc-900 px-3 py-1 rounded-lg">
@@ -199,12 +197,12 @@ const PlacementHub = () => {
 
                     <View className="flex-row justify-between items-center pt-4 border-t border-slate-50">
                         <View className="flex-row items-center">
-                            <Image 
-                                source={{ uri: item.postedBy?.avatar || `https://ui-avatars.com/api/?name=${item.postedBy?.username}` }} 
-                                className="w-6 h-6 rounded-full border border-slate-200 bg-slate-50" 
+                            <Image
+                                source={{ uri: item.postedBy?.avatar || `https://ui-avatars.com/api/?name=${item.postedBy?.username}` }}
+                                className="w-6 h-6 rounded-full border border-slate-200 bg-slate-50"
                             />
                             <View className="ml-2">
-                                <Text className="text-zinc-900 text-[8px] font-black italic uppercase tracking-tighter">@{item.postedBy?.username}</Text>
+                                <Text className="text-zinc-900 text-[8px] font-black  uppercase tracking-tighter">@{item.postedBy?.username}</Text>
                                 <Text className="text-slate-400 text-[6px] uppercase font-bold">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}</Text>
                             </View>
                         </View>
@@ -214,15 +212,15 @@ const PlacementHub = () => {
                                 <Ionicons name={isUpvoted ? "heart" : "heart-outline"} size={16} color={isUpvoted ? "#ec4899" : "#CBD5E1"} />
                                 <Text className={`ml-1 text-[8px] font-black ${isUpvoted ? 'text-pink-500' : 'text-slate-400'}`}>{item.upvotes?.length}</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity 
-                                onPress={async () => { 
+                            <TouchableOpacity
+                                onPress={async () => {
                                     try {
                                         const res = await axios.get(`/placement/comments/${item._id}`);
-                                        if(res.data.success) {
+                                        if (res.data.success) {
                                             setSelectedQuestion({ ...item, comments: res.data.comments });
                                             setDiscussionVisible(true);
                                         }
-                                    } catch(e) {}
+                                    } catch (e) { }
                                 }}
                                 className="flex-row items-center"
                             >
@@ -279,21 +277,21 @@ const PlacementHub = () => {
     const CommentItem = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => (
         <View className={`${isReply ? 'ml-10 mt-4' : 'mb-6'}`}>
             <View className="flex-row">
-                <Image 
-                    source={{ uri: comment.commentor?.avatar || `https://ui-avatars.com/api/?name=${comment.commentor?.username}` }} 
-                    className={`${isReply ? 'w-6 h-6' : 'w-10 h-10'} rounded-2xl bg-slate-50 border border-slate-100 shadow-sm`} 
+                <Image
+                    source={{ uri: comment.commentor?.avatar || `https://ui-avatars.com/api/?name=${comment.commentor?.username}` }}
+                    className={`${isReply ? 'w-6 h-6' : 'w-10 h-10'} rounded-2xl bg-slate-50 border border-slate-100 shadow-sm`}
                 />
                 <View className="flex-1 ml-4 bg-white p-5 rounded-[24px] rounded-tl-none border border-slate-100 shadow-sm">
                     <View className="flex-row justify-between items-center mb-2">
-                        <Text className="text-zinc-900 font-black italic text-[9px] uppercase tracking-tight">@{comment.commentor?.username}</Text>
+                        <Text className="text-zinc-900 font-black  text-[9px] uppercase tracking-tight">@{comment.commentor?.username}</Text>
                         <Text className="text-slate-400 text-[7px] font-bold uppercase">{comment.createdAt ? formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true }) : ''}</Text>
                     </View>
-                    <Text className="text-zinc-600 text-xs leading-5 font-medium italic">
+                    <Text className="text-zinc-600 text-xs leading-5 font-medium ">
                         {comment.replyToUser && <Text className="text-pink-500 font-black">@{comment.replyToUser.username} </Text>}
                         {comment.text}
                     </Text>
                     {!isReply && (
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             onPress={() => {
                                 setReplyingTo(comment);
                                 setNewComment(`@${comment.commentor?.username} `);
@@ -301,7 +299,7 @@ const PlacementHub = () => {
                             }}
                             className="mt-3"
                         >
-                            <Text className="text-pink-500 text-[8px] font-black uppercase tracking-widest italic">Protocol Reply</Text>
+                            <Text className="text-pink-500 text-[8px] font-black uppercase tracking-widest ">Protocol Reply</Text>
                         </TouchableOpacity>
                     )}
                 </View>
@@ -323,7 +321,7 @@ const PlacementHub = () => {
                 <View className="px-8 pt-6">
                     <View className="flex-row justify-between items-center mb-8">
                         <View>
-                            <Text className="text-zinc-900 text-3xl font-black italic uppercase tracking-tighter leading-tight">Career <Text className="text-blue-500">Hub</Text></Text>
+                            <Text className="text-zinc-900 text-3xl font-black  uppercase tracking-tighter leading-tight">Career <Text className="text-blue-500">Hub</Text></Text>
                             <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-0.5">Corporate Intelligence Unit</Text>
                         </View>
                         <TouchableOpacity
@@ -342,34 +340,34 @@ const PlacementHub = () => {
                             placeholderTextColor="#CBD5E1"
                             value={search}
                             onChangeText={setSearch}
-                            className="flex-1 ml-3 text-zinc-900 font-black italic uppercase text-[10px]"
+                            className="flex-1 ml-3 text-zinc-900 font-black  uppercase text-[10px]"
                         />
                     </View>
                 </View>
 
-                <ScrollView 
+                <ScrollView
                     showsVerticalScrollIndicator={false}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3b82f6" />}
                 >
                     {/* Feature Cards */}
                     <View className="px-8 mb-8 flex-row gap-4">
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             onPress={() => navigation.navigate("PlacementPredictor")}
                             className="flex-1"
                         >
                             <LinearGradient colors={['#4f46e5', '#3730a3']} className="p-5 rounded-[32px] h-40 justify-center">
                                 <Ionicons name="stats-chart" size={28} color="white" />
-                                <Text className="text-white text-xs font-black italic uppercase mt-4 tracking-tighter">Predictor</Text>
+                                <Text className="text-white text-xs font-black  uppercase mt-4 tracking-tighter">Predictor</Text>
                                 <Text className="text-white/50 text-[7px] font-black uppercase mt-1">AI Resume Scan</Text>
                             </LinearGradient>
                         </TouchableOpacity>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             onPress={() => navigation.navigate("InterviewSetup")}
                             className="flex-1"
                         >
                             <LinearGradient colors={['#ec4899', '#be185d']} className="p-5 rounded-[32px] h-40 justify-center">
                                 <Ionicons name="mic" size={28} color="white" />
-                                <Text className="text-white text-xs font-black italic uppercase mt-4 tracking-tighter">Mock Sync</Text>
+                                <Text className="text-white text-xs font-black  uppercase mt-4 tracking-tighter">Mock Sync</Text>
                                 <Text className="text-white/50 text-[7px] font-black uppercase mt-1">Real-time Simulation</Text>
                             </LinearGradient>
                         </TouchableOpacity>
@@ -377,14 +375,14 @@ const PlacementHub = () => {
 
                     {/* Companies */}
                     <View className="mb-10">
-                        <Text className="text-slate-400 font-black text-[9px] uppercase ml-8 mb-4 tracking-widest italic">Strategic Targets</Text>
+                        <Text className="text-slate-400 font-black text-[9px] uppercase ml-8 mb-4 tracking-widest ">Strategic Targets</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24 }}>
                             {COMPANIES.map((c, i) => (
                                 <TouchableOpacity key={i} onPress={() => setSearch(c.name)} className="mr-6 items-center">
                                     <View className="bg-white w-16 h-16 rounded-[24px] items-center justify-center border border-slate-100 shadow-sm shadow-black/5">
                                         <FontAwesome5 name={c.icon} size={24} color={c.color} />
                                     </View>
-                                    <Text className="text-slate-400 text-[8px] mt-3 font-black uppercase italic tracking-tighter">{c.name}</Text>
+                                    <Text className="text-slate-400 text-[8px] mt-3 font-black uppercase  tracking-tighter">{c.name}</Text>
                                 </TouchableOpacity>
                             ))}
                         </ScrollView>
@@ -399,7 +397,7 @@ const PlacementHub = () => {
                                     onPress={() => setActiveType(type)}
                                     className={`mr-3 px-6 py-3 rounded-2xl border ${activeType === type ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-slate-100 shadow-sm'}`}
                                 >
-                                    <Text className={`text-[9px] font-black italic uppercase tracking-widest ${activeType === type ? 'text-white' : 'text-slate-400'}`}>{type}</Text>
+                                    <Text className={`text-[9px] font-black  uppercase tracking-widest ${activeType === type ? 'text-white' : 'text-slate-400'}`}>{type}</Text>
                                 </TouchableOpacity>
                             ))}
                         </ScrollView>
@@ -408,26 +406,26 @@ const PlacementHub = () => {
                     {/* Trending Header */}
                     {trending.length > 0 && (
                         <View className="mb-10">
-                            <Text className="text-zinc-900 font-black text-[10px] uppercase ml-8 mb-4 tracking-widest italic">Trending <Text className="text-blue-500">Signals</Text> 🔥</Text>
+                            <Text className="text-zinc-900 font-black text-[10px] uppercase ml-8 mb-4 tracking-widest ">Trending <Text className="text-blue-500">Signals</Text> 🔥</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24 }}>
                                 {trending.map((item, i) => (
                                     <TouchableOpacity
                                         key={i}
-                                        onPress={async () => { 
+                                        onPress={async () => {
                                             try {
                                                 const res = await axios.get(`/placement/comments/${item._id}`);
-                                                if(res.data.success) {
+                                                if (res.data.success) {
                                                     setSelectedQuestion({ ...item, comments: res.data.comments });
                                                     setDiscussionVisible(true);
                                                 }
-                                            } catch(e) {}
+                                            } catch (e) { }
                                         }}
                                         className="bg-white mr-4 p-6 rounded-[32px] border border-blue-100 w-[240px] shadow-sm shadow-blue-500/5"
                                     >
-                                        <Text className="text-zinc-900 font-black italic text-xs uppercase" numberOfLines={1}>{item.company}</Text>
-                                        <Text className="text-blue-500 text-[8px] font-black uppercase tracking-widest mt-1 italic" numberOfLines={1}>{item.type}</Text>
+                                        <Text className="text-zinc-900 font-black  text-xs uppercase" numberOfLines={1}>{item.company}</Text>
+                                        <Text className="text-blue-500 text-[8px] font-black uppercase tracking-widest mt-1 " numberOfLines={1}>{item.type}</Text>
                                         <View className="h-[2px] w-8 bg-blue-500 my-4 rounded-full" />
-                                        <Text className="text-slate-500 text-[10px] font-medium leading-5 italic" numberOfLines={2}>"{item.question}"</Text>
+                                        <Text className="text-slate-500 text-[10px] font-medium leading-5 " numberOfLines={2}>"{item.question}"</Text>
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
@@ -435,7 +433,7 @@ const PlacementHub = () => {
                     )}
 
                     {/* Main Feed */}
-                    <Text className="text-slate-400 font-black text-[9px] uppercase ml-8 mb-4 tracking-widest italic">Global Intel Stream</Text>
+                    <Text className="text-slate-400 font-black text-[9px] uppercase ml-8 mb-4 tracking-widest ">Global Intel Stream</Text>
                     {loading && !refreshing ? (
                         <View>{[1, 2, 3].map(i => <QuestionSkeleton key={i} />)}</View>
                     ) : (
@@ -447,7 +445,7 @@ const PlacementHub = () => {
                             ListEmptyComponent={
                                 <View className="items-center py-20 px-8">
                                     <Ionicons name="document-text-outline" size={48} color="#CBD5E1" />
-                                    <Text className="text-zinc-400 font-black uppercase text-xs tracking-widest mt-6 text-center italic">No Intelligence Found</Text>
+                                    <Text className="text-zinc-400 font-black uppercase text-xs tracking-widest mt-6 text-center ">No Intelligence Found</Text>
                                 </View>
                             }
                         />
@@ -460,7 +458,7 @@ const PlacementHub = () => {
                         <StatusBar barStyle="dark-content" />
                         <View className="flex-row justify-between items-center px-8 py-6 border-b border-slate-100 bg-white">
                             <View>
-                                <Text className="text-xl font-black text-zinc-900 italic tracking-tighter uppercase leading-tight">Contribution <Text className="text-blue-500">Ledger</Text></Text>
+                                <Text className="text-xl font-black text-zinc-900  tracking-tighter uppercase leading-tight">Contribution <Text className="text-blue-500">Ledger</Text></Text>
                                 <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest mt-0.5">Share Interview Intelligence</Text>
                             </View>
                             <TouchableOpacity onPress={() => setPostModalVisible(false)} className="bg-slate-50 p-2 rounded-2xl border border-slate-100">
@@ -475,17 +473,17 @@ const PlacementHub = () => {
                                     <TextInput
                                         placeholder="Company Name" placeholderTextColor="#CBD5E1"
                                         value={form.company} onChangeText={t => setForm({ ...form, company: t })}
-                                        className="text-zinc-900 font-black italic uppercase text-xs mb-6 border-b border-slate-50 pb-4"
+                                        className="text-zinc-900 font-black  uppercase text-xs mb-6 border-b border-slate-50 pb-4"
                                     />
                                     <TextInput
                                         placeholder="Role Assigned" placeholderTextColor="#CBD5E1"
                                         value={form.role} onChangeText={t => setForm({ ...form, role: t })}
-                                        className="text-zinc-900 font-black italic uppercase text-xs mb-6 border-b border-slate-50 pb-4"
+                                        className="text-zinc-900 font-black  uppercase text-xs mb-6 border-b border-slate-50 pb-4"
                                     />
                                     <TextInput
                                         placeholder="Interview Round" placeholderTextColor="#CBD5E1"
                                         value={form.round} onChangeText={t => setForm({ ...form, round: t })}
-                                        className="text-zinc-900 font-black italic uppercase text-[10px]"
+                                        className="text-zinc-900 font-black  uppercase text-[10px]"
                                     />
                                 </View>
 
@@ -496,7 +494,7 @@ const PlacementHub = () => {
                                             key={t} onPress={() => setForm({ ...form, type: t })}
                                             className={`mr-3 px-6 py-3 rounded-2xl border ${form.type === t ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-slate-100'}`}
                                         >
-                                            <Text className={`text-[9px] font-black italic uppercase tracking-widest ${form.type === t ? 'text-white' : 'text-slate-400'}`}>{t}</Text>
+                                            <Text className={`text-[9px] font-black  uppercase tracking-widest ${form.type === t ? 'text-white' : 'text-slate-400'}`}>{t}</Text>
                                         </TouchableOpacity>
                                     ))}
                                 </ScrollView>
@@ -506,23 +504,23 @@ const PlacementHub = () => {
                                     <TextInput
                                         placeholder="Establish the question..." placeholderTextColor="#CBD5E1"
                                         multiline value={form.question} onChangeText={t => setForm({ ...form, question: t })}
-                                        className="text-zinc-900 font-black italic uppercase text-xs min-h-[120px] mb-4"
+                                        className="text-zinc-900 font-black  uppercase text-xs min-h-[120px] mb-4"
                                         textAlignVertical="top"
                                     />
                                     <View className="h-[1px] bg-slate-50 w-full mb-6" />
                                     <TextInput
                                         placeholder="Internal Approach / Hints (Optional)" placeholderTextColor="#CBD5E1"
                                         multiline value={form.description} onChangeText={t => setForm({ ...form, description: t })}
-                                        className="text-slate-400 font-medium italic text-[11px] min-h-[100px]"
+                                        className="text-slate-400 font-medium  text-[11px] min-h-[100px]"
                                         textAlignVertical="top"
                                     />
                                 </View>
 
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     onPress={handlePost}
                                     className="bg-blue-600 py-6 rounded-[24px] items-center shadow-xl shadow-blue-500/20"
                                 >
-                                    <Text className="text-white font-black italic uppercase tracking-widest text-xs">Deploy Intel to Hub</Text>
+                                    <Text className="text-white font-black  uppercase tracking-widest text-xs">Deploy Intel to Hub</Text>
                                 </TouchableOpacity>
                             </ScrollView>
                         </KeyboardAvoidingView>
@@ -535,7 +533,7 @@ const PlacementHub = () => {
                         <StatusBar barStyle="dark-content" />
                         <View className="flex-row justify-between items-center px-8 py-6 border-b border-slate-100 bg-white shadow-sm">
                             <View>
-                                <Text className="text-xl font-black text-zinc-900 italic tracking-tighter uppercase leading-tight">Intelligence <Text className="text-indigo-500">Sync</Text></Text>
+                                <Text className="text-xl font-black text-zinc-900  tracking-tighter uppercase leading-tight">Intelligence <Text className="text-indigo-500">Sync</Text></Text>
                                 <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest mt-0.5">Deep Dive Protocol</Text>
                             </View>
                             <TouchableOpacity onPress={() => { setDiscussionVisible(false); setReplyingTo(null); }} className="bg-slate-50 p-2 rounded-2xl border border-slate-100">
@@ -548,21 +546,21 @@ const PlacementHub = () => {
                                 {selectedQuestion && (
                                     <View className="mb-10 bg-white p-8 rounded-[40px] border border-indigo-100 shadow-sm shadow-indigo-500/5">
                                         <View className="bg-indigo-50 self-start px-3 py-1.5 rounded-full border border-indigo-100 mb-6">
-                                            <Text className="text-indigo-600 font-black italic text-[9px] uppercase tracking-widest">{selectedQuestion.company}</Text>
+                                            <Text className="text-indigo-600 font-black  text-[9px] uppercase tracking-widest">{selectedQuestion.company}</Text>
                                         </View>
-                                        <Text className="text-zinc-900 text-lg leading-7 font-black italic uppercase italic">"{selectedQuestion.question}"</Text>
+                                        <Text className="text-zinc-900 text-lg leading-7 font-black  uppercase ">"{selectedQuestion.question}"</Text>
 
                                         {selectedQuestion.description && (
                                             <View className="mt-8 pt-8 border-t border-slate-50">
-                                                <Text className="text-slate-400 text-[8px] font-black uppercase tracking-widest mb-4 italic">Intel Input</Text>
-                                                <Text className="text-zinc-500 text-xs italic leading-6 font-medium">"{selectedQuestion.description}"</Text>
+                                                <Text className="text-slate-400 text-[8px] font-black uppercase tracking-widest mb-4 ">Intel Input</Text>
+                                                <Text className="text-zinc-500 text-xs  leading-6 font-medium">"{selectedQuestion.description}"</Text>
                                             </View>
                                         )}
                                     </View>
                                 )}
 
                                 <View className="flex-row items-center mb-8 px-2">
-                                    <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest italic">Response Ledger</Text>
+                                    <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest ">Response Ledger</Text>
                                     <View className="h-[1px] bg-slate-100 flex-1 ml-4" />
                                 </View>
 
@@ -574,7 +572,7 @@ const PlacementHub = () => {
                             <View className="p-8 bg-white border-t border-slate-100 shadow-2xl">
                                 {replyingTo && (
                                     <View className="flex-row items-center justify-between bg-pink-50 px-4 py-2.5 mb-4 rounded-xl border border-pink-100">
-                                        <Text className="text-pink-500 text-[10px] font-black italic uppercase">Sync: @{replyingTo.commentor?.username}</Text>
+                                        <Text className="text-pink-500 text-[10px] font-black  uppercase">Sync: @{replyingTo.commentor?.username}</Text>
                                         <TouchableOpacity onPress={() => setReplyingTo(null)}>
                                             <Ionicons name="close-circle" size={16} color="#ec4899" />
                                         </TouchableOpacity>
@@ -586,7 +584,7 @@ const PlacementHub = () => {
                                             ref={commentInputRef}
                                             placeholder="Establish intelligence..." placeholderTextColor="#CBD5E1"
                                             value={newComment} onChangeText={setNewComment}
-                                            className="text-zinc-900 font-black italic uppercase text-[10px]"
+                                            className="text-zinc-900 font-black  uppercase text-[10px]"
                                             multiline
                                         />
                                     </View>

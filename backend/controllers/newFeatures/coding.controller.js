@@ -6,14 +6,39 @@ const API_BASE = process.env.LEETCODE_API;
 export const fetchLeetCodeStats = async (username) => {
     if (!username) return null;
     try {
-        const { data } = await axios.get(`${API_BASE}/${username}/solved`);
+        const [solvedRes, calendarRes] = await Promise.all([
+            axios.get(`${API_BASE}/${username}/solved`),
+            axios.get(`${API_BASE}/${username}/calendar`)
+        ]);
+
+        const solved = solvedRes.data;
+        const calendar = JSON.parse(calendarRes.data.submissionCalendar || "{}");
+        
+        // Calculate Rolling 7 Days
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        let sevenDayCount = 0;
+
+        Object.keys(calendar).forEach(timestamp => {
+            const date = new Date(parseInt(timestamp) * 1000);
+            date.setHours(0, 0, 0, 0);
+            const diffTime = Math.abs(today - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays <= 7) {
+                sevenDayCount += calendar[timestamp];
+            }
+        });
+
         return {
-            totalSolved: data.solvedProblem || 0,
-            easy: data.easySolved || 0,
-            medium: data.mediumSolved || 0,
-            hard: data.hardSolved || 0
+            totalSolved: solved.solvedProblem || 0,
+            easy: solved.easySolved || 0,
+            medium: solved.mediumSolved || 0,
+            hard: solved.hardSolved || 0,
+            sevenDayCount
         };
     } catch (error) {
+        console.error("LeetCode Fetch Error:", error.message);
         return null;
     }
 };

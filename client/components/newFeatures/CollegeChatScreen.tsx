@@ -152,8 +152,8 @@ const CollegeChatScreen = ({ navigation }: any) => {
         };
         setMessages((prev) => [tempMessage, ...prev]);
         try {
-            const res = await axios.post("/college-chat/send", { 
-                messageType: "text", 
+            const res = await axios.post("/college-chat/send", {
+                messageType: "text",
                 content: msg,
                 replyTo: replyTo?._id || null
             });
@@ -294,7 +294,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                     {item.replyTo && (
                         <View className={`max-w-[240px] px-3 py-1 bg-black/5 rounded-t-xl border-l-4 border-blue-500 mb-[-8px] z-0 opacity-80`}>
                             <Text className="text-[10px] text-blue-600 font-black uppercase">reply to @{item.replyTo.senderId?.username || 'user'}</Text>
-                            <Text className="text-[10px] text-gray-500 italic" numberOfLines={1}>{item.replyTo.content || '[Media]'}</Text>
+                            <Text className="text-[10px] text-gray-500 " numberOfLines={1}>{item.replyTo.content || '[Media]'}</Text>
                         </View>
                     )}
 
@@ -383,13 +383,13 @@ const CollegeChatScreen = ({ navigation }: any) => {
                 <View className="border-t border-gray-200 bg-white">
                     {replyTo && (
                         <View className="flex-row items-center justify-between bg-gray-50 px-4 py-2 border-l-4 border-blue-500">
-                           <View className="flex-1">
-                               <Text className="text-xs text-blue-600 font-bold">Replying to @{replyTo.senderId?.username}</Text>
-                               <Text className="text-xs text-gray-500 italic" numberOfLines={1}>{replyTo.content || '[Media]'}</Text>
-                           </View>
-                           <Pressable onPress={() => setReplyTo(null)}>
-                               <Ionicons name="close-circle" size={20} color="#6b7280" />
-                           </Pressable>
+                            <View className="flex-1">
+                                <Text className="text-xs text-blue-600 font-bold">Replying to @{replyTo.senderId?.username}</Text>
+                                <Text className="text-xs text-gray-500 " numberOfLines={1}>{replyTo.content || '[Media]'}</Text>
+                            </View>
+                            <Pressable onPress={() => setReplyTo(null)}>
+                                <Ionicons name="close-circle" size={20} color="#6b7280" />
+                            </Pressable>
                         </View>
                     )}
                     <View className="px-2 py-3 pb-6">

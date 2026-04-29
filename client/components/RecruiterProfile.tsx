@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  RefreshControl,
-  Alert,
-  Linking,
-  Dimensions,
-  ActivityIndicator
+    View,
+    Text,
+    TouchableOpacity,
+    ScrollView,
+    RefreshControl,
+    Alert,
+    Linking,
+    Dimensions,
+    ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -24,7 +24,7 @@ const { width } = Dimensions.get('window');
 const RecruiterProfile = () => {
     const navigation = useNavigation<any>();
     const { user, logout, setUser } = useAuth();
-    
+
     const [refreshing, setRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState<'about' | 'activity'>('about');
     const [stats, setStats] = useState({
@@ -39,7 +39,7 @@ const RecruiterProfile = () => {
                 axios.get('/opportunity/recruiter/posts'),
                 axios.get('/opportunity/recruiter/applications'),
             ]);
-            
+
             if (postsRes.data.success && appsRes.data.success) {
                 const posts = postsRes.data.data;
                 const apps = appsRes.data.data;
@@ -88,16 +88,16 @@ const RecruiterProfile = () => {
                     contentFit="cover"
                 />
                 <View className="absolute inset-0 bg-black/20" />
-                
+
                 {/* Top Actions */}
                 <View className="absolute top-12 right-4 flex-row gap-3">
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={() => navigation.navigate('EditProfile')}
                         className="bg-white/90 p-2.5 rounded-2xl shadow-sm"
                     >
                         <Ionicons name="settings-outline" size={20} color="#1f2937" />
                     </TouchableOpacity>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={handleLogout}
                         className="bg-white/90 p-2.5 rounded-2xl shadow-sm"
                     >
@@ -116,7 +116,7 @@ const RecruiterProfile = () => {
 
                 <View className="mt-4">
                     <View className="flex-row items-center gap-2">
-                        <Text className="text-2xl font-black text-zinc-900 italic uppercase">
+                        <Text className="text-2xl font-black text-zinc-900  uppercase">
                             {user?.company || user?.name}
                         </Text>
                         <MaterialCommunityIcons name="check-decagram" size={20} color="#6366f1" />
@@ -124,14 +124,14 @@ const RecruiterProfile = () => {
                     <Text className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">
                         {user?.industry || 'Corporate Partner'} • {user?.companySize || 'Growing Team'}
                     </Text>
-                    
+
                     <View className="flex-row items-center gap-4 mt-4">
                         <View className="flex-row items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-full">
                             <Ionicons name="business-outline" size={14} color="#64748b" />
                             <Text className="text-slate-600 text-[10px] font-bold uppercase tracking-tight">{user?.role || 'Hiring Manager'}</Text>
                         </View>
                         {user?.companyWebsite && (
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 onPress={() => Linking.openURL(user.companyWebsite)}
                                 className="flex-row items-center gap-1.5 bg-indigo-50 px-3 py-1.5 rounded-full"
                             >
@@ -141,7 +141,7 @@ const RecruiterProfile = () => {
                         )}
                     </View>
 
-                    <Text className="text-slate-500 text-xs mt-4 leading-5 italic">
+                    <Text className="text-slate-500 text-xs mt-4 leading-5 ">
                         {user?.about || "We're committed to finding the best talent and building the future of innovation."}
                     </Text>
                 </View>
@@ -149,15 +149,15 @@ const RecruiterProfile = () => {
                 {/* Corporate Stats Card */}
                 <View className="flex-row bg-zinc-900 rounded-2xl p-5 mt-6 shadow-xl border border-zinc-800">
                     <View className="flex-1 items-center border-r border-zinc-800">
-                        <Text className="text-white text-xl font-black italic">{stats.activePosts}</Text>
+                        <Text className="text-white text-xl font-black ">{stats.activePosts}</Text>
                         <Text className="text-zinc-500 text-[8px] font-black uppercase tracking-widest mt-1">Active Roles</Text>
                     </View>
                     <View className="flex-1 items-center border-r border-zinc-800">
-                        <Text className="text-white text-xl font-black italic">{stats.totalApplicants}</Text>
+                        <Text className="text-white text-xl font-black ">{stats.totalApplicants}</Text>
                         <Text className="text-zinc-500 text-[8px] font-black uppercase tracking-widest mt-1">Total Applicants</Text>
                     </View>
                     <View className="flex-1 items-center">
-                        <Text className="text-white text-xl font-black italic">{stats.totalPosts}</Text>
+                        <Text className="text-white text-xl font-black ">{stats.totalPosts}</Text>
                         <Text className="text-zinc-500 text-[8px] font-black uppercase tracking-widest mt-1">Total Posts</Text>
                     </View>
                 </View>
@@ -171,9 +171,9 @@ const RecruiterProfile = () => {
             <View className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm mb-4">
                 <View className="flex-row items-center gap-2 mb-4">
                     <View className="w-1 h-5 rounded-full bg-indigo-500" />
-                    <Text className="text-zinc-900 font-black italic uppercase text-xs tracking-widest">Company Overview</Text>
+                    <Text className="text-zinc-900 font-black  uppercase text-xs tracking-widest">Company Overview</Text>
                 </View>
-                
+
                 <View className="gap-4">
                     <View className="flex-row items-center gap-4">
                         <View className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center">
@@ -211,11 +211,11 @@ const RecruiterProfile = () => {
             <View className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm">
                 <View className="flex-row items-center gap-2 mb-4">
                     <View className="w-1 h-5 rounded-full bg-pink-500" />
-                    <Text className="text-zinc-900 font-black italic uppercase text-xs tracking-widest">Contact Information</Text>
+                    <Text className="text-zinc-900 font-black  uppercase text-xs tracking-widest">Contact Information</Text>
                 </View>
-                
+
                 <View className="gap-3">
-                     <View className="flex-row items-center justify-between py-3 border-b border-slate-50">
+                    <View className="flex-row items-center justify-between py-3 border-b border-slate-50">
                         <Text className="text-slate-400 text-[10px] font-black uppercase">Professional Email</Text>
                         <Text className="text-zinc-900 font-bold text-sm">{user?.email}</Text>
                     </View>
@@ -232,19 +232,19 @@ const RecruiterProfile = () => {
             <View className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm mt-4">
                 <View className="flex-row items-center gap-2 mb-4">
                     <View className="w-1 h-5 rounded-full bg-emerald-500" />
-                    <Text className="text-zinc-900 font-black italic uppercase text-xs tracking-widest">Support & Feedback</Text>
+                    <Text className="text-zinc-900 font-black  uppercase text-xs tracking-widest">Support & Feedback</Text>
                 </View>
-                
+
                 <Text className="text-slate-500 text-[10px] leading-4 mb-4 font-bold">
                     Need help? Our team is available for assistance.
                 </Text>
 
-                <TouchableOpacity 
+                <TouchableOpacity
                     onPress={() => navigation.navigate('ContactUs')}
                     className="flex-row items-center justify-center gap-2 bg-zinc-900 py-4 rounded-2xl"
                 >
                     <Ionicons name="chatbubbles-outline" size={18} color="white" />
-                    <Text className="text-white font-black italic uppercase text-[11px] tracking-widest">Contact Support</Text>
+                    <Text className="text-white font-black  uppercase text-[11px] tracking-widest">Contact Support</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -253,22 +253,22 @@ const RecruiterProfile = () => {
     return (
         <SafeAreaView className="flex-1 bg-slate-50" edges={['bottom']}>
             <StatusBar style="dark" />
-            <ScrollView 
+            <ScrollView
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366f1" />
                 }
             >
                 {renderHeader()}
-                
+
                 {/* Tabs */}
                 <View className="flex-row px-5 mt-4">
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={() => setActiveTab('about')}
                         className={`flex-1 py-4 items-center border-b-2 ${activeTab === 'about' ? 'border-indigo-600' : 'border-transparent'}`}
                     >
                         <Text className={`font-black uppercase text-[10px] tracking-widest ${activeTab === 'about' ? 'text-indigo-600' : 'text-slate-400'}`}>Company Info</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={() => navigation.navigate('Dashboard')}
                         className={`flex-1 py-4 items-center border-b-2 border-transparent`}
                     >

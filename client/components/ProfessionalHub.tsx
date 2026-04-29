@@ -41,14 +41,14 @@ const ProfessionalHub = ({ navigation }: any) => {
                 const isMyMessage = (msg.sender?._id || msg.sender) === (user?._id || user?.id);
 
                 if (isMyMessage) {
-                    const pendingIdx = prev.findIndex(m => 
-                        m.pending && 
+                    const pendingIdx = prev.findIndex(m =>
+                        m.pending &&
                         (m.message === msg.message || m.fileUrl === msg.fileUrl)
                     );
 
                     if (pendingIdx !== -1) {
                         const newMessages = [...prev];
-                        newMessages[pendingIdx] = msg; 
+                        newMessages[pendingIdx] = msg;
                         return newMessages;
                     }
                 }
@@ -116,10 +116,10 @@ const ProfessionalHub = ({ navigation }: any) => {
         setMessages((prev) => [tempMessage, ...prev]);
 
         try {
-            const res = await axios.post("/mentorship-chat/send", { 
-                message: msgText, 
+            const res = await axios.post("/mentorship-chat/send", {
+                message: msgText,
                 messageType: "text",
-                replyTo: replyingTo?._id || null 
+                replyTo: replyingTo?._id || null
             });
             if (res.data.success) {
                 setMessages((prev) => prev.map(m => m._id === tempId ? { ...res.data.message, pending: false } : m));
@@ -136,7 +136,7 @@ const ProfessionalHub = ({ navigation }: any) => {
         socket.emit("mentorship_typing", { college: user?.college, username: user?.username });
 
         const mentionMatch = val.match(/@(\w*)$/);
-        
+
         if (mentionMatch) {
             const query = mentionMatch[1];
             setShowMentions(true);
@@ -196,9 +196,9 @@ const ProfessionalHub = ({ navigation }: any) => {
     const handleDeleteMessage = (msgId: string) => {
         Alert.alert("Delete Message", "Are you sure you want to delete this message?", [
             { text: "Cancel", style: "cancel" },
-            { 
-                text: "Delete", 
-                style: "destructive", 
+            {
+                text: "Delete",
+                style: "destructive",
                 onPress: async () => {
                     try {
                         const res = await axios.delete(`/mentorship-chat/delete/${msgId}`);
@@ -269,11 +269,11 @@ const ProfessionalHub = ({ navigation }: any) => {
                             )}
                         </View>
                     )}
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         activeOpacity={0.9}
                         onLongPress={() => isMe ? handleDeleteMessage(item._id) : setReplyingTo(item)}
                         className={`max-w-[280px] p-3 rounded-2xl ${isMe ? "bg-zinc-900 rounded-br-none" : "bg-white rounded-bl-none"} shadow-sm border ${isMe ? 'border-zinc-800' : 'border-gray-100'}`}>
-                        
+
                         {item.replyTo && (
                             <View className={`mb-2 p-2 rounded-lg border-l-2 border-pink-500 ${isMe ? 'bg-zinc-800' : 'bg-gray-50'}`}>
                                 <Text className="text-pink-500 text-[9px] font-bold">{item.replyTo.sender?.name || "User"}</Text>
@@ -288,7 +288,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                             <Image source={{ uri: item.fileUrl }} className="w-52 h-52 rounded-lg" resizeMode="cover" />
                         )}
                         {item.messageType === 'file' && (
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 onPress={async () => {
                                     if (item.fileUrl) {
                                         try {
@@ -297,7 +297,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                                             Alert.alert("Error", "Could not open this PDF. Please try again later.");
                                         }
                                     }
-                                }} 
+                                }}
                                 className={`flex-row items-center p-2 rounded-lg ${isMe ? 'bg-zinc-800' : 'bg-gray-100'}`}
                             >
                                 <Ionicons name="document-text" size={24} color="#ec4899" />
@@ -327,17 +327,17 @@ const ProfessionalHub = ({ navigation }: any) => {
                             <Ionicons name="arrow-back" size={22} color="#1A1A1A" />
                         </Pressable>
                         <View>
-                            <Text className="text-zinc-900 font-black text-lg italic tracking-tight">Professional <Text className="text-pink-500">Hub</Text></Text>
+                            <Text className="text-zinc-900 font-black text-lg  tracking-tight">Professional <Text className="text-pink-500">Hub</Text></Text>
                             <Text className="text-pink-500 text-[9px] font-bold tracking-widest uppercase">{user?.college} Community</Text>
                         </View>
                     </View>
                     <View className="bg-pink-500 px-3 py-1.5 rounded-full border border-pink-100 shadow-sm shadow-pink-500/20">
-                        <Text className="text-white text-[9px] font-black italic tracking-tighter">STUDENT-ALUMNI</Text>
+                        <Text className="text-white text-[9px] font-black  tracking-tighter">STUDENT-ALUMNI</Text>
                     </View>
                 </View>
 
-                <KeyboardAvoidingView 
-                    behavior={Platform.OS === "ios" ? "padding" : "height"} 
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
                     className="flex-1"
                 >
                     {loading ? (
@@ -355,7 +355,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                     )}
 
                     {typingUsers.length > 0 && (
-                        <Text className="px-5 py-1 text-gray-500 text-[10px] font-bold italic">
+                        <Text className="px-5 py-1 text-gray-500 text-[10px] font-bold ">
                             {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
                         </Text>
                     )}
@@ -378,7 +378,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                                 data={mentionResults}
                                 keyExtractor={(item) => item._id}
                                 renderItem={({ item }) => (
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         onPress={() => applyMention(item.username)}
                                         className="flex-row items-center px-4 py-3 border-b border-gray-50 active:bg-gray-50"
                                     >
@@ -416,8 +416,8 @@ const ProfessionalHub = ({ navigation }: any) => {
                             )}
                         </View>
                         <View className="flex-row items-center justify-center mt-3">
-                           <Ionicons name="at-circle" size={14} color="#ec4899" />
-                           <Text className="text-[10px] text-gray-500 ml-1 font-bold">Type @ followed by username to tag mentors or peers</Text>
+                            <Ionicons name="at-circle" size={14} color="#ec4899" />
+                            <Text className="text-[10px] text-gray-500 ml-1 font-bold">Type @ followed by username to tag mentors or peers</Text>
                         </View>
                     </View>
                 </KeyboardAvoidingView>

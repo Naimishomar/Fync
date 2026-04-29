@@ -54,11 +54,11 @@ const AlumniConnect = ({ navigation }: any) => {
 
                 // 2. Identify if this is a message we (the current user) sent
                 const isMyMessage = (msg.sender?._id || msg.sender) === (user?._id || user?.id);
-                
+
                 if (isMyMessage) {
                     // Check if there's a "pending" optimistic message that matches this new real message
-                    const pendingIdx = prev.findIndex(m => 
-                        m.pending && 
+                    const pendingIdx = prev.findIndex(m =>
+                        m.pending &&
                         (m.message === msg.message || m.fileUrl === msg.fileUrl)
                     );
 
@@ -303,7 +303,7 @@ const AlumniConnect = ({ navigation }: any) => {
                             {sender?.name} {sender?.company ? `• ${sender.company}` : ""}
                         </Text>
                     )}
-                    <Pressable 
+                    <Pressable
                         onLongPress={() => isMe && !item.pending && handleDeleteMessage(item._id)}
                         delayLongPress={500}
                         className={`max-w-[280px] p-3 rounded-2xl ${isMe ? "bg-pink-600 rounded-br-none" : "bg-zinc-800 rounded-bl-none"} border border-white/5`}
@@ -312,12 +312,12 @@ const AlumniConnect = ({ navigation }: any) => {
                             <Text className="text-white text-[15px]">{item.message}</Text>
                         )}
                         {item.messageType === 'image' && (
-                            <Pressable onPress={() => {}}>
+                            <Pressable onPress={() => { }}>
                                 <Image source={{ uri: item.fileUrl }} className="w-48 h-48 rounded-lg" resizeMode="cover" />
                             </Pressable>
                         )}
                         {item.messageType === 'file' && (
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 onPress={async () => {
                                     if (item.fileUrl) {
                                         try {
@@ -331,7 +331,7 @@ const AlumniConnect = ({ navigation }: any) => {
                                             Alert.alert("Error", "Could not open this PDF. Please try again later.");
                                         }
                                     }
-                                }} 
+                                }}
                                 className="flex-row items-center bg-black/20 p-2 rounded-lg"
                             >
                                 <Ionicons name="document-text" size={24} color="#FFD700" />
@@ -355,7 +355,7 @@ const AlumniConnect = ({ navigation }: any) => {
     return (
         <View className="flex-1 bg-black">
             <LinearGradient colors={['#1a1a1a', '#000']} className="absolute w-full h-full" />
-            
+
             <SafeAreaView className="flex-1">
                 {/* Header */}
                 <View className="flex-row items-center justify-between px-4 py-3 border-b border-white/10">
@@ -393,7 +393,7 @@ const AlumniConnect = ({ navigation }: any) => {
 
                     {typingUsers.length > 0 && (
                         <View className="px-5 py-1">
-                            <Text className="text-gray-500 text-[10px] italic">
+                            <Text className="text-gray-500 text-[10px] ">
                                 {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
                             </Text>
                         </View>
@@ -408,7 +408,7 @@ const AlumniConnect = ({ navigation }: any) => {
                             <Pressable onPress={handlePickDocument} className="p-2">
                                 <Ionicons name="attach" size={24} color="gray" />
                             </Pressable>
-                            
+
                             <TextInput
                                 value={text}
                                 onChangeText={handleTyping}
@@ -463,7 +463,7 @@ const AlumniConnect = ({ navigation }: any) => {
                             keyExtractor={(item) => item._id}
                             contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
                             renderItem={({ item }) => (
-                                <Pressable 
+                                <Pressable
                                     onPress={() => {
                                         setShowMembers(false);
                                         navigation.navigate("PublicProfile", { user: item });

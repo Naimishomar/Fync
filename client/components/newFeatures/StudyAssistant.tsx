@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import axios from '../../context/axiosConfig'; 
+import axios from '../../context/axiosConfig';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
@@ -13,9 +13,9 @@ const { width } = Dimensions.get('window');
 export default function StudyAssistant() {
     const [pdfContent, setPdfContent] = useState('');
     const [loading, setLoading] = useState(false);
-    const [chat, setChat] = useState<{role: string, text: string}[]>([]);
+    const [chat, setChat] = useState<{ role: string, text: string }[]>([]);
     const [inputText, setInputText] = useState('');
-    const [history, setHistory] = useState<{role: string, parts: {text: string}[]}[]>([]);
+    const [history, setHistory] = useState<{ role: string, parts: { text: string }[] }[]>([]);
     const scrollViewRef = useRef<ScrollView>(null);
 
     const handleUpload = async () => {
@@ -51,7 +51,7 @@ export default function StudyAssistant() {
 
         setLoading(true);
         setInputText('');
-        
+
         if (mode === 'CHAT') {
             setChat(prev => [...prev, { role: 'user', text: finalQuery }]);
         }
@@ -94,16 +94,16 @@ export default function StudyAssistant() {
     return (
         <View className="flex-1 bg-[#F8FAFC]">
             <StatusBar barStyle="dark-content" />
-            
+
             <SafeAreaView className="flex-1">
-                <KeyboardAvoidingView 
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     className="flex-1 px-8"
                 >
                     {/* --- CUSTOM HEADER --- */}
                     <View className="flex-row items-center justify-between py-6">
                         <View>
-                            <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase italic">
+                            <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase ">
                                 Study <Text className="text-pink-500">AI</Text>
                             </Text>
                             <View className="flex-row items-center mt-1">
@@ -114,20 +114,20 @@ export default function StudyAssistant() {
                             </View>
                         </View>
                         {pdfContent && (
-                             <TouchableOpacity 
-                                onPress={() => { setPdfContent(''); setChat([]); }} 
+                            <TouchableOpacity
+                                onPress={() => { setPdfContent(''); setChat([]); }}
                                 className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm shadow-black/5"
-                             >
+                            >
                                 <Ionicons name="trash-outline" size={20} color="#ff4b4b" />
-                             </TouchableOpacity>
+                            </TouchableOpacity>
                         )}
                     </View>
 
                     {/* --- CONTENT AREA --- */}
                     {!pdfContent ? (
                         <View className="flex-1 justify-center items-center">
-                            <TouchableOpacity 
-                                onPress={handleUpload} 
+                            <TouchableOpacity
+                                onPress={handleUpload}
                                 activeOpacity={0.9}
                                 className="w-full"
                             >
@@ -135,12 +135,12 @@ export default function StudyAssistant() {
                                     <View className="bg-pink-50 p-8 rounded-[32px] mb-8 border border-pink-100">
                                         <Ionicons name="cloud-upload" size={48} color="#ec4899" />
                                     </View>
-                                    <Text className="text-zinc-900 text-2xl font-black italic uppercase tracking-tighter text-center leading-tight">Sync <Text className="text-pink-500">Source</Text></Text>
-                                    <Text className="text-slate-400 text-center font-bold text-[10px] mt-4 leading-5 px-6 uppercase tracking-widest italic">
+                                    <Text className="text-zinc-900 text-2xl font-black  uppercase tracking-tighter text-center leading-tight">Sync <Text className="text-pink-500">Source</Text></Text>
+                                    <Text className="text-slate-400 text-center font-bold text-[10px] mt-4 leading-5 px-6 uppercase tracking-widest ">
                                         Upload your lecture PDF to activate institutional AI analysis.
                                     </Text>
                                     <View className="mt-10 bg-zinc-900 px-8 py-3.5 rounded-2xl shadow-xl shadow-black/20">
-                                        <Text className="text-white text-[10px] font-black uppercase tracking-widest italic">Initialize Ledger</Text>
+                                        <Text className="text-white text-[10px] font-black uppercase tracking-widest ">Initialize Ledger</Text>
                                     </View>
                                 </View>
                             </TouchableOpacity>
@@ -151,29 +151,29 @@ export default function StudyAssistant() {
                             <View>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row py-4">
                                     {['Summarize', 'Key Formulas', 'Practice Quiz', 'Simplify'].map((item) => (
-                                        <TouchableOpacity 
+                                        <TouchableOpacity
                                             key={item}
                                             onPress={() => runAiTask('CHAT', item)}
                                             className="bg-white border border-slate-100 px-6 py-3 rounded-2xl mr-3 shadow-sm shadow-black/5"
                                         >
-                                            <Text className="text-zinc-900 font-black italic text-[9px] uppercase tracking-widest">{item}</Text>
+                                            <Text className="text-zinc-900 font-black  text-[9px] uppercase tracking-widest">{item}</Text>
                                         </TouchableOpacity>
                                     ))}
                                 </ScrollView>
-                                
-                                <TouchableOpacity 
+
+                                <TouchableOpacity
                                     onPress={() => runAiTask('QUESTIONS')}
                                     activeOpacity={0.8}
                                     className="mt-2 overflow-hidden rounded-[28px] shadow-lg shadow-pink-500/20"
                                 >
                                     <LinearGradient
                                         colors={['#ec4899', '#f97316']}
-                                        start={{x:0, y:0}} end={{x:1, y:1}}
+                                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                                         className="p-6 flex-row items-center justify-between"
                                     >
                                         <View className="flex-row items-center">
                                             <Ionicons name="flash" size={18} color="white" />
-                                            <Text className="text-white font-black italic ml-4 text-[10px] uppercase tracking-[2px]">Generate Protocol Guide</Text>
+                                            <Text className="text-white font-black  ml-4 text-[10px] uppercase tracking-[2px]">Generate Protocol Guide</Text>
                                         </View>
                                         <Ionicons name="arrow-forward" size={18} color="white" />
                                     </LinearGradient>
@@ -181,22 +181,21 @@ export default function StudyAssistant() {
                             </View>
 
                             {/* Chat Interface */}
-                            <ScrollView 
+                            <ScrollView
                                 ref={scrollViewRef}
-                                className="flex-1 mt-8" 
+                                className="flex-1 mt-8"
                                 showsVerticalScrollIndicator={false}
                                 contentContainerStyle={{ paddingBottom: 40 }}
                             >
                                 {chat.map((msg, i) => (
-                                    <View 
-                                        key={i} 
-                                        className={`p-6 rounded-[32px] mb-5 max-w-[90%] shadow-sm ${
-                                            msg.role === 'user' 
-                                            ? 'bg-zinc-900 self-end rounded-tr-none shadow-black/20' 
-                                            : 'bg-white self-start border border-slate-100 rounded-tl-none shadow-black/5'
-                                        }`}
+                                    <View
+                                        key={i}
+                                        className={`p-6 rounded-[32px] mb-5 max-w-[90%] shadow-sm ${msg.role === 'user'
+                                                ? 'bg-zinc-900 self-end rounded-tr-none shadow-black/20'
+                                                : 'bg-white self-start border border-slate-100 rounded-tl-none shadow-black/5'
+                                            }`}
                                     >
-                                        <Text className={`text-[13px] leading-6 ${msg.role === 'user' ? 'text-white font-black italic uppercase tracking-tight' : 'text-zinc-600 font-medium italic'}`}>
+                                        <Text className={`text-[13px] leading-6 ${msg.role === 'user' ? 'text-white font-black  uppercase tracking-tight' : 'text-zinc-600 font-medium '}`}>
                                             {msg.role === 'bot' ? `"${msg.text}"` : msg.text}
                                         </Text>
                                     </View>
@@ -204,7 +203,7 @@ export default function StudyAssistant() {
                                 {loading && (
                                     <View className="flex-row items-center p-5 bg-white rounded-[24px] border border-slate-100 self-start shadow-sm shadow-black/5">
                                         <ActivityIndicator color="#ec4899" size="small" />
-                                        <Text className="text-slate-400 text-[9px] font-black italic uppercase tracking-widest ml-4">Analyzing Intel...</Text>
+                                        <Text className="text-slate-400 text-[9px] font-black  uppercase tracking-widest ml-4">Analyzing Intel...</Text>
                                     </View>
                                 )}
                             </ScrollView>
@@ -214,15 +213,15 @@ export default function StudyAssistant() {
                     {/* --- INPUT DOCK --- */}
                     {pdfContent && (
                         <View className="flex-row items-center bg-white p-2.5 rounded-[32px] border border-slate-100 mb-10 shadow-2xl shadow-black/5">
-                            <TextInput 
+                            <TextInput
                                 placeholder="Query the intelligence..."
                                 placeholderTextColor="#CBD5E1"
                                 value={inputText}
                                 onChangeText={setInputText}
-                                className="flex-1 text-zinc-900 px-6 text-xs font-black italic uppercase tracking-tight"
+                                className="flex-1 text-zinc-900 px-6 text-xs font-black  uppercase tracking-tight"
                                 multiline={false}
                             />
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 onPress={() => runAiTask('CHAT')}
                                 className="bg-zinc-900 w-14 h-14 rounded-2xl items-center justify-center shadow-lg"
                             >

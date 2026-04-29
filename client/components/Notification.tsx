@@ -214,10 +214,10 @@ const Notification = () => {
           <Text className="text-zinc-600 text-[12px] leading-5">
             {item.type === 'opportunity' ? (
               // Opportunity notifications: show full message without username prefix
-              <Text className="text-zinc-800 font-bold text-[12px] uppercase italic">{message}</Text>
+              <Text className="text-zinc-800 font-bold text-[12px] uppercase ">{message}</Text>
             ) : (
               <>
-                <Text className="font-black text-zinc-900 text-[13px] uppercase italic tracking-tighter">
+                <Text className="font-black text-zinc-900 text-[13px] uppercase  tracking-tighter">
                   {item.sender?.username || item.sender?.name || 'Fync'}
                 </Text>{' '}{message}
               </>
@@ -253,12 +253,12 @@ const Notification = () => {
 
       {/* HEADER DECORATION */}
       <View className="absolute top-0 w-full h-80 opacity-20">
-        <LinearGradient 
-          colors={['#f97316', 'transparent']} 
+        <LinearGradient
+          colors={['#f97316', 'transparent']}
           className="w-full h-full"
         />
       </View>
-      
+
       <SafeAreaView className="flex-1" edges={['top']}>
         {/* Arena Header */}
         <View className="px-8 pt-2 bg-transparent">
@@ -306,7 +306,7 @@ const Notification = () => {
                 <View className="w-20 h-20 bg-white rounded-[32px] items-center justify-center mb-6 border border-slate-100 shadow-sm">
                   <Ionicons name="notifications-off-outline" size={32} color="#CBD5E1" />
                 </View>
-                <Text className="text-zinc-400 font-black italic uppercase text-xs tracking-widest text-center">Sync Complete</Text>
+                <Text className="text-zinc-400 font-black  uppercase text-xs tracking-widest text-center">Sync Complete</Text>
                 <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center">No active signals found in the registry.</Text>
               </View>
             }

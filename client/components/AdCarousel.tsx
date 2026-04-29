@@ -54,7 +54,7 @@ const AdCarousel = () => {
   if (loading) {
     return (
       <View style={{ height: imageHeight }} className="items-center justify-center bg-gray-100">
-        <ActivityIndicator color="#ec4899" />
+        <ActivityIndicator color="#ff841fff" />
       </View>
     );
   }
@@ -89,7 +89,7 @@ const AdCarousel = () => {
             <View
               key={index}
               className={`h-2 rounded-full transition-all ${
-                currentIndex === index ? "bg-pink-500 w-4" : "bg-white/60 w-2"
+                currentIndex === index ? "bg-orange-500 w-4" : "bg-white/60 w-2"
               }`}
             />
           ))}

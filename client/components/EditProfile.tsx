@@ -59,7 +59,7 @@ export default function EditProfile() {
 
   // --- CHANGE DETECTION ---
   const initialSkills = user?.skills || [];
-  const hasChanges = 
+  const hasChanges =
     name !== (user?.name || '') ||
     username !== (user?.username || '') ||
     bio !== (user?.bio || '') ||
@@ -213,8 +213,8 @@ export default function EditProfile() {
           <Text className="text-black text-lg">Cancel</Text>
         </Pressable>
         <Text className="text-black font-bold text-lg">Edit Profile</Text>
-        <Pressable 
-          onPress={handleUpdate} 
+        <Pressable
+          onPress={handleUpdate}
           disabled={loading || !hasChanges}
           style={{ opacity: (loading || !hasChanges) ? 0.5 : 1 }}
         >
@@ -301,7 +301,7 @@ export default function EditProfile() {
               onChange={setUpiId}
               placeholder="yourname@upi"
             />
-            <Text className="text-green-500/60 text-[10px] mt-1 ml-1 font-medium italic">
+            <Text className="text-green-500/60 text-[10px] mt-1 ml-1 font-medium ">
               * Other users will use this ID to pay you for your content.
             </Text>
           </View>
@@ -309,7 +309,7 @@ export default function EditProfile() {
           {/* --- Resume Upload Section --- */}
           <View className="bg-blue-50/50 p-4 rounded-2xl border border-blue-200/50 mt-2">
             <Text className="text-blue-900 font-bold mb-3">Resume / CV</Text>
-            
+
             <View className="flex-row items-center justify-between bg-white p-3 rounded-xl border border-blue-100">
               <View className="flex-1 mr-3">
                 <Text className="text-gray-600 text-xs uppercase font-bold tracking-widest mb-1">Current Resume</Text>
@@ -317,8 +317,8 @@ export default function EditProfile() {
                   {newResume ? newResume.name : (resumeUrl ? "Resume Uploaded ✅" : "No Resume Uploaded")}
                 </Text>
               </View>
-              
-              <Pressable 
+
+              <Pressable
                 onPress={pickDocument}
                 className="bg-blue-600 px-4 py-2 rounded-lg"
               >
@@ -327,7 +327,7 @@ export default function EditProfile() {
                 </Text>
               </Pressable>
             </View>
-            <Text className="text-gray-400 text-[10px] mt-2 italic ml-1">
+            <Text className="text-gray-400 text-[10px] mt-2  ml-1">
               * Required for job applications. PDF format only.
             </Text>
           </View>

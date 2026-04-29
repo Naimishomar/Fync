@@ -16,12 +16,7 @@ export const initMentorshipCleanup = () => {
             for (let msg of expiredMessages) {
                 if (msg.fileUrl && msg.messageType !== 'text') {
                     let resourceType = 'image';
-                    if (msg.messageType === 'file') resourceType = 'raw'; // PDFs are 'raw' in some configs or 'image' if PDF allowed in image storage
-                    
-                    // Note: In our cloudinary config, PDFs are in 'avatar' folder which is resource_type: "auto"
-                    // deleteFromCloudinary handles resourceType. 'auto' matches 'image' usually in destroy API unless specified.
-                    // If it was uploaded as 'auto', it might be easier to use 'image' or check the file extension.
-                    
+                    if (msg.messageType === 'file') resourceType = 'raw';
                     try {
                         await deleteFromR2(msg.fileUrl);
                     } catch (e) {

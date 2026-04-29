@@ -37,13 +37,6 @@ export const refreshUserStats = async (userId) => {
         if (stats) {
             const total = stats.totalSolved;
             
-            // Fix Weekly Stats Bug for first-time users
-            let startScore = user.weeklyStats.startOfWeekScore || 0;
-            if (startScore === 0 && total > 0) {
-                startScore = total;
-                user.weeklyStats.startOfWeekScore = total;
-            }
-
             user.codingStats = {
                 totalSolved: total,
                 leetcodeSolved: total,
@@ -51,7 +44,8 @@ export const refreshUserStats = async (userId) => {
                 lastUpdated: new Date()
             };
             
-            user.weeklyStats.questionsThisWeek = Math.max(0, total - startScore);
+            // Now using rolling 7-day count from fetchLeetCodeStats
+            user.weeklyStats.questionsThisWeek = stats.sevenDayCount || 0;
             await user.save();
         }
     } catch (err) {

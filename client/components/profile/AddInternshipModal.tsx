@@ -90,7 +90,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
     try {
       const formData = new FormData();
       Object.entries(form).forEach(([key, val]) => {
-          if (key === 'techStack') {
+          if (key === 'techStack' && typeof val === 'string') {
               val.split(',').map((s: string) => s.trim()).filter(Boolean).forEach((s: string) => {
                   formData.append('techStack', s);
               });

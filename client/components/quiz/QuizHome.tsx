@@ -9,133 +9,133 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // --- TYPES ---
 interface CyberCardProps {
-  title: string;
-  subtitle: string;
-  onPress: () => void;
-  iconName: keyof typeof Ionicons.glyphMap;
-  neonColor: string; // Hex color for the glow
+    title: string;
+    subtitle: string;
+    onPress: () => void;
+    iconName: keyof typeof Ionicons.glyphMap;
+    neonColor: string; // Hex color for the glow
 }
 
 // --- CYBER CARD COMPONENT ---
 const LightCard = ({ title, subtitle, onPress, iconName, neonColor }: CyberCardProps) => {
-  return (
-    <Pressable
-      onPress={onPress}
-      className="w-full mb-5"
-      style={({ pressed }) => ({
-        transform: [{ scale: pressed ? 0.98 : 1 }],
-      })}
-    >
-        <View 
-            className="bg-white rounded-[32px] p-5 shadow-sm shadow-black/5 border border-slate-100 flex-row items-center"
+    return (
+        <Pressable
+            onPress={onPress}
+            className="w-full mb-5"
+            style={({ pressed }) => ({
+                transform: [{ scale: pressed ? 0.98 : 1 }],
+            })}
         >
-            {/* Left Box Icon */}
-            <View 
-                className="w-14 h-14 rounded-2xl items-center justify-center mr-5 shadow-inner"
-                style={{ backgroundColor: `${neonColor}15` }}
+            <View
+                className="bg-white rounded-[32px] p-5 shadow-sm shadow-black/5 border border-slate-100 flex-row items-center"
             >
-                <Ionicons name={iconName} size={26} color={neonColor} />
-            </View>
+                {/* Left Box Icon */}
+                <View
+                    className="w-14 h-14 rounded-2xl items-center justify-center mr-5 shadow-inner"
+                    style={{ backgroundColor: `${neonColor}15` }}
+                >
+                    <Ionicons name={iconName} size={26} color={neonColor} />
+                </View>
 
-            {/* Center: Text */}
-            <View className="flex-1">
-                <Text className="text-zinc-900 text-lg font-black italic tracking-tight uppercase">
-                    {title}
-                </Text>
-                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">
-                    {subtitle}
-                </Text>
-            </View>
+                {/* Center: Text */}
+                <View className="flex-1">
+                    <Text className="text-zinc-900 text-lg font-black  tracking-tight uppercase">
+                        {title}
+                    </Text>
+                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">
+                        {subtitle}
+                    </Text>
+                </View>
 
-            {/* Right: Tech Decoration */}
-            <View className="bg-slate-50 w-10 h-10 rounded-full items-center justify-center border border-slate-100">
-                 <MaterialCommunityIcons name="chevron-right" size={24} color="#CBD5E1" />
+                {/* Right: Tech Decoration */}
+                <View className="bg-slate-50 w-10 h-10 rounded-full items-center justify-center border border-slate-100">
+                    <MaterialCommunityIcons name="chevron-right" size={24} color="#CBD5E1" />
+                </View>
             </View>
-        </View>
-    </Pressable>
-  );
+        </Pressable>
+    );
 };
 
 const QuizHome = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  return (
-    <View className="flex-1 bg-[#F8FAFC]">
-      <StatusBar barStyle="dark-content" />
-      
-      <SafeAreaView className="flex-1">
-        <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false}>
-            
-            {/* --- HEADER SECTION --- */}
-            <View className="mb-10 pb-4">
-                <View className="flex-row items-center gap-3">
-                    <View className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/20">
-                        <Ionicons name="trophy" size={24} color="white" />
+    return (
+        <View className="flex-1 bg-[#F8FAFC]">
+            <StatusBar barStyle="dark-content" />
+
+            <SafeAreaView className="flex-1">
+                <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false}>
+
+                    {/* --- HEADER SECTION --- */}
+                    <View className="mb-10 pb-4">
+                        <View className="flex-row items-center gap-3">
+                            <View className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/20">
+                                <Ionicons name="trophy" size={24} color="white" />
+                            </View>
+                            <View>
+                                <Text className="text-zinc-900 text-4xl font-black  tracking-tighter">
+                                    QUIZ <Text className="text-pink-500">ARENA</Text>
+                                </Text>
+                                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-0.5">
+                                    GLOBAL BATTLEGROUND SITE
+                                </Text>
+                            </View>
+                        </View>
                     </View>
-                    <View>
-                        <Text className="text-zinc-900 text-4xl font-black italic tracking-tighter">
-                            QUIZ <Text className="text-pink-500">ARENA</Text>
-                        </Text>
-                        <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-0.5">
-                            GLOBAL BATTLEGROUND SITE
-                        </Text>
+
+                    {/* --- CARDS GRID --- */}
+                    <View className="flex-1">
+
+                        {/* 1. Create Room - Cyan */}
+                        <LightCard
+                            title="Create Room"
+                            subtitle="HOST A MATCH"
+                            neonColor="#0891b2"
+                            iconName="add-circle"
+                            onPress={() => navigation.navigate("CreateRoom")}
+                        />
+
+                        {/* 2. Join Room - Purple */}
+                        <LightCard
+                            title="Join Room"
+                            subtitle="ENTER CODE"
+                            neonColor="#7c3aed"
+                            iconName="key-outline"
+                            onPress={() => navigation.navigate("JoinRoomInput")}
+                        />
+
+                        {/* 3. Random 1v1 - Pink/Rose */}
+                        <LightCard
+                            title="1v1 Battle"
+                            subtitle="FIND OPPONENT"
+                            neonColor="#e11d48"
+                            iconName="flash"
+                            onPress={() => navigation.navigate("OneVsOneSetup")}
+                        />
+
+                        {/* 4. Interview - Amber */}
+                        <LightCard
+                            title="AI Interview"
+                            subtitle="PRACTICE MODE"
+                            neonColor="#d97706"
+                            iconName="mic"
+                            onPress={() => navigation.navigate("InterviewSetup")}
+                        />
+
                     </View>
-                </View>
-            </View>
-
-            {/* --- CARDS GRID --- */}
-            <View className="flex-1">
-                
-                {/* 1. Create Room - Cyan */}
-                <LightCard
-                    title="Create Room"
-                    subtitle="HOST A MATCH"
-                    neonColor="#0891b2"
-                    iconName="add-circle"
-                    onPress={() => navigation.navigate("CreateRoom")}
-                />
-
-                {/* 2. Join Room - Purple */}
-                <LightCard
-                    title="Join Room"
-                    subtitle="ENTER CODE"
-                    neonColor="#7c3aed"
-                    iconName="key-outline"
-                    onPress={() => navigation.navigate("JoinRoomInput")}
-                />
-
-                {/* 3. Random 1v1 - Pink/Rose */}
-                <LightCard
-                    title="1v1 Battle"
-                    subtitle="FIND OPPONENT"
-                    neonColor="#e11d48"
-                    iconName="flash"
-                    onPress={() => navigation.navigate("OneVsOneSetup")}
-                />
-
-                {/* 4. Interview - Amber */}
-                <LightCard
-                    title="AI Interview"
-                    subtitle="PRACTICE MODE"
-                    neonColor="#d97706"
-                    iconName="mic"
-                    onPress={() => navigation.navigate("InterviewSetup")}
-                />
-
-            </View>
 
 
-            {/* --- BOTTOM DECORATION --- */}
-            <View className="items-center mt-8 mb-12 opacity-50">
-                <View className="h-[1px] w-full bg-slate-200 mb-6" />
-                <Text className="text-slate-400 font-bold text-[10px] tracking-widest uppercase">System Protocol Active • V.2.0.4</Text>
-            </View>
+                    {/* --- BOTTOM DECORATION --- */}
+                    <View className="items-center mt-8 mb-12 opacity-50">
+                        <View className="h-[1px] w-full bg-slate-200 mb-6" />
+                        <Text className="text-slate-400 font-bold text-[10px] tracking-widest uppercase">System Protocol Active • V.2.0.4</Text>
+                    </View>
 
 
-        </ScrollView>
-      </SafeAreaView>
-    </View>
-  );
+                </ScrollView>
+            </SafeAreaView>
+        </View>
+    );
 };
 
 export default QuizHome;

@@ -18,9 +18,9 @@ if (
     UIManager.setLayoutAnimationEnabledExperimental
 ) {
     // Only call if not in New Architecture or to avoid noisy warning
-    try { 
+    try {
         UIManager.setLayoutAnimationEnabledExperimental(true);
-    } catch (e) {}
+    } catch (e) { }
 }
 
 export default function CustomSidebar(props: any) {
@@ -275,7 +275,7 @@ export default function CustomSidebar(props: any) {
                         <Ionicons name="chatbubbles-outline" size={24} color="#f9a8d4" />
                         <Text className="text-white text-lg ml-4 font-medium">Confession Feed</Text>
                         <View className="ml-2 bg-pink-500/20 px-2 py-0.5 rounded-full border border-pink-500/30">
-                            <Text className="text-[10px] text-pink-400 font-bold italic">SECRET</Text>
+                            <Text className="text-[10px] text-pink-400 font-bold ">SECRET</Text>
                         </View>
                     </Pressable>
 
@@ -304,7 +304,7 @@ export default function CustomSidebar(props: any) {
                         <Ionicons name="film-outline" size={24} color="#f9a8d4" />
                         <Text className="text-white text-lg ml-4 font-medium">Entertainment</Text>
                         <View className="ml-2 bg-pink-500/20 px-2 py-0.5 rounded-full border border-pink-500/30">
-                            <Text className="text-[10px] text-pink-400 font-bold italic">OTT</Text>
+                            <Text className="text-[10px] text-pink-400 font-bold ">OTT</Text>
                         </View>
                     </Pressable>
 

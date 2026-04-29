@@ -46,7 +46,7 @@ const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navi
                 <View className="flex-row items-center">
                     <ExpoImage source={{ uri: ANONYMOUS_AVATAR }} className="w-11 h-11 rounded-full bg-white/20" cachePolicy="disk" />
                     <View className="ml-4">
-                        <Text className="text-white font-black text-[16px] tracking-tighter uppercase italic">{maskName(item.user?.name || 'User')}</Text>
+                        <Text className="text-white font-black text-[16px] tracking-tighter uppercase ">{maskName(item.user?.name || 'User')}</Text>
                         <Text className="text-white/60 text-[10px] font-black uppercase tracking-widest">Anonymous Entity</Text>
                     </View>
                 </View>
@@ -74,8 +74,8 @@ const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navi
 
             <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} activeOpacity={0.9}>
                 <Text className="text-white text-[17px] font-bold leading-7 mb-3 tracking-tight">
-                    {isExpanded || !isLongText 
-                        ? item.content 
+                    {isExpanded || !isLongText
+                        ? item.content
                         : `${item.content.substring(0, MAX_LIMIT)}...`}
                     {isLongText && !isExpanded && (
                         <Text className="text-white/70 font-black text-[12px] uppercase"> Read More</Text>
@@ -318,14 +318,14 @@ const ConfessionFeed = () => {
     };
 
     const renderConfession = ({ item }: any) => (
-        <ConfessionItem 
-            item={item} 
-            user={user} 
-            onLike={handleLike} 
-            onComments={fetchComments} 
-            onEdit={openEditModal} 
-            onDelete={handleDelete} 
-            navigation={navigation} 
+        <ConfessionItem
+            item={item}
+            user={user}
+            onLike={handleLike}
+            onComments={fetchComments}
+            onEdit={openEditModal}
+            onDelete={handleDelete}
+            navigation={navigation}
         />
     );
 
@@ -419,13 +419,13 @@ const ConfessionFeed = () => {
     return (
         <View className="flex-1 bg-[#F8FAFC]">
             <StatusBar barStyle="dark-content" />
-            
+
             {/* HEADER DECORATION */}
             <View className="absolute top-0 w-full h-80 opacity-20">
-              <LinearGradient 
-                colors={['#f97316', 'transparent']} 
-                className="w-full h-full"
-              />
+                <LinearGradient
+                    colors={['#f97316', 'transparent']}
+                    className="w-full h-full"
+                />
             </View>
 
             <SafeAreaView className="flex-1" edges={['top']}>
@@ -440,7 +440,7 @@ const ConfessionFeed = () => {
                             </View>
                             <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[1px]">{user?.college} Broadcast Registry</Text>
                         </View>
-                        
+
                         <TouchableOpacity
                             onPress={() => setIsPostModalOpen(true)}
                             className="w-12 h-12 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-xl shadow-black/5"
@@ -450,189 +450,189 @@ const ConfessionFeed = () => {
                     </View>
                 </View>
 
-            <FlatList
-                data={confessions}
-                keyExtractor={(item: any) => item._id}
-                renderItem={renderConfession}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100, paddingTop: 10 }}
-                onEndReached={loadMore}
-                onEndReachedThreshold={0.5}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                ListFooterComponent={() => (
-                    loadingMore ? <ActivityIndicator color="#f97316" className="my-8" /> : <View className="h-20" />
-                )}
-                ListEmptyComponent={
-                    <View className="mt-20 items-center px-10">
-                        <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6 shadow-inner">
-                            <Ionicons name="lock-closed" size={40} color="#CBD5E1" />
-                        </View>
-                        <Text className="text-zinc-900 font-black italic uppercase text-xl tracking-tighter text-center">Protocol Locked</Text>
-                        <Text className="text-slate-400 text-[11px] mt-2 text-center font-bold uppercase tracking-wide leading-5">No signals detected. Be the first to broadcast anonymously. 🤫</Text>
-                    </View>
-                }
-            />
-
-            {/* Post/Edit Modal */}
-            <Modal visible={isPostModalOpen} animationType="slide" transparent={true}>
-                <View className="flex-1 bg-black/60 justify-end">
-                    <View className="bg-white rounded-t-[40px] p-8 pb-12 border-t border-slate-100 shadow-2xl">
-                        <View className="flex-row justify-between items-center mb-10">
-                            <View>
-                                <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
-                                    {editingConfession ? 'Update' : 'Spill'} <Text className="text-orange-500">Beans</Text>
-                                </Text>
-                                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Anonymous Protocol Active</Text>
+                <FlatList
+                    data={confessions}
+                    keyExtractor={(item: any) => item._id}
+                    renderItem={renderConfession}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100, paddingTop: 10 }}
+                    onEndReached={loadMore}
+                    onEndReachedThreshold={0.5}
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
+                    ListFooterComponent={() => (
+                        loadingMore ? <ActivityIndicator color="#f97316" className="my-8" /> : <View className="h-20" />
+                    )}
+                    ListEmptyComponent={
+                        <View className="mt-20 items-center px-10">
+                            <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6 shadow-inner">
+                                <Ionicons name="lock-closed" size={40} color="#CBD5E1" />
                             </View>
-                            <TouchableOpacity onPress={closePostModal} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
-                                <Ionicons name="close" size={20} color="#18181b" />
-                            </TouchableOpacity>
+                            <Text className="text-zinc-900 font-black  uppercase text-xl tracking-tighter text-center">Protocol Locked</Text>
+                            <Text className="text-slate-400 text-[11px] mt-2 text-center font-bold uppercase tracking-wide leading-5">No signals detected. Be the first to broadcast anonymously. 🤫</Text>
                         </View>
+                    }
+                />
 
-                        <View style={{ backgroundColor: selectedColor }} className="p-8 rounded-[32px] mb-8 shadow-xl shadow-black/10 border border-white/20">
-                            {taggedUser && !editingConfession && (
-                                <View className="flex-row items-center bg-white/20 border border-white/30 p-2 px-4 rounded-full self-start mb-5">
-                                    <ExpoImage source={{ uri: taggedUser.avatar || ANONYMOUS_AVATAR }} className="w-5 h-5 rounded-full" />
-                                    <Text className="text-white font-black ml-2 text-[10px] uppercase tracking-widest">Tagged: {taggedUser.name}</Text>
-                                    <TouchableOpacity onPress={() => setTaggedUser(null)} className="ml-3 bg-white/30 rounded-full w-4 h-4 items-center justify-center">
-                                        <Ionicons name="close" size={12} color="white" />
-                                    </TouchableOpacity>
+                {/* Post/Edit Modal */}
+                <Modal visible={isPostModalOpen} animationType="slide" transparent={true}>
+                    <View className="flex-1 bg-black/60 justify-end">
+                        <View className="bg-white rounded-t-[40px] p-8 pb-12 border-t border-slate-100 shadow-2xl">
+                            <View className="flex-row justify-between items-center mb-10">
+                                <View>
+                                    <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
+                                        {editingConfession ? 'Update' : 'Spill'} <Text className="text-orange-500">Beans</Text>
+                                    </Text>
+                                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Anonymous Protocol Active</Text>
                                 </View>
-                            )}
-
-                            <TextInput
-                                placeholder={editingConfession ? "Update your secret..." : "Type your secret (use @ to tag someone)"}
-                                placeholderTextColor="rgba(255,255,255,0.6)"
-                                multiline
-                                value={newConfession}
-                                onChangeText={handleTextChange}
-                                className="text-white text-xl font-bold min-h-[160px] tracking-tight"
-                                maxLength={500}
-                                textAlignVertical="top"
-                            />
-                        </View>
-
-                        {showSuggestions && (
-                            <View className="absolute top-[120px] left-8 right-8 bg-white rounded-2xl shadow-2xl z-50 border border-slate-100 max-h-[250px] overflow-hidden">
-                                <ScrollView keyboardShouldPersistTaps="always">
-                                    {userSuggestions.map((u: any) => (
-                                        <TouchableOpacity
-                                            key={u._id}
-                                            onPress={() => selectUserToTag(u)}
-                                            className="flex-row items-center p-5 border-b border-slate-50"
-                                        >
-                                            <ExpoImage source={{ uri: u.avatar || ANONYMOUS_AVATAR }} className="w-10 h-10 rounded-full bg-slate-50" />
-                                            <View className="ml-4">
-                                                <Text className="text-zinc-900 font-black text-sm uppercase tracking-tighter">{u.name}</Text>
-                                                <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">@{u.username}</Text>
-                                            </View>
-                                        </TouchableOpacity>
-                                    ))}
-                                </ScrollView>
-                            </View>
-                        )}
-
-                        <Text className="text-slate-400 mb-6 text-[10px] font-black uppercase tracking-[2px] text-center italic">Archive Atmosphere</Text>
-                        <View className="flex-row justify-between mb-10 px-2">
-                            {CONFESSION_COLORS.map(color => (
-                                <TouchableOpacity
-                                    key={color}
-                                    onPress={() => setSelectedColor(color)}
-                                    style={{
-                                        backgroundColor: color,
-                                        borderWidth: selectedColor === color ? 4 : 0,
-                                        borderColor: 'white',
-                                        transform: [{ scale: selectedColor === color ? 1.2 : 1 }]
-                                    }}
-                                    className="w-10 h-10 rounded-full shadow-lg shadow-black/10"
-                                />
-                            ))}
-                        </View>
-
-                        <TouchableOpacity
-                            onPress={handlePostConfession}
-                            disabled={submitting}
-                            className={`h-16 rounded-[24px] items-center justify-center shadow-xl ${submitting ? 'bg-slate-200' : 'bg-orange-500 shadow-orange-500/20'}`}
-                        >
-                            {submitting ? (
-                                <ActivityIndicator color="#fff" />
-                            ) : (
-                                <Text className="text-white font-black italic uppercase tracking-widest text-[13px]">
-                                    {editingConfession ? 'Execute Update ✨' : 'Secure Broadcast 🤫'}
-                                </Text>
-                            )}
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
-
-            {/* Comments Modal */}
-            <Modal visible={commentsModal.visible} animationType="slide" transparent={true}>
-                <View className="flex-1 bg-black/60 justify-end">
-                    <View className="bg-white rounded-t-[40px] p-8 h-[85%] border-t border-slate-100 shadow-2xl">
-                        <View className="flex-row justify-between items-center mb-10 px-2">
-                            <View>
-                                <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
-                                    Signal <Text className="text-orange-500">Thread</Text>
-                                </Text>
-                                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Encrypted Commentary Archive</Text>
-                            </View>
-                            <TouchableOpacity onPress={() => {
-                                setCommentsModal({ ...commentsModal, visible: false });
-                                setReplyTo(null);
-                            }} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
-                                <Ionicons name="close" size={20} color="#18181b" />
-                            </TouchableOpacity>
-                        </View>
-
-                        <FlatList
-                            data={commentsModal.comments}
-                            keyExtractor={(c: any) => c._id}
-                            renderItem={({ item }) => renderComment(item)}
-                            contentContainerStyle={{ paddingBottom: 150 }}
-                            showsVerticalScrollIndicator={false}
-                            ListEmptyComponent={
-                                <View className="mt-20 items-center">
-                                    <Text className="text-slate-400 text-[11px] font-black uppercase tracking-widest">Silence Detected. Join the frequency.</Text>
-                                </View>
-                            }
-                        />
-
-                        <View className="absolute bottom-10 left-8 right-8">
-                            {replyTo && (
-                                <View className="bg-orange-50 p-4 rounded-t-2xl border-l-4 border-orange-500 flex-row items-center justify-between border-t border-r border-orange-100">
-                                    <Text className="text-orange-600 text-[10px] font-black uppercase tracking-widest">Replying to @{replyTo.commentor?.username}</Text>
-                                    <TouchableOpacity onPress={() => {
-                                        setReplyTo(null);
-                                        setNewComment('');
-                                    }}>
-                                        <Ionicons name="close-circle" size={16} color="#f97316" />
-                                    </TouchableOpacity>
-                                </View>
-                            )}
-
-                            <View className={`flex-row items-center bg-white p-3 border border-slate-100 shadow-2xl shadow-black/10 ${replyTo ? 'rounded-b-[24px]' : 'rounded-[24px]'}`}>
-                                <ExpoImage source={{ uri: user?.avatar || ANONYMOUS_AVATAR }} className="w-9 h-9 rounded-full mr-4 bg-slate-50 border border-slate-100 shadow-inner" cachePolicy="disk" />
-                                <TextInput
-                                    placeholder="Broadcast signal..."
-                                    placeholderTextColor="#94a3b8"
-                                    value={newComment}
-                                    onChangeText={setNewComment}
-                                    className="text-zinc-900 flex-1 py-3 font-black italic uppercase text-[11px] tracking-tighter"
-                                />
-                                <TouchableOpacity 
-                                    onPress={handleComment} 
-                                    disabled={!newComment.trim()}
-                                    className={`w-11 h-11 rounded-2xl items-center justify-center ${newComment.trim() ? 'bg-orange-500' : 'bg-slate-50'}`}
-                                >
-                                    <Ionicons name="send" size={18} color={newComment.trim() ? "white" : "#CBD5E1"} />
+                                <TouchableOpacity onPress={closePostModal} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
+                                    <Ionicons name="close" size={20} color="#18181b" />
                                 </TouchableOpacity>
                             </View>
+
+                            <View style={{ backgroundColor: selectedColor }} className="p-8 rounded-[32px] mb-8 shadow-xl shadow-black/10 border border-white/20">
+                                {taggedUser && !editingConfession && (
+                                    <View className="flex-row items-center bg-white/20 border border-white/30 p-2 px-4 rounded-full self-start mb-5">
+                                        <ExpoImage source={{ uri: taggedUser.avatar || ANONYMOUS_AVATAR }} className="w-5 h-5 rounded-full" />
+                                        <Text className="text-white font-black ml-2 text-[10px] uppercase tracking-widest">Tagged: {taggedUser.name}</Text>
+                                        <TouchableOpacity onPress={() => setTaggedUser(null)} className="ml-3 bg-white/30 rounded-full w-4 h-4 items-center justify-center">
+                                            <Ionicons name="close" size={12} color="white" />
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+
+                                <TextInput
+                                    placeholder={editingConfession ? "Update your secret..." : "Type your secret (use @ to tag someone)"}
+                                    placeholderTextColor="rgba(255,255,255,0.6)"
+                                    multiline
+                                    value={newConfession}
+                                    onChangeText={handleTextChange}
+                                    className="text-white text-xl font-bold min-h-[160px] tracking-tight"
+                                    maxLength={500}
+                                    textAlignVertical="top"
+                                />
+                            </View>
+
+                            {showSuggestions && (
+                                <View className="absolute top-[120px] left-8 right-8 bg-white rounded-2xl shadow-2xl z-50 border border-slate-100 max-h-[250px] overflow-hidden">
+                                    <ScrollView keyboardShouldPersistTaps="always">
+                                        {userSuggestions.map((u: any) => (
+                                            <TouchableOpacity
+                                                key={u._id}
+                                                onPress={() => selectUserToTag(u)}
+                                                className="flex-row items-center p-5 border-b border-slate-50"
+                                            >
+                                                <ExpoImage source={{ uri: u.avatar || ANONYMOUS_AVATAR }} className="w-10 h-10 rounded-full bg-slate-50" />
+                                                <View className="ml-4">
+                                                    <Text className="text-zinc-900 font-black text-sm uppercase tracking-tighter">{u.name}</Text>
+                                                    <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">@{u.username}</Text>
+                                                </View>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                </View>
+                            )}
+
+                            <Text className="text-slate-400 mb-6 text-[10px] font-black uppercase tracking-[2px] text-center ">Archive Atmosphere</Text>
+                            <View className="flex-row justify-between mb-10 px-2">
+                                {CONFESSION_COLORS.map(color => (
+                                    <TouchableOpacity
+                                        key={color}
+                                        onPress={() => setSelectedColor(color)}
+                                        style={{
+                                            backgroundColor: color,
+                                            borderWidth: selectedColor === color ? 4 : 0,
+                                            borderColor: 'white',
+                                            transform: [{ scale: selectedColor === color ? 1.2 : 1 }]
+                                        }}
+                                        className="w-10 h-10 rounded-full shadow-lg shadow-black/10"
+                                    />
+                                ))}
+                            </View>
+
+                            <TouchableOpacity
+                                onPress={handlePostConfession}
+                                disabled={submitting}
+                                className={`h-16 rounded-[24px] items-center justify-center shadow-xl ${submitting ? 'bg-slate-200' : 'bg-orange-500 shadow-orange-500/20'}`}
+                            >
+                                {submitting ? (
+                                    <ActivityIndicator color="#fff" />
+                                ) : (
+                                    <Text className="text-white font-black  uppercase tracking-widest text-[13px]">
+                                        {editingConfession ? 'Execute Update ✨' : 'Secure Broadcast 🤫'}
+                                    </Text>
+                                )}
+                            </TouchableOpacity>
                         </View>
                     </View>
-                </View>
-            </Modal>
+                </Modal>
+
+                {/* Comments Modal */}
+                <Modal visible={commentsModal.visible} animationType="slide" transparent={true}>
+                    <View className="flex-1 bg-black/60 justify-end">
+                        <View className="bg-white rounded-t-[40px] p-8 h-[85%] border-t border-slate-100 shadow-2xl">
+                            <View className="flex-row justify-between items-center mb-10 px-2">
+                                <View>
+                                    <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
+                                        Signal <Text className="text-orange-500">Thread</Text>
+                                    </Text>
+                                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Encrypted Commentary Archive</Text>
+                                </View>
+                                <TouchableOpacity onPress={() => {
+                                    setCommentsModal({ ...commentsModal, visible: false });
+                                    setReplyTo(null);
+                                }} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
+                                    <Ionicons name="close" size={20} color="#18181b" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <FlatList
+                                data={commentsModal.comments}
+                                keyExtractor={(c: any) => c._id}
+                                renderItem={({ item }) => renderComment(item)}
+                                contentContainerStyle={{ paddingBottom: 150 }}
+                                showsVerticalScrollIndicator={false}
+                                ListEmptyComponent={
+                                    <View className="mt-20 items-center">
+                                        <Text className="text-slate-400 text-[11px] font-black uppercase tracking-widest">Silence Detected. Join the frequency.</Text>
+                                    </View>
+                                }
+                            />
+
+                            <View className="absolute bottom-10 left-8 right-8">
+                                {replyTo && (
+                                    <View className="bg-orange-50 p-4 rounded-t-2xl border-l-4 border-orange-500 flex-row items-center justify-between border-t border-r border-orange-100">
+                                        <Text className="text-orange-600 text-[10px] font-black uppercase tracking-widest">Replying to @{replyTo.commentor?.username}</Text>
+                                        <TouchableOpacity onPress={() => {
+                                            setReplyTo(null);
+                                            setNewComment('');
+                                        }}>
+                                            <Ionicons name="close-circle" size={16} color="#f97316" />
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+
+                                <View className={`flex-row items-center bg-white p-3 border border-slate-100 shadow-2xl shadow-black/10 ${replyTo ? 'rounded-b-[24px]' : 'rounded-[24px]'}`}>
+                                    <ExpoImage source={{ uri: user?.avatar || ANONYMOUS_AVATAR }} className="w-9 h-9 rounded-full mr-4 bg-slate-50 border border-slate-100 shadow-inner" cachePolicy="disk" />
+                                    <TextInput
+                                        placeholder="Broadcast signal..."
+                                        placeholderTextColor="#94a3b8"
+                                        value={newComment}
+                                        onChangeText={setNewComment}
+                                        className="text-zinc-900 flex-1 py-3 font-black  uppercase text-[11px] tracking-tighter"
+                                    />
+                                    <TouchableOpacity
+                                        onPress={handleComment}
+                                        disabled={!newComment.trim()}
+                                        className={`w-11 h-11 rounded-2xl items-center justify-center ${newComment.trim() ? 'bg-orange-500' : 'bg-slate-50'}`}
+                                    >
+                                        <Ionicons name="send" size={18} color={newComment.trim() ? "white" : "#CBD5E1"} />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
             </SafeAreaView>
         </View>
     );

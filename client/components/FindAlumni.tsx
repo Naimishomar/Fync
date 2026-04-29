@@ -20,7 +20,7 @@ const FindAlumni = ({ navigation }: any) => {
     const [searchQuery, setSearchQuery] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [selectedBatch, setSelectedBatch] = useState("");
-    
+
     // Pagination States
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
@@ -57,7 +57,7 @@ const FindAlumni = ({ navigation }: any) => {
                 } else {
                     setAlumni(newData);
                 }
-                
+
                 const pagination = res.data.pagination;
                 if (pagination) {
                     setHasMore(pagination.page < pagination.pages);
@@ -94,7 +94,7 @@ const FindAlumni = ({ navigation }: any) => {
     const startChat = async (targetUser: any) => {
         try {
             const res = await axios.post("/chat/start", { userId: targetUser._id });
-            navigation.navigate("Chat", { 
+            navigation.navigate("Chat", {
                 conversationId: res.data.conversation._id,
                 otherUser: targetUser
             });
@@ -112,11 +112,11 @@ const FindAlumni = ({ navigation }: any) => {
                     <Avatar user={item} size={62} />
                 </View>
             </Pressable>
-            
+
             <View className="flex-1 ml-5 pr-2">
                 <Text className="text-zinc-900 font-black text-[16px]" numberOfLines={1}>{item.name}</Text>
                 <Text className="text-slate-400 text-[10px] font-black">@{item.username}</Text>
-                
+
                 <View className="flex-row items-center mt-2 bg-orange-50 self-start px-3 py-1 rounded-md border border-orange-100">
                     <MaterialCommunityIcons name="school" size={14} color="#f97316" />
                     <Text className="text-orange-500 text-[9px] font-black ml-2 uppercase">
@@ -128,20 +128,20 @@ const FindAlumni = ({ navigation }: any) => {
                     <View className="flex-row items-center mt-2">
                         <Ionicons name="briefcase" size={14} color="#94a3b8" />
                         <Text className="text-slate-500 text-[11px] ml-2 font-bold uppercase tracking-tight" numberOfLines={1}>
-                            {item.role} at <Text className="text-zinc-900 font-black italic">{item.company}</Text>
+                            {item.role} at <Text className="text-zinc-900 font-black ">{item.company}</Text>
                         </Text>
                     </View>
                 )}
             </View>
 
             <View className="gap-3">
-                <TouchableOpacity 
+                <TouchableOpacity
                     onPress={() => startChat(item)}
                     className="bg-zinc-900 w-12 h-12 rounded-2xl items-center justify-center shadow-lg shadow-black/20"
                 >
                     <Ionicons name="chatbubble" size={18} color="white" />
                 </TouchableOpacity>
-                <TouchableOpacity 
+                <TouchableOpacity
                     onPress={() => navigation.navigate("PublicProfile", { user: item })}
                     className="bg-slate-50 w-12 h-12 rounded-2xl items-center justify-center border border-slate-100"
                 >
@@ -154,13 +154,13 @@ const FindAlumni = ({ navigation }: any) => {
     return (
         <View className="flex-1 bg-[#F8FAFC]">
             <StatusBar barStyle="dark-content" />
-            
+
             {/* HEADER DECORATION */}
             <View className="absolute top-0 w-full h-80 opacity-20">
-              <LinearGradient 
-                colors={['#f97316', 'transparent']} 
-                className="w-full h-full"
-              />
+                <LinearGradient
+                    colors={['#f97316', 'transparent']}
+                    className="w-full h-full"
+                />
             </View>
 
             <SafeAreaView className="flex-1" edges={['top']}>
@@ -175,8 +175,8 @@ const FindAlumni = ({ navigation }: any) => {
                             </View>
                             <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[1px]">Professional Alumni Registry</Text>
                         </View>
-                        
-                        <TouchableOpacity 
+
+                        <TouchableOpacity
                             onPress={() => setIsFilterVisible(true)}
                             className={`w-12 h-12 rounded-2xl items-center justify-center border ${selectedBatch ? 'bg-orange-500 border-orange-400 shadow-lg shadow-orange-500/20' : 'bg-white border-slate-100 shadow-sm'}`}
                         >
@@ -192,7 +192,7 @@ const FindAlumni = ({ navigation }: any) => {
                         <TextInput
                             placeholder="Search by name, firm, or role..."
                             placeholderTextColor="#94a3b8"
-                            className="flex-1 ml-3 text-zinc-900 text-sm font-black italic uppercase tracking-tighter"
+                            className="flex-1 ml-3 text-zinc-900 text-sm font-black  uppercase tracking-tighter"
                             value={searchQuery}
                             onChangeText={setSearchQuery}
                         />
@@ -239,7 +239,7 @@ const FindAlumni = ({ navigation }: any) => {
                                     <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
                                         <MaterialCommunityIcons name="account-search-outline" size={48} color="#CBD5E1" />
                                     </View>
-                                    <Text className="text-zinc-900 font-black italic uppercase text-xl tracking-tighter text-center">
+                                    <Text className="text-zinc-900 font-black  uppercase text-xl tracking-tighter text-center">
                                         Registry Clear
                                     </Text>
                                     <Text className="text-slate-400 text-[11px] mt-2 text-center font-bold uppercase tracking-wide leading-5 px-4">
@@ -260,14 +260,14 @@ const FindAlumni = ({ navigation }: any) => {
                 onRequestClose={() => setIsFilterVisible(false)}
             >
                 <View className="flex-1 justify-end bg-black/60">
-                    <TouchableOpacity 
-                        className="flex-1" 
-                        activeOpacity={1} 
-                        onPress={() => setIsFilterVisible(false)} 
+                    <TouchableOpacity
+                        className="flex-1"
+                        activeOpacity={1}
+                        onPress={() => setIsFilterVisible(false)}
                     />
                     <View className="bg-white rounded-t-[40px] px-8 pt-10 pb-12 shadow-2xl border-t border-slate-100">
                         <View className="w-12 h-1.5 bg-slate-100 rounded-full self-center mb-10" />
-                        
+
                         <View className="flex-row items-center justify-between mb-8">
                             <Text className="text-3xl font-black tracking-tighter uppercase leading-tight text-zinc-900">
                                 Filter <Text className="text-orange-500">Batches</Text>
@@ -280,7 +280,7 @@ const FindAlumni = ({ navigation }: any) => {
                         </View>
 
                         <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-6 ml-1">Archive Search Parameters</Text>
-                        
+
                         <ScrollView className="max-h-[350px]" showsVerticalScrollIndicator={false}>
                             <View className="flex-row flex-wrap gap-3">
                                 {batches.map((batch: string) => (
@@ -292,7 +292,7 @@ const FindAlumni = ({ navigation }: any) => {
                                         }}
                                         className={`px-6 py-4 rounded-xl ${selectedBatch === batch ? 'bg-orange-500 shadow-xl shadow-orange-500/20' : 'bg-slate-50 border-slate-100'}`}
                                     >
-                                        <Text className={`font-black italic text-[13px] uppercase tracking-tighter ${selectedBatch === batch ? 'text-white' : 'text-slate-400'}`}>
+                                        <Text className={`font-black  text-[13px] uppercase tracking-tighter ${selectedBatch === batch ? 'text-white' : 'text-slate-400'}`}>
                                             {batch === "" ? "Global Archive" : `Batch ${batch}`}
                                         </Text>
                                     </TouchableOpacity>
@@ -300,7 +300,7 @@ const FindAlumni = ({ navigation }: any) => {
                             </View>
                         </ScrollView>
 
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             onPress={() => setIsFilterVisible(false)}
                             className="bg-zinc-900 mt-10 h-16 rounded-[24px] items-center justify-center shadow-xl shadow-black/20"
                         >

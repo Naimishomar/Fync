@@ -80,7 +80,7 @@ const MarketplaceScreen = () => {
                                 pincode,
                                 mobileNumber: phone
                             });
-                            
+
                             if (res.data.success) {
                                 setUser((prev: any) => ({ ...prev, coins: res.data.remaining_coins }));
                                 Alert.alert("Success!", "Your order has been placed successfully!");
@@ -133,7 +133,7 @@ const MarketplaceScreen = () => {
                     <Text className="text-zinc-900 font-bold text-xs mb-1" numberOfLines={1}>
                         {item.product_name}
                     </Text>
-                    
+
                     <View className="flex-row items-center justify-between mb-3">
                         <View className="flex-row items-center">
                             <Text className="text-zinc-900 font-black text-base tracking-tighter">{item.coins_required}</Text>
@@ -170,8 +170,8 @@ const MarketplaceScreen = () => {
         }, []);
 
         return (
-            <Animated.View 
-                style={{ opacity: pulseAnim, width: '48%' }} 
+            <Animated.View
+                style={{ opacity: pulseAnim, width: '48%' }}
                 className="bg-white rounded-2xl overflow-hidden mb-4 border border-zinc-100"
             >
                 <View className="bg-zinc-100 w-full" style={{ aspectRatio: 1 }} />
@@ -189,11 +189,11 @@ const MarketplaceScreen = () => {
     return (
         <View className="flex-1 bg-[#F8FAFC]">
             <StatusBar barStyle="dark-content" />
-            
+
             {/* Arena Header Decoration */}
             <View className="absolute top-0 w-full h-80 opacity-20">
-                <LinearGradient 
-                    colors={['#f59e0b', 'transparent']} 
+                <LinearGradient
+                    colors={['#f59e0b', 'transparent']}
                     className="w-full h-full"
                 />
             </View>
@@ -241,7 +241,7 @@ const MarketplaceScreen = () => {
                                 <View className="w-20 h-20 bg-white rounded-[32px] items-center justify-center mb-6 border border-slate-100 shadow-sm">
                                     <Ionicons name="storefront-outline" size={32} color="#CBD5E1" />
                                 </View>
-                                <Text className="text-zinc-400 font-black italic uppercase text-xs tracking-widest text-center">Store Empty</Text>
+                                <Text className="text-zinc-400 font-black  uppercase text-xs tracking-widest text-center">Store Empty</Text>
                                 <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center">New artifacts arriving soon.</Text>
                             </View>
                         }
@@ -253,10 +253,10 @@ const MarketplaceScreen = () => {
                 <Modal visible={buyModalVisible} animationType="slide" transparent={true}>
                     <View className="flex-1 justify-end bg-zinc-900/60">
                         <TouchableOpacity activeOpacity={1} style={{ flex: 1 }} onPress={() => setBuyModalVisible(false)} />
-                        
+
                         <View className="bg-white rounded-t-[48px] h-[75%] overflow-hidden shadow-2xl">
                             <View className="w-12 h-1.5 bg-slate-100 rounded-full self-center mt-4 mb-2" />
-                            
+
                             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
                                 <View className="px-8 py-6 border-b border-slate-50 flex-row justify-between items-center bg-white">
                                     <View>
@@ -283,8 +283,8 @@ const MarketplaceScreen = () => {
                                     <View className="flex-row gap-4 mb-6">
                                         <View className="flex-1">
                                             <Text className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-3 ml-1">Mobile Comms</Text>
-                                            <TextInput 
-                                                className="bg-white px-5 py-4 rounded-2xl font-black italic uppercase text-xs border border-slate-100 shadow-sm text-zinc-900"
+                                            <TextInput
+                                                className="bg-white px-5 py-4 rounded-2xl font-black  uppercase text-xs border border-slate-100 shadow-sm text-zinc-900"
                                                 placeholder="+91..."
                                                 placeholderTextColor="#CBD5E1"
                                                 keyboardType="phone-pad"
@@ -294,8 +294,8 @@ const MarketplaceScreen = () => {
                                         </View>
                                         <View className="w-1/3">
                                             <Text className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-3 ml-1">Zip Code</Text>
-                                            <TextInput 
-                                                className="bg-white px-5 py-4 rounded-2xl font-black italic uppercase text-xs border border-slate-100 shadow-sm text-zinc-900"
+                                            <TextInput
+                                                className="bg-white px-5 py-4 rounded-2xl font-black  uppercase text-xs border border-slate-100 shadow-sm text-zinc-900"
                                                 placeholder="201206"
                                                 placeholderTextColor="#CBD5E1"
                                                 keyboardType="numeric"
@@ -308,7 +308,7 @@ const MarketplaceScreen = () => {
 
                                     <View className="mb-10">
                                         <Text className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-3 ml-1">Delivery Node</Text>
-                                        <TextInput 
+                                        <TextInput
                                             className="bg-white px-5 py-5 rounded-2xl font-medium text-xs border border-slate-100 shadow-sm text-zinc-900 h-28"
                                             placeholder="Complete address with landmark..."
                                             placeholderTextColor="#CBD5E1"
@@ -321,7 +321,7 @@ const MarketplaceScreen = () => {
                                 </ScrollView>
 
                                 <View className="p-8 border-t border-slate-50 bg-white pb-12">
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         onPress={confirmPurchase}
                                         disabled={purchasing}
                                         className={`py-5 rounded-[28px] items-center justify-center flex-row shadow-2xl ${purchasing ? 'bg-slate-100' : 'bg-black shadow-black/40'}`}
@@ -331,7 +331,7 @@ const MarketplaceScreen = () => {
                                         ) : (
                                             <>
                                                 <Ionicons name="flash-outline" size={20} color="#f59e0b" />
-                                                <Text className="text-white font-black italic uppercase tracking-widest text-xs ml-2">Authorize Redemption</Text>
+                                                <Text className="text-white font-black  uppercase tracking-widest text-xs ml-2">Authorize Redemption</Text>
                                             </>
                                         )}
                                     </TouchableOpacity>

@@ -12,8 +12,8 @@ export const fetchDriveData = async (folderId: string) => {
       return [];
     }
     return data.files.sort((a: any, b: any) => {
-      const isAFolder = a.mimeType === 'application/vnd.google-apps.folder';
-      const isBFolder = b.mimeType === 'application/vnd.google-apps.folder';
+      const isAFolder:any = a.mimeType === 'application/vnd.google-apps.folder';
+      const isBFolder:any = b.mimeType === 'application/vnd.google-apps.folder';
       return isBFolder - isAFolder;
     });
   } catch (error) {

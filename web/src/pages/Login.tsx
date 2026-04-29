@@ -26,7 +26,7 @@ const Login: React.FC = () => {
         deviceId: 'web-session',
         deviceModel: 'Web Browser'
       });
-      
+
       if (res.data.success) {
         login(res.data.token, res.data.user);
         navigate('/arena');
@@ -44,19 +44,19 @@ const Login: React.FC = () => {
       <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/5 rounded-full blur-[160px] pointer-events-none" />
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-md w-full relative z-10"
       >
         <div className="text-center mb-12">
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.05 }}
             className="bg-slate-900 w-20 h-20 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-slate-900/20"
           >
             <Zap size={36} className="text-white" fill="white" />
           </motion.div>
-          <h1 className="text-5xl font-black italic tracking-tighter uppercase text-slate-900 leading-none">Arena Auth</h1>
+          <h1 className="text-5xl font-black  tracking-tighter uppercase text-slate-900 leading-none">Arena Auth</h1>
           <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mt-4">Neural Link Identification Required</p>
         </div>
 
@@ -66,8 +66,8 @@ const Login: React.FC = () => {
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block px-4">Identification Node</label>
               <div className="relative group">
                 <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors" size={20} />
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   placeholder="EMAIL ADDRESS"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -81,8 +81,8 @@ const Login: React.FC = () => {
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block px-4">Access Signature</label>
               <div className="relative group">
                 <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors" size={20} />
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   placeholder="SECURE PASSWORD"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -93,7 +93,7 @@ const Login: React.FC = () => {
             </div>
 
             {error && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="bg-rose-50 border border-rose-100 p-5 rounded-2xl flex items-center gap-4 text-rose-600 text-[10px] font-black uppercase tracking-widest leading-relaxed"
@@ -102,8 +102,8 @@ const Login: React.FC = () => {
               </motion.div>
             )}
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading}
               className="w-full bg-slate-900 text-white py-6 rounded-[2rem] text-[11px] font-black uppercase tracking-[0.3em] shadow-2xl shadow-slate-900/10 hover:shadow-slate-900/30 hover:bg-black hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-4 group"
             >

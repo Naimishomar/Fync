@@ -20,7 +20,8 @@ import {
   ScrollView,
   Animated,
   Easing,
-  useWindowDimensions
+  useWindowDimensions,
+  StatusBar
 } from 'react-native';
 import { Sparkles, Mic, Briefcase, Trophy, Rocket, Crown, MessageCircle, Megaphone, Users } from 'lucide-react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -409,7 +410,7 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
         </Text>
         {(item.description?.length || 0) > MAX_CHAR_LIMIT && (
           <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} className="mt-1">
-            <Text className="text-pink-500 font-bold">
+            <Text className="text-orange-500 font-bold">
               {isExpanded ? 'Show Less' : 'Show More'}
             </Text>
           </TouchableOpacity>
@@ -673,7 +674,7 @@ export default function HomeScreen() {
   const renderHeader = () => (
     <View
       style={{ paddingTop: insets.top - 10 }}
-      className="flex-row items-center justify-between px-4 bg-white shadow-sm"
+      className="flex-row items-center justify-between px-4 bg-transparent z-10"
     >
       <View className="flex-row items-center py-2 gap-2">
         <Pressable onPress={() => navigation.openDrawer()}>
@@ -722,7 +723,7 @@ export default function HomeScreen() {
   );
 
   const renderTabBar = () => (
-    <View className="flex-row bg-white border-b border-gray-100">
+    <View className="flex-row bg-transparent border-b border-slate-100/10">
       {['For You', 'Following'].map((tabTitle) => {
         const key = tabTitle === 'For You' ? 'forYou' : 'following';
         const isActive = activeTab === key;
@@ -814,7 +815,9 @@ const renderFeatureStories = () => {
 
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-[#FDFDFF]">
+      <StatusBar barStyle="dark-content" />
+      
       {renderHeader()}
 
       <FlatList
@@ -831,7 +834,7 @@ const renderFeatureStories = () => {
         ListHeaderComponent={
           <View>
             {renderTabBar()}
-            <View className="bg-[#F5F7FA]">
+            <View className="bg-transparent">
               <AdCarousel />
               {renderFeatureStories()}
               {/* <CreatePost /> */}
@@ -871,6 +874,11 @@ const renderFeatureStories = () => {
         onClose={() => setCommentModalVisible(false)}
         onCommentAdded={handleCommentAddedInModal}
       />
+
+      {/* Background Protocol Gradient Overlay */}
+      <View pointerEvents="none" className="absolute top-0 w-full h-40 opacity-20">
+        <LinearGradient colors={['#f97416ff', 'transparent']} className="w-full h-full" />
+      </View>
 
     </View>
   );

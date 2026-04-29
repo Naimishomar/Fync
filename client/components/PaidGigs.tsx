@@ -44,10 +44,10 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
             <View className="p-6 pl-8">
                 <View className="flex-row justify-between items-start mb-4">
                     <View className="flex-1 mr-4">
-                        <Text className="text-zinc-900 font-black italic text-lg uppercase tracking-tight leading-tight" numberOfLines={2}>
+                        <Text className="text-zinc-900 font-black  text-lg uppercase tracking-tight leading-tight" numberOfLines={2}>
                             {item.title}
                         </Text>
-                        <Text className="text-slate-400 text-[10px] mt-1 uppercase tracking-widest font-black italic">
+                        <Text className="text-slate-400 text-[10px] mt-1 uppercase tracking-widest font-black ">
                             {moment(item.createdAt).fromNow()}
                         </Text>
                     </View>
@@ -70,7 +70,7 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                     </Text>
                 </View>
 
-                <Text className="text-slate-600 text-sm leading-6 mb-6 font-medium italic">
+                <Text className="text-slate-600 text-sm leading-6 mb-6 font-medium ">
                     "{item.description.length > MAX_CHAR && !isExpanded
                         ? `${item.description.substring(0, MAX_CHAR)}...`
                         : item.description
@@ -91,8 +91,8 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                             className="w-10 h-10 rounded-2xl border border-slate-200 bg-slate-50"
                         />
                         <View className="ml-3">
-                            <Text className="text-[8px] text-slate-400 uppercase tracking-widest font-black italic">Poster</Text>
-                            <Text className="text-zinc-900 text-xs font-black italic uppercase mt-0.5 tracking-tight" numberOfLines={1}>
+                            <Text className="text-[8px] text-slate-400 uppercase tracking-widest font-black ">Poster</Text>
+                            <Text className="text-zinc-900 text-xs font-black  uppercase mt-0.5 tracking-tight" numberOfLines={1}>
                                 {posterName}
                             </Text>
                         </View>
@@ -113,7 +113,7 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                         className="w-full py-5 bg-rose-50 border border-rose-100 rounded-3xl items-center justify-center flex-row shadow-sm"
                     >
                         <Ionicons name="close-circle" size={18} color="#f43f5e" />
-                        <Text className="text-rose-500 font-black text-[10px] uppercase tracking-widest ml-2 italic">Terminate Gig</Text>
+                        <Text className="text-rose-500 font-black text-[10px] uppercase tracking-widest ml-2 ">Terminate Gig</Text>
                     </TouchableOpacity>
                 ) : (
                     <TouchableOpacity
@@ -133,7 +133,7 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                             ) : (
                                 <>
                                     <Ionicons name="chatbubble-ellipses" size={18} color="white" />
-                                    <Text className="text-white font-black text-[10px] uppercase tracking-[2px] ml-2 italic">Initiate Contact</Text>
+                                    <Text className="text-white font-black text-[10px] uppercase tracking-[2px] ml-2 ">Initiate Contact</Text>
                                 </>
                             )}
                         </LinearGradient>
@@ -364,7 +364,7 @@ export default function PaidGigs({ navigation }: any) {
         }, []);
 
         return (
-            <Animated.View 
+            <Animated.View
                 style={{ opacity: pulseAnim }}
                 className="bg-white mx-8 mb-6 rounded-[32px] border border-slate-100 p-8 shadow-sm shadow-black/5"
             >
@@ -373,7 +373,7 @@ export default function PaidGigs({ navigation }: any) {
                     <View className="w-10 h-10 bg-slate-50 rounded-2xl" />
                 </View>
                 <View className="h-8 bg-slate-50 rounded-xl w-32 mb-8" />
-                
+
                 <View className="h-4 bg-slate-50 rounded w-full mb-3" />
                 <View className="h-4 bg-slate-50 rounded w-4/5 mb-10" />
 
@@ -399,7 +399,7 @@ export default function PaidGigs({ navigation }: any) {
                 <View className="px-8 pt-6">
                     <View className="flex-row justify-between items-center mb-8">
                         <View>
-                            <Text className="text-3xl font-black italic text-zinc-900 tracking-tighter uppercase leading-tight">
+                            <Text className="text-3xl font-black  text-zinc-900 tracking-tighter uppercase leading-tight">
                                 Paid <Text className="text-pink-500">Gigs</Text> 💰
                             </Text>
                             <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-0.5">Freelance Work Protocol</Text>
@@ -424,7 +424,7 @@ export default function PaidGigs({ navigation }: any) {
                                 onPress={() => setActiveTab(t.key as any)}
                                 className={`flex-1 py-3.5 items-center rounded-[18px] ${activeTab === t.key ? 'bg-zinc-900' : 'bg-transparent'}`}
                             >
-                                <Text className={`font-black tracking-widest text-[10px] italic uppercase ${activeTab === t.key ? 'text-white' : 'text-slate-400'}`}>
+                                <Text className={`font-black tracking-widest text-[10px]  uppercase ${activeTab === t.key ? 'text-white' : 'text-slate-400'}`}>
                                     {t.label}
                                 </Text>
                             </TouchableOpacity>
@@ -466,7 +466,7 @@ export default function PaidGigs({ navigation }: any) {
                                 <View className="w-20 h-20 bg-white rounded-[32px] items-center justify-center mb-6 border border-slate-100 shadow-sm">
                                     <Ionicons name="briefcase-outline" size={32} color="#CBD5E1" />
                                 </View>
-                                <Text className="text-zinc-400 font-black italic uppercase text-xs tracking-widest text-center">No Gigs Active</Text>
+                                <Text className="text-zinc-400 font-black  uppercase text-xs tracking-widest text-center">No Gigs Active</Text>
                                 <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center">Transmission silence detected.</Text>
                             </View>
                         }
@@ -479,7 +479,7 @@ export default function PaidGigs({ navigation }: any) {
                 <View className="flex-1 bg-[#F8FAFC]">
                     <StatusBar barStyle="dark-content" />
                     <View className="flex-row justify-between items-center px-8 py-6 border-b border-slate-100 bg-white">
-                        <Text className="text-xl font-black text-zinc-900 italic tracking-tighter uppercase leading-tight">
+                        <Text className="text-xl font-black text-zinc-900  tracking-tighter uppercase leading-tight">
                             {editMode ? 'Edit' : 'New'} <Text className="text-pink-500">Gig Protocol</Text>
                         </Text>
                         <TouchableOpacity onPress={closeModal} className="bg-slate-50 p-2 rounded-2xl border border-slate-100">
@@ -495,7 +495,7 @@ export default function PaidGigs({ navigation }: any) {
                                 value={title} onChangeText={setTitle}
                                 placeholder="Requirement Heading"
                                 placeholderTextColor="#CBD5E1"
-                                className="bg-white p-5 rounded-3xl mb-6 border border-slate-100 shadow-sm text-zinc-900 font-black italic uppercase text-xs"
+                                className="bg-white p-5 rounded-3xl mb-6 border border-slate-100 shadow-sm text-zinc-900 font-black  uppercase text-xs"
                             />
 
                             <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Visible Radius</Text>
@@ -504,7 +504,7 @@ export default function PaidGigs({ navigation }: any) {
                                     onPress={() => setVisibility('College')}
                                     className={`flex-1 py-3.5 items-center rounded-[18px] ${visibility === 'College' ? 'bg-zinc-900' : 'bg-transparent'}`}
                                 >
-                                    <Text className={`font-black tracking-widest text-[10px] italic uppercase ${visibility === 'College' ? 'text-white' : 'text-slate-400'}`}>
+                                    <Text className={`font-black tracking-widest text-[10px]  uppercase ${visibility === 'College' ? 'text-white' : 'text-slate-400'}`}>
                                         Campus Only
                                     </Text>
                                 </TouchableOpacity>
@@ -512,7 +512,7 @@ export default function PaidGigs({ navigation }: any) {
                                     onPress={() => setVisibility('Global')}
                                     className={`flex-1 py-3.5 items-center rounded-[18px] ${visibility === 'Global' ? 'bg-pink-500' : 'bg-transparent'}`}
                                 >
-                                    <Text className={`font-black tracking-widest text-[10px] italic uppercase ${visibility === 'Global' ? 'text-white' : 'text-slate-400'}`}>
+                                    <Text className={`font-black tracking-widest text-[10px]  uppercase ${visibility === 'Global' ? 'text-white' : 'text-slate-400'}`}>
                                         Global Unit
                                     </Text>
                                 </TouchableOpacity>
@@ -524,7 +524,7 @@ export default function PaidGigs({ navigation }: any) {
                                 multiline numberOfLines={5} textAlignVertical="top"
                                 placeholder="Establish the requirements..."
                                 placeholderTextColor="#CBD5E1"
-                                className="bg-white p-5 rounded-3xl mb-6 border border-slate-100 shadow-sm text-zinc-700 leading-6 min-h-[150px] font-medium text-xs italic"
+                                className="bg-white p-5 rounded-3xl mb-6 border border-slate-100 shadow-sm text-zinc-700 leading-6 min-h-[150px] font-medium text-xs "
                             />
 
                             <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Stipend Allocation</Text>
@@ -532,7 +532,7 @@ export default function PaidGigs({ navigation }: any) {
                                 value={stipend} onChangeText={setStipend}
                                 placeholder="Credit Amount (Optional)"
                                 placeholderTextColor="#CBD5E1"
-                                className="bg-white p-5 rounded-3xl mb-10 border border-slate-100 shadow-sm text-emerald-600 font-black italic uppercase text-xs"
+                                className="bg-white p-5 rounded-3xl mb-10 border border-slate-100 shadow-sm text-emerald-600 font-black  uppercase text-xs"
                             />
 
                             <TouchableOpacity
@@ -542,7 +542,7 @@ export default function PaidGigs({ navigation }: any) {
                             >
                                 {submitting ? <ActivityIndicator color="#ec4899" /> : (
                                     <>
-                                        <Text className="text-white font-black italic uppercase tracking-widest text-xs mr-3">
+                                        <Text className="text-white font-black  uppercase tracking-widest text-xs mr-3">
                                             {editMode ? 'Sync Changes' : 'Deploy Gig'}
                                         </Text>
                                         <Ionicons name={editMode ? "checkmark-circle" : "paper-plane"} size={16} color="white" />
