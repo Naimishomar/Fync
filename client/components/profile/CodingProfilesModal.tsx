@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, Pressable, Modal, 
-  ActivityIndicator, ScrollView, Image, KeyboardAvoidingView, Platform
+  ActivityIndicator, ScrollView, Image, KeyboardAvoidingView, Platform, Dimensions
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
+
+const { height: screenHeight } = Dimensions.get('window');
 
 interface CodingProfilesModalProps {
   visible: boolean;
@@ -47,7 +49,7 @@ const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: Codin
       });
 
       if (res.data.success) {
-        Toast.show({ type: 'success', text1: 'Coding profiles updated!' });
+        Toast.show({ type: 'success', text1: 'Profiles updated!' });
         onSuccess();
       }
     } catch (error) {
@@ -58,23 +60,25 @@ const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: Codin
     }
   };
 
-  const ProfileInput = ({ label, value, onChange, icon, color, logo }: any) => (
-    <View className="mb-4">
-      <View className="flex-row items-center mb-1.5 ml-1">
-        {logo ? (
-          <Image source={{ uri: logo }} className="w-4 h-4 mr-2" resizeMode="contain" />
-        ) : (
-          <Ionicons name={icon} size={16} color={color} className="mr-2" />
-        )}
-        <Text className="text-gray-600 font-semibold text-xs">{label}</Text>
+  const ProfileInput = ({ label, value, onChange, icon, logo }: any) => (
+    <View className="mb-6">
+      <View className="flex-row items-center mb-2 ml-1">
+        <View className="w-6 h-6 items-center justify-center mr-2">
+            {logo ? (
+            <Image source={{ uri: logo }} className="w-5 h-5" resizeMode="contain" />
+            ) : (
+            <Feather name={icon} size={14} color="#f97316" />
+            )}
+        </View>
+        <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">{label}</Text>
       </View>
-      <View className="flex-row items-center bg-gray-50 rounded-xl px-3 border border-gray-100">
+      <View className="flex-row items-center bg-slate-50 rounded-2xl px-5 border border-slate-100 shadow-sm">
         <TextInput
           value={value}
           onChangeText={onChange}
-          placeholder={`${label} username`}
-          placeholderTextColor="#9ca3af"
-          className="flex-1 text-gray-900 py-3 text-sm"
+          placeholder={`${label} identifier`}
+          placeholderTextColor="#94A3B8"
+          className="flex-1 text-zinc-900 py-4 text-sm font-semibold"
           autoCapitalize="none"
         />
       </View>
@@ -82,67 +86,80 @@ const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: Codin
   );
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View className="flex-1 bg-black/60 justify-end">
+        <Pressable className="absolute inset-0" onPress={onClose} />
         <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          className="bg-white rounded-t-[32px] overflow-hidden"
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          className="bg-white rounded-t-[40px] overflow-hidden"
+          style={{ height: screenHeight * 0.80 }}
         >
-          <View className="px-6 pt-8 pb-10">
-            <View className="flex-row items-center justify-between mb-6">
-              <View>
-                <Text className="text-xl font-bold text-gray-900">Coding Profiles</Text>
-                <Text className="text-gray-500 text-xs mt-1">Showcase your competitive programming handles</Text>
-              </View>
-              <Pressable onPress={onClose} className="bg-gray-100 p-2 rounded-full">
-                <Ionicons name="close" size={20} color="#374151" />
-              </Pressable>
+          {/* Handle */}
+          <View className="items-center py-4">
+            <View className="w-12 h-1.5 bg-slate-200 rounded-full" />
+          </View>
+
+          {/* Header */}
+          <View className="flex-row items-center justify-between px-8 pb-4 border-b border-slate-50">
+            <View>
+              <Text className="text-zinc-900 font-black uppercase text-xl tracking-tighter">
+                Coding <Text className="text-orange-500">Profiles</Text>
+              </Text>
+              <Text className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-0.5">Competitive Protocol</Text>
             </View>
+            <Pressable onPress={onClose} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
+              <Ionicons name="close" size={20} color="#18181b" />
+            </Pressable>
+          </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} className="max-h-[400px]">
-              <ProfileInput 
-                label="LeetCode" 
-                value={leetcode} 
-                onChange={setLeetcode} 
-                logo="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/leetcode-xp0gbbxtpmnkjk8uhdrmhg.png/leetcode-jj5yfhjdsmrt5j9xb3sec.png?_a=DATAiZiuZAA0"
-              />
-              <ProfileInput 
-                label="GeeksforGeeks" 
-                value={gfg} 
-                onChange={setGfg} 
-                logo="https://upload.wikimedia.org/wikipedia/commons/e/eb/GeeksForGeeks_logo.png"
-              />
-              <ProfileInput 
-                label="CodeChef" 
-                value={codechef} 
-                onChange={setCodechef} 
-                logo="https://cdn.codechef.com/images/email/codechef-logo.png"
-              />
-              <ProfileInput 
-                label="Codeforces" 
-                value={codeforces} 
-                onChange={setCodeforces} 
-                icon="code-working"
-                color="#3b82f6"
-              />
-              <ProfileInput 
-                label="HackerRank" 
-                value={hackerrank} 
-                onChange={setHackerrank} 
-                icon="terminal"
-                color="#2ec866"
-              />
-            </ScrollView>
+          <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-8 pt-6">
+            <ProfileInput 
+              label="LeetCode" 
+              value={leetcode} 
+              onChange={setLeetcode} 
+              logo="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/leetcode-xp0gbbxtpmnkjk8uhdrmhg.png/leetcode-jj5yfhjdsmrt5j9xb3sec.png?_a=DATAiZiuZAA0"
+            />
+            <ProfileInput 
+              label="GeeksforGeeks" 
+              value={gfg} 
+              onChange={setGfg} 
+              logo="https://upload.wikimedia.org/wikipedia/commons/e/eb/GeeksForGeeks_logo.png"
+            />
+            <ProfileInput 
+              label="CodeChef" 
+              value={codechef} 
+              onChange={setCodechef} 
+              logo="https://cdn.codechef.com/images/email/codechef-logo.png"
+            />
+            <ProfileInput 
+              label="Codeforces" 
+              value={codeforces} 
+              onChange={setCodeforces} 
+              icon="terminal"
+            />
+            <ProfileInput 
+              label="HackerRank" 
+              value={hackerrank} 
+              onChange={setHackerrank} 
+              icon="code"
+            />
+            <View className="h-10" />
+          </ScrollView>
 
+          {/* Footer Action */}
+          <View className="p-8 border-t border-slate-50 bg-white shadow-2xl shadow-black">
             <Pressable
               onPress={handleSave}
               disabled={loading}
-              className={`mt-6 py-4 rounded-2xl items-center justify-center ${loading ? 'bg-indigo-400' : 'bg-indigo-600 shadow-lg shadow-indigo-200'}`}
+              className="bg-zinc-900 py-5 rounded-[24px] flex-row items-center justify-center shadow-xl shadow-black/20"
             >
               {loading ? (
-                <ActivityIndicator color="white" />
+                <ActivityIndicator color="#f97316" />
               ) : (
-                <Text className="text-white font-bold text-base">Save Profiles</Text>
+                <>
+                  <Feather name="save" size={16} color="white" className="mr-2" />
+                  <Text className="text-white font-black uppercase text-xs tracking-[2px] ml-2">Sync Ecosystem</Text>
+                </>
               )}
             </Pressable>
           </View>

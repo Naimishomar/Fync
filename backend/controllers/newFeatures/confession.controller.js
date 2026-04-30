@@ -5,21 +5,12 @@ import Notification from '../../models/notification.model.js';
 import User from '../../models/user.model.js';
 import { clearCache } from '../../middlewares/cache.middleware.js';
 
-const CONFESSION_COLORS = [
-    '#FF6B6B', // Red
-    '#4D96FF', // Blue
-    '#6BCB77', // Green
-    '#FFD93D', // Yellow
-    '#9B59B6', // Purple
-    '#E67E22', // Orange
-    '#1ABC9C', // Teal
-];
-
-const getRandomColor = () => CONFESSION_COLORS[Math.floor(Math.random() * CONFESSION_COLORS.length)];
+// Fixed color for all confessions as per requirement
+const FIXED_CONFESSION_COLOR = '#FFFFFF';
 
 export const createConfession = async (req, res) => {
     try {
-        const { content, color, taggedUserId } = req.body;
+        const { content, taggedUserId } = req.body;
         const college = req.user.college;
         const userId = req.user.id;
 
@@ -31,7 +22,7 @@ export const createConfession = async (req, res) => {
             content,
             user: userId,
             college,
-            color: color || getRandomColor(),
+            color: FIXED_CONFESSION_COLOR,
             taggedUser: taggedUserId || null,
         });
 
@@ -46,7 +37,7 @@ export const createConfession = async (req, res) => {
         }
 
         const populatedConfessions = await Confession.findById(confession._id)
-            .populate('user', 'name')
+            .populate('user', 'name gender')
             .populate('taggedUser', 'name username avatar user_access');
 
         const confessionWithFlag = {
@@ -70,7 +61,7 @@ export const getConfessions = async (req, res) => {
         const skip = (page - 1) * limit;
 
         const confessions = await Confession.find({ college })
-            .populate('user', 'name')
+            .populate('user', 'name gender')
             .populate('taggedUser', 'name username avatar user_access')
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -114,7 +105,11 @@ export const likeConfession = async (req, res) => {
             );
         }
 
-        return res.status(200).json({ success: true, confession: updatedConfession });
+        const populatedConfession = await Confession.findById(updatedConfession._id)
+            .populate('user', 'name gender')
+            .populate('taggedUser', 'name username avatar user_access');
+
+        return res.status(200).json({ success: true, confession: populatedConfession });
     } catch (error) {
         console.error("Like confession error:", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -192,7 +187,7 @@ export const getConfessionComments = async (req, res) => {
 export const updateConfession = async (req, res) => {
     try {
         const { id } = req.params;
-        const { content, color, taggedUserId } = req.body;
+        const { content, taggedUserId } = req.body;
         const confession = await Confession.findById(id);
 
         if (!confession) {
@@ -209,12 +204,12 @@ export const updateConfession = async (req, res) => {
             { 
                 $set: { 
                     ...(content && { content }), 
-                    ...(color && { color }),
+                    color: FIXED_CONFESSION_COLOR,
                     taggedUser: taggedUserId !== undefined ? taggedUserId : confession.taggedUser 
                 } 
             },
             { new: true }
-        ).populate('user', 'name').populate('taggedUser', 'name username avatar user_access');
+        ).populate('user', 'name gender').populate('taggedUser', 'name username avatar user_access');
 
         const updatedWithFlag = {
             ...updated._doc,

@@ -332,6 +332,10 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    dailyHubPoints: {
+        type: Number,
+        default: 0
+    },
     fyncBadge: {
         type: String,
         enum: ['Newcomer', 'Explorer', 'Builder', 'Innovator', 'Pioneer', 'Legend'],

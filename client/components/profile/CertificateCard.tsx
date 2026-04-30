@@ -1,16 +1,16 @@
 import React from 'react';
 import { View, Text, Pressable, Linking, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 
 const CAT_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
-  coding:        { color: '#0EA5E9', bg: '#F0F9FF', icon: 'code-slash' },
-  design:        { color: '#EC4899', bg: '#FDF2F8', icon: 'color-palette' },
-  cloud:         { color: '#6366F1', bg: '#EEF2FF', icon: 'cloud' },
-  'ai-ml':       { color: '#7C3AED', bg: '#F5F3FF', icon: 'hardware-chip' },
-  cybersecurity: { color: '#DC2626', bg: '#FEF2F2', icon: 'shield-checkmark' },
-  management:    { color: '#D97706', bg: '#FFFBEB', icon: 'people' },
-  'data-science':{ color: '#059669', bg: '#ECFDF5', icon: 'bar-chart' },
-  other:         { color: '#6B7280', bg: '#F3F4F6', icon: 'ribbon' },
+  coding:        { color: '#18181b', bg: '#f8fafc', icon: 'code-slash' },
+  design:        { color: '#18181b', bg: '#f8fafc', icon: 'color-palette' },
+  cloud:         { color: '#18181b', bg: '#f8fafc', icon: 'cloud' },
+  'ai-ml':       { color: '#f97316', bg: '#fff7ed', icon: 'hardware-chip' },
+  cybersecurity: { color: '#f97316', bg: '#fff7ed', icon: 'shield-checkmark' },
+  management:    { color: '#18181b', bg: '#f8fafc', icon: 'people' },
+  'data-science':{ color: '#f97316', bg: '#fff7ed', icon: 'bar-chart' },
+  other:         { color: '#18181b', bg: '#f8fafc', icon: 'ribbon' },
 };
 
 interface Certificate {
@@ -37,45 +37,48 @@ export default function CertificateCard({ cert, isOwner, onEdit, onDelete }: Pro
   const cat = CAT_CONFIG[cert.category || 'other'] || CAT_CONFIG.other;
 
   return (
-    <View className="bg-white rounded-xl border border-gray-100 p-3.5 flex-row items-center">
+    <View className="bg-white rounded-[24px] border border-slate-100 p-4 flex-row items-center shadow-sm shadow-black/5">
       {/* Image or Icon */}
       {cert.imageUrl ? (
         <Image 
           source={{ uri: cert.imageUrl }} 
-          className="w-14 h-14 rounded-lg mr-3 flex-shrink-0 border border-slate-200"
+          className="w-16 h-16 rounded-[20px] mr-4 flex-shrink-0 border border-slate-200"
           resizeMode="cover"
         />
       ) : (
-        <View className="w-14 h-14 rounded-lg items-center justify-center mr-3 flex-shrink-0"
-          style={{ backgroundColor: cat.bg }}>
+        <View className="w-16 h-16 rounded-[20px] items-center justify-center mr-4 flex-shrink-0"
+          style={{ backgroundColor: cat.bg, borderWidth: 1, borderColor: '#f1f5f9' }}>
           <Ionicons name={cat.icon as any} size={24} color={cat.color} />
         </View>
       )}
 
       {/* Content */}
       <View className="flex-1">
-        <Text className="text-gray-900 font-semibold text-sm" numberOfLines={1}>{cert.title}</Text>
-        <Text className="text-gray-500 text-xs">{cert.issuer}</Text>
+        <Text className="text-zinc-900 font-black uppercase text-[12px] tracking-tight leading-tight" numberOfLines={1}>{cert.title}</Text>
+        <Text className="text-slate-400 font-bold text-[10px] uppercase tracking-wider mt-0.5">{cert.issuer}</Text>
         {cert.issueDate && (
-          <Text className="text-gray-400 text-[10px] mt-0.5">{fmtDate(cert.issueDate)}</Text>
+          <View className="flex-row items-center gap-1 mt-2">
+            <Feather name="calendar" size={10} color="#94A3B8" />
+            <Text className="text-slate-400 font-bold text-[9px] uppercase tracking-wider">{fmtDate(cert.issueDate)}</Text>
+          </View>
         )}
       </View>
 
       {/* Actions */}
-      <View className="flex-row items-center gap-2 ml-2">
+      <View className="flex-row items-center gap-3 ml-4 border-l border-slate-50 pl-4">
         {cert.credentialUrl && (
           <Pressable onPress={() => Linking.openURL(cert.credentialUrl!)}
-            className="bg-blue-50 p-1.5 rounded-lg border border-blue-100">
-            <Ionicons name="open-outline" size={14} color="#2563EB" />
+            className="w-9 h-9 bg-white items-center justify-center rounded-xl border border-slate-100 shadow-sm">
+            <Feather name="external-link" size={14} color="#f97316" />
           </Pressable>
         )}
         {isOwner && (
           <>
-            <Pressable onPress={() => onEdit?.(cert)} className="p-1">
-              <Ionicons name="pencil-outline" size={14} color="#6366F1" />
+            <Pressable onPress={() => onEdit?.(cert)} className="w-8 h-8 items-center justify-center bg-zinc-900 rounded-xl">
+              <Feather name="edit-3" size={12} color="white" />
             </Pressable>
-            <Pressable onPress={() => onDelete?.(cert._id)} className="p-1">
-              <Ionicons name="trash-outline" size={14} color="#EF4444" />
+            <Pressable onPress={() => onDelete?.(cert._id)} className="w-8 h-8 items-center justify-center bg-rose-50 rounded-xl">
+              <Ionicons name="trash-outline" size={14} color="#ef4444" />
             </Pressable>
           </>
         )}

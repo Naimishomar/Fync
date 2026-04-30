@@ -602,7 +602,10 @@ export default function HomeScreen() {
     setRefreshing(true);
     setPage(1);
     setHasMore(true);
-    await fetchFeed(1, true);
+    await Promise.all([
+      fetchFeed(1, true),
+      fetchBadges()
+    ]);
   }, [fetchFeed]);
 
   const loadMore = useCallback(() => {
@@ -613,27 +616,26 @@ export default function HomeScreen() {
     }
   }, [loadingMore, hasMore, loading, page, fetchFeed]);
 
-  useFocusEffect(
-    useCallback(() => {
-      const getCount = async () => {
-        try {
-          const [notifRes, chatRes] = await Promise.all([
-            axios.get('/notifications/count'),
-            axios.get('/chat/unread-count')
-          ]);
-          if (notifRes.data.success) {
-            setUnreadCount(notifRes.data.count);
-          }
-          if (chatRes.data.success) {
-            setChatUnreadCount(chatRes.data.count);
-          }
-        } catch (error) {
-          console.log("Badge Error:", error);
-        }
-      };
-      getCount();
-    }, [])
-  );
+  const fetchBadges = async () => {
+    try {
+      const [notifRes, chatRes] = await Promise.all([
+        axios.get('/notifications/count'),
+        axios.get('/chat/unread-count')
+      ]);
+      if (notifRes.data.success) {
+        setUnreadCount(notifRes.data.count);
+      }
+      if (chatRes.data.success) {
+        setChatUnreadCount(chatRes.data.count);
+      }
+    } catch (error) {
+      console.log("Badge Error:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchBadges();
+  }, []);
 
   const handleOpenComments = useCallback((postId: string) => {
     setSelectedPostId(postId);
@@ -674,7 +676,7 @@ export default function HomeScreen() {
   const renderHeader = () => (
     <View
       style={{ paddingTop: insets.top - 10 }}
-      className="flex-row items-center justify-between px-4 bg-transparent z-10"
+      className="flex-row items-center justify-between px-4 bg-transparent z-10 mt-2 pb-2"
     >
       <View className="flex-row items-center py-2 gap-2">
         <Pressable onPress={() => navigation.openDrawer()}>
@@ -696,7 +698,7 @@ export default function HomeScreen() {
           <View>
             <Ionicons name="heart-outline" size={26} color="#1A1A1A" />
             {unreadCount > 0 && (
-              <View className="absolute -top-1 -right-1 bg-pink-500 rounded-full w-5 h-5 justify-center items-center border border-white">
+              <View className="absolute -top-2 -right-2 bg-orange-500 rounded-full w-5 h-5 justify-center items-center border border-white">
                 <Text className="text-white text-[10px] font-bold">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </Text>
@@ -876,9 +878,9 @@ const renderFeatureStories = () => {
       />
 
       {/* Background Protocol Gradient Overlay */}
-      <View pointerEvents="none" className="absolute top-0 w-full h-40 opacity-20">
+      {/* <View pointerEvents="none" className="absolute top-0 w-full h-60 opacity-20">
         <LinearGradient colors={['#f97416ff', 'transparent']} className="w-full h-full" />
-      </View>
+      </View> */}
 
     </View>
   );

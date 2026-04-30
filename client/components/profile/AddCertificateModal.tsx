@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
   Modal, View, Text, TextInput, Pressable, ScrollView,
-  ActivityIndicator, KeyboardAvoidingView, Platform, Image
+  ActivityIndicator, KeyboardAvoidingView, Platform, Image, Dimensions
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 
+const { height: screenHeight } = Dimensions.get('window');
 const CATEGORIES = ['coding', 'design', 'cloud', 'ai-ml', 'cybersecurity', 'management', 'data-science', 'other'];
 
 interface Props {
@@ -96,80 +97,127 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
   };
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <KeyboardAvoidingView className="flex-1 bg-white" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View className="flex-row items-center justify-between px-4 py-4 border-b border-gray-100">
-          <Pressable onPress={onClose}><Ionicons name="close" size={24} color="#374151" /></Pressable>
-          <Text className="font-bold text-gray-900 text-lg">{isEdit ? 'Edit Certificate' : 'Add Certificate'}</Text>
-          <Pressable onPress={save} disabled={saving} className="bg-indigo-600 px-4 py-2 rounded-xl">
-            {saving ? <ActivityIndicator size="small" color="white" />
-              : <Text className="text-white font-bold">Save</Text>}
-          </Pressable>
-        </View>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View className="flex-1 bg-black/60 justify-end">
+        <Pressable className="absolute inset-0" onPress={onClose} />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          className="bg-white rounded-t-[40px] overflow-hidden"
+          style={{ height: screenHeight * 0.85 }}
+        >
+          {/* Handle */}
+          <View className="items-center py-4">
+            <View className="w-12 h-1.5 bg-slate-200 rounded-full" />
+          </View>
 
-        <ScrollView className="flex-1 px-4 pt-4" keyboardShouldPersistTaps="handled">
-          {/* Category chips */}
-          <Text className="text-gray-700 font-semibold text-sm mb-2">Category</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
-            <View className="flex-row gap-2">
-              {CATEGORIES.map(c => (
-                <Pressable key={c} onPress={() => setForm(p => ({ ...p, category: c }))}
-                  className={`px-3 py-2 rounded-xl border ${form.category === c ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-50 border-gray-200'}`}>
-                  <Text className={`text-xs font-semibold capitalize ${form.category === c ? 'text-white' : 'text-gray-600'}`}>
-                    {c.replace('-', ' ')}
-                  </Text>
-                </Pressable>
-              ))}
+          {/* Header */}
+          <View className="flex-row items-center justify-between px-6 pb-4 border-b border-slate-50">
+            <View>
+              <Text className="text-zinc-900 font-black uppercase text-xl tracking-tighter">
+                {isEdit ? 'Verify' : 'Add'} <Text className="text-orange-500">Certificate</Text>
+              </Text>
+              <Text className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-0.5">Academic Validation Module</Text>
             </View>
+            <Pressable onPress={onClose} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
+              <Ionicons name="close" size={20} color="#18181b" />
+            </Pressable>
+          </View>
+
+          <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            {/* Category chips */}
+            <View className="mb-6">
+              <View className="flex-row items-center gap-2 mb-3">
+                <Feather name="tag" size={12} color="#94A3B8" />
+                <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">Specialization Field</Text>
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View className="flex-row gap-2 pr-6">
+                  {CATEGORIES.map(c => (
+                    <Pressable key={c} onPress={() => setForm(p => ({ ...p, category: c }))}
+                      className={`px-4 py-2.5 rounded-xl border items-center shadow-sm ${form.category === c ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-slate-100'}`}>
+                      <Text className={`text-[10px] font-black uppercase tracking-widest ${form.category === c ? 'text-white' : 'text-slate-400'}`}>
+                        {c.replace('-', ' ')}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
+
+            {[
+              { label: 'Certificate Title *', key: 'title', ph: 'e.g. AWS Cloud Practitioner', icon: 'award' },
+              { label: 'Issuing Organization *', key: 'issuer', ph: 'e.g. Amazon Web Services', icon: 'home' },
+              { label: 'Issue Date (YYYY-MM-DD)', key: 'issueDate', ph: '2024-03-15', icon: 'calendar' },
+              { label: 'Expiry Date (YYYY-MM-DD)', key: 'expiryDate', ph: '2027-03-15', icon: 'clock' },
+              { label: 'Credential ID', key: 'credentialId', ph: 'ABC123XYZ', icon: 'hash' },
+              { label: 'Credential URL', key: 'credentialUrl', ph: 'https://...', icon: 'link' },
+            ].map(f => (
+              <View key={f.key} className="mb-6">
+                <View className="flex-row items-center gap-2 mb-2">
+                  <Feather name={f.icon as any} size={12} color="#94A3B8" />
+                  <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">{f.label}</Text>
+                </View>
+                <TextInput
+                  className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-zinc-900 text-sm font-semibold"
+                  placeholder={f.ph} placeholderTextColor="#94A3B8"
+                  value={(form as any)[f.key]}
+                  onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
+                />
+              </View>
+            ))}
+
+            {/* Image Picker */}
+            <View className="mb-12">
+              <View className="flex-row items-center gap-2 mb-4">
+                <Feather name="image" size={12} color="#94A3B8" />
+                <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">Digital Proof / Manifest</Text>
+              </View>
+              <Pressable onPress={pickImage}>
+                {image ? (
+                   <View className="w-full h-48 rounded-[28px] overflow-hidden border border-slate-100 shadow-sm">
+                     <Image source={{ uri: image.uri }} className="w-full h-full" resizeMode="contain" />
+                     <View className="absolute top-3 right-3 bg-black/60 rounded-full p-2 border border-white/20">
+                       <Feather name="edit-2" size={14} color="white" />
+                     </View>
+                   </View>
+                ) : existingImage ? (
+                   <View className="w-full h-48 rounded-[28px] overflow-hidden border border-slate-100 shadow-sm">
+                     <Image source={{ uri: existingImage }} className="w-full h-full" resizeMode="contain" />
+                     <View className="absolute top-3 right-3 bg-black/60 rounded-full p-2 border border-white/20">
+                        <Feather name="edit-2" size={14} color="white" />
+                     </View>
+                   </View>
+                ) : (
+                   <View className="w-full h-48 border-2 border-dashed border-slate-200 rounded-[32px] items-center justify-center bg-slate-50/50">
+                     <View className="w-12 h-12 bg-white rounded-full items-center justify-center shadow-sm mb-3">
+                       <Feather name="upload-cloud" size={20} color="#f97316" />
+                     </View>
+                     <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Initialize Proof Upload</Text>
+                   </View>
+                )}
+              </Pressable>
+            </View>
+            
+            <View className="h-6" />
           </ScrollView>
 
-          {[
-            { label: 'Certificate Title *', key: 'title', ph: 'e.g. AWS Cloud Practitioner' },
-            { label: 'Issuing Organization *', key: 'issuer', ph: 'e.g. Amazon Web Services' },
-            { label: 'Issue Date (YYYY-MM-DD)', key: 'issueDate', ph: '2024-03-15' },
-            { label: 'Expiry Date (YYYY-MM-DD)', key: 'expiryDate', ph: '2027-03-15' },
-            { label: 'Credential ID', key: 'credentialId', ph: 'ABC123XYZ' },
-            { label: 'Credential URL', key: 'credentialUrl', ph: 'https://...' },
-          ].map(f => (
-            <View key={f.key} className="mb-4">
-              <Text className="text-gray-700 font-semibold text-sm mb-1.5">{f.label}</Text>
-              <TextInput
-                className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 text-sm"
-                placeholder={f.ph} placeholderTextColor="#9CA3AF"
-                value={form[f.key as keyof typeof form]}
-                onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
-              />
-            </View>
-          ))}
-
-          {/* Image Picker */}
-          <Text className="text-gray-700 font-semibold text-sm mb-2">Certificate Image / Proof</Text>
-          <Pressable onPress={pickImage} className="mb-8">
-            {image ? (
-               <View className="w-full h-40 rounded-2xl overflow-hidden border border-gray-100">
-                 <Image source={{ uri: image.uri }} className="w-full h-full" resizeMode="contain" />
-                 <View className="absolute top-2 right-2 bg-black/50 rounded-full p-1.5">
-                   <Ionicons name="pencil" size={14} color="white" />
-                 </View>
-               </View>
-            ) : existingImage ? (
-               <View className="w-full h-40 rounded-2xl overflow-hidden border border-gray-100">
-                 <Image source={{ uri: existingImage }} className="w-full h-full" resizeMode="contain" />
-                 <View className="absolute top-2 right-2 bg-black/50 rounded-full p-1.5">
-                    <Ionicons name="pencil" size={14} color="white" />
-                 </View>
-               </View>
-            ) : (
-               <View className="w-full h-40 border-2 border-dashed border-gray-200 rounded-2xl items-center justify-center bg-gray-50">
-                 <Ionicons name="cloud-upload-outline" size={32} color="#9CA3AF" />
-                 <Text className="text-gray-400 text-xs mt-2 font-medium">Upload certificate image or screenshot</Text>
-               </View>
-            )}
-          </Pressable>
-          
-          <View className="h-6" />
-        </ScrollView>
-      </KeyboardAvoidingView>
+          {/* Footer Action */}
+          <View className="p-6 border-t border-slate-50 bg-white shadow-2xl shadow-black">
+            <Pressable onPress={save} disabled={saving}
+              className="bg-zinc-900 py-5 rounded-[24px] flex-row items-center justify-center shadow-xl shadow-black/20">
+              {saving ? <ActivityIndicator size="small" color="#f97316" />
+                : (
+                  <>
+                    <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />
+                    <Text className="text-white font-black uppercase text-xs tracking-[2px] ml-2">
+                      {isEdit ? 'Update Certificate' : 'Verify Achievement'}
+                    </Text>
+                  </>
+                )}
+            </Pressable>
+          </View>
+        </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }

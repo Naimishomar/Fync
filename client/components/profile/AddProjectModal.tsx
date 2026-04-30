@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
   Modal, View, Text, TextInput, Pressable, ScrollView,
-  ActivityIndicator, KeyboardAvoidingView, Platform, Image
+  ActivityIndicator, KeyboardAvoidingView, Platform, Image, Dimensions
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 
+const { height: screenHeight } = Dimensions.get('window');
 const STATUSES = ['completed', 'in-progress', 'archived'];
 
 interface Props {
@@ -81,7 +82,7 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
       });
 
       existingImages.forEach(img => {
-        formData.append('images', img);
+        formData.append('existingImages', img);
       });
 
       images.forEach(img => {
@@ -106,99 +107,141 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
       onSuccess();
     } catch (e) {
       console.error(e);
-      Toast.show({ type: 'error', text1: 'Failed to save project' });
+      Toast.show({ type: 'error', text1: 'Failed to save' });
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <KeyboardAvoidingView className="flex-1 bg-white" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        {/* Header */}
-        <View className="flex-row items-center justify-between px-4 py-4 border-b border-gray-100">
-          <Pressable onPress={onClose}><Ionicons name="close" size={24} color="#374151" /></Pressable>
-          <Text className="font-bold text-gray-900 text-lg">{isEdit ? 'Edit Project' : 'Add Project'}</Text>
-          <Pressable onPress={save} disabled={saving}
-            className="bg-indigo-600 px-4 py-2 rounded-xl">
-            {saving ? <ActivityIndicator size="small" color="white" />
-              : <Text className="text-white font-bold">Save</Text>}
-          </Pressable>
-        </View>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View className="flex-1 bg-black/60 justify-end">
+        <Pressable className="absolute inset-0" onPress={onClose} />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          className="bg-white rounded-t-[40px] overflow-hidden"
+          style={{ height: screenHeight * 0.85 }}
+        >
+          {/* Drag Handle */}
+          <View className="items-center py-4">
+            <View className="w-12 h-1.5 bg-slate-200 rounded-full" />
+          </View>
 
-        <ScrollView className="flex-1 px-4 pt-4" keyboardShouldPersistTaps="handled">
-          {[
-            { label: 'Project Title *', key: 'title', ph: 'e.g. Fync App' },
-            { label: 'Tagline', key: 'tagline', ph: 'e.g. A student platform built with React Native' },
-            { label: 'Description', key: 'description', ph: 'Describe your project...', multi: true },
-            { label: 'Tech Stack (comma separated)', key: 'techStack', ph: 'React Native, Node.js, MongoDB' },
-            { label: 'GitHub URL', key: 'githubUrl', ph: 'https://github.com/...' },
-            { label: 'Live URL', key: 'liveUrl', ph: 'https://...' },
-          ].map(f => (
-            <View key={f.key} className="mb-4">
-              <Text className="text-gray-700 font-semibold text-sm mb-1.5">{f.label}</Text>
-              <TextInput
-                className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 text-sm"
-                style={f.multi ? { height: 80, textAlignVertical: 'top' } : {}}
-                placeholder={f.ph}
-                placeholderTextColor="#9CA3AF"
-                value={form[f.key as keyof typeof form]}
-                onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
-                multiline={!!f.multi}
-              />
+          {/* Header */}
+          <View className="flex-row items-center justify-between px-6 pb-4 border-b border-slate-50">
+            <View>
+              <Text className="text-zinc-900 font-black uppercase text-xl tracking-tighter">
+                {isEdit ? 'Upgrade' : 'Deploy'} <Text className="text-orange-500">Project</Text>
+              </Text>
+              <Text className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-0.5">Ecosystem Contribution</Text>
             </View>
-          ))}
+            <Pressable onPress={onClose} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
+              <Ionicons name="close" size={20} color="#18181b" />
+            </Pressable>
+          </View>
 
-          {/* Status selector */}
-          <Text className="text-gray-700 font-semibold text-sm mb-1.5">Status</Text>
-          <View className="flex-row gap-2 mb-6">
-            {STATUSES.map(s => (
-              <Pressable key={s} onPress={() => setForm(p => ({ ...p, status: s }))}
-                className={`flex-1 py-2.5 rounded-xl border items-center ${form.status === s ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-50 border-gray-200'}`}>
-                <Text className={`text-xs font-semibold capitalize ${form.status === s ? 'text-white' : 'text-gray-600'}`}>{s}</Text>
-              </Pressable>
+          <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            {/* Status Selector */}
+            <View className="mb-6">
+              <View className="flex-row items-center gap-2 mb-3">
+                <Feather name="activity" size={12} color="#94A3B8" />
+                <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">Project Lifecycle</Text>
+              </View>
+              <View className="flex-row gap-2">
+                {STATUSES.map(s => (
+                  <Pressable key={s} onPress={() => setForm(p => ({ ...p, status: s }))}
+                    className={`flex-1 py-3 rounded-xl border items-center shadow-sm ${form.status === s ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-slate-100'}`}>
+                    <Text className={`text-[10px] font-black uppercase tracking-widest ${form.status === s ? 'text-white' : 'text-slate-400'}`}>{s.replace('-', ' ')}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            {[
+              { label: 'Project Title *', key: 'title', ph: 'e.g. Fync AI Engine', icon: 'zap' },
+              { label: 'Tagline', key: 'tagline', ph: 'One-liner about the mission', icon: 'type' },
+              { label: 'Technical Specifications', key: 'description', ph: 'Deep dive into the architecture...', multi: true, icon: 'cpu' },
+              { label: 'Tech Stack', key: 'techStack', ph: 'React, Node.js, etc (comma separated)', icon: 'layers' },
+              { label: 'GitHub Repository', key: 'githubUrl', ph: 'https://github.com/...', icon: 'github' },
+              { label: 'Live Manifest', key: 'liveUrl', ph: 'https://...', icon: 'globe' },
+            ].map(f => (
+              <View key={f.key} className="mb-6">
+                <View className="flex-row items-center gap-2 mb-2">
+                  <Feather name={f.icon as any} size={12} color="#94A3B8" />
+                  <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">{f.label}</Text>
+                </View>
+                <TextInput
+                  className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-zinc-900 text-sm font-semibold"
+                  style={f.multi ? { height: 100, textAlignVertical: 'top' } : {}}
+                  placeholder={f.ph} placeholderTextColor="#94A3B8"
+                  value={form[f.key as keyof typeof form]}
+                  onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
+                  multiline={!!f.multi}
+                />
+              </View>
             ))}
-          </View>
 
-          {/* Screenshot picking */}
-          <View className="mb-10">
-            <View className="flex-row justify-between items-center mb-3">
-              <Text className="text-gray-700 font-semibold text-sm">Screenshots (max 5)</Text>
-              {existingImages.length + images.length < 5 && (
-                 <Pressable onPress={pickImages} className="flex-row items-center gap-1">
-                   <Ionicons name="add-circle-outline" size={18} color="#6366F1" />
-                   <Text className="text-indigo-600 text-xs font-bold">Add Images</Text>
-                 </Pressable>
-              )}
+            {/* Media Upload */}
+            <View className="mb-12">
+              <View className="flex-row items-center justify-between mb-4">
+                <View className="flex-row items-center gap-2">
+                  <Feather name="image" size={12} color="#94A3B8" />
+                  <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">Visual Evidence ({existingImages.length + images.length}/5)</Text>
+                </View>
+                {existingImages.length + images.length < 5 && (
+                  <Pressable onPress={pickImages} className="bg-orange-500/10 px-3 py-1.5 rounded-xl border border-orange-500/20">
+                    <Text className="text-orange-600 font-black uppercase text-[8px] tracking-widest">Add Media</Text>
+                  </Pressable>
+                )}
+              </View>
+
+              <View className="flex-row flex-wrap gap-3">
+                {existingImages.map((img, i) => (
+                  <View key={`ex-${i}`} className="w-[30%] aspect-square rounded-2xl overflow-hidden border border-slate-100 shadow-sm">
+                    <Image source={{ uri: img }} className="w-full h-full" />
+                    <Pressable onPress={() => removeImage(i, true)} className="absolute top-1 right-1 bg-black/60 rounded-full p-1 border border-white/20">
+                      <Ionicons name="close" size={12} color="white" />
+                    </Pressable>
+                  </View>
+                ))}
+                {images.map((img, i) => (
+                  <View key={`new-${i}`} className="w-[30%] aspect-square rounded-2xl overflow-hidden border border-slate-100 shadow-sm">
+                    <Image source={{ uri: img.uri }} className="w-full h-full" />
+                    <Pressable onPress={() => removeImage(i, false)} className="absolute top-1 right-1 bg-black/60 rounded-full p-1 border border-white/20">
+                      <Ionicons name="close" size={12} color="white" />
+                    </Pressable>
+                  </View>
+                ))}
+                {existingImages.length + images.length === 0 && (
+                  <Pressable onPress={pickImages} className="w-full h-32 border-2 border-dashed border-slate-200 rounded-[32px] items-center justify-center bg-slate-50/50">
+                    <View className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm mb-2">
+                      <Feather name="upload-cloud" size={18} color="#f97316" />
+                    </View>
+                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Initialize Media Manifest</Text>
+                  </Pressable>
+                )}
+              </View>
             </View>
-            
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
-               {existingImages.map((uri, i) => (
-                 <View key={`ex-${i}`} className="mr-3 w-24 h-24 rounded-xl overflow-hidden border border-gray-100 relative">
-                   <Image source={{ uri }} className="w-full h-full" resizeMode="cover" />
-                   <Pressable onPress={() => removeImage(i, true)} className="absolute top-1 right-1 bg-black/50 rounded-full p-1">
-                     <Ionicons name="close" size={12} color="white" />
-                   </Pressable>
-                 </View>
-               ))}
-               {images.map((img, i) => (
-                 <View key={`new-${i}`} className="mr-3 w-24 h-24 rounded-xl overflow-hidden border border-gray-100 relative">
-                   <Image source={{ uri: img.uri }} className="w-full h-full" resizeMode="cover" />
-                   <Pressable onPress={() => removeImage(i, false)} className="absolute top-1 right-1 bg-black/50 rounded-full p-1">
-                     <Ionicons name="close" size={12} color="white" />
-                   </Pressable>
-                 </View>
-               ))}
-               {existingImages.length + images.length === 0 && (
-                 <Pressable onPress={pickImages} className="w-full h-24 border-2 border-dashed border-gray-200 rounded-2xl items-center justify-center flex-1">
-                   <Ionicons name="image-outline" size={24} color="#9CA3AF" />
-                   <Text className="text-gray-400 text-xs mt-1">Upload project screenshots</Text>
-                 </Pressable>
-               )}
-            </ScrollView>
+            <View className="h-10" />
+          </ScrollView>
+
+          {/* Footer Action */}
+          <View className="p-6 border-t border-slate-50 bg-white shadow-2xl shadow-black">
+            <Pressable onPress={save} disabled={saving}
+              className="bg-zinc-900 py-5 rounded-[24px] flex-row items-center justify-center shadow-xl shadow-black/20">
+              {saving ? <ActivityIndicator size="small" color="#f97316" />
+                : (
+                  <>
+                    <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />
+                    <Text className="text-white font-black uppercase text-xs tracking-[2px] ml-2">
+                      {isEdit ? 'Update Artifact' : 'Commit Deployment'}
+                    </Text>
+                  </>
+                )}
+            </Pressable>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }

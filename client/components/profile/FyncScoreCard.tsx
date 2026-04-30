@@ -5,22 +5,22 @@ import axios from '../../context/axiosConfig';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const BADGE_CONFIG: Record<string, { emoji: string; color: string; bg: string; border: string }> = {
-  Newcomer:  { emoji: '🌱', color: '#6B7280', bg: '#F3F4F6',    border: '#D1D5DB' },
-  Explorer:  { emoji: '🗺️', color: '#2563EB', bg: '#EFF6FF',    border: '#BFDBFE' },
-  Builder:   { emoji: '🔨', color: '#7C3AED', bg: '#F5F3FF',    border: '#DDD6FE' },
-  Innovator: { emoji: '💡', color: '#D97706', bg: '#FFFBEB',    border: '#FDE68A' },
-  Pioneer:   { emoji: '🚀', color: '#059669', bg: '#ECFDF5',    border: '#A7F3D0' },
-  Legend:    { emoji: '🌟', color: '#DC2626', bg: '#FEF2F2',    border: '#FECACA' },
+  Newcomer:  { emoji: '🌱', color: '#18181b', bg: '#f8fafc',    border: '#e2e8f0' },
+  Explorer:  { emoji: '🗺️', color: '#18181b', bg: '#f8fafc',    border: '#e2e8f0' },
+  Builder:   { emoji: '🔨', color: '#18181b', bg: '#f8fafc',    border: '#e2e8f0' },
+  Innovator: { emoji: '💡', color: '#f97316', bg: '#fff7ed',    border: '#fed7aa' },
+  Pioneer:   { emoji: '🚀', color: '#f97316', bg: '#fff7ed',    border: '#fed7aa' },
+  Legend:    { emoji: '🌟', color: '#f97316', bg: '#fff7ed',    border: '#fed7aa' },
 };
 
 const CAT_COLORS: Record<string, string> = {
-  hackathon:  '#6366F1',
-  coding:     '#0EA5E9',
-  github:     '#1F2937',
-  projects:   '#10B981',
-  events:     '#F59E0B',
-  internship: '#8B5CF6',
-  community:  '#EC4899',
+  hackathon:  '#18181b',
+  coding:     '#f97316',
+  github:     '#18181b',
+  projects:   '#f97316',
+  events:     '#18181b',
+  internship: '#f97316',
+  community:  '#18181b',
 };
 
 interface ScoreBreakdown {
@@ -81,8 +81,8 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
   };
 
   if (loading) return (
-    <View className="mx-4 my-3 bg-gray-50 rounded-2xl p-4 border border-gray-100 items-center justify-center h-24">
-      <ActivityIndicator color="#6366F1" />
+    <View className="mx-4 my-3 bg-white rounded-[28px] p-6 border border-slate-100 items-center justify-center h-28 shadow-sm shadow-black/5">
+      <ActivityIndicator color="#f97316" />
     </View>
   );
 
@@ -94,25 +94,22 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
   const categories = score.breakdown ? Object.entries(score.breakdown) : [];
 
   return (
-    <View className="mx-4 my-3 rounded-2xl overflow-hidden border border-gray-100 bg-white">
-      {/* Header Row */}
-      <Pressable onPress={() => setExpanded(e => !e)} className="flex-row items-center p-4">
-        {/* Badge bubble */}
+    <View className="mx-4 my-3 rounded-[28px] overflow-hidden border border-slate-100 bg-white shadow-sm shadow-black/5">
+      <Pressable onPress={() => setExpanded(e => !e)} className="flex-row items-center p-6">
         <View
-          className="w-14 h-14 rounded-2xl items-center justify-center mr-3"
-          style={{ backgroundColor: cfg.bg, borderWidth: 1.5, borderColor: cfg.border }}
+          className="w-16 h-16 rounded-[20px] items-center justify-center mr-4 shadow-sm"
+          style={{ backgroundColor: cfg.bg, borderWidth: 1, borderColor: cfg.border }}
         >
-          <Text style={{ fontSize: 26 }}>{cfg.emoji}</Text>
+          <Text style={{ fontSize: 28 }}>{cfg.emoji}</Text>
         </View>
 
         <View className="flex-1">
-          <View className="flex-row items-center gap-2">
-            <Text className="text-gray-900 font-bold text-lg">{score.totalScore}</Text>
-            <Text className="text-gray-400 text-sm">/ 1000</Text>
+          <View className="flex-row items-baseline gap-2 mb-1">
+            <Text className="text-zinc-900 font-black text-2xl tracking-tighter">{score.totalScore}</Text>
+            <Text className="text-slate-400 font-black uppercase text-[10px] tracking-widest">/ 1000 Pts</Text>
           </View>
-          <Text className="font-semibold text-sm" style={{ color: cfg.color }}>{badge}</Text>
-          {/* Progress bar */}
-          <View className="mt-1.5 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <Text className="font-black uppercase text-[10px] tracking-[2px]" style={{ color: cfg.color }}>Level: {badge}</Text>
+          <View className="mt-2.5 h-1.5 bg-slate-100 rounded-full overflow-hidden">
             <View
               className="h-full rounded-full"
               style={{ width: `${pct}%`, backgroundColor: cfg.color }}
@@ -120,37 +117,27 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
           </View>
         </View>
 
-        <View className="items-end ml-2">
-          <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={18} color="#9CA3AF" />
-          {isOwner && (
-            <Pressable
-              onPress={handleRecalculate}
-              disabled={recalculating}
-              className="mt-1 bg-indigo-50 px-2 py-1 rounded-lg border border-indigo-100"
-            >
-              {recalculating
-                ? <ActivityIndicator size="small" color="#6366F1" />
-                : <Text className="text-indigo-600 text-[10px] font-bold">SYNC</Text>}
-            </Pressable>
-          )}
+        <View className="items-end ml-4 gap-3">
+          <View className="w-8 h-8 bg-slate-50 rounded-xl items-center justify-center border border-slate-100">
+            <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={16} color="#18181b" />
+          </View>
         </View>
       </Pressable>
 
-      {/* Breakdown */}
       {expanded && (
-        <View className="px-4 pb-4 border-t border-gray-50">
-          <Text className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mt-3 mb-2">Score Breakdown</Text>
-          <View className="gap-2">
+        <View className="px-6 pb-8 border-t border-slate-50 pt-4">
+          <Text className="text-slate-400 text-[9px] font-black uppercase tracking-[2px] mb-4">Score Breakdown</Text>
+          <View className="gap-4">
             {categories.map(([cat, data]: [string, any]) => {
               const catPct = Math.min((data.score / data.maxScore) * 100, 100);
-              const color = CAT_COLORS[cat] || '#6B7280';
+              const color = CAT_COLORS[cat] || '#94A3B8';
               return (
                 <View key={cat}>
-                  <View className="flex-row justify-between mb-1">
-                    <Text className="text-gray-700 text-xs font-semibold capitalize">{cat}</Text>
-                    <Text className="text-gray-400 text-xs">{data.score}/{data.maxScore}</Text>
+                  <View className="flex-row justify-between mb-1.5 items-center">
+                    <Text className="text-zinc-900 text-[10px] font-black uppercase tracking-tight">{cat}</Text>
+                    <Text className="text-slate-400 font-bold text-[9px] uppercase tracking-widest">{data.score} <Text className="text-slate-300">/</Text> {data.maxScore}</Text>
                   </View>
-                  <View className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <View className="h-1 bg-slate-50 rounded-full overflow-hidden">
                     <View className="h-full rounded-full" style={{ width: `${catPct}%`, backgroundColor: color }} />
                   </View>
                 </View>

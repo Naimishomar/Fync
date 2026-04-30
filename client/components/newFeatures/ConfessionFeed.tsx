@@ -11,11 +11,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
-const ANONYMOUS_AVATAR = 'https://cdn-icons-png.flaticon.com/512/1177/1177568.png';
+const ANONYMOUS_AVATAR = 'https://ui-avatars.com/api/?name=?&background=f1f5f9&color=64748b&bold=true';
 
-const CONFESSION_COLORS = [
-    '#f97316', '#4D96FF', '#6BCB77', '#FFD93D', '#9B59B6', '#E67E22', '#1ABC9C'
-];
+// Fixed color for all confessions
+const CONFESSION_COLOR = '#FFFFFF';
 
 const maskName = (name: string) => {
     if (!name) return 'User';
@@ -41,13 +40,19 @@ const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navi
     const isLongText = (item.content?.length || 0) > MAX_LIMIT;
 
     return (
-        <View style={{ backgroundColor: item.color }} className="p-3 rounded-xl mb-3 shadow-xl shadow-black/10">
+        <View className="bg-white p-6 rounded-[32px] mb-5 shadow-2xl shadow-black/5 border border-slate-100">
             <View className="flex-row items-center justify-between mb-5">
                 <View className="flex-row items-center">
-                    <ExpoImage source={{ uri: ANONYMOUS_AVATAR }} className="w-11 h-11 rounded-full bg-white/20" cachePolicy="disk" />
-                    <View className="ml-4">
-                        <Text className="text-white font-black text-[16px] tracking-tighter uppercase ">{maskName(item.user?.name || 'User')}</Text>
-                        <Text className="text-white/60 text-[10px] font-black uppercase tracking-widest">Anonymous Entity</Text>
+                    <View className="w-11 h-11 rounded-full bg-slate-100 items-center justify-center border border-slate-200">
+                        <Ionicons 
+                            name={item.user?.gender === 'Female' ? "woman" : "man"} 
+                            size={20} 
+                            color="#94a3b8" 
+                        />
+                    </View>
+                    <View className="ml-2">
+                        <Text className="text-zinc-900 font-black text-[16px] tracking-tighter uppercase ">{maskName(item.user?.name || 'User')}</Text>
+                        <Text className="text-slate-400 text-[9px] uppercase font-black">Anonymous Confession</Text>
                     </View>
                 </View>
 
@@ -65,23 +70,23 @@ const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navi
                                 ]
                             );
                         }}
-                        className="p-3 bg-black/20 rounded-2xl border border-white/10"
+                        className="p-3 bg-slate-50 rounded-2xl border border-slate-100"
                     >
-                        <Ionicons name="settings" size={20} color="white" />
+                        <Ionicons name="settings" size={20} color="#18181b" />
                     </TouchableOpacity>
                 )}
             </View>
 
             <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} activeOpacity={0.9}>
-                <Text className="text-white text-[17px] font-bold leading-7 mb-3 tracking-tight">
+                <Text className="text-zinc-800 text-[17px] font-bold leading-7 mb-4 tracking-tight">
                     {isExpanded || !isLongText
                         ? item.content
                         : `${item.content.substring(0, MAX_LIMIT)}...`}
                     {isLongText && !isExpanded && (
-                        <Text className="text-white/70 font-black text-[12px] uppercase"> Read More</Text>
+                        <Text className="text-orange-500 font-black text-[12px] uppercase"> Read More</Text>
                     )}
                     {isLongText && isExpanded && (
-                        <Text className="text-white/70 font-black text-[12px] uppercase"> Show Less</Text>
+                        <Text className="text-orange-500 font-black text-[12px] uppercase"> Show Less</Text>
                     )}
                 </Text>
             </TouchableOpacity>
@@ -91,27 +96,27 @@ const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navi
                     onPress={() => {
                         navigation.navigate('PublicProfile', { userId: item.taggedUser?._id });
                     }}
-                    className="flex-row items-center bg-black/20 py-2.5 px-5 rounded-full self-start mb-5 border border-white/10"
+                    className="flex-row items-center bg-orange-50 py-2.5 px-5 rounded-full self-start mb-5 border border-orange-100"
                 >
-                    <Ionicons name="at" size={14} color="white" />
-                    <Text className="text-white font-black text-[11px] tracking-tighter">{item.taggedUser?.username}</Text>
+                    <Ionicons name="at" size={14} color="#f97316" />
+                    <Text className="text-orange-600 font-black text-[11px] tracking-tighter ml-1">{item.taggedUser?.username}</Text>
                 </TouchableOpacity>
             )}
 
-            <View className="flex-row items-center justify-between border-t border-white/10 pt-5">
-                <Text className="text-white/50 text-[9px] uppercase font-black tracking-widest">{new Date(item.createdAt).toLocaleDateString()}</Text>
+            <View className="flex-row items-center justify-between border-t border-slate-50 pt-5">
+                <Text className="text-slate-400 text-[9px] uppercase font-black tracking-widest">{new Date(item.createdAt).toLocaleDateString()}</Text>
                 <View className="flex-row items-center">
                     <TouchableOpacity onPress={() => onLike(item._id)} className="flex-row items-center mr-6">
                         <Ionicons
                             name={item.liked_by?.includes(user?._id || user?.id) ? "heart" : "heart-outline"}
                             size={20}
-                            color="white"
+                            color={item.liked_by?.includes(user?._id || user?.id) ? "#ef4444" : "#64748b"}
                         />
-                        <Text className="text-white ml-2 text-xs font-black">{item.likes || 0}</Text>
+                        <Text className="text-slate-600 ml-2 text-xs font-black">{item.likes || 0}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => onComments(item._id)} className="flex-row items-center">
-                        <Ionicons name="chatbubbles-outline" size={20} color="white" />
-                        <Text className="text-white ml-2 text-xs font-black">{item.comments?.length || 0}</Text>
+                        <Ionicons name="chatbubbles-outline" size={20} color="#64748b" />
+                        <Text className="text-slate-600 ml-2 text-xs font-black">{item.comments?.length || 0}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -126,7 +131,7 @@ const ConfessionFeed = () => {
     const [loading, setLoading] = useState(globalConfessionsCache.length === 0);
     const [isPostModalOpen, setIsPostModalOpen] = useState(false);
     const [newConfession, setNewConfession] = useState('');
-    const [selectedColor, setSelectedColor] = useState(CONFESSION_COLORS[0]);
+    const [selectedColor, setSelectedColor] = useState(CONFESSION_COLOR);
     const [submitting, setSubmitting] = useState(false);
 
     // Pagination
@@ -251,7 +256,7 @@ const ConfessionFeed = () => {
         setEditingConfession(null);
         setNewConfession('');
         setTaggedUser(null);
-        setSelectedColor(CONFESSION_COLORS[0]);
+        setSelectedColor(CONFESSION_COLOR);
     };
 
     const openEditModal = (item: any) => {
@@ -380,7 +385,13 @@ const ConfessionFeed = () => {
     const renderComment = (item: any, isReply = false) => (
         <View key={item._id} className={`mb-5 ${isReply ? 'ml-12 border-l-2 border-slate-100 pl-4' : ''}`}>
             <View className="flex-row items-center mb-3">
-                <ExpoImage source={{ uri: item.commentor?.avatar || ANONYMOUS_AVATAR }} className="w-9 h-9 rounded-full bg-slate-50" cachePolicy="disk" />
+                {item.commentor?.avatar ? (
+                    <ExpoImage source={{ uri: item.commentor.avatar }} className="w-9 h-9 rounded-full bg-slate-50" />
+                ) : (
+                    <View className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center border border-slate-200">
+                        <Ionicons name="person" size={14} color="#94a3b8" />
+                    </View>
+                )}
                 <View className="ml-3 flex-1">
                     <View className="flex-row items-center justify-between">
                         <Text className="text-zinc-900 text-[12px] font-black">@{item.commentor?.username}</Text>
@@ -431,7 +442,7 @@ const ConfessionFeed = () => {
             <SafeAreaView className="flex-1" edges={['top']}>
                 {/* Arena Header */}
                 <View className="px-8 pt-2">
-                    <View className="flex-row items-center justify-between mb-8">
+                    <View className="flex-row items-center justify-between mb-2">
                         <View className="flex-1">
                             <View className="flex-row items-center">
                                 <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
@@ -481,7 +492,7 @@ const ConfessionFeed = () => {
                             <View className="flex-row justify-between items-center mb-10">
                                 <View>
                                     <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
-                                        {editingConfession ? 'Update' : 'Spill'} <Text className="text-orange-500">Beans</Text>
+                                        {editingConfession ? 'Update' : 'Post'} <Text className="text-orange-500">Confession</Text>
                                     </Text>
                                     <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Anonymous Protocol Active</Text>
                                 </View>
@@ -490,24 +501,30 @@ const ConfessionFeed = () => {
                                 </TouchableOpacity>
                             </View>
 
-                            <View style={{ backgroundColor: selectedColor }} className="p-8 rounded-[32px] mb-8 shadow-xl shadow-black/10 border border-white/20">
+                            <View className="bg-white p-8 rounded-[32px] mb-8 shadow-2xl shadow-black/5 border border-slate-100">
                                 {taggedUser && !editingConfession && (
-                                    <View className="flex-row items-center bg-white/20 border border-white/30 p-2 px-4 rounded-full self-start mb-5">
-                                        <ExpoImage source={{ uri: taggedUser.avatar || ANONYMOUS_AVATAR }} className="w-5 h-5 rounded-full" />
-                                        <Text className="text-white font-black ml-2 text-[10px] uppercase tracking-widest">Tagged: {taggedUser.name}</Text>
-                                        <TouchableOpacity onPress={() => setTaggedUser(null)} className="ml-3 bg-white/30 rounded-full w-4 h-4 items-center justify-center">
-                                            <Ionicons name="close" size={12} color="white" />
+                                    <View className="flex-row items-center bg-orange-50 border border-orange-100 p-2 px-4 rounded-full self-start mb-5">
+                                        {taggedUser.avatar ? (
+                                            <ExpoImage source={{ uri: taggedUser.avatar }} className="w-5 h-5 rounded-full" />
+                                        ) : (
+                                            <View className="w-5 h-5 rounded-full bg-slate-100 items-center justify-center">
+                                                <Ionicons name="person" size={10} color="#94a3b8" />
+                                            </View>
+                                        )}
+                                        <Text className="text-orange-600 font-black ml-2 text-[10px] uppercase tracking-widest">Tagged: {taggedUser.name}</Text>
+                                        <TouchableOpacity onPress={() => setTaggedUser(null)} className="ml-3 bg-orange-100 rounded-full w-4 h-4 items-center justify-center">
+                                            <Ionicons name="close" size={12} color="#f97316" />
                                         </TouchableOpacity>
                                     </View>
                                 )}
 
                                 <TextInput
                                     placeholder={editingConfession ? "Update your secret..." : "Type your secret (use @ to tag someone)"}
-                                    placeholderTextColor="rgba(255,255,255,0.6)"
+                                    placeholderTextColor="#94a3b8"
                                     multiline
                                     value={newConfession}
                                     onChangeText={handleTextChange}
-                                    className="text-white text-xl font-bold min-h-[160px] tracking-tight"
+                                    className="text-zinc-800 text-xl font-bold min-h-[160px] tracking-tight"
                                     maxLength={500}
                                     textAlignVertical="top"
                                 />
@@ -522,7 +539,13 @@ const ConfessionFeed = () => {
                                                 onPress={() => selectUserToTag(u)}
                                                 className="flex-row items-center p-5 border-b border-slate-50"
                                             >
-                                                <ExpoImage source={{ uri: u.avatar || ANONYMOUS_AVATAR }} className="w-10 h-10 rounded-full bg-slate-50" />
+                                                {u.avatar ? (
+                                                    <ExpoImage source={{ uri: u.avatar }} className="w-10 h-10 rounded-full bg-slate-50" />
+                                                ) : (
+                                                    <View className="w-10 h-10 rounded-full bg-slate-100 items-center justify-center border border-slate-200">
+                                                        <Ionicons name="person" size={18} color="#94a3b8" />
+                                                    </View>
+                                                )}
                                                 <View className="ml-4">
                                                     <Text className="text-zinc-900 font-black text-sm uppercase tracking-tighter">{u.name}</Text>
                                                     <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">@{u.username}</Text>
@@ -533,22 +556,7 @@ const ConfessionFeed = () => {
                                 </View>
                             )}
 
-                            <Text className="text-slate-400 mb-6 text-[10px] font-black uppercase tracking-[2px] text-center ">Archive Atmosphere</Text>
-                            <View className="flex-row justify-between mb-10 px-2">
-                                {CONFESSION_COLORS.map(color => (
-                                    <TouchableOpacity
-                                        key={color}
-                                        onPress={() => setSelectedColor(color)}
-                                        style={{
-                                            backgroundColor: color,
-                                            borderWidth: selectedColor === color ? 4 : 0,
-                                            borderColor: 'white',
-                                            transform: [{ scale: selectedColor === color ? 1.2 : 1 }]
-                                        }}
-                                        className="w-10 h-10 rounded-full shadow-lg shadow-black/10"
-                                    />
-                                ))}
-                            </View>
+                            {/* Color picker removed as per requirement */}
 
                             <TouchableOpacity
                                 onPress={handlePostConfession}
@@ -613,7 +621,13 @@ const ConfessionFeed = () => {
                                 )}
 
                                 <View className={`flex-row items-center bg-white p-3 border border-slate-100 shadow-2xl shadow-black/10 ${replyTo ? 'rounded-b-[24px]' : 'rounded-[24px]'}`}>
-                                    <ExpoImage source={{ uri: user?.avatar || ANONYMOUS_AVATAR }} className="w-9 h-9 rounded-full mr-4 bg-slate-50 border border-slate-100 shadow-inner" cachePolicy="disk" />
+                                    {user?.avatar ? (
+                                        <ExpoImage source={{ uri: user.avatar }} className="w-9 h-9 rounded-full mr-4 bg-slate-50 border border-slate-100 shadow-inner" />
+                                    ) : (
+                                        <View className="w-9 h-9 rounded-full mr-4 bg-slate-100 items-center justify-center border border-slate-200">
+                                            <Ionicons name="person" size={14} color="#94a3b8" />
+                                        </View>
+                                    )}
                                     <TextInput
                                         placeholder="Broadcast signal..."
                                         placeholderTextColor="#94a3b8"

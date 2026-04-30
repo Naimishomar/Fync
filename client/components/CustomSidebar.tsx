@@ -242,6 +242,20 @@ export default function CustomSidebar(props: any) {
                         </Pressable>
                     )}
 
+                    {/* Daily Routine Hub */}
+                    <Pressable
+                        onPress={() => props.navigation.navigate('DailyRoutineHub')}
+                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                    >
+                        <Ionicons name="calendar-outline" size={24} color="#f9a8d4" />
+                        <View className="flex-1 flex-row items-center">
+                            <Text className="text-white text-lg ml-4 font-medium">Daily Hub</Text>
+                            <View className="ml-2 bg-orange-500/20 px-2 py-0.5 rounded-full border border-orange-500/30">
+                                <Text className="text-[9px] text-orange-400 font-bold">NEW</Text>
+                            </View>
+                        </View>
+                    </Pressable>
+
                     {/* 5. Bunk O Meter */}
                     <Pressable
                         onPress={() => props.navigation.navigate('BunkOMeter')}
@@ -353,7 +367,7 @@ export default function CustomSidebar(props: any) {
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
                     >
                         <Ionicons name="megaphone-outline" size={24} color="#f9a8d4" />
-                        <Text className="text-white text-lg ml-4 font-medium">Echo Hubs</Text>
+                        <Text className="text-white text-lg ml-4 font-medium">Community Hubs</Text>
                     </Pressable>
 
                     {/* College Clubs (Campus Community) */}

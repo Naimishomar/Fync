@@ -103,7 +103,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
       {/* Sub Button 2 (e.g., Create Post) */}
       <Animated.View style={[item1Style]} className="absolute items-center">
         <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => navigation.navigate('CreatePost')}>
-          <Ionicons name="aperture-outline" size={20} color="#c37effff" />
+          <Ionicons name="aperture-outline" size={20} color="#dc7100ff" />
         </TouchableOpacity>
         <Text className="text-white text-[10px] font-bold mt-1 uppercase tracking-tighter shadow-black">Add Post</Text>
       </Animated.View>
@@ -111,14 +111,14 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
       {/* Sub Button 1 (e.g., Create Video) */}
       <Animated.View style={[item2Style]} className="absolute items-center">
         <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => navigation.navigate('CreateShorts')}>
-          <Ionicons name="videocam" size={20} color="#ff5badff" />
+          <Ionicons name="videocam" size={20} color="#f07c01ff" />
         </TouchableOpacity>
         <Text className="text-white text-[10px] whitespace-nowrap font-bold mt-1 uppercase tracking-tighter shadow-black">Add Shorts</Text>
       </Animated.View>
 
       <Animated.View style={[item3Style]} className="absolute items-center">
         <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => { toggleMenu(); navigation.navigate('CreateFundingFeed'); }}>
-          <Ionicons name="bulb-outline" size={20} color="#c37effff" />
+          <Ionicons name="bulb-outline" size={20} color="#e58c2eff" />
         </TouchableOpacity>
         <Text className="text-white text-[10px] font-bold mt-1 uppercase tracking-tighter shadow-black">Add Startup</Text>
       </Animated.View>
@@ -128,7 +128,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
       {/* Main Center Button */}
       <View
         style={{
-          shadowColor: '#ec4899', shadowOffset: { width: 0, height: 5 },
+          shadowColor: '#dc7100ff', shadowOffset: { width: 0, height: 5 },
           shadowOpacity: 0.4, shadowRadius: 10, elevation: 10
         }}
         className="w-[72px] h-[72px] rounded-full bg-black items-center justify-center"
@@ -139,7 +139,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
           className="w-[60px] h-[60px] rounded-full overflow-hidden"
         >
           <LinearGradient
-            colors={['#ec4899', '#8f358aff']}
+            colors={['#dc7100ff', '#e58c2eff']}
             className="flex-1 items-center justify-center"
           >
             <Animated.View style={{ transform: [{ rotate: rotation }] }}>
@@ -160,7 +160,7 @@ export default function TabLayout() {
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: false,
-          tabBarActiveTintColor: "#ec4899",
+          tabBarActiveTintColor: "#dc7100ff",
           tabBarInactiveTintColor: "#ffffffff",
           tabBarStyle: {
             position: "absolute",

@@ -156,7 +156,12 @@ import MovieDetail from './components/entertainment/MovieDetail';
 import TrailerReels from './components/entertainment/TrailerReels';
 import MovieSearch from './components/entertainment/MovieSearch';
 import MovieList from './components/entertainment/MovieList';
+// Daily Hubs
+import DailyRoutineHubDashboard from './components/dailyHubs/DailyRoutineHubDashboard';
 
+
+// Daily Hub Utilities
+import './utils/commuteGuardTask';
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -311,6 +316,8 @@ export type RootStackParamList = {
   TrailerReels: { movies?: any[], initialIndex?: number };
   MovieSearch: undefined;
   MovieList: { title: string; type: 'trending' | 'popular' | 'upcoming' | 'bollywood' };
+  // Daily Hubs
+  DailyRoutineHub: undefined;
 };
 
 
@@ -443,12 +450,12 @@ function AppStack() {
 
       <Stack.Screen name="EventCommunityChat" component={EventCommunityChat} />
       <Stack.Screen name="CommunityList" component={CommunityListScreen} />
-      <Stack.Screen name="CreateCommunity" component={CreateCommunityScreen} />
+      <Stack.Screen name="CreateCommunity" component={CreateCommunityScreen} options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }} />
       <Stack.Screen name="CommunityHub" component={CommunityHubScreen} />
       <Stack.Screen name="SubCommunityChat" component={SubCommunityChat} />
       <Stack.Screen name="ClubList" component={ClubListScreen} />
       <Stack.Screen name="ClubHub" component={ClubHubScreen} />
-      <Stack.Screen name="CreateClub" component={CreateClubScreen} />
+      <Stack.Screen name="CreateClub" component={CreateClubScreen} options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }} />
       <Stack.Screen name="CreateSubGroup" component={CreateSubGroupScreen} />
       <Stack.Screen name="EditSubGroup" component={EditSubGroupScreen} />
       <Stack.Screen name="SubGroupChat" component={SubGroupChat} />
@@ -478,6 +485,9 @@ function AppStack() {
       <Stack.Screen name="TrailerReels" component={TrailerReels} />
       <Stack.Screen name="MovieSearch" component={MovieSearch} />
       <Stack.Screen name="MovieList" component={MovieList} />
+      
+      {/* Daily Hubs */}
+      <Stack.Screen name="DailyRoutineHub" component={DailyRoutineHubDashboard} />
     </Stack.Navigator>
   );
 }

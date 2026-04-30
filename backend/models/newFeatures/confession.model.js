@@ -19,7 +19,7 @@ const confessionSchema = new mongoose.Schema({
     },
     color: {
         type: String,
-        default: "#FF6B6B",
+        default: "#FFFFFF",
     },
     likes: {
         type: Number,

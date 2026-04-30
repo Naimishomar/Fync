@@ -1,17 +1,96 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { 
   View, Text, TouchableOpacity, FlatList, Image, TextInput, 
   ActivityIndicator, RefreshControl, Dimensions, Alert, 
-  StatusBar, Platform, Animated
+  StatusBar, Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons, FontAwesome5, Feather } from '@expo/vector-icons';
+import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
+
+const CommunityItem = ({ item, userId, handleJoin, navigation }: any) => {
+    const isMember = item.members?.includes(userId);
+    const isCreator = item.creator?._id === userId;
+    const isSuspended = item.subscription?.status === 'suspended';
+
+    return (
+        <TouchableOpacity 
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('CommunityHub', { communityId: item._id })}
+            className={`mx-8 mb-6 bg-white rounded-[32px] overflow-hidden border border-slate-100 shadow-sm shadow-black/5 ${isSuspended ? 'opacity-50' : ''}`}
+        >
+            {/* Cinematic Expansion Banner */}
+            <View className="h-44 w-full relative">
+                <Image 
+                    source={{ uri: item.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070' }} 
+                    className="w-full h-full"
+                    resizeMode="cover"
+                />
+                <LinearGradient 
+                    colors={['transparent', 'rgba(0,0,0,0.7)']} 
+                    className="absolute inset-0"
+                />
+                
+                {isSuspended && (
+                    <View className="absolute top-4 right-4 bg-rose-500 px-3 py-1 rounded-full border border-rose-400">
+                        <Text className="text-white font-black uppercase text-[7px] tracking-widest">Suspended</Text>
+                    </View>
+                )}
+
+                <View className="absolute bottom-4 left-6 flex-row items-center gap-4">
+                    <View className="w-12 h-12 rounded-2xl border-2 border-white overflow-hidden bg-zinc-900 shadow-xl">
+                        <Image 
+                            source={{ uri: item.logo || 'https://via.placeholder.com/150' }} 
+                            className="w-full h-full"
+                        />
+                    </View>
+                    <View className="flex-1">
+                        <Text className="text-white text-lg font-black uppercase tracking-tighter leading-tight" numberOfLines={1}>{item.name}</Text>
+                        <Text className="text-white/60 text-[8px] uppercase font-black tracking-widest">By {item.creator?.username || item.creator?.name}</Text>
+                    </View>
+                </View>
+            </View>
+
+            {/* Content Area */}
+            <View className="p-6">
+                <Text className="text-slate-500 text-[10px] font-medium leading-4 mb-4" numberOfLines={2}>
+                    {item.description || "The ultimate creator ecosystem built for high-velocity growth and achievement."}
+                </Text>
+
+                <View className="flex-row justify-between items-center pt-4 border-t border-slate-50">
+                    <View className="flex-row items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-xl border border-slate-100">
+                        <Ionicons name="people" size={12} color="#94a3b8" />
+                        <Text className="text-slate-400 font-black text-[9px] uppercase tracking-tighter">{item.members?.length || 0} Sparks</Text>
+                    </View>
+
+                    {isCreator ? (
+                        <View className="flex-row items-center gap-1.5 py-1.5 px-3 bg-zinc-900 rounded-xl">
+                            <Feather name="shield" size={10} color="white" />
+                            <Text className="text-white font-black uppercase text-[7px] tracking-widest">Guardian</Text>
+                        </View>
+                    ) : isMember ? (
+                        <View className="flex-row items-center gap-1.5 py-1.5 px-3 bg-orange-50 rounded-xl border border-orange-100">
+                            <Feather name="check" size={10} color="#f97316" />
+                            <Text className="text-orange-600 font-black uppercase text-[7px] tracking-widest">Subscribed</Text>
+                        </View>
+                    ) : (
+                        <TouchableOpacity 
+                            onPress={() => handleJoin(item._id)}
+                            className="bg-orange-500 px-6 py-2.5 rounded-2xl shadow-lg shadow-orange-500/20"
+                        >
+                            <Text className="text-white font-black uppercase text-[7px] tracking-widest">Subscribe</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </View>
+        </TouchableOpacity>
+    );
+};
 
 const CommunityListScreen = () => {
     const navigation = useNavigation<any>();
@@ -51,11 +130,11 @@ const CommunityListScreen = () => {
         try {
             const res = await axios.post(`/communities/join/${id}`, { userId: user?._id });
             if (res.data.success) {
-                Alert.alert("Success", "Welcome to the hub!");
+                Alert.alert("Welcome!", "You have successfully subscribed to this hub.");
                 fetchCommunities();
             }
         } catch (error: any) {
-            Alert.alert("Error", error.response?.data?.message || "Join failed");
+            Alert.alert("Failed", error.response?.data?.message || "Join failed");
         }
     };
 
@@ -70,202 +149,111 @@ const CommunityListScreen = () => {
         return matchesSearch && matchesFilter;
     });
 
-    const renderCommunityItem = ({ item }: { item: any }) => {
-        const isMember = item.members?.includes(user?._id);
-        const isCreator = item.creator?._id === user?._id;
-        const isSuspended = item.subscription?.status === 'suspended';
-
-        return (
-            <TouchableOpacity 
-                activeOpacity={0.97}
-                onPress={() => navigation.navigate('CommunityHub', { communityId: item._id })}
-                className={`mb-4 bg-white rounded-[28px] shadow-sm border border-zinc-100 overflow-hidden ${isSuspended ? 'opacity-50' : ''}`}
-            >
-                {/* Cinematic Expansion Banner */}
-                <View className="h-44 w-full relative">
-                    <Image 
-                        source={{ uri: item.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070' }} 
-                        className="w-full h-full"
-                        resizeMode="cover"
-                    />
-                    <LinearGradient 
-                        colors={['transparent', 'rgba(0,0,0,0.6)']} 
-                        className="absolute inset-0"
-                    />
-                    
-                    {isSuspended && (
-                        <View className="absolute top-3 right-3 bg-red-500 px-3 py-1 rounded-full">
-                            <Text className="text-white font-black uppercase text-[7px] tracking-widest">Suspended</Text>
-                        </View>
-                    )}
-
-                    <View className="absolute bottom-3 left-4 flex-row items-center gap-3">
-                        <View className="w-10 h-10 rounded-xl border-2 border-white overflow-hidden bg-zinc-900 shadow-md">
-                            <Image 
-                                source={{ uri: item.logo || 'https://via.placeholder.com/150' }} 
-                                className="w-full h-full"
-                            />
-                        </View>
-                        <View>
-                            <Text className="text-white text-md font-black uppercase tracking-tighter" numberOfLines={1}>{item.name}</Text>
-                            <View className="flex-row items-center gap-1">
-                                <Text className="text-white/60 text-[7px] uppercase font-bold tracking-widest">By {item.creator?.username || item.creator?.name}</Text>
-                            </View>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Content Area - Tighter Padding */}
-                <View className="p-4">
-                    <Text className="text-zinc-500 text-[10px] font-medium leading-[16px] mb-4" numberOfLines={2}>
-                        {item.description || "The ultimate creator ecosystem built for high-velocity growth and achievement."}
-                    </Text>
-
-                    <View className="flex-row justify-between items-center">
-                        <View className="flex-row items-center gap-2">
-                            <View className="flex-row items-center gap-1.5 px-2.5 py-1 bg-zinc-50 rounded-lg border border-zinc-100">
-                                <Ionicons name="people" size={10} color="#94a3b8" />
-                                <Text className="text-zinc-400 font-bold text-[8px] uppercase">{item.members?.length || 0}</Text>
-                            </View>
-                        </View>
-
-                        {isCreator ? (
-                            <View className="flex-row items-center gap-1.5 py-1.5 px-3 bg-indigo-50 rounded-xl border border-indigo-100">
-                                <Feather name="shield" size={10} color="#6366f1" />
-                                <Text className="text-indigo-600 font-black uppercase text-[8px] tracking-widest">Guardian Creator</Text>
-                            </View>
-                        ) : isMember ? (
-                            <View className="flex-row items-center gap-1.5 py-1.5 px-3 bg-[#F0FDFA] rounded-xl border border-[#CCFBF1]">
-                                <Feather name="check" size={10} color="#0D9488" />
-                                <Text className="text-[#0D9488] font-black uppercase text-[8px] tracking-widest">Subscribed</Text>
-                            </View>
-                        ) : (
-                            <TouchableOpacity 
-                                onPress={() => handleJoin(item._id)}
-                                className="bg-blue-600 px-5 py-2 rounded-xl"
-                            >
-                                <Text className="text-white font-black uppercase text-[8px] tracking-widest">Subscribe</Text>
-                            </TouchableOpacity>
-                        )}
-                    </View>
-                </View>
-            </TouchableOpacity>
-        );
-    };
-
     const CommunitySkeleton = () => {
-        const pulseAnim = useRef(new Animated.Value(0.4)).current;
-
-        useEffect(() => {
+        const pulseAnim = useRef(new Animated.Value(0.3)).current;
+        React.useEffect(() => {
             Animated.loop(
                 Animated.sequence([
-                    Animated.timing(pulseAnim, { toValue: 0.8, duration: 1200, useNativeDriver: true }),
-                    Animated.timing(pulseAnim, { toValue: 0.4, duration: 1200, useNativeDriver: true }),
+                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
+                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
                 ])
             ).start();
         }, []);
 
         return (
-            <Animated.View 
-                style={{ opacity: pulseAnim }}
-                className="mb-6 bg-white rounded-[32px] shadow-sm border border-zinc-100 overflow-hidden"
-            >
-                {/* Banner Placeholder */}
-                <View className="h-44 bg-zinc-100 relative" />
-                
-                {/* Content Area */}
-                <View className="p-6">
-                    <View className="flex-row items-center gap-4 -mt-10 mb-4 z-10">
-                        <View className="w-14 h-14 rounded-2xl bg-zinc-200 border-4 border-white shadow-sm" />
-                        <View className="flex-1 mt-4">
-                            <View className="h-5 bg-zinc-100 rounded-lg w-2/3 mb-2" />
-                            <View className="h-3 bg-zinc-100 rounded-lg w-1/3" />
-                        </View>
-                    </View>
-                    
-                    <View className="h-3 bg-zinc-50 rounded-lg w-full mb-2" />
-                    <View className="h-3 bg-zinc-50 rounded-lg w-4/5 mb-6" />
-
-                    <View className="flex-row justify-between items-center pt-4 border-t border-zinc-50">
-                        <View className="w-16 h-8 bg-zinc-50 rounded-xl" />
-                        <View className="w-24 h-9 bg-zinc-100 rounded-xl" />
-                    </View>
-                </View>
-            </Animated.View>
+            <Animated.View style={{ opacity: pulseAnim }} className="mx-8 mb-6 bg-white rounded-[32px] border border-slate-100 h-64 shadow-sm" />
         );
     };
 
     return (
-        <View className="flex-1 bg-[#FAFAFA]">
+        <View className="flex-1 bg-[#F8FAFC]">
             <StatusBar barStyle="dark-content" />
+            
+            <View className="absolute top-0 w-full h-80 opacity-20">
+                <LinearGradient colors={['#f97316', 'transparent']} className="w-full h-full" />
+            </View>
+
             <SafeAreaView className="flex-1" edges={['top']}>
-                {/* Responsive Modern Header - Tighter Padding */}
-                <View className="px-5 pt-4 flex-1">
-                    <View className="flex-row justify-between items-center mb-5">
-                        <View className="flex-1 mr-4">
-                            <Text className="text-zinc-900 text-xl font-black uppercase tracking-tight">Ecosystem Directory</Text>
-                            <Text className="text-zinc-400 text-[8px] font-bold uppercase tracking-[2px] mt-0.5">Explore Communities</Text>
-                        </View>
-                        <View className="flex-row items-center gap-2">
-                            <TouchableOpacity 
-                                onPress={() => setFilter(filter === 'joined' ? 'all' : 'joined')}
-                                className={`w-9 h-9 rounded-xl items-center justify-center border ${filter === 'joined' ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-zinc-100'}`}
-                            >
-                                <Feather name="layers" size={15} color={filter === 'joined' ? 'white' : '#94a3b8'} />
-                            </TouchableOpacity>
-                            <TouchableOpacity 
-                                onPress={() => setFilter(filter === 'created' ? 'all' : 'created')}
-                                className={`w-9 h-9 rounded-xl items-center justify-center border ${filter === 'created' ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-zinc-100'}`}
-                            >
-                                <Feather name="anchor" size={15} color={filter === 'created' ? 'white' : '#94a3b8'} />
-                            </TouchableOpacity>
-                            <TouchableOpacity 
-                                onPress={() => navigation.navigate('CreateCommunity')}
-                                className="w-9 h-9 bg-zinc-900 rounded-xl items-center justify-center shadow-md shadow-black/10 ml-1"
-                            >
-                                <Ionicons name="add" size={20} color="white" />
-                            </TouchableOpacity>
-                        </View>
+                <View className="px-8 pt-6 pb-2 flex-row justify-between items-center">
+                    <View>
+                        <Text className="text-zinc-900 text-3xl font-black uppercase tracking-tighter leading-tight">
+                            Community <Text className="text-orange-500">Hub</Text>
+                        </Text>
+                        <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[2px]">High-Velocity Network</Text>
+                    </View>
+                    <TouchableOpacity 
+                        onPress={() => navigation.navigate('CreateCommunity')}
+                        className="w-14 h-14 bg-zinc-900 rounded-[24px] items-center justify-center shadow-2xl shadow-black/40"
+                    >
+                        <Ionicons name="add" size={28} color="white" />
+                    </TouchableOpacity>
+                </View>
+
+                {/* Tabs & Search */}
+                <View className="px-8 mt-6">
+                    <View className="flex-row bg-white p-1.5 rounded-[22px] mb-6 border border-slate-100 shadow-sm">
+                        <TouchableOpacity
+                            onPress={() => setFilter('all')}
+                            className={`flex-1 py-3.5 items-center rounded-[18px] ${filter === 'all' ? 'bg-zinc-900' : 'bg-transparent'}`}
+                        >
+                            <Text className={`font-black tracking-widest text-[10px] uppercase ${filter === 'all' ? 'text-white' : 'text-slate-400'}`}>All</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => setFilter('joined')}
+                            className={`flex-1 py-3.5 items-center rounded-[18px] ${filter === 'joined' ? 'bg-orange-500' : 'bg-transparent'}`}
+                        >
+                            <Text className={`font-black tracking-widest text-[10px] uppercase ${filter === 'joined' ? 'text-white' : 'text-slate-400'}`}>Joined</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => setFilter('created')}
+                            className={`flex-1 py-3.5 items-center rounded-[18px] ${filter === 'created' ? 'bg-black' : 'bg-transparent'}`}
+                        >
+                            <Text className={`font-black tracking-widest text-[10px] uppercase ${filter === 'created' ? 'text-white' : 'text-slate-400'}`}>Created</Text>
+                        </TouchableOpacity>
                     </View>
 
-                    {/* Compact Search Bar */}
-                    <View className="bg-white rounded-[16px] px-4 h-11 flex-row items-center border border-zinc-100 shadow-sm mb-5">
-                        <Feather name="search" size={14} color="#94a3b8" />
+                    <View className="bg-white rounded-[18px] px-5 h-12 flex-row items-center border border-slate-100 shadow-sm mb-6">
+                        <Feather name="search" size={16} color="#94a3b8" />
                         <TextInput 
-                            placeholder="Find a hub..." 
+                            placeholder="Find a specialized hub..." 
                             placeholderTextColor="#94a3b8"
-                            className="flex-1 ml-3 font-semibold text-zinc-800 text-[11px]"
+                            className="flex-1 ml-4 font-black uppercase text-[10px] text-zinc-900"
                             value={searchQuery}
                             onChangeText={setSearchQuery}
                         />
                     </View>
-
-                    {loading && !refreshing ? (
-                        <FlatList 
-                            data={[1, 2, 3]}
-                            keyExtractor={(item) => item.toString()}
-                            renderItem={() => <CommunitySkeleton />}
-                            showsVerticalScrollIndicator={false}
-                        />
-                    ) : (
-                        <FlatList 
-                            data={filtered}
-                            keyExtractor={(item) => item._id}
-                            renderItem={renderCommunityItem}
-                            showsVerticalScrollIndicator={false}
-                            contentContainerStyle={{ paddingBottom: 150 }}
-                            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1a1a1a" />}
-                            ListEmptyComponent={
-                                <View className="items-center mt-20 p-10 bg-white rounded-[32px] border border-dashed border-zinc-200">
-                                    <Feather name="compass" size={48} color="#F1F5F9" />
-                                    <Text className="mt-6 text-zinc-400 font-black text-center uppercase tracking-widest text-[8px]">
-                                        {filter === 'joined' ? "No joined hubs found" : filter === 'created' ? "You haven't generated any hubs yet" : "No communities found"}
-                                    </Text>
-                                </View>
-                            }
-                        />
-                    )}
                 </View>
+
+                {loading && !refreshing ? (
+                    <View>{[1, 2, 3].map(i => <CommunitySkeleton key={i} />)}</View>
+                ) : (
+                    <FlatList 
+                        data={filtered}
+                        keyExtractor={(item) => item._id}
+                        renderItem={({ item }) => (
+                            <CommunityItem 
+                                item={item} 
+                                userId={user?._id} 
+                                handleJoin={handleJoin}
+                                navigation={navigation}
+                            />
+                        )}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ paddingBottom: 150 }}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />}
+                        ListEmptyComponent={
+                            <View className="items-center mt-20 px-10">
+                                <View className="w-24 h-24 bg-white rounded-[40px] items-center justify-center mb-6 border border-slate-100 shadow-sm">
+                                    <Feather name="compass" size={48} color="#cbd5e1" />
+                                </View>
+                                <Text className="text-zinc-400 font-black uppercase text-xs tracking-widest text-center">No Active Signals</Text>
+                                <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center leading-5">
+                                    Scanning the ecosystem...{"\n"}No communities found in this sector.
+                                </Text>
+                            </View>
+                        }
+                    />
+                )}
             </SafeAreaView>
         </View>
     );

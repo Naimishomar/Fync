@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, Pressable, RefreshControl,
-  ActivityIndicator, Alert, Linking
+  ActivityIndicator, Alert, Linking, Dimensions, Platform, StatusBar
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather, FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../context/auth.context';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import FyncScoreCard from './FyncScoreCard';
 import ProjectCard from './ProjectCard';
@@ -20,20 +21,28 @@ import AddInternshipModal from './AddInternshipModal';
 import AddCertificateModal from './AddCertificateModal';
 import CodingProfilesModal from './CodingProfilesModal';
 
+const { width } = Dimensions.get('window');
+
 // ─── Completeness Bar ─────────────────────────────────────────────────────────
 function CompletenessBar({ pct }: { pct: number }) {
-  const color = pct >= 80 ? '#059669' : pct >= 50 ? '#D97706' : '#6366F1';
   return (
-    <View className="mx-4 mb-4 bg-white rounded-2xl p-4 border border-gray-100">
-      <View className="flex-row justify-between mb-2">
-        <Text className="text-gray-700 font-bold text-sm">Profile Completeness</Text>
-        <Text className="font-bold text-sm" style={{ color }}>{pct}%</Text>
+    <View className="mx-4 mb-6 bg-white rounded-[28px] p-6 border border-slate-100 shadow-sm shadow-black/5">
+      <View className="flex-row justify-between mb-3">
+        <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-widest">Profile Completeness</Text>
+        <Text className="font-black text-xs text-orange-500">{pct}%</Text>
       </View>
-      <View className="h-2 bg-gray-100 rounded-full overflow-hidden">
-        <View className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
+      <View className="h-2 bg-slate-100 rounded-full overflow-hidden">
+        <View className="h-full rounded-full overflow-hidden" style={{ width: `${pct}%` }}>
+          <LinearGradient
+            colors={['#f97316', '#fb923c']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            className="h-full w-full"
+          />
+        </View>
       </View>
       {pct < 100 && (
-        <Text className="text-gray-400 text-xs mt-1.5">
+        <Text className="text-slate-400 font-bold text-[9px] uppercase tracking-wider mt-3">
           {pct < 50 ? '🚀 Add projects & work experience to boost your score!'
             : pct < 80 ? '💡 Almost there — connect GitHub & add certificates!'
             : '🌟 You\'re almost a Legend! Complete all sections.'}
@@ -48,16 +57,18 @@ function SectionHeader({ title, icon, onAdd, addLabel }: {
   title: string; icon: string; onAdd?: () => void; addLabel?: string;
 }) {
   return (
-    <View className="flex-row items-center justify-between px-4 mb-3 mt-5">
-      <View className="flex-row items-center gap-2">
-        <Ionicons name={icon as any} size={18} color="#6366F1" />
-        <Text className="text-gray-900 font-bold text-base">{title}</Text>
+    <View className="flex-row items-center justify-between px-6 mb-4 mt-8">
+      <View className="flex-row items-center gap-3">
+        <View className="w-10 h-10 bg-zinc-900 rounded-2xl items-center justify-center shadow-lg shadow-black/20">
+          <Ionicons name={icon as any} size={18} color="#f97316" />
+        </View>
+        <Text className="text-zinc-900 font-black uppercase text-sm tracking-tighter">{title}</Text>
       </View>
       {onAdd && (
         <Pressable onPress={onAdd}
-          className="flex-row items-center gap-1 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">
-          <Ionicons name="add" size={14} color="#6366F1" />
-          <Text className="text-indigo-600 text-xs font-semibold">{addLabel || 'Add'}</Text>
+          className="flex-row items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-100 shadow-sm">
+          <Ionicons name="add" size={16} color="#18181b" />
+          <Text className="text-zinc-900 text-[10px] font-black uppercase tracking-widest">{addLabel || 'Add'}</Text>
         </Pressable>
       )}
     </View>
@@ -76,12 +87,12 @@ export default function FyncProfileBuilder() {
   const [activeTab, setActiveTab] = useState<'overview' | 'projects' | 'experience' | 'certs'>('overview');
 
   // Modals
-  const [showAddProject, setShowAddProject]   = useState(false);
+  const [showAddProject, setShowAddProject] = useState(false);
   const [showAddInternship, setShowAddInternship] = useState(false);
-  const [showAddCert, setShowAddCert]         = useState(false);
-  const [editingProject, setEditingProject]   = useState<any>(null);
+  const [showAddCert, setShowAddCert] = useState(false);
+  const [editingProject, setEditingProject] = useState<any>(null);
   const [editingInternship, setEditingInternship] = useState<any>(null);
-  const [editingCert, setEditingCert]         = useState<any>(null);
+  const [editingCert, setEditingCert] = useState<any>(null);
   const [showCodingModal, setShowCodingModal] = useState(false);
 
   const fetchProfile = async () => {
@@ -105,7 +116,6 @@ export default function FyncProfileBuilder() {
         text2: `Connected as ${route.params.username}`
       });
       fetchProfile();
-      // Clear params to prevent re-toast
       navigation.setParams({ username: undefined });
     }
   }, [route.params?.username]);
@@ -116,7 +126,6 @@ export default function FyncProfileBuilder() {
     setRefreshing(false);
   };
 
-  // ── GitHub handlers ──────────────────────────────────────────────────────
   const connectGitHub = async () => {
     try {
       const res = await axios.get('/profile/github/connect');
@@ -139,22 +148,25 @@ export default function FyncProfileBuilder() {
   const disconnectGitHub = () => {
     Alert.alert('Disconnect GitHub', 'Are you sure? Your GitHub stats will be cleared.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Disconnect', style: 'destructive', onPress: async () => {
-        await axios.delete('/profile/github/disconnect');
-        fetchProfile();
-      } }
+      {
+        text: 'Disconnect', style: 'destructive', onPress: async () => {
+          await axios.delete('/profile/github/disconnect');
+          fetchProfile();
+        }
+      }
     ]);
   };
 
-  // ── Project handlers ─────────────────────────────────────────────────────
   const deleteProject = (id: string) => {
     Alert.alert('Delete Project', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-        await axios.delete(`/profile/projects/${id}`);
-        fetchProfile();
-        Toast.show({ type: 'success', text1: 'Project deleted' });
-      }}
+      {
+        text: 'Delete', style: 'destructive', onPress: async () => {
+          await axios.delete(`/profile/projects/${id}`);
+          fetchProfile();
+          Toast.show({ type: 'success', text1: 'Project deleted' });
+        }
+      }
     ]);
   };
 
@@ -168,29 +180,30 @@ export default function FyncProfileBuilder() {
     fetchProfile();
   };
 
-  // ── Internship handlers ───────────────────────────────────────────────────
   const deleteInternship = (id: string) => {
-    Alert.alert('Delete Experience', 'Are you sure?', [
+    Alert.alert('Remove Experience', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-        await axios.delete(`/profile/internships/${id}`);
-        fetchProfile();
-      }}
+      {
+        text: 'Delete', style: 'destructive', onPress: async () => {
+          await axios.delete(`/profile/internships/${id}`);
+          fetchProfile();
+        }
+      }
     ]);
   };
 
-  // ── Certificate handlers ──────────────────────────────────────────────────
   const deleteCert = (id: string) => {
     Alert.alert('Delete Certificate', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-        await axios.delete(`/profile/certificates/${id}`);
-        fetchProfile();
-      }}
+      {
+        text: 'Delete', style: 'destructive', onPress: async () => {
+          await axios.delete(`/profile/certificates/${id}`);
+          fetchProfile();
+        }
+      }
     ]);
   };
 
-  // ─── Download Resume ──────────────────────────────────────────────────────
   const downloadResume = async () => {
     const url = `${axios.defaults.baseURL}/profile/resume/${user?._id}/pdf`;
     await Linking.openURL(url);
@@ -198,34 +211,32 @@ export default function FyncProfileBuilder() {
 
   if (loading) return (
     <SafeAreaView className="flex-1 bg-white items-center justify-center">
-      <ActivityIndicator size="large" color="#6366F1" />
+      <ActivityIndicator size="large" color="#f97316" />
     </SafeAreaView>
   );
 
-  const { projects = [], internships = [], certificates = [], score, completeness } = profile || {};
+  const { projects = [], internships = [], certificates = [], completeness } = profile || {};
   const pct = completeness?.percentage || 0;
 
-  // ─── Tab Content ──────────────────────────────────────────────────────────
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
         return (
-          <>
+          <View className="px-2">
             <CompletenessBar pct={pct} />
-            
-            {/* 📝 Coding Profile Note */}
-            <Pressable 
+
+            <Pressable
               onPress={() => setShowCodingModal(true)}
-              className="mx-4 mb-4 p-3 bg-indigo-50 border border-indigo-100 rounded-xl flex-row items-center active:bg-indigo-100"
+              className="mx-4 mb-6 p-5 bg-white border border-slate-100 rounded-[28px] flex-row items-center shadow-sm shadow-black/5"
             >
-              <View className="bg-indigo-600 p-1.5 rounded-lg mr-3">
-                <Ionicons name="code-working" size={16} color="white" />
+              <View className="bg-zinc-900 p-3 rounded-2xl mr-4 shadow-lg shadow-black/10">
+                <Ionicons name="code-working" size={20} color="#f97316" />
               </View>
               <View className="flex-1">
-                <Text className="text-indigo-900 text-xs font-bold">Coding Profiles</Text>
-                <Text className="text-indigo-600 text-[10px]">Add LeetCode, Codeforces & more to boost your score</Text>
+                <Text className="text-zinc-900 text-xs font-black uppercase tracking-tight">Coding Profiles</Text>
+                <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mt-1">Add LeetCode, Codeforces & more to boost your score</Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color="#6366F1" />
+              <Ionicons name="chevron-forward" size={18} color="#f97316" />
             </Pressable>
 
             <FyncScoreCard userId={user?._id!} isOwner onRecalculate={fetchProfile} />
@@ -237,20 +248,23 @@ export default function FyncProfileBuilder() {
               onSync={syncGitHub}
               onDisconnect={disconnectGitHub}
             />
-          </>
+          </View>
         );
 
       case 'projects':
         return (
-          <>
+          <View className="px-2">
             <SectionHeader title="Projects" icon="code-slash-outline"
               onAdd={() => { setEditingProject(null); setShowAddProject(true); }}
               addLabel="Add Project" />
             {projects.length === 0 ? (
-              <View className="items-center py-12 px-8">
-                <Ionicons name="rocket-outline" size={48} color="#D1D5DB" />
-                <Text className="text-gray-400 font-medium mt-3 text-center">
-                  No projects yet. Add your first project to boost your Fync Score!
+              <View className="items-center py-20 px-8">
+                <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-6">
+                  <Feather name="box" size={32} color="#CBD5E1" />
+                </View>
+                <Text className="text-zinc-900 font-black uppercase text-xs tracking-widest text-center">No projects yet</Text>
+                <Text className="text-slate-400 font-bold text-[10px] mt-2 text-center uppercase tracking-wider">
+                  Add your first project to boost your Fync Score!
                 </Text>
               </View>
             ) : projects.map((p: any) => (
@@ -260,20 +274,23 @@ export default function FyncProfileBuilder() {
                 onToggleFeatured={toggleFeatured}
                 onLike={toggleLike} />
             ))}
-          </>
+          </View>
         );
 
       case 'experience':
         return (
-          <>
+          <View className="px-2">
             <SectionHeader title="Work Experience" icon="briefcase-outline"
               onAdd={() => { setEditingInternship(null); setShowAddInternship(true); }}
               addLabel="Add Experience" />
             {internships.length === 0 ? (
-              <View className="items-center py-12 px-8">
-                <Ionicons name="briefcase-outline" size={48} color="#D1D5DB" />
-                <Text className="text-gray-400 font-medium mt-3 text-center">
-                  No experience added yet. Add internships, freelance, or jobs!
+              <View className="items-center py-20 px-8">
+                <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-6">
+                  <Ionicons name="briefcase-outline" size={32} color="#CBD5E1" />
+                </View>
+                <Text className="text-zinc-900 font-black uppercase text-xs tracking-widest text-center">No experience added yet</Text>
+                <Text className="text-slate-400 font-bold text-[10px] mt-2 text-center uppercase tracking-wider">
+                  Add internships, freelance, or jobs!
                 </Text>
               </View>
             ) : internships.map((i: any) => (
@@ -281,24 +298,27 @@ export default function FyncProfileBuilder() {
                 onEdit={(i) => { setEditingInternship(i); setShowAddInternship(true); }}
                 onDelete={deleteInternship} />
             ))}
-          </>
+          </View>
         );
 
       case 'certs':
         return (
-          <>
+          <View className="px-2">
             <SectionHeader title="Certificates" icon="ribbon-outline"
               onAdd={() => { setEditingCert(null); setShowAddCert(true); }}
               addLabel="Add Cert" />
             {certificates.length === 0 ? (
-              <View className="items-center py-12 px-8">
-                <Ionicons name="ribbon-outline" size={48} color="#D1D5DB" />
-                <Text className="text-gray-400 font-medium mt-3 text-center">
-                  No certificates added yet. Showcase your learning!
+              <View className="items-center py-20 px-8">
+                <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-6">
+                  <Ionicons name="ribbon-outline" size={32} color="#CBD5E1" />
+                </View>
+                <Text className="text-zinc-900 font-black uppercase text-xs tracking-widest text-center">No certificates added yet</Text>
+                <Text className="text-slate-400 font-bold text-[10px] mt-2 text-center uppercase tracking-wider">
+                  Showcase your learning!
                 </Text>
               </View>
             ) : (
-              <View className="mx-4 gap-3">
+              <View className="mx-4 gap-4">
                 {certificates.map((c: any) => (
                   <CertificateCard key={c._id} cert={c} isOwner
                     onEdit={(c) => { setEditingCert(c); setShowAddCert(true); }}
@@ -306,90 +326,105 @@ export default function FyncProfileBuilder() {
                 ))}
               </View>
             )}
-          </>
+          </View>
         );
     }
   };
 
   const TABS = [
-    { key: 'overview',    label: 'Overview', icon: 'home-outline' },
+    { key: 'overview',    label: 'Overview', icon: 'grid-outline' },
     { key: 'projects',    label: 'Projects',  icon: 'code-slash-outline' },
     { key: 'experience',  label: 'Work',      icon: 'briefcase-outline' },
     { key: 'certs',       label: 'Certs',     icon: 'ribbon-outline' },
   ] as const;
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-3 bg-white border-b border-gray-100">
-        <View className="flex-row items-center gap-3">
-          <Pressable onPress={() => navigation.goBack()}
-            className="bg-gray-100 p-2 rounded-full">
-            <Ionicons name="arrow-back" size={20} color="#111827" />
-          </Pressable>
-          <View>
-            <Text className="text-gray-900 font-bold text-lg">Fync Portfolio</Text>
-            <Text className="text-gray-400 text-xs">{pct}% complete</Text>
+    <View className="flex-1 bg-[#F8FAFC]">
+      <StatusBar barStyle="dark-content" />
+
+      {/* HEADER DECORATION - MATCHING DRIVE/STUDY MATERIAL */}
+      <View className="absolute top-0 w-full h-80 opacity-20">
+        <LinearGradient
+          colors={['#f97316', 'transparent']}
+          className="w-full h-full"
+        />
+      </View>
+
+      <SafeAreaView className="flex-1" edges={['top']}>
+        {/* Header Content */}
+        <View className="px-8 pt-8 bg-transparent">
+          <View className="flex-row items-center justify-between mb-8">
+            <View className="flex-row items-center gap-4">
+              <View>
+                <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">Fync <Text className="text-orange-500">Portfolio</Text></Text>
+                <View className="flex-row items-center">
+                  <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[2px]">Core Interface</Text>
+                </View>
+              </View> 
+            </View>
+            <Pressable onPress={downloadResume}
+              className="bg-zinc-900 px-4 py-3 rounded-2xl flex-row items-center shadow-xl shadow-black/20">
+              <Feather name="file-text" size={14} color="#f97316" />
+              <Text className="text-white font-black uppercase text-[10px] tracking-widest ml-2">Resume</Text>
+            </Pressable>
           </View>
         </View>
-        <Pressable onPress={downloadResume}
-          className="flex-row items-center gap-1.5 bg-indigo-600 px-3 py-2 rounded-xl">
-          <Ionicons name="download-outline" size={16} color="white" />
-          <Text className="text-white font-semibold text-xs">Resume</Text>
-        </Pressable>
-      </View>
 
-      {/* Tab Strip */}
-      <View className="flex-row bg-white border-b border-gray-100 px-2">
-        {TABS.map(tab => (
-          <Pressable
-            key={tab.key}
-            onPress={() => setActiveTab(tab.key)}
-            className={`flex-1 items-center py-3 border-b-2 ${activeTab === tab.key ? 'border-indigo-600' : 'border-transparent'}`}
-          >
-            <Ionicons name={tab.icon as any} size={18}
-              color={activeTab === tab.key ? '#6366F1' : '#9CA3AF'} />
-            <Text className={`text-[10px] font-semibold mt-0.5 ${activeTab === tab.key ? 'text-indigo-600' : 'text-gray-400'}`}>
-              {tab.label}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+        {/* Modern Tab Strip */}
+        <View className="flex-row bg-white/50 px-4 py-2 border-b border-slate-100">
+          {TABS.map(tab => (
+            <Pressable
+              key={tab.key}
+              onPress={() => setActiveTab(tab.key)}
+              className={`flex-1 items-center py-4 relative`}
+            >
+              <Ionicons name={tab.icon as any} size={20}
+                color={activeTab === tab.key ? '#f97316' : '#94A3B8'} />
+              <Text className={`text-[8px] font-black uppercase tracking-widest mt-1.5 ${activeTab === tab.key ? 'text-zinc-900' : 'text-slate-400'}`}>
+                {tab.label}
+              </Text>
+              {activeTab === tab.key && (
+                <View className="absolute bottom-0 w-12 h-1 bg-orange-500 rounded-full" />
+              )}
+            </Pressable>
+          ))}
+        </View>
 
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366F1" />}
-        contentContainerStyle={{ paddingBottom: 40, paddingTop: 8 }}
-      >
-        {renderContent()}
-      </ScrollView>
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />}
+          contentContainerStyle={{ paddingBottom: 60, paddingTop: 16 }}
+        >
+          {renderContent()}
+        </ScrollView>
 
-      {/* Modals */}
-      <AddProjectModal
-        visible={showAddProject}
-        initial={editingProject}
-        onClose={() => setShowAddProject(false)}
-        onSuccess={() => { setShowAddProject(false); fetchProfile(); }}
-      />
-      <AddInternshipModal
-        visible={showAddInternship}
-        initial={editingInternship}
-        onClose={() => setShowAddInternship(false)}
-        onSuccess={() => { setShowAddInternship(false); fetchProfile(); }}
-      />
-      <AddCertificateModal
-        visible={showAddCert}
-        initial={editingCert}
-        onClose={() => setShowAddCert(false)}
-        onSuccess={() => { setShowAddCert(false); fetchProfile(); }}
-      />
-      <CodingProfilesModal
-        visible={showCodingModal}
-        initialData={profile?.user?.codingProfiles}
-        onClose={() => setShowCodingModal(false)}
-        onSuccess={() => { setShowCodingModal(false); fetchProfile(); }}
-      />
-    </SafeAreaView>
+        {/* Modals */}
+        <AddProjectModal
+          visible={showAddProject}
+          initial={editingProject}
+          onClose={() => setShowAddProject(false)}
+          onSuccess={() => { setShowAddProject(false); fetchProfile(); }}
+        />
+        <AddInternshipModal
+          visible={showAddInternship}
+          initial={editingInternship}
+          onClose={() => setShowAddInternship(false)}
+          onSuccess={() => { setShowAddInternship(false); fetchProfile(); }}
+        />
+        <AddCertificateModal
+          visible={showAddCert}
+          initial={editingCert}
+          onClose={() => setShowAddCert(false)}
+          onSuccess={() => { setShowAddCert(false); fetchProfile(); }}
+        />
+        <CodingProfilesModal
+          visible={showCodingModal}
+          initialData={profile?.user?.codingProfiles}
+          onClose={() => setShowCodingModal(false)}
+          onSuccess={() => { setShowCodingModal(false); fetchProfile(); }}
+        />
+      </SafeAreaView>
+    </View>
   );
 }

@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   View, Text, TouchableOpacity, ScrollView, Image, 
   ActivityIndicator, Dimensions, Alert, Modal, TextInput, Linking, Share,
-  StatusBar, Platform, Animated
+  StatusBar, Platform, Animated,
+  KeyboardAvoidingView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialIcons, MaterialCommunityIcons, FontAwesome5, SimpleLineIcons, Feather } from '@expo/vector-icons';
@@ -14,7 +15,7 @@ import RazorpayCheckout from 'react-native-razorpay';
 import { RAZORPAY_KEY_ID } from '../../constants/keys';
 import { WebView } from 'react-native-webview';
 
-const { width } = Dimensions.get('window');
+const { width, height: screenHeight } = Dimensions.get('window');
 
 const CommunityHubScreen = ({ navigation, route }: any) => {
     const { communityId } = route.params;
@@ -84,9 +85,15 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
         setIsJoining(true);
         try {
             const res = await axios.post(`/communities/join/${communityId}`, { userId: user?._id });
-            if (res.data.success) { Alert.alert("Subscribed", "Welcome to the ecosystem!"); fetchDetails(); }
-        } catch (error: any) { Alert.alert("Error", error.response?.data?.message || "Subscription failed"); }
-        finally { setIsJoining(false); }
+            if (res.data.success) { 
+                Alert.alert("Subscribed", "Welcome to the ecosystem!"); 
+                fetchDetails(); 
+            }
+        } catch (error: any) { 
+            Alert.alert("Error", error.response?.data?.message || "Subscription failed"); 
+        } finally { 
+            setIsJoining(false); 
+        }
     };
 
     const handleLeave = () => {
@@ -121,7 +128,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
             });
             
             if (res.data.success) { 
-                Alert.alert("Ignited!", `${renewPlan === 'yearly' ? 'Yearly eternal' : 'Monthly spark'} activated via Razorpay.`); 
+                Alert.alert("Ignited!", `${renewPlan === 'yearly' ? 'Yearly eternal' : 'Monthly spark'} activated.`); 
                 fetchDetails(); 
             }
         } catch (e: any) {
@@ -224,7 +231,6 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
         if (renewing) return;
         setRenewing(true);
         try {
-            // 1. Create Razorpay Order
             const amount = renewPlan === 'monthly' ? 99 : 999;
             const orderRes = await axios.post('/payment/order', { 
                 amount,
@@ -233,7 +239,6 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
 
             if (!orderRes.data.id) throw new Error("Order generation failed");
 
-            // 2. Open Razorpay Checkout
             const options = {
                 description: `Restore Spark for ${data.community.name}`,
                 image: data.community.logo || 'https://i.imgur.com/39M8xXo.png',
@@ -247,13 +252,13 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                     contact: user?.phone || '',
                     name: user?.username || user?.name
                 },
-                theme: { color: '#4f46e5' }
+                theme: { color: '#f97316' }
             };
 
             const triggerWebView = () => {
                 const content = `
                 <html>
-                <body style="background-color: #fafafa; display: flex; justify-content: center; align-items: center; height: 100vh;">
+                <body style="background-color: #F8FAFC; display: flex; justify-content: center; align-items: center; height: 100vh;">
                     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
                     <script>
                     var options = {
@@ -268,7 +273,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                             email: "${user?.email || ''}",
                             contact: "${user?.phone || ''}"
                         },
-                        theme: { color: "#4f46e5" },
+                        theme: { color: "#f97316" },
                         handler: function (response) {
                             window.ReactNativeWebView.postMessage(JSON.stringify({
                                 event: "SUCCESS",
@@ -330,7 +335,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
             allowsEditing: true,
-            aspect: isBanner ? undefined : [1, 1],
+            aspect: isBanner ? [16, 9] : [1, 1],
             quality: 0.8,
         });
         if (!result.canceled) setter(result.assets[0].uri);
@@ -366,71 +371,46 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
     };
 
     const handleDeleteHub = () => {
-        Alert.alert("Decommission Hub", "Warning: Permanent purging of all rooms and messages.", [
-            { text: "Abort", style: "cancel" },
-            { text: "Decommission", style: "destructive", onPress: async () => {
+        Alert.alert("Are you sure to delete this community?", "Permanent deletion of all rooms and messages will happen.", [
+            { text: "Cancel", style: "cancel" },
+            { text: "Delete", style: "destructive", onPress: async () => {
                 try {
                     const res = await axios.delete('/communities/delete', { data: { communityId, userId: user?._id } });
                     if (res.data.success) navigation.navigate('CommunityList');
-                } catch (e) { Alert.alert("Error", "Decommissioning failed"); }
+                } catch (e) { Alert.alert("Error", "Deletion failed"); }
             }}
         ]);
     };
 
     const CommunityHubSkeleton = () => {
-        const pulseAnim = useRef(new Animated.Value(0.4)).current;
-
+        const pulseAnim = useRef(new Animated.Value(0.3)).current;
         useEffect(() => {
             Animated.loop(
                 Animated.sequence([
-                    Animated.timing(pulseAnim, { toValue: 0.8, duration: 1200, useNativeDriver: true }),
-                    Animated.timing(pulseAnim, { toValue: 0.4, duration: 1200, useNativeDriver: true }),
+                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
+                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
                 ])
             ).start();
         }, []);
 
         return (
-            <Animated.View style={{ opacity: pulseAnim }} className="flex-1 bg-white">
-                {/* Header Banner Skeleton */}
-                <View className="h-60 bg-zinc-100 relative" />
-                
-                <View className="px-5 pt-8">
-                    {/* Action Buttons Skeleton */}
-                    <View className="flex-row gap-3 mb-10">
-                        <View className="flex-1 h-12 bg-zinc-100 rounded-2xl" />
-                        <View className="w-12 h-12 bg-zinc-100 rounded-2xl" />
+            <Animated.View style={{ opacity: pulseAnim }} className="flex-1 bg-[#F8FAFC]">
+                <View className="h-64 bg-slate-200" />
+                <View className="px-8 pt-10">
+                    <View className="flex-row gap-4 mb-8">
+                        <View className="flex-1 h-14 bg-slate-100 rounded-2xl" />
+                        <View className="w-14 h-14 bg-slate-100 rounded-2xl" />
                     </View>
-
-                    {/* About Section Skeleton */}
-                    <View className="mb-10">
-                        <View className="h-2 bg-zinc-100 rounded w-20 mb-4" />
-                        <View className="h-3 bg-zinc-50 rounded w-full mb-2" />
-                        <View className="h-3 bg-zinc-50 rounded w-4/5" />
-                    </View>
-
-                    {/* Channels Section Skeleton */}
-                    <View className="mb-10">
-                        <View className="flex-row justify-between items-center mb-6">
-                            <View className="h-5 bg-zinc-100 rounded w-1/3" />
-                            <View className="w-8 h-8 bg-zinc-100 rounded-lg" />
-                        </View>
-                        {[1, 2, 3].map(i => (
-                            <View key={i} className="flex-row items-center gap-4 mb-4 bg-zinc-50/50 p-4 rounded-2xl border border-zinc-50">
-                                <View className="w-10 h-10 bg-zinc-100 rounded-xl" />
-                                <View className="flex-1">
-                                    <View className="h-3 bg-zinc-100 rounded w-1/2 mb-2" />
-                                    <View className="h-2 bg-zinc-100 rounded w-1/4" />
-                                </View>
-                            </View>
-                        ))}
-                    </View>
+                    <View className="h-4 bg-slate-100 rounded-full w-24 mb-4" />
+                    <View className="h-3 bg-slate-50 rounded-full w-full mb-2" />
+                    <View className="h-3 bg-slate-50 rounded-full w-4/5" />
                 </View>
             </Animated.View>
         );
     };
 
     if (loading) return <CommunityHubSkeleton />;
-    if (!data) return <View className="flex-1 items-center justify-center bg-white"><Text>Not Found</Text></View>;
+    if (!data) return <View className="flex-1 items-center justify-center bg-[#F8FAFC]"><Text className="font-black uppercase text-xs text-slate-400">Hub Not Found</Text></View>;
 
     const { community, subCommunities, creatorOtherCommunities } = data;
     const isMember = community.members?.includes(user?._id);
@@ -442,171 +422,165 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
     const daysLeft = Math.ceil((expiryDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
     return (
-        <View className="flex-1 bg-white">
+        <View className="flex-1 bg-[#F8FAFC]">
             <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
             <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Cinematic Expanded Header */}
-                <View className="w-full">
-                    <View className="h-60 w-full relative">
-                        <Image source={{ uri: community.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070' }} className="w-full h-full" resizeMode="cover" />
-                        <LinearGradient colors={['rgba(0,0,0,0.5)', 'transparent', 'rgba(0,0,0,0.85)']} className="absolute inset-0" />
-                        
-                        <SafeAreaView edges={['top']} className="absolute top-0 left-0 right-0 flex-row justify-between px-4 pt-1">
-                            <TouchableOpacity onPress={() => navigation.goBack()} className="w-8 h-8 bg-black/20 rounded-lg items-center justify-center backdrop-blur-md">
-                                <Ionicons name="chevron-back" size={16} color="white" />
+                {/* Cinematic Header */}
+                <View className="h-72 w-full relative">
+                    <Image source={{ uri: community.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070' }} className="w-full h-full" resizeMode="cover" />
+                    <LinearGradient colors={['rgba(0,0,0,0.6)', 'transparent', 'rgba(0,0,0,0.9)']} className="absolute inset-0" />
+                    
+                    <SafeAreaView edges={['top']} className="absolute top-0 left-0 right-0 flex-row justify-between px-6 pt-4">
+                        <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 bg-black/20 rounded-2xl items-center justify-center backdrop-blur-md border border-white/10">
+                            <Ionicons name="chevron-back" size={20} color="white" />
+                        </TouchableOpacity>
+                        {isCreator && (
+                            <TouchableOpacity onPress={() => setEditHubModal(true)} className="w-11 h-11 bg-black/20 rounded-2xl items-center justify-center backdrop-blur-md border border-white/10">
+                                <Feather name="settings" size={18} color="white" />
                             </TouchableOpacity>
-                            <View className="flex-row gap-2">
-                                {isCreator && (
-                                    <TouchableOpacity onPress={() => setEditHubModal(true)} className="w-8 h-8 bg-black/20 rounded-lg items-center justify-center backdrop-blur-md">
-                                        <Feather name="settings" size={14} color="white" />
-                                    </TouchableOpacity>
-                                )}
-                            </View>
-                        </SafeAreaView>
+                        )}
+                    </SafeAreaView>
 
-                        <View className="absolute bottom-5 left-5 right-5 flex-row items-end gap-4">
-                            <View className="w-16 h-16 rounded-[24px] border-2 border-white shadow-xl overflow-hidden bg-zinc-900">
-                                <Image source={{ uri: community.logo || 'https://via.placeholder.com/150' }} className="w-full h-full" />
-                            </View>
-                            <View className="flex-1 pb-1.5">
-                                <Text className="text-white text-2xl font-black uppercase tracking-tight" numberOfLines={1}>{community.name}</Text>
-                                <View className="flex-row items-center gap-2">
-                                    <View className="w-2 h-2 rounded-full bg-teal-400" />
-                                    <Text className="text-white/60 text-[9px] font-black uppercase tracking-widest">{community.members?.length} Sparks</Text>
-                                </View>
+                    <View className="absolute bottom-8 left-8 right-8 flex-row items-end gap-6">
+                        <View className="w-20 h-20 rounded-full border-4 border-white/20 shadow-2xl overflow-hidden bg-zinc-900">
+                            <Image source={{ uri: community.logo || 'https://via.placeholder.com/150' }} className="w-full h-full" />
+                        </View>
+                        <View className="flex-1 pb-1">
+                            <Text className="text-white text-3xl font-black uppercase tracking-tighter leading-tight" numberOfLines={1}>{community.name}</Text>
+                            <View className="flex-row items-center gap-2 mt-1">
+                                <View className="w-2 h-2 rounded-full bg-orange-500 shadow-lg shadow-orange-500/50" />
+                                <Text className="text-white/60 text-[10px] font-black uppercase tracking-[2px]">{community.members?.length} Sparks Active</Text>
                             </View>
                         </View>
                     </View>
                 </View>
 
-                {/* Content Realm */}
-                <View className="px-4 pt-5 pb-20">
-                    <View className="flex-row gap-2 mb-6">
+                {/* Primary Actions */}
+                <View className="px-8 pt-8">
+                    <View className="flex-row gap-4 mb-10">
                         {isMember ? (
                             <TouchableOpacity 
                                 onPress={isCreator ? undefined : handleLeave} 
-                                className={`flex-1 h-11 rounded-xl items-center justify-center ${isCreator ? 'bg-zinc-50 border border-zinc-100' : 'bg-red-600'}`}
+                                className={`flex-1 h-14 rounded-2xl items-center justify-center ${isCreator ? 'bg-white border border-slate-100 shadow-sm' : 'bg-rose-50 border border-rose-100'}`}
                             >
-                                <Text className={`font-black uppercase text-[8px] tracking-widest ${isCreator ? 'text-zinc-400' : 'text-white'}`}>
-                                    {isCreator ? "Guardian Admin" : "Unsubscribe"}
-                                </Text>
+                                <Text className={`font-black uppercase text-[10px] tracking-widest ${isCreator ? 'text-slate-400' : 'text-rose-600'}`}>
+                                     {isCreator ? "Guardian Access" : "Leave Sector"}
+                                 </Text>
                             </TouchableOpacity>
                         ) : (
-                            <TouchableOpacity onPress={handleJoin} disabled={isJoining} className="flex-1 h-11 bg-blue-600 rounded-xl items-center justify-center shadow-sm">
-                                {isJoining ? <ActivityIndicator size="small" color="white" /> : <Text className="text-white font-black uppercase text-[8px] tracking-widest">Subscribe</Text>}
+                            <TouchableOpacity onPress={handleJoin} disabled={isJoining} className="flex-1 h-14 bg-orange-500 rounded-2xl items-center justify-center shadow-xl shadow-orange-500/30">
+                                {isJoining ? <ActivityIndicator size="small" color="white" /> : <Text className="text-white font-black uppercase text-[10px] tracking-widest">Join Frequency</Text>}
                             </TouchableOpacity>
                         )}
-                        <TouchableOpacity onPress={handleShare} className="w-11 h-11 border border-gray-300 rounded-lg items-center justify-center backdrop-blur-md">
-                            <Ionicons name="share-social-outline" size={14} color="black" />
+                        <TouchableOpacity onPress={handleShare} className="w-14 h-14 bg-white border border-slate-100 rounded-2xl items-center justify-center shadow-sm">
+                            <Ionicons name="share-social-outline" size={20} color="#18181b" />
                         </TouchableOpacity>
                     </View>
 
-                    <View className="mb-8">
-                        <Text className="text-zinc-400 font-black uppercase text-[7px] tracking-[2px] mb-2">Hub Directive</Text>
-                        <Text className="text-zinc-800 font-semibold leading-[16px] text-[11px] mb-5">
+                    <View className="mb-10">
+                        <Text className="text-slate-400 font-black uppercase text-[9px] tracking-[3px] mb-4">Hub Directive</Text>
+                        <Text className="text-zinc-700 font-medium leading-[22px] text-[13px] mb-6">
                             {community.description || "The definitive ecosystem for creator networking and collaborative expansion."}
                         </Text>
                         
-                        {/* Dropdown Activation Trigger */}
                         {isCreator && (
-                            <View className="mb-6">
+                            <View className="mb-8">
                                 <TouchableOpacity 
                                     onPress={() => setIsPaymentExpanded(!isPaymentExpanded)}
-                                    className="flex-row items-center justify-between bg-zinc-50 p-4 rounded-2xl border border-zinc-100"
+                                    className="flex-row items-center justify-between bg-white p-5 rounded-[28px] border border-slate-100 shadow-sm"
                                 >
-                                    <View className="flex-row items-center gap-3">
-                                        <View className={`w-2 h-2 rounded-full ${daysLeft > 7 ? 'bg-teal-500 shadow-sm shadow-teal-500/50' : 'bg-rose-500 shadow-sm shadow-rose-500/50'}`} />
+                                    <View className="flex-row items-center gap-4">
+                                        <View className={`w-3 h-3 rounded-full ${daysLeft > 7 ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                                         <View>
-                                            <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-tight">{daysLeft > 0 ? `${daysLeft} Activation Days Left` : 'Spark Exhausted'}</Text>
-                                            <Text className="text-zinc-400 font-bold text-[7px] uppercase mt-0.5 tracking-widest">{daysLeft > 7 ? 'Ecosystem Stable' : 'Restore Required'}</Text>
+                                            <Text className="text-zinc-900 font-black uppercase text-[11px] tracking-tight">{daysLeft > 0 ? `${daysLeft} Activation Days` : 'Spark Exhausted'}</Text>
+                                            <Text className="text-slate-400 font-bold text-[8px] uppercase mt-0.5 tracking-widest">Stability Protocol</Text>
                                         </View>
                                     </View>
-                                    <View className="w-8 h-8 rounded-xl bg-white border border-zinc-100 items-center justify-center">
-                                        <Feather name={isPaymentExpanded ? "chevron-up" : "chevron-down"} size={14} color="#1a1a1a" />
-                                    </View>
+                                    <Feather name={isPaymentExpanded ? "chevron-up" : "chevron-down"} size={18} color="#CBD5E1" />
                                 </TouchableOpacity>
 
                                 {isPaymentExpanded && (
-                                    <View className="mt-2 bg-white p-5 rounded-3xl border border-zinc-100 shadow-xl shadow-black/5">
-                                        <Text className="text-zinc-400 font-black uppercase text-[7px] tracking-widest mb-4">Extend Hub Vitality</Text>
-                                        <View className="flex-row gap-2 mb-4">
+                                    <View className="mt-3 bg-white p-6 rounded-[32px] border border-slate-100 shadow-xl shadow-black/5">
+                                        <Text className="text-slate-400 font-black uppercase text-[9px] tracking-widest mb-4">Maintenance Ignition</Text>
+                                        <View className="flex-row gap-3 mb-6">
                                             <TouchableOpacity 
                                                 onPress={() => setRenewPlan('monthly')} 
-                                                className={`flex-1 p-3.5 rounded-2xl border ${renewPlan === 'monthly' ? 'bg-zinc-900 border-zinc-900 shadow-lg' : 'bg-white border-zinc-100'}`}
+                                                className={`flex-1 p-4 rounded-2xl border ${renewPlan === 'monthly' ? 'bg-zinc-900 border-zinc-900' : 'bg-slate-50 border-slate-100'}`}
                                             >
-                                                <Text className={`font-black uppercase text-[8px] text-center ${renewPlan === 'monthly' ? 'text-white' : 'text-zinc-500'}`}>Monthly (₹99)</Text>
+                                                <Text className={`font-black uppercase text-[9px] text-center ${renewPlan === 'monthly' ? 'text-white' : 'text-slate-400'}`}>Spark (₹99)</Text>
                                             </TouchableOpacity>
                                             <TouchableOpacity 
                                                 onPress={() => setRenewPlan('yearly')} 
-                                                className={`flex-1 p-3.5 rounded-2xl border ${renewPlan === 'yearly' ? 'bg-zinc-900 border-zinc-900 shadow-lg' : 'bg-white border-zinc-100'}`}
+                                                className={`flex-1 p-4 rounded-2xl border ${renewPlan === 'yearly' ? 'bg-zinc-900 border-zinc-900' : 'bg-slate-50 border-slate-100'}`}
                                             >
-                                                <Text className={`font-black uppercase text-[8px] text-center ${renewPlan === 'yearly' ? 'text-white' : 'text-zinc-500'}`}>Yearly (₹999)</Text>
+                                                <Text className={`font-black uppercase text-[9px] text-center ${renewPlan === 'yearly' ? 'text-white' : 'text-slate-400'}`}>Eternal (₹999)</Text>
                                             </TouchableOpacity>
                                         </View>
                                         <TouchableOpacity 
                                             onPress={handleRenew} 
                                             disabled={renewing} 
-                                            className="bg-indigo-600 w-full py-4 rounded-2xl items-center shadow-lg shadow-indigo-500/30"
+                                            className="bg-orange-500 w-full py-5 rounded-2xl items-center shadow-xl shadow-orange-500/40"
                                         >
-                                            {renewing ? <ActivityIndicator size="small" color="white" /> : <Text className="text-white font-black uppercase text-[9px] tracking-[4px]">Pay now</Text>}
+                                            {renewing ? <ActivityIndicator size="small" color="white" /> : <Text className="text-white font-black uppercase text-[10px] tracking-[4px]">Initiate Payment</Text>}
                                         </TouchableOpacity>
                                     </View>
                                 )}
                             </View>
                         )}
                         
-                        {(socials.youtube || socials.github || socials.linkedin || socials.twitter || socials.website) && (
-                            <View className="flex-row gap-2">
-                                {socials.youtube && (
-                                    <TouchableOpacity onPress={() => Linking.openURL(socials.youtube)} className="w-8 h-8 bg-zinc-50 rounded-lg items-center justify-center border border-zinc-100">
-                                        <Feather name="youtube" size={12} color="#ef4444" />
-                                    </TouchableOpacity>
-                                )}
-                                {socials.github && (
-                                    <TouchableOpacity onPress={() => Linking.openURL(socials.github)} className="w-8 h-8 bg-zinc-50 rounded-lg items-center justify-center border border-zinc-100">
-                                        <Feather name="github" size={12} color="#1a1a1a" />
-                                    </TouchableOpacity>
-                                )}
-                                {socials.linkedin && (
-                                    <TouchableOpacity onPress={() => Linking.openURL(socials.linkedin)} className="w-8 h-8 bg-zinc-50 rounded-lg items-center justify-center border border-zinc-100">
-                                        <Feather name="linkedin" size={12} color="#0077b5" />
-                                    </TouchableOpacity>
-                                )}
-                            </View>
-                        )}
+                        <View className="flex-row gap-3">
+                            {socials.youtube && (
+                                <TouchableOpacity onPress={() => Linking.openURL(socials.youtube)} className="w-11 h-11 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm">
+                                    <Feather name="youtube" size={16} color="#ef4444" />
+                                </TouchableOpacity>
+                            )}
+                            {socials.github && (
+                                <TouchableOpacity onPress={() => Linking.openURL(socials.github)} className="w-11 h-11 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm">
+                                    <Feather name="github" size={16} color="#18181b" />
+                                </TouchableOpacity>
+                            )}
+                            {socials.website && (
+                                <TouchableOpacity onPress={() => Linking.openURL(socials.website)} className="w-11 h-11 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm">
+                                    <Feather name="globe" size={16} color="#f97316" />
+                                </TouchableOpacity>
+                            )}
+                        </View>
                     </View>
 
-                    {/* Channel Directory */}
-                    <View className="mb-8">
-                        <View className="flex-row justify-between items-center mb-4">
-                            <Text className="text-zinc-900 text-lg font-black uppercase tracking-tight text-[14px]">Active Channels</Text>
+                    {/* Channels */}
+                    <View className="mb-12">
+                        <View className="flex-row justify-between items-center mb-6">
+                            <Text className="text-zinc-900 text-xl font-black uppercase tracking-tight">Access Points</Text>
                             {isCreator && (
-                                <TouchableOpacity onPress={() => { setSubModalVisible(true); setTargetSubId(null); }} className="w-8 h-8 bg-zinc-900 rounded-lg items-center justify-center shadow-lg">
-                                    <Ionicons name="add" size={18} color="white" />
+                                <TouchableOpacity onPress={() => { setSubModalVisible(true); setTargetSubId(null); }} className="w-10 h-10 bg-zinc-900 rounded-xl items-center justify-center shadow-lg shadow-black/20">
+                                    <Ionicons name="add" size={24} color="white" />
                                 </TouchableOpacity>
                             )}
                         </View>
 
-                        {subCommunities.map((sub: any) => (
+                        {subCommunities.length === 0 ? (
+                            <View className="bg-slate-50 p-10 rounded-[32px] items-center border border-slate-100 border-dashed">
+                                <Feather name="radio" size={32} color="#CBD5E1" />
+                                <Text className="text-slate-400 font-black uppercase text-[9px] mt-4 tracking-widest text-center">No Frequencies Established</Text>
+                            </View>
+                        ) : subCommunities.map((sub: any) => (
                             <TouchableOpacity 
                                 key={sub._id} 
                                 onPress={() => {
-                                    if (isSuspended) { Alert.alert("Hub Suspended", "Activation required."); return; }
-                                    if (navigation) {
-                                        navigation.navigate('SubCommunityChat', { subId: sub._id, subName: sub.name, communityId: community._id });
-                                    }
+                                    if (isSuspended) { Alert.alert("Sector Offline", "Activation required."); return; }
+                                    navigation.navigate('SubCommunityChat', { subId: sub._id, subName: sub.name, communityId: community._id });
                                 }}
-                                className={`bg-white p-3 rounded-2xl border border-zinc-50 flex-row items-center gap-3 mb-2 shadow-sm shadow-black/5 ${isSuspended ? 'opacity-30' : ''}`}
+                                className={`bg-white p-5 rounded-[28px] border border-slate-100 flex-row items-center gap-5 mb-3 shadow-sm shadow-black/5 ${isSuspended ? 'opacity-30' : ''}`}
                             >
-                                <View className="w-8 h-8 bg-zinc-50 rounded-xl items-center justify-center overflow-hidden border border-zinc-100">
-                                    {sub.logo ? <Image source={{ uri: sub.logo }} className="w-full h-full" /> : <Text className="text-zinc-300 font-bold text-sm">#</Text>}
+                                <View className="w-12 h-12 bg-slate-50 rounded-2xl items-center justify-center overflow-hidden border border-slate-100">
+                                    {sub.logo ? <Image source={{ uri: sub.logo }} className="w-full h-full" /> : <Feather name="hash" size={20} color="#CBD5E1" />}
                                 </View>
                                 <View className="flex-1">
-                                    <Text className="text-zinc-900 font-black uppercase text-[9px] tracking-tight">{sub.name}</Text>
-                                    <Text className="text-zinc-400 font-bold text-[6px] uppercase mt-0.5 tracking-widest">Frequency Live</Text>
+                                    <Text className="text-zinc-900 font-black uppercase text-[11px] tracking-tight">{sub.name}</Text>
+                                    <Text className="text-slate-400 font-bold text-[8px] uppercase mt-0.5 tracking-widest">Active Link</Text>
                                 </View>
                                 {isCreator && (
-                                    <View className="flex-row gap-1">
+                                    <View className="flex-row gap-2">
                                         <TouchableOpacity 
                                             onPress={(e: any) => { 
                                                 e.stopPropagation(); 
@@ -616,38 +590,38 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                                 setSubLogo(sub.logo); 
                                                 setEditSubModal(true); 
                                             }}
-                                            className="w-7 h-7 bg-zinc-50 rounded-lg items-center justify-center border border-zinc-100"
+                                            className="w-9 h-9 bg-slate-50 rounded-xl items-center justify-center border border-slate-100"
                                         >
-                                            <Feather name="edit-3" size={10} color="#6366f1" />
+                                            <Feather name="edit-3" size={14} color="#f97316" />
                                         </TouchableOpacity>
                                         <TouchableOpacity 
                                             onPress={(e: any) => { e.stopPropagation(); handleExportHistory(sub._id, sub.name); }}
-                                            className="w-7 h-7 bg-zinc-50 rounded-lg items-center justify-center border border-zinc-100"
+                                            className="w-9 h-9 bg-slate-50 rounded-xl items-center justify-center border border-slate-100"
                                         >
-                                            <Feather name="download" size={10} color="#10b981" />
+                                            <Feather name="download" size={14} color="#10b981" />
                                         </TouchableOpacity>
                                     </View>
                                 )}
-                                <Ionicons name="chevron-forward" size={12} color="#F1F5F9" />
+                                <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
                             </TouchableOpacity>
                         ))}
                     </View>
 
-                    {/* Linked Ecosystems Grid */}
+                    {/* Other Realms */}
                     {creatorOtherCommunities.length > 0 && (
-                        <View>
-                            <Text className="text-zinc-400 font-black uppercase text-[7px] tracking-[2px] mb-3">Linked Realms</Text>
-                            <View className="flex-row flex-wrap gap-2">
+                        <View className="mb-20">
+                            <Text className="text-slate-400 font-black uppercase text-[9px] tracking-[3px] mb-6">Linked Sectors</Text>
+                            <View className="flex-row flex-wrap gap-4">
                                 {creatorOtherCommunities.map((c: any) => (
                                     <TouchableOpacity 
                                         key={c._id} 
                                         onPress={() => navigation.push('CommunityHub', { communityId: c._id })}
-                                        className="bg-white p-2.5 rounded-2xl border border-zinc-100 items-center w-[31%] shadow-sm"
+                                        className="bg-white p-4 rounded-[28px] border border-slate-100 items-center w-[29%] shadow-sm"
                                     >
-                                        <View className="w-9 h-9 rounded-xl overflow-hidden mb-1.5 border border-zinc-100">
+                                        <View className="w-11 h-11 rounded-2xl overflow-hidden mb-3 border border-slate-100 bg-slate-50">
                                             <Image source={{ uri: c.logo || 'https://via.placeholder.com/150' }} className="w-full h-full" />
                                         </View>
-                                        <Text className="text-zinc-900 font-black uppercase text-[6.5px] text-center" numberOfLines={1}>{c.name}</Text>
+                                        <Text className="text-zinc-900 font-black uppercase text-[8px] text-center tracking-tighter" numberOfLines={1}>{c.name}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
@@ -658,199 +632,223 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
 
             {/* Suspended Guard */}
             {isSuspended && (
-                <View className="absolute inset-0 bg-white items-center justify-center p-6 z-[100]">
-                    <Feather name="zap-off" size={40} color="#ef4444" />
-                    <Text className="text-zinc-900 text-xl font-black uppercase text-center mt-4 tracking-tighter">Spark Exhausted</Text>
-                    <Text className="text-zinc-500 font-semibold text-center text-[10px] leading-4 mt-3 mb-8 px-4">
-                        Hub is offline. {isCreator ? "Re-ignite for ₹99 via Razorpay." : "Awaiting activation."}
+                <View className="absolute inset-0 bg-[#F8FAFC] items-center justify-center p-8 z-[100]">
+                    <View className="w-24 h-24 bg-rose-50 rounded-[32px] items-center justify-center mb-8 border border-rose-100 shadow-sm">
+                        <Feather name="zap-off" size={40} color="#ef4444" />
+                    </View>
+                    <Text className="text-zinc-900 text-3xl font-black uppercase text-center tracking-tighter leading-tight">Spark<Text className="text-rose-500">\n</Text>Exhausted</Text>
+                    <Text className="text-slate-400 font-bold text-center text-[10px] leading-5 mt-4 mb-12 px-10 uppercase tracking-widest">
+                        Sector frequency is offline. {isCreator ? "Re-ignite the ecosystem spark to restore connectivity." : "Awaiting guardian activation protocol."}
                     </Text>
                     {isCreator && (
-                        <View className="w-full px-5">
-                            <View className="flex-row gap-2 mb-4">
-                                <TouchableOpacity onPress={() => setRenewPlan('monthly')} className={`flex-1 p-3 rounded-xl border ${renewPlan === 'monthly' ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-zinc-100'}`}>
-                                    <Text className={`font-black uppercase text-[7px] text-center ${renewPlan === 'monthly' ? 'text-white' : 'text-zinc-400'}`}>Monthly (₹99)</Text>
+                        <View className="w-full">
+                            <View className="flex-row gap-3 mb-4">
+                                <TouchableOpacity onPress={() => setRenewPlan('monthly')} className={`flex-1 p-5 rounded-3xl border ${renewPlan === 'monthly' ? 'bg-zinc-900 border-zinc-900 shadow-xl' : 'bg-white border-slate-100 shadow-sm'}`}>
+                                    <Text className={`font-black uppercase text-[9px] text-center tracking-widest ${renewPlan === 'monthly' ? 'text-white' : 'text-slate-400'}`}>Monthly</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={() => setRenewPlan('yearly')} className={`flex-1 p-3 rounded-xl border ${renewPlan === 'yearly' ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-zinc-100'}`}>
-                                    <Text className={`font-black uppercase text-[7px] text-center ${renewPlan === 'yearly' ? 'text-white' : 'text-zinc-400'}`}>Yearly (₹999)</Text>
+                                <TouchableOpacity onPress={() => setRenewPlan('yearly')} className={`flex-1 p-5 rounded-3xl border ${renewPlan === 'yearly' ? 'bg-zinc-900 border-zinc-900 shadow-xl' : 'bg-white border-slate-100 shadow-sm'}`}>
+                                    <Text className={`font-black uppercase text-[9px] text-center tracking-widest ${renewPlan === 'yearly' ? 'text-white' : 'text-slate-400'}`}>Yearly</Text>
                                 </TouchableOpacity>
                             </View>
-                            <TouchableOpacity onPress={handleRenew} disabled={renewing} className="bg-indigo-600 w-full py-4 rounded-xl items-center shadow-lg">
-                                {renewing ? <ActivityIndicator size="small" color="white" /> : <Text className="text-white font-black uppercase text-[9px] tracking-widest">Pay & Ignite Hub</Text>}
+                            <TouchableOpacity onPress={handleRenew} disabled={renewing} className="bg-orange-500 w-full py-6 rounded-[28px] items-center shadow-2xl shadow-orange-500/40">
+                                {renewing ? <ActivityIndicator size="small" color="white" /> : <Text className="text-white font-black uppercase text-[11px] tracking-[4px]">Restore Hub Signal</Text>}
                             </TouchableOpacity>
                         </View>
                     )}
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="mt-8">
-                        <Text className="text-zinc-400 font-black uppercase text-[7px] tracking-widest">Back to Directory</Text>
+                    <TouchableOpacity onPress={() => navigation.goBack()} className="mt-12">
+                        <Text className="text-slate-300 font-black uppercase text-[9px] tracking-[3px]">Back to Directory</Text>
                     </TouchableOpacity>
                 </View>
             )}
 
             {/* Sub-Community Creation Modal */}
             <Modal visible={subModalVisible} transparent animationType="slide">
-                <View className="flex-1 bg-black/80 justify-end">
-                    <View className="bg-white rounded-t-[32px] p-6 pb-10">
-                        <View className="flex-row justify-between items-center mb-6">
-                            <Text className="text-zinc-900 text-xl font-black uppercase tracking-tight">Expand Realm</Text>
-                            <TouchableOpacity onPress={() => setSubModalVisible(false)} className="w-9 h-9 bg-zinc-50 rounded-xl items-center justify-center">
-                                <Ionicons name="close" size={22} color="black" />
-                            </TouchableOpacity>
+                <View className="flex-1 bg-black/60">
+                    <TouchableOpacity activeOpacity={1} onPress={() => setSubModalVisible(false)} className="flex-1" />
+                    <KeyboardAvoidingView 
+                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        className="w-full bg-white rounded-t-[40px] overflow-hidden"
+                        style={{ height: screenHeight * 0.8 }}
+                    >
+                        <View className="w-12 h-1.5 bg-slate-200 rounded-full self-center mt-4 mb-2" />
+                        <View className="p-8 pb-12 flex-1">
+                            <View className="flex-row justify-between items-center mb-8">
+                                <Text className="text-zinc-900 text-2xl font-black uppercase tracking-tight">Expand <Text className="text-orange-500">Realm</Text></Text>
+                                <TouchableOpacity onPress={() => setSubModalVisible(false)} className="w-11 h-11 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
+                                    <Ionicons name="close" size={20} color="#18181b" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <ScrollView showsVerticalScrollIndicator={false}>
+                                <TouchableOpacity 
+                                    onPress={() => pickImage(setSubLogo, false)}
+                                    className="w-28 h-28 bg-slate-50 rounded-[32px] border border-dashed border-slate-200 items-center justify-center overflow-hidden self-center mb-8 shadow-sm"
+                                >
+                                    {subLogo ? <Image source={{ uri: subLogo || undefined }} className="w-full h-full" /> : <Feather name="camera" size={24} color="#CBD5E1" />}
+                                </TouchableOpacity>
+
+                                <TextInput placeholder="Channel Label (e.g. Protocol)" placeholderTextColor="#CBD5E1" value={subName} onChangeText={setSubName} className="bg-slate-50 p-5 rounded-3xl mb-4 border border-slate-100 font-black uppercase text-xs text-zinc-900" />
+                                <TextInput placeholder="Directive parameters..." placeholderTextColor="#252d36ff" value={subDesc} onChangeText={setSubDesc} multiline className="bg-slate-50 p-5 rounded-3xl mb-8 border border-slate-100 font-medium h-24 text-xs text-zinc-600" textAlignVertical="top" />
+
+                                <TouchableOpacity 
+                                    onPress={handleCreateSubCommunity} 
+                                    disabled={creatingSub}
+                                    className={`p-6 rounded-[28px] items-center mb-20 shadow-xl ${creatingSub ? 'bg-slate-100' : 'bg-zinc-900 shadow-black/20'}`}
+                                >
+                                    {creatingSub ? (
+                                        <ActivityIndicator size="small" color="#18181b" />
+                                    ) : (
+                                        <Text className="text-white font-black uppercase text-[10px] tracking-widest">Initiate Room</Text>
+                                    )}
+                                </TouchableOpacity>
+                            </ScrollView>
                         </View>
-
-                        <TouchableOpacity 
-                            onPress={() => pickImage(setSubLogo, false)}
-                            className="w-24 h-24 bg-zinc-50 rounded-[24px] border border-dashed border-zinc-200 items-center justify-center overflow-hidden self-center mb-6"
-                        >
-                            {subLogo ? <Image source={{ uri: subLogo || undefined }} className="w-full h-full" /> : <Feather name="camera" size={20} color="#E2E8F0" />}
-                        </TouchableOpacity>
-
-                        <TextInput placeholder="Channel Name (e.g. Brainstorming)" value={subName} onChangeText={setSubName} className="bg-zinc-50 p-4 rounded-xl mb-3 border border-zinc-100 font-bold text-[10px]" />
-                        <TextInput placeholder="Description" value={subDesc} onChangeText={setSubDesc} multiline className="bg-zinc-50 p-4 rounded-xl mb-6 border border-zinc-100 font-bold h-20 text-[10px]" />
-
-                        <TouchableOpacity 
-                            onPress={handleCreateSubCommunity} 
-                            disabled={creatingSub}
-                            className={`p-4 rounded-xl items-center mb-3 ${creatingSub ? 'bg-zinc-100' : 'bg-zinc-900 shadow-xl shadow-black/20'}`}
-                        >
-                            {creatingSub ? (
-                                <ActivityIndicator size="small" color="#1a1a1a" />
-                            ) : (
-                                <Text className="text-white font-black uppercase text-[9px] tracking-widest">Ignite Room</Text>
-                            )}
-                        </TouchableOpacity>
-                    </View>
+                    </KeyboardAvoidingView>
                 </View>
             </Modal>
 
             {/* Sub-Community Update Modal */}
             <Modal visible={editSubModal} transparent animationType="slide">
-                <View className="flex-1 bg-black/80 justify-end">
-                    <View className="bg-white rounded-t-[32px] p-6 pb-10">
-                        <View className="flex-row justify-between items-center mb-6">
-                            <Text className="text-zinc-900 text-xl font-black uppercase tracking-tight">Refine Room</Text>
-                            <TouchableOpacity onPress={() => setEditSubModal(false)} className="w-9 h-9 bg-zinc-50 rounded-xl items-center justify-center">
-                                <Ionicons name="close" size={22} color="black" />
-                            </TouchableOpacity>
+                <View className="flex-1 bg-black/60">
+                    <TouchableOpacity activeOpacity={1} onPress={() => setEditSubModal(false)} className="flex-1" />
+                    <KeyboardAvoidingView 
+                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        className="w-full bg-white rounded-t-[40px] overflow-hidden"
+                        style={{ height: screenHeight * 0.8 }}
+                    >
+                        <View className="w-12 h-1.5 bg-slate-200 rounded-full self-center mt-4 mb-2" />
+                        <View className="p-8 pb-12 flex-1">
+                            <View className="flex-row justify-between items-center mb-8">
+                                <Text className="text-zinc-900 text-2xl font-black uppercase tracking-tight">Refine <Text className="text-orange-500">Room</Text></Text>
+                                <TouchableOpacity onPress={() => setEditSubModal(false)} className="w-11 h-11 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
+                                    <Ionicons name="close" size={20} color="#18181b" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <ScrollView showsVerticalScrollIndicator={false}>
+                                <TouchableOpacity 
+                                    onPress={() => pickImage(setSubLogo, false)}
+                                    className="w-28 h-28 bg-slate-50 rounded-[32px] border border-dashed border-slate-200 items-center justify-center overflow-hidden self-center mb-8 shadow-sm"
+                                >
+                                    {subLogo ? <Image source={{ uri: subLogo || undefined }} className="w-full h-full" /> : <Feather name="camera" size={24} color="#CBD5E1" />}
+                                </TouchableOpacity>
+
+                                <TextInput placeholder="Channel Label" placeholderTextColor="#CBD5E1" value={subName} onChangeText={setSubName} className="bg-slate-50 p-5 rounded-3xl mb-4 border border-slate-100 font-black uppercase text-xs text-zinc-900" />
+                                <TextInput placeholder="Directive" placeholderTextColor="#CBD5E1" value={subDesc} onChangeText={setSubDesc} multiline className="bg-slate-50 p-5 rounded-3xl mb-8 border border-slate-100 font-medium h-24 text-xs text-zinc-600" textAlignVertical="top" />
+
+                                <TouchableOpacity 
+                                    onPress={handleUpdateSubCommunity} 
+                                    disabled={creatingSub}
+                                    className={`p-6 rounded-[28px] items-center mb-3 shadow-xl ${creatingSub ? 'bg-slate-100' : 'bg-orange-500 shadow-orange-500/30'}`}
+                                >
+                                    {creatingSub ? (
+                                        <ActivityIndicator size="small" color="white" />
+                                    ) : (
+                                        <Text className="text-white font-black uppercase text-[10px] tracking-widest">Apply Specs</Text>
+                                    )}
+                                </TouchableOpacity>
+
+                                <TouchableOpacity 
+                                    onPress={handleDeleteSubCommunity}
+                                    className="p-5 rounded-2xl items-center border border-rose-50 mb-20"
+                                >
+                                    <Text className="text-rose-500 font-black uppercase text-[8px] tracking-widest">Dissolve Room</Text>
+                                </TouchableOpacity>
+                            </ScrollView>
                         </View>
-
-                        <TouchableOpacity 
-                            onPress={() => pickImage(setSubLogo, false)}
-                            className="w-24 h-24 bg-zinc-50 rounded-[24px] border border-dashed border-zinc-200 items-center justify-center overflow-hidden self-center mb-6"
-                        >
-                            {subLogo ? <Image source={{ uri: subLogo || undefined }} className="w-full h-full" /> : <Feather name="camera" size={20} color="#E2E8F0" />}
-                        </TouchableOpacity>
-
-                        <TextInput placeholder="Channel Label" value={subName} onChangeText={setSubName} className="bg-zinc-50 p-4 rounded-xl mb-3 border border-zinc-100 font-bold text-[10px]" />
-                        <TextInput placeholder="Directive" value={subDesc} onChangeText={setSubDesc} multiline className="bg-zinc-50 p-4 rounded-xl mb-6 border border-zinc-100 font-bold h-20 text-[10px]" />
-
-                        <TouchableOpacity 
-                            onPress={handleUpdateSubCommunity} 
-                            disabled={creatingSub}
-                            className={`p-4 rounded-xl items-center mb-3 ${creatingSub ? 'bg-zinc-100' : 'bg-indigo-600 shadow-xl shadow-indigo-600/20'}`}
-                        >
-                            {creatingSub ? (
-                                <ActivityIndicator size="small" color="#1a1a1a" />
-                            ) : (
-                                <Text className="text-white font-black uppercase text-[9px] tracking-widest">Sync Specs</Text>
-                            )}
-                        </TouchableOpacity>
-
-                        <TouchableOpacity 
-                            onPress={handleDeleteSubCommunity}
-                            className="p-4 rounded-xl items-center border border-red-50"
-                        >
-                            <Text className="text-red-500 font-black uppercase text-[7px] tracking-widest">Dissolve Room</Text>
-                        </TouchableOpacity>
-                    </View>
+                    </KeyboardAvoidingView>
                 </View>
             </Modal>
 
             {/* Configuration Suite */}
             <Modal visible={editHubModal} transparent animationType="slide">
-                <View className="flex-1 bg-black/80 justify-end">
-                    <View className="bg-white rounded-t-[32px] p-6 pb-10">
-                        <View className="flex-row justify-between items-center mb-6">
-                            <Text className="text-zinc-900 text-xl font-black uppercase tracking-tight">Configuration</Text>
-                            <TouchableOpacity onPress={() => setEditHubModal(false)} className="w-9 h-9 bg-zinc-50 rounded-xl items-center justify-center">
-                                <Ionicons name="close" size={22} color="black" />
-                            </TouchableOpacity>
+                <View className="flex-1 bg-black/60">
+                    <TouchableOpacity activeOpacity={1} onPress={() => setEditHubModal(false)} className="flex-1" />
+                    <KeyboardAvoidingView 
+                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        className="w-full bg-white rounded-t-[40px] overflow-hidden"
+                        style={{ height: screenHeight * 0.8 }}
+                    >
+                        <View className="w-12 h-1.5 bg-slate-200 rounded-full self-center mt-4 mb-2" />
+                        <View className="p-8 pb-12 flex-1">
+                            <View className="flex-row justify-between items-center mb-8">
+                                <Text className="text-zinc-900 text-2xl font-black uppercase tracking-tight">Update <Text className="text-orange-500">Community</Text></Text>
+                                <TouchableOpacity onPress={() => setEditHubModal(false)} className="w-11 h-11 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
+                                    <Ionicons name="close" size={20} color="#18181b" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+                                <Text className="text-slate-400 font-black uppercase text-[9px] tracking-widest mb-4">Authority Specs</Text>
+                                <View className="bg-slate-50 p-6 rounded-[28px] mb-8 border border-slate-100 flex-row justify-between items-center">
+                                    <View>
+                                        <Text className="text-zinc-900 font-black uppercase text-[11px] tracking-tight">{daysLeft} Days Remaining</Text>
+                                        <Text className="text-slate-400 font-bold text-[8px] uppercase mt-0.5 tracking-widest">Active License</Text>
+                                    </View>
+                                    <View className="px-4 py-2 bg-zinc-900 rounded-xl">
+                                        <Text className="text-white font-black uppercase text-[8px]">Guardian</Text>
+                                    </View>
+                                </View>
+
+                                <Text className="text-slate-400 font-black uppercase text-[9px] tracking-widest mb-4">Atmospheric Assets</Text>
+                                <View className="flex-row gap-4 mb-8">
+                                    <TouchableOpacity 
+                                        onPress={() => pickImage(setEditBanner, true)}
+                                        className="flex-1 h-36 bg-slate-50 rounded-[32px] border border-dashed border-slate-200 items-center justify-center overflow-hidden"
+                                    >
+                                        {editBanner ? <Image source={{ uri: editBanner || undefined }} className="w-full h-full" /> : <Feather name="image" size={24} color="#CBD5E1" />}
+                                    </TouchableOpacity>
+                                    <TouchableOpacity 
+                                        onPress={() => pickImage(setEditLogo, false)}
+                                        className="w-36 h-36 bg-slate-50 rounded-[32px] border border-dashed border-slate-200 items-center justify-center overflow-hidden"
+                                    >
+                                        {editLogo ? <Image source={{ uri: editLogo || undefined }} className="w-full h-full" /> : <Feather name="camera" size={24} color="#CBD5E1" />}
+                                    </TouchableOpacity>
+                                </View>
+
+                                <TextInput placeholder="Hub Designation" placeholderTextColor="#CBD5E1" value={editName} onChangeText={setEditName} className="bg-slate-50 p-5 rounded-3xl mb-4 border border-slate-100 font-black text-xs text-zinc-900" />
+                                <TextInput placeholder="Directive" placeholderTextColor="#CBD5E1" value={editDesc} onChangeText={setEditDesc} multiline className="bg-slate-50 p-5 rounded-3xl mb-8 border border-slate-100 font-medium h-24 text-xs text-zinc-600" textAlignVertical="top" />
+
+                                <Text className="text-slate-400 font-black uppercase text-[9px] tracking-widest mb-4">Social Frequencies</Text>
+                                <View className="bg-slate-50 p-6 rounded-[32px] border border-slate-100 mb-10">
+                                    <View className="flex-row items-center gap-4 mb-6">
+                                        <FontAwesome5 name="youtube" size={16} color="#ef4444" />
+                                        <TextInput placeholder="YouTube" placeholderTextColor="#CBD5E1" value={yt} onChangeText={setYt} className="flex-1 font-black text-[10px] text-zinc-900" />
+                                    </View>
+                                    <View className="flex-row items-center gap-4 mb-6">
+                                        <FontAwesome5 name="github" size={16} color="#18181b" />
+                                        <TextInput placeholder="GitHub" placeholderTextColor="#CBD5E1" value={gh} onChangeText={setGh} className="flex-1 font-black text-[10px] text-zinc-900" />
+                                    </View>
+                                    <View className="flex-row items-center gap-4">
+                                        <Feather name="globe" size={16} color="#f97316" />
+                                        <TextInput placeholder="Portal" placeholderTextColor="#CBD5E1" value={ws} onChangeText={setWs} className="flex-1 font-black text-[10px] text-zinc-900" />
+                                    </View>
+                                </View>
+
+                                <TouchableOpacity 
+                                    onPress={handleUpdateHub} 
+                                    disabled={updatingHub}
+                                    className={`p-6 rounded-[28px] items-center mb-3 shadow-xl ${updatingHub ? 'bg-slate-100' : 'bg-orange-500 shadow-orange-500/30'}`}
+                                >
+                                    {updatingHub ? <ActivityIndicator size="small" color="#18181b" /> : <Text className="text-white font-black uppercase text-[10px] tracking-widest">Update Community</Text>}
+                                </TouchableOpacity>
+
+                                <TouchableOpacity 
+                                    onPress={handleDeleteHub}
+                                    className="p-6 rounded-[28px] bg-red-500 items-center mb-20"
+                                >
+                                    <Text className="text-white font-black uppercase text-[10px] tracking-widest">Delete Community</Text>
+                                </TouchableOpacity>
+                            </ScrollView>
                         </View>
-
-                        <ScrollView showsVerticalScrollIndicator={false} className="max-h-[85%]">
-                            <Text className="text-zinc-400 font-black uppercase text-[7px] mb-3">Ecosystem Authority</Text>
-                            <View className="bg-zinc-50 p-4 rounded-2xl mb-8 border border-zinc-100 flex-row justify-between items-center">
-                                <View>
-                                    <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-tight">{daysLeft} Days Remaining</Text>
-                                    <Text className="text-zinc-400 font-bold text-[7px] uppercase mt-0.5 tracking-widest">Licensed Period</Text>
-                                </View>
-                                <View className="px-3 py-1.5 bg-zinc-900 rounded-xl">
-                                    <Text className="text-white font-black uppercase text-[8px]">Guardian</Text>
-                                </View>
-                            </View>
-
-                            <Text className="text-zinc-400 font-black uppercase text-[7px] mb-4">Atmospheric Branding</Text>
-                            <View className="flex-row gap-3 mb-8">
-                                <TouchableOpacity 
-                                    onPress={() => pickImage(setEditBanner, true)}
-                                    className="flex-1 h-32 bg-zinc-50 rounded-[24px] border border-dashed border-zinc-200 items-center justify-center overflow-hidden"
-                                >
-                                    {editBanner ? <Image source={{ uri: editBanner || undefined }} className="w-full h-full" /> : <Feather name="image" size={20} color="#E2E8F0" />}
-                                </TouchableOpacity>
-                                <TouchableOpacity 
-                                    onPress={() => pickImage(setEditLogo, false)}
-                                    className="w-32 h-32 bg-zinc-50 rounded-[24px] border border-dashed border-zinc-200 items-center justify-center overflow-hidden"
-                                >
-                                    {editLogo ? <Image source={{ uri: editLogo || undefined }} className="w-full h-full" /> : <Feather name="camera" size={20} color="#E2E8F0" />}
-                                </TouchableOpacity>
-                            </View>
-
-                            <Text className="text-zinc-400 font-black uppercase text-[7px] mb-3">Hub Narrative</Text>
-                            <TextInput placeholder="Hub Title" value={editName} onChangeText={setEditName} className="bg-zinc-50 p-4 rounded-xl mb-3 border border-zinc-100 font-bold text-[10px]" />
-                            <TextInput placeholder="Directive" value={editDesc} onChangeText={setEditDesc} multiline className="bg-zinc-50 p-4 rounded-xl mb-6 border border-zinc-100 font-bold h-20 text-[10px]" />
-
-                            <Text className="text-zinc-400 font-black uppercase text-[7px] mb-3">Social Handles</Text>
-                            <View className="bg-zinc-50 p-5 rounded-2xl mb-8 border border-zinc-100">
-                                <View className="flex-row items-center gap-3 mb-4">
-                                    <FontAwesome5 name="youtube" size={14} color="#ef4444" />
-                                    <TextInput placeholder="YouTube URL" value={yt} onChangeText={setYt} className="flex-1 font-bold text-[9px]" />
-                                </View>
-                                <View className="flex-row items-center gap-3 mb-4">
-                                    <FontAwesome5 name="github" size={14} color="#1a1a1a" />
-                                    <TextInput placeholder="GitHub URL" value={gh} onChangeText={setGh} className="flex-1 font-bold text-[9px]" />
-                                </View>
-                                <View className="flex-row items-center gap-3">
-                                    <SimpleLineIcons name="globe" size={14} color="#6366f1" />
-                                    <TextInput placeholder="Website" value={ws} onChangeText={setWs} className="flex-1 font-bold text-[9px]" />
-                                </View>
-                            </View>
-
-                            <TouchableOpacity 
-                                onPress={handleUpdateHub} 
-                                disabled={updatingHub}
-                                className={`p-4 rounded-xl items-center mb-3 ${updatingHub ? 'bg-zinc-100' : 'bg-indigo-600'}`}
-                            >
-                                {updatingHub ? (
-                                    <ActivityIndicator size="small" color="#6366f1" />
-                                ) : (
-                                    <Text className="text-white font-black uppercase text-[9px] tracking-widest">Apply Specs</Text>
-                                )}
-                            </TouchableOpacity>
-
-                            <TouchableOpacity onPress={handleDeleteHub} className="p-4 rounded-xl items-center border border-red-50">
-                                <Text className="text-red-500 font-black uppercase text-[7px] tracking-widest">Dissolve Hub</Text>
-                            </TouchableOpacity>
-                        </ScrollView>
-                    </View>
+                    </KeyboardAvoidingView>
                 </View>
             </Modal>
 
-            {/* WebView Fallback Modal */}
             <Modal visible={showWebView} animationType="slide">
                 <SafeAreaView className="flex-1 bg-white">
-                    <View className="flex-row items-center justify-between p-4 border-b border-zinc-100 bg-[#FAFAFA]">
-                        <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-widest">Resilient Restoration Bridge</Text>
-                        <TouchableOpacity onPress={() => { setShowWebView(false); setRenewing(false); }}>
-                            <Ionicons name="close" size={24} color="black" />
-                        </TouchableOpacity>
+                    <View className="flex-row items-center justify-center p-6 border-b border-slate-100 bg-[#FAFAFA]">
+                        <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-widest">Secure Signal Processor</Text>
                     </View>
                     <WebView
                         source={{ html: webViewHtml }}

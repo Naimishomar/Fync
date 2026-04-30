@@ -41,7 +41,7 @@ const CreateCommunityScreen = () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
             allowsEditing: true,
-            aspect: isBanner ? undefined : [1, 1],
+            aspect: isBanner ? [16, 9] : [1, 1],
             quality: 0.8,
         });
         if (!result.canceled) setter(result.assets[0].uri);
@@ -58,7 +58,6 @@ const CreateCommunityScreen = () => {
             formData.append('paymentId', paymentData.razorpay_payment_id);
             formData.append('orderId', paymentData.razorpay_order_id);
             formData.append('signature', paymentData.razorpay_signature);
-            formData.append('plan', plan);
 
             const socialLinks = { youtube, github, website };
             formData.append('socialLinks', JSON.stringify(socialLinks));
@@ -98,7 +97,6 @@ const CreateCommunityScreen = () => {
 
         setLoading(true);
         try {
-            // 1. Create Razorpay Order
             const amount = plan === 'monthly' ? 99 : 999;
             const orderRes = await axios.post('/payment/order', { 
                 amount,
@@ -120,7 +118,7 @@ const CreateCommunityScreen = () => {
                     contact: user?.phone || '',
                     name: user?.username || user?.name
                 },
-                theme: { color: '#4f46e5' }
+                theme: { color: '#f97316' }
             };
 
             const triggerWebView = () => {
@@ -141,7 +139,7 @@ const CreateCommunityScreen = () => {
                             email: "${user?.email || ''}",
                             contact: "${user?.phone || ''}"
                         },
-                        theme: { color: "#4f46e5" },
+                        theme: { color: "#f97316" },
                         handler: function (response) {
                             window.ReactNativeWebView.postMessage(JSON.stringify({
                                 event: "SUCCESS",
@@ -200,143 +198,158 @@ const CreateCommunityScreen = () => {
         }
     };
 
+    const screenHeight = Dimensions.get('window').height;
+
     return (
-        <View className="flex-1 bg-[#FAFAFA]">
-            <StatusBar barStyle="dark-content" />
-            <SafeAreaView className="flex-1" edges={['top']}>
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
-                    <ScrollView showsVerticalScrollIndicator={false} className="px-5">
-                        <View className="flex-row items-center justify-between py-5 mb-4">
-                            <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 bg-white rounded-xl items-center justify-center border border-zinc-100 shadow-sm">
-                                <Ionicons name="close" size={20} color="black" />
-                            </TouchableOpacity>
-                            <View className="items-center">
-                                <Text className="text-zinc-900 text-lg font-black uppercase tracking-tight">Generate Hub</Text>
-                                <View className="flex-row items-center gap-1">
-                                    <View className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                                    <Text className="text-indigo-600 font-bold text-[7px] uppercase tracking-widest">Resilient Ignition Live</Text>
-                                </View>
-                            </View>
-                            <View className="w-10" />
-                        </View>
+        <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            className="flex-1 bg-black/60"
+        >
+            <StatusBar barStyle="light-content" />
+            
+            {/* Touchable backdrop to go back */}
+            <TouchableOpacity 
+                activeOpacity={1} 
+                onPress={() => navigation.goBack()} 
+                className="flex-1" 
+            />
 
-                        {/* Visual Branding */}
-                        <Text className="text-zinc-400 font-black uppercase text-[8px] tracking-[2px] mb-4">Atmospheric Assets</Text>
-                        <View className="flex-row gap-3 mb-8">
-                            <TouchableOpacity 
-                                onPress={() => pickImage(setBanner, true)}
-                                className="flex-[2] h-40 bg-zinc-100 rounded-[32px] border border-dashed border-zinc-300 items-center justify-center overflow-hidden"
-                            >
-                                {banner ? (
-                                    <Image source={{ uri: banner }} className="w-full h-full" />
-                                ) : (
-                                    <View className="items-center">
-                                        <Feather name="image" size={24} color="#94a3b8" />
-                                        <Text className="text-zinc-400 font-bold text-[7px] uppercase mt-2">Free Size Banner</Text>
-                                    </View>
-                                )}
-                            </TouchableOpacity>
-                            <TouchableOpacity 
-                                onPress={() => pickImage(setLogo, false)}
-                                className="flex-1 h-40 bg-zinc-100 rounded-[32px] border border-dashed border-zinc-300 items-center justify-center overflow-hidden"
-                            >
-                                {logo ? (
-                                    <Image source={{ uri: logo }} className="w-full h-full" />
-                                ) : (
-                                    <View className="items-center">
-                                        <Feather name="camera" size={24} color="#94a3b8" />
-                                        <Text className="text-zinc-400 font-bold text-[7px] uppercase mt-2">1:1 Logo</Text>
-                                    </View>
-                                )}
-                            </TouchableOpacity>
-                        </View>
+            <View 
+                className="w-full bg-[#F8FAFC] rounded-t-[40px] overflow-hidden"
+                style={{ height: screenHeight * 0.8 }}
+            >
+                <View className="w-12 h-1.5 bg-slate-200 rounded-full self-center mt-4 mb-2" />
+                
+                <View className="px-8 py-4 flex-row items-center justify-between">
+                    <TouchableOpacity 
+                        onPress={() => navigation.goBack()} 
+                        className="w-11 h-11 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm"
+                    >
+                        <Ionicons name="close" size={20} color="#18181b" />
+                    </TouchableOpacity>
+                    <View className="items-center">
+                        <Text className="text-zinc-900 text-xl font-black uppercase tracking-tight">Generate <Text className="text-orange-500">Hub</Text></Text>
+                        <Text className="text-slate-400 text-[8px] font-black uppercase tracking-[2px] mt-0.5">Ecosystem Initiation Protocol</Text>
+                    </View>
+                    <View className="w-11" />
+                </View>
 
-                        <Text className="text-zinc-400 font-black uppercase text-[8px] tracking-[2px] mb-4">Hub Identity</Text>
-                        <TextInput 
-                            placeholder="Ecosystem Name" 
-                            className="bg-white p-5 rounded-2xl border border-zinc-100 font-bold mb-3 text-[12px]" 
-                            value={name}
-                            onChangeText={setName}
-                        />
-                        <TextInput 
-                            placeholder="Describe the directive of this hub..." 
-                            multiline
-                            className="bg-white p-5 rounded-2xl border border-zinc-100 font-bold mb-8 h-32 text-[12px] textAlignVertical-top" 
-                            value={desc}
-                            onChangeText={setDesc}
-                        />
-
-                        {/* Activation Scrolscape */}
-                        <Text className="text-zinc-400 font-black uppercase text-[8px] tracking-[2px] mb-4">Razorpay Activation Plan</Text>
-                        <View className="flex-row gap-2 mb-8">
-                            <TouchableOpacity 
-                                onPress={() => setPlan('monthly')}
-                                className={`flex-1 p-4 rounded-2xl border ${plan === 'monthly' ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-zinc-100'}`}
-                            >
-                                <Text className={`font-black uppercase text-[8px] ${plan === 'monthly' ? 'text-white' : 'text-zinc-900'}`}>Monthly Spark</Text>
-                                <Text className={`font-bold text-[7px] mt-1 ${plan === 'monthly' ? 'text-white/60' : 'text-zinc-400'}`}>₹99 / 30 Days</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity 
-                                onPress={() => setPlan('yearly')}
-                                className={`flex-1 p-4 rounded-2xl border ${plan === 'yearly' ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-zinc-100'}`}
-                            >
-                                <View className="flex-row justify-between items-center">
-                                    <Text className={`font-black uppercase text-[8px] ${plan === 'yearly' ? 'text-white' : 'text-zinc-900'}`}>Yearly Eternal</Text>
-                                    <View className="bg-blue-500 px-1.5 py-0.5 rounded-full">
-                                        <Text className="text-[6px] text-white font-black uppercase">Save 15%</Text>
-                                    </View>
-                                </View>
-                                <Text className={`font-bold text-[7px] mt-1 ${plan === 'yearly' ? 'text-white/60' : 'text-zinc-400'}`}>₹999 / 365 Days</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        <Text className="text-zinc-400 font-black uppercase text-[8px] tracking-[2px] mb-4">Social Ecosystem</Text>
-                        <View className="bg-white p-6 rounded-[32px] border border-zinc-100 mb-10">
-                            <View className="flex-row items-center gap-4 mb-5">
-                                <FontAwesome5 name="youtube" size={16} color="#ef4444" />
-                                <TextInput placeholder="YouTube URL" value={youtube} onChangeText={setYoutube} className="flex-1 font-bold text-[10px]" />
-                            </View>
-                            <View className="flex-row items-center gap-4 mb-5">
-                                <FontAwesome5 name="github" size={16} color="#1a1a1a" />
-                                <TextInput placeholder="GitHub URL" value={github} onChangeText={setGithub} className="flex-1 font-bold text-[10px]" />
-                            </View>
-                            <View className="flex-row items-center gap-4">
-                                <SimpleLineIcons name="globe" size={16} color="#6366f1" />
-                                <TextInput placeholder="Website" value={website} onChangeText={setWebsite} className="flex-1 font-bold text-[10px]" />
-                            </View>
-                        </View>
-
+                <ScrollView showsVerticalScrollIndicator={false} className="px-8 flex-1">
+                    <Text className="text-slate-400 font-black uppercase text-[9px] tracking-widest mb-4 mt-4">Visual Identity</Text>
+                    <View className="flex-row gap-4 mb-10">
                         <TouchableOpacity 
-                            onPress={handleCreate}
-                            disabled={loading}
-                            className={`p-6 rounded-[32px] items-center shadow-xl shadow-black/10 mb-10 bg-indigo-600`}
+                            onPress={() => pickImage(setBanner, true)}
+                            className="flex-[2] h-40 bg-white rounded-[32px] border border-dashed border-slate-200 items-center justify-center overflow-hidden shadow-sm shadow-black/5"
                         >
-                            {loading ? <ActivityIndicator color="white" /> : <Text className="text-white font-black uppercase tracking-widest text-[11px]">Pay & Ignite Hub</Text>}
+                            {banner ? (
+                                <Image source={{ uri: banner }} className="w-full h-full" resizeMode="cover" />
+                            ) : (
+                                <View className="items-center">
+                                    <Feather name="image" size={24} color="#CBD5E1" />
+                                    <Text className="text-slate-300 font-black uppercase text-[7px] tracking-widest mt-2">Banner Asset</Text>
+                                </View>
+                            )}
                         </TouchableOpacity>
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </SafeAreaView>
-
-            {/* WebView Fallback Modal */}
-            <Modal visible={showWebView} animationType="slide">
-                <SafeAreaView className="flex-1 bg-white">
-                    <View className="flex-row items-center justify-between p-4 border-b border-zinc-100 bg-[#FAFAFA]">
-                        <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-widest">Resilient Spark Processor</Text>
-                        <TouchableOpacity onPress={() => { setShowWebView(false); setLoading(false); }}>
-                            <Ionicons name="close" size={24} color="black" />
+                        <TouchableOpacity 
+                            onPress={() => pickImage(setLogo, false)}
+                            className="flex-1 h-40 bg-white rounded-[32px] border border-dashed border-slate-200 items-center justify-center overflow-hidden shadow-sm shadow-black/5"
+                        >
+                            {logo ? (
+                                <Image source={{ uri: logo }} className="w-full h-full" resizeMode="cover" />
+                            ) : (
+                                <View className="items-center">
+                                    <Feather name="camera" size={24} color="#CBD5E1" />
+                                    <Text className="text-slate-300 font-black uppercase text-[7px] tracking-widest mt-2">1:1 Logo</Text>
+                                </View>
+                            )}
                         </TouchableOpacity>
                     </View>
+
+                    <Text className="text-slate-400 font-black uppercase text-[9px] tracking-widest mb-4">Core Directives</Text>
+                    <TextInput 
+                        placeholder="Ecosystem Designation" 
+                        placeholderTextColor="#CBD5E1"
+                        className="bg-white p-5 rounded-3xl border border-slate-100 font-black text-xs mb-4 shadow-sm shadow-black/5 text-zinc-900" 
+                        value={name}
+                        onChangeText={setName}
+                    />
+                    <TextInput 
+                        placeholder="Describe the mission parameters of this hub..." 
+                        placeholderTextColor="#CBD5E1"
+                        multiline
+                        className="bg-white p-5 rounded-3xl border border-slate-100 font-medium text-xs mb-10 h-32 text-zinc-600 shadow-sm shadow-black/5" 
+                        textAlignVertical="top"
+                        value={desc}
+                        onChangeText={setDesc}
+                    />
+
+                    <Text className="text-slate-400 font-black uppercase text-[9px] tracking-widest mb-4">Activation Tier</Text>
+                    <View className="flex-row gap-3 mb-10">
+                        <TouchableOpacity 
+                            onPress={() => setPlan('monthly')}
+                            className={`flex-1 p-5 rounded-3xl border ${plan === 'monthly' ? 'bg-zinc-900 border-zinc-900 shadow-xl shadow-black/20' : 'bg-white border-slate-100 shadow-sm shadow-black/5'}`}
+                        >
+                            <Text className={`font-black uppercase text-[9px] tracking-widest ${plan === 'monthly' ? 'text-white' : 'text-zinc-900'}`}>Monthly</Text>
+                            <Text className={`font-bold text-[8px] mt-1 ${plan === 'monthly' ? 'text-white/60' : 'text-slate-400'}`}>₹99 / 30 Days</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            onPress={() => setPlan('yearly')}
+                            className={`flex-1 p-5 rounded-3xl border ${plan === 'yearly' ? 'bg-orange-500 border-orange-500 shadow-xl shadow-orange-500/20' : 'bg-white border-slate-100 shadow-sm shadow-black/5'}`}
+                        >
+                            <View className="flex-row justify-between items-center">
+                                <Text className={`font-black uppercase text-[9px] tracking-widest ${plan === 'yearly' ? 'text-white' : 'text-zinc-900'}`}>Yearly</Text>
+                                <View className="bg-white/20 px-2 py-0.5 rounded-full">
+                                    <Text className="text-[6px] text-white font-black uppercase">Elite</Text>
+                                </View>
+                            </View>
+                            <Text className={`font-bold text-[8px] mt-1 ${plan === 'yearly' ? 'text-white/90' : 'text-slate-400'}`}>₹999 / 365 Days</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <Text className="text-slate-400 font-black uppercase text-[9px] tracking-widest mb-4">External Links</Text>
+                    <View className="bg-white p-6 rounded-[32px] border border-slate-100 mb-10 shadow-sm shadow-black/5">
+                        <View className="flex-row items-center gap-4 mb-6">
+                            <FontAwesome5 name="youtube" size={16} color="#ef4444" />
+                            <TextInput placeholder="YouTube Protocol" placeholderTextColor="#CBD5E1" value={youtube} onChangeText={setYoutube} className="flex-1 font-black text-[10px] text-zinc-900" />
+                        </View>
+                        <View className="flex-row items-center gap-4 mb-6">
+                            <FontAwesome5 name="github" size={16} color="#1a1a1a" />
+                            <TextInput placeholder="GitHub Repository" placeholderTextColor="#CBD5E1" value={github} onChangeText={setGithub} className="flex-1 font-black text-[10px] text-zinc-900" />
+                        </View>
+                        <View className="flex-row items-center gap-4">
+                            <SimpleLineIcons name="globe" size={16} color="#f97316" />
+                            <TextInput placeholder="Web Portal" placeholderTextColor="#CBD5E1" value={website} onChangeText={setWebsite} className="flex-1 font-black text-[10px] text-zinc-900" />
+                        </View>
+                    </View>
+
+                    <TouchableOpacity 
+                        onPress={handleCreate}
+                        disabled={loading}
+                        className={`p-6 rounded-[28px] items-center shadow-2xl mb-20 ${loading ? 'bg-slate-100' : 'bg-zinc-900 shadow-black/40'}`}
+                    >
+                        {loading ? <ActivityIndicator color="#f97316" /> : (
+                            <View className="flex-row items-center">
+                                <Text className="text-white font-black uppercase tracking-widest text-xs mr-3">Deploy Ecosystem Hub</Text>
+                                <Ionicons name="rocket" size={18} color="white" />
+                            </View>
+                        )}
+                    </TouchableOpacity>
+                </ScrollView>
+            </View>
+
+            <Modal visible={showWebView} animationType="slide">
+                <SafeAreaView className="flex-1 bg-[#F8FAFC]">
                     <WebView
                         source={{ html: webViewHtml }}
                         onMessage={onWebViewMessage}
                         javaScriptEnabled={true}
                         domStorageEnabled={true}
                         originWhitelist={['*']}
-                        style={{ flex: 1 }}
+                        style={{ flex: 1, backgroundColor: '#F8FAFC' }}
                     />
                 </SafeAreaView>
             </Modal>
-        </View>
+        </KeyboardAvoidingView>
     );
 };
 

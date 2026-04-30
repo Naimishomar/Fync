@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
   Modal, View, Text, TextInput, Pressable, ScrollView,
-  ActivityIndicator, KeyboardAvoidingView, Platform, Switch
+  ActivityIndicator, KeyboardAvoidingView, Platform, Switch, Dimensions
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 
+const { height: screenHeight } = Dimensions.get('window');
 const TYPES = ['internship', 'full-time', 'part-time', 'freelance', 'contract', 'open-source'];
 const MODES = ['remote', 'onsite', 'hybrid'];
 
@@ -78,7 +79,6 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
     if (!form.company.trim() || !form.role.trim() || !form.startDate)
       return Toast.show({ type: 'error', text1: 'Company, role and start date are required' });
 
-    // Enforce Verification Documents
     if (form.isCurrentlyWorking && !offerLetter && !existingOfferLetter) {
         return Toast.show({ type: 'error', text1: 'Offer letter is required for current jobs' });
     }
@@ -133,121 +133,173 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
   };
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <KeyboardAvoidingView className="flex-1 bg-white" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View className="flex-row items-center justify-between px-4 py-4 mt-10 border-b border-gray-100">
-          <Pressable onPress={onClose}><Ionicons name="close" size={24} color="#374151" /></Pressable>
-          <Text className="font-bold text-gray-900 text-lg">{isEdit ? 'Edit Experience' : 'Add Experience'}</Text>
-          <Pressable onPress={save} disabled={saving} className="bg-indigo-600 px-4 py-2 rounded-xl">
-            {saving ? <ActivityIndicator size="small" color="white" />
-              : <Text className="text-white font-bold">Save</Text>}
-          </Pressable>
-        </View>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View className="flex-1 bg-black/60 justify-end">
+        <Pressable className="absolute inset-0" onPress={onClose} />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          className="bg-white rounded-t-[40px] overflow-hidden"
+          style={{ height: screenHeight * 0.85 }}
+        >
+          {/* Handle */}
+          <View className="items-center py-4">
+            <View className="w-12 h-1.5 bg-slate-200 rounded-full" />
+          </View>
 
-        <ScrollView className="flex-1 px-4 pt-4" keyboardShouldPersistTaps="handled">
-          {/* Type */}
-          <Text className="text-gray-700 font-semibold text-sm mb-2">Type</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
-            <View className="flex-row gap-2">
-              {TYPES.map(t => (
-                <Pressable key={t} onPress={() => setForm(p => ({ ...p, type: t }))}
-                  className={`px-3 py-2 rounded-xl border ${form.type === t ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-50 border-gray-200'}`}>
-                  <Text className={`text-xs font-semibold capitalize ${form.type === t ? 'text-white' : 'text-gray-600'}`}>{t}</Text>
-                </Pressable>
-              ))}
+          {/* Header */}
+          <View className="flex-row items-center justify-between px-6 pb-4 border-b border-slate-50">
+            <View>
+              <Text className="text-zinc-900 font-black uppercase text-xl tracking-tighter">
+                {isEdit ? 'Update' : 'Record'} <Text className="text-orange-500">Experience</Text>
+              </Text>
+              <Text className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-0.5">Career History Module</Text>
             </View>
+            <Pressable onPress={onClose} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
+              <Ionicons name="close" size={20} color="#18181b" />
+            </Pressable>
+          </View>
+
+          <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            {/* Type */}
+            <View className="mb-6">
+              <View className="flex-row items-center gap-2 mb-3">
+                <Feather name="layers" size={12} color="#94A3B8" />
+                <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">Engagement Type</Text>
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View className="flex-row gap-2 pr-6">
+                  {TYPES.map(t => (
+                    <Pressable key={t} onPress={() => setForm(p => ({ ...p, type: t }))}
+                      className={`px-4 py-2.5 rounded-xl border items-center shadow-sm ${form.type === t ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-slate-100'}`}>
+                      <Text className={`text-[10px] font-black uppercase tracking-widest ${form.type === t ? 'text-white' : 'text-slate-400'}`}>{t.replace('-', ' ')}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
+
+            {[
+              { label: 'Company *', key: 'company', ph: 'e.g. Google', icon: 'briefcase' },
+              { label: 'Role *', key: 'role', ph: 'e.g. SDE Intern', icon: 'user' },
+              { label: 'Description', key: 'description', ph: 'What did you work on?', multi: true, icon: 'align-left' },
+              { label: 'Tech Stack', key: 'techStack', ph: 'React, Node.js, etc (comma separated)', icon: 'cpu' },
+              { label: 'Location', key: 'location', ph: 'Bangalore, India', icon: 'map-pin' },
+              { label: 'Start Date (YYYY-MM-DD) *', key: 'startDate', ph: '2024-06-01', icon: 'calendar' },
+            ].map(f => (
+              <View key={f.key} className="mb-6">
+                <View className="flex-row items-center gap-2 mb-2">
+                  <Feather name={f.icon as any} size={12} color="#94A3B8" />
+                  <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">{f.label}</Text>
+                </View>
+                <TextInput
+                  className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-zinc-900 text-sm font-semibold"
+                  style={f.multi ? { height: 100, textAlignVertical: 'top' } : {}}
+                  placeholder={f.ph} placeholderTextColor="#94A3B8"
+                  value={form[f.key as keyof typeof form] as string}
+                  onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
+                  multiline={!!f.multi}
+                />
+              </View>
+            ))}
+
+            {/* Currently working toggle */}
+            <View className="flex-row items-center justify-between mb-6 bg-slate-50 px-5 py-4 rounded-2xl border border-slate-100">
+              <View className="flex-row items-center gap-2">
+                <Feather name="clock" size={12} color="#18181b" />
+                <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-widest">Currently Active</Text>
+              </View>
+              <Switch value={form.isCurrentlyWorking}
+                onValueChange={v => setForm(p => ({ ...p, isCurrentlyWorking: v }))}
+                trackColor={{ true: '#f97316' }} />
+            </View>
+
+            {!form.isCurrentlyWorking && (
+              <View className="mb-6">
+                <View className="flex-row items-center gap-2 mb-2">
+                  <Feather name="calendar" size={12} color="#94A3B8" />
+                  <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">End Date (YYYY-MM-DD)</Text>
+                </View>
+                <TextInput className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-zinc-900 text-sm font-semibold"
+                  placeholder="2024-09-30" placeholderTextColor="#94A3B8"
+                  value={form.endDate} onChangeText={v => setForm(p => ({ ...p, endDate: v }))} />
+              </View>
+            )}
+
+            {/* Work mode */}
+            <View className="mb-8">
+              <View className="flex-row items-center gap-2 mb-3">
+                <Feather name="globe" size={12} color="#94A3B8" />
+                <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">Work Mode</Text>
+              </View>
+              <View className="flex-row gap-3">
+                {MODES.map(m => (
+                  <Pressable key={m} onPress={() => setForm(p => ({ ...p, workMode: m }))}
+                    className={`flex-1 py-3.5 rounded-2xl border items-center shadow-sm ${form.workMode === m ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-slate-100'}`}>
+                    <Text className={`text-[10px] font-black uppercase tracking-widest ${form.workMode === m ? 'text-white' : 'text-slate-400'}`}>{m}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            {/* Document Section */}
+            <View className="mb-12 p-6 bg-orange-50 border border-orange-100 rounded-[28px] shadow-sm shadow-orange-500/10">
+               <View className="flex-row items-center mb-4">
+                 <View className="w-8 h-8 bg-white rounded-xl items-center justify-center shadow-sm mr-3">
+                   <Ionicons name="shield-checkmark" size={16} color="#f97316" />
+                 </View>
+                 <Text className="text-zinc-900 font-black uppercase text-xs tracking-tight">Integrity Verification</Text>
+               </View>
+               
+               {form.isCurrentlyWorking ? (
+                 <View>
+                   <Text className="text-orange-600 text-[8px] uppercase font-black tracking-[2px] mb-3 ml-1">Upload Offer Letter (PDF)</Text>
+                   <Pressable onPress={() => pickDocument('offer')} 
+                     className="bg-white border border-orange-100 p-5 rounded-2xl flex-row items-center justify-between shadow-sm">
+                      <View className="flex-row items-center flex-1 pr-4">
+                        <Feather name="file-text" size={18} color="#f97316" />
+                        <Text className="text-zinc-900 text-[11px] ml-3 font-black uppercase tracking-tight" numberOfLines={1}>
+                          {offerLetter ? offerLetter.name : (existingOfferLetter ? 'Offer Letter Synced ✅' : 'Select PDF Manifest')}
+                        </Text>
+                      </View>
+                      <Feather name="upload" size={16} color="#f97316" />
+                   </Pressable>
+                 </View>
+               ) : (
+                 <View>
+                   <Text className="text-orange-600 text-[8px] uppercase font-black tracking-[2px] mb-3 ml-1">Upload Completion Proof (PDF)</Text>
+                   <Pressable onPress={() => pickDocument('cert')} 
+                     className="bg-white border border-orange-100 p-5 rounded-2xl flex-row items-center justify-between shadow-sm">
+                      <View className="flex-row items-center flex-1 pr-4">
+                        <Feather name="award" size={18} color="#f97316" />
+                        <Text className="text-zinc-900 text-[11px] ml-3 font-black uppercase tracking-tight" numberOfLines={1}>
+                          {completionCertificate ? completionCertificate.name : (existingCertificate ? 'Proof Synced ✅' : 'Select PDF Manifest')}
+                        </Text>
+                      </View>
+                      <Feather name="upload" size={16} color="#f97316" />
+                   </Pressable>
+                 </View>
+               )}
+            </View>
+            <View className="h-10" />
           </ScrollView>
 
-          {[
-            { label: 'Company *', key: 'company', ph: 'e.g. Google' },
-            { label: 'Role *', key: 'role', ph: 'e.g. SDE Intern' },
-            { label: 'Description', key: 'description', ph: 'What did you work on?', multi: true },
-            { label: 'Tech Stack (comma separated)', key: 'techStack', ph: 'React, Node.js, AWS' },
-            { label: 'Location', key: 'location', ph: 'Bangalore, India' },
-            { label: 'Start Date (YYYY-MM-DD) *', key: 'startDate', ph: '2024-06-01' },
-          ].map(f => (
-            <View key={f.key} className="mb-4">
-              <Text className="text-gray-700 font-semibold text-sm mb-1.5">{f.label}</Text>
-              <TextInput
-                className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 text-sm"
-                style={f.multi ? { height: 80, textAlignVertical: 'top' } : {}}
-                placeholder={f.ph} placeholderTextColor="#9CA3AF"
-                value={form[f.key as keyof typeof form] as string}
-                onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
-                multiline={!!f.multi}
-              />
-            </View>
-          ))}
-
-          {/* Currently working toggle */}
-          <View className="flex-row items-center justify-between mb-4 bg-gray-50 px-4 py-3 rounded-xl border border-gray-200">
-            <Text className="text-gray-700 font-semibold text-sm">Currently Working Here</Text>
-            <Switch value={form.isCurrentlyWorking}
-              onValueChange={v => setForm(p => ({ ...p, isCurrentlyWorking: v }))}
-              trackColor={{ true: '#6366F1' }} />
+          {/* Footer Action */}
+          <View className="p-6 border-t border-slate-50 bg-white shadow-2xl shadow-black">
+            <Pressable onPress={save} disabled={saving}
+              className="bg-zinc-900 py-5 rounded-[24px] flex-row items-center justify-center shadow-xl shadow-black/20">
+              {saving ? <ActivityIndicator size="small" color="#f97316" />
+                : (
+                  <>
+                    <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />
+                    <Text className="text-white font-black uppercase text-xs tracking-[2px] ml-2">
+                      {isEdit ? 'Update Record' : 'Commit Experience'}
+                    </Text>
+                  </>
+                )}
+            </Pressable>
           </View>
-
-          {!form.isCurrentlyWorking && (
-            <View className="mb-4">
-              <Text className="text-gray-700 font-semibold text-sm mb-1.5">End Date (YYYY-MM-DD)</Text>
-              <TextInput className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 text-sm"
-                placeholder="2024-09-30" placeholderTextColor="#9CA3AF"
-                value={form.endDate} onChangeText={v => setForm(p => ({ ...p, endDate: v }))} />
-            </View>
-          )}
-
-          {/* Work mode */}
-          <Text className="text-gray-700 font-semibold text-sm mb-2">Work Mode</Text>
-          <View className="flex-row gap-2 mb-6">
-            {MODES.map(m => (
-              <Pressable key={m} onPress={() => setForm(p => ({ ...p, workMode: m }))}
-                className={`flex-1 py-2.5 rounded-xl border items-center ${form.workMode === m ? 'bg-indigo-600 border-indigo-600' : 'bg-gray-50 border-gray-200'}`}>
-                <Text className={`text-xs font-semibold capitalize ${form.workMode === m ? 'text-white' : 'text-gray-600'}`}>{m}</Text>
-              </Pressable>
-            ))}
-          </View>
-
-          {/* Document Section */}
-          <View className="mb-8 p-4 bg-indigo-50 border border-indigo-100 rounded-2xl">
-             <View className="flex-row items-center mb-2">
-               <Ionicons name="shield-checkmark" size={18} color="#4F46E5" />
-               <Text className="text-indigo-900 font-bold text-sm ml-2">Verification Required</Text>
-             </View>
-             
-             {form.isCurrentlyWorking ? (
-               <View>
-                 <Text className="text-indigo-600 text-[10px] uppercase font-black tracking-widest mb-3">Please upload your Offer Letter (PDF)</Text>
-                 <Pressable onPress={() => pickDocument('offer')} 
-                   className="bg-white border border-indigo-200 p-4 rounded-xl flex-row items-center justify-between">
-                    <View className="flex-row items-center flex-1">
-                      <Ionicons name="document-text" size={20} color="#6366F1" />
-                      <Text className="text-gray-700 text-xs ml-3 font-semibold" numberOfLines={1}>
-                        {offerLetter ? offerLetter.name : (existingOfferLetter ? 'Offer Letter Uploaded ✅' : 'Select Offer Letter PDF')}
-                      </Text>
-                    </View>
-                    <Ionicons name="cloud-upload-outline" size={18} color="#6366F1" />
-                 </Pressable>
-               </View>
-             ) : (
-               <View>
-                 <Text className="text-indigo-600 text-[10px] uppercase font-black tracking-widest mb-3">Please upload Completion Certificate (PDF)</Text>
-                 <Pressable onPress={() => pickDocument('cert')} 
-                   className="bg-white border border-indigo-200 p-4 rounded-xl flex-row items-center justify-between">
-                    <View className="flex-row items-center flex-1">
-                      <Ionicons name="ribbon" size={20} color="#6366F1" />
-                      <Text className="text-gray-700 text-xs ml-3 font-semibold" numberOfLines={1}>
-                        {completionCertificate ? completionCertificate.name : (existingCertificate ? 'Certificate Uploaded ✅' : 'Select Certificate PDF')}
-                      </Text>
-                    </View>
-                    <Ionicons name="cloud-upload-outline" size={18} color="#6366F1" />
-                 </Pressable>
-               </View>
-             )}
-          </View>
-          
-          <View className="h-10" />
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }

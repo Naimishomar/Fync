@@ -21,7 +21,7 @@ const ClubCard = memo(({ item, isInvitation, onAccept, onPress, userId }: any) =
                 <View className="relative">
                     <Image
                         source={{ uri: item.logo || 'https://via.placeholder.com/150' }}
-                        className="w-20 h-20 rounded-[28px] bg-slate-50 border border-slate-100"
+                        className="w-20 h-20 rounded-full bg-slate-50 border border-slate-100"
                     />
                     {!isInvitation && (
                         <View className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full border-4 border-white shadow-sm" />

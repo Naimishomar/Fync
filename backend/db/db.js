@@ -5,10 +5,10 @@ dotenv.config({quiet: true});
 const connectDB = async () => {
     try {
         const connectionOptions = {
-            maxPoolSize: 50,           
-            minPoolSize: 10,           
+            maxPoolSize: 40,           
+            minPoolSize: 5,           
             serverSelectionTimeoutMS: 10000, 
-            socketTimeoutMS: 45000,    
+            socketTimeoutMS: 30000,    
             family: 4                  
         };
         await mongoose.connect(process.env.MONGO_URI, connectionOptions);
