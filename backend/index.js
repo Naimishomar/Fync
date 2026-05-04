@@ -105,6 +105,7 @@ io.engine.on("connection_error", (err) => {
 app.use(helmet({
   crossOriginResourcePolicy: false, 
 }));
+app.use(mongoSanitize());
 app.use(compression());
 app.use(cors({
   origin: "*",
@@ -116,7 +117,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(monitoringMiddleware);
 
 app.use(cookieParser());
-// app.use(mongoSanitize());
 app.use("/receipts", express.static("receipts"));
 
 app.use('/user', authRoute);
