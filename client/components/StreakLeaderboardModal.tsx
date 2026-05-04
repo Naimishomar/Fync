@@ -31,6 +31,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
   const [data, setData] = useState<LeaderboardUser[]>([]);
   const [userRank, setUserRank] = useState(-1);
   const [userStreak, setUserStreak] = useState(0);
+  const [completedToday, setCompletedToday] = useState(false);
 
   useEffect(() => {
     if (isVisible) {
@@ -46,6 +47,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
         setData(res.data.leaderboard);
         setUserRank(res.data.userRank);
         setUserStreak(res.data.userStreak);
+        setCompletedToday(res.data.completedToday);
       }
     } catch (error) {
       console.error("Leaderboard fetch error:", error);
@@ -132,6 +134,20 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                     <View className="flex-row items-center">
                       <Text className="text-white text-2xl font-black">{userStreak}</Text>
                       <MaterialCommunityIcons name="fire" size={24} color="white" className="ml-1" />
+                    </View>
+                    
+                    <View className="mt-1">
+                      {completedToday ? (
+                        <View className="flex-row items-center bg-white/20 px-2 py-1 rounded-full">
+                          <MaterialCommunityIcons name="check-circle" size={10} color="#fff" />
+                          <Text className="text-white text-[8px] font-black uppercase tracking-widest ml-1">Secured Today</Text>
+                        </View>
+                      ) : (
+                        <View className="flex-row items-center bg-red-500/40 px-2 py-1 rounded-full border border-red-400/50">
+                          <MaterialCommunityIcons name="clock-alert-outline" size={10} color="#fff" />
+                          <Text className="text-white text-[8px] font-black uppercase tracking-widest ml-1">Post To Secure</Text>
+                        </View>
+                      )}
                     </View>
                   </View>
                </View>

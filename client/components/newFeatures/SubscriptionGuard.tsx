@@ -14,7 +14,7 @@ const SubscriptionGuard = ({ children }: { children: React.ReactNode }) => {
     const checkSubscriptionStatus = async () => {
         setIsChecking(true);
         try {
-            const res = await axios.get('/subscription/status');
+            const res = await axios.get(`/subscription/status?t=${new Date().getTime()}`);
             if (res.data.success && res.data.status === 'active') {
                 setIsSubscribed(true);
             } else {

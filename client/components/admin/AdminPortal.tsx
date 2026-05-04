@@ -28,8 +28,10 @@ const AdminPortal = ({ navigation }: any) => {
         }
     }, [user]);
 
-    const [activeTab, setActiveTab] = useState<'ads' | 'rewards' | 'marketplace' | 'messages' | 'media' | 'reports' | 'users'>('ads');
+    const [activeTab, setActiveTab] = useState<'ads' | 'rewards' | 'marketplace' | 'messages' | 'media' | 'reports' | 'users' | 'subscription'>('ads');
     const [view, setView] = useState<'hub' | 'feature'>('hub');
+    const [subscriptionPrice, setSubscriptionPrice] = useState<string>('39');
+    const [currentSubscriptionPrice, setCurrentSubscriptionPrice] = useState<string>('...');
     const [ads, setAds] = useState<any[]>([]);
     const [redemptions, setRedemptions] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
@@ -42,6 +44,34 @@ const AdminPortal = ({ navigation }: any) => {
     const [submitting, setSubmitting] = useState(false);
     const [editingAd, setEditingAd] = useState<any>(null);
     const [editingProduct, setEditingProduct] = useState<any>(null);
+
+    const [subConfirmModalVisible, setSubConfirmModalVisible] = useState(false);
+    const [subConfirmPassword, setSubConfirmPassword] = useState('');
+    const [submittingPrice, setSubmittingPrice] = useState(false);
+
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [adminPassword, setAdminPassword] = useState('');
+    const [verifyingPassword, setVerifyingPassword] = useState(false);
+
+    const handleVerifyPassword = async () => {
+        if (!adminPassword.trim()) return Alert.alert("Required", "Please enter the admin password");
+        setVerifyingPassword(true);
+        try {
+            const res = await axios.post('/user/admin/verify-password', { password: adminPassword });
+            if (res.data.success) {
+                setIsAuthenticated(true);
+            }
+        } catch (error: any) {
+            if (error.response?.status === 401) {
+                Toast.show({ type: 'error', text1: 'Incorrect Master Password', text2: 'Authorization denied' });
+            } else {
+                console.error("Password verify error:", error);
+                Toast.show({ type: 'error', text1: 'System Error', text2: 'Failed to verify protocol' });
+            }
+        } finally {
+            setVerifyingPassword(false);
+        }
+    };
 
     useEffect(() => {
         const backAction = () => {
@@ -155,12 +185,67 @@ const AdminPortal = ({ navigation }: any) => {
         try {
             setLoading(true);
             const res = await axios.get(`/user/admin/users?search=${search}`);
-            if (res.data.success) setUsers(res.data.users);
+            if (res.data.success) {
+                setUsers(res.data.users);
+            }
         } catch (e) {
             console.error(e);
             Toast.show({ type: 'error', text1: 'Failed to fetch users' });
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchSubscriptionConfig = async () => {
+        try {
+            setLoading(true);
+            const res = await axios.get('/subscription/config');
+            console.log("Pricing Config Fetched:", res.data);
+            if (res.data.success && res.data.price !== undefined) {
+                setSubscriptionPrice(res.data.price.toString());
+                setCurrentSubscriptionPrice(res.data.price.toString());
+            }
+        } catch (e) {
+            console.error("Fetch Config Error:", e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUpdateSubscription = () => {
+        if (!subscriptionPrice || isNaN(Number(subscriptionPrice)) || Number(subscriptionPrice) < 1) {
+            return Alert.alert("Error", "Please enter a valid price");
+        }
+        setSubConfirmPassword('');
+        setSubConfirmModalVisible(true);
+    };
+
+    const confirmAndDeploySubscriptionPrice = async () => {
+        if (!subConfirmPassword.trim()) {
+            return Alert.alert("Required", "Please enter the admin password to confirm.");
+        }
+        setSubmittingPrice(true);
+        try {
+            // First verify password
+            const verifyRes = await axios.post('/user/admin/verify-password', { password: subConfirmPassword });
+            if (verifyRes.data.success) {
+                // If verified, deploy new price
+                const res = await axios.put('/subscription/admin/config', { price: subscriptionPrice });
+                if (res.data.success) {
+                    setCurrentSubscriptionPrice(subscriptionPrice);
+                    Toast.show({ type: 'success', text1: 'Subscription Price Updated' });
+                    setSubConfirmModalVisible(false);
+                }
+            }
+        } catch (error: any) {
+            if (error.response?.status === 401) {
+                Toast.show({ type: 'error', text1: 'Authentication Failed', text2: 'Incorrect master password' });
+            } else {
+                console.error("Subscription update error:", error);
+                Toast.show({ type: 'error', text1: 'Failed to update price' });
+            }
+        } finally {
+            setSubmittingPrice(false);
         }
     };
 
@@ -207,24 +292,35 @@ const AdminPortal = ({ navigation }: any) => {
     };
 
     useEffect(() => {
-        if (activeTab === 'ads') {
-            fetchAds();
-        } else if (activeTab === 'rewards') {
-            fetchRedemptions();
-        } else if (activeTab === 'marketplace') {
-            fetchProducts();
-        } else if (activeTab === 'media') {
-            fetchFyncMedia();
-        } else if (activeTab === 'reports') {
-            fetchReports();
-        } else if (activeTab === 'users') {
-            if (userSearch.trim()) {
-                fetchAdminUsers(userSearch);
-            } else {
-                setUsers([]);
-            }
-        } else {
-            fetchContactMessages();
+        switch(activeTab) {
+            case 'ads':
+                fetchAds();
+                break;
+            case 'rewards':
+                fetchRedemptions();
+                break;
+            case 'marketplace':
+                fetchProducts();
+                break;
+            case 'media':
+                fetchFyncMedia();
+                break;
+            case 'reports':
+                fetchReports();
+                break;
+            case 'subscription':
+                fetchSubscriptionConfig();
+                break;
+            case 'users':
+                if (userSearch.trim()) {
+                    fetchAdminUsers(userSearch);
+                } else {
+                    setUsers([]);
+                }
+                break;
+            default:
+                fetchContactMessages();
+                break;
         }
     }, [activeTab]);
 
@@ -525,7 +621,7 @@ const AdminPortal = ({ navigation }: any) => {
             />
             <HubButton 
                 title="User Management" 
-                tab="users" 
+                tab="users"  
                 icon="people" 
                 color="#10b981" 
                 description="Oversee student profiles, moderation status, and account access." 
@@ -565,6 +661,13 @@ const AdminPortal = ({ navigation }: any) => {
                 color="#64748b" 
                 description="Review and respond to official support and inquiry messages." 
             />
+            <HubButton 
+                title="Subscription Pricing" 
+                tab="subscription" 
+                icon="pricetag" 
+                color="#eab308" 
+                description="Dynamically adjust the platform's premium subscription fee." 
+            />
 
             <View className="mt-8 p-6 bg-zinc-900 rounded-[32px] shadow-xl shadow-zinc-900/20">
                 <View className="flex-row items-center mb-4">
@@ -585,6 +688,65 @@ const AdminPortal = ({ navigation }: any) => {
         </ScrollView>
     );
 
+    if (!isAuthenticated) {
+        return (
+            <View className="flex-1 bg-[#F8FAFC]">
+                <StatusBar barStyle="dark-content" />
+                <LinearGradient 
+                    colors={['rgba(249, 115, 22, 0.35)', 'rgba(249, 115, 22, 0)']} 
+                    style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 400, zIndex: 0 }} 
+                    pointerEvents="none"
+                />
+                
+                <SafeAreaView className="flex-1 justify-center px-8" edges={['top', 'bottom']}>
+                    <View className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-xl shadow-orange-500/10">
+                        <View className="w-16 h-16 bg-orange-50 rounded-[20px] items-center justify-center mb-6 border border-orange-100">
+                            <Ionicons name="shield-checkmark" size={32} color="#f97316" />
+                        </View>
+                        
+                        <View className="mb-8">
+                            <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
+                                ADMIN <Text className="text-orange-500">CHECK</Text>
+                            </Text>
+                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-1 leading-4">
+                                Admin protocol password required to access operational core.
+                            </Text>
+                        </View>
+                        
+                        <TextInput
+                            value={adminPassword}
+                            onChangeText={setAdminPassword}
+                            placeholder="ENTER ADMIN PASSWORD"
+                            placeholderTextColor="#94A3B8"
+                            secureTextEntry
+                            className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-5 text-zinc-900 font-black tracking-widest text-[10px] shadow-sm mb-6"
+                            onSubmitEditing={handleVerifyPassword}
+                        />
+                        
+                        <TouchableOpacity 
+                            onPress={handleVerifyPassword}
+                            disabled={verifyingPassword}
+                            className="bg-zinc-900 h-14 rounded-2xl items-center justify-center flex-row shadow-2xl shadow-black/40"
+                        >
+                            {verifyingPassword ? (
+                                <ActivityIndicator color="white" />
+                            ) : (
+                                <>
+                                    <Ionicons name="key" size={16} color="white" />
+                                    <Text className="text-white font-black text-[10px] uppercase tracking-[2px] ml-3">Authorize Access</Text>
+                                </>
+                            )}
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => navigation.goBack()} className="mt-6 items-center">
+                            <Text className="text-slate-400 font-black text-[10px] uppercase tracking-[2px]">Cancel Initialization</Text>
+                        </TouchableOpacity>
+                    </View>
+                </SafeAreaView>
+            </View>
+        );
+    }
+
     return (
         <View className="flex-1 bg-[#F8FAFC]">
             <StatusBar barStyle="dark-content" />
@@ -603,14 +765,14 @@ const AdminPortal = ({ navigation }: any) => {
                         <View className="flex-row items-center gap-4">
                             <View>
                                 <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
-                                    {view === 'hub' ? 'ADMIN PANEL' : activeTab === 'marketplace' ? 'Store' : activeTab.toUpperCase()} <Text className="text-orange-500">{view === 'hub' ? 'PORTAL' : 'CORE'}</Text>
+                                    {view === 'hub' ? 'ADMIN PANEL' : activeTab === 'marketplace' ? 'Store' : activeTab === 'subscription' ? 'Config' : activeTab.toUpperCase()} <Text className="text-orange-500">{view === 'hub' ? 'PORTAL' : 'CORE'}</Text>
                                 </Text>
                                 <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-0.5">
                                     {view === 'hub' ? 'Control Center v2.0' : 'Operational Protocol'}
                                 </Text>
                             </View>
                         </View>
-                        {view === 'feature' && activeTab !== 'rewards' && activeTab !== 'messages' && activeTab !== 'reports' && activeTab !== 'users' && (
+                        {view === 'feature' && activeTab !== 'rewards' && activeTab !== 'messages' && activeTab !== 'reports' && activeTab !== 'users' && activeTab !== 'subscription' && (
                             <TouchableOpacity
                                 onPress={() => { resetForm(); setModalVisible(true); }}
                                 className="w-14 h-14 bg-zinc-900 rounded-2xl items-center justify-center shadow-2xl shadow-black/40"
@@ -655,8 +817,54 @@ const AdminPortal = ({ navigation }: any) => {
                     )}
                 </View>
 
+                {activeTab === 'subscription' && view === 'feature' && (
+                    <View className="bg-white p-6 rounded-3xl mx-8 border border-slate-100 shadow-sm mt-4">
+                        <View className="flex-row items-center mb-6">
+                            <View className="w-12 h-12 bg-yellow-100 rounded-2xl items-center justify-center mr-4">
+                                <Ionicons name="pricetag" size={24} color="#eab308" />
+                            </View>
+                            <View>
+                                <Text className="text-zinc-900 text-lg font-black uppercase tracking-tight">Global Price Engine</Text>
+                                <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Live Active Rate: ₹{currentSubscriptionPrice}/mo</Text>
+                            </View>
+                        </View>
+                        
+                        <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6">
+                            <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[1px] mb-2">Configure New Rate (INR)</Text>
+                            <View className="flex-row items-center">
+                                <Text className="text-zinc-900 text-2xl font-black mr-2">₹</Text>
+                                <TextInput 
+                                    className="flex-1 text-3xl font-black text-zinc-900"
+                                    value={subscriptionPrice}
+                                    onChangeText={setSubscriptionPrice}
+                                    keyboardType="numeric"
+                                    placeholder="39"
+                                />
+                            </View>
+                        </View>
+
+                        <TouchableOpacity 
+                            onPress={handleUpdateSubscription}
+                            disabled={submitting}
+                            className="bg-zinc-900 h-14 rounded-2xl items-center justify-center flex-row shadow-lg shadow-black/20"
+                        >
+                            {submitting ? (
+                                <ActivityIndicator color="white" />
+                            ) : (
+                                <>
+                                    <Ionicons name="save" size={18} color="white" />
+                                    <Text className="text-white font-black text-[12px] uppercase tracking-[1.5px] ml-2">Deploy New Pricing</Text>
+                                </>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                )}
+
             {view === 'hub' ? (
                 <HubView />
+            ) : activeTab === 'subscription' ? (
+                // Subscription view is rendered above, so we render nothing here to prevent the FlatList fallback
+                null
             ) : (
                 loading ? (
                     <View className="flex-1 items-center justify-center">
@@ -839,6 +1047,58 @@ const AdminPortal = ({ navigation }: any) => {
                 </View>
             </Modal>
             </SafeAreaView>
+            {/* Subscription Confirmation Modal */}
+            <Modal visible={subConfirmModalVisible} animationType="fade" transparent>
+                <View className="flex-1 bg-zinc-950/80 justify-center px-6">
+                    <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={() => setSubConfirmModalVisible(false)} />
+                    <View className="bg-white rounded-[32px] p-8 shadow-2xl overflow-hidden border border-slate-100">
+                        <View className="w-16 h-16 bg-red-50 rounded-[20px] items-center justify-center mb-6 border border-red-100">
+                            <Ionicons name="warning" size={32} color="#ef4444" />
+                        </View>
+                        
+                        <View className="mb-8">
+                            <Text className="text-zinc-900 text-2xl font-black tracking-tighter uppercase leading-tight">
+                                CONFIRM <Text className="text-red-500">CHANGE</Text>
+                            </Text>
+                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-2 leading-4">
+                                You are about to change the global subscription price to ₹{subscriptionPrice}. Please re-authenticate.
+                            </Text>
+                        </View>
+
+                        <TextInput
+                            value={subConfirmPassword}
+                            onChangeText={setSubConfirmPassword}
+                            placeholder="ENTER MASTER PASSWORD"
+                            placeholderTextColor="#94A3B8"
+                            secureTextEntry
+                            className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-5 text-zinc-900 font-black tracking-widest text-[10px] shadow-sm mb-6"
+                            onSubmitEditing={confirmAndDeploySubscriptionPrice}
+                        />
+
+                        <View className="flex-row gap-3">
+                            <TouchableOpacity 
+                                onPress={() => setSubConfirmModalVisible(false)}
+                                disabled={submittingPrice}
+                                className="flex-1 bg-slate-100 h-14 rounded-2xl items-center justify-center border border-slate-200"
+                            >
+                                <Text className="text-slate-500 font-black text-[10px] uppercase tracking-[2px]">Cancel</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity 
+                                onPress={confirmAndDeploySubscriptionPrice}
+                                disabled={submittingPrice}
+                                className="flex-1 bg-red-500 h-14 rounded-2xl items-center justify-center shadow-lg shadow-red-500/30"
+                            >
+                                {submittingPrice ? (
+                                    <ActivityIndicator color="white" />
+                                ) : (
+                                    <Text className="text-white font-black text-[10px] uppercase tracking-[2px]">Deploy Price</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 };

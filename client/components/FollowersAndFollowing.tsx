@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,13 +6,16 @@ import {
   FlatList,
   Pressable,
   ActivityIndicator,
+  StatusBar,
+  TouchableOpacity,
+  Animated
 } from "react-native";
 import { useRoute, useNavigation, useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
-import Skeleton, { UserListSkeleton } from "./Skeleton";
+import { LinearGradient } from "expo-linear-gradient";
 
 type User = {
   _id: string;
@@ -33,16 +36,10 @@ const FollowersAndFollowing = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useFocusEffect(
-    useCallback(() => {
-      setLoading(true);
-      fetchList();
-
-      return () => {
-        setUsers([]);
-      };
-    }, [userId, type])
-  );
+  useEffect(() => {
+    setLoading(true);
+    fetchList();
+  }, [userId, type]);
 
   const fetchList = async () => {
     try {
@@ -91,84 +88,97 @@ const FollowersAndFollowing = () => {
     const isFollowing = (item.followers || []).includes(myId);
 
     return (
-      <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-900">
+      <View className="mx-8 mb-1 bg-white rounded-xl overflow-hidden border border-slate-100 shadow-sm shadow-black/5 p-3 flex-row items-center">
         <Pressable
-          // ✅ FIX: Pass the 'user' object so PublicProfile receives it correctly
           onPress={() => navigation.push("PublicProfile", { user: item })}
           className="flex-row items-center flex-1"
         >
-          <Image
-            source={{
-              uri: item.avatar || `https://ui-avatars.com/api/?name=${item.username}&background=random&color=fff`,
-            }}
-            className="h-12 w-12 rounded-full border border-gray-800"
-          />
+          <View className="w-10 h-10 bg-slate-50 rounded-full mr-2 overflow-hidden border border-slate-100 items-center justify-center">
+            <Image
+              source={{
+                uri: item.avatar || `https://ui-avatars.com/api/?name=${item.username}&background=random&color=fff`,
+              }}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          </View>
 
-          <View className="ml-3 flex-1">
-            <Text className="text-white font-semibold text-base">{item.username}</Text>
-            <Text className="text-gray-400 text-sm" numberOfLines={1}>{item.name}</Text>
+          <View className="flex-1 justify-center">
+            <Text className="text-zinc-900 font-black text-sm tracking-tight">{item.username}</Text>
+            <Text className="text-slate-400 text-[10px] font-bold" numberOfLines={1}>{item.name}</Text>
           </View>
         </Pressable>
 
         {!isMe && (
-          <Pressable
+          <TouchableOpacity
             onPress={() => toggleFollow(item._id, isFollowing)}
-            className={`px-5 py-1.5 rounded-lg border ${
+            className={`px-4 py-2 rounded-md shadow-sm ml-2 ${
               isFollowing 
-                ? "bg-black border-gray-600" 
-                : "bg-blue-600 border-blue-600"
+                ? "bg-slate-50 border border-slate-200" 
+                : "bg-orange-500 shadow-orange-500/20"
             }`}
           >
-            <Text className={`font-semibold text-sm ${isFollowing ? "text-white" : "text-white"}`}>
+            <Text className={`font-black text-[9px] uppercase tracking-widest ${isFollowing ? "text-slate-500" : "text-white"}`}>
               {isFollowing ? "Following" : "Follow"}
             </Text>
-          </Pressable>
+          </TouchableOpacity>
         )}
       </View>
     );
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView className="flex-1 bg-black">
-        <View className="flex-row items-center px-4 py-3 border-b border-gray-900">
-           <Skeleton width={30} height={30} borderRadius={15} />
-           <Skeleton width={100} height={20} style={{ marginLeft: 24 }} />
+  const ItemSkeleton = () => (
+    <View className="mx-8 mb-6 bg-white rounded-[32px] overflow-hidden border border-slate-100 shadow-sm p-6 flex-row items-center">
+        <View className="w-16 h-16 bg-slate-50 rounded-[24px] mr-5" />
+        <View className="flex-1 justify-center">
+            <View className="h-4 bg-slate-50 rounded w-3/4 mb-3" />
+            <View className="h-3 bg-slate-50 rounded w-1/2 mb-2" />
         </View>
-        {[1, 2, 3, 4, 5, 6].map(i => (
-          <View key={i} className="border-b border-gray-900">
-            <UserListSkeleton />
-          </View>
-        ))}
-      </SafeAreaView>
-    );
-  }
+        <View className="w-20 h-10 bg-slate-50 rounded-[16px] ml-2" />
+    </View>
+  );
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
-      {/* HEADER */}
-      <View className="flex-row items-center px-4 py-3 border-b border-gray-900">
-        <Pressable onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={26} color="white" />
-        </Pressable>
-        <Text className="ml-6 text-xl font-bold text-white capitalize">
-          {type}
-        </Text>
+    <View className="flex-1 bg-[#F8FAFC]">
+      <StatusBar barStyle="dark-content" />
+      <View className="absolute top-0 w-full h-80 opacity-20 pointer-events-none">
+          <LinearGradient colors={['#f97316', 'transparent']} className="w-full h-full" />
       </View>
 
-      <FlatList
-        data={users}
-        keyExtractor={(item) => item._id}
-        renderItem={renderItem}
-        contentContainerClassName="pt-2"
-        ListEmptyComponent={
-          <View className="items-center justify-center mt-20">
-             <Ionicons name="people-outline" size={48} color="#333" />
-             <Text className="text-gray-500 mt-4 text-lg">No {type} found</Text>
-          </View>
-        }
-      />
-    </SafeAreaView>
+      <SafeAreaView className="flex-1" edges={['top']}>
+        <View className="px-8 pt-6 pb-2">
+            <View className="flex-row items-center mb-3">
+                <View>
+                    <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">Social <Text className="text-orange-500">{type}</Text></Text>
+                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px]">Network Grid Protocol</Text>
+                </View>
+            </View>
+        </View>
+
+        {loading ? (
+            <View className="pt-2">
+                {[1, 2, 3, 4, 5, 6].map(i => <ItemSkeleton key={i} />)}
+            </View>
+        ) : (
+            <FlatList
+                data={users}
+                keyExtractor={(item) => item._id}
+                renderItem={renderItem}
+                contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                <View className="items-center justify-center mt-20 px-10">
+                    <View className="w-24 h-24 bg-white rounded-[32px] items-center justify-center mb-6 border border-slate-100 shadow-sm shadow-black/5">
+                        <Ionicons name="people" size={40} color="#cbd5e1" />
+                    </View>
+                    <Text className="text-zinc-400 font-black uppercase text-xs tracking-widest text-center">No {type} Found</Text>
+                    <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center">There are no users in this list yet.</Text>
+                </View>
+                }
+            />
+        )}
+      </SafeAreaView>
+    </View>
   );
 };
 

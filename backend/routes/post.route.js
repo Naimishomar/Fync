@@ -1,6 +1,6 @@
 import express from 'express';
 import { createPost, updatePost, getPosts, deletePost, likePost, votePost, addComment, deleteComment, updateComment, getComments, getFeed, getFollowingPosts, getPostsByUserId, getPostByPostId, getSmartFeed, reportPost, getReports, adminDeletePost } from '../controllers/post.controller.js';
-import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { authMiddleware, isAdmin } from '../middlewares/auth.middleware.js';
 import { cacheMiddleware } from '../middlewares/cache.middleware.js';
 import { createLimiter, feedLimiter } from '../middlewares/rateLimit.middleware.js';
 import { upload } from '../utils/r2.js';
@@ -30,8 +30,8 @@ router.get('/comment/:id', authMiddleware, cacheMiddleware(60), getComments);
 
 // Report routes
 router.post('/report', authMiddleware, reportPost);
-router.get('/admin/reports', authMiddleware, getReports);
-router.post('/admin/delete-post', authMiddleware, adminDeletePost);
+router.get('/admin/reports', authMiddleware, isAdmin, getReports);
+router.post('/admin/delete-post', authMiddleware, isAdmin, adminDeletePost);
 
 
 // Individual post

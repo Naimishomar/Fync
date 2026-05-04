@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, ScrollView, ActivityIndicator, Modal, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,14 +13,27 @@ const SubscriptionScreen = ({ onSuccess }: { onSuccess: () => void }) => {
     const [showWebView, setShowWebView] = useState(false);
     const [html, setHtml] = useState("");
     const [order, setOrder] = useState<any>(null);
+    const [subscriptionAmount, setSubscriptionAmount] = useState<number>(39);
 
-    const SUBSCRIPTION_AMOUNT = 39;
+    useEffect(() => {
+        const fetchConfig = async () => {
+            try {
+                const res = await axios.get('/subscription/config');
+                if (res.data.success && res.data.price) {
+                    setSubscriptionAmount(res.data.price);
+                }
+            } catch (err) {
+                console.error("Failed to fetch subscription config", err);
+            }
+        };
+        fetchConfig();
+    }, []);
 
     const handleSubscribe = async () => {
         setLoading(true);
         try {
             const res = await axios.post('/subscription/create-order', {
-                amount: SUBSCRIPTION_AMOUNT
+                amount: subscriptionAmount
             });
 
             if (res.data.success) {
@@ -129,7 +142,7 @@ const SubscriptionScreen = ({ onSuccess }: { onSuccess: () => void }) => {
                             <Text className="text-pink-400 text-sm font-semibold mt-1">BEST VALUE</Text>
                         </View>
                         <View className="items-end">
-                            <Text className="text-white text-3xl font-bold">₹39</Text>
+                            <Text className="text-white text-3xl font-bold">₹{subscriptionAmount}</Text>
                             <Text className="text-gray-500 text-xs">/ month</Text>
                         </View>
                     </View>
@@ -167,7 +180,7 @@ const SubscriptionScreen = ({ onSuccess }: { onSuccess: () => void }) => {
                     {loading ? (
                         <ActivityIndicator color="white" />
                     ) : (
-                        <Text className="text-white font-bold text-lg">Subscribe for ₹39</Text>
+                        <Text className="text-white font-bold text-lg">Subscribe for ₹{subscriptionAmount}</Text>
                     )}
                 </Pressable>
 

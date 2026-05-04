@@ -25,7 +25,8 @@ import {
   sendRecruiterOTP,
   verifyRecruiterOTP,
   getUsersForAdmin,
-  banUser
+  banUser,
+  verifyAdminPassword
 } from '../controllers/auth.controller.js';
 import { getStreakLeaderboard } from '../controllers/streak.controller.js';
 import { getDevelopers } from '../controllers/developer.controller.js'
@@ -70,6 +71,7 @@ router.get('/find-team', authMiddleware, getDevelopers);
 // Admin Routes
 router.get('/admin/users', authMiddleware, isAdmin, getUsersForAdmin);
 router.post('/admin/ban/:userId', authMiddleware, isAdmin, banUser);
+router.post('/admin/verify-password', authMiddleware, isAdmin, verifyAdminPassword);
 
 
 export default router; 

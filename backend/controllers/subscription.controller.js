@@ -2,6 +2,7 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import Subscription from "../models/subscription.model.js";
 import User from "../models/user.model.js";
+import SystemConfig from "../models/systemConfig.model.js";
 import dotenv from "dotenv";
 
 dotenv.config({quiet: true});
@@ -14,8 +15,13 @@ const razorpay = new Razorpay({
 export const createSubscriptionOrder = async (req, res) => {
     try {
         const { amount } = req.body; // Amount in INR
-        if (!amount || amount !== 39) {
-            return res.status(400).json({ success: false, message: "Invalid subscription amount. It should be ₹39." });
+        
+        let config = await SystemConfig.findOne();
+        if (!config) config = await SystemConfig.create({ subscriptionPrice: 39 });
+        const currentPrice = config.subscriptionPrice;
+
+        if (!amount || amount !== currentPrice) {
+            return res.status(400).json({ success: false, message: `Invalid subscription amount. It should be ₹${currentPrice}.` });
         }
 
         const options = {
@@ -59,21 +65,25 @@ export const verifySubscriptionPayment = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid payment signature" });
         }
 
+        const subscription = await Subscription.findOne({ razorpayOrderId: razorpay_order_id });
+        if (!subscription) {
+            return res.status(404).json({ success: false, message: "Subscription order not found" });
+        }
+
+        if (subscription.status !== 'pending') {
+            return res.status(400).json({ success: false, message: "This payment has already been processed" });
+        }
+
         const startDate = new Date();
         const endDate = new Date();
         endDate.setDate(startDate.getDate() + 30); // 30 days access
 
-        // Update subscription record
-        const subscription = await Subscription.findOneAndUpdate(
-            { razorpayOrderId: razorpay_order_id },
-            {
-                razorpayPaymentId: razorpay_payment_id,
-                status: 'active',
-                startDate,
-                endDate
-            },
-            { new: true }
-        );
+        // Update subscription record securely
+        subscription.razorpayPaymentId = razorpay_payment_id;
+        subscription.status = 'active';
+        subscription.startDate = startDate;
+        subscription.endDate = endDate;
+        await subscription.save();
 
         // Update user's is_subscribed status
         await User.findByIdAndUpdate(req.user.id, {
@@ -90,12 +100,12 @@ export const verifySubscriptionPayment = async (req, res) => {
 export const getSubscriptionStatus = async (req, res) => {
     try{
         const user = await User.findById(req.user.id);
-        if (user && user.user_access === 'recruiter') {
+        if (user && (user.user_access === 'recruiter' || user.user_access === 'admin')) {
             return res.status(200).json({
                 success: true,
                 status: 'active',
                 isLifetime: true,
-                message: "Recruiters have free lifetime access"
+                message: "Admins and Recruiters have free lifetime access"
             });
         }
 
@@ -108,9 +118,17 @@ export const getSubscriptionStatus = async (req, res) => {
             return res.status(200).json({ success: true, status: 'inactive' });
         }
 
+        // Handle legacy subscriptions where endDate might not be set
+        let expirationDate = subscription.endDate;
+        if (!expirationDate) {
+            expirationDate = new Date(subscription.createdAt);
+            expirationDate.setDate(expirationDate.getDate() + 30);
+        }
+
         const now = new Date();
-        if (now > subscription.endDate) {
+        if (now > expirationDate) {
             subscription.status = 'expired';
+            subscription.endDate = expirationDate;
             await subscription.save();
 
             await User.findByIdAndUpdate(req.user.id, { is_subscribed: false });
@@ -118,7 +136,7 @@ export const getSubscriptionStatus = async (req, res) => {
             return res.status(200).json({ success: true, status: 'expired', subscription });
         }
 
-        const daysRemaining = Math.ceil((new Date(subscription.endDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        const daysRemaining = Math.ceil((new Date(expirationDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
         res.status(200).json({
             success: true,
@@ -129,5 +147,35 @@ export const getSubscriptionStatus = async (req, res) => {
     } catch (err) {
         console.error("Error getting subscription status:", err);
         res.status(500).json({ success: false, message: "Error fetching status" });
+    }
+};
+
+export const getSubscriptionConfig = async (req, res) => {
+    try {
+        let config = await SystemConfig.findOne();
+        if (!config) config = await SystemConfig.create({ subscriptionPrice: 39 });
+        
+        res.status(200).json({ success: true, price: config.subscriptionPrice });
+    } catch (err) {
+        console.error("Error fetching config:", err);
+        res.status(500).json({ success: false, message: "Error fetching config" });
+    }
+};
+
+export const updateSubscriptionConfig = async (req, res) => {
+    try {
+        const { price } = req.body;
+        if (!price || price < 1) {
+             return res.status(400).json({ success: false, message: "Valid price is required" });
+        }
+        let config = await SystemConfig.findOne();
+        if (!config) config = new SystemConfig();
+        config.subscriptionPrice = Number(price);
+        await config.save();
+        
+        res.status(200).json({ success: true, message: "Subscription price updated", price: config.subscriptionPrice });
+    } catch (err) {
+        console.error("Error updating config:", err);
+        res.status(500).json({ success: false, message: "Error updating config" });
     }
 };

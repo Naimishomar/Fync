@@ -919,7 +919,6 @@ export const savePushToken = async (req, res) => {
 
 export const getUsersForAdmin = async (req, res) => {
   try {
-    // Defense in depth check
     if (req.user.user_access !== 'admin') {
         return res.status(403).json({ success: false, message: "Unauthorized." });
     }
@@ -964,9 +963,6 @@ export const banUser = async (req, res) => {
     }
 
     if (isBanned) {
-        // If banning, perform full deletion of user and their data as requested
-        
-        // Find user posts first to avoid race condition with Promise.all
         const userPosts = await mongoose.model('Post').find({ user: userId }).distinct('_id');
         
         await Promise.all([
@@ -984,10 +980,6 @@ export const banUser = async (req, res) => {
             isDeleted: true
         });
     }
-
-    // This part would only run for unbanning, but since we delete above, 
-    // unbanning isn't possible if they were deleted. 
-    // We'll keep the basic toggle logic for any other cases.
     user.isBanned = isBanned;
     await user.save();
 
@@ -998,6 +990,30 @@ export const banUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Ban User Error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const verifyAdminPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const adminPassword = process.env.ADMIN_PANEL_PASSWORD;
+
+    if (!adminPassword) {
+      return res.status(500).json({ success: false, message: "Server misconfiguration: Admin password not set in environment." });
+    }
+
+    console.log(`[AUTH] Verifying admin password. Received length: ${password ? password.length : 'undefined'}, Expected length: ${adminPassword ? adminPassword.length : 'undefined'}`);
+    console.log(`[AUTH] Received: '${password}', Expected: '${adminPassword}'`);
+
+    if (password && password.trim() === adminPassword.trim()) {
+      return res.status(200).json({ success: true, message: "Access granted" });
+    } else {
+      console.log(`[AUTH] Password mismatch! Denying access.`);
+      return res.status(401).json({ success: false, message: "Invalid admin password" });
+    }
+  } catch (error) {
+    console.error("Verify Admin Password Error:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

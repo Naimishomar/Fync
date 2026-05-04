@@ -11,25 +11,42 @@ export const getStreakLeaderboard = async (req, res) => {
             .limit(10)
             .select('name username avatar streakCount college');
 
-        const currentUser = await User.findById(req.user.id).select('streakCount');
+        const currentUser = await User.findById(req.user.id).select('streakCount lastPostDate');
         
         let rank = -1;
-        if (currentUser && currentUser.streakCount > 0) {
-            rank = await User.countDocuments({ 
-                $or: [
-                    { streakCount: { $gt: currentUser.streakCount } },
-                    { streakCount: currentUser.streakCount, updatedAt: { $lt: currentUser.updatedAt } }
-                ]
-            }) + 1;
-        } else if (currentUser) {
-            rank = await User.countDocuments({ streakCount: { $gt: 0 } }) + 1;
+        let completedToday = false;
+        
+        if (currentUser) {
+            if (currentUser.streakCount > 0) {
+                rank = await User.countDocuments({ 
+                    $or: [
+                        { streakCount: { $gt: currentUser.streakCount } },
+                        { streakCount: currentUser.streakCount, updatedAt: { $lt: currentUser.updatedAt } }
+                    ]
+                }) + 1;
+            } else {
+                rank = await User.countDocuments({ streakCount: { $gt: 0 } }) + 1;
+            }
+            
+            if (currentUser.lastPostDate) {
+                const lastPost = new Date(currentUser.lastPostDate);
+                const today = new Date();
+                if (
+                    lastPost.getDate() === today.getDate() &&
+                    lastPost.getMonth() === today.getMonth() &&
+                    lastPost.getFullYear() === today.getFullYear()
+                ) {
+                    completedToday = true;
+                }
+            }
         }
 
         return res.status(200).json({
             success: true,
             leaderboard,
             userRank: rank,
-            userStreak: currentUser?.streakCount || 0
+            userStreak: currentUser?.streakCount || 0,
+            completedToday
         });
     } catch (error) {
         console.error("Leaderboard error:", error);
