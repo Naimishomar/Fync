@@ -3,9 +3,8 @@ name: Deploy Backend to EC2
 on:
   push:
     branches:
-      - main  # This assumes your default branch is 'main'. Change to 'master' if yours is master.
-    paths:
-      - 'backend/**' # This ensures it only restarts the server if you changed backend code.
+      - main
+      - master
 
 jobs:
   deploy:
