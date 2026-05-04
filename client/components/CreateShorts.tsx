@@ -13,12 +13,71 @@ import { useNavigation } from "@react-navigation/native";
 import axios from "../context/axiosConfig";
 
 import Toast from "react-native-toast-message";
+import * as VideoThumbnails from 'expo-video-thumbnails';
+import StreakModal from './StreakModal';
 
 const { width, height } = Dimensions.get("window");
 const COLUMN_COUNT = 4;
 const ITEM_SIZE = width / COLUMN_COUNT;
 
+const VideoItem = React.memo(({ item, isSelected, onSelect }: { 
+  item: MediaLibrary.Asset, 
+  isSelected: boolean, 
+  onSelect: (item: MediaLibrary.Asset) => void 
+}) => {
+  const [thumbnail, setThumbnail] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const generateThumbnail = async () => {
+      try {
+        const { uri } = await VideoThumbnails.getThumbnailAsync(item.uri, {
+          time: 1000,
+        });
+        if (isMounted) setThumbnail(uri);
+      } catch (e) {
+        console.warn('Thumbnail generation failed', e);
+      }
+    };
+
+    generateThumbnail();
+    return () => { isMounted = false; };
+  }, [item.uri]);
+
+  return (
+    <Pressable
+      onPress={() => onSelect(item)}
+      style={{ width: ITEM_SIZE, height: ITEM_SIZE, padding: 1 }}
+    >
+      {thumbnail ? (
+        <Image
+          source={{ uri: thumbnail }}
+          style={{ flex: 1, opacity: isSelected ? 0.5 : 1 }}
+          resizeMode="cover"
+        />
+      ) : (
+        <View style={{ flex: 1 }} className="bg-neutral-900 items-center justify-center">
+           <ActivityIndicator size="small" color="#db2777" />
+        </View>
+      )}
+      <View className="absolute bottom-1 right-1">
+        <Text className="text-white text-[10px] bg-black/50 px-1 rounded">
+          {Math.floor(item.duration / 60)}:{Math.round(item.duration % 60).toString().padStart(2, '0')}
+        </Text>
+      </View>
+      {isSelected && (
+        <View className="absolute top-1 right-1 bg-pink-600 rounded-full w-5 h-5 items-center justify-center">
+          <Ionicons name="checkmark" size={12} color="white" />
+        </View>
+      )}
+    </Pressable>
+  );
+});
+
+import { useAuth } from "../context/auth.context";
+
 const CreateShorts = () => {
+  const { setUser } = useAuth();
   const navigation = useNavigation<any>();
 
   // States
@@ -30,6 +89,10 @@ const CreateShorts = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Streak States
+  const [showStreakModal, setShowStreakModal] = useState(false);
+  const [currentStreakCount, setCurrentStreakCount] = useState(0);
 
   useEffect(() => {
     getVideos();
@@ -85,17 +148,21 @@ const CreateShorts = () => {
         type: "video/mp4",
       } as any);
 
-      await axios.post("/shorts/create", formData, {
+      const res = await axios.post("/shorts/create", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      Toast.show({
-        type: 'success',
-        text1: 'Success',
-        text2: 'Short uploaded successfully! 🚀',
-      });
-
-      navigation.navigate("Tabs");
+      if (res.data.success) {
+          if (res.data.isCompletedToday) {
+            setCurrentStreakCount(res.data.streakCount);
+            setShowStreakModal(true);
+            setTimeout(() => {
+              navigation.navigate("Tabs");
+            }, 2200);
+          } else {
+            navigation.navigate("Tabs");
+          }
+      }
     } catch (err) {
       console.log(err);
       Toast.show({
@@ -156,27 +223,11 @@ const CreateShorts = () => {
               numColumns={COLUMN_COUNT}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
-                <Pressable
-                  onPress={() => setSelectedAsset(item)}
-                  style={{ width: ITEM_SIZE, height: ITEM_SIZE, padding: 1 }}
-                >
-                  {/* Use item.uri directly — works on Android tablets */}
-                  <Image
-                    source={{ uri: item.uri }}
-                    style={{ flex: 1, opacity: selectedAsset?.id === item.id ? 0.5 : 1 }}
-                    resizeMode="cover"
-                  />
-                  <View className="absolute bottom-1 right-1">
-                    <Text className="text-white text-[10px] bg-black/50 px-1 rounded">
-                      {Math.floor(item.duration / 60)}:{Math.round(item.duration % 60).toString().padStart(2, '0')}
-                    </Text>
-                  </View>
-                  {selectedAsset?.id === item.id && (
-                    <View className="absolute top-1 right-1 bg-pink-600 rounded-full w-5 h-5 items-center justify-center">
-                      <Ionicons name="checkmark" size={12} color="white" />
-                    </View>
-                  )}
-                </Pressable>
+                <VideoItem 
+                  item={item} 
+                  isSelected={selectedAsset?.id === item.id} 
+                  onSelect={setSelectedAsset} 
+                />
               )}
             />
           )}
@@ -285,6 +336,12 @@ const CreateShorts = () => {
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      <StreakModal 
+        visible={showStreakModal} 
+        streakCount={currentStreakCount} 
+        onClose={() => setShowStreakModal(false)} 
+      />
     </View>
   );
 };

@@ -139,6 +139,7 @@ const TravelSafetyDashboard = () => {
 
   // Travel Alarm States
   const [showTravelAlarm, setShowTravelAlarm] = useState(false);
+  const isAlarmActive = useRef(false);
   const soundRef = useRef<Audio.Sound | null>(null);
 
   const fetchInitialData = useCallback(async () => {
@@ -182,13 +183,19 @@ const TravelSafetyDashboard = () => {
   }, []);
 
   const startTravelAlarm = async () => {
+    if (isAlarmActive.current) return;
+    isAlarmActive.current = true;
+    
     setShowTravelAlarm(true);
     Vibration.vibrate([0, 500, 200, 500], true);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
 
     try {
+        if (soundRef.current) {
+            await soundRef.current.unloadAsync();
+        }
         const { sound } = await Audio.Sound.createAsync(
-            { uri: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3' }, // High urgency alarm sound
+            { uri: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3' },
             { shouldPlay: true, isLooping: true, volume: 1.0 }
         );
         soundRef.current = sound;
@@ -198,12 +205,19 @@ const TravelSafetyDashboard = () => {
   };
 
   const stopTravelAlarm = async () => {
+    isAlarmActive.current = false;
+    Vibration.vibrate(0); // Reset vibration state
     Vibration.cancel();
     setShowTravelAlarm(false);
-    if (soundRef.current) {
-        await soundRef.current.stopAsync();
-        await soundRef.current.unloadAsync();
-        soundRef.current = null;
+    
+    try {
+        if (soundRef.current) {
+            await soundRef.current.stopAsync();
+            await soundRef.current.unloadAsync();
+            soundRef.current = null;
+        }
+    } catch (e) {
+        console.error("Error stopping sound:", e);
     }
   };
 

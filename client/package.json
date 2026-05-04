@@ -51,6 +51,7 @@
     "expo-status-bar": "~3.0.9",
     "expo-task-manager": "~14.0.9",
     "expo-video": "^55.0.10",
+    "expo-video-thumbnails": "^55.0.14",
     "expo-web-browser": "~15.0.10",
     "jwt-decode": "^4.0.0",
     "lucide-react-native": "^1.8.0",

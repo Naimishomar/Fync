@@ -31,7 +31,7 @@ const SearchScreen = () => {
     }
     const timer = setTimeout(() => {
       fetchUsers(normalized);
-    }, 400);
+    }, 1000);
     return () => clearTimeout(timer);
   }, [query]);
 

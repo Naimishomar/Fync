@@ -322,20 +322,39 @@ const ChatList = () => {
                   <View className="mb-6">
                     <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4 ml-2">Dedicated Channels</Text>
 
-                    {user?.college && user?.user_access === 'user' && (
+                    {user?.college && (
                       <TouchableOpacity
                         activeOpacity={0.8}
                         onPress={() => navigation.navigate("CollegeChatScreen")}
-                        className="flex-row items-center bg-white rounded-[24px] p-5 border border-slate-100 shadow-sm mb-3"
+                        className="flex-row items-center bg-white rounded-[24px] p-5 border border-slate-100 shadow-sm mb-2"
                       >
                         <View className="w-12 h-12 rounded-2xl bg-orange-50 items-center justify-center border border-orange-100 mr-4">
                           <Ionicons name="school" size={24} color="#f97316" />
                         </View>
                         <View className="flex-1">
                           <Text className="text-zinc-900 font-black uppercase text-xs tracking-tight">{user.college} Area</Text>
-                          <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1 ">24h Expiring Zone</Text>
+                          <Text className="text-slate-400 text-[10px] font-bold tracking-widest mt-1 ">24hr Expiring Zone</Text>
                         </View>
                         <View className="bg-orange-500 w-2 h-2 rounded-full" />
+                      </TouchableOpacity>
+                    )}
+
+                    {(user?.user_access === 'user' || user?.user_access === 'alumni' || user?.user_access === 'admin') && user?.college && (
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => navigation.navigate("AlumniConnect")}
+                        className="flex-row items-center bg-white rounded-[24px] p-5 border border-slate-100 shadow-sm"
+                      >
+                        <View className="w-12 h-12 rounded-2xl bg-indigo-50 items-center justify-center border border-indigo-100 mr-4">
+                          <Ionicons name="people" size={24} color="#4f46e5" />
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-zinc-900 font-black uppercase text-xs tracking-tight">Student-Alumni Chat</Text>
+                          <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1 ">Global Networking Zone</Text>
+                        </View>
+                        <View className="bg-indigo-500 px-2 py-0.5 rounded-full">
+                          <Text className="text-[7px] text-white font-black">Connect</Text>
+                        </View>
                       </TouchableOpacity>
                     )}
 

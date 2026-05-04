@@ -113,3 +113,70 @@ export const getMovieTrailers = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to fetch movie trailers' });
   }
 };
+
+export const getEntertainmentHome = async (req, res) => {
+  try {
+    const [
+      trending,
+      popular,
+      upcoming,
+      bollywood,
+      topRated,
+      action,
+      horror
+    ] = await Promise.all([
+      tmdbFetch('/trending/movie/week?language=en-US'),
+      tmdbFetch('/movie/popular?language=en-US&page=2'),
+      tmdbFetch('/movie/upcoming?language=en-US&page=1'),
+      tmdbFetch('/discover/movie?with_original_language=hi&language=en-US&sort_by=popularity.desc&page=1'),
+      tmdbFetch('/movie/top_rated?language=en-US&page=3'),
+      tmdbFetch('/discover/movie?with_genres=28&language=en-US&sort_by=vote_count.desc&page=1'),
+      tmdbFetch('/discover/movie?with_genres=27&language=en-US&sort_by=vote_count.desc&page=1')
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        trending: trending.results,
+        popular: popular.results,
+        upcoming: upcoming.results,
+        bollywood: bollywood.results,
+        topRated: topRated.results,
+        action: action.results,
+        horror: horror.results
+      }
+    });
+  } catch (error) {
+    console.error('TMDB Entertainment Home Error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch entertainment home data' });
+  }
+};
+
+export const getTrailersBatch = async (req, res) => {
+  try {
+    const { ids } = req.query; // Comma separated IDs
+    if (!ids) return res.status(400).json({ success: false, message: 'IDs required' });
+    
+    const idArray = ids.split(',').slice(0, 15); // Limit to 15 for safety
+    
+    const trailerData = await Promise.all(idArray.map(async (id) => {
+      try {
+        const data = await tmdbFetch(`/movie/${id}/videos?language=en-US`);
+        const trailer = data.results.find((v) => v.type === 'Trailer' && v.site === 'YouTube');
+        return { id, key: trailer ? trailer.key : null };
+      } catch (e) {
+        return { id, key: null };
+      }
+    }));
+
+    const trailerMap = {};
+    trailerData.forEach(item => {
+      trailerMap[item.id] = item.key;
+    });
+
+    res.status(200).json({ success: true, trailers: trailerMap });
+  } catch (error) {
+    console.error('TMDB Trailers Batch Error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch trailers batch' });
+  }
+};

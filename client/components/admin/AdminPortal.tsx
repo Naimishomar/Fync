@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
     View, Text, FlatList, TouchableOpacity, Modal, TextInput,
     ActivityIndicator, Image, Alert, ScrollView, Switch, Platform,
-    KeyboardAvoidingView, Linking
+    KeyboardAvoidingView, Linking, BackHandler,
+    StatusBar
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -10,121 +11,12 @@ import axios from '../../context/axiosConfig';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/auth.context';
 import Toast from 'react-native-toast-message';
+import { LinearGradient } from 'expo-linear-gradient';
+import { AdItem, RedemptionItem, MarketPlaceItem, ReportItem, ContactMessageItem, UserItem, MediaItem } from './AdminComponents';
 
 // Using a stable key for navigation to ensure it survives re-renders
 const PUBLIC_PROFILE_SCREEN = 'PublicProfile';
 
-const AdItem = ({ item, onEdit, onDelete }: any) => (
-    <View className="bg-white rounded-2xl mb-4 border border-gray-100 overflow-hidden">
-        <Image
-            source={{ uri: item.imageUrl || 'https://via.placeholder.com/300x150?text=No+Image' }}
-            className="w-full h-36"
-            resizeMode="cover"
-        />
-        <View className="p-4">
-            <View className="flex-row justify-between items-start">
-                <View className="flex-1">
-                    <Text className="text-zinc-900 font-bold text-sm">{item.title || 'Untitled Ad'}</Text>
-                    {item.linkUrl ? (
-                        <Text className="text-pink-500 text-xs mt-0.5" numberOfLines={1}>{item.linkUrl}</Text>
-                    ) : null}
-                </View>
-                <View className="flex-row gap-2 ml-2">
-                    <TouchableOpacity onPress={() => onEdit(item, 'ad')} className="w-9 h-9 bg-gray-50 rounded-full items-center justify-center border border-gray-200">
-                        <Ionicons name="pencil" size={16} color="#1A1A1A" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => onDelete(item._id, 'ad')} className="w-9 h-9 bg-red-50 rounded-full items-center justify-center border border-red-100">
-                        <Ionicons name="trash" size={16} color="#ef4444" />
-                    </TouchableOpacity>
-                </View>
-            </View>
-        </View>
-    </View>
-);
-
-const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
-    // Navigate using the prop to ensure proper context
-    const handleViewProfile = () => {
-        if (item._id) {
-            navigation.navigate(PUBLIC_PROFILE_SCREEN, { userId: item._id });
-        }
-    };
-
-    return (
-        <View className="bg-white rounded-2xl mb-4 p-4 border border-gray-100">
-            <View className="flex-row items-center justify-between mb-4">
-                <View className="flex-row items-center gap-3">
-                    <Image source={{ uri: item.avatar || 'https://cdn-icons-png.freepik.com/512/219/219988.png' }} className="w-10 h-10 rounded-full bg-gray-100" />
-                    <View>
-                        <Text className="text-zinc-900 font-bold text-base">{item.name}</Text>
-                        <Text className="text-gray-500 text-xs text-indigo-500 font-semibold ">@{item.username}</Text>
-                    </View>
-                </View>
-                <TouchableOpacity
-                    onPress={() => item.mobileNumber && Linking.openURL(`tel:${item.mobileNumber}`)}
-                    className="p-2 bg-green-50 rounded-full"
-                >
-                    <Ionicons name="call" size={18} color="#16a34a" />
-                </TouchableOpacity>
-            </View>
-
-            <View className="bg-gray-50 rounded-xl p-3">
-                <Text className="text-gray-400 text-[10px] uppercase font-black tracking-widest mb-2">Redemption History</Text>
-                {item.redeemedItems?.map((prod: any, idx: number) => (
-                    <View key={idx} className="mb-4 last:mb-0 border-b border-gray-100 pb-3 last:border-0 last:pb-0">
-                        <View className="flex-row items-center gap-2 mb-2">
-                            <Ionicons name="gift-outline" size={14} color="#ec4899" />
-                            <Text className="text-zinc-800 font-bold text-sm">{prod.product_name}</Text>
-                            <View className="ml-auto bg-amber-100 px-2 py-0.5 rounded-full">
-                                <Text className="text-[10px] text-amber-700 font-bold">{prod.coins_required} 🪙</Text>
-                            </View>
-                        </View>
-                        <View className="bg-white p-2 rounded-lg border border-gray-100">
-                            <View className="flex-row justify-between items-start mb-1.5">
-                                <View className="flex-row items-start gap-1.5 flex-1">
-                                    <Ionicons name="location-outline" size={12} color="#6b7280" />
-                                    <View className="flex-1">
-                                        <Text className="text-gray-600 text-[11px] leading-4">{prod.address}</Text>
-                                        <Text className="text-zinc-900 font-black text-[10px] mt-0.5">Pincode: {prod.pincode}</Text>
-                                    </View>
-                                </View>
-                                <TouchableOpacity
-                                    onPress={() => onToggleStatus(item._id, prod._id)}
-                                    className={`w-7 h-7 rounded-full items-center justify-center border ${prod.isProcessed ? 'bg-green-500 border-green-500' : 'bg-white border-gray-200'}`}
-                                >
-                                    <Ionicons name="checkmark" size={16} color={prod.isProcessed ? "white" : "#d1d5db"} />
-                                </TouchableOpacity>
-                            </View>
-                            <View className="flex-row items-center gap-1.5">
-                                <Ionicons name="call-outline" size={12} color="#6b7280" />
-                                <TouchableOpacity onPress={() => Linking.openURL(`tel:${prod.mobileNumber}`)}>
-                                    <Text className="text-indigo-500 text-[11px] font-bold">{prod.mobileNumber}</Text>
-                                </TouchableOpacity>
-                                {prod.isProcessed && (
-                                    <View className="ml-2 bg-green-100 px-1.5 py-0.5 rounded">
-                                        <Text className="text-green-700 text-[8px] font-bold uppercase">Processed</Text>
-                                    </View>
-                                )}
-                                <Text className="text-gray-300 text-[10px] ml-auto">{prod.redeemDate ? new Date(prod.redeemDate).toLocaleDateString() : 'No date'}</Text>
-                            </View>
-                        </View>
-                    </View>
-                ))}
-            </View>
-
-            <View className="mt-4 flex-row justify-between items-center">
-                <Text className="text-gray-400 text-[10px] font-medium">{item.college}</Text>
-                <TouchableOpacity
-                    onPress={handleViewProfile}
-                    className="flex-row items-center gap-1"
-                >
-                    <Text className="text-pink-500 font-bold text-xs">View Profile</Text>
-                    <Ionicons name="chevron-forward" size={12} color="#ec4899" />
-                </TouchableOpacity>
-            </View>
-        </View>
-    );
-};
 
 const AdminPortal = ({ navigation }: any) => {
     const { user } = useAuth();
@@ -136,17 +28,37 @@ const AdminPortal = ({ navigation }: any) => {
         }
     }, [user]);
 
-    const [activeTab, setActiveTab] = useState<'ads' | 'rewards' | 'marketplace' | 'messages' | 'media'>('ads');
+    const [activeTab, setActiveTab] = useState<'ads' | 'rewards' | 'marketplace' | 'messages' | 'media' | 'reports' | 'users'>('ads');
+    const [view, setView] = useState<'hub' | 'feature'>('hub');
     const [ads, setAds] = useState<any[]>([]);
     const [redemptions, setRedemptions] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
     const [messages, setMessages] = useState<any[]>([]);
     const [fyncMedia, setFyncMedia] = useState<any[]>([]);
+    const [reports, setReports] = useState<any[]>([]);
+    const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [editingAd, setEditingAd] = useState<any>(null);
     const [editingProduct, setEditingProduct] = useState<any>(null);
+
+    useEffect(() => {
+        const backAction = () => {
+            if (view === 'feature') {
+                setView('hub');
+                return true;
+            }
+            return false;
+        };
+
+        const backHandler = BackHandler.addEventListener(
+            'hardwareBackPress',
+            backAction
+        );
+
+        return () => backHandler.remove();
+    }, [view]);
 
     // Form state for Ads & Marketplace
     const [title, setTitle] = useState('');
@@ -158,6 +70,7 @@ const AdminPortal = ({ navigation }: any) => {
     const [videoUri, setVideoUri] = useState<string | null>(null);
     const [imageUrl, setImageUrl] = useState('');
     const [tags, setTags] = useState('');
+    const [userSearch, setUserSearch] = useState('');
 
     const fetchAds = async () => {
         try {
@@ -225,11 +138,37 @@ const AdminPortal = ({ navigation }: any) => {
         }
     };
 
+    const fetchReports = async () => {
+        try {
+            setLoading(true);
+            const res = await axios.get('/post/admin/reports');
+            if (res.data.success) setReports(res.data.reports);
+        } catch (e) {
+            console.error(e);
+            Toast.show({ type: 'error', text1: 'Failed to fetch reports' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchAdminUsers = async (search = '') => {
+        try {
+            setLoading(true);
+            const res = await axios.get(`/user/admin/users?search=${search}`);
+            if (res.data.success) setUsers(res.data.users);
+        } catch (e) {
+            console.error(e);
+            Toast.show({ type: 'error', text1: 'Failed to fetch users' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleToggleStatus = async (userId: string, redemptionId: string) => {
         try {
             const res = await axios.post('/api/marketplace/toggle-status', { userId, redemptionId });
             if (res.data.success) {
-                // Update local state
+                // Update local state 
                 setRedemptions(prev => prev.map(user => {
                     if (user._id === userId) {
                         return {
@@ -276,10 +215,62 @@ const AdminPortal = ({ navigation }: any) => {
             fetchProducts();
         } else if (activeTab === 'media') {
             fetchFyncMedia();
+        } else if (activeTab === 'reports') {
+            fetchReports();
+        } else if (activeTab === 'users') {
+            if (userSearch.trim()) {
+                fetchAdminUsers(userSearch);
+            } else {
+                setUsers([]);
+            }
         } else {
             fetchContactMessages();
         }
     }, [activeTab]);
+
+    const handleToggleBan = async (userId: string, currentBanStatus: boolean) => {
+        Alert.alert(
+            "Confirm Ban",
+            "Are you sure you want to BAN this user? This action will permanently delete their profile and all associated data.",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Ban User",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            const res = await axios.post(`/user/admin/ban/${userId}`, { isBanned: !currentBanStatus });
+                            if (res.data.success) {
+                                if (res.data.isDeleted) {
+                                    setUsers(prev => prev.filter(u => u._id !== userId));
+                                } else {
+                                    setUsers(prev => prev.map(u => u._id === userId ? { ...u, isBanned: !currentBanStatus } : u));
+                                }
+                                Toast.show({ type: 'success', text1: res.data.message });
+                            }
+                        } catch (e: any) {
+                            Toast.show({ type: 'error', text1: e.response?.data?.message || 'Action failed' });
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    // Debounced search logic
+    useEffect(() => {
+        if (activeTab !== 'users') return;
+        
+        const delayDebounceFn = setTimeout(() => {
+            if (userSearch.trim()) {
+                fetchAdminUsers(userSearch);
+            } else {
+                setUsers([]);
+            }
+        }, 1000);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [userSearch]);
 
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -433,8 +424,10 @@ const AdminPortal = ({ navigation }: any) => {
         }
     };
 
-    const handleDelete = (id: string, type: 'ad' | 'product' | 'message' | 'media' = 'ad') => {
-        Alert.alert(type === 'ad' ? 'Delete Ad?' : type === 'product' ? 'Delete Item?' : 'Delete Message?', 'This cannot be undone.', [
+    const handleDelete = (id: string, type: 'ad' | 'product' | 'message' | 'media' | 'report' = 'ad') => {
+        Alert.alert(
+            type === 'ad' ? 'Delete Ad?' : type === 'product' ? 'Delete Item?' : type === 'report' ? 'Delete Post?' : 'Delete Message?', 
+            'This cannot be undone.', [
             { text: 'Cancel', style: 'cancel' },
             {
                 text: 'Delete', style: 'destructive', onPress: async () => {
@@ -448,6 +441,13 @@ const AdminPortal = ({ navigation }: any) => {
                         } else if (type === 'media') {
                             await axios.delete(`/fync-media/delete/${id}`);
                             setFyncMedia(prev => prev.filter(m => m._id !== id));
+                        } else if (type === 'report') {
+                            // The report ID is passed as id, but we also need the post ID
+                            const report = reports.find(r => r._id === id);
+                            if (report) {
+                                await axios.post('/post/admin/delete-post', { postId: report.post?._id, reportId: id });
+                                setReports(prev => prev.filter(r => r._id !== id));
+                            }
                         } else {
                             await axios.delete(`/contact-us/messages/${id}`);
                             setMessages(prev => prev.filter(m => m._id !== id));
@@ -481,227 +481,231 @@ const AdminPortal = ({ navigation }: any) => {
         setModalVisible(true);
     };
 
-    const MediaItem = ({ item, onDelete }: any) => (
-        <View className="bg-white rounded-2xl mb-4 border border-gray-100 overflow-hidden">
-            <View className="w-full aspect-video bg-gray-100">
-                <Image source={{ uri: item.thumbnail }} className="w-full h-full" resizeMode="cover" />
-                <View className="absolute top-3 right-3">
-                    <TouchableOpacity onPress={() => onDelete(item._id, 'media')} className="w-9 h-9 bg-red-500 rounded-full items-center justify-center border border-red-500/20">
-                        <Ionicons name="trash" size={16} color="white" />
-                    </TouchableOpacity>
-                </View>
-            </View>
-            <View className="p-4">
-                <Text className="text-zinc-900 font-bold text-base mb-1" numberOfLines={1}>{item.title}</Text>
-                <Text className="text-gray-500 text-xs" numberOfLines={2}>{item.description}</Text>
-                <View className="flex-row items-center gap-2 mt-3">
-                    {item.tags?.map((tag: string, idx: number) => (
-                        <Text key={idx} className="text-pink-500 text-[10px] font-bold">#{tag}</Text>
-                    ))}
-                    <Text className="text-gray-300 ml-auto text-[10px] font-medium">{new Date(item.date).toLocaleDateString()}</Text>
-                </View>
-            </View>
-        </View>
-    );
 
-    const MarketPlaceItem = ({ item, onEdit, onDelete }: any) => (
-        <View className="bg-white rounded-2xl mb-4 border border-gray-100 overflow-hidden">
-            <View style={{ width: '100%', aspectRatio: 1, backgroundColor: '#f9fafb' }}>
-                <Image
-                    source={{ uri: item.product_image || 'https://via.placeholder.com/300x150?text=No+Image' }}
-                    style={{ width: '100%', height: '100%' }}
-                    resizeMode="contain"
-                />
-            </View>
-            <View className="p-4">
-                <View className="flex-row justify-between items-start">
-                    <View className="flex-1">
-                        <View className="flex-row items-center gap-2 mb-1">
-                            <Text className="text-zinc-900 font-bold text-base">{item.product_name}</Text>
-                            {!item.is_available && (
-                                <View className="bg-red-100 px-2 py-0.5 rounded-md">
-                                    <Text className="text-red-600 text-[8px] font-black uppercase">Hidden</Text>
-                                </View>
-                            )}
-                        </View>
-                        <Text className="text-gray-500 text-xs mt-1" numberOfLines={2}>{item.product_description}</Text>
-                        <View className="flex-row items-center gap-2 mt-2">
-                            <View className="bg-amber-100 px-3 py-1 rounded-full self-start">
-                                <Text className="text-amber-700 font-black text-[10px] uppercase">
-                                    {item.coins_required} 🪙 Coins Required
-                                </Text>
-                            </View>
-                        </View>
-                    </View>
-                    <View className="flex-row gap-2 ml-2">
-                        <TouchableOpacity onPress={() => onEdit(item, 'product')} className="w-9 h-9 bg-gray-50 rounded-full items-center justify-center border border-gray-200">
-                            <Ionicons name="pencil" size={16} color="#1A1A1A" />
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => onDelete(item._id, 'product')} className="w-9 h-9 bg-red-50 rounded-full items-center justify-center border border-red-100">
-                            <Ionicons name="trash" size={16} color="#ef4444" />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </View>
-        </View>
-    );
-
-    const ContactMessageItem = ({ item, onDelete, onToggleRead }: any) => (
-        <View className={`bg-white rounded-2xl mb-4 p-4 border ${item.isRead ? 'border-gray-100' : 'border-indigo-200 bg-indigo-50/10'}`}>
-            <View className="flex-row justify-between items-start mb-3">
-                <View className="flex-1">
-                    <View className="flex-row items-center gap-2">
-                        <Text className="text-zinc-900 font-bold text-base">{item.name}</Text>
-                        {!item.isRead && (
-                            <View className="bg-indigo-100 px-1.5 py-0.5 rounded">
-                                <Text className="text-indigo-600 text-[8px] font-black uppercase">New</Text>
-                            </View>
-                        )}
-                    </View>
-                    <Text className="text-gray-500 text-xs ">{item.email}</Text>
-                    <Text className="text-gray-400 text-[10px] mt-1">{new Date(item.createdAt).toLocaleString()}</Text>
-                </View>
-                <View className="flex-row gap-2">
-                    <TouchableOpacity
-                        onPress={() => onToggleRead(item._id)}
-                        className={`w-9 h-9 rounded-full items-center justify-center border ${item.isRead ? 'bg-green-500 border-green-500' : 'bg-white border-gray-200'}`}
-                    >
-                        <Ionicons name="checkmark" size={16} color={item.isRead ? "white" : "#d1d5db"} />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => onDelete(item._id, 'message')} className="w-9 h-9 bg-red-50 rounded-full items-center justify-center border border-red-100">
-                        <Ionicons name="trash" size={16} color="#ef4444" />
-                    </TouchableOpacity>
-                </View>
-            </View>
-            <View className="bg-zinc-50 rounded-xl p-3 mb-3">
-                <Text className="text-zinc-800 text-sm leading-5">{item.message}</Text>
-            </View>
-            <View className="flex-row items-center gap-4">
-                <TouchableOpacity onPress={() => Linking.openURL(`tel:${item.phone}`)} className="flex-row items-center gap-1.5 bg-green-50 px-3 py-1.5 rounded-full border border-green-100">
-                    <Ionicons name="call" size={14} color="#16a34a" />
-                    <Text className="text-green-700 font-bold text-[10px] uppercase">{item.phone}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => Linking.openURL(`mailto:${item.email}`)} className="flex-row items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
-                    <Ionicons name="mail" size={14} color="#2563eb" />
-                    <Text className="text-blue-700 font-bold text-[10px] uppercase">Reply</Text>
-                </TouchableOpacity>
-            </View>
-            {item.images && item.images.length > 0 && (
-                <View className="mt-4 flex-row flex-wrap gap-2">
-                    {item.images.map((img: string, i: number) => (
-                        <Image key={i} source={{ uri: img }} className="w-16 h-16 rounded-lg bg-gray-100" />
-                    ))}
-                </View>
-            )}
-        </View>
-    );
 
     if (user?.user_access !== 'admin') {
         return null;
     }
 
-    return (
-        <SafeAreaView className="flex-1 bg-gray-50">
-            {/* Header */}
-            <View className="px-5 py-4 bg-white border-b border-gray-100">
-                <View className="flex-row items-center justify-between mb-4">
-                    <View className="flex-row items-center gap-3">
-                        <TouchableOpacity onPress={() => navigation.goBack()} className="p-1.5 bg-gray-50 rounded-full border border-gray-200">
-                            <Ionicons name="arrow-back" size={20} color="#1A1A1A" />
-                        </TouchableOpacity>
-                        <View>
-                            <Text className="text-zinc-900 text-xl font-black">Admin Portal</Text>
-                            <Text className="text-[10px] text-pink-500 font-bold uppercase tracking-widest">Management System v1.1</Text>
-                        </View>
+    const HubButton = ({ title, tab, icon, color, description }: { title: string, tab: any, icon: any, color: string, description: string }) => (
+        <TouchableOpacity
+            onPress={() => { setActiveTab(tab); setView('feature'); }}
+            className="mb-4 rounded-[32px] overflow-hidden border border-[#F1F5F9] shadow-sm bg-white"
+            activeOpacity={0.9}
+        >
+            <LinearGradient colors={[`${color}10`, '#fff']} className="flex-1 flex-row items-center p-6">
+                <View className="w-14 h-14 rounded-2xl items-center justify-center mr-4" style={{ backgroundColor: `${color}20` }}>
+                    <Ionicons name={icon} size={24} color={color} />
+                </View>
+                <View className="flex-1">
+                    <Text className="text-sm font-black text-[#1A1A1A] uppercase tracking-[0.5px] mb-1">{title}</Text>
+                    <Text className="text-[10px] text-[#64748B] leading-[14px] font-medium">{description}</Text>
+                </View>
+                <View className="w-8 h-8 rounded-xl bg-[#F8FAFC] justify-center items-center ml-2 border border-[#F1F5F9]">
+                    <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
+                </View>
+            </LinearGradient>
+        </TouchableOpacity>
+    );
+
+    const HubView = () => (
+        <ScrollView 
+            className="flex-1 px-8 pt-4"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 100 }}
+        >
+            <Text className="text-[#94A3B8] text-[8px] font-black uppercase tracking-[2px] mb-6">Management Systems</Text>
+            
+            <HubButton 
+                title="Banner Ads" 
+                tab="ads" 
+                icon="megaphone" 
+                color="#f97316" 
+                description="Manage campus-wide banner advertisements and promotion campaigns." 
+            />
+            <HubButton 
+                title="User Management" 
+                tab="users" 
+                icon="people" 
+                color="#10b981" 
+                description="Oversee student profiles, moderation status, and account access." 
+            />
+            <HubButton 
+                title="Fync Media" 
+                tab="media" 
+                icon="play-circle" 
+                color="#0ea5e9" 
+                description="Manage educational content, campus videos, and digital media." 
+            />
+            <HubButton 
+                title="Reported Content" 
+                tab="reports" 
+                icon="flag" 
+                color="#ef4444" 
+                description="Review flagged posts and enforce community safety protocols." 
+            />
+            <HubButton 
+                title="Reward Items" 
+                tab="marketplace" 
+                icon="cart" 
+                color="#6366f1" 
+                description="Update the Fync store inventory and redemption items." 
+            />
+            <HubButton 
+                title="Redemptions" 
+                tab="rewards" 
+                icon="gift" 
+                color="#a855f7" 
+                description="Process student reward claims and inventory payouts." 
+            />
+            <HubButton 
+                title="Contact Messages" 
+                tab="messages" 
+                icon="mail" 
+                color="#64748b" 
+                description="Review and respond to official support and inquiry messages." 
+            />
+
+            <View className="mt-8 p-6 bg-zinc-900 rounded-[32px] shadow-xl shadow-zinc-900/20">
+                <View className="flex-row items-center mb-4">
+                    <Ionicons name="stats-chart" size={18} color="#ec4899" />
+                    <Text className="text-white font-black text-[10px] uppercase tracking-[2px] ml-3">System Health</Text>
+                </View>
+                <View className="flex-row justify-between">
+                    <View>
+                        <Text className="text-zinc-500 text-[8px] font-black uppercase">Pending Reports</Text>
+                        <Text className="text-white text-xl font-black mt-1">{reports.length}</Text>
                     </View>
-                    {activeTab !== 'rewards' && activeTab !== 'messages' && (
-                        <TouchableOpacity
-                            onPress={() => { resetForm(); setModalVisible(true); }}
-                            className="bg-zinc-900 px-4 py-2.5 rounded-full"
-                        >
-                            <Text className="text-white font-bold text-xs uppercase tracking-widest">+ {activeTab === 'ads' ? 'Add Ad' : activeTab === 'media' ? 'Add Media' : 'Add Item'}</Text>
-                        </TouchableOpacity>
+                    <View className="items-end">
+                        <Text className="text-zinc-500 text-[8px] font-black uppercase">Total Redemptions</Text>
+                        <Text className="text-white text-xl font-black mt-1">{redemptions.length}</Text>
+                    </View>
+                </View>
+            </View>
+        </ScrollView>
+    );
+
+    return (
+        <View className="flex-1 bg-[#F8FAFC]">
+            <StatusBar barStyle="dark-content" />
+            
+            {/* Background Gradient */}
+            <LinearGradient 
+                colors={['rgba(249, 115, 22, 0.35)', 'rgba(249, 115, 22, 0)']} 
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 300, zIndex: 0 }} 
+                pointerEvents="none"
+            />
+
+            <SafeAreaView className="flex-1" edges={['top']}>
+                {/* Header */}
+                <View className="px-8 pt-6">
+                    <View className="flex-row items-center justify-between mb-8">
+                        <View className="flex-row items-center gap-4">
+                            <View>
+                                <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
+                                    {view === 'hub' ? 'ADMIN PANEL' : activeTab === 'marketplace' ? 'Store' : activeTab.toUpperCase()} <Text className="text-orange-500">{view === 'hub' ? 'PORTAL' : 'CORE'}</Text>
+                                </Text>
+                                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-0.5">
+                                    {view === 'hub' ? 'Control Center v2.0' : 'Operational Protocol'}
+                                </Text>
+                            </View>
+                        </View>
+                        {view === 'feature' && activeTab !== 'rewards' && activeTab !== 'messages' && activeTab !== 'reports' && activeTab !== 'users' && (
+                            <TouchableOpacity
+                                onPress={() => { resetForm(); setModalVisible(true); }}
+                                className="w-14 h-14 bg-zinc-900 rounded-2xl items-center justify-center shadow-2xl shadow-black/40"
+                            >
+                                <Ionicons name="add" size={28} color="white" />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+
+                    {view === 'feature' && activeTab === 'users' && (
+                        <View className="flex-row items-center bg-white p-1.5 rounded-2xl mb-8 border border-slate-100 shadow-sm">
+                            <View className="flex-row items-center flex-1 px-4 py-2.5">
+                                <Ionicons name="search" size={18} color="#64748B" />
+                                <TextInput 
+                                    className="flex-1 ml-3 text-[12px] font-black text-[#1A1A1A] uppercase tracking-[0.5px]"
+                                    placeholder="Search student signals..."
+                                    placeholderTextColor="#CBD5E1"
+                                    value={userSearch}
+                                    onChangeText={setUserSearch}
+                                    onSubmitEditing={() => {
+                                        if (userSearch.trim()) fetchAdminUsers(userSearch);
+                                        else setUsers([]);
+                                    }}
+                                    returnKeyType="search"
+                                />
+                                {userSearch ? (
+                                    <TouchableOpacity onPress={() => { setUserSearch(''); setUsers([]); }}>
+                                        <Ionicons name="close-circle" size={18} color="#94A3B8" />
+                                    </TouchableOpacity>
+                                ) : null}
+                            </View>
+                            <TouchableOpacity 
+                                onPress={() => {
+                                    if (userSearch.trim()) fetchAdminUsers(userSearch);
+                                    else setUsers([]);
+                                }}
+                                className="bg-[#1A1A1A] px-5 py-3 rounded-xl ml-2"
+                            >
+                                <Text className="text-white font-black text-[10px] uppercase tracking-[1px]">Search</Text>
+                            </TouchableOpacity>
+                        </View>
                     )}
                 </View>
 
-                {/* Tabs */}
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row p-1 bg-gray-100 rounded-2xl max-h-[50px]">
-                    <TouchableOpacity
-                        onPress={() => setActiveTab('ads')}
-                        className={`px-4 py-2.5 rounded-xl items-center ${activeTab === 'ads' ? 'bg-white' : ''}`}
-                    >
-                        <Text className={`font-bold text-xs ${activeTab === 'ads' ? 'text-zinc-900' : 'text-gray-500'}`}>Banner Ads</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => setActiveTab('media')}
-                        className={`px-4 py-2.5 rounded-xl items-center ${activeTab === 'media' ? 'bg-white' : ''}`}
-                    >
-                        <Text className={`font-bold text-xs ${activeTab === 'media' ? 'text-zinc-900' : 'text-gray-500'}`}>Fync Media</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => setActiveTab('marketplace')}
-                        className={`px-4 py-2.5 rounded-xl items-center ${activeTab === 'marketplace' ? 'bg-white' : ''}`}
-                    >
-                        <Text className={`font-bold text-xs ${activeTab === 'marketplace' ? 'text-zinc-900' : 'text-gray-500'}`}>Reward Items</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => setActiveTab('rewards')}
-                        className={`px-4 py-2.5 rounded-xl items-center ${activeTab === 'rewards' ? 'bg-white' : ''}`}
-                    >
-                        <Text className={`font-bold text-xs ${activeTab === 'rewards' ? 'text-zinc-900' : 'text-gray-500'}`}>Redemptions</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => setActiveTab('messages')}
-                        className={`px-4 py-2.5 rounded-xl items-center ${activeTab === 'messages' ? 'bg-white' : ''}`}
-                    >
-                        <Text className={`font-bold text-xs ${activeTab === 'messages' ? 'text-zinc-900' : 'text-gray-500'}`}>Contact Messages</Text>
-                    </TouchableOpacity>
-                </ScrollView>
-            </View>
-
-            {loading ? (
-                <View className="flex-1 items-center justify-center">
-                    <ActivityIndicator color="#ec4899" size="large" />
-                </View>
+            {view === 'hub' ? (
+                <HubView />
             ) : (
-                <FlatList
-                    data={activeTab === 'ads' ? ads : activeTab === 'marketplace' ? products : activeTab === 'rewards' ? redemptions : messages}
-                    keyExtractor={item => item._id}
-                    renderItem={({ item }) =>
-                        activeTab === 'ads' ?
-                            <AdItem item={item} onEdit={handleEdit} onDelete={handleDelete} /> :
-                            activeTab === 'media' ?
-                                <MediaItem item={item} onDelete={handleDelete} /> :
-                                activeTab === 'marketplace' ?
-                                    <MarketPlaceItem item={item} onEdit={handleEdit} onDelete={handleDelete} /> :
-                                    activeTab === 'rewards' ?
-                                        <RedemptionItem item={item} navigation={navigation} onToggleStatus={handleToggleStatus} /> :
-                                        <ContactMessageItem item={item} onDelete={handleDelete} onToggleRead={handleToggleMessageReadStatus} />
-                    }
-                    contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-                    showsVerticalScrollIndicator={false}
-                    ListEmptyComponent={
-                        <View className="mt-20 items-center">
-                            <Ionicons name={
-                                activeTab === 'ads' ? "image-outline" :
-                                    activeTab === 'media' ? "videocam-outline" :
-                                        activeTab === 'marketplace' ? "gift-outline" :
-                                            activeTab === 'rewards' ? "people-outline" :
-                                                "mail-outline"
-                            } size={48} color="#d1d5db" />
-                            <Text className="text-gray-500 mt-4 font-medium text-center">
-                                {activeTab === 'ads' ? 'No ads found' :
-                                    activeTab === 'media' ? 'No media found' :
+                loading ? (
+                    <View className="flex-1 items-center justify-center">
+                        <ActivityIndicator color="#ec4899" size="large" />
+                    </View>
+                ) : (
+                    <FlatList
+                        data={
+                            activeTab === 'ads' ? ads : 
+                            activeTab === 'marketplace' ? products : 
+                            activeTab === 'rewards' ? redemptions : 
+                            activeTab === 'reports' ? reports :
+                            activeTab === 'users' ? users :
+                            messages
+                        }
+                        keyExtractor={item => item._id}
+                        renderItem={({ item }) =>
+                            activeTab === 'ads' ?
+                                <AdItem item={item} onEdit={handleEdit} onDelete={handleDelete} /> :
+                                activeTab === 'media' ?
+                                    <MediaItem item={item} onDelete={handleDelete} /> :
+                                    activeTab === 'marketplace' ?
+                                        <MarketPlaceItem item={item} onEdit={handleEdit} onDelete={handleDelete} /> :
+                                        activeTab === 'rewards' ?
+                                            <RedemptionItem item={item} navigation={navigation} onToggleStatus={handleToggleStatus} /> :
+                                            activeTab === 'reports' ?
+                                                <ReportItem item={item} onDelete={handleDelete} /> :
+                                                activeTab === 'users' ?
+                                                    <UserItem item={item} onToggleBan={handleToggleBan} /> :
+                                                    <ContactMessageItem item={item} onDelete={handleDelete} onToggleRead={handleToggleMessageReadStatus} />
+                        }
+                        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+                        showsVerticalScrollIndicator={false}
+                        ListEmptyComponent={
+                            <View className="flex-1 items-center justify-center py-20">
+                                <Text className="text-gray-400 font-bold text-sm">
+                                    {activeTab === 'ads' ? 'No ads found' :
                                         activeTab === 'marketplace' ? 'No reward items found' :
                                             activeTab === 'rewards' ? 'No reward applications found' :
-                                                'No messages found'}
-                            </Text>
-                        </View>
-                    }
-                />
+                                                activeTab === 'reports' ? 'No reported posts' :
+                                                    activeTab === 'users' ? 'No users found' :
+                                                        'No messages found'}
+                                </Text>
+                            </View>
+                        }
+                    />
+                )
             )}
 
-            {/* Create/Edit Modal for Ads */}
             <Modal visible={modalVisible} animationType="slide" transparent>
                 <View className="flex-1 bg-black/50 justify-end">
                     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -834,7 +838,8 @@ const AdminPortal = ({ navigation }: any) => {
                     </KeyboardAvoidingView>
                 </View>
             </Modal>
-        </SafeAreaView>
+            </SafeAreaView>
+        </View>
     );
 };
 

@@ -1,30 +1,38 @@
 import express from 'express';
-import { createPost, updatePost, getPosts, deletePost, likePost, addComment, deleteComment, updateComment, getComments, getFeed, getFollowingPosts, getPostsByUserId, getPostByPostId, getSmartFeed } from '../controllers/post.controller.js';
+import { createPost, updatePost, getPosts, deletePost, likePost, votePost, addComment, deleteComment, updateComment, getComments, getFeed, getFollowingPosts, getPostsByUserId, getPostByPostId, getSmartFeed, reportPost, getReports, adminDeletePost } from '../controllers/post.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { cacheMiddleware } from '../middlewares/cache.middleware.js';
+import { createLimiter, feedLimiter } from '../middlewares/rateLimit.middleware.js';
 import { upload } from '../utils/r2.js';
 import { r2UploadMiddleware } from '../utils/r2Upload.js';
 const router = express.Router();
 
 // ── Specific named routes MUST come before wildcard /:id routes ──
-router.post('/create', authMiddleware, upload.array('image'), r2UploadMiddleware({ image: 'posts' }), createPost);
+router.post('/create', authMiddleware, createLimiter, upload.array('image'), r2UploadMiddleware({ image: 'posts' }), createPost);
 router.get('/posts', authMiddleware, cacheMiddleware(300), getPosts);
 
 // Feed routes
-router.get('/feed', authMiddleware, cacheMiddleware(60), getFeed);
-router.get('/feed/followers', authMiddleware, cacheMiddleware(60), getFollowingPosts);
+router.get('/feed', authMiddleware, feedLimiter, cacheMiddleware(60), getFeed);
+router.get('/feed/followers', authMiddleware, feedLimiter, cacheMiddleware(60), getFollowingPosts);
 router.get('/feed/:userId', authMiddleware, cacheMiddleware(1), getPostsByUserId);
 
 // Smart feed — POST so it can receive seenIds in the body
 // MUST be above /:id or Express will treat "smart-feed" as an ObjectId
-router.post('/smart-feed', authMiddleware, getSmartFeed);
+router.post('/smart-feed', authMiddleware, feedLimiter, getSmartFeed);
 
 // Comment routes
 router.post('/like/:id', authMiddleware, likePost);
+router.post('/vote/:id', authMiddleware, votePost);
 router.post('/comment/:id', authMiddleware, addComment);
 router.delete('/comment/:id', authMiddleware, deleteComment);
 router.post('/comment/update/:id', authMiddleware, updateComment);
 router.get('/comment/:id', authMiddleware, cacheMiddleware(60), getComments);
+
+// Report routes
+router.post('/report', authMiddleware, reportPost);
+router.get('/admin/reports', authMiddleware, getReports);
+router.post('/admin/delete-post', authMiddleware, adminDeletePost);
+
 
 // Individual post
 router.get('/individual/:postId', authMiddleware, cacheMiddleware(300), getPostByPostId);

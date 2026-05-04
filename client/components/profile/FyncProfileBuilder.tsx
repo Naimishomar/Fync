@@ -225,19 +225,27 @@ export default function FyncProfileBuilder() {
           <View className="px-2">
             <CompletenessBar pct={pct} />
 
-            <Pressable
-              onPress={() => setShowCodingModal(true)}
-              className="mx-4 mb-6 p-5 bg-white border border-slate-100 rounded-[28px] flex-row items-center shadow-sm shadow-black/5"
-            >
-              <View className="bg-zinc-900 p-3 rounded-2xl mr-4 shadow-lg shadow-black/10">
-                <Ionicons name="code-working" size={20} color="#f97316" />
+            {/* User Statistics Row */}
+            <View className="flex-row mx-4 mb-6 gap-4">
+              <View className="flex-1 bg-white border border-slate-100 rounded-[28px] p-5 shadow-sm shadow-black/5 items-center justify-center">
+                <View className="bg-orange-100 p-3 rounded-2xl mb-3">
+                   <Ionicons name="flame" size={24} color="#f97316" />
+                </View>
+                <Text className="text-zinc-900 text-2xl font-black tracking-tighter">{profile?.user?.highestStreak || 0}</Text>
+                <Text className="text-slate-400 text-[8px] font-black uppercase tracking-widest mt-1">Max Streak</Text>
               </View>
-              <View className="flex-1">
-                <Text className="text-zinc-900 text-xs font-black uppercase tracking-tight">Coding Profiles</Text>
-                <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mt-1">Add LeetCode, Codeforces & more to boost your score</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color="#f97316" />
-            </Pressable>
+              
+              <Pressable 
+                onPress={() => setShowCodingModal(true)}
+                className="flex-1 bg-white border border-slate-100 rounded-[28px] p-5 shadow-sm shadow-black/5 items-center justify-center"
+              >
+                <View className="bg-zinc-100 p-3 rounded-2xl mb-3">
+                   <Ionicons name="code-working" size={24} color="#18181b" />
+                </View>
+                <Text className="text-zinc-900 text-[10px] font-black uppercase tracking-widest text-center">Coding Profiles</Text>
+                <Text className="text-slate-400 text-[8px] font-bold uppercase tracking-wider mt-1">Boost Score</Text>
+              </Pressable>
+            </View>
 
             <FyncScoreCard userId={user?._id!} isOwner onRecalculate={fetchProfile} />
             <GitHubStatsCard

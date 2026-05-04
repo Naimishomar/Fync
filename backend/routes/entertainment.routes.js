@@ -9,10 +9,16 @@ import {
   getByGenre,
   getMovieDetails, 
   searchMovies, 
-  getMovieTrailers 
+  getMovieTrailers,
+  getEntertainmentHome,
+  getTrailersBatch
 } from '../controllers/entertainment.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 
+import { cacheMiddleware } from '../middlewares/cache.middleware.js';
+
+router.get('/home', authMiddleware, cacheMiddleware(3600), getEntertainmentHome);
+router.get('/trailers-batch', authMiddleware, cacheMiddleware(21600), getTrailersBatch);
 router.get('/trending', authMiddleware, getTrending);
 router.get('/popular', authMiddleware, getPopular);
 router.get('/upcoming', authMiddleware, getUpcoming);

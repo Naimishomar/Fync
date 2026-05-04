@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import User from '../models/user.model.js';
 import jwt from 'jsonwebtoken';
@@ -6,6 +7,10 @@ import { customAlphabet } from 'nanoid';
 import sendMail from '../utils/emailOtp.js';
 import OTP from '../models/otp.model.js';
 import Notification from '../models/notification.model.js';
+import Post from '../models/post.model.js';
+import Shorts from '../models/shorts.model.js';
+import Report from '../models/report.model.js';
+import Comment from '../models/comment.model.js';
 import { clearCache } from '../middlewares/cache.middleware.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/token.js';
 import { deleteFromR2 } from '../utils/r2.js';
@@ -582,12 +587,18 @@ export const updateUser = async (req, res) => {
 };
 
 
+import { checkAndResetStreak } from '../utils/streak.js';
+
 export const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    let user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found, please login" });
     }
+    
+    // Lazy reset streak if missed
+    user = await checkAndResetStreak(user);
+
     const userObj = user.toObject();
     return res.status(200).json({ success: true, message: "User fetched successfully", user: userObj });
   } catch (error) {
@@ -902,8 +913,91 @@ export const savePushToken = async (req, res) => {
     }
     return res.status(200).json({ success: true, message: "Push token saved successfully" });
   } catch (error) {
-    console.error("Save Push Token Error:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
+export const getUsersForAdmin = async (req, res) => {
+  try {
+    // Defense in depth check
+    if (req.user.user_access !== 'admin') {
+        return res.status(403).json({ success: false, message: "Unauthorized." });
+    }
+
+    const { search = "" } = req.query;
+    
+    if (!search || search.trim() === "") {
+        return res.status(200).json({ success: true, users: [] });
+    }
+
+    const query = { $or: [{ name: { $regex: search, $options: "i" } }, { username: { $regex: search, $options: "i" } }, { email: { $regex: search, $options: "i" } }] };
+    
+    const users = await User.find(query)
+      .select('name username email avatar isBanned user_access createdAt')
+      .sort({ createdAt: -1 })
+      .limit(50);
+      
+    return res.status(200).json({ success: true, users });
+  } catch (error) {
+    console.error("Get Users Admin Error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const banUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { isBanned } = req.body;
+
+    // Double check admin privileges (defense in depth)
+    if (req.user.user_access !== 'admin') {
+        return res.status(403).json({ success: false, message: "Unauthorized. Admin access required." });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (user.user_access === 'admin') {
+      return res.status(400).json({ success: false, message: "Cannot ban an administrator" });
+    }
+
+    if (isBanned) {
+        // If banning, perform full deletion of user and their data as requested
+        
+        // Find user posts first to avoid race condition with Promise.all
+        const userPosts = await mongoose.model('Post').find({ user: userId }).distinct('_id');
+        
+        await Promise.all([
+            mongoose.model('Post').deleteMany({ user: userId }),
+            mongoose.model('Shorts').deleteMany({ user: userId }),
+            mongoose.model('Report').deleteMany({ $or: [{ reporter: userId }, { post: { $in: userPosts } }] }),
+            mongoose.model('Comment').deleteMany({ user: userId }),
+            mongoose.model('Notification').deleteMany({ $or: [{ recipient: userId }, { sender: userId }] }),
+            User.findByIdAndDelete(userId)
+        ]);
+
+        return res.status(200).json({ 
+            success: true, 
+            message: "User profile and all associated data have been permanently deleted and banned.",
+            isDeleted: true
+        });
+    }
+
+    // This part would only run for unbanning, but since we delete above, 
+    // unbanning isn't possible if they were deleted. 
+    // We'll keep the basic toggle logic for any other cases.
+    user.isBanned = isBanned;
+    await user.save();
+
+    return res.status(200).json({ 
+        success: true, 
+        message: isBanned ? "User has been banned" : "User has been unbanned",
+        isBanned: user.isBanned
+    });
+  } catch (error) {
+    console.error("Ban User Error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};

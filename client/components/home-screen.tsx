@@ -23,7 +23,7 @@ import {
   useWindowDimensions,
   StatusBar
 } from 'react-native';
-import { Sparkles, Mic, Briefcase, Trophy, Rocket, Crown, MessageCircle, Megaphone, Users } from 'lucide-react-native';
+import { Sparkles, Mic, Briefcase, Trophy, Rocket, Crown, MessageCircle, Megaphone, Users, Code } from 'lucide-react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Reanimated, { Layout, FadeIn, FadeOut } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -46,6 +46,8 @@ import {
   resetSeenPosts,
 } from '../utils/feedSession';
 import { BlurView } from 'expo-blur';
+import StreakLeaderboardModal from './StreakLeaderboardModal';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
@@ -265,7 +267,6 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
     item.downvoted_by?.includes(currentUser?._id) ? 'down' : null
   );
   const [score, setScore] = useState(item.score || (item.likes || 0));
-  const [saved, setSaved] = useState(item.saved_by?.includes(currentUser?._id));
   const [reposted, setReposted] = useState(item.reposted_by?.includes(currentUser?._id));
   const [repostCount, setRepostCount] = useState(item.reposts || 0);
   const [viewCount] = useState(item.views || 0);
@@ -314,15 +315,6 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
     }
   };
 
-  const handleSave = async () => {
-    const prevSaved = saved;
-    setSaved(!prevSaved);
-    try {
-      await axios.post(`/post/save/${item._id}`);
-    } catch (error) {
-      setSaved(prevSaved);
-    }
-  };
 
   const handleRepost = () => {
     Alert.alert("Repost", "Share this post on your feed?", [
@@ -386,16 +378,37 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
               </View>
             )}
           </Pressable>
-          <View className="ml-2 flex-row items-center">
-            <Text className="text-zinc-900 font-bold text-[14px]">u/{item.user?.username || "Unknown"}</Text>
+          <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })} className="ml-2 flex-row items-center">
+            <Text className="text-zinc-900 font-bold text-[14px]">{item.user?.username || "Unknown"}</Text>
             <Text className="text-gray-400 text-[14px] mx-1">·</Text>
             <Text className="text-gray-500 text-[14px] font-medium">{timeAgo(item.createdAt)}</Text>
-          </View>
+          </Pressable>
         </View>
         <Pressable onPress={() => {
+          const isOwner = item.user?._id === currentUser?._id;
           Alert.alert("Post Options", undefined , [
             { text: "Cancel", style: "cancel"},
-            { text: "Delete Post", style: "destructive", onPress: () => onDeletePost(item._id) }
+            isOwner ? { 
+              text: "Delete Post", 
+              style: "destructive", 
+              onPress: () => onDeletePost(item._id) 
+            } : { 
+              text: "Report Post", 
+              style: "destructive", 
+              onPress: () => {
+                Alert.alert("Report", "Are you sure you want to report this post?", [
+                  { text: "Cancel", style: "cancel" },
+                  { text: "Report", style: "destructive", onPress: async () => {
+                    try {
+                      await axios.post('/post/report', { postId: item._id, reason: "Inappropriate content" });
+                      Alert.alert("Success", "Post has been reported to administrators.");
+                    } catch (e) {
+                      Alert.alert("Error", "Failed to report post.");
+                    }
+                  }}
+                ]);
+              }
+            }
           ]);
         }} className="p-1">
           <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
@@ -428,17 +441,28 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
           renderItem={({ item: imageUrl }) => (
-            <Pressable onPress={() => setResizeMode(prev => !prev)}>
-              <ExpoImage
-                source={{ uri: imageUrl }}
-                style={{ width: width - 24, height: width - 24, borderRadius: 12 }}
-                contentFit={resizeMode ? "contain" : "cover"}
-                cachePolicy="disk"
-                transition={200}
-              />
-            </Pressable>
+            <View style={{ width: width - 24 }}>
+              <Pressable onPress={() => setResizeMode(prev => !prev)}>
+                <ExpoImage
+                  source={{ uri: imageUrl }}
+                  style={{ width: width - 24, height: width - 24, borderRadius: 12 }}
+                  contentFit={resizeMode ? "contain" : "cover"}
+                  cachePolicy="disk"
+                  transition={200}
+                />
+              </Pressable>
+            </View>
           )}
         />
+        
+        {/* Image Counter (Top Right) */}
+        {(item.image?.length || 0) > 1 && (
+          <View className="absolute top-3 right-3 bg-black/50 px-2 py-1 rounded-lg">
+            <Text className="text-white text-[10px] font-bold">
+              {activeIndex + 1}/{(item.image?.length || 0)}
+            </Text>
+          </View>
+        )}
         {(item.image?.length || 0) > 1 && (
           <View className="flex-row justify-center gap-1.5 absolute bottom-4 w-full">
             {(item.image || []).map((_, i) => (
@@ -483,13 +507,6 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
 
         <View className="flex-1" />
 
-        {/* Bookmark (Right Aligned) */}
-        <Pressable 
-          onPress={handleSave}
-          className={`p-2 rounded-full ${saved ? 'bg-indigo-50' : 'bg-transparent'}`}
-        >
-          <Ionicons name={saved ? "bookmark" : "bookmark-outline"} size={17} color={saved ? "#1D9BF0" : "#536471"} />
-        </Pressable>
       </View>
     </View>
   );
@@ -501,6 +518,15 @@ export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const [profileImage, setProfileImage] = useState<string | undefined>('');
   const [activeTab, setActiveTab] = useState<'forYou' | 'following'>('forYou');
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+
+  const [forYouFeed, setForYouFeed] = useState<Post[]>([]);
+  const [followingFeed, setFollowingFeed] = useState<Post[]>([]);
+  const [forYouPage, setForYouPage] = useState(1);
+  const [followingPage, setFollowingPage] = useState(1);
+  const [forYouHasMore, setForYouHasMore] = useState(true);
+  const [followingHasMore, setFollowingHasMore] = useState(true);
+  const [followingLoadedOnce, setFollowingLoadedOnce] = useState(false);
 
   const [feed, setFeed] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
@@ -521,80 +547,89 @@ export default function HomeScreen() {
 
 
   const fetchFeed = useCallback(async (pageNum: number, shouldRefresh = false) => {
-    if (!hasMore && !shouldRefresh && pageNum !== 1) return;
+    const currentHasMore = activeTab === 'forYou' ? forYouHasMore : followingHasMore;
+    if (!currentHasMore && !shouldRefresh && pageNum !== 1) return;
 
     if (pageNum === 1) setLoading(true);
     if (pageNum > 1) setLoadingMore(true);
 
     try {
+      let newPosts: Post[] = [];
+      let serverHasMore = true;
+
       if (activeTab === 'following') {
         const res = await axios.get(`/post/feed/followers?page=${pageNum}&limit=10`);
         if (res.data.success) {
-          const newPosts = res.data.posts;
-          if (shouldRefresh || pageNum === 1) setFeed(newPosts);
-          else setFeed(prev => {
-            const ids = new Set(prev.map(p => p._id));
-            return [...prev, ...newPosts.filter((p: Post) => !ids.has(p._id))];
-          });
-          setHasMore(newPosts.length >= 10);
+          newPosts = res.data.posts;
+          serverHasMore = newPosts.length >= 10;
         }
-        return;
+      } else {
+        const seenIds = await getSeenPostIds();
+        const res = await axios.post(`/post/smart-feed?page=${pageNum}&limit=10`, {
+          seenIds,
+        });
+
+        if (res.data.success) {
+          newPosts = res.data.posts;
+          serverHasMore = res.data.hasMore ?? newPosts.length >= 10;
+          if (newPosts.length > 0) markPostsAsSeen(newPosts.map((p: Post) => p._id));
+          if (res.data.mode === 'recycled') resetSeenPosts();
+        }
       }
 
-      const seenIds = await getSeenPostIds();
-      const res = await axios.post(`/post/smart-feed?page=${pageNum}&limit=10`, {
-        seenIds,
-      });
-
-      if (res.data.success) {
-        const newPosts = res.data.posts;
-
-        if (shouldRefresh || pageNum === 1) {
-          setFeed(newPosts);
-        } else {
-          setFeed(prev => {
-            const existingIds = new Set(prev.map(p => p._id));
-            const uniqueNew = newPosts.filter((p: Post) => !existingIds.has(p._id));
-            return [...prev, ...uniqueNew];
-          });
-        }
-
-        setHasMore(res.data.hasMore ?? newPosts.length >= 10);
-
-        if (newPosts.length > 0) {
-          markPostsAsSeen(newPosts.map((p: Post) => p._id));
-        }
-
-        if (res.data.mode === 'recycled') {
-          resetSeenPosts();
-        }
+      // Update the specific tab state and the active feed
+      if (activeTab === 'forYou') {
+        const updatedForYou = (shouldRefresh || pageNum === 1) ? newPosts : [...forYouFeed, ...newPosts.filter(p => !forYouFeed.find(fp => fp._id === p._id))];
+        setForYouFeed(updatedForYou);
+        setForYouHasMore(serverHasMore);
+        setForYouPage(pageNum);
+        setFeed(updatedForYou);
+        setHasMore(serverHasMore);
+        setPage(pageNum);
+      } else {
+        const updatedFollowing = (shouldRefresh || pageNum === 1) ? newPosts : [...followingFeed, ...newPosts.filter(p => !followingFeed.find(fp => fp._id === p._id))];
+        setFollowingFeed(updatedFollowing);
+        setFollowingHasMore(serverHasMore);
+        setFollowingPage(pageNum);
+        setFollowingLoadedOnce(true);
+        setFeed(updatedFollowing);
+        setHasMore(serverHasMore);
+        setPage(pageNum);
       }
     } catch (error) {
       console.log('Failed to load feed', error);
-      try {
-        const res = await axios.get(`/post/feed?page=${pageNum}&limit=10`);
-        if (res.data.success) {
-          const newPosts = res.data.posts;
-          if (shouldRefresh || pageNum === 1) setFeed(newPosts);
-          else setFeed(prev => [...prev, ...newPosts]);
-          setHasMore(newPosts.length >= 10);
-        }
-      } catch { /* silent */ }
     } finally {
       setLoading(false);
       setLoadingMore(false);
       setRefreshing(false);
     }
-  }, [activeTab, hasMore]);
+  }, [activeTab, forYouFeed, followingFeed, forYouHasMore, followingHasMore]);
 
   useEffect(() => {
     if (user) {
       setProfileImage(user.avatar);
-      setPage(1);
-      setHasMore(true);
-      checkAndStartSession().then(() => {
+      
+      // Smart Tab Switching Logic
+      if (activeTab === 'following' && !followingLoadedOnce) {
+        // First time switching to Following - Load it
+        setFeed([]); 
+        setRefreshing(true);
+        checkAndStartSession().then(() => fetchFeed(1, true));
+      } else if (activeTab === 'following' && followingLoadedOnce) {
+        // Already loaded Following - Use cache
+        setFeed(followingFeed);
+        setHasMore(followingHasMore);
+        setPage(followingPage);
+      } else if (activeTab === 'forYou' && forYouFeed.length > 0) {
+        // Switching back to For You - Use cache
+        setFeed(forYouFeed);
+        setHasMore(forYouHasMore);
+        setPage(forYouPage);
+      } else {
+        // Initial Load or For You load
+        setRefreshing(true);
         fetchFeed(1, true);
-      });
+      }
     }
   }, [user, activeTab]);
 
@@ -691,9 +726,25 @@ export default function HomeScreen() {
       </View>
 
       <View className="flex-row items-center gap-5">
+        {/* Streak Display */}
+        <TouchableOpacity 
+          onPress={() => setShowLeaderboard(true)}
+          className="flex-row items-center bg-orange-100 px-3 py-1.5 rounded-full border border-orange-200"
+        >
+          <MaterialCommunityIcons 
+            name="fire" 
+            size={20} 
+            color={(user as any)?.streakCount > 0 ? "#f97316" : "#f97316"} 
+          />
+          <Text className={`font-black text-sm ml-1 ${(user as any)?.streakCount > 0 ? "text-orange-600" : "text-orange-400"}`}>
+            {(user as any)?.streakCount || 0}
+          </Text>
+        </TouchableOpacity>
+
         <Pressable onPress={() => navigation.navigate('SearchScreen')}>
           <Ionicons name="search-outline" size={26} color="#1A1A1A" />
         </Pressable>
+
         <Pressable onPress={() => navigation.navigate('Notification')}>
           <View>
             <Ionicons name="heart-outline" size={26} color="#1A1A1A" />
@@ -755,6 +806,8 @@ export default function HomeScreen() {
     );
   };
   const features = useMemo(() => [
+    { id: 'contest', name: 'Contests', Icon: Code, colorHex: '#4f46e5', bgClass: 'bg-indigo-50', sparkle: true, onPress: () => navigation.navigate('DSAAndDevelopmentContest') },
+    { id: 'partyPool', name: 'Party Pool', Icon: Sparkles, colorHex: '#db2777', bgClass: 'bg-pink-50', sparkle: true, onPress: () => navigation.navigate('PartyPool') },
     { id: 'entertainment', name: 'Movies', Icon: Mic, colorHex: '#e11d48', bgClass: 'bg-rose-50', sparkle: true, onPress: () => navigation.navigate('EntertainmentHome') },
     { id: 'fyncMedia', name: 'Fync Media', Icon: Mic, colorHex: '#f43f5e', bgClass: 'bg-rose-50', sparkle: false, onPress: () => navigation.navigate('FyncMediaFeed') },
     { id: 'jobs', name: 'Jobs', Icon: Briefcase, colorHex: '#3b82f6', bgClass: 'bg-blue-50', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
@@ -877,10 +930,10 @@ const renderFeatureStories = () => {
         onCommentAdded={handleCommentAddedInModal}
       />
 
-      {/* Background Protocol Gradient Overlay */}
-      {/* <View pointerEvents="none" className="absolute top-0 w-full h-60 opacity-20">
-        <LinearGradient colors={['#f97416ff', 'transparent']} className="w-full h-full" />
-      </View> */}
+      <StreakLeaderboardModal 
+        isVisible={showLeaderboard} 
+        onClose={() => setShowLeaderboard(false)} 
+      />
 
     </View>
   );

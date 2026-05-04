@@ -74,20 +74,12 @@ import codingBattleSockets from './controllers/coding/battle.socket.js';
 import compression from 'compression';
 import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
-
-const limiter = rateLimit({
-  windowMs: 1 * 60 * 1000,
-  max: 100,
-  message: "Too many requests from this IP, please try again later",
-});
+import { monitoringMiddleware } from './middlewares/monitoring.middleware.js';
+import { generalLimiter } from './middlewares/rateLimit.middleware.js';
 
 const app = express();
-app.use(limiter);
+app.use(generalLimiter);
 
-app.use((req, res, next) => {
-  console.log(`📡 [${new Date().toISOString()}] ${req.method} ${req.url}`);
-  next();
-});
 
 const server = http.createServer(app);
 const PORT = process.env.PORT || 8000;
@@ -121,10 +113,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-  console.log(`🔍 [${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
-  next();
-});
+app.use(monitoringMiddleware);
 
 app.use(cookieParser());
 // app.use(mongoSanitize());
@@ -141,10 +130,7 @@ app.use('/communities', communityRoute);
 app.use('/api/communities', communityRoute);
 app.use('/subscription', subscriptionRoute);
 app.use('/api/subscription', subscriptionRoute);
-app.use('/shorts', (req, res, next) => {
-  console.log(`📡 [MainIndex] Handing request to ShortRouter: ${req.method} ${req.url}`);
-  next();
-}, shortRoute);
+app.use('/shorts', shortRoute);
 app.use('/funding', fundingRoute);
 app.use('/quiz', quizRoute);
 app.use('/interview', interviewRoute);
@@ -182,37 +168,49 @@ app.use('/arena', arenaRoute);
 app.use('/arena/admin', arenaAdminRoute);
 app.use('/entertainment', entertainmentRoute);
 
-// Start Contest Monitor (runs every 60s)
-setInterval(() => {
-  ContestManager.monitorContests(io);
-}, 60000);
-socketController(io);
-setCollegeChatIo(io);
-setAlumniChatIo(io);
-setMentorshipIo(io);
-setEventCommunityIo(io);
-setCommunityIo(io);
-setClubIo(io);
-initCollegeChatCleanup();
-initMentorshipCleanup();
-initNightClubCleanup();
-initAlumniChatCleanup();
-initCommunityCleanup();
-initFyncMediaCleanup();
-startCleanupCron();
-app.get('/', (req, res) => {
-  res.send('Fync never gets down!🚀');
-});
 const startServer = async () => {
   try {
+    // 1. Connect to Database First
     await connectDB();
+    console.log("✅ Database Connected");
+
+    // 2. Initialize Core Services
+    socketController(io);
+    setCollegeChatIo(io);
+    setAlumniChatIo(io);
+    setMentorshipIo(io);
+    setEventCommunityIo(io);
+    setCommunityIo(io);
+    setClubIo(io);
+
+    // 3. Initialize Monitors & Cleanups
+    initCollegeChatCleanup();
+    initMentorshipCleanup();
+    initNightClubCleanup();
+    initAlumniChatCleanup();
+    initCommunityCleanup();
+    initFyncMediaCleanup();
     initEventCleanup();
+    startCleanupCron();
+
+    // 4. Start Contest Monitor
+    setInterval(() => {
+      ContestManager.monitorContests(io);
+    }, 60000);
+
+    // 5. Start Listening
     server.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}🚀`);
+      console.log(`🚀 Server is running on port ${PORT}`);
     });
+
   } catch (err) {
-    console.error("Critical: Failed to start server:", err);
+    console.error("❌ Critical: Failed to start server:", err);
     process.exit(1);
   }
 };
+
+app.get('/', (req, res) => {
+  res.send('Fync never gets down!🚀');
+});
+
 startServer();

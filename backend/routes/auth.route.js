@@ -23,11 +23,14 @@ import {
   savePushToken,
   registerRecruiter,
   sendRecruiterOTP,
-  verifyRecruiterOTP
+  verifyRecruiterOTP,
+  getUsersForAdmin,
+  banUser
 } from '../controllers/auth.controller.js';
+import { getStreakLeaderboard } from '../controllers/streak.controller.js';
 import { getDevelopers } from '../controllers/developer.controller.js'
 import { otpLimiter } from '../middlewares/otpLimiter.js';
-import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { authMiddleware, isAdmin } from '../middlewares/auth.middleware.js';
 import { cacheMiddleware } from '../middlewares/cache.middleware.js';
 import { upload } from '../utils/r2.js';
 import { r2UploadMiddleware } from '../utils/r2Upload.js';
@@ -58,10 +61,15 @@ router.post('/unfollow/:id', authMiddleware, unfollowUser);
 router.get('/followers/:id', authMiddleware, cacheMiddleware(3600), getFollowers);
 router.get('/following/:id', authMiddleware, cacheMiddleware(3600), getFollowing);
 router.get('/logout', authMiddleware, logout);
+router.get('/streak-leaderboard', authMiddleware, getStreakLeaderboard);
 router.post('/save-push-token', authMiddleware, savePushToken);
 
 //Developer Routes
 router.get('/find-team', authMiddleware, getDevelopers);
+
+// Admin Routes
+router.get('/admin/users', authMiddleware, isAdmin, getUsersForAdmin);
+router.post('/admin/ban/:userId', authMiddleware, isAdmin, banUser);
 
 
 export default router; 

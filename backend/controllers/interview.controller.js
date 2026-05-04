@@ -2,7 +2,7 @@ import Groq from "groq-sdk";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import InterviewSession from "../models/interview.model.js";
-import { cloudinary } from "../utils/cloudinary.js";
+import { deleteFromR2 } from "../utils/r2.js";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const pdf = require("pdf-parse");
@@ -22,23 +22,22 @@ const razorpay = new Razorpay({
 
 const deleteInterviewAssets = async (session) => {
     try {
+        const deletions = [];
+        
+        // Audio assets cleanup
         if (session.audioPublicIds?.length) {
-            await cloudinary.api.delete_resources(session.audioPublicIds, {
-                resource_type: "raw",
-            });
-            console.log("✅ Audio assets deleted");
+            session.audioPublicIds.forEach(url => deletions.push(deleteFromR2(url)));
         }
+        
+        // Resume asset cleanup
         if (session.resumePublicId) {
-            await cloudinary.uploader.destroy(session.resumePublicId, { 
-                resource_type: "image" 
-            });
-            await cloudinary.uploader.destroy(session.resumePublicId, { 
-                resource_type: "raw" 
-            });
-            console.log("✅ Resume asset deleted");
+            deletions.push(deleteFromR2(session.resumePublicId));
         }
+        
+        await Promise.allSettled(deletions);
+        console.log("✅ Interview assets cleaned up from R2");
     } catch (err) {
-        console.log("⚠️ Cleanup warning:", err.message);
+        console.log("⚠️ R2 Cleanup warning:", err.message);
     }
 };
 

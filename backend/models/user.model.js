@@ -357,6 +357,22 @@ const userSchema = new mongoose.Schema({
     resumeUrl: {
         type: String,
         default: null
+    },
+    streakCount: {
+        type: Number,
+        default: 0
+    },
+    highestStreak: {
+        type: Number,
+        default: 0
+    },
+    lastPostDate: {
+        type: Date,
+        default: null
+    },
+    isBanned: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 

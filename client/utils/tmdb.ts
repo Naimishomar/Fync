@@ -1,5 +1,17 @@
 import axios from '../context/axiosConfig';
 
+export const fetchEntertainmentHome = async () => {
+  const response = await axios.get('/entertainment/home');
+  return response.data.data;
+};
+
+export const fetchTrailersBatch = async (ids: number[]) => {
+  const response = await axios.get('/entertainment/trailers-batch', {
+    params: { ids: ids.join(',') },
+  });
+  return response.data.trailers;
+};
+
 export const fetchTrendingMovies = async () => {
   const response = await axios.get('/entertainment/trending');
   return response.data.results;

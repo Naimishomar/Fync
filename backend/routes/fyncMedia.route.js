@@ -4,7 +4,7 @@ import {
   likeAndUnlikeMedia, dislikeAndUndislikeMedia, addMediaComment, getMediaComments, deleteMediaComment
 } from '../controllers/fync media/fyncMedia.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
-import { fyncMediaCombinedUpload } from '../utils/cloudinary.js';
+import { fyncMediaCombinedUpload } from '../utils/r2.js';
 
 const router = express.Router();
 

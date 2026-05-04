@@ -98,6 +98,7 @@ export const uploadToR2 = async (buffer, folder, originalname, mimetype) => {
         Key: key,
         Body: uploadBuffer,
         ContentType: uploadMime,
+        CacheControl: "public, max-age=2592000, stale-while-revalidate=86400", // 30 days cache, 1 day stale grace
       })
     );
     console.log(`✅ Upload success: ${key}`);

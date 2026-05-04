@@ -4,7 +4,6 @@ import RegisterBootcamp from "../../models/events/registerBootcamp.model.js";
 import RegisterSpeakerSession from "../../models/events/registerSpeakerSession.model.js";
 import EventMessage from "../../models/events/eventMessage.model.js";
 import User from "../../models/user.model.js";
-import { uploadToCloudinary } from "../../utils/cloudinary.js"; // Assuming this exists
 import QRCode from 'qrcode';
 
 let io;

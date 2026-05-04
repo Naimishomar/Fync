@@ -22,7 +22,10 @@ interface UserSuggestion {
   avatar: string;
 }
 
+import { useAuth } from '../context/auth.context';
+
 function CreatePost() {
+  const { user, setUser } = useAuth();
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -160,6 +163,15 @@ function CreatePost() {
 
       if (res.data.success) {
         Toast.show({ type: 'success', text1: 'Posted successfully!' });
+        
+        // Update local streak count if returned
+        if (res.data.streakCount !== undefined && res.data.streakCount !== null) {
+          setUser((prev: any) => ({
+            ...prev,
+            streakCount: res.data.streakCount
+          }));
+        }
+
         setDescription('');
         setImages([]);
         setMentions([]);

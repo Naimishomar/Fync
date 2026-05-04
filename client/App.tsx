@@ -129,7 +129,7 @@ import ClubAdminPanel from './components/club/ClubAdminPanel';
 import FyncMediaFeed from './components/FyncMediaFeed';
 import FocusProductivity from './components/focus/FocusProductivity';
 import AdminPortal from './components/admin/AdminPortal';
-
+import DSAAndDevelopmentContest from './components/contest/DSAAndDevelopmentContest';
 import SubscriptionGuard from './components/newFeatures/SubscriptionGuard';
 import PlacementPredictor from './components/newFeatures/PlacementPredictor';
 
@@ -158,6 +158,7 @@ import MovieSearch from './components/entertainment/MovieSearch';
 import MovieList from './components/entertainment/MovieList';
 // Daily Hubs
 import DailyRoutineHubDashboard from './components/dailyHubs/DailyRoutineHubDashboard';
+import PartyPoolHub from './components/partyPool/PartyPoolHub';
 
 
 // Daily Hub Utilities
@@ -297,6 +298,7 @@ export type RootStackParamList = {
   FyncMediaFeed: undefined;
   CreateFundingFeed: { project?: any } | undefined;
   AdminPortal: undefined;
+  DSAAndDevelopmentContest: undefined;
   ContactUs: undefined;
   MeetOurTeam: undefined;
   // Hackathon Ecosystem
@@ -318,6 +320,7 @@ export type RootStackParamList = {
   MovieList: { title: string; type: 'trending' | 'popular' | 'upcoming' | 'bollywood' };
   // Daily Hubs
   DailyRoutineHub: undefined;
+  PartyPool: undefined;
 };
 
 
@@ -465,6 +468,7 @@ function AppStack() {
       <Stack.Screen name="FyncMediaFeed" component={FyncMediaFeed} />
       <Stack.Screen name="CreateFundingFeed" component={CreateFundingFeed} />
       <Stack.Screen name="AdminPortal" component={AdminPortal} />
+      <Stack.Screen name="DSAAndDevelopmentContest" component={DSAAndDevelopmentContest} />
       <Stack.Screen name="ContactUs" component={ContactUs} />
       <Stack.Screen name="MeetOurTeam" component={MeetOurTeam} />
       {/* Hackathon Ecosystem */}
@@ -488,6 +492,7 @@ function AppStack() {
       
       {/* Daily Hubs */}
       <Stack.Screen name="DailyRoutineHub" component={DailyRoutineHubDashboard} />
+      <Stack.Screen name="PartyPool" component={PartyPoolHub} />
     </Stack.Navigator>
   );
 }

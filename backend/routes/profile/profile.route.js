@@ -13,10 +13,12 @@ import { addEducation, updateEducation, deleteEducation, updateCodingStats } fro
 import { resumeUpload, upload } from "../../utils/r2.js";
 import { r2UploadMiddleware } from "../../utils/r2Upload.js";
 
+import { cacheMiddleware } from "../../middlewares/cache.middleware.js";
+
 const router = express.Router();
 
 // ─── Full Profile ─────────────────────────────────────────────────────────────
-router.get("/full/:userId",        verifyToken, getFullProfile);
+router.get("/full/:userId",        verifyToken, cacheMiddleware(300), getFullProfile);
 router.patch("/visibility",        verifyToken, updateVisibility);
 
 // ─── Projects ─────────────────────────────────────────────────────────────────
@@ -42,7 +44,7 @@ router.patch("/certificates/:id",                 verifyToken, upload.single('im
 router.delete("/certificates/:id",               verifyToken, deleteCertificate);
 
 // ─── Fync Score ───────────────────────────────────────────────────────────────
-router.get("/score/:userId",                      verifyToken, getScore);
+router.get("/score/:userId",                      verifyToken, cacheMiddleware(300), getScore);
 router.post("/score/recalculate",                 verifyToken, recalculateScore);
 
 // ─── GitHub OAuth ─────────────────────────────────────────────────────────────

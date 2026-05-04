@@ -64,7 +64,7 @@ interface ShortItem {
 
 /* ---------------- GLOBAL CACHE ---------------- */
 let globalShortsCache: ShortItem[] = [];
-let globalCurrentPage = 1;
+let globalNextCursor: string | null = null;
 let globalHasMore = true;
 
 /* ---------------- COMPONENT ---------------- */
@@ -271,21 +271,19 @@ export default function Shorts() {
 
   /* ---------------- FETCH ---------------- */
 
-  const fetchShorts = async (page = 1, shouldRefresh = false) => {
-    if (!globalHasMore && !shouldRefresh && page !== 1) return;
-    if (page === 1) setLoading(true);
-    if (page > 1) setLoadingMore(true);
+  const fetchShorts = async (cursor: string | null = null, shouldRefresh = false) => {
+    if (!globalHasMore && !shouldRefresh && cursor !== null) return;
+    if (cursor === null) setLoading(true);
+    if (cursor !== null) setLoadingMore(true);
 
     try {
-      // ── Get seen IDs from AsyncStorage (zero DB load) ──────────
       const seenIds = await getSeenShortIds();
 
-      // ── Call AI smart endpoint ─────────────────────────────
-      const res = await axios.post(`/shorts/smart?page=${page}`, { seenIds });
+      const res = await axios.post(`/shorts/smart?cursor=${cursor || ''}`, { seenIds });
 
       if (res.data.success) {
         const newShorts = res.data.shorts;
-        if (shouldRefresh || page === 1) {
+        if (shouldRefresh || cursor === null) {
           globalShortsCache = newShorts;
           setShorts(newShorts);
           if (newShorts.length > 0 && !activeVideoId) setActiveVideoId(newShorts[0]._id);
@@ -294,37 +292,31 @@ export default function Shorts() {
           setShorts(globalShortsCache);
         }
 
-        globalCurrentPage = page;
+        globalNextCursor = res.data.nextCursor || (newShorts.length > 0 ? newShorts[newShorts.length - 1]._id : null);
         globalHasMore = res.data.hasMore ?? newShorts.length >= 10;
 
-        // ── Mark as seen in AsyncStorage (zero DB write) ─────────
         if (newShorts.length > 0) {
           markShortsAsSeen(newShorts.map((s: ShortItem) => s._id));
         }
 
-        // ── Limited-content magic ─────────────────────────────────
-        // Backend returns 'recycled' when user has seen all shorts.
-        // Immediately clear seenIds so next swipe-refresh is fresh
-        // and AI scoring gives a different order every time.
         if (res.data.mode === 'recycled') {
           resetSeenShorts();
         }
       }
     } catch (err) {
-      // Graceful fallback to original endpoint
       try {
-        const res = await axios.get(`/shorts/get/shorts?page=${page}`);
+        const res = await axios.get(`/shorts/all?cursor=${cursor || ''}`);
         if (res.data.success) {
           const newShorts = res.data.shorts;
-          if (shouldRefresh || page === 1) {
+          if (shouldRefresh || cursor === null) {
             globalShortsCache = newShorts;
             setShorts(newShorts);
           } else {
             globalShortsCache = [...globalShortsCache, ...newShorts];
             setShorts(globalShortsCache);
           }
-          globalCurrentPage = page;
-          globalHasMore = newShorts.length >= 10;
+          globalNextCursor = res.data.nextCursor;
+          globalHasMore = res.data.hasMore;
         }
       } catch { /* silent */ }
     } finally {
@@ -336,15 +328,14 @@ export default function Shorts() {
 
   useEffect(() => {
     if (globalShortsCache.length === 0) {
-      // Session-aware: clears seen list if app was closed >30 min
-      checkAndStartSession().then(() => fetchShorts(1, true));
+      checkAndStartSession().then(() => fetchShorts(null, true));
     }
   }, []);
 
   const loadMore = () => {
-    if (!loadingMore && globalHasMore) {
-      console.log(`🌀 Pre-fetching Shorts batch page ${globalCurrentPage + 1}`);
-      fetchShorts(globalCurrentPage + 1);
+    if (!loadingMore && globalHasMore && globalNextCursor) {
+      console.log(`🌀 Pre-fetching Shorts via cursor: ${globalNextCursor}`);
+      fetchShorts(globalNextCursor);
     }
   };
 
@@ -426,7 +417,7 @@ export default function Shorts() {
     try {
       setRefreshing(true);
       setActiveVideoId(null);
-      await fetchShorts(1, true);
+      await fetchShorts(null, true);
     } catch (e) {
       console.log("Refresh failed", e);
     } finally {

@@ -21,29 +21,28 @@ const startCleanupCron = () => {
 
             console.log(`Found ${expiredMessages.length} expired records.`);
 
-            for (const msg of expiredMessages) {
-                // If message has media, delete from R2
-                if (msg.mediaUrl) {
-                    try {
+            if (expiredMessages.length > 0) {
+                console.log(`🧹 Processing ${expiredMessages.length} expired club records...`);
+                
+                const deletions = expiredMessages
+                    .filter(msg => msg.mediaUrl)
+                    .map(msg => {
                         const fileName = msg.mediaUrl.split('/').pop();
                         let folder = 'clubs/media';
                         if (msg.messageType === 'image') folder = 'clubs/images';
                         else if (msg.messageType === 'video') folder = 'clubs/videos';
                         else if (msg.messageType === 'file') folder = 'clubs/files';
-                        
-                        await deleteFromR2(folder, fileName);
-                    } catch (err) {
-                        console.error(`Failed to delete media for message ${msg._id}:`, err.message);
-                    }
-                }
+                        return deleteFromR2(folder, fileName).catch(e => console.error(`Failed to delete media: ${msg.mediaUrl}`, e.message));
+                    });
+                
+                await Promise.allSettled(deletions);
+
+                const result = await ClubMessage.deleteMany({
+                    createdAt: { $lt: thirtyDaysAgo }
+                });
+
+                console.log(`✅ Successfully purged ${result.deletedCount} messages from database.`);
             }
-
-            // Purge from DB
-            const result = await ClubMessage.deleteMany({
-                createdAt: { $lt: thirtyDaysAgo }
-            });
-
-            console.log(`Successfully purged ${result.deletedCount} messages from database.`);
         } catch (error) {
             console.error("Cleanup cron failed:", error.message);
         }

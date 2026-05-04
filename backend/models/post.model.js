@@ -47,6 +47,20 @@ const postSchema = new mongoose.Schema({
     ],
     default: [],
   },
+  upvoted_by: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    default: [],
+    index: true,
+  },
+  downvoted_by: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    default: [],
+    index: true,
+  },
+  score: {
+    type: Number,
+    default: 0,
+  },
   comments: {
     type: [
       {
@@ -57,6 +71,9 @@ const postSchema = new mongoose.Schema({
     default: [],
   },
 },{timestamps:true});
+
+postSchema.index({ user: 1, _id: -1 });
+postSchema.index({ college: 1, _id: -1 });
 
 const Post = mongoose.model("Post", postSchema);
 export default Post;

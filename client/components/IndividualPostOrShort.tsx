@@ -289,10 +289,17 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
 
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [isLiked, setIsLiked] = useState(false);
-    const [likeCount, setLikeCount] = useState(0);
+    // Interaction States
     const [commentCount, setCommentCount] = useState(0);
     const [isCommentModalVisible, setCommentModalVisible] = useState(false);
+    
+    // Post Voting State
+    const [vote, setVote] = useState<'up' | 'down' | null>(null);
+    const [score, setScore] = useState(0);
+
+    // Shorts Like State (Shorts still use Likes)
+    const [isLiked, setIsLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(0);
 
     // UI State
     const [resizeMode, setResizeMode] = useState(false);
@@ -359,11 +366,19 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             if (res.data.success) {
                 const fetchedData = isShort ? res.data.short : res.data.post;
                 setData(fetchedData);
-                setLikeCount(fetchedData.likes || 0);
-                const isUserLiked = fetchedData.liked_by?.some((id: any) => String(id) === String(currentUser?._id));
-                setIsLiked(isUserLiked);
-                setCommentCount(fetchedData.comments?.length || 0);
+                
+                if (!isShort) {
+                    setScore(fetchedData.score || fetchedData.likes || 0);
+                    setVote(
+                        fetchedData.upvoted_by?.includes(currentUser?._id) ? 'up' : 
+                        fetchedData.downvoted_by?.includes(currentUser?._id) ? 'down' : null
+                    );
+                } else {
+                    setLikeCount(fetchedData.likes || 0);
+                    setIsLiked(fetchedData.liked_by?.some((id: any) => String(id) === String(currentUser?._id)));
+                }
 
+                setCommentCount(fetchedData.comments?.length || 0);
                 if (isShort && endpoints.view) axios.post(endpoints.view);
             }
         } catch (error: any) {
@@ -373,6 +388,31 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             setLoading(false);
         }
     }, [id, isShort, currentUser?._id, endpoints.get, endpoints.view]);
+
+    const handleVote = useCallback(async (type: 'up' | 'down') => {
+        const prevVote = vote;
+        const prevScore = score;
+        let newVote: 'up' | 'down' | null = type;
+        let scoreDelta = 0;
+
+        if (prevVote === type) {
+            newVote = null;
+            scoreDelta = type === 'up' ? -1 : 1;
+        } else {
+            if (prevVote === null) scoreDelta = type === 'up' ? 1 : -1;
+            else scoreDelta = type === 'up' ? 2 : -2;
+        }
+
+        setVote(newVote);
+        setScore(prevScore + scoreDelta);
+
+        try {
+            await axios.post(`/post/vote/${id}`, { type: newVote });
+        } catch (error) {
+            setVote(prevVote);
+            setScore(prevScore);
+        }
+    }, [vote, score, id]);
 
     const handleLike = useCallback(async () => {
         const previousLiked = isLiked;
@@ -494,9 +534,33 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 </View>
                             </Pressable>
                         </View>
-                        {data.user?._id === currentUser?._id && (
-                            <Pressable onPress={() => setMenuVisible(true)}><Ionicons name="ellipsis-horizontal" size={20} color="gray" /></Pressable>
-                        )}
+                        <Pressable onPress={() => {
+                            const isOwner = data.user?._id === currentUser?._id;
+                            if (isOwner) {
+                                setMenuVisible(true);
+                            } else {
+                                Alert.alert("Post Options", undefined, [
+                                    { text: "Cancel", style: "cancel" },
+                                    { 
+                                        text: "Report Post", 
+                                        style: "destructive", 
+                                        onPress: () => {
+                                            Alert.alert("Report", "Are you sure you want to report this post?", [
+                                                { text: "Cancel", style: "cancel" },
+                                                { text: "Report", style: "destructive", onPress: async () => {
+                                                    try {
+                                                        await axios.post('/post/report', { postId: data._id, reason: "Inappropriate content" });
+                                                        Alert.alert("Success", "Post has been reported to administrators.");
+                                                    } catch (e) {
+                                                        Alert.alert("Error", "Failed to report post.");
+                                                    }
+                                                }}
+                                            ]);
+                                        }
+                                    }
+                                ]);
+                            }
+                        }}><Ionicons name="ellipsis-horizontal" size={20} color="gray" /></Pressable>
                     </View>
 
                     <ScrollView showsVerticalScrollIndicator={false}>
@@ -513,6 +577,13 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 )}
                             />
                             {data.image?.length > 1 && (
+                                <View className="absolute top-3 right-3 bg-black/50 px-2 py-1 rounded-lg">
+                                    <Text className="text-white text-[10px] font-bold">
+                                        {currentImageIndex + 1}/{data.image.length}
+                                    </Text>
+                                </View>
+                            )}
+                            {data.image?.length > 1 && (
                                 <View className="absolute bottom-3 left-0 right-0 flex-row justify-center gap-1.5">
                                     {data.image.map((_: any, i: number) => (
                                         <View key={i} className={`h-1.5 w-1.5 rounded-full ${i === currentImageIndex ? 'bg-white shadow-sm' : 'bg-white/40'}`} />
@@ -521,14 +592,30 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             )}
                         </View>
 
-                        <View className="px-3 pt-3 flex-row items-center gap-4">
-                            <TouchableOpacity onPress={handleLike}><Ionicons name={isLiked ? "heart" : "heart-outline"} size={28} color={isLiked ? "#FF3040" : "black"} /></TouchableOpacity>
-                            <TouchableOpacity onPress={() => setCommentModalVisible(true)}><Ionicons name="chatbubble-outline" size={26} color="black" /></TouchableOpacity>
-                            <TouchableOpacity onPress={handleShare}><Ionicons name="paper-plane-outline" size={26} color="black" /></TouchableOpacity>
+                        <View className="px-3 pt-3 flex-row items-center gap-3">
+                            <View className="flex-row items-center bg-gray-50 rounded-full px-1 py-0.5">
+                                <Pressable onPress={() => handleVote('up')} className="p-1.5">
+                                    <Ionicons name={vote === 'up' ? "arrow-up" : "arrow-up-outline"} size={22} color={vote === 'up' ? "#FF4500" : "#536471"} />
+                                </Pressable>
+                                <Text className={`font-semibold text-[14px] px-1 min-w-[20px] text-center ${vote === 'up' ? 'text-[#FF4500]' : vote === 'down' ? 'text-[#7193FF]' : 'text-[#536471]'}`}>
+                                    {score === 0 ? 'Vote' : score}
+                                </Text>
+                                <Pressable onPress={() => handleVote('down')} className="p-1.5">
+                                    <Ionicons name={vote === 'down' ? "arrow-down" : "arrow-down-outline"} size={22} color={vote === 'down' ? "#7193FF" : "#536471"} />
+                                </Pressable>
+                            </View>
+                            <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="flex-row items-center bg-gray-50 rounded-full px-3 py-2">
+                                <Ionicons name="chatbubble-outline" size={20} color="#536471" />
+                                <Text className="text-[#536471] font-semibold text-[13px] ml-1.5">{commentCount}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={handleShare} className="flex-row items-center bg-gray-50 rounded-full px-3 py-2">
+                                <Ionicons name="paper-plane-outline" size={20} color="#536471" />
+                                <Text className="text-[#536471] font-semibold text-[13px] ml-1.5">Share</Text>
+                            </TouchableOpacity>
                         </View>
 
                         <View className="px-3 pt-2 pb-10">
-                            <Text className="text-black font-bold text-sm">{likeCount} likes</Text>
+                            <Text className="text-black font-bold text-sm">{score} points</Text>
                             <Text className="text-black text-sm leading-5 mt-2">
                                 <Text className="text-gray-500">{data.user?.username} </Text>{data.description}
                             </Text>

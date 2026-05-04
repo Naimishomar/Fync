@@ -12,9 +12,9 @@ export const getFullProfile = async (req, res) => {
         const requesterId = req.user?._id?.toString();
         const isOwner = requesterId === targetUserId;
 
-        const user = await User.findById(targetUserId).select(
-            "-password -refreshToken -githubAccessToken -deviceId -deviceModel -location -redeemedItems"
-        );
+        const user = await User.findById(targetUserId)
+            .select("-password -refreshToken -githubAccessToken -deviceId -deviceModel -location -redeemedItems -otp -otpExpires -otpAttempts")
+            .lean();
         if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
         // Visibility gate
@@ -22,7 +22,6 @@ export const getFullProfile = async (req, res) => {
             if (user.portfolioVisibility === "private") {
                 return res.status(403).json({ success: false, message: "This portfolio is private" });
             }
-            // "fync-only" — only authenticated users can see (already protected by auth middleware)
         }
 
         const visibilityFilter = isOwner ? {} : { isPublic: true };
@@ -30,10 +29,16 @@ export const getFullProfile = async (req, res) => {
         const [projects, internships, certs, scoreDoc] = await Promise.all([
             UserProject.find({ user: targetUserId, ...visibilityFilter })
                 .populate("collaborators.user", "name username avatar")
-                .sort({ isFeatured: -1, createdAt: -1 }),
-            Internship.find({ user: targetUserId, ...visibilityFilter }).sort({ startDate: -1 }),
-            Certificate.find({ user: targetUserId, ...visibilityFilter }).sort({ issueDate: -1 }),
+                .sort({ isFeatured: -1, createdAt: -1 })
+                .lean(),
+            Internship.find({ user: targetUserId, ...visibilityFilter })
+                .sort({ startDate: -1 })
+                .lean(),
+            Certificate.find({ user: targetUserId, ...visibilityFilter })
+                .sort({ issueDate: -1 })
+                .lean(),
             FyncScore.findOne({ user: targetUserId })
+                .lean()
         ]);
 
         // Profile completeness calculation

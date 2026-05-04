@@ -7,6 +7,13 @@ import axios from '../context/axiosConfig';
 export async function registerForPushNotificationsAsync() {
   let token;
 
+  // Guard for Expo Go on Android (SDK 53+)
+  const isExpoGo = Constants.appOwnership === 'expo';
+  if (Platform.OS === 'android' && isExpoGo) {
+    console.log('Push notifications are not supported in Expo Go on Android (SDK 53+). Please use a development build.');
+    return null;
+  }
+
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'default',

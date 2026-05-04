@@ -1,22 +1,8 @@
 import FundingProject from "../models/funding.model.js";
 import User from "../models/user.model.js";
 import Comment from "../models/comment.model.js";
-import { cloudinary } from "../utils/cloudinary.js";
+import { deleteFromR2 } from "../utils/r2.js";
 import crypto from 'crypto';
-
-const getCloudinaryPublicId = (url) => {
-    try {
-        if (!url || typeof url !== 'string' || !url.includes('cloudinary.com')) return null;
-        const matches = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-z0-9]+$/i);
-        if (matches && matches[1]) {
-            return matches[1];
-        }
-        return null;
-    } catch (error) {
-        console.error("Cloudinary ID Parse Error:", error);
-        return null;
-    }
-};
 
 export const createFundingPost = async (req, res) => {
     try {
@@ -123,27 +109,20 @@ export const updateProject = async (req, res) => {
         let newImages = undefined;
         let newVideo = undefined;
 
-        // If new images uploaded, delete old images from Cloudinary SAFELY
+        // If new images uploaded, delete old images from R2
         if (req.files?.image && req.files.image.length > 0) {
             newImages = req.files.image.map(f => f.path);
             if (project.image && Array.isArray(project.image)) {
-                for (let imgUrl of project.image) {
-                    try {
-                        const pubId = getCloudinaryPublicId(imgUrl);
-                        if (pubId) await cloudinary.uploader.destroy(pubId, { resource_type: "image" });
-                    } catch (cloudinaryErr) { console.error("Cloudinary Update Error (Image):", cloudinaryErr); }
-                }
+                const deletions = project.image.map(imgUrl => deleteFromR2(imgUrl));
+                await Promise.allSettled(deletions);
             }
         }
 
-        // If new video uploaded, delete old video from Cloudinary SAFELY
+        // If new video uploaded, delete old video from R2
         if (req.files?.video && req.files.video.length > 0) {
             newVideo = req.files.video[0].path;
             if (project.video) {
-                try {
-                    const pubId = getCloudinaryPublicId(project.video);
-                    if (pubId) await cloudinary.uploader.destroy(pubId, { resource_type: "video" });
-                } catch (cloudinaryErr) { console.error("Cloudinary Update Error (Video):", cloudinaryErr); }
+                await deleteFromR2(project.video);
             }
         }
 
@@ -298,32 +277,15 @@ export const deleteFundingProject = async (req, res) => {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
 
-        // DELETE FILES FROM CLOUDINARY WITH TRY-CATCH TO PREVENT CRASHES
+        // DELETE FILES FROM R2
+        const deletions = [];
         if (project.image && Array.isArray(project.image)) {
-            for (let imgUrl of project.image) {
-                try {
-                    const pubId = getCloudinaryPublicId(imgUrl);
-                    if (pubId) {
-                        await cloudinary.uploader.destroy(pubId, { resource_type: "image" });
-                    }
-                } catch (cloudinaryErr) {
-                    console.error("Cloudinary Delete Error (Image):", cloudinaryErr);
-                }
-            }
+            project.image.forEach(imgUrl => deletions.push(deleteFromR2(imgUrl)));
         }
-
         if (project.video) {
-            try {
-                const pubId = getCloudinaryPublicId(project.video);
-                if (pubId) {
-                    await cloudinary.uploader.destroy(pubId, { resource_type: "video" });
-                }
-            } catch (cloudinaryErr) {
-                console.error("Cloudinary Delete Error (Video):", cloudinaryErr);
-            }
+            deletions.push(deleteFromR2(project.video));
         }
-
-        // Proceed to delete the project from MongoDB even if Cloudinary fails
+        await Promise.allSettled(deletions);
         await FundingProject.findByIdAndDelete(req.params.id);
 
         // Also delete associated comments to keep the database clean

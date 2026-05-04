@@ -54,7 +54,7 @@ export default function SignUpScreen() {
         setOtpSent(true);
         Toast.show({
           type: 'success',
-          text1: 'OTP Sent',
+          text1: 'OTP sent to your Email',
           text2: res.data.message || 'Please check your email for the verification code',
         });
       } else {
@@ -183,7 +183,7 @@ export default function SignUpScreen() {
               {otpSent && (
                 <TextInput
                   className="mb-4 rounded-xl border border-gray-300 px-4 py-4"
-                  placeholder="Enter OTP"
+                  placeholder="Enter OTP(Check your email)"
                   value={otp}
                   onChangeText={setOtp}
                 />

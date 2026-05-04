@@ -14,21 +14,14 @@ export const initCommunityCleanup = () => {
                 $or: [{ image: { $exists: true } }, { video: { $exists: true } }]
             });
 
-            for (const msg of expiredMessages) {
-                if (msg.image) {
-                    try {
-                        await deleteFromR2(msg.image);
-                    } catch (e) {
-                        console.error("Cloudinary delete error:", e);
-                    }
-                }
-                if (msg.video) {
-                    try {
-                        await deleteFromR2(msg.video);
-                    } catch (e) {
-                        console.error("Cloudinary delete error (video):", e);
-                    }
-                }
+            if (expiredMessages.length > 0) {
+                const deletions = [];
+                expiredMessages.forEach(msg => {
+                    if (msg.image) deletions.push(deleteFromR2(msg.image).catch(e => console.error("R2 delete error (image):", e.message)));
+                    if (msg.video) deletions.push(deleteFromR2(msg.video).catch(e => console.error("R2 delete error (video):", e.message)));
+                });
+                
+                await Promise.allSettled(deletions);
             }
             
             // Note: MongoDB TTL index will handle the actual document deletion

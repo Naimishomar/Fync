@@ -50,8 +50,9 @@ export const generateResumePDF = async (req, res) => {
         // Fync Score badge
         const badge = scoreDoc?.badge || user.fyncBadge || "Newcomer";
         const score = scoreDoc?.totalScore || user.fyncScore || 0;
+        const streak = user.highestStreak || 0;
         doc.fontSize(11).font("Helvetica-Bold")
-            .text(`${BADGE_EMOJI[badge] || ""} Fync ${badge}  |  Score: ${score}/1000`, 50, 94);
+            .text(`${BADGE_EMOJI[badge] || ""} Fync ${badge}  |  Score: ${score}/1000  |  Max Streak: ${streak}`, 50, 94);
 
         // Contact row
         const contact = [

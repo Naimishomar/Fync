@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,30 +6,42 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  StyleSheet,
+  ScrollView,
   ViewToken,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { getMovieTrailers, fetchTrendingMovies } from '../../utils/tmdb';
-import * as ScreenOrientation from 'expo-screen-orientation';
-import { LinearGradient } from 'expo-linear-gradient';
+import { fetchTrailersBatch, getMovieTrailers, fetchTrendingMovies } from '../../utils/tmdb';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-// In landscape, width and height swap roles if we don't handle them dynamically
-// But for the initial calculation, we'll use the larger dimension as width
-const LANDSCAPE_WIDTH = Math.max(SCREEN_WIDTH, SCREEN_HEIGHT);
-const LANDSCAPE_HEIGHT = Math.min(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-const ReelItem = ({ movie, isActive, isMuted, onToggleMute }: { movie: any, isActive: boolean, isMuted: boolean, onToggleMute: () => void }) => {
-  const [trailerKey, setTrailerKey] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+const ReelItem = ({ 
+  movie, 
+  isActive, 
+  isMuted, 
+  onToggleMute,
+  cachedTrailerKey 
+}: { 
+  movie: any, 
+  isActive: boolean, 
+  isMuted: boolean, 
+  onToggleMute: () => void,
+  cachedTrailerKey?: string | null
+}) => {
+  const [trailerKey, setTrailerKey] = useState<string | null>(cachedTrailerKey || null);
+  const [loading, setLoading] = useState(!cachedTrailerKey);
   const [isPaused, setIsPaused] = useState(false);
   const webViewRef = useRef<WebView>(null);
 
   useEffect(() => {
+    if (cachedTrailerKey) {
+      setTrailerKey(cachedTrailerKey);
+      setLoading(false);
+      return;
+    }
+
     const loadTrailer = async () => {
       try {
         const trailers = await getMovieTrailers(movie.id);
@@ -43,15 +55,7 @@ const ReelItem = ({ movie, isActive, isMuted, onToggleMute }: { movie: any, isAc
       }
     };
     loadTrailer();
-  }, [movie.id]);
-
-  // Inject JS to toggle mute or play/pause
-  useEffect(() => {
-    if (isActive && webViewRef.current) {
-      const script = isMuted ? 'player.mute();' : 'player.unMute();';
-      webViewRef.current.injectJavaScript(script);
-    }
-  }, [isMuted, isActive]);
+  }, [movie.id, cachedTrailerKey]);
 
   const togglePlayPause = () => {
     if (webViewRef.current) {
@@ -67,29 +71,75 @@ const ReelItem = ({ movie, isActive, isMuted, onToggleMute }: { movie: any, isAc
     if (data === 'PAUSED') setIsPaused(true);
   };
 
-  if (loading) {
-    return (
-      <View style={{ width: LANDSCAPE_WIDTH, height: LANDSCAPE_HEIGHT }} className="bg-black justify-center items-center">
-        <ActivityIndicator size="large" color="#e11d48" />
-      </View>
-    );
-  }
+  // Sync mute state without refreshing WebView
+  useEffect(() => {
+    if (isActive && webViewRef.current) {
+      const script = isMuted ? 'if(player && player.mute) player.mute();' : 'if(player && player.unMute) player.unMute();';
+      webViewRef.current.injectJavaScript(script);
+    }
+  }, [isMuted, isActive]);
 
-  // In landscape mode, we fill the full area
-  const videoWidth = LANDSCAPE_WIDTH;
-  const videoHeight = LANDSCAPE_HEIGHT;
+  const videoHeight = SCREEN_WIDTH * (9/16);
+
+  const webViewSource = React.useMemo(() => ({
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+          <style>
+            body { margin: 0; padding: 0; background-color: black; overflow: hidden; width: 100%; height: 100%; }
+            #player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+          </style>
+        </head>
+        <body>
+          <div id="player"></div>
+          <script src="https://www.youtube.com/iframe_api"></script>
+          <script>
+            var player;
+            function onYouTubeIframeAPIReady() {
+              player = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                videoId: '${trailerKey}',
+                playerVars: {
+                  'autoplay': 1,
+                  'mute': 0,
+                  'controls': 1,
+                  'modestbranding': 1,
+                  'rel': 0,
+                  'showinfo': 0,
+                  'iv_load_policy': 3,
+                  'enablejsapi': 1,
+                  'playsinline': 1
+                },
+                events: {
+                  'onReady': (event) => { 
+                      event.target.playVideo(); 
+                      window.ReactNativeWebView.postMessage('READY');
+                  },
+                  'onStateChange': (event) => {
+                      if (event.data == YT.PlayerState.PLAYING) {
+                        window.ReactNativeWebView.postMessage('PLAYING');
+                      } else if (event.data == YT.PlayerState.PAUSED) {
+                        window.ReactNativeWebView.postMessage('PAUSED');
+                      }
+                  }
+                }
+              });
+            }
+          </script>
+        </body>
+      </html>
+    `,
+    baseUrl: 'https://fync-app.com'
+  }), [trailerKey]);
 
   return (
-    <View style={{ width: LANDSCAPE_WIDTH, height: LANDSCAPE_HEIGHT }} className="bg-black relative overflow-hidden">
-      {isActive && trailerKey ? (
-        <View 
-          style={{ 
-            width: LANDSCAPE_WIDTH * 1.3, 
-            height: LANDSCAPE_HEIGHT * 1.3,
-            marginLeft: -(LANDSCAPE_WIDTH * 0.3) / 2,
-            marginTop: -(LANDSCAPE_HEIGHT * 0.3) / 2
-          }}
-        >
+    <View style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }} className="bg-[#050505]">
+      {/* Video Container */}
+      <View style={{ width: SCREEN_WIDTH, height: videoHeight }} className="bg-black relative">
+        {isActive && trailerKey ? (
           <WebView
             ref={webViewRef}
             style={{ flex: 1 }}
@@ -99,114 +149,102 @@ const ReelItem = ({ movie, isActive, isMuted, onToggleMute }: { movie: any, isAc
             allowsInlineMediaPlayback={true}
             mediaPlaybackRequiresUserAction={false}
             onMessage={handleMessage}
-            source={{ 
-              html: `
-                <!DOCTYPE html>
-                <html>
-                  <head>
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-                    <style>
-                      body { margin: 0; padding: 0; background-color: black; overflow: hidden; width: 100%; height: 100%; }
-                      #player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-                    </style>
-                  </head>
-                  <body>
-                    <div id="player"></div>
-                    <script src="https://www.youtube.com/iframe_api"></script>
-                    <script>
-                      var player;
-                      function onYouTubeIframeAPIReady() {
-                        player = new YT.Player('player', {
-                          height: '100%',
-                          width: '100%',
-                          videoId: '${trailerKey}',
-                          playerVars: {
-                            'autoplay': 1,
-                            'mute': ${isMuted ? 1 : 0},
-                            'controls': 0,
-                            'modestbranding': 1,
-                            'rel': 0,
-                            'showinfo': 0,
-                            'iv_load_policy': 3,
-                            'enablejsapi': 1,
-                            'playsinline': 1,
-                            'origin': 'https://fync-app.com'
-                          },
-                          events: {
-                            'onReady': (event) => { event.target.playVideo(); },
-                            'onStateChange': (event) => {
-                               if (event.data == YT.PlayerState.PLAYING) {
-                                 window.ReactNativeWebView.postMessage('PLAYING');
-                               } else if (event.data == YT.PlayerState.PAUSED) {
-                                 window.ReactNativeWebView.postMessage('PAUSED');
-                               }
-                            }
-                          }
-                        });
-                      }
-                    </script>
-                  </body>
-                </html>
-              `,
-              baseUrl: 'https://fync-app.com'
-            }}
-            className="bg-black"
+            source={webViewSource}
           />
-        </View>
-      ) : (
-        <View className="flex-1 bg-black justify-center items-center">
-          <ActivityIndicator size="small" color="#555" />
-        </View>
-      )}
-
-      {/* Custom Mute Toggle */}
-      <TouchableOpacity 
-        onPress={onToggleMute}
-        className="absolute z-50 right-6 bottom-10 w-12 h-12 bg-black/40 rounded-full items-center justify-center border border-white/10"
-      >
-        <Ionicons name={isMuted ? "volume-mute" : "volume-high"} size={24} color="white" />
-      </TouchableOpacity>
-
-      {/* Metadata Overlay - Hidden when playing */}
-      {(isPaused || loading) && (
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.8)']}
-          className="absolute bottom-0 w-full px-10 pb-12 pt-20 z-20"
-        >
-          <View className="flex-row justify-between items-end">
-            <View className="flex-1 mr-10">
-              <Text className="text-white text-3xl font-bold mb-2 shadow-lg" numberOfLines={1}>
-                {movie.title}
-              </Text>
-              <Text className="text-gray-200 text-base leading-6 mb-4" numberOfLines={2}>
-                {movie.overview}
-              </Text>
-              <View className="flex-row items-center gap-4">
-                <View className="bg-rose-600 px-4 py-1.5 rounded-full">
-                  <Text className="text-white text-sm font-bold">PAUSED</Text>
-                </View>
-                <View className="flex-row items-center">
-                  <Ionicons name="star" size={20} color="#fbbf24" />
-                  <Text className="text-white text-sm ml-1 font-bold">{movie.vote_average.toFixed(1)}</Text>
-                </View>
-              </View>
-            </View>
+        ) : (
+          <View className="flex-1 bg-zinc-900 justify-center items-center">
+            {loading ? (
+              <ActivityIndicator size="small" color="#e11d48" />
+            ) : (
+              <Ionicons name="videocam-off-outline" size={40} color="#333" />
+            )}
           </View>
-        </LinearGradient>
-      )}
+        )}
 
-      {/* Interaction Shield & Tap to Pause Toggle - Moved to top z-index */}
-      <TouchableOpacity 
-        activeOpacity={1}
-        onPress={togglePlayPause}
-        className="absolute inset-0 z-40 items-center justify-center"
-      >
-        {isPaused && (
-           <View className="bg-black/40 w-20 h-20 rounded-full items-center justify-center">
-              <Ionicons name="play" size={40} color="white" />
+        {/* Play/Pause Overlay */}
+        {!isActive && (
+           <View className="absolute inset-0 bg-black/60 items-center justify-center">
+              <Ionicons name="play-circle" size={50} color="white" />
            </View>
         )}
-      </TouchableOpacity>
+      </View>
+
+      {/* Content Container */}
+      <ScrollView className="flex-1 px-6 pt-8">
+        <View className="flex-row justify-between items-start mb-6">
+          <View className="flex-1 mr-4">
+            <Text className="text-white text-3xl font-black uppercase tracking-tighter mb-2">
+              {movie.title}
+            </Text>
+            <View className="flex-row items-center gap-3">
+               <View className="bg-rose-600/20 px-3 py-1 rounded-full border border-rose-600/30">
+                  <Text className="text-rose-500 text-[10px] font-black uppercase tracking-widest">TRAILER</Text>
+               </View>
+               <View className="flex-row items-center">
+                  <Ionicons name="star" size={14} color="#fbbf24" />
+                  <Text className="text-white text-sm ml-1 font-bold">{movie.vote_average.toFixed(1)}</Text>
+               </View>
+               <Text className="text-slate-500 text-xs font-bold uppercase tracking-widest">
+                  {movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}
+               </Text>
+            </View>
+          </View>
+          
+          <TouchableOpacity 
+            onPress={onToggleMute}
+            className="w-12 h-12 bg-white/5 rounded-2xl items-center justify-center border border-white/10"
+          >
+            <Ionicons name={isMuted ? "volume-mute" : "volume-high"} size={22} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Extended Metadata */}
+        <View className="flex-row flex-wrap gap-2 mb-8">
+           {['Action', 'Blockbuster', 'Trending', 'Hot'].map((tag) => (
+             <View key={tag} className="bg-zinc-800/50 px-4 py-2 rounded-xl border border-white/5">
+                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest">{tag}</Text>
+             </View>
+           ))}
+        </View>
+
+        <View className="mb-4">
+          <Text className="text-rose-500 font-black text-xs uppercase tracking-[3px] mb-2">Synopsis</Text>
+          <Text className="text-slate-300 text-base leading-7 font-medium">
+            {movie.overview || "No description available for this cinematic masterpiece."}
+          </Text>
+        </View>
+
+        {/* Production Details Card */}
+        <View className="bg-zinc-900/50 p-8 rounded-[40px] border border-white/5 mb-4">
+            <Text className="text-white font-black text-sm uppercase tracking-widest mb-6">Production Details</Text>
+            <View className="flex-row justify-between mb-4">
+               <Text className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Original Language</Text>
+               <Text className="text-white font-black uppercase text-[10px] tracking-widest">{movie.original_language || 'EN'}</Text>
+            </View>
+            <View className="flex-row justify-between mb-4">
+               <Text className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Vote Count</Text>
+               <Text className="text-white font-black uppercase text-[10px] tracking-widest">{movie.vote_count || '0'}+</Text>
+            </View>
+            <View className="flex-row justify-between">
+               <Text className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Popularity Score</Text>
+               <Text className="text-emerald-500 font-black uppercase text-[10px] tracking-widest">{Math.round(movie.popularity || 0)}</Text>
+            </View>
+        </View>
+
+        <View className="mb-20">
+           <View className="bg-rose-600/10 p-8 rounded-[40px] border border-rose-600/20">
+              <View className="flex-row items-center mb-4">
+                 <View className="bg-rose-600 p-2 rounded-xl mr-3">
+                    <Ionicons name="sparkles" size={18} color="white" />
+                 </View>
+                 <Text className="text-white font-black uppercase text-xs tracking-widest">Fync Smart Recommendation</Text>
+              </View>
+              <Text className="text-slate-400 text-sm leading-6 font-medium">
+                Our AI suggests this title based on your recent activity in Fync Media. Swipe down to discover more legends.
+              </Text>
+           </View>
+        </View>
+      </ScrollView>
     </View>
   );
 };
@@ -217,30 +255,39 @@ const TrailerReels = () => {
   const route = useRoute<any>();
   const [movies, setMovies] = useState<any[]>(route.params?.movies || []);
   const [activeIndex, setActiveIndex] = useState(route.params?.initialIndex || 0);
-  const [loading, setLoading] = useState(movies.length === 0);
-  const [isMuted, setIsMuted] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
+  const [trailerCache, setTrailerCache] = useState<Record<string, string | null>>({});
 
   useEffect(() => {
-    // Lock orientation to landscape on mount
-    const lockOrientation = async () => {
-      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    const init = async () => {
+      if (movies.length === 0) {
+        await loadTrending();
+      } else {
+        setLoading(true);
+        await fetchAllTrailers(movies);
+        setLoading(false);
+      }
     };
-    lockOrientation();
-
-    if (movies.length === 0) {
-      loadTrending();
-    }
-
-    // Restore portrait on unmount
-    return () => {
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
-    };
+    init();
   }, []);
+
+  const fetchAllTrailers = async (movieList: any[]) => {
+    try {
+      const ids = movieList.slice(0, 30).map(m => m.id);
+      const trailers = await fetchTrailersBatch(ids);
+      setTrailerCache(trailers || {});
+    } catch (error) {
+      console.error('Error pre-fetching trailers:', error);
+    }
+  };
 
   const loadTrending = async () => {
     try {
+      setLoading(true);
       const data = await fetchTrendingMovies();
       setMovies(data);
+      await fetchAllTrailers(data);
     } catch (error) {
       console.error('Error loading reels:', error);
     } finally {
@@ -260,19 +307,18 @@ const TrailerReels = () => {
 
   if (loading) {
     return (
-      <View style={{ width: LANDSCAPE_WIDTH, height: LANDSCAPE_HEIGHT }} className="bg-black justify-center items-center">
+      <View className="flex-1 bg-black justify-center items-center">
         <ActivityIndicator size="large" color="#e11d48" />
       </View>
     );
   }
 
   return (
-    <View style={{ width: LANDSCAPE_WIDTH, height: LANDSCAPE_HEIGHT }} className="bg-black">
+    <View className="flex-1 bg-black">
       <FlatList
         data={movies}
-        horizontal
         pagingEnabled
-        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item, index }) => (
           <ReelItem 
@@ -280,6 +326,7 @@ const TrailerReels = () => {
             isActive={index === activeIndex} 
             isMuted={isMuted}
             onToggleMute={() => setIsMuted(!isMuted)}
+            cachedTrailerKey={trailerCache[item.id]}
           />
         )}
         onViewableItemsChanged={onViewableItemsChanged}
@@ -289,20 +336,20 @@ const TrailerReels = () => {
         maxToRenderPerBatch={2}
         windowSize={3}
         getItemLayout={(_, index) => ({
-          length: LANDSCAPE_WIDTH,
-          offset: LANDSCAPE_WIDTH * index,
+          length: SCREEN_HEIGHT,
+          offset: SCREEN_HEIGHT * index,
           index,
         })}
         initialScrollIndex={route.params?.initialIndex || 0}
       />
 
-      {/* Close Button moved to bottom of hierarchy to ensure it stays on top */}
+      {/* Close Button */}
       <TouchableOpacity 
         onPress={() => navigation.goBack()}
-        style={{ top: 30, left: 30 }}
-        className="absolute z-[100] w-12 h-12 bg-black/50 rounded-full items-center justify-center border border-white/20"
+        style={{ top: insets.top + 10, left: 20 }}
+        className="absolute z-[100] w-10 h-10 bg-black/40 rounded-full items-center justify-center border border-white/10"
       >
-        <Ionicons name="close" size={32} color="white" />
+        <Ionicons name="close" size={24} color="white" />
       </TouchableOpacity>
     </View>
   );

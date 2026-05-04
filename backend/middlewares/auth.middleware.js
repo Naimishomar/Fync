@@ -27,6 +27,14 @@ export const authMiddleware = async (req, res, next) => {
         message: "User not found",
       });
     }
+
+    if (user.isBanned) {
+        return res.status(403).json({
+            success: false,
+            message: "Your account has been suspended for violating our terms.",
+            isBanned: true
+        });
+    }
     req.user = {
       id: user._id.toString(),
       _id: user._id,

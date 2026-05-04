@@ -15,14 +15,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import { 
-  fetchTrendingMovies, 
-  fetchPopularMovies, 
-  fetchUpcomingMovies, 
-  fetchTopRatedMovies,
-  fetchBollywoodMovies,
-  fetchMoviesByGenre,
-  getImageUrl 
+import {
+  fetchEntertainmentHome,
+  getImageUrl
 } from '../../utils/tmdb';
 import MovieCard from './MovieCard';
 
@@ -47,23 +42,19 @@ const EntertainmentHome = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [trendingData, popularData, upcomingData, topRatedData, bollywoodData, actionData, horrorData] = await Promise.all([
-        fetchTrendingMovies(),
-        fetchPopularMovies(),
-        fetchUpcomingMovies(),
-        fetchTopRatedMovies(),
-        fetchBollywoodMovies(),
-        fetchMoviesByGenre(28), // Action
-        fetchMoviesByGenre(27), // Horror
-      ]);
-      setTrending(trendingData);
-      setPopular(popularData);
-      setUpcoming(upcomingData);
-      setTopRated(topRatedData);
-      setBollywoodMovies(bollywoodData);
-      setActionMovies(actionData);
-      setHorrorMovies(horrorData);
-      setFeaturedMovie(trendingData[0]);
+      const data = await fetchEntertainmentHome();
+      
+      setTrending(data.trending || []);
+      setPopular(data.popular || []);
+      setUpcoming(data.upcoming || []);
+      setTopRated(data.topRated || []);
+      setBollywoodMovies(data.bollywood || []);
+      setActionMovies(data.action || []);
+      setHorrorMovies(data.horror || []);
+      
+      if (data.trending && data.trending.length > 0) {
+        setFeaturedMovie(data.trending[0]);
+      }
     } catch (error) {
       console.error('Error fetching movies:', error);
     } finally {
@@ -71,7 +62,7 @@ const EntertainmentHome = () => {
     }
   };
 
-  if (loading) { 
+  if (loading) {
     return (
       <View className="flex-1 bg-black justify-center items-center">
         <ActivityIndicator size="large" color="#e11d48" />
@@ -106,7 +97,7 @@ const EntertainmentHome = () => {
   return (
     <SafeAreaView className="flex-1 bg-black" edges={['top', 'bottom']}>
       <StatusBar barStyle="light-content" />
-      
+
       <ScrollView showsVerticalScrollIndicator={false} stickyHeaderIndices={[0]}>
         {/* Header */}
         <View className="flex-row justify-between items-center px-4 py-3 bg-black">
@@ -125,7 +116,7 @@ const EntertainmentHome = () => {
 
         {/* Hero Banner */}
         {featuredMovie && (
-          <TouchableOpacity 
+          <TouchableOpacity
             activeOpacity={0.9}
             onPress={() => navigation.navigate('MovieDetail', { movieId: featuredMovie.id })}
             className="w-full h-[500px] mb-8"
@@ -154,9 +145,9 @@ const EntertainmentHome = () => {
                   <Text className="text-gray-400 text-xs">Movie</Text>
                 </View>
               </View>
-              
+
               <View className="flex-row gap-3">
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={() => navigation.navigate('TrailerReels', { movies: trending, initialIndex: 0 })}
                   className="flex-1 bg-white flex-row items-center justify-center py-3 rounded-lg"
                 >
@@ -169,15 +160,15 @@ const EntertainmentHome = () => {
         )}
 
         {/* Categories / Moods (Quick filter) */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
           className="px-4 mb-8"
           contentContainerStyle={{ gap: 10 }}
         >
           {['Action', 'Comedy', 'Horror', 'Drama', 'Sci-Fi', 'Anime'].map((cat) => (
-            <TouchableOpacity 
-              key={cat} 
+            <TouchableOpacity
+              key={cat}
               onPress={() => navigation.navigate('MovieList', { title: cat, type: 'trending' })}
               className="bg-zinc-800 px-6 py-2.5 rounded-full border border-zinc-700"
             >

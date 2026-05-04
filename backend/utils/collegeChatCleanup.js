@@ -11,23 +11,20 @@ export const initCollegeChatCleanup = () => {
             const expiredMessages = await CollegeChat.find({ expiresAt: { $lt: now } });
 
             if (expiredMessages.length > 0) {
-                console.log(`🧹 Found ${expiredMessages.length} expired college chat messages to clean.`);
+                console.log(`🧹 Found ${expiredMessages.length} expired college chat messages. Processing...`);
                 
-                for (let msg of expiredMessages) {
-                    if (msg.mediaUrl && msg.messageType !== 'text') {
-                        let resourceType = 'image';
-                        if (msg.messageType === 'video' || msg.messageType === 'voice') resourceType = 'video';
-                        if (msg.messageType === 'file') resourceType = 'raw';
-                        
-                        try {
-                            await deleteFromR2(msg.mediaUrl);
-                        } catch (e) {
-                            console.error("❌ Cleanup cloudinary error:", e);
-                        }
-                    }
-                    await CollegeChat.findByIdAndDelete(msg._id);
-                }
-                console.log(`✅ Cleaned up ${expiredMessages.length} expired college chat documents.`);
+                // Parallelize media deletions
+                const mediaDeletions = expiredMessages
+                    .filter(msg => msg.mediaUrl && msg.messageType !== 'text')
+                    .map(msg => deleteFromR2(msg.mediaUrl).catch(e => console.error(`❌ Media delete failed: ${msg.mediaUrl}`, e.message)));
+                
+                await Promise.allSettled(mediaDeletions);
+
+                // Batch delete from DB
+                const expiredIds = expiredMessages.map(m => m._id);
+                await CollegeChat.deleteMany({ _id: { $in: expiredIds } });
+                
+                console.log(`✅ Successfully purged ${expiredMessages.length} college chat documents.`);
             }
         } catch (error) {
             console.error("❌ Error in college chat cleanup cron:", error);

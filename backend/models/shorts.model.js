@@ -43,7 +43,9 @@ const shortsSchema = new mongoose.Schema({
         default: 0,
         required: true,
     },
-}, {timestamps: true})
+}, {timestamps: true});
+
+shortsSchema.index({ user: 1, _id: -1 });
 
 const Shorts = mongoose.model('Shorts', shortsSchema);
 export default Shorts;

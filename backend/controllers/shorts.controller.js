@@ -8,6 +8,8 @@ import { deleteFromR2 } from '../utils/r2.js';
 import { getShortsPool, getUserInterestProfile, rankFeed, invalidatePool } from '../utils/feedEngine.js';
 import { clearCache } from '../middlewares/cache.middleware.js';
 
+import { updateStreak } from '../utils/streak.js';
+
 export const createShorts = async (req, res) => {
     try {
         const { title, description } = req.body;
@@ -24,10 +26,23 @@ export const createShorts = async (req, res) => {
             liked_by: [],
             views: 0,
         })
+        
+        // Update Daily Streak
+        const streakResult = await updateStreak(req.user.id).catch(err => {
+            console.error("Streak error:", err);
+            return { streakCount: null, isCompletedToday: false };
+        });
+
         // Invalidate Redis shorts pool so next fetch picks this up
         invalidatePool('global', 'shorts').catch(() => { });
         clearCache('shorts').catch(() => { });
-        return res.status(200).json({ success: true, message: 'Short created successfully', createShort });
+        return res.status(200).json({ 
+            success: true, 
+            message: 'Short created successfully', 
+            createShort, 
+            streakCount: streakResult.streakCount,
+            isCompletedToday: streakResult.isCompletedToday
+        });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -36,25 +51,25 @@ export const createShorts = async (req, res) => {
 
 export const fetchShorts = async (req, res) => {
     try {
-        const { page } = req.query;
-        const limit = 15;
-        const skip = (page - 1) * limit;
-        const shorts = await Shorts.find()
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .populate("user", "name username avatar upiId user_access");
+        const { cursor, limit = 15 } = req.query;
+        
+        const query = cursor ? { _id: { $lt: cursor } } : {};
+        
+        const shorts = await Shorts.find(query)
+            .sort({ _id: -1 }) // Cursor based on ID (chronological)
+            .limit(parseInt(limit))
+            .populate("user", "name username avatar upiId user_access")
+            .lean();
 
-        const shortsWithCount = await Promise.all(
-            shorts.map(async (s) => {
-                const count = await Comment.countDocuments({
-                    post: s._id,
-                    postType: "Shorts",
-                });
-                return { ...s, commentsCount: count };
-            })
-        );
-        return res.status(200).json({ success: true, message: "Shorts fetched successfully", shorts });
+        const nextCursor = shorts.length > 0 ? shorts[shorts.length - 1]._id : null;
+
+        return res.status(200).json({ 
+            success: true, 
+            message: "Shorts fetched successfully", 
+            shorts,
+            nextCursor,
+            hasMore: shorts.length === parseInt(limit)
+        });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -63,22 +78,26 @@ export const fetchShorts = async (req, res) => {
 
 export const getYourShorts = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 12;
-        const skip = (page - 1) * limit;
+        const { cursor, limit = 12 } = req.query;
+        
+        const query = { 
+            user: req.user.id,
+            ...(cursor && { _id: { $lt: cursor } })
+        };
 
-        const shorts = await Shorts.find({ user: req.user.id })
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
+        const shorts = await Shorts.find(query)
+            .sort({ _id: -1 })
+            .limit(parseInt(limit))
+            .lean();
 
-        const totalShorts = await Shorts.countDocuments({ user: req.user.id });
+        const nextCursor = shorts.length > 0 ? shorts[shorts.length - 1]._id : null;
 
         return res.status(200).json({ 
             success: true, 
             message: "Shorts fetched successfully", 
             shorts,
-            hasMore: skip + shorts.length < totalShorts
+            nextCursor,
+            hasMore: shorts.length === parseInt(limit)
         });
     } catch (error) {
         console.log("Internal server error", error);
@@ -355,46 +374,40 @@ export const deleteComment = async (req, res) => {
 
 
 export const viewsInShort = async (req, res) => {
+    // 🚀 Elite Performance: Respond immediately and update in background
+    res.status(200).json({ success: true, message: "View recorded" });
+
     try {
-        const short = await Shorts.findById(req.params.id);
-        if (!short) {
-            return res.status(404).json({ success: false, message: "Short not found" });
-        }
-        const views = short.views + 1;
-        const updatedShort = await Shorts.findByIdAndUpdate(
-            req.params.id,
-            {
-                $set: {
-                    ...(views && { views }),
-                },
-            },
-            { new: true, runValidators: true }
-        ).populate("user");
-        return res.status(200).json({ success: true, message: "Short viewed successfully", short: updatedShort });
+        const { id } = req.params;
+        // Atomic background update
+        await Shorts.updateOne({ _id: id }, { $inc: { views: 1 } });
     } catch (error) {
-        console.log("Internal server error", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+        console.error("Background View Increment Error:", error);
     }
 }
 
 export const getShortsByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
-        console.log(`🎥 [ShortsController] Fetching shorts for user: ${userId}`);
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 12;
-        const skip = (page - 1) * limit;
+        const { cursor, limit = 12 } = req.query;
+        
+        const query = { 
+            user: new mongoose.Types.ObjectId(userId),
+            ...(cursor && { _id: { $lt: cursor } })
+        };
 
-        const query = { user: new mongoose.Types.ObjectId(userId) };
         const shorts = await Shorts.find(query)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
+            .sort({ _id: -1 })
+            .limit(parseInt(limit))
+            .lean();
+
+        const nextCursor = shorts.length > 0 ? shorts[shorts.length - 1]._id : null;
 
         return res.status(200).json({ 
             success: true, 
             shorts,
-            hasMore: shorts.length === limit
+            nextCursor,
+            hasMore: shorts.length === parseInt(limit)
         });
     } catch (error) {
         console.log("Error fetching user shorts:", error);
@@ -405,7 +418,9 @@ export const getShortsByUserId = async (req, res) => {
 export const getShortByShortId = async (req, res) => {
     try {
         const { shortId } = req.params;
-        const short = await Shorts.findById(shortId).populate("user", "name username avatar upiId");
+        const short = await Shorts.findById(shortId)
+            .populate("user", "name username avatar upiId")
+            .lean();
         if (!short) {
             return res.status(404).json({ success: false, message: "Short not found" });
         }
@@ -439,7 +454,8 @@ export const getSmartShorts = async (req, res) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
-            .populate('user', 'name username avatar upiId user_access');
+            .populate('user', 'name username avatar upiId user_access')
+            .lean();
         return res.status(200).json({ success: true, shorts, hasMore: shorts.length >= limit, mode: 'fallback' });
     };
 
