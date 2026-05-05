@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View, Text, Pressable, TextInput, FlatList, Image,
   Dimensions, ActivityIndicator, KeyboardAvoidingView, Platform,
@@ -7,7 +7,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Video, ResizeMode } from "expo-av";
 import * as MediaLibrary from 'expo-media-library';
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import axios from "../context/axiosConfig";
@@ -35,9 +35,7 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
           time: 1000,
         });
         if (isMounted) setThumbnail(uri);
-      } catch (e) {
-        // Fallback or silence
-      }
+      } catch (e) {}
     };
     generateThumbnail();
     return () => { isMounted = false; };
@@ -80,6 +78,7 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
 const CreateShorts = () => {
   const { setUser } = useAuth();
   const navigation = useNavigation<any>();
+  const videoRef = useRef<Video>(null);
 
   // States
   const [assets, setAssets] = useState<MediaLibrary.Asset[]>([]);
@@ -90,6 +89,7 @@ const CreateShorts = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // Streak States
   const [showStreakModal, setShowStreakModal] = useState(false);
@@ -129,21 +129,19 @@ const CreateShorts = () => {
     }
 
     setLoading(true);
+    // STOP VIDEO WHEN UPLOAD STARTS
+    if (videoRef.current) {
+        await videoRef.current.pauseAsync();
+    }
 
     try {
       const info = await MediaLibrary.getAssetInfoAsync(selectedAsset);
       const uri = info.localUri || info.uri;
       
-      // CHECK FILE SIZE (20MB Limit)
-      // Note: size is in bytes. 20MB = 20 * 1024 * 1024
       const MAX_SIZE = 20 * 1024 * 1024;
       if (info.size && info.size > MAX_SIZE) {
         setLoading(false);
-        Toast.show({
-          type: 'error',
-          text1: 'Video Too Large',
-          text2: 'Please select a video smaller than 20MB.',
-        });
+        Toast.show({ type: 'error', text1: 'Video Too Large', text2: 'Please select a video smaller than 20MB.' });
         return;
       }
 
@@ -161,25 +159,19 @@ const CreateShorts = () => {
       });
 
       if (res.data.success) {
+          setIsSuccess(true);
           if (res.data.isCompletedToday) {
             setCurrentStreakCount(res.data.streakCount);
             setShowStreakModal(true);
-            setTimeout(() => {
-              navigation.navigate("Tabs");
-            }, 2200);
+            setTimeout(() => { navigation.navigate("Tabs"); }, 2200);
           } else {
             Toast.show({ type: 'success', text1: 'Short Live!', text2: 'Your video has been uploaded.' });
-            navigation.navigate("Tabs");
+            setTimeout(() => { navigation.navigate("Tabs"); }, 1500);
           }
       }
     } catch (err) {
       console.log(err);
-      Toast.show({
-        type: 'error',
-        text1: 'Upload Failed',
-        text2: 'Server rejected the file. (Check Nginx limits)',
-      });
-    } finally {
+      Toast.show({ type: 'error', text1: 'Upload Failed', text2: 'Server rejected the file. (Check Nginx limits)' });
       setLoading(false);
     }
   };
@@ -208,7 +200,7 @@ const CreateShorts = () => {
                 <Video
                   source={{ uri: selectedAsset.uri }}
                   style={{ flex: 1 }}
-                  resizeMode={ResizeMode.COVER}
+                  resizeMode={ResizeMode.CONTAIN} // Better for handling different ratios
                   shouldPlay
                   isLooping
                   isMuted
@@ -227,36 +219,27 @@ const CreateShorts = () => {
           <View className="flex-row justify-between items-center mb-6 px-2">
              <View>
                 <Text className="text-xl font-black text-[#1E293B]">Gallery</Text>
-                <Text className="text-[10px] text-[#94A3B8] font-bold uppercase tracking-widest mt-1">Select 9:16 Video</Text>
+                <Text className="text-[10px] text-[#94A3B8] font-bold uppercase tracking-widest mt-1">Videos detected</Text>
              </View>
              <View className="bg-[#F8FAFC] p-3 rounded-2xl border border-[#E2E8F0]">
                 <Ionicons name="videocam" size={20} color="#f97316" />
              </View>
           </View>
 
-          {assets.length === 0 ? (
-            <View className="flex-1 items-center justify-center pb-20">
-              <View className="bg-[#F8FAFC] p-8 rounded-[40px] border border-[#E2E8F0] mb-4">
-                <Ionicons name="videocam-off" size={48} color="#CBD5E1" />
-              </View>
-              <Text className="text-[#64748B] font-bold text-center px-12">No compatible videos found in your gallery.</Text>
-            </View>
-          ) : (
-            <FlatList
-              data={assets}
-              numColumns={COLUMN_COUNT}
-              showsVerticalScrollIndicator={false}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={{ paddingBottom: 100 }}
-              renderItem={({ item }) => (
-                <VideoItem 
-                  item={item} 
-                  isSelected={selectedAsset?.id === item.id} 
-                  onSelect={setSelectedAsset} 
-                />
-              )}
-            />
-          )}
+          <FlatList
+            data={assets}
+            numColumns={COLUMN_COUNT}
+            showsVerticalScrollIndicator={false}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{ paddingBottom: 100 }}
+            renderItem={({ item }) => (
+              <VideoItem 
+                item={item} 
+                isSelected={selectedAsset?.id === item.id} 
+                onSelect={setSelectedAsset} 
+              />
+            )}
+          />
         </View>
       </SafeAreaView>
     );
@@ -266,13 +249,14 @@ const CreateShorts = () => {
     <View className="flex-1 bg-black">
       {/* Background Video */}
       <Video
+        ref={videoRef}
         source={{ uri: selectedAsset?.uri ?? '' }}
         style={{ position: "absolute", width: width, height: height }}
-        resizeMode={ResizeMode.COVER}
-        shouldPlay
+        resizeMode={ResizeMode.CONTAIN} // Handle different ratios beautifully
+        shouldPlay={!loading && !isSuccess}
         isLooping
       />
-      <LinearGradient colors={['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.9)']} className="absolute inset-0" />
+      <LinearGradient colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.9)']} className="absolute inset-0" />
 
       <SafeAreaView className="flex-1">
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
@@ -281,17 +265,23 @@ const CreateShorts = () => {
             <TouchableOpacity onPress={() => setStep('pick')} className="bg-white/10 p-2 rounded-full border border-white/20">
               <Ionicons name="chevron-back" size={24} color="white" />
             </TouchableOpacity>
-            <Text className="text-white font-black text-xs uppercase tracking-[3px] ml-4">Publish Details</Text>
+            <Text className="text-white font-black text-xs uppercase tracking-[3px] ml-4">Finalize Short</Text>
           </View>
 
           <View className="flex-1 justify-end px-6 pb-12">
+            {/* Aspect Ratio Warning/Info */}
+            <View className="bg-orange-500/10 self-start px-4 py-1.5 rounded-full border border-orange-500/20 mb-4 flex-row items-center">
+               <Ionicons name="expand-outline" size={12} color="#f97316" />
+               <Text className="text-[#f97316] text-[10px] font-black uppercase tracking-widest ml-2">Ratio: {selectedAsset?.width}:{selectedAsset?.height}</Text>
+            </View>
+
             {/* Glassmorphism Panel */}
             <View className="bg-black/60 rounded-[32px] p-6 border border-white/10 backdrop-blur-xl">
                <View className="mb-6">
                   <Text className="text-[#f97316] font-black text-[10px] uppercase tracking-widest mb-3 ml-1">Video Headline</Text>
                   <View className="bg-white/5 rounded-2xl border border-white/10 px-4 h-14 justify-center">
                     <TextInput
-                      placeholder="Give it a catchy title..."
+                      placeholder="Title is required..."
                       placeholderTextColor="#64748B"
                       value={title}
                       onChangeText={setTitle}
