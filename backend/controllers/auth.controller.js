@@ -513,6 +513,7 @@ export const updateUser = async (req, res) => {
     let avatarUrl = "";
     let bannerUrl = "";
     let resumeUrlStr = "";
+    let resumeNameStr = "";
 
     if (req.files?.avatar) {
       if (user.avatar) {
@@ -531,6 +532,7 @@ export const updateUser = async (req, res) => {
         await deleteFromR2(user.resumeUrl);
       }
       resumeUrlStr = req.files.resume[0].path;
+      resumeNameStr = req.files.resume[0].originalname || 'resume.pdf';
     }
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
@@ -555,6 +557,7 @@ export const updateUser = async (req, res) => {
           ...(hackerrank && { "codingProfiles.hackerrank": hackerrank }),
           ...(upiId && { upiId }),
           ...(resumeUrlStr && { resumeUrl: resumeUrlStr }),
+          ...(resumeNameStr && { resumeName: resumeNameStr }),
           // Recruiter / Alumni fields
           ...(company && { company }),
           ...(role && { role }),

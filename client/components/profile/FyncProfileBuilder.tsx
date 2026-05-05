@@ -4,7 +4,8 @@ import {
   ActivityIndicator, Alert, Linking, Dimensions, Platform, StatusBar
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, Feather, FontAwesome5 } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
+import { Ionicons, Feather, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../context/auth.context';
 import axios from '../../context/axiosConfig';
@@ -94,6 +95,7 @@ export default function FyncProfileBuilder() {
   const [editingInternship, setEditingInternship] = useState<any>(null);
   const [editingCert, setEditingCert] = useState<any>(null);
   const [showCodingModal, setShowCodingModal] = useState(false);
+  const [uploadingResume, setUploadingResume] = useState(false);
 
   const fetchProfile = async () => {
     try {
@@ -205,8 +207,55 @@ export default function FyncProfileBuilder() {
   };
 
   const downloadResume = async () => {
-    const url = `${axios.defaults.baseURL}/profile/resume/${user?._id}/pdf`;
+    if (!profile?.user?.resumeUrl) {
+      Toast.show({ type: 'info', text1: 'No resume uploaded yet' });
+      return;
+    }
+    const url = profile.user.resumeUrl;
     await Linking.openURL(url);
+  };
+
+  const handlePickResume = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled) {
+        uploadResume(result.assets[0]);
+      }
+    } catch (err) {
+      console.error("Document picking error:", err);
+    }
+  };
+
+  const uploadResume = async (file: any) => {
+    setUploadingResume(true);
+    try {
+      const formData = new FormData();
+      const fileName = file.name || 'resume.pdf';
+      
+      formData.append('resume', {
+        uri: Platform.OS === 'ios' ? file.uri.replace('file://', '') : file.uri,
+        name: fileName,
+        type: 'application/pdf',
+      } as any);
+
+      const res = await axios.post('/user/update', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      if (res.data.success) {
+        Toast.show({ type: 'success', text1: 'Resume uploaded successfully!' });
+        fetchProfile();
+      }
+    } catch (error) {
+      console.error(error);
+      Toast.show({ type: 'error', text1: 'Upload failed' });
+    } finally {
+      setUploadingResume(false);
+    }
   };
 
   if (loading) return (
@@ -248,6 +297,49 @@ export default function FyncProfileBuilder() {
             </View>
 
             <FyncScoreCard userId={user?._id!} isOwner onRecalculate={fetchProfile} />
+
+            {/* Resume Upload Section (NEW) */}
+            <View className="mx-4 mb-6 bg-white border border-slate-100 rounded-[28px] p-6 shadow-sm shadow-black/5">
+              <View className="flex-row items-center justify-between mb-4">
+                <View className="flex-row items-center gap-3">
+                  <View className="w-10 h-10 bg-indigo-100 rounded-2xl items-center justify-center">
+                    <Ionicons name="document-text" size={18} color="#4f46e5" />
+                  </View>
+                  <View>
+                    <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-widest">Career Document</Text>
+                    <Text className="text-slate-400 font-bold text-[8px] uppercase tracking-widest mt-0.5">Resume / CV (PDF)</Text>
+                  </View>
+                </View>
+                {profile?.user?.resumeUrl && (
+                  <Pressable onPress={downloadResume} className="bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">
+                    <Text className="text-indigo-600 font-black text-[8px] uppercase">Preview</Text>
+                  </Pressable>
+                )}
+              </View>
+
+              <Pressable 
+                onPress={handlePickResume}
+                disabled={uploadingResume}
+                className={`flex-row items-center justify-center gap-3 h-14 rounded-2xl border-2 border-dashed ${profile?.user?.resumeUrl ? 'border-indigo-200 bg-indigo-50/30' : 'border-slate-200 bg-slate-50'}`}
+              >
+                {uploadingResume ? (
+                  <ActivityIndicator color="#4f46e5" size="small" />
+                ) : (
+                  <>
+                    <Feather name={profile?.user?.resumeUrl ? "check-circle" : "upload-cloud"} size={18} color={profile?.user?.resumeUrl ? "#10b981" : "#94a3b8"} />
+                    <Text className={`font-black uppercase text-[10px] tracking-widest ${profile?.user?.resumeUrl ? 'text-indigo-600' : 'text-slate-400'}`}>
+                      {profile?.user?.resumeUrl ? (profile?.user?.resumeName || "Update Resume") : "Upload Resume (PDF)"}
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+              {profile?.user?.resumeName && (
+                 <Text className="text-slate-400 text-[8px] font-bold uppercase tracking-widest mt-2 text-center">
+                    Current: {profile.user.resumeName}
+                 </Text>
+              )}
+            </View>
+
             <GitHubStatsCard
               username={profile?.user?.githubUsername}
               stats={profile?.user?.githubStats}

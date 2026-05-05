@@ -14,6 +14,7 @@ import { useAuth } from '../context/auth.context';
 import Avatar from './Avatar';
 import { ProfileSkeleton } from './Skeleton';
 import { Image as ExpoImage } from 'expo-image';
+import GitHubStatsCard from './profile/GitHubStatsCard';
 
 const { width } = Dimensions.get('window');
 
@@ -338,6 +339,17 @@ const PublicProfile = () => {
 
             {/* Social Links */}
             <Text className="text-gray-500 text-xs font-bold uppercase mb-3 tracking-wider ml-1">Connect</Text>
+            
+            {profileUser?.github_id && (
+                <View className="-mx-4 mb-6">
+                    <GitHubStatsCard 
+                        username={ (profileUser as any).githubUsername || profileUser.github_id.split('/').pop() }
+                        stats={ (profileUser as any).githubStats }
+                        isOwner={false}
+                    />
+                </View>
+            )}
+
             <View className="gap-3">
                 {profileUser?.github_id && (
                     <Pressable onPress={() => Linking.openURL(profileUser.github_id!)} className="flex-row items-center bg-white/5 px-4 py-3 rounded-xl border border-white/10">

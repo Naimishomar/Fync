@@ -333,6 +333,44 @@ const RecruiterPortal = () => {
                     </Text>
                 </View>
             </View>
+            
+            {/* GitHub Stats Preview (NEW) */}
+            {item.candidate?.githubUsername && (
+                <View className="mb-4 bg-slate-50 p-4 rounded-3xl border border-slate-100">
+                    <View className="flex-row items-center justify-between mb-3">
+                        <View className="flex-row items-center gap-2">
+                             <Ionicons name="logo-github" size={16} color="#18181b" />
+                             <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-widest">GitHub Stats Preview</Text>
+                        </View>
+                        <View className="bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+                            <Text className="text-emerald-600 font-black text-[8px] uppercase">Verified</Text>
+                        </View>
+                    </View>
+                    
+                    <View className="flex-row gap-2">
+                         <View className="flex-1 bg-white p-2 rounded-xl border border-slate-50 items-center">
+                             <Text className="text-zinc-900 font-black text-xs">{item.candidate.githubStats?.totalCommits || 0}</Text>
+                             <Text className="text-slate-400 text-[6px] font-black uppercase tracking-tighter">Commits</Text>
+                         </View>
+                         <View className="flex-1 bg-white p-2 rounded-xl border border-slate-50 items-center">
+                             <Text className="text-zinc-900 font-black text-xs">{item.candidate.githubStats?.totalStars || 0}</Text>
+                             <Text className="text-slate-400 text-[6px] font-black uppercase tracking-tighter">Stars</Text>
+                         </View>
+                         <View className="flex-1 bg-white p-2 rounded-xl border border-slate-50 items-center">
+                             <Text className="text-zinc-900 font-black text-xs">{item.candidate.githubStats?.contributionStreak || 0}d</Text>
+                             <Text className="text-slate-400 text-[6px] font-black uppercase tracking-tighter">Streak</Text>
+                         </View>
+                    </View>
+
+                    <TouchableOpacity 
+                        onPress={() => Linking.openURL(`https://github.com/${item.candidate.githubUsername}`)}
+                        className="mt-3 flex-row items-center justify-center gap-1.5"
+                    >
+                         <Text className="text-zinc-400 font-black uppercase text-[8px] tracking-widest">View Repo Analysis</Text>
+                         <Ionicons name="arrow-forward" size={10} color="#94a3b8" />
+                    </TouchableOpacity>
+                </View>
+            )}
 
             {/* Cover letter / pitch */}
             {item.coverLetter ? (

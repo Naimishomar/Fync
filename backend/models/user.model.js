@@ -358,6 +358,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    resumeName: {
+        type: String,
+        default: null
+    },
     streakCount: {
         type: Number,
         default: 0

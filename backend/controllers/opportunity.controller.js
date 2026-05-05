@@ -237,7 +237,7 @@ export const getRecruiterApplications = async (req, res) => {
         }
 
         const applications = await Application.find(filter)
-            .populate("candidate", "name username avatar email college graduationYear major mobileNumber")
+            .populate("candidate", "name username avatar email college graduationYear major mobileNumber githubUsername githubStats")
             .populate("opportunity", "title type company")
             .sort({ createdAt: -1 });
 

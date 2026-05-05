@@ -41,12 +41,6 @@ export default function EditProfile() {
   const [githubId, setGithubId] = useState(user?.github_id || '');
   const [linkedinId, setLinkedinId] = useState(user?.linkedIn_id || '');
 
-  // --- Coding Profiles (New) ---
-  const [leetcodeId, setLeetcodeId] = useState(user?.codingProfiles?.leetcode || '');
-  const [gfgId, setGfgId] = useState(user?.codingProfiles?.gfg || '');
-  const [codechefId, setCodechefId] = useState(user?.codingProfiles?.codechef || '');
-  const [codeforcesId, setCodeforcesId] = useState(user?.codingProfiles?.codeforces || '');
-  const [hackerrankId, setHackerrankId] = useState(user?.codingProfiles?.hackerrank || '');
   const [upiId, setUpiId] = useState(user?.upiId || '');
 
   // --- Images ---
@@ -54,8 +48,6 @@ export default function EditProfile() {
   const [newAvatar, setNewAvatar] = useState<any>(null);
   const [banner, setBanner] = useState(user?.banner || null);
   const [newBanner, setNewBanner] = useState<any>(null);
-  const [resumeUrl, setResumeUrl] = useState(user?.resumeUrl || null);
-  const [newResume, setNewResume] = useState<any>(null);
 
   // --- CHANGE DETECTION ---
   const initialSkills = user?.skills || [];
@@ -69,16 +61,10 @@ export default function EditProfile() {
     interest !== (user?.interest || '') ||
     githubId !== (user?.github_id || '') ||
     linkedinId !== (user?.linkedIn_id || '') ||
-    leetcodeId !== (user?.codingProfiles?.leetcode || '') ||
-    gfgId !== (user?.codingProfiles?.gfg || '') ||
-    codechefId !== (user?.codingProfiles?.codechef || '') ||
-    codeforcesId !== (user?.codingProfiles?.codeforces || '') ||
-    hackerrankId !== (user?.codingProfiles?.hackerrank || '') ||
     upiId !== (user?.upiId || '') ||
     JSON.stringify(skills) !== JSON.stringify(initialSkills) ||
     newAvatar !== null ||
-    newBanner !== null ||
-    newResume !== null;
+    newBanner !== null;
 
   // --- IMAGE PICKER ---
   const pickImage = async (type: 'avatar' | 'banner') => {
@@ -100,22 +86,6 @@ export default function EditProfile() {
     }
   };
 
-  const pickDocument = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: 'application/pdf',
-        copyToCacheDirectory: true,
-      });
-
-      if (!result.canceled) {
-        setNewResume(result.assets[0]);
-      }
-    } catch (err) {
-      console.error("Document picking error:", err);
-    }
-  };
-
-  // --- SKILL TAG LOGIC ---
   const handleSkillInput = (text: string) => {
     if (text.endsWith(',')) {
       const newSkill = text.slice(0, -1).trim();
@@ -146,11 +116,6 @@ export default function EditProfile() {
       formData.append('hobbies', hobbies);
       formData.append('github_id', githubId);
       formData.append('linkedIn_id', linkedinId);
-      formData.append('leetcode', leetcodeId);
-      formData.append('gfg', gfgId);
-      formData.append('codechef', codechefId);
-      formData.append('codeforces', codeforcesId);
-      formData.append('hackerrank', hackerrankId);
       formData.append('upiId', upiId);
 
       skills.forEach((skill) => {
@@ -179,15 +144,7 @@ export default function EditProfile() {
         } as any);
       }
 
-      // Append Resume
-      if (newResume) {
-        formData.append('resume', {
-          uri: Platform.OS === 'ios' ? newResume.uri.replace('file://', '') : newResume.uri,
-          name: newResume.name,
-          type: 'application/pdf',
-        } as any);
-      }
-
+      // Update Profile
       const res = await axios.post('/user/update', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -305,138 +262,6 @@ export default function EditProfile() {
               * Other users will use this ID to pay you for your content.
             </Text>
           </View>
-
-          {/* --- Resume Upload Section --- */}
-          <View className="bg-blue-50/50 p-4 rounded-2xl border border-blue-200/50 mt-2">
-            <Text className="text-blue-900 font-bold mb-3">Resume / CV</Text>
-
-            <View className="flex-row items-center justify-between bg-white p-3 rounded-xl border border-blue-100">
-              <View className="flex-1 mr-3">
-                <Text className="text-gray-600 text-xs uppercase font-bold tracking-widest mb-1">Current Resume</Text>
-                <Text className="text-blue-600 text-sm font-medium" numberOfLines={1}>
-                  {newResume ? newResume.name : (resumeUrl ? "Resume Uploaded ✅" : "No Resume Uploaded")}
-                </Text>
-              </View>
-
-              <Pressable
-                onPress={pickDocument}
-                className="bg-blue-600 px-4 py-2 rounded-lg"
-              >
-                <Text className="text-white font-bold text-xs">
-                  {resumeUrl || newResume ? "Replace PDF" : "Upload PDF"}
-                </Text>
-              </Pressable>
-            </View>
-            <Text className="text-gray-400 text-[10px] mt-2  ml-1">
-              * Required for job applications. PDF format only.
-            </Text>
-          </View>
-
-          {/* --- Social & Coding Links --- */}
-          {user?.user_access !== 'recruiter' && (
-            <View className="pt-4 border-t border-gray-200 mt-2">
-              <Text className="text-gray-800 font-bold mb-4 text-lg">Social & Coding Profiles</Text>
-
-              {/* GitHub */}
-              <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
-                <Ionicons name="logo-github" size={24} color="#1A1A1A" />
-                <TextInput
-                  value={githubId}
-                  onChangeText={setGithubId}
-                  placeholder="Github Username"
-                  placeholderTextColor="#9ca3af"
-                  className="flex-1 text-black p-3.5"
-                />
-              </View>
-
-              {/* LinkedIn */}
-              <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
-                <Ionicons name="logo-linkedin" size={24} color="#0077b5" />
-                <TextInput
-                  value={linkedinId}
-                  onChangeText={setLinkedinId}
-                  placeholder="LinkedIn Profile URL"
-                  placeholderTextColor="#9ca3af"
-                  className="flex-1 text-black p-3.5"
-                />
-              </View>
-
-              {/* LeetCode */}
-              <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
-                <Image
-                  source={{ uri: "https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/leetcode-xp0gbbxtpmnkjk8uhdrmhg.png/leetcode-jj5yfhjdsmrt5j9xb3sec.png?_a=DATAiZiuZAA0" }}
-                  width={16} height={16}
-                  className="w-6 h-6"
-                  resizeMode="contain"
-                />
-                <TextInput
-                  value={leetcodeId}
-                  onChangeText={setLeetcodeId}
-                  placeholder="LeetCode Username"
-                  placeholderTextColor="#9ca3af"
-                  className="flex-1 text-black p-3.5"
-                />
-              </View>
-
-              {/* CodeChef */}
-              <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
-                <Image
-                  source={{ uri: "https://cdn.codechef.com/images/email/codechef-logo.png" }}
-                  width={16} height={16}
-                  className="w-6 h-6"
-                  resizeMode="contain"
-                />
-                <TextInput
-                  value={codechefId}
-                  onChangeText={setCodechefId}
-                  placeholder="CodeChef Username"
-                  placeholderTextColor="#9ca3af"
-                  className="flex-1 text-black p-3.5"
-                />
-              </View>
-
-              {/* GeeksForGeeks */}
-              <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
-                <Image
-                  source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/e/eb/GeeksForGeeks_logo.png" }}
-                  width={16} height={16}
-                  className="w-6 h-6"
-                  resizeMode="contain"
-                />
-                <TextInput
-                  value={gfgId}
-                  onChangeText={setGfgId}
-                  placeholder="GeeksforGeeks Username"
-                  placeholderTextColor="#9ca3af"
-                  className="flex-1 text-black p-3.5"
-                />
-              </View>
-
-              {/* Codeforces */}
-              <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
-                <Ionicons name="code-working" size={24} color="#3b82f6" />
-                <TextInput
-                  value={codeforcesId}
-                  onChangeText={setCodeforcesId}
-                  placeholder="Codeforces Username"
-                  placeholderTextColor="#9ca3af"
-                  className="flex-1 text-black p-3.5"
-                />
-              </View>
-
-              {/* HackerRank */}
-              <View className="flex-row items-center bg-gray-100 rounded-xl px-3 border border-gray-200 mb-3">
-                <Ionicons name="terminal" size={24} color="#2ec866" />
-                <TextInput
-                  value={hackerrankId}
-                  onChangeText={setHackerrankId}
-                  placeholder="HackerRank Username"
-                  placeholderTextColor="#9ca3af"
-                  className="flex-1 text-black p-3.5"
-                />
-              </View>
-            </View>
-          )}
 
         </View>
       </ScrollView>
