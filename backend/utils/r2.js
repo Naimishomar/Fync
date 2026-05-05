@@ -143,10 +143,10 @@ export const upload = multer({
   },
 });
 
-/** Short video upload — 100 MB */
+/** Short video upload — 20 MB limit */
 export const videoUpload = multer({
   storage: memoryStorage,
-  limits: { fileSize: 1024 * 1024 * 100 },
+  limits: { fileSize: 1024 * 1024 * 20 },
   fileFilter: (_req, file, cb) => {
     cb(null, file.mimetype === "video/mp4");
   },

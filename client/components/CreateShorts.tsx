@@ -11,13 +11,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import axios from "../context/axiosConfig";
-
 import Toast from "react-native-toast-message";
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import StreakModal from './StreakModal';
+import { useAuth } from "../context/auth.context";
 
 const { width, height } = Dimensions.get("window");
-const COLUMN_COUNT = 4;
+const COLUMN_COUNT = 3;
 const ITEM_SIZE = width / COLUMN_COUNT;
 
 const VideoItem = React.memo(({ item, isSelected, onSelect }: { 
@@ -36,10 +36,9 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
         });
         if (isMounted) setThumbnail(uri);
       } catch (e) {
-        console.warn('Thumbnail generation failed', e);
+        // Fallback or silence
       }
     };
-
     generateThumbnail();
     return () => { isMounted = false; };
   }, [item.uri]);
@@ -47,34 +46,36 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
   return (
     <Pressable
       onPress={() => onSelect(item)}
-      style={{ width: ITEM_SIZE, height: ITEM_SIZE, padding: 1 }}
+      className="p-[1px]"
+      style={{ width: ITEM_SIZE, height: ITEM_SIZE * 1.3 }}
     >
-      {thumbnail ? (
-        <Image
-          source={{ uri: thumbnail }}
-          style={{ flex: 1, opacity: isSelected ? 0.5 : 1 }}
-          resizeMode="cover"
-        />
-      ) : (
-        <View style={{ flex: 1 }} className="bg-neutral-900 items-center justify-center">
-           <ActivityIndicator size="small" color="#db2777" />
+      <View className={`flex-1 rounded-lg overflow-hidden border-2 ${isSelected ? 'border-[#f97316]' : 'border-transparent'}`}>
+        {thumbnail ? (
+          <Image
+            source={{ uri: thumbnail }}
+            className="flex-1"
+            resizeMode="cover"
+            style={{ opacity: isSelected ? 0.7 : 1 }}
+          />
+        ) : (
+          <View className="flex-1 bg-neutral-900 items-center justify-center">
+             <ActivityIndicator size="small" color="#f97316" />
+          </View>
+        )}
+        <View className="absolute bottom-2 right-2 bg-black/60 px-1.5 py-0.5 rounded-md border border-white/10">
+          <Text className="text-white text-[9px] font-black">
+            {Math.floor(item.duration / 60)}:{Math.round(item.duration % 60).toString().padStart(2, '0')}
+          </Text>
         </View>
-      )}
-      <View className="absolute bottom-1 right-1">
-        <Text className="text-white text-[10px] bg-black/50 px-1 rounded">
-          {Math.floor(item.duration / 60)}:{Math.round(item.duration % 60).toString().padStart(2, '0')}
-        </Text>
+        {isSelected && (
+          <View className="absolute top-2 right-2 bg-[#f97316] rounded-full w-5 h-5 items-center justify-center shadow-lg">
+            <Ionicons name="checkmark" size={12} color="white" />
+          </View>
+        )}
       </View>
-      {isSelected && (
-        <View className="absolute top-1 right-1 bg-pink-600 rounded-full w-5 h-5 items-center justify-center">
-          <Ionicons name="checkmark" size={12} color="white" />
-        </View>
-      )}
     </Pressable>
   );
 });
-
-import { useAuth } from "../context/auth.context";
 
 const CreateShorts = () => {
   const { setUser } = useAuth();
@@ -99,30 +100,21 @@ const CreateShorts = () => {
   }, []);
 
   const getVideos = async () => {
-    // Single clean permission request — double-request causes race on tablets
     const { status } = await MediaLibrary.requestPermissionsAsync();
-
     if (status !== 'granted') {
-      // Show an informative alert instead of silently going back
-      Alert.alert(
-        'Permission Required',
-        'Please allow access to your media library in Settings to pick a video.',
-        [
-          { text: 'Go Back', onPress: () => navigation.goBack() },
-        ]
-      );
+      Alert.alert('Permission Denied', 'Access to gallery is required to upload shorts.');
+      navigation.goBack();
       return;
     }
 
     const fetchParams: MediaLibrary.AssetsOptions = {
       mediaType: ['video'],
       sortBy: ['creationTime'],
-      first: 100,  // increased from 50 for tablets with more media
+      first: 50,
     };
 
     try {
       const result = await MediaLibrary.getAssetsAsync(fetchParams);
-      console.log('[CreateShorts] Videos found:', result.assets.length);
       setAssets(result.assets);
       if (result.assets.length > 0) setSelectedAsset(result.assets[0]);
     } catch (err) {
@@ -131,13 +123,29 @@ const CreateShorts = () => {
   };
 
   const handleUpload = async () => {
-    if (!selectedAsset || !title.trim()) return;
+    if (!selectedAsset || !title.trim()) {
+      Toast.show({ type: 'info', text1: 'Missing Details', text2: 'Please add a title and select a video.' });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // We need the actual URI for the file
       const info = await MediaLibrary.getAssetInfoAsync(selectedAsset);
       const uri = info.localUri || info.uri;
+      
+      // CHECK FILE SIZE (20MB Limit)
+      // Note: size is in bytes. 20MB = 20 * 1024 * 1024
+      const MAX_SIZE = 20 * 1024 * 1024;
+      if (info.size && info.size > MAX_SIZE) {
+        setLoading(false);
+        Toast.show({
+          type: 'error',
+          text1: 'Video Too Large',
+          text2: 'Please select a video smaller than 20MB.',
+        });
+        return;
+      }
 
       const formData = new FormData();
       formData.append("title", title.trim());
@@ -160,6 +168,7 @@ const CreateShorts = () => {
               navigation.navigate("Tabs");
             }, 2200);
           } else {
+            Toast.show({ type: 'success', text1: 'Short Live!', text2: 'Your video has been uploaded.' });
             navigation.navigate("Tabs");
           }
       }
@@ -168,7 +177,7 @@ const CreateShorts = () => {
       Toast.show({
         type: 'error',
         text1: 'Upload Failed',
-        text2: 'Something went wrong while uploading your short.',
+        text2: 'Server rejected the file. (Check Nginx limits)',
       });
     } finally {
       setLoading(false);
@@ -177,51 +186,68 @@ const CreateShorts = () => {
 
   if (step === 'pick') {
     return (
-      <SafeAreaView className="flex-1 bg-black">
+      <SafeAreaView className="flex-1 bg-[#0F172A]">
         {/* Header */}
-        <View className="flex-row items-center justify-between px-4 py-3">
-          <Pressable onPress={() => navigation.goBack()}>
-            <Ionicons name="close" size={28} color="white" />
-          </Pressable>
-          <Text className="text-white font-bold text-lg">New Short</Text>
-          <Pressable onPress={() => setStep('details')}>
-            <Text className="text-pink-600 font-bold text-lg">Next</Text>
-          </Pressable>
+        <View className="flex-row items-center justify-between px-6 py-4">
+          <TouchableOpacity onPress={() => navigation.goBack()} className="bg-white/5 p-2 rounded-full border border-white/10">
+            <Ionicons name="close" size={24} color="white" />
+          </TouchableOpacity>
+          <Text className="text-white font-black text-lg tracking-tight">CREATE <Text className="text-[#f97316]">SHORT</Text></Text>
+          <TouchableOpacity 
+            onPress={() => setStep('details')}
+            className="bg-[#f97316] px-5 py-2 rounded-full shadow-lg"
+          >
+            <Text className="text-white font-black text-xs uppercase tracking-widest">Next</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Big Preview */}
-        <View style={{ width: width, height: width * (16 / 9), maxHeight: height * 0.45 }}>
-          {selectedAsset && (
-            <Video
-              source={{ uri: selectedAsset.uri }}
-              style={{ flex: 1 }}
-              resizeMode={ResizeMode.COVER}
-              shouldPlay
-              isLooping
-              isMuted
-            />
-          )}
+        {/* Big Preview Area */}
+        <View className="px-4 mb-4" style={{ height: height * 0.35 }}>
+           <View className="flex-1 bg-black rounded-[32px] overflow-hidden border border-white/10 shadow-2xl">
+              {selectedAsset ? (
+                <Video
+                  source={{ uri: selectedAsset.uri }}
+                  style={{ flex: 1 }}
+                  resizeMode={ResizeMode.COVER}
+                  shouldPlay
+                  isLooping
+                  isMuted
+                />
+              ) : (
+                <View className="flex-1 items-center justify-center">
+                   <ActivityIndicator color="#f97316" />
+                </View>
+              )}
+              <LinearGradient colors={['transparent', 'rgba(0,0,0,0.5)']} className="absolute inset-0" />
+           </View>
         </View>
 
-        {/* Gallery Grid */}
-        <View className="flex-1 bg-white/10 mt-1">
-          <View className="px-4 py-3 bg-black flex-row justify-between items-center">
-            <Text className="text-white font-bold">Recent Videos ({assets.length})</Text>
-            <Ionicons name="camera" size={20} color="white" />
+        {/* Gallery Section */}
+        <View className="flex-1 bg-white rounded-t-[40px] pt-8 px-4">
+          <View className="flex-row justify-between items-center mb-6 px-2">
+             <View>
+                <Text className="text-xl font-black text-[#1E293B]">Gallery</Text>
+                <Text className="text-[10px] text-[#94A3B8] font-bold uppercase tracking-widest mt-1">Select 9:16 Video</Text>
+             </View>
+             <View className="bg-[#F8FAFC] p-3 rounded-2xl border border-[#E2E8F0]">
+                <Ionicons name="videocam" size={20} color="#f97316" />
+             </View>
           </View>
 
           {assets.length === 0 ? (
-            <View className="flex-1 items-center justify-center">
-              <Ionicons name="videocam-off-outline" size={48} color="#374151" />
-              <Text className="text-gray-500 mt-4 font-semibold text-center px-8">
-                No videos found on this device.{`\n`}Record a video first!
-              </Text>
+            <View className="flex-1 items-center justify-center pb-20">
+              <View className="bg-[#F8FAFC] p-8 rounded-[40px] border border-[#E2E8F0] mb-4">
+                <Ionicons name="videocam-off" size={48} color="#CBD5E1" />
+              </View>
+              <Text className="text-[#64748B] font-bold text-center px-12">No compatible videos found in your gallery.</Text>
             </View>
           ) : (
             <FlatList
               data={assets}
               numColumns={COLUMN_COUNT}
+              showsVerticalScrollIndicator={false}
               keyExtractor={(item) => item.id}
+              contentContainerStyle={{ paddingBottom: 100 }}
               renderItem={({ item }) => (
                 <VideoItem 
                   item={item} 
@@ -236,9 +262,9 @@ const CreateShorts = () => {
     );
   }
 
-  // --- DETAILS STEP (SAME AS YOUR GLASSMORPHISM UI) ---
   return (
     <View className="flex-1 bg-black">
+      {/* Background Video */}
       <Video
         source={{ uri: selectedAsset?.uri ?? '' }}
         style={{ position: "absolute", width: width, height: height }}
@@ -246,102 +272,75 @@ const CreateShorts = () => {
         shouldPlay
         isLooping
       />
-      {/* Gradient overlay for better readability over video */}
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.8)']}
-        className="absolute inset-0"
-      />
+      <LinearGradient colors={['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.9)']} className="absolute inset-0" />
 
       <SafeAreaView className="flex-1">
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1"
-        >
-          {/* Top Navigation */}
-          <View className="flex-row items-center justify-between px-6">
-            <Pressable
-              onPress={() => setStep('pick')}
-              className="bg-black/40 p-2 rounded-2xl border border-white/10"
-            >
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
+          {/* Header */}
+          <View className="flex-row items-center px-6 py-4">
+            <TouchableOpacity onPress={() => setStep('pick')} className="bg-white/10 p-2 rounded-full border border-white/20">
               <Ionicons name="chevron-back" size={24} color="white" />
-            </Pressable>
-            <Text className="text-pink-600 font-black uppercase tracking-widest text-sm">
-              Finalize Post
-            </Text>
-            <View className="w-10" />
+            </TouchableOpacity>
+            <Text className="text-white font-black text-xs uppercase tracking-[3px] ml-4">Publish Details</Text>
           </View>
 
-          {/* Content Area */}
-          <View className="flex-1 justify-end pb-12 px-3">
-            {/* Main Glass Container */}
-            <View
-              className="bg-black/50 rounded-2xl p-6 border border-pink-600 shadow-2xl"
-              style={{ shadowColor: '#000', shadowRadius: 20, shadowOpacity: 0.5 }}
-            >
-              <Text className="text-pink-500 font-bold mb-4 ml-1 text-xs uppercase tracking-[2px]">
-                Short Details
-              </Text>
+          <View className="flex-1 justify-end px-6 pb-12">
+            {/* Glassmorphism Panel */}
+            <View className="bg-black/60 rounded-[32px] p-6 border border-white/10 backdrop-blur-xl">
+               <View className="mb-6">
+                  <Text className="text-[#f97316] font-black text-[10px] uppercase tracking-widest mb-3 ml-1">Video Headline</Text>
+                  <View className="bg-white/5 rounded-2xl border border-white/10 px-4 h-14 justify-center">
+                    <TextInput
+                      placeholder="Give it a catchy title..."
+                      placeholderTextColor="#64748B"
+                      value={title}
+                      onChangeText={setTitle}
+                      className="text-white font-bold"
+                    />
+                  </View>
+               </View>
 
-              {/* Aesthetic Title Input */}
-              <View className="bg-white/5 rounded-xl border border-pink-600 px-4 mb-4">
-                <TextInput
-                  placeholder="Title"
-                  placeholderTextColor="#999"
-                  value={title}
-                  onChangeText={setTitle}
-                  className="text-pink-600 text-sm"
-                />
-              </View>
+               <View className="mb-8">
+                  <Text className="text-[#f97316] font-black text-[10px] uppercase tracking-widest mb-3 ml-1">Description (Optional)</Text>
+                  <View className="bg-white/5 rounded-2xl border border-white/10 px-4 py-4 min-h-[100px]">
+                    <TextInput
+                      placeholder="Add tags or a short story..."
+                      placeholderTextColor="#64748B"
+                      value={description}
+                      onChangeText={setDescription}
+                      multiline
+                      style={{ textAlignVertical: 'top' }}
+                      className="text-white font-medium"
+                    />
+                  </View>
+               </View>
 
-              {/* Aesthetic Description Input */}
-              <View className="bg-white/5 rounded-xl border border-pink-600 px-4 mb-8">
-                <TextInput
-                  placeholder="What's this short about?..."
-                  placeholderTextColor="#777"
-                  value={description}
-                  onChangeText={setDescription}
-                  multiline
-                  className="text-pink-600 text-sm min-h-[80px]"
-                  style={{ textAlignVertical: 'top' }}
-                />
-              </View>
-
-              {/* Share Button with Neon Pink Style */}
-              <TouchableOpacity
-                onPress={handleUpload}
-                disabled={loading}
-                activeOpacity={0.8}
-                style={{
-                  shadowColor: '#db2777', // pink-600
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.4,
-                  shadowRadius: 10,
-                  elevation: 8
-                }}
-              >
-                <View className="bg-pink-600 h-16 rounded-xl items-center justify-center flex-row">
-                  {loading ? (
-                    <ActivityIndicator color="white" />
-                  ) : (
-                    <>
-                      <Text className="text-white font-black uppercase tracking-widest mr-2">
-                        Share Short
-                      </Text>
-                      <Ionicons name="rocket" size={20} color="white" />
-                    </>
-                  )}
-                </View>
-              </TouchableOpacity>
+               <TouchableOpacity 
+                  onPress={handleUpload} 
+                  disabled={loading}
+                  activeOpacity={0.9}
+                  className="shadow-2xl shadow-[#f97316]/50"
+               >
+                  <LinearGradient
+                    colors={['#f97316', '#ea580c']}
+                    className="h-16 rounded-2xl items-center justify-center flex-row"
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <>
+                        <Text className="text-white font-black uppercase tracking-[2px] mr-2">Share to Fync</Text>
+                        <Ionicons name="rocket" size={20} color="white" />
+                      </>
+                    )}
+                  </LinearGradient>
+               </TouchableOpacity>
             </View>
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
 
-      <StreakModal 
-        visible={showStreakModal} 
-        streakCount={currentStreakCount} 
-        onClose={() => setShowStreakModal(false)} 
-      />
+      <StreakModal visible={showStreakModal} streakCount={currentStreakCount} onClose={() => setShowStreakModal(false)} />
     </View>
   );
 };

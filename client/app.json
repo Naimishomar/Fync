@@ -4,12 +4,12 @@
     "slug": "fync",
     "scheme": "fync",
     "version": "1.0.0",
-    "icon": "./assets/Fync.jpg",
+    "icon": "./assets/logo.png",
     "experiments": {
       "tsconfigPaths": true
     },
     "notification": {
-      "icon": "./assets/Fync.jpg",
+      "icon": "./assets/logo.png",
       "color": "#ffffff"
     },
     "plugins": [
@@ -36,7 +36,9 @@
       ],
       "expo-web-browser",
       "react-native-compressor",
-      "expo-notifications"
+      "expo-notifications",
+      "expo-build-properties",
+      "expo-video"
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -70,10 +72,10 @@
       ],
       "usesCleartextTraffic": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/Fync.jpg",
+        "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#000"
       },
-      "package": "com.anonymous.client",
+      "package": "com.naimishomar.fync",
       "softwareKeyboardLayoutMode": "pan"
     },
     "extra": {
