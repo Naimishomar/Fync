@@ -31,6 +31,7 @@
         {
           "photosPermission": "Allow Fync to access your photos",
           "videosPermission": "Allow Fync to access your videos",
+          "audioPermission": "Allow Fync to access your audio",
           "isAccessMediaLocationEnabled": true
         }
       ],
@@ -51,12 +52,27 @@
     ],
     "ios": {
       "supportsTablet": true,
+      "associatedDomains": ["applinks:fync-api.duckdns.org"],
       "infoPlist": {
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Used to show campus crowd density",
         "NSLocationAlwaysUsageDescription": "Used to show campus crowd density"
       }
     },
     "android": {
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "fync-api.duckdns.org",
+              "pathPrefix": "/"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "permissions": [
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_BACKGROUND_LOCATION",

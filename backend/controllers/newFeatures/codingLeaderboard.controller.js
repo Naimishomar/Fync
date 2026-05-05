@@ -6,22 +6,39 @@ export const updateCodingProfiles = async (req, res) => {
     try {
         const { leetcode } = req.body;
         
-        // Prevent saving empty strings or nulls effectively
         if (!leetcode || leetcode.trim() === "") {
              return res.status(400).json({ message: "Invalid LeetCode Username" });
         }
 
+        const username = leetcode.trim();
+
+        // 🔥 VALIDATION: Check if username actually exists on LeetCode
+        const stats = await fetchLeetCodeStats(username);
+        if (!stats) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "LeetCode profile not found. Please check the username and try again." 
+            });
+        }
+
         const user = await User.findByIdAndUpdate(
             req.user.id,
-            { $set: { "codingProfiles.leetcode": leetcode.trim() } }, // Trim whitespace
+            { 
+                $set: { "codingProfiles.leetcode": username },
+                codingStats: {
+                    totalSolved: stats.totalSolved,
+                    leetcodeSolved: stats.totalSolved,
+                    gfgSolved: 0,
+                    lastUpdated: new Date()
+                },
+                "weeklyStats.questionsThisWeek": stats.sevenDayCount || 0
+            },
             { new: true }
         );
 
-        // Refresh stats immediately so they show up in leaderboard
-        refreshUserStats(user._id);
-
         return res.status(200).json({ success: true, message: "LeetCode connected!", user });
     } catch (error) {
+        console.error("Update Profile Error:", error);
         return res.status(500).json({ message: "Error updating profile" });
     }
 };

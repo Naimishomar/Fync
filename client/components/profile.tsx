@@ -547,6 +547,18 @@ function Profile() {
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const [hasMoreShorts, setHasMoreShorts] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [subscription, setSubscription] = useState<any>(null);
+
+  const fetchSubscription = async () => {
+    try {
+      const res = await axios.get('/subscription/status');
+      if (res.data.success) {
+        setSubscription(res.data);
+      }
+    } catch (error) {
+      console.error("Subscription fetch error:", error);
+    }
+  };
 
   const getPosts = async (page = 1, isInitial = false) => {
     try {
@@ -577,11 +589,15 @@ function Profile() {
     } catch { }
   };
 
-  useEffect(() => { getPosts(1, true); getShorts(1, true); }, []);
+  useEffect(() => { 
+    getPosts(1, true); 
+    getShorts(1, true); 
+    fetchSubscription();
+  }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([getPosts(1, true), getShorts(1, true), refreshUser()]);
+    await Promise.all([getPosts(1, true), getShorts(1, true), refreshUser(), fetchSubscription()]);
     setRefreshing(false);
   };
 
@@ -687,6 +703,51 @@ function Profile() {
             </React.Fragment>
           ))}
         </View>
+
+        {/* Subscription Status Bar */}
+        {subscription?.status === 'active' && (
+          <View className="w-full mt-4 bg-indigo-50 border border-indigo-100 rounded-2xl px-5 py-3 flex-row items-center justify-between">
+            <View className="flex-row items-center">
+              <View className="w-8 h-8 bg-indigo-600 rounded-xl items-center justify-center mr-3">
+                <Ionicons name="flash" size={16} color="white" />
+              </View>
+              <View>
+                <Text className="text-indigo-900 font-black text-[10px] uppercase tracking-widest">
+                  {subscription.isLifetime ? "Lifetime Access" : "Premium Member"}
+                </Text>
+                <Text className="text-indigo-600 font-bold text-[11px] mt-0.5">
+                  {subscription.isLifetime ? "Infinite Protocol Active" : `${subscription.daysRemaining} Days remaining`}
+                </Text>
+              </View>
+            </View>
+            {!subscription.isLifetime && (
+              <Pressable 
+                onPress={() => navigation.navigate('SubscriptionScreen')}
+                className="bg-white px-3 py-1.5 rounded-lg border border-indigo-200"
+              >
+                <Text className="text-indigo-600 font-black text-[9px] uppercase tracking-tighter">Extend</Text>
+              </Pressable>
+            )}
+          </View>
+        )}
+
+        {subscription?.status === 'expired' && (
+          <Pressable 
+            onPress={() => navigation.navigate('SubscriptionScreen')}
+            className="w-full mt-4 bg-orange-50 border border-orange-100 rounded-2xl px-5 py-3 flex-row items-center justify-between"
+          >
+             <View className="flex-row items-center">
+              <View className="w-8 h-8 bg-orange-500 rounded-xl items-center justify-center mr-3">
+                <Ionicons name="alert-circle" size={18} color="white" />
+              </View>
+              <View>
+                <Text className="text-orange-900 font-black text-[10px] uppercase tracking-widest">Plan Expired</Text>
+                <Text className="text-orange-600 font-bold text-[11px] mt-0.5">Renew to unlock all features</Text>
+              </View>
+            </View>
+            <Ionicons name="arrow-forward" size={16} color="#f97316" />
+          </Pressable>
+        )}
 
         {/* Action buttons */}
         <View className="flex-row gap-4 mt-6 w-full">

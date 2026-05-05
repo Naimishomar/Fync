@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config({ quiet: true });
 import cors from 'cors';
+import morgan from 'morgan';
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -78,6 +79,7 @@ import { monitoringMiddleware } from './middlewares/monitoring.middleware.js';
 import { generalLimiter } from './middlewares/rateLimit.middleware.js';
 
 const app = express();
+app.use(morgan('dev'));
 app.use(generalLimiter);
 
 
@@ -210,6 +212,55 @@ const startServer = async () => {
 
 app.get('/', (req, res) => {
   res.send('Fync never gets down!🚀');
+});
+
+// Deep Linking Verification Routes
+app.get('/.well-known/assetlinks.json', (req, res) => {
+  res.json([
+    {
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.naimishomar.fync",
+        "sha256_cert_fingerprints": [
+          "YOUR_APP_SHA256_FINGERPRINT" // Replace with your actual SHA256 fingerprint
+        ]
+      }
+    }
+  ]);
+});
+
+app.get('/.well-known/apple-app-site-association', (req, res) => {
+  res.json({
+    "applinks": {
+      "apps": [],
+      "details": [
+        {
+          "appID": "YOUR_APPLE_TEAM_ID.com.naimishomar.fync", // Replace YOUR_APPLE_TEAM_ID
+          "paths": ["*"]
+        }
+      ]
+    }
+  });
+});
+
+// Sharing Redirect Routes (Handles cases where app is not installed)
+const SHARING_PATHS = ['/view', '/movie', '/community', '/club', '/product', '/fync-media'];
+SHARING_PATHS.forEach(path => {
+  app.get(path, (req, res) => {
+    // Redirect to Play Store or a landing page
+    res.redirect('https://play.google.com/store/apps/details?id=com.fync.app');
+  });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error("🔥 GLOBAL ERROR:", err);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal server error",
+    error: err // Always show for now to debug
+  });
 });
 
 startServer();

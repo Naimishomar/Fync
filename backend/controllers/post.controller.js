@@ -19,10 +19,16 @@ export const createPost = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
         else {
+            console.log("📝 [CreatePost] Body:", req.body);
+            console.log("📁 [CreatePost] Files:", req.files?.length || 0);
+            
             const user = await User.findById(req.user.id);
             if (!user) {
+                console.error("❌ [CreatePost] User Not Found in DB:", req.user.id);
                 return res.status(400).json({ success: false, message: 'User not found' });
             }
+            console.log("👤 [CreatePost] User Found:", { id: user._id, college: user.college, access: user.user_access });
+
             let image = [];
             if (req.files && req.files.length > 0) {
                 image = req.files.map(file => file.path);
@@ -31,17 +37,24 @@ export const createPost = async (req, res) => {
             let parsedMentions = [];
             if (mentions) {
                 try {
-                    parsedMentions = typeof mentions === 'string' ? JSON.parse(mentions) : mentions;
+                    const rawMentions = typeof mentions === 'string' ? JSON.parse(mentions) : mentions;
+                    if (Array.isArray(rawMentions)) {
+                        // Filter out any invalid ObjectIds to prevent Mongoose CastError
+                        parsedMentions = rawMentions.filter(id => mongoose.Types.ObjectId.isValid(id));
+                    }
                 } catch(e) {
                     parsedMentions = [];
                 }
             }
 
+            // Fallback for college if missing (since it's required in Post schema)
+            const postCollege = user.college || req.user.college || "Fync Community";
+
             const post = await Post.create({
                 description,
                 image,
                 user: req.user.id,
-                college: req.user.college,
+                college: postCollege,
                 mentions: parsedMentions,
                 isPrivate: isPrivate === 'true' || isPrivate === true,
                 likes: 0,
@@ -55,33 +68,43 @@ export const createPost = async (req, res) => {
                 return { streakCount: null, isCompletedToday: false };
             });
 
-            // Notify mentioned users
-            if (parsedMentions && parsedMentions.length > 0) {
-               for (const mentionedUserId of parsedMentions) {
-                   if (mentionedUserId.toString() !== req.user.id.toString()) {
-                       await Notification.create({
-                           recipient: mentionedUserId,
-                           sender: req.user.id,
-                           type: 'mention',
-                           post: post._id,
-                       });
-                       
-                       const mentionedUser = await User.findById(mentionedUserId);
-                       if (mentionedUser && mentionedUser.expoPushToken) {
-                           await sendPushNotification(
-                               mentionedUser.expoPushToken,
-                               "You were mentioned! 📣",
-                               `${user.username} tagged you in a new post.`,
-                               { url: `fync://view?postId=${post._id}` }
-                           );
-                       }
-                   }
-               }
+            // Notify mentioned users - Wrap in try-catch so it doesn't crash the whole request
+            try {
+                if (parsedMentions && parsedMentions.length > 0) {
+                    for (const mentionedUserId of parsedMentions) {
+                        if (mentionedUserId.toString() !== req.user.id.toString()) {
+                            await Notification.create({
+                                recipient: mentionedUserId,
+                                sender: req.user.id,
+                                type: 'mention',
+                                post: post._id,
+                            });
+                            
+                            const mentionedUser = await User.findById(mentionedUserId);
+                            if (mentionedUser && mentionedUser.expoPushToken) {
+                                await sendPushNotification(
+                                    mentionedUser.expoPushToken,
+                                    "You were mentioned! 📣",
+                                    `${user.username} tagged you in a new post.`,
+                                    { url: `fync://view?postId=${post._id}` }
+                                ).catch(err => console.error("Push Notification Error:", err));
+                            }
+                        }
+                    }
+                }
+            } catch (notifyError) {
+                console.error("❌ Notification Side-effect Error:", notifyError.message);
             }
-            // Invalidate Redis pool so next fetch picks up the new post
-            invalidatePool('posts').catch(() => { });
-            clearCache('feed').catch(() => { });
-            clearCache('posts').catch(() => { });
+
+            // Invalidate Cache - Wrap in try-catch
+            try {
+                invalidatePool('posts').catch(() => { });
+                clearCache('feed').catch(() => { });
+                clearCache('posts').catch(() => { });
+            } catch (cacheError) {
+                console.error("❌ Cache Invalidation Error:", cacheError.message);
+            }
+
             return res.status(200).json({ 
                 success: true, 
                 message: 'Post created successfully', 
@@ -91,8 +114,13 @@ export const createPost = async (req, res) => {
             });
         }
     } catch (error) {
-        console.log("Internal server error", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+        console.error("❌ CREATE POST ERROR:", error);
+        return res.status(500).json({ 
+            success: false, 
+            message: "Internal server error",
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 }
 

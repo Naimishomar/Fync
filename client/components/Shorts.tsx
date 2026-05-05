@@ -20,7 +20,7 @@ import {
 import { Video, ResizeMode } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation, useIsFocused } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
 import { useAuth } from "../context/auth.context";
@@ -87,20 +87,23 @@ const SingleShort = React.memo(({
   onDelete: (id: string) => void;
 }) => {
   const [showIcon, setShowIcon] = useState<"play" | "pause" | null>(null);
+  const [showFullText, setShowFullText] = useState(false);
   const videoRef = useRef<Video>(null);
   const isLiked = useMemo(() => {
     if (!currentUserId || !item.liked_by) return false;
     return item.liked_by.some(id => String(id) === String(currentUserId));
   }, [item.liked_by, currentUserId]);
 
+  const isFocused = useIsFocused();
+
   useEffect(() => {
-    if (isActive) {
+    if (isActive && isFocused) {
       videoRef.current?.playAsync();
       axios.post(`/shorts/views/${item._id}`).catch(() => { });
     } else {
       videoRef.current?.pauseAsync();
     }
-  }, [isActive]);
+  }, [isActive, isFocused]);
 
   const togglePlay = async () => {
     if (!videoRef.current) return;
@@ -117,7 +120,7 @@ const SingleShort = React.memo(({
 
   const handleShare = async () => {
     try {
-      const shareUrl = `https://fync.app/view?shortId=${item._id}`;
+      const shareUrl = `https://fync-api.duckdns.org/view?shortId=${item._id}`;
       const playStoreUrl = "https://play.google.com/store/apps/details?id=com.fync.app";
 
       await Share.share({
@@ -137,7 +140,7 @@ const SingleShort = React.memo(({
           style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }}
           resizeMode={ResizeMode.COVER}
           isLooping
-          shouldPlay={isActive}
+          shouldPlay={isActive && isFocused}
           isMuted={false}
           useNativeControls={false}
         />
@@ -176,8 +179,28 @@ const SingleShort = React.memo(({
               <Text className="text-gray-300 text-xs">@{item.user.username}</Text>
             </View>
           </Pressable>
-          <Text className="text-gray-300">{item.title}</Text>
-          <Text className="text-gray-500">{item.description}</Text>
+
+          {/* Truncated Title & Description */}
+          <View>
+            <Text className="text-gray-300 font-bold mb-1">
+              {(!showFullText && item.title.length > 50) 
+                ? item.title.substring(0, 50) + "..." 
+                : item.title}
+            </Text>
+            <Text className="text-gray-400 text-sm">
+              {(!showFullText && item.description.length > 50) 
+                ? item.description.substring(0, 50) + "..." 
+                : item.description}
+            </Text>
+            
+            {(item.title.length > 50 || item.description.length > 50) && (
+              <Pressable onPress={() => setShowFullText(!showFullText)} className="mt-1">
+                <Text className="text-orange-400 font-bold text-xs">
+                  {showFullText ? "Show Less" : "Show More"}
+                </Text>
+              </Pressable>
+            )}
+          </View>
         </View>
 
         {/* RIGHT */}

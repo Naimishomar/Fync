@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Video, ResizeMode } from 'expo-av';
 import axios from "../context/axiosConfig";
 import { useAuth } from '../context/auth.context';
+import { useIsFocused } from '@react-navigation/native';
 import { Image as ExpoImage } from 'expo-image';
 import { memo } from 'react';
 import Avatar from './Avatar';
@@ -303,6 +304,8 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
 
     // UI State
     const [resizeMode, setResizeMode] = useState(false);
+    const [showFullText, setShowFullText] = useState(false);
+    const isFocused = useIsFocused();
     const videoRef = useRef<Video>(null);
 
     useEffect(() => {
@@ -437,7 +440,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
         try {
             const id = data._id;
             const idParam = isShort ? `shortId=${id}` : `postId=${id}`;
-            const shareUrl = `https://fync.app/view?${idParam}`;
+            const shareUrl = `https://fync-api.duckdns.org/view?${idParam}`;
             const playStoreUrl = "https://play.google.com/store/apps/details?id=com.fync.app";
 
             await Share.share({
@@ -479,7 +482,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             source={{ uri: data.video }}
                             style={{ width: width, height: height, backgroundColor: 'black' }}
                             resizeMode={ResizeMode.COVER}
-                            shouldPlay={true}
+                            shouldPlay={isFocused}
                             isLooping
                         />
                     </Pressable>
@@ -493,10 +496,26 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                     <Text className="text-gray-300 text-xs shadow-md">@{data.user?.username}</Text>
                                 </View>
                             </Pressable>
-                            <Text className="text-white text-sm font-medium mb-1 shadow-md">{data.title}</Text>
-                            <View className="flex-row items-center gap-2">
-                                <Text className="text-gray-300 text-xs shadow-md" numberOfLines={3}>{data.description}</Text>
-                                {isShort && currentUser?._id === data.user?._id && <View className="h-1 w-1 bg-white/40 rounded-full" />}
+                            {/* Truncated Title & Description */}
+                            <View className="mb-1">
+                                <Text className="text-white text-sm font-bold shadow-md">
+                                    {(!showFullText && data.title.length > 50) 
+                                        ? data.title.substring(0, 50) + "..." 
+                                        : data.title}
+                                </Text>
+                                <Text className="text-gray-300 text-xs shadow-md mt-1">
+                                    {(!showFullText && data.description.length > 50) 
+                                        ? data.description.substring(0, 50) + "..." 
+                                        : data.description}
+                                </Text>
+
+                                {(data.title.length > 50 || data.description.length > 50) && (
+                                    <Pressable onPress={() => setShowFullText(!showFullText)} className="mt-1">
+                                        <Text className="text-orange-400 font-bold text-[10px]">
+                                            {showFullText ? "SHOW LESS" : "SHOW MORE"}
+                                        </Text>
+                                    </Pressable>
+                                )}
                             </View>
                             <Text className="text-white/60 text-[10px] mt-2 uppercase tracking-widest font-bold">{formatTime(data.createdAt)}</Text>
                         </View>

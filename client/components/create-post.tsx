@@ -7,13 +7,17 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
+  StatusBar,
+  TouchableOpacity,
 } from 'react-native';
-import { FontAwesome6, Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
 import axios from '../context/axiosConfig';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useAuth } from '../context/auth.context';
 
 interface UserSuggestion {
   _id: string;
@@ -22,8 +26,6 @@ interface UserSuggestion {
   avatar: string;
 }
 
-import { useAuth } from '../context/auth.context';
-
 function CreatePost() {
   const { user, setUser } = useAuth();
   const [description, setDescription] = useState('');
@@ -31,7 +33,7 @@ function CreatePost() {
   const [isLoading, setIsLoading] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
   const [mentions, setMentions] = useState<{ id: string, username: string }[]>([]);
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   
   // Tagging states
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -64,8 +66,6 @@ function CreatePost() {
 
   const handleTextChange = (text: string) => {
     setDescription(text);
-    
-    // Check if we are currently typing a mention
     const textBeforeCursor = text.slice(0, cursorPosition);
     const words = textBeforeCursor.split(/[\s\n]+/);
     const lastWord = words[words.length - 1];
@@ -80,18 +80,14 @@ function CreatePost() {
   };
 
   const handleSelection = (user: UserSuggestion) => {
-    // Replace the @query with @username
     const textBeforeCursor = description.slice(0, cursorPosition);
     const textAfterCursor = description.slice(cursorPosition);
-    
     const words = textBeforeCursor.split(/[\s\n]+/);
-    words.pop(); // remove the typing part
+    words.pop();
     const newTextBefore = words.length > 0 ? words.join(' ') + ' ' : '';
-    
     const newDescription = `${newTextBefore}@${user.username} ${textAfterCursor}`;
     setDescription(newDescription);
     setShowSuggestions(false);
-    
     if (!mentions.find(m => m.id === user._id)) {
         setMentions([...mentions, { id: user._id, username: user.username }]);
     }
@@ -103,13 +99,11 @@ function CreatePost() {
       alert('Permission required!');
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true,
       quality: 1,
     });
-
     if (!result.canceled) {
       const uris = result.assets.map((asset) => asset.uri);
       setImages((prev) => [...prev, ...uris]);
@@ -125,53 +119,36 @@ function CreatePost() {
       Toast.show({ type: 'error', text1: 'Please select at least one image' });
       return;
     }
-
     setIsLoading(true);
     try {
       const formData = new FormData();
       formData.append('description', description);
-
       const getMimeType = (uri: string) => {
         if (uri.endsWith(".png")) return "image/png";
         if (uri.endsWith(".jpg") || uri.endsWith(".jpeg")) return "image/jpeg";
         return "image/jpeg";
       };
-
       images.forEach((uri, index) => {
         const filename = uri.split("/").pop() || `image_${index}.jpg`;
-
         formData.append("image", {
           uri,
           name: filename,
           type: getMimeType(uri),
         } as any);
       });
-      
       formData.append('isPrivate', isPrivate ? 'true' : 'false');
-      
       const mentionedIds = mentions.map(m => m.id);
       if (mentionedIds.length > 0) {
           formData.append('mentions', JSON.stringify(mentionedIds));
       }
-
-      const res = await axios.post('/post/create',  
-        formData,{
-          headers:{
-            'Content-Type': 'multipart/form-data'
-          }
+      const res = await axios.post('/post/create', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
         });
-
       if (res.data.success) {
-        Toast.show({ type: 'success', text1: 'Posted successfully!' });
-        
-        // Update local streak count if returned
+        Toast.show({ type: 'success', text1: 'Mission Accomplished! 🚀' });
         if (res.data.streakCount !== undefined && res.data.streakCount !== null) {
-          setUser((prev: any) => ({
-            ...prev,
-            streakCount: res.data.streakCount
-          }));
+          setUser((prev: any) => ({ ...prev, streakCount: res.data.streakCount }));
         }
-
         setDescription('');
         setImages([]);
         setMentions([]);
@@ -181,138 +158,154 @@ function CreatePost() {
       }
     } catch (error) {
       console.log('Upload failed', error);
-      console.log(error);
-      Toast.show({ type: 'error', text1: 'Failed to upload' });
+      Toast.show({ type: 'error', text1: 'Upload failed. Check connection.' });
     } finally {
       setIsLoading(false);
     }
   };
 
-
   return (
-    <SafeAreaView className='flex-1 bg-[#F0F4F8]'>
-      {/* Header */}
-      <View className='flex-row items-center px-5 py-3'>
-        <Pressable onPress={() => navigation.goBack()} className="bg-white w-10 h-10 items-center justify-center rounded-full shadow-sm shadow-black/5">
-          <Ionicons name="arrow-back-outline" size={20} color="#1A1A1A" />
-        </Pressable>
-        <View className="flex-1 items-center pr-10">
-          <Text className='text-2xl font-bold text-gray-900'>Create <Text className="text-pink-500">Post</Text></Text>
+    <View className='flex-1 bg-white'>
+      <StatusBar barStyle="dark-content" />
+      <LinearGradient colors={['#f97316', 'transparent']} className="absolute top-0 w-full h-64 opacity-30" />
+
+      <SafeAreaView className='flex-1'>
+        {/* Header */}
+        <View className='flex-row items-center px-8 py-4 justify-between'>
+          <Pressable onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-2xl bg-white shadow-xl shadow-black/5 border border-slate-50">
+            <Ionicons name="arrow-back" size={22} color="#1e293b" />
+          </Pressable>
+          <View className="items-center">
+            <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-[3px]">Mission Briefing</Text>
+            <Text className='text-xl font-black text-gray-900 mt-1 uppercase tracking-tighter'>Create <Text className="text-orange-500">Post</Text></Text>
+          </View>
+          <View className="w-11" />
         </View>
-      </View>
 
-      <ScrollView className="flex-1 px-5 mt-2" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        {/* Main Input Card */}
-        <View className="bg-white rounded-[24px] p-5 shadow-sm shadow-black/5 min-h-[300px] relative z-50">
-          <Text className="text-[17px] font-bold text-gray-900 mb-2">Title</Text>
-          <TextInput
-            placeholder="Body Text (Optional)"
-            placeholderTextColor="#cbd5e1"
-            value={description}
-            onChangeText={handleTextChange}
-            onSelectionChange={(e) => setCursorPosition(e.nativeEvent.selection.start)}
-            multiline
-            textAlignVertical="top"
-            className="text-zinc-800 text-base flex-1 min-h-[150px]"
-          />
-
-          {showSuggestions && suggestions.length > 0 && (
-            <View className="absolute top-28 left-4 right-4 bg-white border border-gray-100 rounded-2xl shadow-lg shadow-black/10 max-h-48 z-[100] elevation-5">
-                <ScrollView keyboardShouldPersistTaps="handled">
-                    {suggestions.map((user) => (
-                        <Pressable
-                            key={user._id}
-                            onPress={() => handleSelection(user)}
-                            className="flex-row items-center p-3 border-b border-gray-50"
-                        >
-                            <Image source={{ uri: user.avatar || 'https://ui-avatars.com/api/?name=User' }} className="w-8 h-8 rounded-full bg-gray-100" />
-                            <View className="ml-3">
-                                <Text className="text-sm font-bold text-gray-900">{user.name}</Text>
-                                <Text className="text-xs text-gray-500">@{user.username}</Text>
-                            </View>
-                        </Pressable>
-                    ))}
-                </ScrollView>
+        <ScrollView className="flex-1 px-6 mt-4" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          {/* Main Input Card */}
+          <View className="bg-white rounded-[32px] p-6 shadow-2xl shadow-black/5 border border-slate-50 min-h-[350px] relative z-50">
+            <View className="flex-row items-center mb-6">
+                <View className="w-1.5 h-6 bg-orange-500 rounded-full mr-3" />
+                <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Share your thoughts</Text>
             </View>
-          )}
+            
+            <TextInput
+              placeholder="What's on your mind? Use @ to tag friends..."
+              placeholderTextColor="#94a3b8"
+              value={description}
+              onChangeText={handleTextChange}
+              onSelectionChange={(e) => setCursorPosition(e.nativeEvent.selection.start)}
+              multiline
+              textAlignVertical="top"
+              className="text-zinc-800 text-lg font-bold flex-1 min-h-[180px]"
+            />
 
-          {images.length > 0 && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3 mb-2 flex-grow-0">
-              {images.map((uri, index) => (
-                <View key={index} className="mr-3 relative">
-                  <Image source={{ uri }} className="h-20 w-20 rounded-xl bg-gray-100" />
-                  <Pressable
-                    onPress={() => removeImage(index)}
-                    className="absolute top-1 right-1 bg-black/70 h-6 w-6 rounded-full items-center justify-center"
-                  >
-                    <Text className="text-white text-xs font-bold">✕</Text>
-                  </Pressable>
-                </View>
-              ))}
-            </ScrollView>
-          )}
+            {showSuggestions && suggestions.length > 0 && (
+              <View className="absolute top-32 left-6 right-6 bg-white border border-slate-100 rounded-[24px] shadow-2xl shadow-black/10 max-h-56 z-[100] elevation-5 overflow-hidden">
+                  <ScrollView keyboardShouldPersistTaps="handled">
+                      {suggestions.map((user) => (
+                          <TouchableOpacity
+                              key={user._id}
+                              onPress={() => handleSelection(user)}
+                              className="flex-row items-center p-4 border-b border-slate-50"
+                          >
+                              <Image source={{ uri: user.avatar || 'https://ui-avatars.com/api/?name=' + user.name }} className="w-10 h-10 rounded-2xl bg-slate-100" />
+                              <View className="ml-4">
+                                  <Text className="text-sm font-black text-gray-900 uppercase tracking-tight">{user.name}</Text>
+                                  <Text className="text-[10px] font-black text-orange-500 uppercase tracking-widest mt-0.5">@{user.username}</Text>
+                              </View>
+                          </TouchableOpacity>
+                      ))}
+                  </ScrollView>
+              </View>
+            )}
 
-          {/* Card Footer: Icons & Badge */}
-          <View className="flex-row items-center justify-between mt-auto pt-4 relative z-10 w-full">
-            <View className="flex-row items-center gap-3">
-              <Pressable onPress={openGallery} className="flex-row items-center gap-2 px-3 py-2 rounded-full border border-gray-200 items-center justify-center bg-gray-50/50">
-                <Text className="text-gray-400 text-[11px] font-semibold">Select Photos</Text>
-                <Ionicons name="image-outline" size={18} color="#475569" />
-              </Pressable>
-            </View>
-            <View className="px-4 py-1.5 rounded-full border border-blue-200 bg-blue-50/50">
-              <Text className="text-blue-400 text-[11px] font-semibold">Community</Text>
+            {images.length > 0 && (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3 pt-4">
+                {images.map((uri, index) => (
+                  <View key={index} className="mr-4 relative">
+                    <Image source={{ uri }} className="h-24 w-24 rounded-[20px] bg-slate-100 border border-slate-50" />
+                    <Pressable
+                      onPress={() => removeImage(index)}
+                      className="absolute -top-2 -right-2 bg-zinc-900 h-7 w-7 rounded-full items-center justify-center border-2 border-white shadow-md"
+                    >
+                      <Ionicons name="close" size={14} color="white" />
+                    </Pressable>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+
+            {/* Card Footer: Add Image Button */}
+            <View className="flex-row items-center justify-between mt-6 pt-6 border-t border-slate-50">
+              <TouchableOpacity 
+                onPress={openGallery} 
+                className="flex-row items-center bg-slate-50 px-5 py-3 rounded-2xl border border-slate-100"
+              >
+                <Ionicons name="image" size={18} color="#f97316" />
+                <Text className="text-zinc-900 text-[10px] font-black uppercase tracking-widest ml-3">Add Photos</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </View>
 
-        {/* Options List */}
-        <View className="mt-4 gap-y-3">
-          <Pressable className="bg-white rounded-[20px] flex-row items-center justify-between p-[18px] shadow-sm shadow-black/5">
-            <View className="flex-row items-center gap-4">
-              <View className="w-9 h-9 rounded-full border border-gray-200 items-center justify-center bg-gray-50">
-                <Ionicons name="location-outline" size={18} color="#475569" />
+          {/* Settings Section */}
+          <Text className="text-[10px] font-black text-slate-400 uppercase tracking-[2px] mt-10 mb-4 ml-2">Post Settings</Text>
+          
+          <View className="gap-y-4">
+            <TouchableOpacity className="bg-white rounded-[28px] flex-row items-center justify-between p-5 shadow-2xl shadow-black/5 border border-slate-50">
+              <View className="flex-row items-center">
+                <View className="w-10 h-10 rounded-2xl bg-orange-50 items-center justify-center border border-orange-100">
+                  <Ionicons name="location" size={18} color="#f97316" />
+                </View>
+                <Text className="text-zinc-800 font-black uppercase text-[11px] tracking-widest ml-4">Add Location</Text>
               </View>
-              <Text className="text-gray-900 font-bold text-[15px]">Add Location</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
-          </Pressable>
+              <Ionicons name="chevron-forward" size={16} color="#cbd5e1" />
+            </TouchableOpacity>
 
-          <Pressable 
-            onPress={() => setIsPrivate(!isPrivate)}
-            className="bg-white rounded-[20px] flex-row items-center justify-between p-[18px] shadow-sm shadow-black/5"
-          >
-            <View className="flex-row items-center gap-4">
-              <View className="w-9 h-9 rounded-full border border-gray-200 items-center justify-center bg-gray-50">
-                <Ionicons name={isPrivate ? "lock-closed" : "lock-open-outline"} size={18} color="#475569" />
+            <TouchableOpacity 
+              onPress={() => setIsPrivate(!isPrivate)}
+              className="bg-white rounded-[28px] flex-row items-center justify-between p-5 shadow-2xl shadow-black/5 border border-slate-50"
+            >
+              <View className="flex-row items-center">
+                <View className={`w-10 h-10 rounded-2xl items-center justify-center border ${isPrivate ? 'bg-orange-50 border-orange-100' : 'bg-slate-50 border-slate-100'}`}>
+                  <Ionicons name={isPrivate ? "lock-closed" : "earth"} size={18} color={isPrivate ? "#f97316" : "#64748b"} />
+                </View>
+                <View className="ml-4">
+                    <Text className="text-zinc-800 font-black uppercase text-[11px] tracking-widest">Visibility</Text>
+                    <Text className={`text-[9px] font-black uppercase tracking-widest mt-1 ${isPrivate ? 'text-orange-500' : 'text-slate-400'}`}>
+                        {isPrivate ? "Private Protocol" : "Public Broadcast"}
+                    </Text>
+                </View>
               </View>
-              <Text className="text-gray-900 font-bold text-[15px]">
-                {isPrivate ? "Share Post Privately" : "Share Post to Public"}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
-          </Pressable>
+              <View className={`w-10 h-6 rounded-full px-1 justify-center ${isPrivate ? 'bg-orange-500' : 'bg-slate-200'}`}>
+                  <View className={`w-4 h-4 rounded-full bg-white shadow-sm ${isPrivate ? 'self-end' : 'self-start'}`} />
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          <View className="h-40" />
+        </ScrollView>
+
+        {/* Action Button */}
+        <View className="absolute bottom-10 left-8 right-8">
+            <TouchableOpacity 
+              onPress={handleSubmit}
+              disabled={isLoading}
+              className="bg-zinc-900 h-16 rounded-3xl flex-row items-center justify-center shadow-2xl shadow-black/20"
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                    <Text className="text-white font-black uppercase text-xs tracking-[4px]">Initiate Post</Text>
+                    <Ionicons name="send" size={16} color="white" style={{ marginLeft: 10 }} />
+                </>
+              )}
+            </TouchableOpacity>
         </View>
-
-        {/* Spacer for bottom buttons */}
-        <View className="h-32" />
-      </ScrollView>
-
-      {/* Sticky Bottom Actions */}
-      <View className="absolute bottom-8 left-5 right-5 flex-row gap-3 bg-transparent pointer-events-box-none">
-        <Pressable 
-          disabled={isLoading}
-          onPress={handleSubmit} 
-          className="flex-[1.5] bg-[#1a1a1a] rounded-full py-4 items-center justify-center shadow-md shadow-black/10 flex-row gap-2"
-        >
-          {isLoading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text className="text-white font-semibold text-[15px]">Post</Text>
-          )}
-        </Pressable>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 

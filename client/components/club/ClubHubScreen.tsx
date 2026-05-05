@@ -46,8 +46,9 @@ const ClubHubScreen = () => {
 
     const onShare = async () => {
         try {
+            const shareUrl = `https://fync-api.duckdns.org/club?id=${club._id}`;
             const result = await Share.share({
-                message: `Join our exclusive campus club: ${club.name} on Fync! \nClub ID: ${club._id}`,
+                message: `Join our exclusive campus club: ${club.name} on Fync! \n\nLink: ${shareUrl} \n\nClub ID: ${club._id}`,
             });
         } catch (error: any) {
             Alert.alert(error.message);

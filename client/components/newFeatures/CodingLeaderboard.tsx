@@ -218,52 +218,74 @@ export default function CodingLeaderboard() {
 
     if (!hasLinkedProfile) {
         return (
-            <View className="flex-1 bg-[#F8FAFC]">
+            <View className="flex-1 bg-white">
                 <StatusBar barStyle="dark-content" />
-                <LinearGradient colors={['#f97316', 'transparent']} className="absolute top-0 w-full h-80 opacity-20" />
+                <LinearGradient colors={['#f97316', 'transparent']} className="absolute top-0 w-full h-80 opacity-10" />
 
-                <SafeAreaView className="flex-1 items-center justify-center px-8">
-                    <View className="w-24 h-24 bg-white rounded-[40px] items-center justify-center shadow-2xl shadow-orange-500/20 border border-slate-100 mb-8">
-                        <MaterialCommunityIcons name="shield-lock" size={48} color="#f97316" />
-                    </View>
-
-                    <Text className="text-zinc-900 text-4xl font-black  uppercase tracking-tighter text-center">Join The<Text className="text-orange-500"> Arena</Text></Text>
-                    <Text className="text-slate-400 text-center font-black uppercase text-[10px] tracking-widest mt-2 leading-4 px-10">
-                        Connect your coding profiles to unlock the global leaderboard and track your progress.
-                    </Text>
-
-                    <View className="w-full mt-12 bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm">
-                        <View className="flex-row items-center mb-6">
-                            <View className="w-8 h-8 rounded-xl bg-orange-50 items-center justify-center mr-3">
-                                <Image source={{ uri: LC_LOGO }} className="w-4 h-4" resizeMode="contain" />
-                            </View>
-                            <Text className="text-zinc-800 font-black  uppercase text-xs tracking-tight">LeetCode Username</Text>
-                        </View>
-
-                        <TextInput
-                            placeholder="Enter username (e.g. jdoe22)"
-                            placeholderTextColor="#CBD5E1"
-                            value={lcUsername}
-                            onChangeText={setLcUsername}
-                            className="bg-slate-50 p-5 rounded-2xl text-zinc-900 font-black  text-sm border border-slate-100"
-                        />
-
-                        <TouchableOpacity
-                            onPress={handleLinkProfile}
-                            disabled={connecting}
-                            className="bg-zinc-900 mt-6 py-5 rounded-2xl items-center shadow-xl shadow-black/10"
+                <SafeAreaView className="flex-1">
+                    {/* Header with Back Button */}
+                    <View className="px-8 py-4 flex-row items-center">
+                        <TouchableOpacity 
+                            onPress={() => navigation.goBack()}
+                            className="w-10 h-10 rounded-full bg-slate-50 items-center justify-center border border-slate-100"
                         >
-                            {connecting ? (
-                                <ActivityIndicator size="small" color="white" />
-                            ) : (
-                                <Text className="text-white font-black  uppercase tracking-widest text-xs">Link Profile & Enter</Text>
-                            )}
+                            <Ionicons name="arrow-back" size={20} color="#1e293b" />
                         </TouchableOpacity>
                     </View>
 
-                    <Text className="text-slate-300 text-[8px] font-black uppercase tracking-widest mt-10 text-center px-10">
-                        By entering, your coding stats will be visible to other hunters in the arena.
-                    </Text>
+                    <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 32, paddingBottom: 50 }}>
+                        <View className="items-center mb-10">
+                            <View className="w-24 h-24 bg-white rounded-[40px] items-center justify-center shadow-2xl shadow-orange-500/20 border border-slate-100 mb-8">
+                                <MaterialCommunityIcons name="shield-lock" size={48} color="#f97316" />
+                            </View>
+
+                            <Text className="text-zinc-900 text-4xl font-black uppercase tracking-tighter text-center">Join The<Text className="text-orange-500"> Arena</Text></Text>
+                            <Text className="text-slate-400 text-center font-black uppercase text-[10px] tracking-widest mt-4 leading-5 px-6">
+                                Connect your LeetCode profile to unlock the leaderboard and climb the global ranks.
+                            </Text>
+                        </View>
+
+                        <View className="w-full bg-slate-50 p-8 rounded-[40px] border border-slate-100">
+                            <View className="flex-row items-center mb-6 px-2">
+                                <View className="w-10 h-10 rounded-2xl bg-white items-center justify-center mr-4 shadow-sm">
+                                    <Image source={{ uri: LC_LOGO }} className="w-5 h-5" resizeMode="contain" />
+                                </View>
+                                <View>
+                                    <Text className="text-zinc-800 font-black uppercase text-xs tracking-tight">LeetCode Identity</Text>
+                                    <Text className="text-slate-400 text-[8px] font-black uppercase tracking-widest mt-0.5">Verification Required</Text>
+                                </View>
+                            </View>
+
+                            <TextInput
+                                placeholder="USERNAME (E.G. NAIMISHOMAR)"
+                                placeholderTextColor="#94a3b8"
+                                value={lcUsername}
+                                onChangeText={setLcUsername}
+                                autoCapitalize="none"
+                                className="bg-white px-6 py-5 rounded-2xl text-zinc-900 font-black text-sm border border-slate-100"
+                            />
+
+                            <TouchableOpacity
+                                onPress={handleLinkProfile}
+                                disabled={connecting}
+                                activeOpacity={0.8}
+                                className="bg-zinc-900 mt-6 py-5 rounded-2xl items-center shadow-xl shadow-black/10"
+                            >
+                                {connecting ? (
+                                    <ActivityIndicator size="small" color="white" />
+                                ) : (
+                                    <View className="flex-row items-center">
+                                        <Text className="text-white font-black uppercase tracking-widest text-[10px] mr-2">Link Profile & Enter</Text>
+                                        <Ionicons name="rocket-outline" size={16} color="white" />
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+
+                        <Text className="text-slate-300 text-[8px] font-black uppercase tracking-widest mt-12 text-center px-10 leading-4">
+                            Your coding stats will be fetched directly from LeetCode and displayed in the Fync Arena.
+                        </Text>
+                    </ScrollView>
                 </SafeAreaView>
             </View>
         );

@@ -112,7 +112,8 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
 
     const handleShare = async () => {
         try {
-            const message = `🚀 Connect with ${data.community.name} on Fync!\nInvite: fync://community/hub/${communityId}`;
+            const shareUrl = `https://fync-api.duckdns.org/community?id=${communityId}`;
+            const message = `🚀 Connect with ${data.community.name} on Fync!\n\nJoin here: ${shareUrl}\n\nInvite: fync://community/hub/${communityId}`;
             await Share.share({ message });
         } catch (e) { Alert.alert("Error", "Sharing failed"); }
     };

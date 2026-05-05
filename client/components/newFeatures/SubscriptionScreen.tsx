@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView, ActivityIndicator, Modal, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, Pressable, ScrollView, ActivityIndicator, Modal, Alert, Image, StatusBar, TouchableOpacity } from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from "react-native-webview";
+import { LinearGradient } from 'expo-linear-gradient';
 import axios from '../../context/axiosConfig';
 import { RAZORPAY_KEY_ID } from '../../constants/keys';
 import { useAuth } from '../../context/auth.context';
+import { useNavigation } from '@react-navigation/native';
 
-const SubscriptionScreen = ({ onSuccess }: { onSuccess: () => void }) => {
+const SubscriptionScreen = ({ onSuccess }: any) => {
     const { user, logout } = useAuth();
+    const navigation = useNavigation<any>();
     const [loading, setLoading] = useState(false);
     const [showWebView, setShowWebView] = useState(false);
     const [html, setHtml] = useState("");
@@ -51,11 +54,15 @@ const SubscriptionScreen = ({ onSuccess }: { onSuccess: () => void }) => {
                         currency: "INR",
                         name: "Fync Premium",
                         description: "Monthly Subscription",
+                        image: "https://pub-f21d514d3e904051ac25997e6c3fef39.r2.dev/Fync.png",
                         order_id: "${currentOrder.id}",
                         prefill: {
                             name: "${user?.name || ''}",
                             email: "${user?.email || ''}",
                             contact: "${user?.mobileNumber || ''}"
+                        },
+                        theme: {
+                            color: "#f97316"
                         },
                         handler: function (response) {
                             window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -103,7 +110,10 @@ const SubscriptionScreen = ({ onSuccess }: { onSuccess: () => void }) => {
 
                 if (verifyRes.data.success) {
                     Alert.alert("Success! 🎉", "Your premium subscription is now active.", [
-                        { text: "Continue", onPress: onSuccess }
+                        { text: "Continue", onPress: () => {
+                            if (onSuccess) onSuccess();
+                            else if (navigation.canGoBack()) navigation.goBack();
+                        }}
                     ]);
                 } else {
                     Alert.alert("Error", "Payment verification failed.");
@@ -121,101 +131,115 @@ const SubscriptionScreen = ({ onSuccess }: { onSuccess: () => void }) => {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
-            <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20 }}>
+        <View className="flex-1 bg-white">
+            <StatusBar barStyle="dark-content" />
+            <LinearGradient colors={['#f97316', 'transparent']} className="absolute top-0 w-full h-80 opacity-30" />
+
+            <SafeAreaView className="flex-1">
                 {/* Header */}
-                <View className="items-center mt-10 mb-8">
-                    <View className="bg-pink-900/30 p-4 rounded-full mb-4 border border-pink-500/30">
-                        <Ionicons name="star" size={50} color="#ec4899" />
-                    </View>
-                    <Text className="text-white text-3xl font-bold tracking-tight">Get Premium Access</Text>
-                    <Text className="text-gray-400 mt-2 text-center text-sm px-4">
-                        Your subscription has expired or you haven't subscribed yet. Upgrade to continue using Fync.
-                    </Text>
-                </View>
-
-                {/* Plan Card */}
-                <View className="bg-gray-900 rounded-3xl p-6 border border-pink-600/50 mb-8">
-                    <View className="flex-row justify-between items-center mb-6 border-b border-gray-800 pb-4">
-                        <View>
-                            <Text className="text-white text-xl font-bold">Monthly Plan</Text>
-                            <Text className="text-pink-400 text-sm font-semibold mt-1">BEST VALUE</Text>
-                        </View>
-                        <View className="items-end">
-                            <Text className="text-white text-3xl font-bold">₹{subscriptionAmount}</Text>
-                            <Text className="text-gray-500 text-xs">/ month</Text>
-                        </View>
-                    </View>
-
-                    {/* Features List */}
-                    <View className="gap-y-4">
-                        {[
-                            { icon: "infinite-outline", text: "Access to all app services" },
-                            { icon: "wifi-outline", text: "Smart WiFi Login Manager" },
-                            { icon: "wallet-outline", text: "Split & Pay features" },
-                            { icon: "sparkles-outline", text: "Exclusive future premium tools" },
-                        ].map((item, index) => (
-                            <View key={index} className="flex-row items-center">
-                                <View className="bg-pink-500/20 p-1.5 rounded-full mr-3 border border-pink-500/30">
-                                    <Ionicons name={item.icon as any} size={16} color="#ec4899" />
-                                </View>
-                                <Text className="text-gray-200 text-sm font-medium">{item.text}</Text>
-                            </View>
-                        ))}
-                    </View>
-                </View>
-
-                {/* Secure Badge */}
-                <View className="flex-row items-center justify-center mb-6 gap-2 opacity-50">
-                    <Ionicons name="lock-closed" size={12} color="white" />
-                    <Text className="text-white text-xs font-semibold">SECURE PAYMENT PROCESSED BY RAZORPAY</Text>
-                </View>
-
-                {/* Subscribe Button */}
-                <Pressable
-                    onPress={handleSubscribe}
-                    disabled={loading}
-                    className="bg-pink-600 h-14 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/30 mb-4"
-                >
-                    {loading ? (
-                        <ActivityIndicator color="white" />
+                <View className="px-8 py-4 flex-row items-center justify-between">
+                    {navigation.canGoBack() ? (
+                        <Pressable onPress={() => navigation.goBack()} className="w-10 h-10 rounded-full bg-slate-50 items-center justify-center border border-slate-100">
+                            <Ionicons name="arrow-back" size={20} color="#1e293b" />
+                        </Pressable>
                     ) : (
-                        <Text className="text-white font-bold text-lg">Subscribe for ₹{subscriptionAmount}</Text>
+                        <View className="w-10" />
                     )}
-                </Pressable>
+                    <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-widest">Premium Plan</Text>
+                    <View className='w-10'></View>
+                </View>
 
-                <Pressable onPress={logout} className="items-center py-2">
-                    <Text className="text-gray-500 font-medium">Log out</Text>
-                </Pressable>
-            </ScrollView>
+                <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 32, paddingBottom: 50 }}>
+                    <View className="items-center mt-8 mb-10">
+                        <View className="w-24 h-24 bg-white rounded-[40px] items-center justify-center shadow-2xl shadow-orange-500/20 border border-slate-100 mb-8">
+                            <Ionicons name="flash" size={48} color="#f97316" />
+                        </View>
+
+                        <Text className="text-zinc-900 text-4xl font-black uppercase tracking-tighter text-center">Fync<Text className="text-orange-500"> Pro</Text></Text>
+                        <Text className="text-slate-400 text-center font-black uppercase text-[10px] tracking-widest mt-4 leading-5 px-6">
+                            {user?.is_subscribed ? "Your mission is active. Extend to maintain your elite status." : "Unlock the full potential of your campus experience."}
+                        </Text>
+                    </View>
+
+                    {/* Plan Card */}
+                    <View className="w-full bg-zinc-900 p-8 rounded-[40px] border border-zinc-800 shadow-2xl shadow-black/20 overflow-hidden">
+                        <View className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -mr-16 -mt-16" />
+                        
+                        <View className="flex-row justify-between items-start mb-10">
+                            <View>
+                                <Text className="text-white font-black uppercase text-xs tracking-tight">Full Access Pass</Text>
+                                <Text className="text-orange-500 text-[8px] font-black uppercase tracking-widest mt-1">Limited Time Offer</Text>
+                            </View>
+                            <View className="items-end">
+                                <Text className="text-white font-black text-3xl tracking-tighter">₹{subscriptionAmount}</Text>
+                                <Text className="text-zinc-500 font-black uppercase text-[8px] tracking-widest">/ Month</Text>
+                            </View>
+                        </View>
+
+                        <View className="gap-y-5 mb-10">
+                            {[
+                                { icon: "infinite", text: "UNLIMITED APP SERVICES", color: "#f97316" },
+                                { icon: "wifi", text: "SMART WIFI MANAGER", color: "#38bdf8" },
+                                { icon: "wallet", text: "SPLIT & PAY ECOSYSTEM", color: "#4ade80" },
+                                { icon: "rocket", text: "PRIORITY FEATURE ACCESS", color: "#f472b6" },
+                            ].map((item, index) => (
+                                <View key={index} className="flex-row items-center">
+                                    <View className="w-8 h-8 rounded-xl bg-white/5 items-center justify-center mr-4 border border-white/10">
+                                        <Ionicons name={item.icon as any} size={16} color={item.color} />
+                                    </View>
+                                    <Text className="text-zinc-300 font-black uppercase text-[9px] tracking-widest">{item.text}</Text>
+                                </View>
+                            ))}
+                        </View>
+
+                        <TouchableOpacity
+                            onPress={handleSubscribe}
+                            disabled={loading}
+                            activeOpacity={0.8}
+                            className="bg-white py-5 rounded-2xl items-center"
+                        >
+                            {loading ? (
+                                <ActivityIndicator size="small" color="#000" />
+                            ) : (
+                                <View className="flex-row items-center">
+                                    <Text className="text-zinc-900 font-black uppercase tracking-widest text-[10px] mr-2">
+                                        {user?.is_subscribed ? "Extend Subscription" : "Unlock Premium Now"}
+                                    </Text>
+                                    <Ionicons name="chevron-forward" size={16} color="#000" />
+                                </View>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+
+                    <View className="mt-12 items-center flex-row justify-center gap-3">
+                        <View className="w-8 h-8 rounded-xl bg-slate-50 items-center justify-center border border-slate-100">
+                            <Ionicons name="shield-checkmark" size={16} color="#94a3b8" />
+                        </View>
+                        <Text className="text-slate-300 text-[8px] font-black uppercase tracking-widest text-center leading-4 max-w-[200px]">
+                            Secure 256-bit encrypted payment processed by Razorpay.
+                        </Text>
+                    </View>
+                </ScrollView>
+            </SafeAreaView>
 
             {/* Razorpay WebView Modal */}
             <Modal visible={showWebView} animationType="slide" transparent={false}>
-                <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
-                    <View className="flex-row items-center justify-between p-4 border-b border-gray-900 bg-black">
-                        <Text className="text-white font-bold text-lg">Secure Checkout</Text>
-                        <Pressable onPress={() => {
-                            setShowWebView(false);
-                            Alert.alert("Cancelled", "Payment was cancelled.");
-                        }}>
-                            <Ionicons name="close" size={24} color="white" />
-                        </Pressable>
-                    </View>
+                <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
                     {html ? (
                         <WebView
                             source={{ html }}
                             originWhitelist={["*"]}
                             onMessage={handleWebViewMessage}
-                            style={{ flex: 1, backgroundColor: '#000' }}
+                            style={{ flex: 1 }}
                         />
                     ) : (
-                        <View className="flex-1 bg-black justify-center items-center">
-                            <ActivityIndicator size="large" color="#ec4899" />
+                        <View className="flex-1 justify-center items-center">
+                            <ActivityIndicator size="large" color="#f97316" />
                         </View>
                     )}
                 </SafeAreaView>
             </Modal>
-        </SafeAreaView>
+        </View>
     );
 };
 

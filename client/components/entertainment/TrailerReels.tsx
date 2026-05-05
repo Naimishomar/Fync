@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   ScrollView,
   ViewToken,
+  Share,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
@@ -71,13 +72,23 @@ const ReelItem = ({
     if (data === 'PAUSED') setIsPaused(true);
   };
 
-  // Sync mute state without refreshing WebView
   useEffect(() => {
     if (isActive && webViewRef.current) {
       const script = isMuted ? 'if(player && player.mute) player.mute();' : 'if(player && player.unMute) player.unMute();';
       webViewRef.current.injectJavaScript(script);
     }
   }, [isMuted, isActive]);
+  
+  const handleShare = async () => {
+    try {
+      const shareUrl = `https://fync-api.duckdns.org/movie?id=${movie.id}`;
+      await Share.share({
+        message: `Check out the trailer for ${movie.title} on Fync!\n\n${movie.overview}\n\nWatch here: ${shareUrl}`,
+      });
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
 
   const videoHeight = SCREEN_WIDTH * (9/16);
 
@@ -190,12 +201,21 @@ const ReelItem = ({
             </View>
           </View>
           
-          <TouchableOpacity 
-            onPress={onToggleMute}
-            className="w-12 h-12 bg-white/5 rounded-2xl items-center justify-center border border-white/10"
-          >
-            <Ionicons name={isMuted ? "volume-mute" : "volume-high"} size={22} color="white" />
-          </TouchableOpacity>
+          <View className="flex-row gap-3">
+            <TouchableOpacity 
+              onPress={handleShare}
+              className="w-12 h-12 bg-white/5 rounded-2xl items-center justify-center border border-white/10"
+            >
+              <Ionicons name="share-social-outline" size={20} color="white" />
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={onToggleMute}
+              className="w-12 h-12 bg-white/5 rounded-2xl items-center justify-center border border-white/10"
+            >
+              <Ionicons name={isMuted ? "volume-mute" : "volume-high"} size={22} color="white" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Extended Metadata */}

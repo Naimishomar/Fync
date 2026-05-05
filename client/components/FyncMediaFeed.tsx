@@ -513,7 +513,7 @@ const MediaDetailView = React.memo(({
 
   const handleShare = async () => {
     try {
-      const shareUrl = `https://fync.app/fync-media?id=${item._id}`;
+      const shareUrl = `https://fync-api.duckdns.org/fync-media?id=${item._id}`;
       await Share.share({ message: `${item.title}\n\n${shareUrl}` });
     } catch (err) { }
   };

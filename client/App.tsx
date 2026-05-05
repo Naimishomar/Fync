@@ -131,6 +131,7 @@ import FocusProductivity from './components/focus/FocusProductivity';
 import AdminPortal from './components/admin/AdminPortal';
 import DSAAndDevelopmentContest from './components/contest/DSAAndDevelopmentContest';
 import SubscriptionGuard from './components/newFeatures/SubscriptionGuard';
+import SubscriptionScreen from './components/newFeatures/SubscriptionScreen';
 import PlacementPredictor from './components/newFeatures/PlacementPredictor';
 
 import TermsAndCondition from 'components/T&C';
@@ -321,6 +322,7 @@ export type RootStackParamList = {
   // Daily Hubs
   DailyRoutineHub: undefined;
   PartyPool: undefined;
+  SubscriptionScreen: undefined;
 };
 
 
@@ -493,6 +495,7 @@ function AppStack() {
       {/* Daily Hubs */}
       <Stack.Screen name="DailyRoutineHub" component={DailyRoutineHubDashboard} />
       <Stack.Screen name="PartyPool" component={PartyPoolHub} />
+      <Stack.Screen name="SubscriptionScreen" component={SubscriptionScreen as any} />
     </Stack.Navigator>
   );
 }
@@ -521,7 +524,7 @@ function RootNavigator() {
 
 
 const linking = {
-  prefixes: ['fync://', 'https://fync.app'],
+  prefixes: ['fync://', 'https://fync-api.duckdns.org'],
   config: {
     screens: {
       IndividualPostOrShort: {

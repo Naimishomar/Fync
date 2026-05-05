@@ -63,8 +63,9 @@ const AffiliateProductDetail = () => {
 
     const handleShare = async () => {
         try {
+            const shareUrl = `https://fync-api.duckdns.org/product?id=${product._id}`;
             await Share.share({
-                message: `Check out this amazing deal on Fync: ${product.name}\nBuy it here: fync://store/product/${product._id}`,
+                message: `Check out this amazing deal on Fync: ${product.name}\n\nLink: ${shareUrl}\n\nOpen in App: fync://store/product/${product._id}`,
             });
         } catch (error) {
             console.error('Error sharing:', error);

@@ -355,7 +355,7 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
 
   const handleShare = async () => {
     try {
-      const shareUrl = `https://fync.app/view?postId=${item._id}`;
+      const shareUrl = `https://fync-api.duckdns.org/view?postId=${item._id}`;
       await Share.share({
         message: `Check out this post by ${item.user?.username} on Fync!\n\n${item.description || ''}\n\nView post: ${shareUrl}`,
       });

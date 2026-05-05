@@ -41,8 +41,9 @@ const MovieDetail = () => {
 
   const handleShare = async () => {
     try {
+      const shareUrl = `https://fync-api.duckdns.org/movie?id=${movie.id}`;
       await Share.share({
-        message: `Check out the trailer for ${movie.title} on Fync!\n\n${movie.overview}`,
+        message: `Check out the trailer for ${movie.title} on Fync!\n\n${movie.overview}\n\nWatch here: ${shareUrl}`,
       });
     } catch (error) {
       console.error('Error sharing:', error);

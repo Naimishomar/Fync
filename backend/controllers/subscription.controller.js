@@ -74,9 +74,24 @@ export const verifySubscriptionPayment = async (req, res) => {
             return res.status(400).json({ success: false, message: "This payment has already been processed" });
         }
 
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setDate(startDate.getDate() + 30); // 30 days access
+        // Find latest active subscription to handle stacking
+        const activeSub = await Subscription.findOne({
+            user: req.user.id,
+            status: 'active'
+        }).sort({ endDate: -1 });
+
+        const now = new Date();
+        let startDate = now;
+        let baseDate = now;
+
+        // If user has an active subscription that hasn't expired, stack on top of it
+        if (activeSub && activeSub.endDate && activeSub.endDate > now) {
+            baseDate = new Date(activeSub.endDate);
+            startDate = baseDate;
+        }
+
+        const endDate = new Date(baseDate);
+        endDate.setDate(endDate.getDate() + 30); // Add 30 days to baseDate (either now or current expiry)
 
         // Update subscription record securely
         subscription.razorpayPaymentId = razorpay_payment_id;
@@ -112,7 +127,7 @@ export const getSubscriptionStatus = async (req, res) => {
         const subscription = await Subscription.findOne({
             user: req.user.id,
             status: 'active'
-        }).sort({ createdAt: -1 });
+        }).sort({ endDate: -1 });
 
         if (!subscription) {
             return res.status(200).json({ success: true, status: 'inactive' });

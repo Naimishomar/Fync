@@ -45,7 +45,11 @@ export const r2UploadMiddleware = (folderMap) => async (req, _res, next) => {
     }
     return next();
   } catch (err) {
-    console.error("R2 Upload Middleware Error:", err.message);
-    return next(err);
+    console.error("❌ R2 Upload Middleware Error:", err.message);
+    return _res.status(500).json({ 
+        success: false, 
+        message: "File upload failed", 
+        error: err.message 
+    });
   }
 };
