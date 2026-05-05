@@ -120,7 +120,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
           >
             <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-10">
               <Image
-                source={require('../assets/Fync.jpg')}
+                source={require('../assets/Fync.png')}
                 className="h-20 w-20 self-center rounded-full mb-4"
                 resizeMode='cover'
               />

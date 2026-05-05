@@ -113,7 +113,7 @@ export default function AlumniSignup() {
         <View className="absolute bottom-0 w-full">
           <ScrollView keyboardShouldPersistTaps="handled">
             <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-12">
-              <Image source={require('../assets/Fync.jpg')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
+              <Image source={require('../assets/Fync.png')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
               <Text className="text-gray-500 mb-2">Join the exclusive professional network</Text>
 
               {!otpSent ? (

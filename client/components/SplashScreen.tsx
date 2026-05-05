@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated } from 'react-native';
 //@ts-ignore
-import LogoImage from '../assets/Fync.jpg';
+import LogoImage from '../assets/Fync.png';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SplashScreen({ navigation }: any) {

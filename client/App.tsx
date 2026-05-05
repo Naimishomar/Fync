@@ -503,7 +503,7 @@ function RootNavigator() {
   if (loading) {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#fff" }}>
-        <Image source={require('./assets/Fync.jpg')} className='w-56 h-56 object-contain rounded-full mb-5' />
+        <Image source={require('./assets/Fync.png')} className='w-56 h-56 object-contain rounded-full mb-5' />
         <View className='flex-row gap-2 items-center'>
           <Text className='text-black text-lg font-semibold'>Loading</Text>
           <ActivityIndicator size="small" color="#000" />
@@ -556,7 +556,7 @@ export default function App() {
     success: (props: any) => (
       <View className="mx-5 my-2 p-4 bg-white rounded-3xl flex-row items-center shadow-xl border border-slate-100">
         <View className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center mr-3 border border-slate-100 overflow-hidden">
-          <Image source={require('./assets/Fync.jpg')} className="w-full h-full" resizeMode="cover" />
+          <Image source={require('./assets/Fync.png')} className="w-full h-full" resizeMode="cover" />
         </View>
         <View className="flex-1">
           <Text className="text-zinc-900 font-bold text-sm tracking-tight">{props.text1}</Text>
@@ -568,7 +568,7 @@ export default function App() {
     info: (props: any) => (
       <View className="mx-5 my-2 p-4 bg-zinc-900 rounded-3xl flex-row items-center shadow-2xl">
         <View className="w-10 h-10 bg-zinc-800 rounded-2xl items-center justify-center mr-3 border border-zinc-700 overflow-hidden">
-          <Image source={require('./assets/Fync.jpg')} className="w-full h-full" resizeMode="cover" />
+          <Image source={require('./assets/Fync.png')} className="w-full h-full" resizeMode="cover" />
         </View>
         <View className="flex-1">
           <Text className="text-white font-bold text-sm tracking-tight">{props.text1}</Text>
@@ -580,7 +580,7 @@ export default function App() {
     error: (props: any) => (
       <View className="mx-5 my-2 p-4 bg-white rounded-3xl flex-row items-center shadow-xl border border-red-50">
         <View className="w-10 h-10 bg-red-50 rounded-2xl items-center justify-center mr-3 border border-red-100 overflow-hidden">
-          <Image source={require('./assets/Fync.jpg')} className="w-full h-full" resizeMode="cover" />
+          <Image source={require('./assets/Fync.png')} className="w-full h-full" resizeMode="cover" />
         </View>
         <View className="flex-1">
           <Text className="text-red-900 font-bold text-sm tracking-tight">{props.text1}</Text>

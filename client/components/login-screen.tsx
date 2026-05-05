@@ -79,7 +79,7 @@ export default function LoginScreen() {
             contentContainerStyle={{ paddingBottom: 24 }}
           >
             <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-7">
-              <Image source={require('../assets/Fync.jpg')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
+              <Image source={require('../assets/Fync.png')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
               <Text className="text-gray-500 mb-2">Login to the exclusive student network</Text>
 
               <TextInput

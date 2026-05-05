@@ -41,7 +41,7 @@ import Animated, {
   runOnJS
 } from 'react-native-reanimated';
 //@ts-ignore
-import FyncLogo from "../assets/Fync.jpg"
+import FyncLogo from "../assets/Fync.png"
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface FyncMediaItem {
