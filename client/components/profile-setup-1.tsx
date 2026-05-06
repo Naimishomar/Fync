@@ -18,7 +18,8 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
 import { collegesInIndia } from 'data/college';
-import loginImage from '../assets/loginImage.png';
+//@ts-ignore
+import loginImage from '../assets/login-ad.png';
 
 type ProfileSetup1RouteProp = RouteProp<RootStackParamList, 'ProfileSetup1'>;
 type ProfileSetup1NavigationProp = NativeStackNavigationProp<
@@ -82,6 +83,7 @@ export default function ProfileSetup1() {
               <TextInput
                 className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black"
                 placeholder="Full Name"
+                placeholderTextColor="#9CA3AF"
                 value={fullName}
                 onChangeText={setFullName}
                 autoCapitalize="words"

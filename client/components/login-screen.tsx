@@ -14,8 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { useAuth } from 'context/auth.context';
 import { useNavigation } from '@react-navigation/native';
-//@ts-ignore
-import loginImage from '../assets/login-ad.png';
+
 
 export default function LoginScreen() {
   const navigation = useNavigation<any>();

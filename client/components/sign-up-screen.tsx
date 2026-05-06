@@ -140,8 +140,9 @@ export default function SignUpScreen() {
               <Text className="text-gray-500 mb-2">Join the exclusive student network</Text>
 
               <TextInput
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black placeholder:text-black"
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black"
                 placeholder="Email"
+                placeholderTextColor="#9CA3AF"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -149,15 +150,17 @@ export default function SignUpScreen() {
               />
 
               <TextInput
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black placeholder:text-black"
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black"
                 placeholder="Username"
+                placeholderTextColor="#9CA3AF"
                 value={username}
                 onChangeText={setUsername}
               />
 
               <TextInput
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black placeholder:text-black"
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black"
                 placeholder="Phone Number"
+                placeholderTextColor="#9CA3AF"
                 keyboardType="phone-pad"
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
@@ -165,8 +168,9 @@ export default function SignUpScreen() {
 
               <View className="mb-4 flex-row items-center rounded-xl border border-gray-300 px-4">
                 <TextInput
-                  className="flex-1 py-4 text-black placeholder:text-black"
+                  className="flex-1 py-4 text-black"
                   placeholder="Password"
+                  placeholderTextColor="#9CA3AF"
                   secureTextEntry={!passwordVisible}
                   value={password}
                   onChangeText={setPassword}
@@ -182,8 +186,9 @@ export default function SignUpScreen() {
 
               {otpSent && (
                 <TextInput
-                  className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black placeholder:text-black"
+                  className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black"
                   placeholder="Enter OTP(Check your email)"
+                  placeholderTextColor="#9CA3AF"
                   value={otp}
                   onChangeText={setOtp}
                 />
