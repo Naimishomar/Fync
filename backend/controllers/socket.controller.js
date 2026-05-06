@@ -101,9 +101,9 @@ export const socketController = (io) => {
       socket.to(roomName).emit("mentorship_user_stop_typing", { username });
     });
 
-    socket.on("sendMessage", async ({ conversationId, senderId, text, replyTo }) => {
+    socket.on("sendMessage", async ({ conversationId, senderId, text, replyTo, messageType, mediaUrl }) => {
       try {
-        if (!conversationId || !senderId || !text?.trim()) return;
+        if (!conversationId || !senderId) return;
 
         const conversation = await Conversation.findById(conversationId).populate("participants", "name username expoPushToken");
         if (!conversation) return;
@@ -116,7 +116,9 @@ export const socketController = (io) => {
         let message = await Message.create({
           conversationId,
           sender: senderId,
-          message: text.trim(),
+          message: text?.trim() || "",
+          messageType: messageType || "text",
+          mediaUrl: mediaUrl || "",
           replyTo: replyTo || null
         });
 

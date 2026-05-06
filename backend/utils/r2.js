@@ -162,10 +162,10 @@ export const audioUpload = multer({
   },
 });
 
-/** College chat / WhatsApp-like — 10 MB, images only */
+/** College chat / WhatsApp-like — 20 MB, images/videos/files */
 export const collegeChatUpload = multer({
   storage: memoryStorage,
-  limits: { fileSize: 1024 * 1024 * 10 },
+  limits: { fileSize: 1024 * 1024 * 20 },
 });
 
 /** Mentorship chat — 10 MB */

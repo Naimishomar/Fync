@@ -1,6 +1,59 @@
 import Message from "../models/chat.model.js";
 import User from "../models/user.model.js";
 import Conversation from "../models/conversation.model.js";
+import { uploadToR2 } from "../utils/r2.js";
+
+let io; // To be set from index.js
+export const setChatIo = (socketIo) => {
+  io = socketIo;
+};
+
+export const sendMedia = async (req, res) => {
+  try {
+    const { conversationId, type, message } = req.body;
+    const senderId = req.user.id;
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    // 1. Upload to R2
+    const folder = `chats/${conversationId}`;
+    const mediaUrl = await uploadToR2(req.file.buffer, folder, req.file.originalname, req.file.mimetype);
+
+    // 2. Save Message
+    let newMessage = await Message.create({
+      conversationId,
+      sender: senderId,
+      message: message || "", // Optional text with media
+      messageType: type || "image",
+      mediaUrl
+    });
+
+    // 3. Update Conversation
+    await Conversation.findByIdAndUpdate(conversationId, {
+      lastMessage: newMessage._id,
+      $inc: { [`unreadCount.${req.body.receiverId}`]: 1 } // Note: frontend should pass receiverId
+    });
+
+    newMessage = await Message.findById(newMessage._id)
+      .populate("sender", "name username avatar")
+      .populate({
+        path: "replyTo",
+        populate: { path: "sender", select: "name username" }
+      });
+
+    // 4. Emit via Socket
+    if (io) {
+      io.to(conversationId).emit("newMessage", newMessage);
+    }
+
+    res.json({ success: true, message: newMessage });
+  } catch (error) {
+    console.error("sendMedia error:", error);
+    res.status(500).json({ success: false, message: "Failed to send media" });
+  }
+};
 
 export const getMessages = async (req, res) => {
   const { conversationId } = req.params;

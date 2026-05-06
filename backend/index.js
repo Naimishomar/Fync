@@ -59,6 +59,7 @@ import { setMentorshipIo } from './controllers/mentorshipChat.controller.js';
 import { setEventCommunityIo } from './controllers/events/eventActivity.controller.js';
 import { setCommunityIo } from './controllers/community/community.controller.js';
 import { setClubIo } from './controllers/club/message.controller.js';
+import { setChatIo } from './controllers/chat.controller.js';
 import { initCollegeChatCleanup } from './utils/collegeChatCleanup.js';
 import { initMentorshipCleanup } from './utils/mentorshipCleanup.js';
 import { initNightClubCleanup } from './utils/nightClubCleanup.js';
@@ -66,6 +67,7 @@ import { initAlumniChatCleanup } from './utils/alumniChatCleanup.js';
 import { initEventCleanup } from './utils/eventCleanup.js';
 import { initCommunityCleanup } from './utils/communityCleanup.js';
 import { initFyncMediaCleanup } from './utils/fyncMediaCleanup.js';
+import { initChatMediaCleanup } from './utils/chatMediaCleanup.js';
 import startCleanupCron from './services/cleanup.service.js';
 
 import { rateLimit } from 'express-rate-limit';
@@ -183,6 +185,7 @@ const startServer = async () => {
     setEventCommunityIo(io);
     setCommunityIo(io);
     setClubIo(io);
+    setChatIo(io);
 
     // 3. Initialize Monitors & Cleanups
     initCollegeChatCleanup();
@@ -191,6 +194,7 @@ const startServer = async () => {
     initAlumniChatCleanup();
     initCommunityCleanup();
     initFyncMediaCleanup();
+    initChatMediaCleanup();
     initEventCleanup();
     startCleanupCron();
 

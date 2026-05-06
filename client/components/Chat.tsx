@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import {
   View,
   Text,
@@ -9,13 +9,21 @@ import {
   Platform,
   Image,
   Alert,
+  TouchableOpacity,
+  Dimensions,
+  Linking,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import socket from "../utils/socket";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { CommentSkeleton } from "./Skeleton";
+import { LinearGradient } from "expo-linear-gradient";
+import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
+import { Video, ResizeMode } from "expo-av";
+import { ActivityIndicator, Modal } from "react-native";
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -34,7 +42,9 @@ const Chat = ({ route, navigation }: any) => {
   const [isTyping, setIsTyping] = useState(false);
   const [seen, setSeen] = useState(false);
   const [replyingTo, setReplyingTo] = useState<any>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  const insets = useSafeAreaInsets();
   const typingTimeout = useRef<any>(null);
   const flatListRef = useRef<FlatList>(null);
 
@@ -125,14 +135,42 @@ const Chat = ({ route, navigation }: any) => {
 
     loadMessages();
 
+    // Hide tab bar when in chat
+    const parent = navigation.getParent();
+    if (parent) {
+      parent.setOptions({
+        tabBarStyle: { display: 'none' }
+      });
+    }
+
     return () => {
       socket.off("newMessage");
       socket.off("userTyping");
       socket.off("userStopTyping");
       socket.off("messagesSeen");
       socket.off("messageDeleted");
+
+      // Restore tab bar when leaving chat
+      if (parent) {
+        parent.setOptions({
+          tabBarStyle: {
+            position: "absolute",
+            bottom: 40,
+            marginHorizontal: Dimensions.get('window').width * 0.05,
+            backgroundColor: "rgba(20, 20, 20, 0.86)",
+            borderRadius: 40,
+            height: 60,
+            borderWidth: 1,
+            borderColor: "rgba(255, 255, 255, 0.12)",
+            elevation: 10,
+            paddingTop: 10,
+            paddingBottom: 46,
+            display: 'flex'
+          }
+        });
+      }
     };
-  }, [conversationId]);
+  }, [conversationId, navigation]);
 
   /* ---------- LOAD ---------- */
   const loadMessages = async () => {
@@ -192,6 +230,87 @@ const Chat = ({ route, navigation }: any) => {
     setReplyingTo(null);
   };
 
+  const uploadMedia = async (uri: string, mimeType: string, type: string, fileName?: string) => {
+    const formData = new FormData();
+    formData.append("media", {
+      uri,
+      name: fileName || `media_${Date.now()}`,
+      type: mimeType,
+    } as any);
+    formData.append("conversationId", conversationId);
+    formData.append("type", type);
+    formData.append("receiverId", otherUser?._id);
+    if (replyingTo) formData.append("replyTo", replyingTo._id);
+
+    // Optimistic message
+    const tempId = Date.now().toString();
+    const tempMsg = {
+      _id: tempId,
+      sender: user,
+      message: "",
+      messageType: type,
+      mediaUrl: uri,
+      createdAt: new Date().toISOString(),
+      pending: true,
+    };
+    setMessages(prev => [tempMsg, ...prev]);
+
+    try {
+      const res = await axios.post("/chat/send", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      if (res.data.success) {
+        setMessages(prev => prev.map(m => m._id === tempId ? res.data.message : m));
+      }
+    } catch (e) {
+      console.error("Upload error:", e);
+      setMessages(prev => prev.filter(m => m._id !== tempId));
+      Alert.alert("Upload Failed", "Could not send media. Please try again.");
+    }
+  };
+
+  const handlePickImage = async () => {
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      quality: 0.8,
+    });
+
+    if (!res.canceled) {
+      const asset = res.assets[0];
+      const sizeInMb = (asset.fileSize || 0) / (1024 * 1024);
+      if (sizeInMb > 20) {
+        Alert.alert("File Too Large", "Please select media under 20MB.");
+        return;
+      }
+      const isVideo = asset.type === "video";
+      uploadMedia(asset.uri, isVideo ? "video/mp4" : "image/jpeg", isVideo ? "video" : "image", asset.fileName || `media_${Date.now()}`);
+    }
+  };
+
+  const handlePickDocument = async () => {
+    try {
+      const res = await DocumentPicker.getDocumentAsync({
+        type: "application/pdf",
+        copyToCacheDirectory: true
+      });
+      if (!res.canceled && res.assets && res.assets.length > 0) {
+        const asset = res.assets[0];
+        if (asset.mimeType !== 'application/pdf') {
+          Alert.alert("Invalid File", "Only PDF documents are allowed.");
+          return;
+        }
+        const sizeInMb = (asset.size || 0) / (1024 * 1024);
+        if (sizeInMb > 20) {
+          Alert.alert("File Too Large", "Please select a file under 20MB.");
+          return;
+        }
+        uploadMedia(asset.uri, "application/pdf", "file", asset.name);
+      }
+    } catch (error) {
+      console.error("Document picking error:", error);
+    }
+  };
+
   /* ---------- TYPING ---------- */
   const handleTyping = (value: string) => {
     setText(value);
@@ -240,88 +359,179 @@ const Chat = ({ route, navigation }: any) => {
     const isLastMessage = index === 0;
 
     return (
-      <View className={`flex-row w-full ${isMe ? "justify-end" : "justify-start"} items-center pb-2`}>
-        {!isMe && (
-          <Image
-            source={{
-              uri: item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}&background=random&color=fff`,
-            }}
-            className="h-8 w-8 rounded-full mr-2"
-          />
-        )}
-
-        <View className={isMe ? "items-end" : "items-start"}>
-          <Pressable 
-            onLongPress={() => {
-              if (isMe) {
-                Alert.alert("Options", "Choose an action", [
-                  { text: "Reply", onPress: () => setReplyingTo(item) },
-                  { text: "Delete", style: "destructive", onPress: () => deleteMessage(item._id) },
-                  { text: "Cancel", style: "cancel" }
-                ]);
-              } else {
-                setReplyingTo(item);
-              }
-            }}
-            delayLongPress={500}
-            className={`max-w-[250px] px-4 py-2 rounded-full ${isMe ? "bg-indigo-600" : "bg-white border border-gray-100 shadow-sm"}`}
-          >
-            {item.replyTo && (
-              <View className={`mb-2 p-2 rounded-lg ${isMe ? "bg-blue-700/50 border-blue-300" : "bg-gray-200 border-blue-500"}`}>
-                <Text className={`text-[10px] font-bold ${isMe ? "text-blue-100" : "text-blue-600"}`}>
-                  {item.replyTo.sender?.name || (item.replyTo.sender === user._id ? "You" : "User")}
-                </Text>
-                <Text className={`${isMe ? "text-gray-200" : "text-gray-600"} text-[11px]`} numberOfLines={1}>
-                  {item.replyTo.message}
-                </Text>
-              </View>
-            )}
-            <Text className={`${isMe ? "text-white" : "text-black"} text-base`}>{item.message}</Text>
-          </Pressable>
-
-
-          {isMe && isLastMessage && (
-            <View className="flex-row items-center mt-1">
-              <Ionicons
-                name={item.seen ? "checkmark-done" : "checkmark"}
-                size={14}
-                color={item.seen ? "#3b82f6" : "#9ca3af"}
+      <View className={`w-full ${isMe ? "items-end" : "items-start"} mb-2`}>
+        <View className={`flex-row items-end ${isMe ? "flex-row-reverse" : "flex-row"} max-w-[85%]`}>
+          {/* AVATAR */}
+          <View className={`${isMe ? "ml-3" : "mr-3"}`}>
+            <View className="w-9 h-9 rounded-2xl border-2 border-white shadow-sm overflow-hidden bg-slate-200">
+              <Image
+                source={{
+                  uri: isMe
+                    ? (user.avatar || `https://ui-avatars.com/api/?name=${user.username}&background=333&color=fff`)
+                    : (item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}&background=f97316&color=fff`),
+                }}
+                className="w-full h-full"
               />
-              <Text className="text-[10px] text-gray-500 ml-1">
-                {item.seen ? "Seen" : "Sent"}
-              </Text>
             </View>
-          )}
-        </View>
+          </View>
 
-        {isMe && (
-          <Image
-            source={{
-              uri: item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}&background=random&color=fff`,
-            }}
-            className="h-8 w-8 rounded-full ml-2"
-          />
-        )}
+          <View className={`${isMe ? "items-end" : "items-start"} flex-1`}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onLongPress={() => {
+                if (isMe) {
+                  Alert.alert("Transmission Control", "Select operation", [
+                    { text: "Reply", onPress: () => setReplyingTo(item) },
+                    { text: "Terminate (Delete)", style: "destructive", onPress: () => deleteMessage(item._id) },
+                    { text: "Cancel", style: "cancel" }
+                  ]);
+                } else {
+                  setReplyingTo(item);
+                }
+              }}
+              delayLongPress={500}
+              style={{
+                borderTopLeftRadius: isMe ? 16 : 6,
+                borderBottomLeftRadius: isMe ? 16 : 6,
+                borderTopRightRadius: isMe ? 6 : 16,
+                borderBottomRightRadius: isMe ? 6 : 16,
+              }}
+              className={`px-5 py-3 ${isMe
+                ? "bg-zinc-900 shadow-md shadow-black/20"
+                : "bg-white border border-slate-100 shadow-sm"
+                }`}
+            >
+              {/* REPLY PREVIEW */}
+              {item.replyTo && (
+                <View className={`mb-2 p-2 rounded-xl border-l-2 ${isMe ? "bg-white/10 border-orange-500" : "bg-slate-50 border-orange-500"
+                  }`}>
+                  <Text className={`text-[9px] font-black uppercase tracking-widest ${isMe ? "text-orange-400" : "text-orange-600"}`}>
+                    REF: {item.replyTo.sender?.name || (item.replyTo.sender === user._id ? "YOU" : "USER")}
+                  </Text>
+                  <Text className={`${isMe ? "text-slate-300" : "text-slate-500"} text-[11px] font-medium`} numberOfLines={1}>
+                    {item.replyTo.message}
+                  </Text>
+                </View>
+              )}
+
+              {(item.messageType === "text" || !item.messageType) && item.message ? (
+                <Text className={`text-[15px] leading-6 font-bold tracking-tight ${isMe ? "text-white" : "text-zinc-900"}`}>
+                  {item.message}
+                </Text>
+              ) : null}
+
+              {item.messageType === "image" && (
+                <TouchableOpacity onPress={() => setSelectedImage(item.mediaUrl)}>
+                  <Image 
+                    source={{ uri: item.mediaUrl }} 
+                    className="w-56 h-56 rounded-xl" 
+                    resizeMode="cover" 
+                    blurRadius={item.pending ? 10 : 0} 
+                  />
+                </TouchableOpacity>
+              )}
+
+              {item.messageType === "video" && (
+                <Pressable 
+                  onPress={(e) => e.stopPropagation()} 
+                  onLongPress={(e) => e.stopPropagation()}
+                  className="w-64 h-40 bg-zinc-900 rounded-xl overflow-hidden shadow-lg"
+                >
+                  <Video
+                    source={{ uri: item.mediaUrl }}
+                    rate={1.0}
+                    volume={1.0}
+                    isMuted={false}
+                    resizeMode={ResizeMode.CONTAIN}
+                    shouldPlay={false}
+                    isLooping={false}
+                    useNativeControls
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                  {item.pending && (
+                    <View className="absolute inset-0 bg-black/40 items-center justify-center">
+                      <ActivityIndicator size="small" color="white" />
+                    </View>
+                  )}
+                </Pressable>
+              )}
+
+              {item.messageType === "file" && (
+                <Pressable 
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    Linking.openURL(item.mediaUrl);
+                  }}
+                  onLongPress={(e) => e.stopPropagation()}
+                  className={`flex-row items-center p-3 rounded-xl ${isMe ? 'bg-white/10' : 'bg-black/5'}`}
+                >
+                  <View className={`w-10 h-10 rounded-lg items-center justify-center ${isMe ? 'bg-zinc-800' : 'bg-orange-100'}`}>
+                    <Ionicons name="document-text" size={24} color={isMe ? "white" : "#f97316"} />
+                  </View>
+                  <View className="ml-3 flex-1">
+                    <Text className={`text-sm font-bold ${isMe ? "text-white" : "text-zinc-900"}`} numberOfLines={1}>
+                      {item.message || 'Shared PDF'}
+                    </Text>
+                    <Text className={`${isMe ? "text-zinc-400" : "text-zinc-500"} text-[10px] uppercase font-bold`}>Tap to view PDF</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={isMe ? "white" : "#cbd5e1"} />
+                </Pressable>
+              )}
+            </TouchableOpacity>
+
+            {/* TIMESTAMP & STATUS */}
+            <View className={`mt-1.5 ${isMe ? "items-end" : "items-start"}`}>
+              <View className="flex-row items-center">
+                <Text className="text-[9px] text-slate-400 font-black uppercase tracking-tighter">
+                  {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+                
+                {isMe && (
+                  <View className="ml-1.5 flex-row items-center">
+                    <Ionicons
+                      name={item.seen ? "checkmark-done" : "checkmark"}
+                      size={12}
+                      color={item.seen ? "#f97316" : "#cbd5e1"}
+                    />
+                    <Text className={`text-[9px] ml-0.5 font-black uppercase ${item.seen ? "text-orange-500" : "text-slate-300"}`}>
+                      {item.seen ? "READ" : "SENT"}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          </View>
+        </View>
       </View>
     );
-
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F5F7FA]">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1"
+    <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+      {/* HEADER DECORATION (SOLAR GLOW) */}
+      <View 
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 300, zIndex: -1 }}
+        pointerEvents="none"
       >
-        {/* HEADER */}
-        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
+        <LinearGradient
+          colors={['#f19422', 'rgba(241, 148, 34, 0)']}
+          style={{ flex: 1 }}
+        />
+      </View>
+
+      {/* FIXED HEADER */}
+      <SafeAreaView edges={['top']} style={{ backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)' }}>
+        <View className="flex-row items-center justify-between px-6 py-4">
           <View className="flex-row items-center">
-            <Pressable onPress={() => navigation.goBack()}>
-              <Ionicons name="arrow-back" size={24} color="black" />
-            </Pressable>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              className="w-10 h-10 items-center justify-center rounded-2xl bg-slate-50 border border-slate-100"
+            >
+              <Ionicons name="chevron-back" size={24} color="#18181b" />
+            </TouchableOpacity>
 
             {otherUser && (
-              <Pressable
+              <TouchableOpacity
                 className="flex-row items-center ml-4"
                 onPress={() =>
                   navigation.navigate("PublicProfile", {
@@ -329,93 +539,137 @@ const Chat = ({ route, navigation }: any) => {
                   })
                 }
               >
-                <Image
-                  source={{
-                    uri:
-                      otherUser.avatar ||
-                      `https://ui-avatars.com/api/?name=${otherUser.username}`,
-                  }}
-                  className="h-10 w-10 rounded-full"
-                />
+                <View className="relative">
+                  <View className="w-11 h-11 rounded-full border-2 border-white shadow-sm overflow-hidden">
+                    <Image
+                      source={{
+                        uri:
+                          otherUser.avatar ||
+                          `https://ui-avatars.com/api/?name=${otherUser.username}`,
+                      }}
+                      className="w-full h-full"
+                    />
+                  </View>
+                  <View className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
+                </View>
 
                 <View className="ml-3">
-                  <Text className="font-bold text-zinc-900 text-sm">
+                  <Text className="font-black text-zinc-900 text-base tracking-tight">
                     {otherUser.name}
                   </Text>
-                  <Text className="text-[10px] text-gray-500 font-black tracking-widest">
-                    @{otherUser.username}
-                  </Text>
+                  {isTyping ? (
+                    <Text className="text-[10px] text-green-500 font-black animate-pulse uppercase tracking-widest">
+                      typing...
+                    </Text>
+                  ) : (
+                    <Text className="text-[10px] text-orange-500 font-black tracking-widest">
+                      @{otherUser.username}
+                    </Text>
+                  )}
                 </View>
-              </Pressable>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </SafeAreaView>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+      >
+        <View style={{ flex: 1 }}>
+          {/* MESSAGE CONTAINER (ROUNDED CARD) */}
+          <View className="flex-1 bg-white shadow-sm overflow-hidden border-t border-slate-200">
+            {loading ? (
+              <View className="flex-1 p-6">
+                {[1, 2, 3, 4, 5, 6].map(i => <CommentSkeleton key={i} />)}
+              </View>
+            ) : (
+              <FlatList
+                ref={flatListRef}
+                data={sortedMessages}
+                inverted
+                keyExtractor={(item) => item._id}
+                renderItem={renderItem}
+                onEndReached={loadMessages}
+                contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10 }}
+                showsVerticalScrollIndicator={false}
+                ListHeaderComponent={() => <View className="h-0" />}
+              />
             )}
           </View>
 
-          <View className="flex-row items-center space-x-4 pr-3">
-          </View>
-        </View>
-
-        {/* MESSAGES */}
-        {loading ? (
-             <View className="flex-1 p-4">
-                 {[1,2,3,4,5].map(i => <CommentSkeleton key={i} />)}
-             </View>
-        ) : (
-          <FlatList
-            ref={flatListRef}
-            data={sortedMessages}
-            inverted
-            keyExtractor={(item) => item._id}
-            renderItem={renderItem}
-            onEndReached={loadMessages}
-            contentContainerStyle={{ padding: 12 }}
-            showsVerticalScrollIndicator={false}
-          />
-        )}
-
-        {/* ✅ typing indicator */}
-        {isTyping && (
-          <>
-            <Text className="px-4 pb-1 text-gray-500 text-sm">
-              typing...
-            </Text>
-          </>
-        )}
-
-        {/* ✅ reply indicator */}
-        {replyingTo && (
-          <View className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex-row items-center justify-between">
-            <View className="border-l-4 border-blue-500 pl-3">
-              <Text className="text-blue-500 text-xs font-bold">
-                Replying to {replyingTo.sender?.name || (replyingTo.sender === user._id ? "yourself" : "User")}
-              </Text>
-              <Text className="text-gray-500 text-xs" numberOfLines={1}>
-                {replyingTo.message}
-              </Text>
+          {/* ✅ reply indicator */}
+          {replyingTo && (
+            <View className="mx-6 mb-2 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm flex-row items-center justify-between">
+              <View className="flex-1 border-l-2 border-orange-500 pl-3">
+                <Text className="text-orange-500 text-[10px] font-black uppercase tracking-widest mb-1">
+                  Reference: {replyingTo.sender?.name || (replyingTo.sender === user._id ? "You" : "User")}
+                </Text>
+                <Text className="text-slate-600 text-xs font-bold" numberOfLines={1}>
+                  {replyingTo.message}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setReplyingTo(null)}
+                className="ml-3 w-6 h-6 items-center justify-center rounded-full bg-slate-50"
+              >
+                <Ionicons name="close" size={14} color="#94a3b8" />
+              </TouchableOpacity>
             </View>
-            <Pressable onPress={() => setReplyingTo(null)}>
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
-            </Pressable>
-          </View>
-        )}
+          )}
 
-        {/* INPUT */}
-        <View className="flex-row items-center px-3 py-3 border-t border-gray-100 bg-white shadow-lg">
-          <TextInput
-            value={text}
-            onChangeText={handleTyping}
-            placeholder="Type a message..."
-            placeholderTextColor="#9ca3af"
-            className="flex-1 bg-gray-50 rounded-full px-4 py-2 text-base text-zinc-900 border border-gray-100"
-          />
-          <Pressable
-            onPress={sendMessage}
-            className="ml-3 bg-indigo-600 p-2.5 rounded-full shadow-md shadow-indigo-600/30"
-          >
-            <Ionicons name="send" size={18} color="white" />
-          </Pressable>
+          {/* INPUT AREA */}
+          <SafeAreaView edges={['bottom']}>
+            <View className="px-6 pb-2 pt-2 bg-white">
+              <View className="flex-row items-center bg-gray-100 p-2 rounded-[28px] border border-slate-100 shadow-xl shadow-black/5">
+                <TouchableOpacity onPress={handlePickImage} className="w-10 h-10 items-center justify-center">
+                  <Ionicons name="image-outline" size={22} color="#64748b" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handlePickDocument} className="w-10 h-10 items-center justify-center mr-1">
+                  <Ionicons name="attach-outline" size={24} color="#64748b" />
+                </TouchableOpacity>
+                <TextInput
+                  value={text}
+                  onChangeText={handleTyping}
+                  placeholder="Encrypting transmission..."
+                  placeholderTextColor="#CBD5E1"
+                  className="flex-1 px-3 text-zinc-900 font-bold text-sm tracking-tight py-2 placeholder:text-black"
+                  multiline={true}
+                  numberOfLines={1}
+                />
+
+                <TouchableOpacity
+                  onPress={sendMessage}
+                  className="w-11 h-11 bg-zinc-900 rounded-full items-center justify-center shadow-lg shadow-black/20"
+                >
+                  <Ionicons name="paper-plane" size={18} color="white" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </SafeAreaView>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+      {/* FULL SCREEN IMAGE MODAL */}
+      <Modal visible={!!selectedImage} transparent={true} animationType="fade">
+        <View className="flex-1 bg-black/95 justify-center items-center">
+          <TouchableOpacity
+            onPress={() => setSelectedImage(null)}
+            className="absolute top-12 right-6 w-10 h-10 bg-white/10 rounded-full items-center justify-center z-50"
+          >
+            <Ionicons name="close" size={24} color="white" />
+          </TouchableOpacity>
+          {selectedImage && (
+            <Image
+              source={{ uri: selectedImage }}
+              className="w-full h-[80%]"
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </Modal>
+    </View>
   );
 };
 

@@ -158,14 +158,21 @@ const ChatList = () => {
     }
   };
 
-  const formatTime = (dateString: string) => {
-    if (!dateString) return "";
+  const formatDateTime = (dateString: string) => {
+    if (!dateString) return { date: "", time: "" };
     const date = new Date(dateString);
     const now = new Date();
+    
+    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    let dateStr = "";
+
     if (date.toDateString() === now.toDateString()) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      dateStr = "Today";
+    } else {
+      dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
     }
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+    return { date: dateStr, time: timeStr };
   };
 
   const renderConversation = ({ item }: any) => {
@@ -199,8 +206,8 @@ const ChatList = () => {
             <Text className="font-bold text-base text-zinc-900">
               {otherUser?.username || "Unknown"}
             </Text>
-            <Text className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-              {formatTime(item.updatedAt || new Date())}
+            <Text className="text-[10px] text-orange-500 font-bold uppercase tracking-wider">
+              {formatDateTime(item.updatedAt || new Date()).time}
             </Text>
           </View>
 
@@ -212,13 +219,19 @@ const ChatList = () => {
               {isLastMsgMine ? "You: " : ""}{item.lastMessage?.message || "Started a chat"}
             </Text>
 
-            {unread > 0 && (
-              <View className="bg-orange-500 min-w-[20px] h-5 px-1.5 flex justify-center items-center rounded-full">
-                <Text className="text-white text-[10px] font-black text-center">
-                  {unread > 9 ? '9+' : unread}
-                </Text>
-              </View>
-            )}
+            <View className="flex-row items-center">
+              <Text className="text-[9px] text-gray-400 font-black uppercase tracking-widest mr-2">
+                {formatDateTime(item.updatedAt || new Date()).date}
+              </Text>
+              
+              {unread > 0 && (
+                <View className="bg-orange-500 min-w-[18px] h-4 px-1 flex justify-center items-center rounded-full">
+                  <Text className="text-white text-[8px] font-black">
+                    {unread > 9 ? '9+' : unread}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
         </View>
       </TouchableOpacity>

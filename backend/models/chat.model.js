@@ -13,7 +13,16 @@ const messageSchema = new mongoose.Schema({
   },
   message: {
     type: String,
-    required: true
+    required: false // Optional for media-only messages
+  },
+  messageType: {
+    type: String,
+    enum: ["text", "image", "video", "file"],
+    default: "text"
+  },
+  mediaUrl: {
+    type: String,
+    default: ""
   },
   seen: {
     type: Boolean,
