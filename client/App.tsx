@@ -101,6 +101,11 @@ import SplashScreen from "./components/SplashScreen";
 // Study Material
 import DriveFolderScreen from './components/studyMaterial/DriveFolderScreen';
 import PDFViewerScreen from './components/studyMaterial/PDFViewerScreen';
+import DSAPrep from './components/studyMaterial/DSAPrep';
+import GitHubFolderScreen from './components/studyMaterial/GitHubFolderScreen';
+import MarkdownViewerScreen from './components/studyMaterial/MarkdownViewerScreen';
+import CodeViewerScreen from './components/studyMaterial/CodeViewerScreen';
+import MasterStudyHub from './components/studyMaterial/MasterStudyHub';
 
 // OLX & Notice Board
 import OLXMarketplaceScreen from './components/olx/MarketplaceScreen';
@@ -264,8 +269,13 @@ export type RootStackParamList = {
   FindTeammate: undefined;
   Notification: undefined;
   CodingLeaderboard: undefined;
-  DriveFolderScreen: undefined;
-  PDFViewerScreen: undefined;
+  DriveFolderScreen: { folderId: string; title: string };
+  PDFViewerScreen: { title: string; fileId?: string; url?: string };
+  DSAPrep: undefined;
+  GitHubFolderScreen: { path?: string; title?: string };
+  MarkdownViewerScreen: { title: string; url: string };
+  CodeViewerScreen: { title: string; url: string; language?: string };
+  MasterStudyHub: undefined;
   IndividualPostOrShort: { postId: string };
   RewardsMarketplace: undefined;
   OLXMarketplace: undefined;
@@ -397,7 +407,6 @@ function AppStack() {
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: "simple_push" }}>
-      <Stack.Screen name="SplashScreen" component={SplashScreen} />
       <Stack.Screen name="Tabs" component={isRecruiter ? RecruiterTabLayout : HomeDrawer} />
       <Stack.Screen name="Profile" component={isRecruiter ? RecruiterProfile : Profile} />
       <Stack.Screen name="EditProfile" component={isRecruiter ? RecruiterEditProfile : EditProfile} />
@@ -436,6 +445,11 @@ function AppStack() {
       <Stack.Screen name="CodingLeaderboard" component={CodingLeaderboard} />
       <Stack.Screen name="DriveFolderScreen" component={DriveFolderScreen} />
       <Stack.Screen name="PDFViewerScreen" component={PDFViewerScreen} />
+      <Stack.Screen name="DSAPrep" component={DSAPrep} />
+      <Stack.Screen name="GitHubFolderScreen" component={GitHubFolderScreen} />
+      <Stack.Screen name="MarkdownViewerScreen" component={MarkdownViewerScreen} />
+      <Stack.Screen name="CodeViewerScreen" component={CodeViewerScreen} />
+      <Stack.Screen name="MasterStudyHub" component={MasterStudyHub} />
       <Stack.Screen name="IndividualPostOrShort" component={IndividualPostOrShort} />
       <Stack.Screen name="RewardsMarketplace" component={RewardsMarketplaceScreen} />
       <Stack.Screen name="OLXMarketplace" component={OLXMarketplaceScreen} />
@@ -502,17 +516,18 @@ function AppStack() {
 
 function RootNavigator() {
   const { isLoggedIn, loading } = useAuth();
+  const [isSplashDone, setIsSplashDone] = React.useState(false);
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#fff" }}>
-        <Image source={require('./assets/Fync.png')} className='w-56 h-56 object-contain rounded-full mb-5' />
-        <View className='flex-row gap-2 items-center'>
-          <Text className='text-black text-lg font-semibold'>Loading</Text>
-          <ActivityIndicator size="small" color="#000" />
-        </View>
-      </View>
-    );
+  React.useEffect(() => {
+    // Ensure splash screen runs for at least 3 seconds (full animation)
+    const timer = setTimeout(() => {
+      setIsSplashDone(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading || !isSplashDone) {
+    return <SplashScreen />;
   }
 
   return isLoggedIn ? (

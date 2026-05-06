@@ -48,6 +48,7 @@ import {
 import { BlurView } from 'expo-blur';
 import StreakLeaderboardModal from './StreakLeaderboardModal';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { getFullUrl } from '../utils/imageUtils';
 
 const { width } = Dimensions.get('window');
 
@@ -162,7 +163,7 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
     <View className={`${isReply ? 'ml-12 mt-2' : 'px-4 py-3 border-b border-gray-50'}`}>
       <View className="flex-row">
         <ExpoImage
-          source={{ uri: comment.commentor?.avatar || `https://ui-avatars.com/api/?name=${comment.commentor?.username}` }}
+          source={{ uri: getFullUrl(comment.commentor?.avatar) || `https://ui-avatars.com/api/?name=${comment.commentor?.username}` }}
           style={{ width: isReply ? 28 : 36, height: isReply ? 28 : 36, borderRadius: 999 }}
           className="bg-gray-100"
           cachePolicy="disk"
@@ -233,7 +234,7 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
               )}
               <View className="flex-row items-center gap-2">
                 <ExpoImage
-                  source={{ uri: currentUser?.avatar || `https://ui-avatars.com/api/?name=${currentUser?.username}` }}
+                  source={{ uri: getFullUrl(currentUser?.avatar) || `https://ui-avatars.com/api/?name=${currentUser?.username}` }}
                   style={{ width: 32, height: 32, borderRadius: 999 }}
                   className="rounded-full"
                   cachePolicy="disk"
@@ -444,7 +445,7 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
             <View style={{ width: width - 24 }}>
               <Pressable onPress={() => setResizeMode(prev => !prev)}>
                 <ExpoImage
-                  source={{ uri: imageUrl }}
+                  source={{ uri: getFullUrl(imageUrl) || '' }}
                   style={{ width: width - 24, height: width - 24, borderRadius: 12 }}
                   contentFit={resizeMode ? "contain" : "cover"}
                   cachePolicy="disk"
@@ -694,17 +695,23 @@ export default function HomeScreen() {
   }, []);
 
   const handleDeletePost = useCallback(async (postId: string) => {
+    const previousFeed = feed;
+    // Optimistic update
+    setFeed(prev => prev.filter(p => p._id !== postId));
+    
     try {
       const res = await axios.delete(`/post/${postId}`);
       if (res.data.success) {
-        setFeed(prev => prev.filter(p => p._id !== postId));
         Toast.show({ type: 'success', text1: 'Post deleted successfully' });
+      } else {
+        throw new Error("Failed to delete");
       }
     } catch (error) {
+      setFeed(previousFeed); // Rollback
       console.log('Failed to delete post', error);
       Toast.show({ type: 'error', text1: 'Failed to delete post' });
     }
-  }, []);
+  }, [feed]);
 
 
 
@@ -716,7 +723,7 @@ export default function HomeScreen() {
       <View className="flex-row items-center py-2 gap-2">
         <Pressable onPress={() => navigation.openDrawer()}>
           <ExpoImage
-            source={{ uri: profileImage || `https://ui-avatars.com/api/?name=${user?.username}&background=random&color=fff` }}
+            source={{ uri: getFullUrl(profileImage) || `https://ui-avatars.com/api/?name=${user?.username}&background=random&color=fff` }}
             style={{ width: 32, height: 32, borderRadius: 999 }}
             className="mr-3 rounded-full border border-gray-100"
             cachePolicy="disk"
@@ -806,6 +813,7 @@ export default function HomeScreen() {
     );
   };
   const features = useMemo(() => [
+    { id: 'fyncAcademy', name: 'Fync Academy', Icon: Sparkles, colorHex: '#8b5cf6', bgClass: 'bg-purple-50', sparkle: true, onPress: () => navigation.navigate('MasterStudyHub') },
     { id: 'contest', name: 'Contests', Icon: Code, colorHex: '#4f46e5', bgClass: 'bg-indigo-50', sparkle: true, onPress: () => navigation.navigate('DSAAndDevelopmentContest') },
     { id: 'partyPool', name: 'Party Pool', Icon: Sparkles, colorHex: '#db2777', bgClass: 'bg-pink-50', sparkle: true, onPress: () => navigation.navigate('PartyPool') },
     { id: 'entertainment', name: 'Movies', Icon: Mic, colorHex: '#e11d48', bgClass: 'bg-rose-50', sparkle: true, onPress: () => navigation.navigate('EntertainmentHome') },

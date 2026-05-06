@@ -119,7 +119,7 @@ export default function AlumniSignup() {
               {!otpSent ? (
                 <>
                   <TextInput
-                    className="mb-4 rounded-xl border border-gray-300 px-4 py-4"
+                    className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black"
                     placeholder="Work Email"
                     value={email}
                     onChangeText={setEmail}
@@ -128,7 +128,7 @@ export default function AlumniSignup() {
                   />
 
                   <TextInput
-                    className="mb-4 rounded-xl border border-gray-300 px-4 py-4"
+                    className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black"
                     placeholder="Mobile Number"
                     keyboardType="phone-pad"
                     value={phoneNumber}
@@ -158,7 +158,7 @@ export default function AlumniSignup() {
                 <>
                   <Text className="text-gray-600 mb-4">We've sent an OTP to {email}</Text>
                   <TextInput
-                    className="mb-6 rounded-xl border border-gray-300 px-4 py-4"
+                    className="mb-6 rounded-xl border border-gray-300 px-4 py-4 text-black"
                     placeholder="Enter OTP"
                     value={otp}
                     onChangeText={setOtp}

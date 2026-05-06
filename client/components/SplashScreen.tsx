@@ -4,26 +4,33 @@ import { Animated } from 'react-native';
 import LogoImage from '../assets/Fync.png';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+let animationStarted = false;
+
 export default function SplashScreen({ navigation }: any) {
-  const logoX = useRef(new Animated.Value(-200)).current;
-  const textX = useRef(new Animated.Value(-200)).current;
+  const logoX = useRef(new Animated.Value(animationStarted ? 0 : -200)).current;
+  const textX = useRef(new Animated.Value(animationStarted ? 0 : -200)).current;
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(logoX, {
-        toValue: 0,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(textX, {
-        toValue: 0,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    if (!animationStarted) {
+      animationStarted = true;
+      Animated.parallel([
+        Animated.timing(logoX, {
+          toValue: 0,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(textX, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
 
     const timer = setTimeout(() => {
-      navigation.replace('Tabs');
+      if (navigation) {
+        navigation.replace('Tabs');
+      }
     }, 2000);
 
     return () => clearTimeout(timer);

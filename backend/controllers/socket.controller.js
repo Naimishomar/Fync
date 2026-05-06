@@ -178,7 +178,7 @@ export const socketController = (io) => {
         // Update conversation unread count
         const conversation = await Conversation.findByIdAndUpdate(conversationId, {
           [`unreadCount.${userId}`]: 0
-        }, { new: true });
+        }, { new: true, timestamps: false });
 
         // Mark all messages from other user as seen
         await Message.updateMany(

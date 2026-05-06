@@ -155,7 +155,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
 export default function TabLayout() {
   const { user } = useAuth();
   return (
-    <View className="flex-1 bg-black justify-center">
+    <View className="flex-1 bg-white justify-center">
       <Tab.Navigator
         screenOptions={{
           headerShown: false,

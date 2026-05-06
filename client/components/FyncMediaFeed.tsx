@@ -19,6 +19,7 @@ import {
   Platform,
   useWindowDimensions
 } from "react-native";
+import { getFullUrl } from "../utils/imageUtils";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Video, ResizeMode, AVPlaybackStatus, AVPlaybackStatusSuccess, Audio, InterruptionModeIOS, InterruptionModeAndroid } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
@@ -306,14 +307,14 @@ const YouTubeVideoPlayer = ({
         <Animated.View style={[{ width: '100%', height: '100%' }, animatedStyle]}>
           <Video
             ref={videoRef}
-            source={{ uri: source }}
+            source={{ uri: getFullUrl(source) || '' }}
             style={{ width: '100%', height: '100%' }}
             resizeMode={isFullscreen ? ResizeMode.COVER : ResizeMode.CONTAIN}
             onPlaybackStatusUpdate={onPlaybackStatusUpdate}
             onError={onVideoError}
             shouldPlay={true}
             isMuted={false}
-            posterSource={{ uri: thumbnail }}
+            posterSource={{ uri: getFullUrl(thumbnail) || '' }}
             usePoster={true}
             posterStyle={{ resizeMode: 'cover' }}
           />
@@ -410,7 +411,7 @@ const YouTubeCard = React.memo(({
       {/* Thumbnail */}
       <View className="w-full aspect-video relative bg-slate-100 mx-0">
         <Image
-          source={{ uri: item.thumbnail }}
+          source={{ uri: getFullUrl(item.thumbnail) || '' }}
           className="w-full h-full"
           resizeMode="cover"
         />
@@ -604,7 +605,7 @@ const MediaDetailView = React.memo(({
                 onPress={() => onCommentPress(item._id)}
                 className="flex-row items-center bg-slate-50 rounded-2xl px-4 py-3 border border-slate-100"
               >
-                <Image source={{ uri: user?.avatar }} className="w-8 h-8 rounded-xl mr-3 bg-slate-200" />
+                <Image source={{ uri: getFullUrl(user?.avatar) || `https://ui-avatars.com/api/?name=${user?.username || 'U'}` }} className="w-8 h-8 rounded-xl mr-3 bg-slate-200" />
                 <Text className="text-slate-400 text-[11px] font-black uppercase tracking-widest">Contribute to discussion...</Text>
               </TouchableOpacity>
             </View>

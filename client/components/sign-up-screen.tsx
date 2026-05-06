@@ -140,7 +140,7 @@ export default function SignUpScreen() {
               <Text className="text-gray-500 mb-2">Join the exclusive student network</Text>
 
               <TextInput
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-4"
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black placeholder:text-black"
                 placeholder="Email"
                 value={email}
                 onChangeText={setEmail}
@@ -149,14 +149,14 @@ export default function SignUpScreen() {
               />
 
               <TextInput
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-4"
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black placeholder:text-black"
                 placeholder="Username"
                 value={username}
                 onChangeText={setUsername}
               />
 
               <TextInput
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-4"
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black placeholder:text-black"
                 placeholder="Phone Number"
                 keyboardType="phone-pad"
                 value={phoneNumber}
@@ -165,7 +165,7 @@ export default function SignUpScreen() {
 
               <View className="mb-4 flex-row items-center rounded-xl border border-gray-300 px-4">
                 <TextInput
-                  className="flex-1 py-4"
+                  className="flex-1 py-4 text-black placeholder:text-black"
                   placeholder="Password"
                   secureTextEntry={!passwordVisible}
                   value={password}
@@ -182,7 +182,7 @@ export default function SignUpScreen() {
 
               {otpSent && (
                 <TextInput
-                  className="mb-4 rounded-xl border border-gray-300 px-4 py-4"
+                  className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black placeholder:text-black"
                   placeholder="Enter OTP(Check your email)"
                   value={otp}
                   onChangeText={setOtp}

@@ -14,11 +14,11 @@ import { useAuth } from '../context/auth.context';
 import Avatar from './Avatar';
 import { ProfileSkeleton } from './Skeleton';
 import { Image as ExpoImage } from 'expo-image';
+import { getFullUrl } from '../utils/imageUtils';
 import GitHubStatsCard from './profile/GitHubStatsCard';
 
 const { width } = Dimensions.get('window');
 
-// --- TYPES ---
 interface User {
     _id: string;
     username: string;
@@ -252,7 +252,7 @@ const PublicProfile = () => {
                 {isVideo ? (
                     <View className="flex-1 bg-gray-900 justify-center items-center overflow-hidden">
                         <Video
-                            source={{ uri: item.video }}
+                            source={{ uri: getFullUrl(item.video) || '' }}
                             style={{ width: '100%', height: '100%' }}
                             resizeMode={ResizeMode.COVER}
                             shouldPlay={false}
@@ -269,7 +269,7 @@ const PublicProfile = () => {
                 ) : (
                     <>
                         <Image
-                            source={{ uri: item.image?.[0] }}
+                            source={{ uri: getFullUrl(item.image?.[0]) || '' }}
                             className="flex-1 bg-gray-800"
                             resizeMode="cover"
                         />
@@ -406,7 +406,7 @@ const PublicProfile = () => {
                 {/* Banner & Actions */}
                 <View className="h-48 w-full relative">
                     <ExpoImage
-                        source={{ uri: (profileUser as any)?.banner || 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000' }}
+                        source={{ uri: getFullUrl((profileUser as any)?.banner) || 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000' }}
                         style={{ width: '100%', height: '100%' }}
                         contentFit="cover"
                     />
@@ -642,7 +642,7 @@ const PublicProfile = () => {
                                             <Text className="text-gray-500 mt-2 text-xs">PREVIEW MODE</Text>
                                         </View>
                                     ) : (
-                                        <Image source={{ uri: selectedItem.image ? selectedItem.image[0] : '' }} className="w-full h-full" resizeMode="contain" />
+                                        <Image source={{ uri: getFullUrl(selectedItem.image ? selectedItem.image[0] : '') || '' }} className="w-full h-full" resizeMode="contain" />
                                     )}
                                     <Pressable onPress={() => setModalVisible(false)} className="absolute top-4 right-4 bg-black/50 p-2 rounded-full">
                                         <Ionicons name="close" size={20} color="white" />

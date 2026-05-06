@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -36,6 +37,7 @@ export default function ProfileSetup2() {
   const { login } = useAuth();
 
   const [profileImageUri, setProfileImageUri] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleUploadProfilePic = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -58,6 +60,7 @@ export default function ProfileSetup2() {
 
   const submitRegistration = async () => {
     try {
+      setIsLoading(true);
       const formData = new FormData();
 
       formData.append('email', route.params.email);
@@ -118,6 +121,8 @@ export default function ProfileSetup2() {
         text1: 'Error',
         text2: error.response?.data?.message || 'Something went wrong',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -165,24 +170,36 @@ export default function ProfileSetup2() {
               </View>
 
               {/* Continue */}
-              <Pressable
-                className="rounded-full bg-black py-4 items-center mb-4"
-                onPress={submitRegistration}
-              >
-                <Text className="text-white text-lg font-semibold">
-                  Continue
-                </Text>
-              </Pressable>
+              {isLoading ? (
+                <Pressable className="rounded-full bg-black py-4 items-center mb-4">
+                  <ActivityIndicator size="small" color="white" />
+                </Pressable>
+              ) : (
+                <Pressable
+                  className="rounded-full bg-black py-4 items-center mb-4"
+                  onPress={submitRegistration}
+                >
+                  <Text className="text-white text-lg font-semibold">
+                    Continue
+                  </Text>
+                </Pressable>
+              )}
 
               {/* Skip */}
-              <Pressable
-                className="rounded-full border border-gray-300 py-4 items-center"
-                onPress={submitRegistration}
-              >
-                <Text className="text-gray-700 text-lg font-semibold">
-                  Skip for now
-                </Text>
-              </Pressable>
+              {isLoading ? (
+                <Pressable className="rounded-full border border-gray-300 py-4 items-center">
+                  <ActivityIndicator size="small" color="#6B7280" />
+                </Pressable>
+              ) : (
+                <Pressable
+                  className="rounded-full border border-gray-300 py-4 items-center"
+                  onPress={submitRegistration}
+                >
+                  <Text className="text-gray-700 text-lg font-semibold">
+                    Skip for now
+                  </Text>
+                </Pressable>
+              )}
 
               <Text className="mt-5 text-center text-gray-500">
                 Step 2 of 2

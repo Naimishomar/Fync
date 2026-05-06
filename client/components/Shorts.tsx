@@ -27,6 +27,7 @@ import { useAuth } from "../context/auth.context";
 import axios from "../context/axiosConfig";
 import Avatar from "./Avatar";
 import { ShortsSkeleton, CommentSkeleton } from "./Skeleton";
+import { getFullUrl } from "../utils/imageUtils";
 import {
   checkAndStartSession,
   getSeenShortIds,
@@ -136,7 +137,7 @@ const SingleShort = React.memo(({
       <Pressable onPress={togglePlay}>
         <Video
           ref={videoRef}
-          source={{ uri: item.video }}
+          source={{ uri: getFullUrl(item.video) || '' }}
           style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }}
           resizeMode={ResizeMode.COVER}
           isLooping
@@ -449,19 +450,27 @@ export default function Shorts() {
   };
 
   const deleteShort = async (id: string) => {
+    const previousShorts = shorts;
+    // Optimistic update
+    const updatedShorts = shorts.filter(s => s._id !== id);
+    setShorts(updatedShorts);
+    globalShortsCache = updatedShorts;
+
     try {
       const res = await axios.post(`/shorts/delete/${id}`);
       if (res.data.success) {
-        const updatedShorts = shorts.filter(s => s._id !== id);
-        setShorts(updatedShorts);
-        globalShortsCache = updatedShorts;
         if (Platform.OS === 'android') {
           ToastAndroid.show("Short deleted successfully", ToastAndroid.SHORT);
         } else {
           Alert.alert("Success", "Short deleted successfully");
         }
+      } else {
+        throw new Error("Delete failed");
       }
     } catch (error) {
+      // Rollback
+      setShorts(previousShorts);
+      globalShortsCache = previousShorts;
       console.log("Delete failed", error);
       Alert.alert("Error", "Failed to delete short");
     }
@@ -485,7 +494,7 @@ export default function Shorts() {
     <View className={`${isReply ? 'ml-10 mt-2' : 'mb-4'}`}>
       <View className="flex-row">
         <Image
-          source={{ uri: comment.commentor?.avatar || `https://ui-avatars.com/api/?name=${comment.commentor?.username}` }}
+          source={{ uri: getFullUrl(comment.commentor?.avatar) || `https://ui-avatars.com/api/?name=${comment.commentor?.username}` }}
           className={`${isReply ? 'h-7 w-7' : 'h-9 w-9'} rounded-full mr-3 bg-neutral-800`}
         />
         <View className="flex-1">

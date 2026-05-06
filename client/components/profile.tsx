@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Text, Image, View, Pressable, FlatList,
   Dimensions, RefreshControl, Linking, Alert,
@@ -9,13 +9,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Video, ResizeMode } from 'expo-av';
 import { useAuth } from '../context/auth.context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import Avatar from './Avatar';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getFullUrl } from '../utils/imageUtils';
 import { StatusBar } from 'expo-status-bar';
 
 const { width } = Dimensions.get('window');
@@ -589,11 +590,14 @@ function Profile() {
     } catch { }
   };
 
-  useEffect(() => { 
-    getPosts(1, true); 
-    getShorts(1, true); 
-    fetchSubscription();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      getPosts(1, true);
+      getShorts(1, true);
+      fetchSubscription();
+      refreshUser();
+    }, [])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -608,17 +612,39 @@ function Profile() {
   };
 
   const deletePost = async (id: string) => {
+    const previousPosts = posts;
+    // Optimistic update
+    setPosts(p => p.filter(x => x._id !== id));
+    
     try {
       const res = await axios.delete(`/post/${id}`);
-      if (res.data.success) { setPosts(p => p.filter(x => x._id !== id)); Toast.show({ type: 'success', text1: 'Post deleted' }); }
-    } catch { Toast.show({ type: 'error', text1: 'Failed to delete' }); }
+      if (res.data.success) {
+        Toast.show({ type: 'success', text1: 'Post deleted' });
+      } else {
+        throw new Error("Failed to delete");
+      }
+    } catch (err) {
+      setPosts(previousPosts); // Rollback
+      Toast.show({ type: 'error', text1: 'Failed to delete' });
+    }
   };
 
   const deleteShort = async (id: string) => {
+    const previousShorts = shorts;
+    // Optimistic update
+    setShorts(p => p.filter(x => x._id !== id));
+
     try {
       const res = await axios.post(`/shorts/delete/${id}`);
-      if (res.data.success) { setShorts(p => p.filter(x => x._id !== id)); Toast.show({ type: 'success', text1: 'Short deleted' }); }
-    } catch { Toast.show({ type: 'error', text1: 'Failed to delete' }); }
+      if (res.data.success) {
+        Toast.show({ type: 'success', text1: 'Short deleted' });
+      } else {
+        throw new Error("Failed to delete");
+      }
+    } catch (err) {
+      setShorts(previousShorts); // Rollback
+      Toast.show({ type: 'error', text1: 'Failed to delete' });
+    }
   };
 
   const handleLogout = async () => { await logout(); };
@@ -645,7 +671,7 @@ function Profile() {
     <View className="bg-white">
       <View className="h-64 w-full relative">
         <ExpoImage
-          source={{ uri: user?.banner || 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000' }}
+          source={{ uri: getFullUrl(user?.banner) || 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000' }}
           style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="disk" />
         <LinearGradient colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.2)']} className="absolute inset-0" />
         
@@ -663,8 +689,8 @@ function Profile() {
       </View>
 
       <View className="items-center pb-6 px-5 bg-white rounded-t-[40px] -mt-12 shadow-2xl">
-        <View className="-mt-14 p-1.5 bg-white rounded-[40px] shadow-2xl">
-          <View className="rounded-[36px] overflow-hidden border-4 border-white">
+        <View className="-mt-14 p-1.5 bg-white rounded-full shadow-2xl">
+          <View className="rounded-full overflow-hidden border-4 border-white">
             <Avatar user={user as any} size={110} />
           </View>
         </View>
@@ -798,7 +824,7 @@ function Profile() {
       style={{ width: (width / 3) - 2, height: isShort ? (width / 1.8) : (width / 3) }}>
       {isShort ? (
         <View className="w-full h-full bg-gray-100 overflow-hidden">
-          <Video source={{ uri: item.video }} style={{ width: '100%', height: '100%' }}
+          <Video source={{ uri: getFullUrl(item.video) || '' }} style={{ width: '100%', height: '100%' }}
             resizeMode={ResizeMode.COVER} shouldPlay={false} positionMillis={100} />
           <LinearGradient colors={['transparent', 'rgba(0,0,0,0.5)']} className="absolute inset-0" />
           <View className="absolute bottom-2 left-2 flex-row items-center gap-1.5">
@@ -807,7 +833,7 @@ function Profile() {
           </View>
         </View>
       ) : item.image?.length > 0 ? (
-        <ExpoImage source={{ uri: item.image[0] }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+        <ExpoImage source={{ uri: getFullUrl(item.image[0]) || '' }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
       ) : (
         <View className="w-full h-full bg-indigo-50/50 items-center justify-center p-3">
           <Text className="text-indigo-400 text-[10px] font-bold text-center" numberOfLines={4}>{item.title || item.description}</Text>

@@ -127,7 +127,7 @@ export default function RecruiterSignup() {
               {!otpSent ? (
                 <>
                   <TextInput
-                    className="mb-4 rounded-2xl bg-gray-50 border border-gray-200 px-4 py-4 font-medium"
+                    className="mb-4 rounded-2xl bg-gray-50 border border-gray-200 px-4 py-4 font-medium text-black"
                     placeholder="Work Email"
                     value={email}
                     onChangeText={setEmail}
@@ -136,7 +136,7 @@ export default function RecruiterSignup() {
                   />
                   
                   <TextInput
-                    className="mb-4 rounded-2xl bg-gray-50 border border-gray-200 px-4 py-4 font-medium"
+                    className="mb-4 rounded-2xl bg-gray-50 border border-gray-200 px-4 py-4 font-medium text-black"
                     placeholder="Username"
                     value={username}
                     onChangeText={setUsername}
@@ -144,7 +144,7 @@ export default function RecruiterSignup() {
                   />
 
                   <TextInput
-                    className="mb-4 rounded-2xl bg-gray-50 border border-gray-200 px-4 py-4 font-medium"
+                    className="mb-4 rounded-2xl bg-gray-50 border border-gray-200 px-4 py-4 font-medium text-black"
                     placeholder="Mobile Number"
                     keyboardType="phone-pad"
                     value={phoneNumber}
@@ -174,7 +174,7 @@ export default function RecruiterSignup() {
                 <>
                   <Text className="text-gray-600 mb-4 font-medium">We've sent an OTP to your email inbox</Text>
                   <TextInput
-                    className="mb-6 rounded-2xl bg-gray-50 border border-gray-200 px-4 py-4 text-center font-bold tracking-widest text-lg"
+                    className="mb-6 rounded-2xl bg-gray-50 border border-gray-200 px-4 py-4 text-center font-bold tracking-widest text-lg text-black"
                     placeholder="Enter OTP"
                     value={otp}
                     onChangeText={setOtp}

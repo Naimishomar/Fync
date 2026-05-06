@@ -83,7 +83,7 @@ export default function LoginScreen() {
               <Text className="text-gray-500 mb-2">Login to the exclusive student network</Text>
 
               <TextInput
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-base"
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-base text-black"
                 placeholder="Email or username"
                 placeholderTextColor="#9CA3AF"
                 value={email}
@@ -94,7 +94,7 @@ export default function LoginScreen() {
 
               <View className="flex-row items-center rounded-xl border border-gray-300 px-4">
                 <TextInput
-                  className="flex-1 py-4 text-base"
+                  className="flex-1 py-4 text-base text-black"
                   placeholder="Password"
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={!passwordVisible}

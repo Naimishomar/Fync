@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { getFullUrl } from '../utils/imageUtils';
 
 interface AvatarProps {
   user: {
@@ -16,7 +17,8 @@ interface AvatarProps {
 const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) => {
   const isAlumni = user?.user_access === 'alumni';
   const isRecruiter = user?.user_access === 'recruiter';
-  const avatarUrl = user?.avatar || `https://ui-avatars.com/api/?name=${user?.username || 'U'}&background=random&color=fff`;
+  
+  const avatarUrl = getFullUrl(user?.avatar) || `https://ui-avatars.com/api/?name=${user?.username || 'U'}&background=random&color=fff`;
 
   return (
     <View style={{ width: size, height: size }}>

@@ -146,7 +146,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
                 <>
                   {/* OTP Input */}
                   <TextInput
-                    className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-base"
+                    className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-base text-black"
                     placeholder="Enter 6-digit OTP"
                     placeholderTextColor="#9CA3AF"
                     value={otp}
@@ -159,7 +159,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
                   {/* Password Input */}
                   <View className="mb-6 flex-row items-center rounded-xl border border-gray-300 px-4">
                     <TextInput
-                      className="flex-1 py-4 text-base"
+                      className="flex-1 py-4 text-base text-black"
                       placeholder="New Password"
                       placeholderTextColor="#9CA3AF"
                       secureTextEntry={!passwordVisible}

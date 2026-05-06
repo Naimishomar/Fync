@@ -12,9 +12,11 @@ import { Video, ResizeMode } from 'expo-av';
 import axios from "../context/axiosConfig";
 import { useAuth } from '../context/auth.context';
 import { useIsFocused } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
 import { Image as ExpoImage } from 'expo-image';
 import { memo } from 'react';
 import Avatar from './Avatar';
+import { getFullUrl } from '../utils/imageUtils';
 
 const { width, height } = Dimensions.get('window');
 
@@ -45,7 +47,7 @@ const CommentItem = ({
 }: any) => (
     <View className={`${isReply ? 'ml-10 mt-3' : 'mb-5'}`}>
         <View className="flex-row">
-            <RNImage source={{ uri: comment.commentor?.avatar || 'https://ui-avatars.com/api/?name=User' }} className={`${isReply ? 'h-7 w-7' : 'h-9 w-9'} rounded-full mr-3 bg-gray-700`} />
+            <RNImage source={{ uri: getFullUrl(comment.commentor?.avatar) || 'https://ui-avatars.com/api/?name=User' }} className={`${isReply ? 'h-7 w-7' : 'h-9 w-9'} rounded-full mr-3 bg-gray-700`} />
             <View className="flex-1">
                 <View className="flex flex-row items-center gap-1">
                     <Text className="text-white font-semibold text-[13px]">{comment.commentor?.name}</Text>
@@ -479,7 +481,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                     <Pressable style={{ flex: 1 }}>
                         <Video
                             ref={videoRef}
-                            source={{ uri: data.video }}
+                            source={{ uri: getFullUrl(data.video) || '' }}
                             style={{ width: width, height: height, backgroundColor: 'black' }}
                             resizeMode={ResizeMode.COVER}
                             shouldPlay={isFocused}
@@ -591,7 +593,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 onScroll={(e) => setCurrentImageIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
                                 renderItem={({ item }) => (
                                     <Pressable onPress={() => setResizeMode(prev => !prev)}>
-                                        <ExpoImage source={{ uri: item }} style={{ width: width, height: width }} contentFit={resizeMode ? "contain" : "cover"} cachePolicy="disk" transition={300} />
+                                        <ExpoImage source={{ uri: getFullUrl(item) || '' }} style={{ width: width, height: width }} contentFit={resizeMode ? "contain" : "cover"} cachePolicy="disk" transition={300} />
                                     </Pressable>
                                 )}
                             />
@@ -634,7 +636,6 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                         </View>
 
                         <View className="px-3 pt-2 pb-10">
-                            <Text className="text-black font-bold text-sm">{score} points</Text>
                             <Text className="text-black text-sm leading-5 mt-2">
                                 <Text className="text-gray-500">{data.user?.username} </Text>{data.description}
                             </Text>
@@ -687,10 +688,21 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                         Alert.alert(`Delete ${isShort ? 'Short' : 'Post'}`, "Are you sure? This cannot be undone.", [
                                             { text: "Cancel", style: "cancel" },
                                             { text: "Delete", style: "destructive", onPress: async () => {
+                                                // Navigate back immediately for 'immediate' feel
+                                                navigation.goBack();
+                                                Toast.show({ type: 'info', text1: `Deleting ${isShort ? 'Short' : 'Post'}...` });
+                                                
                                                 try {
                                                     const res = await axios.delete(isShort ? `/shorts/${id}` : `/post/${id}`);
-                                                    if (res.data.success) navigation.goBack();
-                                                } catch (err) { Alert.alert("Error", "Failed to delete."); }
+                                                    if (res.data.success) {
+                                                        Toast.show({ type: 'success', text1: `${isShort ? 'Short' : 'Post'} deleted` });
+                                                    } else {
+                                                        Toast.show({ type: 'error', text1: 'Delete failed' });
+                                                    }
+                                                } catch (err) { 
+                                                    console.error("Delete failed", err);
+                                                    Toast.show({ type: 'error', text1: 'Delete failed' });
+                                                }
                                             }}
                                         ]);
                                     }}

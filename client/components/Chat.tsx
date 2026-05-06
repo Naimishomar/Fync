@@ -167,7 +167,7 @@ const Chat = ({ route, navigation }: any) => {
 
     const tempMessage = {
       _id: Date.now().toString(),
-      sender: user._id,
+      sender: user,
       message: text,
       createdAt: new Date().toISOString(),
       optimistic: true,

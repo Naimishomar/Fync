@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
 import axios from '../../context/axiosConfig';
 import SubscriptionScreen from './SubscriptionScreen';
+import SplashScreen from '../SplashScreen';
 
 const SubscriptionGuard = ({ children }: { children: React.ReactNode }) => {
     const [isChecking, setIsChecking] = useState(true);
@@ -30,11 +30,7 @@ const SubscriptionGuard = ({ children }: { children: React.ReactNode }) => {
     };
 
     if (isChecking) {
-        return (
-            <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color="#ec4899" />
-            </View>
-        );
+        return <SplashScreen />;
     }
 
     if (!isSubscribed) {

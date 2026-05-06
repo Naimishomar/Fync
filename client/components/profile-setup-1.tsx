@@ -80,7 +80,7 @@ export default function ProfileSetup1() {
               <Text className="text-3xl font-bold mb-6">Profile Setup</Text>
 
               <TextInput
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-4"
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black"
                 placeholder="Full Name"
                 value={fullName}
                 onChangeText={setFullName}
@@ -163,7 +163,7 @@ export default function ProfileSetup1() {
               {dropdownType === 'college name' && (
                 <TextInput
                   placeholder="Search college..."
-                  className="mb-3 rounded-lg border border-gray-300 px-3 py-2"
+                  className="mb-3 rounded-lg border border-gray-300 px-3 py-2 text-black"
                   value={search}
                   onChangeText={setSearch}
                 />
