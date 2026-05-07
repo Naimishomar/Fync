@@ -98,7 +98,7 @@
         "backgroundColor": "#000"
       },
       "package": "com.naimishomar.fync",
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "adjustResize"
     },
     "extra": {
       "eas": {
@@ -106,6 +106,6 @@
       }
     },
     "owner": "naimishomar",
-    "newArchEnabled": true
+    "newArchEnabled": false
   }
 }

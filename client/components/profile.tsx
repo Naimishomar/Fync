@@ -813,7 +813,7 @@ function Profile() {
   );
 
   // ── Grid item ─────────────────────────────────────────────────────────
-  const renderGridItem = ({ item, isShort }: { item: any; isShort?: boolean }) => (
+  const renderGridItem = useCallback(({ item, isShort }: { item: any; isShort?: boolean }) => (
     <Pressable
       onPress={() => navigation.navigate('IndividualPostOrShort', isShort ? { shortId: item._id } : { postId: item._id })}
       onLongPress={() => Alert.alert(
@@ -833,7 +833,7 @@ function Profile() {
           </View>
         </View>
       ) : item.image?.length > 0 ? (
-        <ExpoImage source={{ uri: getFullUrl(item.image[0]) || '' }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+        <ExpoImage source={{ uri: getFullUrl(item.image[0]) || '' }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="disk" />
       ) : (
         <View className="w-full h-full bg-indigo-50/50 items-center justify-center p-3">
           <Text className="text-indigo-400 text-[10px] font-bold text-center" numberOfLines={4}>{item.title || item.description}</Text>
@@ -845,7 +845,7 @@ function Profile() {
         </View>
       )}
     </Pressable>
-  );
+  ), [navigation, deleteShort, deletePost]);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={['bottom']}>
@@ -858,6 +858,10 @@ function Profile() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366F1" />}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
+        initialNumToRender={12}
+        maxToRenderPerBatch={12}
+        windowSize={5}
+        removeClippedSubviews={Platform.OS === 'android'}
         ListHeaderComponent={<>{renderProfileInfo()}{renderTabBar()}</>}
         renderItem={({ item }) => {
           if (activeTab === 'about') return <AboutSection user={user} isOwner onRefresh={onRefresh} />;

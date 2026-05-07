@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, FlatList, Image, TouchableOpacity,
   Modal, TextInput, ActivityIndicator, Alert, Pressable, Linking, ScrollView, RefreshControl,
   Platform, KeyboardAvoidingView, StyleSheet, Dimensions, Animated, StatusBar
 } from 'react-native';
+import { Image as ExpoImage } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -320,7 +321,7 @@ const NoticeBoard = () => {
     }
   };
 
-  const renderNotice = ({ item }: { item: NoticeType }) => {
+  const renderNotice = useCallback(({ item }: { item: NoticeType }) => {
     const isOwner = item.user?._id === user?._id;
     const avatarUrl = item.user?.avatar || `https://ui-avatars.com/api/?name=${item.user?.username || 'Admin'}`;
 
@@ -366,15 +367,20 @@ const NoticeBoard = () => {
               data={item.image}
               keyExtractor={(img, idx) => idx.toString()}
               className="mb-6"
+              initialNumToRender={2}
+              maxToRenderPerBatch={2}
+              windowSize={3}
+              removeClippedSubviews={Platform.OS === 'android'}
               renderItem={({ item: imgUri }) => (
                 <TouchableOpacity
                   onPress={() => { setSelectedImage(imgUri); setPreviewVisible(true); }}
                   activeOpacity={0.8}
                 >
-                  <Image
+                  <ExpoImage
                     source={{ uri: imgUri }}
                     className="w-64 h-40 rounded-[28px] mr-4 bg-slate-50 border border-slate-100"
-                    resizeMode="cover"
+                    contentFit="cover"
+                    cachePolicy="disk"
                   />
                 </TouchableOpacity>
               )}
@@ -385,7 +391,7 @@ const NoticeBoard = () => {
 
           <View className="flex-row justify-between items-center">
             <View className="flex-row items-center">
-              <Image source={{ uri: avatarUrl }} className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-200" />
+              <ExpoImage source={{ uri: avatarUrl }} className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-200" cachePolicy="disk" />
               <View className="ml-3">
                 <Text className="text-[8px] text-slate-400 uppercase tracking-widest font-black ">By Protocol</Text>
                 <Text className="text-zinc-900 text-xs font-black  uppercase mt-0.5 tracking-tight">
@@ -422,9 +428,9 @@ const NoticeBoard = () => {
         </View>
       </View>
     );
-  };
+  }, [user?._id, activeTab, handleLikeNotice, openComments, deleteNoticeItem]);
 
-  const NoticeSkeleton = () => {
+  const NoticeSkeleton = React.memo(() => {
     const pulseAnim = useRef(new Animated.Value(0.3)).current;
     useEffect(() => {
       Animated.loop(
@@ -453,7 +459,7 @@ const NoticeBoard = () => {
         </View>
       </Animated.View>
     );
-  };
+  });
 
   return (
     <View className="flex-1 bg-[#F8FAFC]">
@@ -493,15 +499,19 @@ const NoticeBoard = () => {
         {loading && !refreshing ? (
           <View>{[1, 2, 3].map(i => <NoticeSkeleton key={i} />)}</View>
         ) : (
-          <FlatList
-            data={notices}
-            keyExtractor={item => item._id}
-            renderItem={renderNotice}
-            contentContainerStyle={{ paddingBottom: 120, paddingTop: 10 }}
-            showsVerticalScrollIndicator={false}
-            refreshControl={<RefreshControl tintColor="#f97316" refreshing={refreshing} onRefresh={onRefresh} />}
-            onEndReached={handleLoadMore}
-            onEndReachedThreshold={0.5}
+            <FlatList
+              data={notices}
+              keyExtractor={item => item._id}
+              renderItem={renderNotice}
+              contentContainerStyle={{ paddingBottom: 120, paddingTop: 10 }}
+              showsVerticalScrollIndicator={false}
+              refreshControl={<RefreshControl tintColor="#f97316" refreshing={refreshing} onRefresh={onRefresh} />}
+              onEndReached={handleLoadMore}
+              onEndReachedThreshold={0.5}
+              initialNumToRender={5}
+              maxToRenderPerBatch={5}
+              windowSize={5}
+              removeClippedSubviews={Platform.OS === 'android'}
             ListFooterComponent={() => (
               loadingMore ? (
                 <View className="py-6 items-center">
@@ -633,7 +643,7 @@ const NoticeBoard = () => {
                   showsVerticalScrollIndicator={false}
                   renderItem={({ item }) => (
                     <View className="flex-row mb-6">
-                      <Image source={{ uri: item.commentor?.avatar || 'https://ui-avatars.com/api/?name=User' }} className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-200" />
+                  <ExpoImage source={{ uri: item.commentor?.avatar || 'https://ui-avatars.com/api/?name=User' }} className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-200" cachePolicy="disk" />
                       <View className="ml-4 flex-1 bg-slate-50 p-5 rounded-[28px] rounded-tl-sm border border-slate-100">
                         <Text className="font-black  text-[9px] text-orange-500 mb-1 uppercase tracking-widest">{item.commentor?.name || 'Anonymous'}</Text>
                         <Text className="text-slate-600 text-xs font-medium leading-5 ">"{item.text}"</Text>
@@ -700,7 +710,7 @@ const NoticeBoard = () => {
             <TouchableOpacity onPress={() => setPreviewVisible(false)} className="absolute top-12 right-8 z-50 w-12 h-12 bg-black/50 rounded-2xl items-center justify-center border border-white/20">
               <Ionicons name="close" size={24} color="white" />
             </TouchableOpacity>
-            {selectedImage && <Image source={{ uri: selectedImage }} className="w-full h-5/6" resizeMode="contain" />}
+            {selectedImage && <ExpoImage source={{ uri: selectedImage }} className="w-full h-5/6" contentFit="contain" cachePolicy="disk" />}
             <View className="absolute bottom-12 items-center w-full">
               <Text className="text-white/40 text-[9px] font-black  uppercase tracking-widest leading-tight">Secure Preview Protocol • Tap to Close</Text>
             </View>

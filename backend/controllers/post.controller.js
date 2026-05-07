@@ -136,6 +136,7 @@ export const getPosts = async (req, res) => {
                 path: "comments",
                 populate: { path: "user", select: "name avatar username" }
             })
+            .select("-liked_by -upvoted_by -downvoted_by")
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
@@ -548,6 +549,7 @@ export const getFeed = async (req, res) => {
         const query = cursor ? { _id: { $lt: cursor }, isPrivate: { $ne: true } } : { isPrivate: { $ne: true } };
 
         const posts = await Post.find(query)
+            .select("-liked_by -upvoted_by -downvoted_by")
             .sort({ _id: -1 })
             .limit(parseInt(limit))
             .populate("user", "name username avatar")
@@ -589,6 +591,7 @@ export const getFollowingPosts = async (req, res) => {
             ...(cursor && { _id: { $lt: cursor } })
         };
         const posts = await Post.find(query)
+            .select("-liked_by -upvoted_by -downvoted_by")
             .sort({ _id: -1 })
             .limit(parseInt(limit))
             .populate("user", "name username avatar")
@@ -621,6 +624,7 @@ export const getPostsByUserId = async (req, res) => {
         if (cursor) query._id = { $lt: cursor };
 
         const posts = await Post.find(query)
+            .select("-liked_by -upvoted_by -downvoted_by")
             .sort({ _id: -1 })
             .limit(parseInt(limit))
             .populate("user", "name username avatar")
@@ -681,6 +685,7 @@ export const getSmartFeed = async (req, res) => {
         const posts = await Post.find({ isPrivate: { $ne: true } })
             .populate('user', 'name username avatar user_access')
             .populate({ path: 'comments', populate: { path: 'commentor', select: 'name avatar username' } })
+            .select("-liked_by -upvoted_by -downvoted_by")
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)

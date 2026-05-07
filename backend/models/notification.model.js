@@ -41,5 +41,9 @@ const notificationSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+// Industry-Grade Notification Indexes
+notificationSchema.index({ recipient: 1, createdAt: -1 }); // Fast list loading
+notificationSchema.index({ recipient: 1, isRead: 1 });     // Instant unread counts
+
 const Notification = mongoose.model("Notification", notificationSchema);
 export default Notification;

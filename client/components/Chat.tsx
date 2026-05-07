@@ -47,6 +47,7 @@ const Chat = ({ route, navigation }: any) => {
 
   const insets = useSafeAreaInsets();
   const typingTimeout = useRef<any>(null);
+  const lastTypingSent = useRef<number>(0);
   const flatListRef = useRef<FlatList>(null);
 
   /* ---------- SAFETY ---------- */
@@ -165,6 +166,8 @@ const Chat = ({ route, navigation }: any) => {
       socket.off("messageDeleted");
       socket.off("statusUpdate");
       socket.off("initialOnlineList");
+
+      socket.emit("leave", { conversationId }); // 🚀 Leave room to stop background events
 
       // Restore tab bar when leaving chat
       if (parent) {
@@ -331,10 +334,14 @@ const Chat = ({ route, navigation }: any) => {
   const handleTyping = (value: string) => {
     setText(value);
 
-    socket.emit("typing", {
-      conversationId,
-      userId: user._id,
-    });
+    const now = Date.now();
+    if (now - lastTypingSent.current > 3000) {
+      socket.emit("typing", {
+        conversationId,
+        userId: user._id,
+      });
+      lastTypingSent.current = now;
+    }
 
     clearTimeout(typingTimeout.current);
 
@@ -343,7 +350,8 @@ const Chat = ({ route, navigation }: any) => {
         conversationId,
         userId: user._id,
       });
-    }, 1000);
+      lastTypingSent.current = 0;
+    }, 2000);
   };
 
   const deleteMessage = (messageId: string) => {
@@ -576,7 +584,7 @@ const Chat = ({ route, navigation }: any) => {
                     {otherUser.name}
                   </Text>
                   {isTyping ? (
-                    <Text className="text-[10px] text-green-500 font-black animate-pulse uppercase tracking-widest">
+                    <Text className="text-[10px] text-green-500 font-bold uppercase tracking-widest">
                       typing...
                     </Text>
                   ) : (

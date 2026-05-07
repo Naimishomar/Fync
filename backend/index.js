@@ -171,7 +171,7 @@ app.use('/arena', arenaRoute);
 app.use('/arena/admin', arenaAdminRoute);
 app.use('/entertainment', entertainmentRoute);
 
-const startServer = async () => {
+const startServer = async (retries = 5) => {
   try {
     // 1. Connect to Database First
     await connectDB();
@@ -209,13 +209,24 @@ const startServer = async () => {
     });
 
   } catch (err) {
-    console.error("❌ Critical: Failed to start server:", err);
-    process.exit(1);
+    console.error(`❌ Critical: Failed to start server (${retries} retries left):`, err.message);
+    if (retries > 0) {
+      console.log("Retrying in 5 seconds...");
+      setTimeout(() => startServer(retries - 1), 5000);
+    } else {
+      console.error("❌ Max retries reached. Exiting...");
+      process.exit(1);
+    }
   }
 };
 
 app.get('/', (req, res) => {
   res.send('Fync never gets down!🚀');
+});
+
+// PM2 Health Check
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'UP', timestamp: new Date() });
 });
 
 // Deep Linking Verification Routes
@@ -260,10 +271,30 @@ SHARING_PATHS.forEach(path => {
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error("🔥 GLOBAL ERROR:", err);
-  res.status(err.status || 500).json({
+  const status = err.status || 500;
+  res.status(status).json({
     success: false,
     message: err.message || "Internal server error",
-    error: err // Always show for now to debug
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
+
+// 🛡️ Process Safety Guards
+process.on('uncaughtException', (err) => {
+  console.error('☣️ UNCAUGHT EXCEPTION:', err);
+  // Graceful exit to let PM2 restart the process
+  setTimeout(() => process.exit(1), 1000);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('🚫 UNHANDLED REJECTION:', reason);
+});
+
+process.on('SIGTERM', () => {
+  console.info('🔴 SIGTERM signal received. Closing HTTP server...');
+  server.close(() => {
+    console.log('✅ HTTP server closed.');
+    process.exit(0);
   });
 });
 

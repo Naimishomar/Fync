@@ -268,7 +268,13 @@ const YouTubeVideoPlayer = ({
     if (showControls) {
       resetHideTimer();
     }
-    return () => { if (hideTimerRef.current) clearTimeout(hideTimerRef.current); };
+    return () => { 
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      // Explicitly unload video to free up RAM
+      if (videoRef.current) {
+        videoRef.current.unloadAsync();
+      }
+    };
   }, [showControls]);
 
   const toggleControls = () => {
@@ -960,6 +966,10 @@ export default function FyncMediaFeed() {
               onEndReached={loadMore}
               onEndReachedThreshold={0.5}
               contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 120 }}
+              initialNumToRender={5}
+              maxToRenderPerBatch={3}
+              windowSize={5}
+              removeClippedSubviews={Platform.OS === 'android'}
               ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color="#f97316" className="mb-10" /> : <View className="h-10" />}
             />
           )}

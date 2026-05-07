@@ -35,4 +35,8 @@ const messageSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+// Industry-Grade Chat Indexes
+messageSchema.index({ conversationId: 1, createdAt: -1 }); // Fast history loading
+messageSchema.index({ sender: 1 });                         // Fast user message search
+
 export default mongoose.model("Message", messageSchema);

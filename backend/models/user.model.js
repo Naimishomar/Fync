@@ -380,5 +380,12 @@ const userSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+// Performance Indexes for Industry-Grade Speed
+userSchema.index({ name: 'text', username: 'text' }); // Fast Search
+userSchema.index({ fyncScore: -1 });                 // Leaderboard speed
+userSchema.index({ codingRating: -1 });              // Arena Leaderboard
+userSchema.index({ college: 1, user_access: 1 });    // Campus filtering
+userSchema.index({ createdAt: -1 });                 // New user sorting
+
 const User = mongoose.model('User', userSchema);
 export default User;

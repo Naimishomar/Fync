@@ -11,13 +11,30 @@ axios.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Check if we have cached data for this GET request
+    if (config.method === 'get' && !config.params?.noCache) {
+      const cacheKey = `cache_${config.url}`;
+      const cachedData = await AsyncStorage.getItem(cacheKey);
+      if (cachedData) {
+        config.headers['x-cache-hit'] = 'true';
+      }
+    }
+    
     return config;
   },
   error => Promise.reject(error)
 );
 
 axios.interceptors.response.use(
-  response => response,
+  async response => {
+    // Cache successful GET requests
+    if (response.config.method === 'get' && response.status === 200 && !response.config.params?.noCache) {
+      const cacheKey = `cache_${response.config.url}`;
+      await AsyncStorage.setItem(cacheKey, JSON.stringify(response.data));
+    }
+    return response;
+  },
   async (error: any) => {
     const originalRequest = error.config;
 
@@ -63,5 +80,23 @@ axios.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Function to limit cache size and prevent storage bloat
+const limitCache = async () => {
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    const cacheKeys = keys.filter(k => k.startsWith('cache_'));
+    if (cacheKeys.length > 50) {
+      // Remove oldest keys (simplistic approach)
+      const toRemove = cacheKeys.slice(0, cacheKeys.length - 50);
+      await AsyncStorage.multiRemove(toRemove);
+    }
+  } catch (e) {
+    console.log("Cache limit error", e);
+  }
+};
+
+// Periodically clean up cache
+setTimeout(limitCache, 5000);
 
 export default axios;

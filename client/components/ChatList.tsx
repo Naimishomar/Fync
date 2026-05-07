@@ -7,8 +7,9 @@ import {
   TextInput,
   ActivityIndicator,
   StatusBar,
-  TouchableOpacity
+  TouchableOpacity,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
@@ -101,8 +102,17 @@ const ChatList = () => {
 
   const loadChats = async () => {
     try {
-      // Force non-cached request to get accurate unread counts
-      const res = await axios.get("/chat/conversations", { params: { noCache: true } });
+      // 1. Try to load from cache first for instant UI
+      const cacheKey = "cache_/chat/conversations";
+      const cached = await AsyncStorage.getItem(cacheKey);
+      if (cached && conversations.length === 0) {
+        const parsed = JSON.parse(cached);
+        setConversations(parsed.conversations || []);
+        setLoading(false); // Stop loading if we have cached data
+      }
+
+      // 2. Fetch fresh data from backend
+      const res = await axios.get("/chat/conversations");
       setConversations(res.data.conversations || []);
     } catch (e) {
       console.log("Error loading chats", e);
@@ -175,7 +185,8 @@ const ChatList = () => {
     return { date: dateStr, time: timeStr };
   };
 
-  const renderConversation = ({ item }: any) => {
+  // Memoized render functions to prevent unnecessary re-renders
+  const renderConversationItem = useCallback(({ item }: any) => {
     const otherUser = item.participants.find(
       (p: any) => p._id !== user._id
     );
@@ -236,9 +247,9 @@ const ChatList = () => {
         </View>
       </TouchableOpacity>
     );
-  };
+  }, [user._id, onlineUsers, navigation]);
 
-  const renderUser = ({ item }: any) => (
+  const renderUserItem = useCallback(({ item }: any) => (
     <TouchableOpacity
       className="flex-row items-center p-5 mb-4 bg-white rounded-[24px] border border-slate-100 shadow-sm"
       onPress={() => startChat(item)}
@@ -264,7 +275,7 @@ const ChatList = () => {
       </View>
       <Ionicons name="chatbubble-ellipses-outline" size={20} color="#f97316" />
     </TouchableOpacity>
-  );
+  ), [onlineUsers]);
 
   return (
     <View className="flex-1 bg-[#F8FAFC]">
@@ -325,9 +336,13 @@ const ChatList = () => {
           <FlatList
             data={search.length > 0 ? results : conversations}
             keyExtractor={(item) => item._id}
-            renderItem={search.length > 0 ? renderUser : renderConversation}
+            renderItem={search.length > 0 ? renderUserItem : renderConversationItem}
             contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 120 }}
             showsVerticalScrollIndicator={false}
+            initialNumToRender={10}
+            maxToRenderPerBatch={5}
+            windowSize={5}
+            removeClippedSubviews={true}
             ListHeaderComponent={() => (
               <>
                 {/* Special Channels (Only when not searching) */}

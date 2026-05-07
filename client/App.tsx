@@ -11,6 +11,7 @@ import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-rean
 import Toast from "react-native-toast-message";
 
 import './context/axiosConfig';
+import ErrorBoundary from './components/ErrorBoundary';
 //@ts-ignore
 import "./global.css";
 import { StatusBar } from 'expo-status-bar';
@@ -133,39 +134,40 @@ import SubGroupChat from './components/club/SubGroupChat';
 import ClubAdminPanel from './components/club/ClubAdminPanel';
 import FyncMediaFeed from './components/FyncMediaFeed';
 import FocusProductivity from './components/focus/FocusProductivity';
-import AdminPortal from './components/admin/AdminPortal';
-import DSAAndDevelopmentContest from './components/contest/DSAAndDevelopmentContest';
 import SubscriptionGuard from './components/newFeatures/SubscriptionGuard';
-import SubscriptionScreen from './components/newFeatures/SubscriptionScreen';
 import PlacementPredictor from './components/newFeatures/PlacementPredictor';
-
-import TermsAndCondition from 'components/T&C';
-import ContactUs from './components/ContactUs';
-import MeetOurTeam from 'components/MeetOurTeam';
-
-// Hackathon Ecosystem
-import HackathonHub from './components/hackathon/HackathonHub';
-import HackathonCreate from './components/hackathon/HackathonCreate';
-import HackathonDetail from './components/hackathon/HackathonDetail';
-import HackathonTeamScreen from './components/hackathon/HackathonTeamScreen';
-import HackathonSubmission from './components/hackathon/HackathonSubmission';
-import HackathonLeaderboard from './components/hackathon/HackathonLeaderboard';
-import HackathonJudgePanel from './components/hackathon/HackathonJudgePanel';
-import HackathonChannel from './components/hackathon/HackathonChannel';
+import DSAAndDevelopmentContest from './components/contest/DSAAndDevelopmentContest';
 
 // Profile Builder
-import FyncProfileBuilder from './components/profile/FyncProfileBuilder';
+const FyncProfileBuilder = React.lazy(() => import('./components/profile/FyncProfileBuilder'));
+
+// Hackathon Ecosystem
+const HackathonHub = React.lazy(() => import('./components/hackathon/HackathonHub'));
+const HackathonCreate = React.lazy(() => import('./components/hackathon/HackathonCreate'));
+const HackathonDetail = React.lazy(() => import('./components/hackathon/HackathonDetail'));
+const HackathonTeamScreen = React.lazy(() => import('./components/hackathon/HackathonTeamScreen'));
+const HackathonSubmission = React.lazy(() => import('./components/hackathon/HackathonSubmission'));
+const HackathonLeaderboard = React.lazy(() => import('./components/hackathon/HackathonLeaderboard'));
+const HackathonJudgePanel = React.lazy(() => import('./components/hackathon/HackathonJudgePanel'));
+const HackathonChannel = React.lazy(() => import('./components/hackathon/HackathonChannel'));
 
 // Entertainment Module
-import EntertainmentHome from './components/entertainment/EntertainmentHome';
-import MovieDetail from './components/entertainment/MovieDetail';
-import TrailerReels from './components/entertainment/TrailerReels';
-import MovieSearch from './components/entertainment/MovieSearch';
-import MovieList from './components/entertainment/MovieList';
-// Daily Hubs
-import DailyRoutineHubDashboard from './components/dailyHubs/DailyRoutineHubDashboard';
-import PartyPoolHub from './components/partyPool/PartyPoolHub';
+const EntertainmentHome = React.lazy(() => import('./components/entertainment/EntertainmentHome'));
+const MovieDetail = React.lazy(() => import('./components/entertainment/MovieDetail'));
+const TrailerReels = React.lazy(() => import('./components/entertainment/TrailerReels'));
+const MovieSearch = React.lazy(() => import('./components/entertainment/MovieSearch'));
+const MovieList = React.lazy(() => import('./components/entertainment/MovieList'));
 
+// Daily Hubs
+const DailyRoutineHubDashboard = React.lazy(() => import('./components/dailyHubs/DailyRoutineHubDashboard'));
+const PartyPoolHub = React.lazy(() => import('./components/partyPool/PartyPoolHub'));
+const SubscriptionScreen = React.lazy(() => import('./components/newFeatures/SubscriptionScreen'));
+
+// Secondary Screens
+const TermsAndCondition = React.lazy(() => import('./components/T&C'));
+const ContactUs = React.lazy(() => import('./components/ContactUs'));
+const MeetOurTeam = React.lazy(() => import('./components/MeetOurTeam'));
+const AdminPortal = React.lazy(() => import('./components/admin/AdminPortal'));
 
 // Daily Hub Utilities
 import './utils/commuteGuardTask';
@@ -530,11 +532,17 @@ function RootNavigator() {
     return <SplashScreen />;
   }
 
-  return isLoggedIn ? (
-    <SubscriptionGuard>
-      <AppStack />
-    </SubscriptionGuard>
-  ) : <AuthStack />;
+  return (
+    <React.Suspense fallback={<SplashScreen />}>
+      {isLoggedIn ? (
+        <SubscriptionGuard>
+          <AppStack />
+        </SubscriptionGuard>
+      ) : (
+        <AuthStack />
+      )}
+    </React.Suspense>
+  );
 }
 
 
@@ -610,14 +618,16 @@ export default function App() {
   };
 
   return (
-    <AuthProvider>
-      <SafeAreaProvider>
-        <NavigationContainer ref={navigationRef} linking={linking}>
-          <StatusBar style="dark" backgroundColor="#ffffff" />
-          <RootNavigator />
-          <Toast config={toastConfig} position="top" visibilityTime={4000} topOffset={60} />
-        </NavigationContainer>
-      </SafeAreaProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <SafeAreaProvider>
+          <NavigationContainer ref={navigationRef} linking={linking}>
+            <StatusBar style="dark" backgroundColor="#ffffff" />
+            <RootNavigator />
+            <Toast config={toastConfig} position="top" visibilityTime={4000} topOffset={60} />
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

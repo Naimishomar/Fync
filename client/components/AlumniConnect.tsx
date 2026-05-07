@@ -205,16 +205,24 @@ const AlumniConnect = ({ navigation }: any) => {
         );
     };
 
-    const handleTyping = (val: string) => {
+    const handleTyping = useCallback((val: string) => {
         setText(val);
+        // Debounce typing emission to reduce socket load
         const roomData = { college: user?.college, graduationYear: user?.graduationYear, username: user?.username };
-        socket.emit("alumni_typing", roomData);
+        
+        if (!isTypingRef.current) {
+            isTypingRef.current = true;
+            socket.emit("alumni_typing", roomData);
+        }
 
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = setTimeout(() => {
             socket.emit("alumni_stop_typing", roomData);
-        }, 2000);
-    };
+            isTypingRef.current = false;
+        }, 3000);
+    }, [user]);
+
+    const isTypingRef = useRef(false);
 
     const handlePickMedia = async () => {
         const res = await ImagePicker.launchImageLibraryAsync({
@@ -288,7 +296,7 @@ const AlumniConnect = ({ navigation }: any) => {
         }
     };
 
-    const renderMessage = ({ item }: { item: any }) => {
+    const renderMessage = useCallback(({ item }: { item: any }) => {
         const isMe = (item.sender?._id || item.sender) === (user?._id || user?.id);
         const sender = typeof item.sender === 'object' ? item.sender : null;
 
@@ -348,7 +356,7 @@ const AlumniConnect = ({ navigation }: any) => {
                 </View>
             </View>
         );
-    };
+    }, [user?._id, user?.id, handleDeleteMessage]);
 
     if (!isAlumni) return null;
 
@@ -388,6 +396,10 @@ const AlumniConnect = ({ navigation }: any) => {
                             renderItem={renderMessage}
                             contentContainerStyle={{ padding: 16 }}
                             showsVerticalScrollIndicator={false}
+                            initialNumToRender={15}
+                            maxToRenderPerBatch={10}
+                            windowSize={10}
+                            removeClippedSubviews={Platform.OS === 'android'}
                         />
                     )}
 

@@ -21,8 +21,9 @@ import {
   Animated,
   Easing,
   useWindowDimensions,
-  StatusBar
+  StatusBar,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Sparkles, Mic, Briefcase, Trophy, Rocket, Crown, MessageCircle, Megaphone, Users, Code } from 'lucide-react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Reanimated, { Layout, FadeIn, FadeOut } from 'react-native-reanimated';
@@ -261,7 +262,7 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
 };
 
 // --- POST ITEM ---
-const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item: Post, currentUser: any, openComments: (id: string) => void, onDeletePost: (id: string) => void }) => {
+const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }: { item: Post, index: number, currentUser: any, openComments: (id: string) => void, onDeletePost: (id: string) => void }) => {
   const { width } = useWindowDimensions();
   const [vote, setVote] = useState<'up' | 'down' | null>(
     item.upvoted_by?.includes(currentUser?._id) ? 'up' : 
@@ -450,6 +451,7 @@ const PostItem = memo(({ item, currentUser, openComments, onDeletePost }: { item
                   contentFit={resizeMode ? "contain" : "cover"}
                   cachePolicy="disk"
                   transition={200}
+                  priority={index === 0 ? "high" : "normal"}
                 />
               </Pressable>
             </View>
@@ -551,7 +553,21 @@ export default function HomeScreen() {
     const currentHasMore = activeTab === 'forYou' ? forYouHasMore : followingHasMore;
     if (!currentHasMore && !shouldRefresh && pageNum !== 1) return;
 
-    if (pageNum === 1) setLoading(true);
+    if (pageNum === 1) {
+      // 1. Try to load from cache first for instant UI
+      const cacheKey = `cache_feed_${activeTab}`;
+      const cached = await AsyncStorage.getItem(cacheKey);
+      if (cached && pageNum === 1 && !shouldRefresh) {
+        const parsed = JSON.parse(cached);
+        if (activeTab === 'forYou') setForYouFeed(parsed);
+        else setFollowingFeed(parsed);
+        setFeed(parsed);
+        setLoading(false);
+      } else {
+        setLoading(true);
+      }
+    }
+    
     if (pageNum > 1) setLoadingMore(true);
 
     try {
@@ -587,6 +603,8 @@ export default function HomeScreen() {
         setFeed(updatedForYou);
         setHasMore(serverHasMore);
         setPage(pageNum);
+        // Cache the first page
+        if (pageNum === 1) AsyncStorage.setItem(`cache_feed_forYou`, JSON.stringify(updatedForYou));
       } else {
         const updatedFollowing = (shouldRefresh || pageNum === 1) ? newPosts : [...followingFeed, ...newPosts.filter(p => !followingFeed.find(fp => fp._id === p._id))];
         setFollowingFeed(updatedFollowing);
@@ -596,6 +614,8 @@ export default function HomeScreen() {
         setFeed(updatedFollowing);
         setHasMore(serverHasMore);
         setPage(pageNum);
+        // Cache the first page
+        if (pageNum === 1) AsyncStorage.setItem(`cache_feed_following`, JSON.stringify(updatedFollowing));
       }
     } catch (error) {
       console.log('Failed to load feed', error);
@@ -712,6 +732,16 @@ export default function HomeScreen() {
       Toast.show({ type: 'error', text1: 'Failed to delete post' });
     }
   }, [feed]);
+
+  const renderPostItem = useCallback(({ item, index }: { item: Post, index: number }) => (
+    <PostItem
+      item={item}
+      index={index}
+      currentUser={user}
+      openComments={handleOpenComments}
+      onDeletePost={handleDeletePost}
+    />
+  ), [user, handleOpenComments, handleDeletePost]);
 
 
 
@@ -886,14 +916,11 @@ const renderFeatureStories = () => {
       <FlatList
         data={feed}
         keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <PostItem
-            item={item}
-            currentUser={user}
-            openComments={handleOpenComments}
-            onDeletePost={handleDeletePost}
-          />
-        )}
+        renderItem={renderPostItem}
+        initialNumToRender={8}
+        maxToRenderPerBatch={10}
+        windowSize={11}
+        removeClippedSubviews={Platform.OS === 'android'}
         ListHeaderComponent={
           <View>
             {renderTabBar()}

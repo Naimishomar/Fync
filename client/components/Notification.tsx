@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Pressable,
+  Platform,
   StatusBar
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -286,6 +287,10 @@ const Notification = () => {
             data={notifications}
             keyExtractor={(item) => item._id}
             renderItem={renderItem}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            removeClippedSubviews={Platform.OS === 'android'}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />
             }

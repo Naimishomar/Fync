@@ -73,6 +73,7 @@ let globalHasMore = true;
 const SingleShort = React.memo(({
   item,
   isActive,
+  isPreBuffer,
   currentUserId,
   navigation,
   onLike,
@@ -81,6 +82,7 @@ const SingleShort = React.memo(({
 }: {
   item: ShortItem;
   isActive: boolean;
+  isPreBuffer?: boolean;
   currentUserId: string | undefined;
   navigation: any;
   onLike: (item: ShortItem) => void;
@@ -101,10 +103,13 @@ const SingleShort = React.memo(({
     if (isActive && isFocused) {
       videoRef.current?.playAsync();
       axios.post(`/shorts/views/${item._id}`).catch(() => { });
+    } else if (isPreBuffer) {
+      // 🚀 Pre-buffer but don't play
+      videoRef.current?.setStatusAsync({ shouldPlay: false, positionMillis: 0 });
     } else {
       videoRef.current?.pauseAsync();
     }
-  }, [isActive, isFocused]);
+  }, [isActive, isFocused, isPreBuffer]);
 
   const togglePlay = async () => {
     if (!videoRef.current) return;
@@ -476,11 +481,15 @@ export default function Shorts() {
     }
   };
 
-  const renderItem = useCallback(({ item }: { item: ShortItem }) => {
+  const renderItem = useCallback(({ item, index }: { item: ShortItem, index: number }) => {
+    // 🚀 Look-Ahead Buffer: We play the active one, and PRE-BUFFER the next one
+    const isNext = index === shorts.findIndex(s => s._id === activeVideoId) + 1;
+    
     return (
       <SingleShort
         item={item}
         isActive={item._id === activeVideoId}
+        isPreBuffer={isNext}
         currentUserId={currentUserId}
         navigation={navigation}
         onLike={toggleLike}
@@ -488,7 +497,7 @@ export default function Shorts() {
         onDelete={deleteShort}
       />
     );
-  }, [activeVideoId, currentUserId, navigation, toggleLike, deleteShort]);
+  }, [activeVideoId, currentUserId, navigation, toggleLike, deleteShort, shorts]);
 
   const CommentItem = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => (
     <View className={`${isReply ? 'ml-10 mt-2' : 'mb-4'}`}>

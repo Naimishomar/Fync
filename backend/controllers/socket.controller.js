@@ -388,6 +388,10 @@ export const socketController = (io) => {
     });
 
     socket.on("find_1v1_match", async ({ user, domain }) => {
+      if (!redisClient.isOpen) {
+        socket.emit("error", "Matching service is temporarily unavailable. Please try again later.");
+        return;
+      }
       const queueKey = `queue:${domain}`;
       const userId = user._id;
 
@@ -603,6 +607,11 @@ export const socketController = (io) => {
     socket.on("find_night_1v1", async ({ userId }) => {
       const { isOpen } = checkClubStatus();
       if (!isOpen) return socket.emit("night_club_error", { message: "Club closed" });
+
+      if (!redisClient.isOpen) {
+        socket.emit("night_club_error", { message: "Night Matching service is temporarily unavailable." });
+        return;
+      }
 
       const queueKey = "queue:night_1v1";
       

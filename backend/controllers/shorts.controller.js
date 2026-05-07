@@ -60,6 +60,7 @@ export const fetchShorts = async (req, res) => {
         const query = cursor ? { _id: { $lt: cursor } } : {};
         
         const shorts = await Shorts.find(query)
+            .select("-liked_by")
             .sort({ _id: -1 }) // Cursor based on ID (chronological)
             .limit(parseInt(limit))
             .populate("user", "name username avatar upiId user_access")
@@ -90,6 +91,7 @@ export const getYourShorts = async (req, res) => {
         };
 
         const shorts = await Shorts.find(query)
+            .select("-liked_by")
             .sort({ _id: -1 })
             .limit(parseInt(limit))
             .lean();
@@ -401,6 +403,7 @@ export const getShortsByUserId = async (req, res) => {
         };
 
         const shorts = await Shorts.find(query)
+            .select("-liked_by")
             .sort({ _id: -1 })
             .limit(parseInt(limit))
             .lean();
@@ -455,6 +458,7 @@ export const getSmartShorts = async (req, res) => {
     // ── HARD FALLBACK ─────────────────────────────────────────
     const simpleFallback = async () => {
         const shorts = await Shorts.find()
+            .select("-liked_by")
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)

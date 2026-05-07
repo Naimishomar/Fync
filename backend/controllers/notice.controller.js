@@ -87,10 +87,12 @@ export const getGlobalNotices = async (req, res) => {
         const skip = (page - 1) * limit;
 
         const notices = await Notice.find(query)
+            .select("-liked_by")
             .sort({ createdAt: -1 })
             .populate("user", "name avatar username")
             .skip(skip)
-            .limit(Number(limit));
+            .limit(Number(limit))
+            .lean();
 
         const total = await Notice.countDocuments(query);
 
@@ -117,10 +119,12 @@ export const getCollegeNotices = async (req, res) => {
         const skip = (page - 1) * limit;
 
         const notices = await Notice.find({ college: req.user.college })
+            .select("-liked_by")
             .sort({ createdAt: -1 })
             .populate("user", "name avatar username")
             .skip(skip)
-            .limit(Number(limit));
+            .limit(Number(limit))
+            .lean();
 
         const total = await Notice.countDocuments({ college: req.user.college });
 

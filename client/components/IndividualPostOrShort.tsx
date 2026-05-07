@@ -32,7 +32,7 @@ const getEndpoints = (isShort: boolean, id: string) => ({
 });
 
 // --- 0. COMMENT ITEM SUB-COMPONENT (Recursive) ---
-const CommentItem = ({ 
+const CommentItem = memo(({ 
     comment, 
     currentUser, 
     onReply, 
@@ -47,7 +47,11 @@ const CommentItem = ({
 }: any) => (
     <View className={`${isReply ? 'ml-10 mt-3' : 'mb-5'}`}>
         <View className="flex-row">
-            <RNImage source={{ uri: getFullUrl(comment.commentor?.avatar) || 'https://ui-avatars.com/api/?name=User' }} className={`${isReply ? 'h-7 w-7' : 'h-9 w-9'} rounded-full mr-3 bg-gray-700`} />
+            <ExpoImage 
+                source={{ uri: getFullUrl(comment.commentor?.avatar) || 'https://ui-avatars.com/api/?name=User' }} 
+                className={`${isReply ? 'h-7 w-7' : 'h-9 w-9'} rounded-full mr-3 bg-gray-700`} 
+                cachePolicy="disk"
+            />
             <View className="flex-1">
                 <View className="flex flex-row items-center gap-1">
                     <Text className="text-white font-semibold text-[13px]">{comment.commentor?.name}</Text>
@@ -114,7 +118,7 @@ const CommentItem = ({
             />
         ))}
     </View>
-);
+));
 
 // --- 1. UNIFIED COMMENTS MODAL ---
 const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, onCommentAdded }: any) => {
@@ -223,6 +227,10 @@ const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, on
                             keyExtractor={(item) => item._id}
                             showsVerticalScrollIndicator={false}
                             contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 16 }}
+                            initialNumToRender={10}
+                            maxToRenderPerBatch={10}
+                            windowSize={5}
+                            removeClippedSubviews={Platform.OS === 'android'}
                             ListEmptyComponent={
                                 <Text className="text-gray-400 text-center mt-10">No comments yet</Text>
                             }

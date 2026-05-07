@@ -90,14 +90,9 @@ export const getLeaderboard = async (req, res) => {
             query.$and.push({ college: req.user.college });
         }
 
-        // Search Logic
+        // Search Logic - Using high-speed Text Index
         if (search) {
-            query.$and.push({
-                $or: [
-                    { name: { $regex: search, $options: "i" } },
-                    { username: { $regex: search, $options: "i" } }
-                ]
-            });
+            query.$and.push({ $text: { $search: search } });
         }
 
         let sortOption = type === 'weekly' 
@@ -107,7 +102,8 @@ export const getLeaderboard = async (req, res) => {
         const leaderboard = await User.find(query)
             .select("name username avatar codingStats weeklyStats codingProfiles college")
             .sort(sortOption)
-            .limit(100);
+            .limit(100)
+            .lean();
 
         // --- BACKGROUND AUTO-SYNC LOGIC ---
         // Identify users who haven't been updated in the last 10 minutes

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -81,4 +81,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Avatar;
+export default memo(Avatar);
