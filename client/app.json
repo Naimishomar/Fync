@@ -39,7 +39,8 @@
       "react-native-compressor",
       "expo-notifications",
       "expo-build-properties",
-      "expo-video"
+      "expo-video",
+      "@react-native-community/datetimepicker"
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -52,7 +53,9 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "associatedDomains": ["applinks:fync-api.duckdns.org"],
+      "associatedDomains": [
+        "applinks:fync-api.duckdns.org"
+      ],
       "infoPlist": {
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Used to show campus crowd density",
         "NSLocationAlwaysUsageDescription": "Used to show campus crowd density"
@@ -70,7 +73,10 @@
               "pathPrefix": "/"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ],
       "permissions": [
@@ -99,6 +105,7 @@
         "projectId": "2ac54640-5d53-44b3-994b-5cefbc77b576"
       }
     },
-    "owner": "naimishomar"
+    "owner": "naimishomar",
+    "newArchEnabled": true
   }
 }

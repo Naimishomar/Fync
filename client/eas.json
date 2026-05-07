@@ -9,6 +9,9 @@
         "buildType": "apk"
       }
     },
-    "production": {}
+    "production": {},
+    "expo":{
+      "newArchEnabled": true
+    }
   }
 }

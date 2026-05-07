@@ -43,6 +43,7 @@ const Chat = ({ route, navigation }: any) => {
   const [seen, setSeen] = useState(false);
   const [replyingTo, setReplyingTo] = useState<any>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
   const insets = useSafeAreaInsets();
   const typingTimeout = useRef<any>(null);
@@ -132,6 +133,19 @@ const Chat = ({ route, navigation }: any) => {
       setMessages((prev) => prev.filter(m => m._id !== messageId));
     });
 
+    socket.on("statusUpdate", ({ userId, status }: { userId: string, status: string }) => {
+      setOnlineUsers(prev => {
+        const next = new Set(prev);
+        if (status === "online") next.add(userId);
+        else next.delete(userId);
+        return next;
+      });
+    });
+
+    socket.on("initialOnlineList", (list: string[]) => {
+      setOnlineUsers(new Set(list));
+    });
+
 
     loadMessages();
 
@@ -149,6 +163,8 @@ const Chat = ({ route, navigation }: any) => {
       socket.off("userStopTyping");
       socket.off("messagesSeen");
       socket.off("messageDeleted");
+      socket.off("statusUpdate");
+      socket.off("initialOnlineList");
 
       // Restore tab bar when leaving chat
       if (parent) {
@@ -550,7 +566,9 @@ const Chat = ({ route, navigation }: any) => {
                       className="w-full h-full"
                     />
                   </View>
-                  <View className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
+                  {onlineUsers.has(otherUser?._id) && (
+                    <View className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
+                  )}
                 </View>
 
                 <View className="ml-3">
