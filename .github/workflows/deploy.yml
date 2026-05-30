@@ -11,27 +11,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Deploy to EC2
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.SSH_KEY }}
-        script: |
-          # 1. Navigate to your backend directory on EC2 (Change "Fync" if your folder is named differently on EC2)
-          cd ~/Fync/backend
-          
-          # 2. Hard reset to remove any conflicting local changes on the server
-          git reset --hard HEAD
-          
-          # 3. Pull the absolute newest code from GitHub
-          git pull origin main
-          
-          # 4. Install any new npm packages
-          npm install
-          
-          # 5. Restart the PM2 process (Change "fync-backend" to whatever name you gave it in PM2)
-          pm2 restart fync-backend
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ~/Fync/backend
+
+            echo "=== BEFORE DEPLOY ==="
+            git log --oneline -1
+
+            git fetch origin
+            git reset --hard origin/main
+
+            echo "=== AFTER DEPLOY ==="
+            git log --oneline -1
+
+            npm install
+
+            pm2 restart fync-backend
+
+            pm2 status
