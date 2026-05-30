@@ -1,5 +1,6 @@
 import User from "../../models/user.model.js";
 import { fetchLeetCodeStats, fetchFullLeetCodeProfile } from "./coding.controller.js";
+import redisClient from "../../utils/redis.js";
 
 // 1. UPDATE PROFILE
 export const updateCodingProfiles = async (req, res) => {
@@ -74,6 +75,16 @@ export const refreshUserStats = async (userId) => {
 export const getLeaderboard = async (req, res) => {
     try {
         const { type, scope, search } = req.query; 
+
+        const cacheKey = `coding_leaderboard:${type || 'all'}:${scope || 'all'}:${req.user?.college || 'none'}:${search || 'none'}`;
+        try {
+            const cachedData = await redisClient.get(cacheKey);
+            if (cachedData) {
+                return res.status(200).json({ success: true, leaderboard: JSON.parse(cachedData) });
+            }
+        } catch (err) {
+            console.error("Redis Cache Get Error:", err);
+        }
         
         // 🔥 STRICT FILTER: 
         // 1. Field must exist
@@ -105,22 +116,10 @@ export const getLeaderboard = async (req, res) => {
             .limit(100)
             .lean();
 
-        // --- BACKGROUND AUTO-SYNC LOGIC ---
-        // Identify users who haven't been updated in the last 10 minutes
-        const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
-        const staleUsers = leaderboard.filter(u => 
-            !u.codingStats?.lastUpdated || new Date(u.codingStats.lastUpdated) < tenMinutesAgo
-        );
-
-        if (staleUsers.length > 0) {
-            console.log(`[Leaderboard] Auto-syncing ${staleUsers.length} stale profiles in background...`);
-            // Run refresh in background without awaiting
-            (async () => {
-                for (const u of staleUsers) {
-                    await refreshUserStats(u._id);
-                    await new Promise(r => setTimeout(r, 200)); 
-                }
-            })();
+        try {
+            await redisClient.setEx(cacheKey, 900, JSON.stringify(leaderboard)); // Cache for 15 minutes
+        } catch (err) {
+            console.error("Redis Cache Set Error:", err);
         }
 
         return res.status(200).json({ success: true, leaderboard });
