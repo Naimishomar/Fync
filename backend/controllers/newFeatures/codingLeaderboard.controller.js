@@ -139,8 +139,26 @@ export const getCoderProfile = async (req, res) => {
             return res.status(404).json({ message: "LeetCode ID not found" });
         }
 
+        const username = user.codingProfiles.leetcode;
+        const cacheKey = `leetcode_full_profile:${username}`;
+        
+        try {
+            const cachedData = await redisClient.get(cacheKey);
+            if (cachedData) {
+                return res.status(200).json({ success: true, data: JSON.parse(cachedData) });
+            }
+        } catch (err) {
+            console.error("Redis Cache Get Error:", err);
+        }
+
         // Fetch aggregation from external API
-        const fullProfile = await fetchFullLeetCodeProfile(user.codingProfiles.leetcode);
+        const fullProfile = await fetchFullLeetCodeProfile(username);
+
+        try {
+            await redisClient.setEx(cacheKey, 3600, JSON.stringify(fullProfile)); // Cache for 1 hour
+        } catch (err) {
+            console.error("Redis Cache Set Error:", err);
+        }
 
         return res.status(200).json({ success: true, data: fullProfile });
     } catch (error) {

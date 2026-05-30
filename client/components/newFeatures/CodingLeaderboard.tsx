@@ -24,6 +24,10 @@ export default function CodingLeaderboard() {
     const [search, setSearch] = useState("");
     const [refreshing, setRefreshing] = useState(false);
     const [refreshingStats, setRefreshingStats] = useState(false);
+    
+    // Global Timer State
+    const [syncCountdown, setSyncCountdown] = useState<string>("");
+    const [canRefresh, setCanRefresh] = useState(false);
 
     // Profile Connection State
     const [lcUsername, setLcUsername] = useState("");
@@ -144,14 +148,41 @@ export default function CodingLeaderboard() {
     useEffect(() => { const t = setTimeout(fetchLeaderboard, 500); return () => clearTimeout(t); }, [search]);
     const onRefresh = () => { setRefreshing(true); fetchLeaderboard(); };
 
-    // --- AUTOMATIC 10-MINUTE SYNC ---
+    // --- GLOBALLY SYNCED 15-MINUTE TIMER ---
     useEffect(() => {
         if (!hasLinkedProfile) return;
-        const interval = setInterval(() => {
-            console.log("⏰ 10 Minute Sync Cycle Triggered");
-            fetchLeaderboard();
-        }, 10 * 60 * 1000); // 10 minutes in milliseconds
 
+        const updateTimer = () => {
+            const now = new Date();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+
+            // Find next 15-minute boundary (0, 15, 30, 45)
+            const current15MinBlock = Math.floor(minutes / 15) * 15;
+            const next15MinBlock = current15MinBlock + 15;
+            
+            let minutesLeft = next15MinBlock - minutes - 1;
+            let secondsLeft = 60 - seconds;
+
+            if (secondsLeft === 60) {
+                minutesLeft += 1;
+                secondsLeft = 0;
+            }
+
+            // We give them a 30-second window to click refresh after the cron job triggers
+            if (minutesLeft === 14 && secondsLeft > 30) {
+                setCanRefresh(true);
+                setSyncCountdown("00:00");
+            } else {
+                setCanRefresh(false);
+                setSyncCountdown(
+                    `${minutesLeft.toString().padStart(2, '0')}:${secondsLeft.toString().padStart(2, '0')}`
+                );
+            }
+        };
+
+        updateTimer();
+        const interval = setInterval(updateTimer, 1000);
         return () => clearInterval(interval);
     }, [hasLinkedProfile]);
 
@@ -309,9 +340,32 @@ export default function CodingLeaderboard() {
                         <Text className="text-zinc-900 text-3xl font-black  tracking-tighter uppercase">Coding<Text className="text-orange-500"> Rank</Text></Text>
                         <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[2px]">Campus Coding Arena</Text>
                     </View>
-                    <TouchableOpacity onPress={handleManualRefresh} disabled={refreshingStats} className={`w-12 h-12 rounded-2xl items-center justify-center border shadow-sm ${refreshingStats ? 'border-orange-100 bg-orange-50' : 'border-slate-100 bg-white'}`}>
-                        {refreshingStats ? <ActivityIndicator size="small" color="#f97316" /> : <Ionicons name="refresh" size={20} color="#18181b" />}
-                    </TouchableOpacity>
+                    
+                    {/* Synchronized Refresh Timer */}
+                    {canRefresh ? (
+                        <TouchableOpacity 
+                            onPress={() => {
+                                fetchLeaderboard();
+                                setCanRefresh(false);
+                            }} 
+                            disabled={loading} 
+                            className={`px-4 py-2.5 rounded-xl items-center shadow-sm ${loading ? 'bg-orange-200' : 'bg-orange-500 shadow-orange-500/30'}`}
+                        >
+                            {loading ? (
+                                <ActivityIndicator size="small" color="#fff" />
+                            ) : (
+                                <View className="flex-row items-center">
+                                    <Ionicons name="reload" size={12} color="white" />
+                                    <Text className="text-white font-black text-[10px] uppercase tracking-widest ml-1.5">Load Fresh</Text>
+                                </View>
+                            )}
+                        </TouchableOpacity>
+                    ) : (
+                        <View className="px-4 py-1.5 rounded-xl bg-white border border-slate-200 items-center justify-center shadow-sm shadow-black/5">
+                            <Text className="text-slate-400 font-black text-[7px] uppercase tracking-widest mb-0.5">Next Sync</Text>
+                            <Text className="text-zinc-900 font-black text-sm tracking-tighter">{syncCountdown}</Text>
+                        </View>
+                    )}
                 </View>
 
                 <View className="px-8 mb-6">

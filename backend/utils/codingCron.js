@@ -9,10 +9,10 @@ const startCronJobs = () => {
         const users = await User.find({ 
             $or: [{ "codingProfiles.leetcode": { $ne: null } }, { "codingProfiles.gfg": { $ne: null } }] 
         });
-        
+         
         for (const user of users) {
             await refreshUserStats(user._id);
-            await new Promise(r => setTimeout(r, 2000));
+            await new Promise(r => setTimeout(r, 5000));
         }
         console.log("✅ Stats Updated");
         

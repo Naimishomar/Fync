@@ -108,6 +108,9 @@ const io = new Server(server, {
 const pubClient = redisClient.duplicate();
 const subClient = redisClient.duplicate();
 
+pubClient.on('error', (err) => console.error("Redis PubClient Error ❌", err));
+subClient.on('error', (err) => console.error("Redis SubClient Error ❌", err));
+
 Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
   io.adapter(createAdapter(pubClient, subClient));
   console.log("✅ Socket.IO Redis Adapter Connected");
