@@ -19,22 +19,28 @@ const calculateScore = (userAnswers, correctQuestions) => {
 };
 
 let videoUsers = {};
-const onlineUsers = new Map(); // userId -> socketId
 
 export const socketController = (io) => {
   io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
 
-    socket.on("register", (userId) => {
+    socket.on("register", async (userId) => {
       if (!userId) return;
       socket.userId = userId;
-      onlineUsers.set(userId, socket.id);
+      socket.join(`user:${userId}`);
 
-      // Let the user know who is already online
-      const onlineList = Array.from(onlineUsers.keys());
-      socket.emit("initialOnlineList", onlineList);
+      try {
+        await redisClient.sAdd(`user_sockets:${userId}`, socket.id);
+        await redisClient.sAdd("global_online_users", userId);
 
-      io.emit("statusUpdate", { userId, status: "online" });
+        // Let the user know who is already online
+        const onlineList = await redisClient.sMembers("global_online_users");
+        socket.emit("initialOnlineList", onlineList);
+
+        io.emit("statusUpdate", { userId, status: "online" });
+      } catch (err) {
+        console.error("Redis register error:", err);
+      }
     });
 
 
@@ -146,26 +152,20 @@ export const socketController = (io) => {
           );
         }
 
-        // Notify receiver's ChatList to update unread count in real-time
-        const receiverSocketId = onlineUsers.get(receiver._id.toString());
-        if (receiverSocketId) {
-          io.to(receiverSocketId).emit("unreadUpdate", {
-            conversationId,
-            unreadCount: 1,
-            type: 'increment',
-            lastMessage: message
-          });
-        }
+        // Notify receiver's ChatList & Chat Screen to update unread count in real-time
+        io.to(`user:${receiver._id}`).emit("unreadUpdate", {
+          conversationId,
+          unreadCount: 1,
+          type: 'increment',
+          lastMessage: message
+        });
 
-        // Notify sender's ChatList to update last message
-        const senderSocketId = onlineUsers.get(senderId.toString());
-        if (senderSocketId) {
-          io.to(senderSocketId).emit("unreadUpdate", {
-            conversationId,
-            type: 'sent',
-            lastMessage: message
-          });
-        }
+        // Notify sender's ChatList & Chat Screen to update last message
+        io.to(`user:${senderId}`).emit("unreadUpdate", {
+          conversationId,
+          type: 'sent',
+          lastMessage: message
+        });
 
       } catch (err) {
 
@@ -191,21 +191,15 @@ export const socketController = (io) => {
         // Notify other participant that messages were seen
         const otherParticipant = conversation.participants.find(p => p.toString() !== userId);
         if (otherParticipant) {
-          const otherSocketId = onlineUsers.get(otherParticipant.toString());
-          if (otherSocketId) {
-            io.to(otherSocketId).emit("messagesSeen", { conversationId });
-          }
+          io.to(`user:${otherParticipant}`).emit("messagesSeen", { conversationId });
         }
 
         // Notify the user themselves to clear unread in their ChatList if it's open elsewhere
-        const myOtherSockets = onlineUsers.get(userId.toString());
-        if (myOtherSockets) {
-          io.to(myOtherSockets).emit("unreadUpdate", {
-            conversationId,
-            userId,
-            type: 'reset'
-          });
-        }
+        io.to(`user:${userId}`).emit("unreadUpdate", {
+          conversationId,
+          userId,
+          type: 'reset'
+        });
       } catch (err) {
 
         console.error("markSeen error:", err);
@@ -266,12 +260,18 @@ export const socketController = (io) => {
     });
 
     // --- 🚀 HACKATHON ECOSYSTEM ---
-    socket.on("identity", (userId) => {
+    socket.on("identity", async (userId) => {
       if (!userId) return;
       socket.userId = userId;
       socket.join(`user:${userId}`);
-      onlineUsers.set(userId, socket.id);
-      console.log(`👤 User identified: ${userId}`);
+      
+      try {
+        await redisClient.sAdd(`user_sockets:${userId}`, socket.id);
+        await redisClient.sAdd("global_online_users", userId);
+        console.log(`👤 User identified: ${userId}`);
+      } catch (err) {
+        console.error("Redis identity error:", err);
+      }
     });
 
     socket.on("join:hackathon", ({ hackathonId }) => {
@@ -700,8 +700,17 @@ export const socketController = (io) => {
           await redisClient.del(`user:night_1v1:${socket.userId}`);
         }
 
-        onlineUsers.delete(socket.userId);
-        io.emit("statusUpdate", { userId: socket.userId, status: "offline" });
+        try {
+          await redisClient.sRem(`user_sockets:${socket.userId}`, socket.id);
+          const remaining = await redisClient.sCard(`user_sockets:${socket.userId}`);
+          
+          if (remaining === 0) {
+            await redisClient.sRem("global_online_users", socket.userId);
+            io.emit("statusUpdate", { userId: socket.userId, status: "offline" });
+          }
+        } catch (err) {
+          console.error("Redis disconnect error:", err);
+        }
       }
 
       const videoId = Object.keys(videoUsers).find(key => videoUsers[key].socketId === socket.id);

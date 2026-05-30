@@ -1,10 +1,11 @@
-import dotenv from 'dotenv';
-dotenv.config({ quiet: true });
+import 'dotenv/config.js';
 import cors from 'cors';
 import morgan from 'morgan';
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
+import { createAdapter } from '@socket.io/redis-adapter';
+import redisClient from './utils/redis.js';
 import cookieParser from 'cookie-parser';
 import connectDB from './db/db.js';
 import authRoute from './routes/auth.route.js';
@@ -100,6 +101,16 @@ const io = new Server(server, {
   pingInterval: 25000,
   connectTimeout: 45000,
   allowEIO3: true
+});
+
+const pubClient = redisClient.duplicate();
+const subClient = redisClient.duplicate();
+
+Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
+  io.adapter(createAdapter(pubClient, subClient));
+  console.log("✅ Socket.IO Redis Adapter Connected");
+}).catch(err => {
+  console.error("❌ Redis Adapter Connection Error:", err);
 });
 
 io.engine.on("connection_error", (err) => {
