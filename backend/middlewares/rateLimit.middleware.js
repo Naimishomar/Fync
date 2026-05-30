@@ -1,6 +1,13 @@
 import rateLimit from 'express-rate-limit';
+import { RedisStore } from 'rate-limit-redis';
+import redisClient from '../utils/redis.js';
+
+const store = new RedisStore({
+  sendCommand: (...args) => redisClient.sendCommand(args),
+});
 
 export const createLimiter = rateLimit({
+    store: store,
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 5, // Limit each IP to 5 creations per window
     message: {
@@ -12,6 +19,7 @@ export const createLimiter = rateLimit({
 });
 
 export const authLimiter = rateLimit({
+    store: store,
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 10, // Limit each IP to 10 login attempts
     message: {
@@ -23,6 +31,7 @@ export const authLimiter = rateLimit({
 });
 
 export const feedLimiter = rateLimit({
+    store: store,
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 200, // High limit for scrollers
     standardHeaders: true,
@@ -31,6 +40,7 @@ export const feedLimiter = rateLimit({
 });
 
 export const generalLimiter = rateLimit({
+    store: store,
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 100, // Balanced for typical usage
     message: {

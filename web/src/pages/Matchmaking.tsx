@@ -23,7 +23,8 @@ const Matchmaking: React.FC = () => {
 
     if (token) {
       const newSocket = io(API_URL, {
-        auth: { token }
+        auth: { token },
+        transports: ['websocket']
       });
 
       setSocket(newSocket);

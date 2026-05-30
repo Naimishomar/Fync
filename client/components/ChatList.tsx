@@ -31,6 +31,7 @@ const ChatList = () => {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+  const [typingStates, setTypingStates] = useState<{ [key: string]: boolean }>({});
 
 
   // 1. Create a Ref to store the timer ID
@@ -55,7 +56,7 @@ const ChatList = () => {
       });
 
       // ✅ REAL-TIME UNREAD UPDATES
-      socket.on("unreadUpdate", (payload) => {
+      socket.on("unreadUpdate", (payload:any) => {
         setConversations(prev => {
           let updatedConvos = [...prev];
           const convoIndex = updatedConvos.findIndex(c => c._id === payload.conversationId);
@@ -86,6 +87,19 @@ const ChatList = () => {
 
           return updatedConvos;
         });
+      });
+
+      // ✅ TYPING UPDATES
+      socket.on("userTyping", ({ conversationId: cid, userId: tid }: any) => {
+        if (tid !== user._id) {
+          setTypingStates(prev => ({ ...prev, [cid]: true }));
+        }
+      });
+
+      socket.on("userStopTyping", ({ conversationId: cid, userId: tid }: any) => {
+        if (tid !== user._id) {
+          setTypingStates(prev => ({ ...prev, [cid]: false }));
+        }
       });
 
 
@@ -224,10 +238,10 @@ const ChatList = () => {
 
           <View className="flex-row items-center justify-between">
             <Text
-              className={`flex-1 text-sm mr-4 ${unread > 0 ? 'text-zinc-900 font-bold' : 'text-gray-500'}`}
+              className={`flex-1 text-sm mr-4 ${typingStates[item._id] ? 'text-green-500 font-bold italic' : (unread > 0 ? 'text-zinc-900 font-bold' : 'text-gray-500')}`}
               numberOfLines={1}
             >
-              {isLastMsgMine ? "You: " : ""}{item.lastMessage?.message || "Started a chat"}
+              {typingStates[item._id] ? "typing..." : (isLastMsgMine ? "You: " : "") + (item.lastMessage?.message || "Started a chat")}
             </Text>
 
             <View className="flex-row items-center">

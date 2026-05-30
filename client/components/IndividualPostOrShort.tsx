@@ -206,7 +206,7 @@ const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, on
     return (
         <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={onClose}>
             <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
                 className="flex-1 justify-end bg-black/60"
             >
                 <Pressable className="flex-1" onPress={onClose} />

@@ -4,7 +4,7 @@ const SOCKET_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 console.log("🔗 Socket attempting connection to:", SOCKET_URL);
 
 const socket = io(SOCKET_URL, {
-  transports: ["polling", "websocket"],
+  transports: ["websocket"],
   reconnection: true,
   reconnectionAttempts: Infinity,
   reconnectionDelay: 1000,

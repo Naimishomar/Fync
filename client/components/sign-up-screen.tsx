@@ -10,6 +10,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { Ionicons } from '@expo/vector-icons';
@@ -114,28 +115,26 @@ export default function SignUpScreen() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 bg-[#F3F4F6]">
-        {/* Background */}
-        <ScrollView
-          contentContainerStyle={{ padding: 0 }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          <Image
-            source={{ uri: 'https://i.pinimg.com/1200x/92/58/94/92589457f3c282c151c8da76c50a1316.jpg' }}
-            style={{ width: '100%', height: 450 }}
-            className="rounded-2xl"
-            resizeMode="cover"
-          />
-          <View className="h-56" />
-        </ScrollView>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <View className="flex-1 bg-[#F3F4F6]">
+          {/* Background */}
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Image
+              source={{ uri: 'https://i.pinimg.com/1200x/92/58/94/92589457f3c282c151c8da76c50a1316.jpg' }}
+              style={{ width: '100%', height: 400 }}
+              className="rounded-2xl"
+              resizeMode="cover"
+            />
 
-        {/* Signup Sheet */}
-        <View
-          className="absolute bottom-0 w-full"
-        >
-          <ScrollView keyboardShouldPersistTaps="handled">
-            <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-12">
+            {/* Signup Sheet */}
+            <View className="flex-1 rounded-t-[50px] bg-white px-6 pt-8 pb-12 -mt-10">
               <Image source={require('../assets/Fync.png')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
               <Text className="text-gray-500 mb-2">Join the exclusive student network</Text>
 
@@ -245,7 +244,7 @@ export default function SignUpScreen() {
             </View>
           </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 }

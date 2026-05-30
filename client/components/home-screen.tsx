@@ -672,7 +672,7 @@ export default function HomeScreen() {
     }
   }, [loadingMore, hasMore, loading, page, fetchFeed]);
 
-  const fetchBadges = async () => {
+  const fetchBadges = useCallback(async () => {
     try {
       const [notifRes, chatRes] = await Promise.all([
         axios.get('/notifications/count'),
@@ -687,7 +687,13 @@ export default function HomeScreen() {
     } catch (error) {
       console.log("Badge Error:", error);
     }
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchBadges();
+    }, [])
+  );
 
   useEffect(() => {
     fetchBadges();

@@ -5,8 +5,8 @@ dotenv.config({quiet: true});
 const connectDB = async () => {
     try {
         const connectionOptions = {
-            maxPoolSize: 40,           
-            minPoolSize: 5,           
+            maxPoolSize: 100,           
+            minPoolSize: 20,           
             serverSelectionTimeoutMS: 30000, // Increased to 30s
             socketTimeoutMS: 45000,    
             family: 4,

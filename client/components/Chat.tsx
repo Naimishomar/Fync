@@ -88,14 +88,17 @@ const Chat = ({ route, navigation }: any) => {
   useEffect(() => {
     fetchConversationUser();
 
-    socket.emit("register", user._id);
-    socket.emit("join", { conversationId });
+    const setupSocket = () => {
+      socket.emit("register", user._id);
+      socket.emit("join", { conversationId });
+      socket.emit("markSeen", {
+        conversationId,
+        userId: user._id,
+      });
+    };
 
-    socket.emit("markSeen", {
-      conversationId,
-      userId: user._id,
-    });
-
+    setupSocket();
+    socket.on("connect", setupSocket);
 
     socket.on("newMessage", (msg) => {
       if (
@@ -118,14 +121,25 @@ const Chat = ({ route, navigation }: any) => {
 
 
     // ✅ typing listeners
-    socket.on("userTyping", () => setIsTyping(true));
-    socket.on("userStopTyping", () => setIsTyping(false));
+    socket.on("userTyping", ({ userId: typingUserId }) => {
+      if (typingUserId !== user._id) {
+        setIsTyping(true);
+      }
+    });
+    socket.on("userStopTyping", ({ userId: typingUserId }) => {
+      if (typingUserId !== user._id) {
+        setIsTyping(false);
+      }
+    });
 
-    // ✅ seen listener
+    // ✅ seen listener - Only mark MY messages as seen when the other person reads them
     socket.on("messagesSeen", ({ conversationId: seenId }) => {
       if (seenId === conversationId) {
         setMessages((prev) =>
-          prev.map(msg => ({ ...msg, seen: true }))
+          prev.map(msg => {
+            const isMe = msg.sender === user._id || msg.sender?._id === user._id;
+            return isMe ? { ...msg, seen: true } : msg;
+          })
         );
       }
     });
@@ -600,9 +614,9 @@ const Chat = ({ route, navigation }: any) => {
       </SafeAreaView>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 20}
       >
         <View style={{ flex: 1 }}>
           {/* MESSAGE CONTAINER (ROUNDED CARD) */}

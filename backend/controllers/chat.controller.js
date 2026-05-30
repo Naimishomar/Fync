@@ -68,7 +68,8 @@ export const getMessages = async (req, res) => {
     .populate({
       path: "replyTo",
       populate: { path: "sender", select: "name username" }
-    });
+    })
+    .lean();
 
   res.json({ success: true, messages: messages.reverse() });
 };
@@ -83,7 +84,8 @@ export const getConversations = async (req, res) => {
   })
     .populate("participants", "name username avatar")
     .populate("lastMessage")
-    .sort({ updatedAt: -1 });
+    .sort({ updatedAt: -1 })
+    .lean();
 
   res.json({ success: true, conversations });
 };

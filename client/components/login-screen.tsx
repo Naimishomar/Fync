@@ -9,10 +9,12 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
-import { useAuth } from 'context/auth.context';
+import { useAuth } from '../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 
 
@@ -51,33 +53,27 @@ export default function LoginScreen() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 bg-white">
-        {/* Background Feed */}
-        <ScrollView
-          contentContainerStyle={{ padding: 1 }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View className="">
-            <Image
-              source={{ uri: 'https://i.pinimg.com/1200x/d8/39/f1/d839f11ee984f4a725af419b6237af35.jpg' }}
-              style={{ width: '100%', height: 500 }}
-              resizeMode="cover"
-            />
-          </View>
-
-          <View className="h-48" />
-        </ScrollView>
-
-        {/* Login Sheet */}
-        <View
-          className="absolute bottom-0 w-full"
-        >
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <View className="flex-1 bg-white">
+          {/* Background Feed */}
           <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ paddingBottom: 24 }}
           >
-            <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-7">
+            <View className="">
+              <Image
+                source={{ uri: 'https://i.pinimg.com/1200x/d8/39/f1/d839f11ee984f4a725af419b6237af35.jpg' }}
+                style={{ width: '100%', height: 400 }}
+                resizeMode="cover"
+              />
+            </View>
+
+            {/* Login Sheet */}
+            <View className="flex-1 rounded-t-[50px] bg-white px-6 pt-8 pb-7 -mt-10">
               <Image source={require('../assets/Fync.png')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
               <Text className="text-gray-500 mb-2">Login to the exclusive student network</Text>
 
@@ -148,15 +144,14 @@ export default function LoginScreen() {
                       className="flex-1 rounded-xl border border-black bg-black py-3 items-center"
                       onPress={() => navigation.navigate('RecruiterSignup')}
                     >
-                        <Text className="text-white font-semibold flex-1">Join as Recruiter</Text>
+                        <Text className="text-white font-semibold">Join as Recruiter</Text>
                     </Pressable>
                  </View>
               </View>
             </View>
           </ScrollView>
         </View>
-
-      </View>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 }

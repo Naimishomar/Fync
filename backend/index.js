@@ -1,4 +1,6 @@
 import 'dotenv/config.js';
+import { EventEmitter } from 'events';
+EventEmitter.defaultMaxListeners = 50;
 import cors from 'cors';
 import morgan from 'morgan';
 import express from 'express';
