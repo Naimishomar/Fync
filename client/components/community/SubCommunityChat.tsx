@@ -214,7 +214,7 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                     )}
                 </View>
 
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
+                <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
                     {subType === 'announcement' && !isCreator ? (
                         <View className="p-10 bg-white items-center justify-center border-t border-slate-100">
                             <View className="bg-slate-50 px-10 py-4 rounded-[28px] border border-slate-100 flex-row items-center gap-3">

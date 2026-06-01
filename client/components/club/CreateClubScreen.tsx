@@ -91,7 +91,7 @@ const CreateClubScreen = () => {
                     <View className="w-7"></View>
                 </View>
 
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+                <KeyboardAvoidingView behavior="padding" className="flex-1">
                     <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
                         
                         {/* Banner Upload */}

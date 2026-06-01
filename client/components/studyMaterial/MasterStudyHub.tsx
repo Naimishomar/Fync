@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  TextInput,
+  Modal,
+  ActivityIndicator
 } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +17,18 @@ import { useNavigation } from '@react-navigation/native';
 
 export default function MasterStudyHub() {
   const navigation = useNavigation<any>();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isWebViewVisible, setIsWebViewVisible] = useState(false);
+  const [webViewLoading, setWebViewLoading] = useState(true);
+  const [currentSearchUrl, setCurrentSearchUrl] = useState('');
+
+  const handleSearch = () => {
+    if (!searchQuery.trim()) return;
+    const url = `https://www.google.com/search?q=${encodeURIComponent(searchQuery.trim() + ' filetype:pdf')}`;
+    setCurrentSearchUrl(url);
+    setIsWebViewVisible(true);
+    setWebViewLoading(true);
+  };
 
   const mainCategories = [
     { 
@@ -83,6 +99,34 @@ export default function MasterStudyHub() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100 }}
         >
+          {/* SEARCH BAR */}
+          <View className="mb-6 bg-white p-4 rounded-[32px] shadow-sm border border-slate-100">
+            <View className="flex-row items-center mb-3 ml-2">
+              <Ionicons name="logo-google" size={16} color="#3b82f6" />
+              <Text className="text-zinc-900 font-black text-[10px] uppercase tracking-widest ml-2">Fync Search</Text>
+              <View className="ml-2 bg-red-100 px-2 py-0.5 rounded-md">
+                <Text className="text-red-600 font-bold text-[8px] uppercase tracking-widest">PDF Only</Text>
+              </View>
+            </View>
+            <View className="flex-row items-center bg-slate-50 rounded-[20px] px-5 py-4 border border-slate-200">
+              <Ionicons name="search" size={20} color="#94a3b8" />
+              <TextInput 
+                className="flex-1 ml-3 text-slate-700 font-bold text-sm p-0"
+                placeholder="Search DSA, React, ML..."
+                placeholderTextColor="#94a3b8"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onSubmitEditing={handleSearch}
+                returnKeyType="search"
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <Ionicons name="close-circle" size={20} color="#cbd5e1" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
           <View>
             {/* LARGE CATEGORY CARDS */}
             {mainCategories.map((cat, index) => (
@@ -143,6 +187,75 @@ export default function MasterStudyHub() {
           </View>
         </ScrollView>
       </SafeAreaView>
+
+      {/* WEBVIEW MODAL */}
+      <Modal visible={isWebViewVisible} animationType="slide" onRequestClose={() => setIsWebViewVisible(false)}>
+        <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+          <View className="flex-row items-center justify-between p-4 border-b border-slate-100 bg-white">
+            <TouchableOpacity onPress={() => setIsWebViewVisible(false)} className="w-10 h-10 items-center justify-center bg-slate-50 rounded-full">
+              <Ionicons name="close" size={24} color="#1e293b" />
+            </TouchableOpacity>
+            <View className="items-center">
+              <Text className="text-zinc-900 font-black text-sm uppercase tracking-widest">{searchQuery}</Text>
+              <Text className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">PDF Results</Text>
+            </View>
+            <View className="w-10" />
+          </View>
+          
+          <View className="flex-1 relative bg-white">
+            <WebView 
+              source={{ uri: currentSearchUrl }}
+              className="flex-1 bg-white"
+              onLoadStart={() => setWebViewLoading(true)}
+              onLoadEnd={() => setWebViewLoading(false)}
+              injectedJavaScript={`
+                var style = document.createElement('style');
+                style.innerHTML = 'header, form, footer, [role="banner"], [role="navigation"], [role="contentinfo"], #sfooter { display: none !important; } body { padding-top: 0 !important; background-color: #ffffff !important; }';
+                document.head.appendChild(style);
+                true;
+              `}
+              onShouldStartLoadWithRequest={(request) => {
+                const { url } = request;
+                
+                // 1. Intercept Google Redirects (Google Search wraps links in /url?q=...)
+                if (url.includes('/url?q=') || url.includes('/url?url=')) {
+                  const match = url.match(/[?&](q|url)=([^&]+)/);
+                  if (match) {
+                    const targetUrl = decodeURIComponent(match[2]);
+                    setIsWebViewVisible(false);
+                    navigation.navigate('PDFViewerScreen', {
+                      title: searchQuery,
+                      url: targetUrl
+                    });
+                    return false; // Prevent WebView from downloading
+                  }
+                }
+
+                // 2. Intercept direct external links
+                const isGoogle = url.includes('google.com') || url.includes('google.co.in');
+                if (!isGoogle && url !== 'about:blank') {
+                  setIsWebViewVisible(false);
+                  navigation.navigate('PDFViewerScreen', {
+                    title: searchQuery,
+                    url: url
+                  });
+                  return false; // Prevent WebView from downloading
+                }
+
+                return true; // Allow Google Search navigation
+              }}
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+            />
+            {webViewLoading && (
+              <View className="absolute inset-0 items-center justify-center bg-white z-10">
+                <ActivityIndicator size="large" color="#3b82f6" />
+                <Text className="mt-4 text-slate-500 font-black text-xs uppercase tracking-widest">Indexing PDFs...</Text>
+              </View>
+            )}
+          </View>
+        </SafeAreaView>
+      </Modal>
     </View>
   );
 }

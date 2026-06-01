@@ -916,7 +916,7 @@ const AdminPortal = ({ navigation }: any) => {
 
             <Modal visible={modalVisible} animationType="slide" transparent>
                 <View className="flex-1 bg-black/50 justify-end">
-                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+                    <KeyboardAvoidingView behavior="padding">
                         <View className="bg-white rounded-t-[36px] p-6 pb-10 border-t border-gray-200">
                             <View className="flex-row justify-between items-center mb-6">
                                 <Text className="text-zinc-900 text-xl font-black">{editingAd || editingProduct ? 'Edit Item' : activeTab === 'ads' ? 'New Ad Banner' : activeTab === 'media' ? 'Publish Fync Media' : 'New Reward Item'}</Text>

@@ -466,7 +466,7 @@ const PlacementHub = () => {
                             </TouchableOpacity>
                         </View>
 
-                        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+                        <KeyboardAvoidingView behavior="padding" className="flex-1">
                             <ScrollView className="p-8" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
                                 <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Core Context</Text>
                                 <View className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm mb-8">
@@ -541,7 +541,7 @@ const PlacementHub = () => {
                             </TouchableOpacity>
                         </View>
 
-                        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+                        <KeyboardAvoidingView behavior="padding" className="flex-1">
                             <ScrollView className="flex-1 p-8" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
                                 {selectedQuestion && (
                                     <View className="mb-10 bg-white p-8 rounded-[40px] border border-indigo-100 shadow-sm shadow-indigo-500/5">

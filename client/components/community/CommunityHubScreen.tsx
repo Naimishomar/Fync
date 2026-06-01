@@ -667,7 +667,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                 <View className="flex-1 bg-black/60">
                     <TouchableOpacity activeOpacity={1} onPress={() => setSubModalVisible(false)} className="flex-1" />
                     <KeyboardAvoidingView 
-                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        behavior="padding"
                         className="w-full bg-white rounded-t-[40px] overflow-hidden"
                         style={{ height: screenHeight * 0.8 }}
                     >
@@ -713,7 +713,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                 <View className="flex-1 bg-black/60">
                     <TouchableOpacity activeOpacity={1} onPress={() => setEditSubModal(false)} className="flex-1" />
                     <KeyboardAvoidingView 
-                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        behavior="padding"
                         className="w-full bg-white rounded-t-[40px] overflow-hidden"
                         style={{ height: screenHeight * 0.8 }}
                     >
@@ -766,7 +766,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                 <View className="flex-1 bg-black/60">
                     <TouchableOpacity activeOpacity={1} onPress={() => setEditHubModal(false)} className="flex-1" />
                     <KeyboardAvoidingView 
-                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        behavior="padding"
                         className="w-full bg-white rounded-t-[40px] overflow-hidden"
                         style={{ height: screenHeight * 0.8 }}
                     >

@@ -1103,7 +1103,7 @@ export default function SpeakerSessionScreen() {
             {/* Speaker Add/Edit Modal */}
             <Modal visible={speakerModalVisible} transparent animationType="slide" onRequestClose={() => setSpeakerModalVisible(false)}>
                 <View className="flex-1 bg-black/50 justify-end">
-                    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+                    <KeyboardAvoidingView behavior="padding">
                         <View className="bg-white rounded-t-[50px] p-8">
                             <View className="flex-row justify-between items-center mb-8">
                                 <Text className="text-zinc-900 text-2xl font-black  tracking-tighter uppercase">{isEditingSpeaker ? 'Update Speaker' : 'Register Speaker'}</Text>
@@ -1197,7 +1197,7 @@ export default function SpeakerSessionScreen() {
 
             {sessionModalVisible && (
                 <View className="absolute top-0 left-0 right-0 bottom-0 bg-black/60 justify-end z-[1000]">
-                    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="h-[85%]">
+                    <KeyboardAvoidingView behavior="padding" className="h-[85%]">
                         <View className="bg-white rounded-t-[50px] p-8 h-full">
                             <ScrollView showsVerticalScrollIndicator={false}>
                                 <View className="flex-row justify-between items-center mb-8">

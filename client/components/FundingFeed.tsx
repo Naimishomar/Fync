@@ -678,7 +678,7 @@ export default function FundingFeed() {
                   />
                 )}
 
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+                <KeyboardAvoidingView behavior="padding">
                   <View className="p-8 border-t border-slate-50 bg-white pb-12">
                     {replyingTo && (
                       <View className="flex-row items-center justify-between bg-orange-50 px-5 py-3 mb-4 rounded-2xl border border-orange-100">

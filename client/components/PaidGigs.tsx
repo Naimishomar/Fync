@@ -487,7 +487,7 @@ export default function PaidGigs({ navigation }: any) {
                         </TouchableOpacity>
                     </View>
 
-                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+                    <KeyboardAvoidingView behavior="padding" className="flex-1">
                         <ScrollView className="p-8" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
 
                             <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Subject Matter</Text>

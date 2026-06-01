@@ -340,7 +340,7 @@ const CreateShorts = () => {
             className="bg-white rounded-t-[48px] shadow-2xl overflow-hidden"
           >
             <KeyboardAvoidingView 
-              behavior={Platform.OS === "ios" ? "padding" : "height"} 
+              behavior="padding" 
               className="flex-1"
             >
               {/* Grab Handle */}

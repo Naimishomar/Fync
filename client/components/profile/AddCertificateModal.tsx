@@ -101,7 +101,7 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
       <View className="flex-1 bg-black/60 justify-end">
         <Pressable className="absolute inset-0" onPress={onClose} />
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior="padding"
           className="bg-white rounded-t-[40px] overflow-hidden"
           style={{ height: screenHeight * 0.85 }}
         >

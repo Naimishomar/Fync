@@ -581,7 +581,7 @@ export default function Shorts() {
         onRequestClose={() => setCommentModalVisible(false)}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior="padding"
           className="flex-1 justify-end"
         >
           <Pressable

@@ -107,118 +107,8 @@ export const socketController = (io) => {
       socket.to(roomName).emit("mentorship_user_stop_typing", { username });
     });
 
-    socket.on("sendMessage", async ({ conversationId, senderId, text, replyTo, messageType, mediaUrl }) => {
-      try {
-        if (!conversationId || !senderId) return;
-
-        const conversation = await Conversation.findById(conversationId).populate("participants", "name username expoPushToken");
-        if (!conversation) return;
-
-        const sender = conversation.participants.find(p => p._id.toString() === senderId);
-        const receiver = conversation.participants.find(p => p._id.toString() !== senderId);
-
-        if (!receiver) return;
-
-        let message = await Message.create({
-          conversationId,
-          sender: senderId,
-          message: text?.trim() || "",
-          messageType: messageType || "text",
-          mediaUrl: mediaUrl || "",
-          replyTo: replyTo || null
-        });
-
-        await Conversation.findByIdAndUpdate(conversationId, {
-          lastMessage: message._id,
-          $inc: { [`unreadCount.${receiver._id}`]: 1 }
-        });
-
-        message = await Message.findById(message._id)
-          .populate("sender", "name username avatar")
-          .populate({
-            path: "replyTo",
-            populate: { path: "sender", select: "name username" }
-          });
-
-        io.to(conversationId).emit("newMessage", message);
-
-        // Notify via Push Notification
-        if (receiver.expoPushToken) {
-          sendPushNotification(
-            receiver.expoPushToken, 
-            `${sender?.username || "Someone"} sent you a message`, 
-            text, 
-            { conversationId, type: 'message' }
-          );
-        }
-
-        // Notify receiver's ChatList & Chat Screen to update unread count in real-time
-        io.to(`user:${receiver._id}`).emit("unreadUpdate", {
-          conversationId,
-          unreadCount: 1,
-          type: 'increment',
-          lastMessage: message
-        });
-
-        // Notify sender's ChatList & Chat Screen to update last message
-        io.to(`user:${senderId}`).emit("unreadUpdate", {
-          conversationId,
-          type: 'sent',
-          lastMessage: message
-        });
-
-      } catch (err) {
-
-        console.error("sendMessage error:", err);
-      }
-    });
-
-    socket.on("markSeen", async ({ conversationId, userId }) => {
-      try {
-        if (!conversationId || !userId) return;
-
-        // Update conversation unread count
-        const conversation = await Conversation.findByIdAndUpdate(conversationId, {
-          [`unreadCount.${userId}`]: 0
-        }, { new: true, timestamps: false });
-
-        // Mark all messages from other user as seen
-        await Message.updateMany(
-          { conversationId, sender: { $ne: userId }, seen: false },
-          { $set: { seen: true } }
-        );
-
-        // Notify other participant that messages were seen
-        const otherParticipant = conversation.participants.find(p => p.toString() !== userId);
-        if (otherParticipant) {
-          io.to(`user:${otherParticipant}`).emit("messagesSeen", { conversationId });
-        }
-
-        // Notify the user themselves to clear unread in their ChatList if it's open elsewhere
-        io.to(`user:${userId}`).emit("unreadUpdate", {
-          conversationId,
-          userId,
-          type: 'reset'
-        });
-      } catch (err) {
-
-        console.error("markSeen error:", err);
-      }
-    });
-
-
-    socket.on("typing", ({ conversationId, userId }) => {
-      socket.to(conversationId).emit("userTyping", { userId });
-    });
-
-    socket.on("stopTyping", ({ conversationId, userId }) => {
-      socket.to(conversationId).emit("userStopTyping", { userId });
-    });
-
-    socket.on("deleteMessage", ({ conversationId, messageId }) => {
-      if (!conversationId || !messageId) return;
-      io.to(conversationId).emit("messageDeleted", { messageId });
-    });
+    // Socket Chat Handlers (Migrated to Supabase)
+    // sendMessage, markSeen, typing, stopTyping, deleteMessage have been removed.
     
     // --- ECHO COMMUNITIES ---
     socket.on("join_echo_room", ({ subId }) => {
@@ -689,6 +579,77 @@ export const socketController = (io) => {
       await redisClient.del(`user:night_1v1:${userId}`);
     });
 
+    // --- 🎨 DRAW & GUESS LOGIC ---
+
+    socket.on("find_draw_match", async ({ userId, username }) => {
+      if (!redisClient.isOpen) {
+        return socket.emit("draw_error", "Matchmaking unavailable");
+      }
+      
+      const queueKey = "queue:draw_match";
+      let matchFound = false;
+
+      // Ensure user isn't stuck in an old match
+      const oldRoomId = await redisClient.get(`user:draw:${userId}`);
+      if (oldRoomId) {
+        socket.leave(oldRoomId);
+        socket.to(oldRoomId).emit("draw_partner_left");
+        await redisClient.del(`user:draw:${userId}`);
+      }
+
+      while (!matchFound) {
+        const opponentStr = await redisClient.rPop(queueKey);
+        
+        if (!opponentStr) {
+          // Join queue
+          await redisClient.lPush(queueKey, JSON.stringify({ userId, socketId: socket.id, username }));
+          socket.emit("draw_searching");
+          return;
+        }
+
+        const opponent = JSON.parse(opponentStr);
+        if (opponent.userId === userId) continue;
+
+        const opponentSocket = io.sockets.sockets.get(opponent.socketId);
+        if (!opponentSocket) continue;
+
+        matchFound = true;
+        const roomId = `draw:${nanoid(8)}`;
+        
+        socket.join(roomId);
+        opponentSocket.join(roomId);
+
+        await redisClient.set(`user:draw:${userId}`, roomId, { EX: 3600 });
+        await redisClient.set(`user:draw:${opponent.userId}`, roomId, { EX: 3600 });
+
+        // Assign roles: User 1 is Drawer, User 2 is Guesser
+        const words = ["Apple", "Car", "House", "Tree", "Dog", "Cat", "Sun", "Moon", "Pizza", "Computer", "Phone", "Book"];
+        const word = words[Math.floor(Math.random() * words.length)];
+
+        socket.emit("draw_match_found", { roomId, role: "drawer", word, opponent: opponent.username });
+        opponentSocket.emit("draw_match_found", { roomId, role: "guesser", word: null, opponent: username });
+      }
+    });
+
+    socket.on("send_draw_data", ({ roomId, strokes }) => {
+      socket.to(roomId).emit("receive_draw_data", strokes);
+    });
+
+    socket.on("clear_draw_canvas", ({ roomId }) => {
+      socket.to(roomId).emit("clear_draw_canvas");
+    });
+
+    socket.on("draw_guess", ({ roomId, guess, username }) => {
+      // Send guess to other player
+      io.to(roomId).emit("draw_guess_received", { guess, username });
+    });
+
+    socket.on("draw_leave", async ({ userId, roomId }) => {
+      socket.leave(roomId);
+      socket.to(roomId).emit("draw_partner_left");
+      await redisClient.del(`user:draw:${userId}`);
+    });
+
     socket.on("disconnect", async () => {
       console.log("Socket disconnected:", socket.id);
 
@@ -698,6 +659,13 @@ export const socketController = (io) => {
         if (roomId) {
           io.to(roomId).emit("night_1v1_partner_left");
           await redisClient.del(`user:night_1v1:${socket.userId}`);
+        }
+
+        // Cleanup Draw match
+        const drawRoomId = await redisClient.get(`user:draw:${socket.userId}`);
+        if (drawRoomId) {
+          io.to(drawRoomId).emit("draw_partner_left");
+          await redisClient.del(`user:draw:${socket.userId}`);
         }
 
         try {

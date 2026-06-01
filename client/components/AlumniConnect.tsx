@@ -382,7 +382,7 @@ const AlumniConnect = ({ navigation }: any) => {
                 </View>
 
                 {/* Messages */}
-                <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1">
+                <KeyboardAvoidingView behavior="padding" className="flex-1">
                     {loading ? (
                         <View className="flex-1 justify-center items-center">
                             <ActivityIndicator size="large" color="#FFD700" />

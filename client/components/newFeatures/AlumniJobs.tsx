@@ -322,7 +322,7 @@ export default function AlumniJobs() {
                 {/* --- POST JOB MODAL --- */}
                 <Modal visible={isPostModalVisible} animationType="slide" transparent onRequestClose={() => setPostModalVisible(false)}>
                     <View className="flex-1 bg-black/50 justify-end">
-                        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+                        <KeyboardAvoidingView behavior="padding">
                             <View className="bg-white rounded-t-[50px] p-10">
                                 <View className="flex-row justify-between items-center mb-10">
                                     <Text className="text-zinc-900 text-2xl font-black  tracking-tighter uppercase">Initialize Post</Text>
@@ -402,7 +402,7 @@ export default function AlumniJobs() {
                                 ) : <ActivityIndicator color="#f97316" />}
                             />
 
-                            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}>
+                            <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
                                 <View className="p-8 pb-12 border-t border-slate-50 bg-white">
                                     {replyingTo && (
                                         <View className="flex-row items-center justify-between mb-4 bg-orange-50 p-4 rounded-2xl border border-orange-100">

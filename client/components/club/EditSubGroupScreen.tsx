@@ -241,7 +241,7 @@ const EditSubGroupScreen = () => {
                     <View className="w-8" />
                 </View>
 
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+                <KeyboardAvoidingView behavior="padding" className="flex-1">
                     <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
                         
                         {/* Logo Picker */}

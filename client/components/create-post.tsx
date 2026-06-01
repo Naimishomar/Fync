@@ -172,7 +172,7 @@ function CreatePost() {
       <LinearGradient colors={['#f97316', 'transparent']} className="absolute top-0 w-full h-64 opacity-30" />
 
       <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
         style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >

@@ -681,7 +681,7 @@ const NoticeBoard = () => {
                 />
               )}
 
-              <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+              <KeyboardAvoidingView behavior="padding">
                 <View className="p-6 border-t border-slate-100 flex-row items-center bg-white pb-10">
                   <TextInput
                     value={newComment}

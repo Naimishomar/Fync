@@ -394,7 +394,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
             </SafeAreaView>
 
             <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                behavior="padding"
                 style={{ flex: 1 }}
                 keyboardVerticalOffset={0}
             >

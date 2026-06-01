@@ -110,7 +110,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
 
         {/* Action Sheet */}
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior="padding"
           keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
           className="absolute bottom-0 w-full"
         >

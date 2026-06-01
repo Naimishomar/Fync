@@ -17,6 +17,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import socket from "../utils/socket";
+import { supabase } from "../utils/supabase";
 import Avatar from "./Avatar";
 import { ChatListSkeleton } from "./Skeleton";
 
@@ -55,60 +56,23 @@ const ChatList = () => {
         setOnlineUsers(new Set(list));
       });
 
-      // ✅ REAL-TIME UNREAD UPDATES
-      socket.on("unreadUpdate", (payload:any) => {
-        setConversations(prev => {
-          let updatedConvos = [...prev];
-          const convoIndex = updatedConvos.findIndex(c => c._id === payload.conversationId);
-
-          if (convoIndex > -1) {
-            const convo = updatedConvos[convoIndex];
-            const currentUnread = convo.unreadCount?.[user._id] || 0;
-
-            updatedConvos[convoIndex] = {
-              ...convo,
-              lastMessage: payload.lastMessage || convo.lastMessage,
-              updatedAt: payload.lastMessage ? payload.lastMessage.createdAt : convo.updatedAt,
-              unreadCount: {
-                ...convo.unreadCount,
-                [user._id]: payload.type === 'reset' ? 0 : payload.type === 'sent' ? currentUnread : currentUnread + 1
-              }
-            };
-
-            // Move to top if there's a new message
-            if (payload.lastMessage) {
-              const updatedConvo = updatedConvos.splice(convoIndex, 1)[0];
-              updatedConvos.unshift(updatedConvo);
-            }
-          } else if (payload.lastMessage) {
-            // New conversation scenario
-            loadChats();
+      // ✅ SUPABASE REALTIME LISTENER FOR CONVERSATIONS
+      const channel = supabase
+        .channel('conversations')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'conversations' },
+          (payload) => {
+            loadChats(); // Reload when any conversation updates
           }
-
-          return updatedConvos;
-        });
-      });
-
-      // ✅ TYPING UPDATES
-      socket.on("userTyping", ({ conversationId: cid, userId: tid }: any) => {
-        if (tid !== user._id) {
-          setTypingStates(prev => ({ ...prev, [cid]: true }));
-        }
-      });
-
-      socket.on("userStopTyping", ({ conversationId: cid, userId: tid }: any) => {
-        if (tid !== user._id) {
-          setTypingStates(prev => ({ ...prev, [cid]: false }));
-        }
-      });
-
+        )
+        .subscribe();
 
       return () => {
         socket.off("statusUpdate");
         socket.off("initialOnlineList");
-        socket.off("unreadUpdate");
+        supabase.removeChannel(channel);
       };
-
 
     }, [user._id])
   );
@@ -116,20 +80,19 @@ const ChatList = () => {
 
   const loadChats = async () => {
     try {
-      // 1. Try to load from cache first for instant UI
-      const cacheKey = "cache_/chat/conversations";
-      const cached = await AsyncStorage.getItem(cacheKey);
-      if (cached && conversations.length === 0) {
-        const parsed = JSON.parse(cached);
-        setConversations(parsed.conversations || []);
-        setLoading(false); // Stop loading if we have cached data
-      }
+      const { data, error } = await supabase
+        .from('conversations')
+        .select('*')
+        .contains('participants', `[{"_id": "${user._id}"}]`)
+        .order('updatedAt', { ascending: false });
 
-      // 2. Fetch fresh data from backend
-      const res = await axios.get("/chat/conversations");
-      setConversations(res.data.conversations || []);
+      if (error) throw error;
+      
+      if (data) {
+        setConversations(data);
+      }
     } catch (e) {
-      console.log("Error loading chats", e);
+      console.log("Error loading chats from Supabase", e);
     } finally {
       setLoading(false);
     }
@@ -241,7 +204,7 @@ const ChatList = () => {
               className={`flex-1 text-sm mr-4 ${typingStates[item._id] ? 'text-green-500 font-bold italic' : (unread > 0 ? 'text-zinc-900 font-bold' : 'text-gray-500')}`}
               numberOfLines={1}
             >
-              {typingStates[item._id] ? "typing..." : (isLastMsgMine ? "You: " : "") + (item.lastMessage?.message || "Started a chat")}
+              {typingStates[item._id] ? "typing..." : (isLastMsgMine ? "You: " : "") + (item.lastMessage || "Started a chat")}
             </Text>
 
             <View className="flex-row items-center">

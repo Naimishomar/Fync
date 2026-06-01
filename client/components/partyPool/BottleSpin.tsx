@@ -1,6 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, Animated, TouchableOpacity, TextInput, Dimensions, Image, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Audio } from 'expo-av';
+import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');
 
@@ -8,15 +10,73 @@ const BottleSpin = () => {
   const [numPeople, setNumPeople] = useState('4');
   const [winner, setWinner] = useState<number | null>(null);
   const rotateAnim = useRef(new Animated.Value(0)).current;
+  const currentRotRef = useRef(0);
+  const lastSegmentRef = useRef(0);
+  const soundRef = useRef<Audio.Sound | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
+
+  useEffect(() => {
+    async function loadSound() {
+      try {
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3' }
+        );
+        soundRef.current = sound;
+      } catch (e) {
+        console.log("Failed to load sound", e);
+      }
+    }
+    loadSound();
+    return () => {
+      soundRef.current?.unloadAsync();
+    };
+  }, []);
+
+  useEffect(() => {
+    const id = rotateAnim.addListener(({ value }) => {
+      const count = Math.min(Math.max(parseInt(numPeople) || 2, 2), 20);
+      const anglePerPerson = 360 / count;
+      const currentSegment = Math.floor(value / anglePerPerson);
+
+      if (currentSegment > lastSegmentRef.current) {
+        lastSegmentRef.current = currentSegment;
+        
+        // Play tick sound & haptic
+        if (soundRef.current) {
+          soundRef.current.replayAsync().catch(() => {});
+        }
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      }
+    });
+
+    return () => {
+      rotateAnim.removeListener(id);
+    };
+  }, [numPeople, rotateAnim]);
 
   const spinBottle = () => {
     if (isSpinning) return;
     setIsSpinning(true);
     setWinner(null);
+    
+    // Reset segment tracking so it ticks properly from current rotation
+    const count = Math.min(Math.max(parseInt(numPeople) || 2, 2), 20);
+    lastSegmentRef.current = Math.floor(currentRotRef.current / (360 / count));
 
-    const randomExtra = Math.random() * 360;
-    const totalRotation = 1800 + randomExtra; 
+    const winningIndex = Math.floor(Math.random() * count);
+    
+    // Calculate the exact angle to point to the winner.
+    // Index 0 is at -90deg (Top). If the bottle image points RIGHT, it needs to rotate to -90 to point top.
+    // If the bottle cap actually points LEFT in the generated image, change this offset to 180.
+    const BOTTLE_OFFSET = 0; 
+    let baseAngle = (winningIndex * (360 / count)) - 90 + BOTTLE_OFFSET;
+    
+    baseAngle = (baseAngle % 360 + 360) % 360;
+
+    let extra = baseAngle - currentRotRef.current;
+    if (extra < 0) extra += 360;
+
+    const totalRotation = currentRotRef.current + 1800 + extra; // 5 full spins + exact target
 
     Animated.timing(rotateAnim, {
       toValue: totalRotation,
@@ -24,12 +84,9 @@ const BottleSpin = () => {
       useNativeDriver: true,
     }).start(() => {
       setIsSpinning(false);
-      const count = Math.min(Math.max(parseInt(numPeople) || 2, 2), 20);
-      const anglePerPerson = 360 / count;
-      const finalRotation = totalRotation % 360;
-      const winningIndex = Math.round(finalRotation / anglePerPerson) % count;
       setWinner(winningIndex + 1);
-      rotateAnim.setValue(finalRotation);
+      currentRotRef.current = totalRotation % 360;
+      rotateAnim.setValue(currentRotRef.current);
     });
   };
 
@@ -78,8 +135,7 @@ const BottleSpin = () => {
 
       <View className="w-[300px] h-[300px] justify-center items-center">
         {/* Table Background */}
-        <View className="absolute w-[260px] h-[260px] rounded-[130px] overflow-hidden border border-[#F1F5F9]">
-          <LinearGradient colors={['#F8FAFC', '#F1F5F9']} className="flex-1" />
+        <View className="absolute w-[260px] h-[260px] rounded-[130px] overflow-hidden bg-gray-200">
         </View>
 
         {people.map((_, i) => {
@@ -100,7 +156,7 @@ const BottleSpin = () => {
           );
         })}
 
-        <Animated.View className="w-[140px] h-[140px] justify-center items-center z-10" style={{ transform: [{ rotate: rotation }] }}>
+        <Animated.View className="w-[180px] h-[180px] justify-center items-center z-10" style={{ transform: [{ rotate: rotation }] }}>
           <Image 
             source={require('../../assets/bottle.png')}
             className="w-full h-full"

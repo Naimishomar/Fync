@@ -8,17 +8,21 @@ import {
   StatusBar
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 
 // Game Components
 import BottleSpin from './BottleSpin';
 import CoinToss from './CoinToss';
-import ReactionMaster from './ReactionMaster';
 import DesiCharades from './DesiCharades';
+import ChessHome from './ChessHome';
+import TriviaSurvival from './TriviaSurvival';
+import ReactionMaster from './ReactionMaster';
 
 const PartyPoolHub = () => {
-  const [activeGame, setActiveGame] = useState<'none' | 'bottle' | 'coin' | 'reaction' | 'charades'>('none');
+  const navigation = useNavigation<any>();
+  const [activeGame, setActiveGame] = useState<'none' | 'bottle' | 'coin' | 'reaction' | 'charades' | 'chess' | 'trivia'>('none');
 
   const renderGame = () => {
     switch (activeGame) {
@@ -26,6 +30,8 @@ const PartyPoolHub = () => {
       case 'coin': return <CoinToss />;
       case 'reaction': return <ReactionMaster />;
       case 'charades': return <DesiCharades />;
+      case 'chess': return <ChessHome />;
+      case 'trivia': return <TriviaSurvival onClose={() => setActiveGame('none')} />;
       default: return null;
     }
   };
@@ -55,6 +61,25 @@ const PartyPoolHub = () => {
           {activeGame === 'none' ? (
             <View className="gap-y-4">
               <TouchableOpacity 
+                onPress={() => setActiveGame('trivia')} 
+                className="h-[120px] rounded-[32px] overflow-hidden border border-[#F1F5F9] shadow-sm"
+                activeOpacity={0.9}
+              >
+                <LinearGradient colors={['#FEF2F2', '#fff']} className="flex-1 flex-row items-center px-5">
+                    <View className="w-[60px] h-[60px] rounded-[20px] bg-[#FEE2E2] justify-center items-center mr-4">
+                        <Ionicons name="skull" size={28} color="#ef4444" />
+                    </View>
+                    <View className="flex-1">
+                        <Text className="text-sm font-black text-[#1A1A1A] uppercase tracking-[0.5px] mb-1">TRIVIA SURVIVAL</Text>
+                        <Text className="text-[10px] text-[#64748B] leading-[14px] font-medium">Health drains quickly. Answer right to survive.</Text>
+                    </View>
+                    <View className="w-8 h-8 rounded-xl bg-[#FEE2E2] justify-center items-center ml-2">
+                        <Ionicons name="arrow-forward" size={16} color="#ef4444" />
+                    </View>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
                 onPress={() => setActiveGame('bottle')} 
                 className="h-[120px] rounded-[32px] overflow-hidden border border-[#F1F5F9] shadow-sm"
                 activeOpacity={0.9}
@@ -69,6 +94,25 @@ const PartyPoolHub = () => {
                     </View>
                     <View className="w-8 h-8 rounded-xl bg-[#FFEDD5] justify-center items-center ml-2">
                         <Ionicons name="arrow-forward" size={16} color="#f97316" />
+                    </View>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                onPress={() => setActiveGame('chess')} 
+                className="h-[120px] rounded-[32px] overflow-hidden border border-[#F1F5F9] shadow-sm"
+                activeOpacity={0.9}
+              >
+                <LinearGradient colors={['#F8FAFC', '#fff']} className="flex-1 flex-row items-center px-5">
+                    <View className="w-[60px] h-[60px] rounded-[20px] bg-zinc-900 justify-center items-center mr-4">
+                        <FontAwesome5 name="chess-knight" size={28} color="#fff" />
+                    </View>
+                    <View className="flex-1">
+                        <Text className="text-sm font-black text-[#1A1A1A] uppercase tracking-[0.5px] mb-1">FYNC CHESS</Text>
+                        <Text className="text-[10px] text-[#64748B] leading-[14px] font-medium">Challenge your friends or the AI to a rapid match.</Text>
+                    </View>
+                    <View className="w-8 h-8 rounded-xl bg-slate-100 justify-center items-center ml-2">
+                        <Ionicons name="arrow-forward" size={16} color="#1A1A1A" />
                     </View>
                 </LinearGradient>
               </TouchableOpacity>
@@ -126,6 +170,44 @@ const PartyPoolHub = () => {
                     </View>
                     <View className="w-8 h-8 rounded-xl bg-[#FCE7F3] justify-center items-center ml-2">
                         <Ionicons name="arrow-forward" size={16} color="#db2777" />
+                    </View>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                onPress={() => navigation.navigate('FlappyBird')} 
+                className="h-[120px] rounded-[32px] overflow-hidden border border-[#F1F5F9] shadow-sm"
+                activeOpacity={0.9}
+              >
+                <LinearGradient colors={['#F0FDF4', '#fff']} className="flex-1 flex-row items-center px-5">
+                    <View className="w-[60px] h-[60px] rounded-[20px] bg-[#DCFCE7] justify-center items-center mr-4">
+                        <Ionicons name="logo-twitter" size={28} color="#22c55e" />
+                    </View>
+                    <View className="flex-1">
+                        <Text className="text-sm font-black text-[#1A1A1A] uppercase tracking-[0.5px] mb-1">FLAPPY BIRD</Text>
+                        <Text className="text-[10px] text-[#64748B] leading-[14px] font-medium">Navigate the bird through obstacles to achieve high scores.</Text>
+                    </View>
+                    <View className="w-8 h-8 rounded-xl bg-[#DCFCE7] justify-center items-center ml-2">
+                        <Ionicons name="arrow-forward" size={16} color="#22c55e" />
+                    </View>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                onPress={() => navigation.navigate('DrawAndGuess')} 
+                className="h-[120px] rounded-[32px] overflow-hidden border border-[#F1F5F9] shadow-sm"
+                activeOpacity={0.9}
+              >
+                <LinearGradient colors={['#EFF6FF', '#fff']} className="flex-1 flex-row items-center px-5">
+                    <View className="w-[60px] h-[60px] rounded-[20px] bg-[#DBEAFE] justify-center items-center mr-4">
+                        <Ionicons name="color-palette" size={28} color="#3b82f6" />
+                    </View>
+                    <View className="flex-1">
+                        <Text className="text-sm font-black text-[#1A1A1A] uppercase tracking-[0.5px] mb-1">DRAW & GUESS</Text>
+                        <Text className="text-[10px] text-[#64748B] leading-[14px] font-medium">Multiplayer Pictionary. Draw the word or guess the drawing.</Text>
+                    </View>
+                    <View className="w-8 h-8 rounded-xl bg-[#DBEAFE] justify-center items-center ml-2">
+                        <Ionicons name="arrow-forward" size={16} color="#3b82f6" />
                     </View>
                 </LinearGradient>
               </TouchableOpacity>

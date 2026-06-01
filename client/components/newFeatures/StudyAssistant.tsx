@@ -97,7 +97,7 @@ export default function StudyAssistant() {
 
             <SafeAreaView className="flex-1">
                 <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    behavior="padding"
                     className="flex-1 px-8"
                 >
                     {/* --- CUSTOM HEADER --- */}

@@ -148,7 +148,7 @@ const CreateOpportunity = () => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior="padding"
         className="flex-1"
       >
         <View className="px-6 py-4 border-b border-gray-100 flex-row items-center justify-between">

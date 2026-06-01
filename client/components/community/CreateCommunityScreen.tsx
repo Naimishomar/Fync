@@ -202,7 +202,7 @@ const CreateCommunityScreen = () => {
 
     return (
         <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            behavior="padding"
             className="flex-1 bg-black/60"
         >
             <StatusBar barStyle="light-content" />

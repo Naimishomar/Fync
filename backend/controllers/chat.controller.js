@@ -76,31 +76,41 @@ export const getMessages = async (req, res) => {
 
 
 export const getConversations = async (req, res) => {
-  const userId = req.user.id;
+  try {
+    const userId = req.user.id;
 
-  const conversations = await Conversation.find({
-    participants: userId,
-    lastMessage: { $exists: true, $ne: null }
-  })
-    .populate("participants", "name username avatar")
-    .populate("lastMessage")
-    .sort({ updatedAt: -1 })
-    .lean();
+    const conversations = await Conversation.find({
+      participants: userId,
+      lastMessage: { $exists: true, $ne: null }
+    })
+      .populate("participants", "name username avatar")
+      .populate("lastMessage")
+      .sort({ updatedAt: -1 })
+      .lean();
 
-  res.json({ success: true, conversations });
+    res.json({ success: true, conversations });
+  } catch (error) {
+    console.error("getConversations error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 };
 
 export const searchUsers = async (req, res) => {
-  const { q } = req.query;
+  try {
+    const { q } = req.query;
 
-  const users = await User.find({
-    $or: [
-      { username: { $regex: q, $options: "i" } },
-      { name: { $regex: q, $options: "i" } }
-    ]
-  }).select("username name avatar");
+    const users = await User.find({
+      $or: [
+        { username: { $regex: q, $options: "i" } },
+        { name: { $regex: q, $options: "i" } }
+      ]
+    }).select("username name avatar");
 
-  res.json({ success: true, users });
+    res.json({ success: true, users });
+  } catch (error) {
+    console.error("searchUsers error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 };
 
 export const startChat = async (req, res) => {

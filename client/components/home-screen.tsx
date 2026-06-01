@@ -200,7 +200,7 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
       <View className="flex-1 bg-black/40">
         <Pressable className="flex-1" onPress={onClose} />
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior="padding"
           className="w-full"
         >
           <View className="bg-white h-[650px] rounded-t-3xl w-full overflow-hidden">

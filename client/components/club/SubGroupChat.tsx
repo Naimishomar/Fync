@@ -288,7 +288,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                 </View>
 
                 {/* Input Area */}
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+                <KeyboardAvoidingView behavior="padding">
                     <View className="bg-white px-5 py-4 border-t border-zinc-100">
                         {canType ? (
                             <View className="flex-row items-end gap-3">

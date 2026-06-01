@@ -124,10 +124,13 @@ import EventCommunityChat from './components/events/EventCommunityChat';
 import CommunityListScreen from './components/community/CommunityListScreen';
 import CreateCommunityScreen from './components/community/CreateCommunityScreen';
 import CommunityHubScreen from './components/community/CommunityHubScreen';
+import FlappyBird from './components/games/FlappyBird';
+import DrawAndGuess from './components/games/DrawAndGuess';
+import GameLeaderboard from './components/games/GameLeaderboard';
 import SubCommunityChat from './components/community/SubCommunityChat';
 import ClubListScreen from './components/club/ClubListScreen';
 import ClubHubScreen from './components/club/ClubHubScreen';
-import CreateClubScreen from './components/club/CreateClubScreen';
+import CreateClubScreen from './components/club/CreateClubScreen'; 
 import CreateSubGroupScreen from './components/club/CreateSubGroupScreen';
 import EditSubGroupScreen from './components/club/EditSubGroupScreen';
 import SubGroupChat from './components/club/SubGroupChat';
@@ -154,14 +157,6 @@ const HackathonChannel = React.lazy(() => import('./components/hackathon/Hackath
 // Entertainment Module
 const EntertainmentHome = React.lazy(() => import('./components/entertainment/EntertainmentHome'));
 const MovieDetail = React.lazy(() => import('./components/entertainment/MovieDetail'));
-const TrailerReels = React.lazy(() => import('./components/entertainment/TrailerReels'));
-const MovieSearch = React.lazy(() => import('./components/entertainment/MovieSearch'));
-const MovieList = React.lazy(() => import('./components/entertainment/MovieList'));
-
-// Daily Hubs
-const DailyRoutineHubDashboard = React.lazy(() => import('./components/dailyHubs/DailyRoutineHubDashboard'));
-const PartyPoolHub = React.lazy(() => import('./components/partyPool/PartyPoolHub'));
-const SubscriptionScreen = React.lazy(() => import('./components/newFeatures/SubscriptionScreen'));
 
 // Secondary Screens
 const TermsAndCondition = React.lazy(() => import('./components/T&C'));
@@ -301,6 +296,9 @@ export type RootStackParamList = {
   CreateCommunity: undefined;
   CommunityHub: { communityId: string };
   SubCommunityChat: { subId: string; subName: string; communityId: string };
+  FlappyBird: undefined;
+  DrawAndGuess: undefined;
+  GameLeaderboard: undefined;
   ClubList: undefined;
   ClubHub: { clubId: string };
   CreateClub: undefined;
@@ -328,13 +326,7 @@ export type RootStackParamList = {
   // Entertainment Module
   EntertainmentHome: undefined;
   MovieDetail: { movieId: number };
-  TrailerReels: { movies?: any[], initialIndex?: number };
-  MovieSearch: undefined;
-  MovieList: { title: string; type: 'trending' | 'popular' | 'upcoming' | 'bollywood' };
-  // Daily Hubs
-  DailyRoutineHub: undefined;
-  PartyPool: undefined;
-  SubscriptionScreen: undefined;
+
 };
 
 
@@ -489,6 +481,12 @@ function AppStack() {
       <Stack.Screen name="DSAAndDevelopmentContest" component={DSAAndDevelopmentContest} />
       <Stack.Screen name="ContactUs" component={ContactUs} />
       <Stack.Screen name="MeetOurTeam" component={MeetOurTeam} />
+      
+      {/* GAMES */}
+      <Stack.Screen name="FlappyBird" component={FlappyBird} options={{ headerShown: false }} />
+      <Stack.Screen name="DrawAndGuess" component={DrawAndGuess} options={{ headerShown: false }} />
+      <Stack.Screen name="GameLeaderboard" component={GameLeaderboard} options={{ headerShown: false }} />
+      
       {/* Hackathon Ecosystem */}
       <Stack.Screen name="HackathonHub" component={HackathonHub} />
       <Stack.Screen name="HackathonCreate" component={HackathonCreate} />
@@ -504,14 +502,8 @@ function AppStack() {
       {/* Entertainment Module */}
       <Stack.Screen name="EntertainmentHome" component={EntertainmentHome} />
       <Stack.Screen name="MovieDetail" component={MovieDetail} />
-      <Stack.Screen name="TrailerReels" component={TrailerReels} />
-      <Stack.Screen name="MovieSearch" component={MovieSearch} />
-      <Stack.Screen name="MovieList" component={MovieList} />
       
-      {/* Daily Hubs */}
-      <Stack.Screen name="DailyRoutineHub" component={DailyRoutineHubDashboard} />
-      <Stack.Screen name="PartyPool" component={PartyPoolHub} />
-      <Stack.Screen name="SubscriptionScreen" component={SubscriptionScreen as any} />
+
     </Stack.Navigator>
   );
 }

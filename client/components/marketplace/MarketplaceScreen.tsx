@@ -257,7 +257,7 @@ const MarketplaceScreen = () => {
                         <View className="bg-white rounded-t-[48px] h-[75%] overflow-hidden shadow-2xl">
                             <View className="w-12 h-1.5 bg-slate-100 rounded-full self-center mt-4 mb-2" />
 
-                            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+                            <KeyboardAvoidingView behavior="padding" className="flex-1">
                                 <View className="px-8 py-6 border-b border-slate-50 flex-row justify-between items-center bg-white">
                                     <View>
                                         <Text className="text-2xl font-black text-zinc-900 uppercase tracking-tight">Checkout</Text>

@@ -138,7 +138,7 @@ export default function RecruiterProfileSetup() {
   return (
     <KeyboardAvoidingView 
       className="flex-1 bg-white" 
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior="padding"
     >
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 50 }}>
         <View className="px-6 pt-16 pb-6 bg-[#F3F4F6]">

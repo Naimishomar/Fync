@@ -113,7 +113,7 @@ export default function BunkOMeter() {
 
             <SafeAreaView className="flex-1" edges={['top']}>
                 <KeyboardAvoidingView
-                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    behavior="padding"
                     className="flex-1"
                 >
                     <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>

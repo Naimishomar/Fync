@@ -206,7 +206,7 @@ const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, on
     return (
         <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={onClose}>
             <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                behavior="padding"
                 className="flex-1 justify-end bg-black/60"
             >
                 <Pressable className="flex-1" onPress={onClose} />
@@ -727,7 +727,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             </Modal>
 
             <Modal visible={isEditing} transparent animationType="slide">
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1 bg-black/60">
+                <KeyboardAvoidingView behavior="padding" className="flex-1 bg-black/60">
                     <View className="flex-1" />
                     <View className="bg-white rounded-t-[40px] p-6 shadow-2xl">
                             <View className="flex-row justify-between items-center mb-6">

@@ -183,7 +183,7 @@ function AddEducationModal({ visible, initial, onClose, onSuccess }: {
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <KeyboardAvoidingView className="flex-1 bg-white" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView className="flex-1 bg-white" behavior="padding">
         <View className="flex-row items-center justify-between px-4 py-4 border-b border-gray-100">
           <Pressable onPress={onClose}><Ionicons name="close" size={24} color="#374151" /></Pressable>
           <Text className="font-bold text-gray-900 text-lg">{isEdit ? 'Edit Education' : 'Add Education'}</Text>
@@ -277,7 +277,7 @@ function CodingStatsModal({ visible, user, onClose, onSuccess }: {
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <KeyboardAvoidingView className="flex-1 bg-white" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView className="flex-1 bg-white" behavior="padding">
         <View className="flex-row items-center justify-between px-4 py-4 border-b border-gray-100">
           <Pressable onPress={onClose}><Ionicons name="close" size={24} color="#374151" /></Pressable>
           <Text className="font-bold text-gray-900 text-lg">Update Coding Stats</Text>

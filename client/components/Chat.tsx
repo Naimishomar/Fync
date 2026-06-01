@@ -12,9 +12,11 @@ import {
   TouchableOpacity,
   Dimensions,
   Linking,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import socket from "../utils/socket";
+import { supabase } from "../utils/supabase";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -44,6 +46,7 @@ const Chat = ({ route, navigation }: any) => {
   const [replyingTo, setReplyingTo] = useState<any>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   const insets = useSafeAreaInsets();
   const typingTimeout = useRef<any>(null);
@@ -84,85 +87,69 @@ const Chat = ({ route, navigation }: any) => {
       new Date(a.createdAt).getTime()
   );
 
-  /* ---------- SOCKET INIT ---------- */
+  /* ---------- SUPABASE INIT ---------- */
   useEffect(() => {
     fetchConversationUser();
 
-    const setupSocket = () => {
-      socket.emit("register", user._id);
-      socket.emit("join", { conversationId });
-      socket.emit("markSeen", {
-        conversationId,
-        userId: user._id,
-      });
-    };
-
-    setupSocket();
-    socket.on("connect", setupSocket);
-
-    socket.on("newMessage", (msg) => {
-      if (
-        msg.sender === user._id ||
-        msg.sender?._id === user._id
-      ) return;
-
-      setMessages((prev) => {
-        if (prev.find((m) => m._id === msg._id)) return prev;
-        return [msg, ...prev];
-      });
-
-      // ✅ AUTOMATICALLY SEEN: If screen is open, tell server we've read it
-
-      socket.emit("markSeen", {
-        conversationId,
-        userId: user._id,
-      });
-    });
-
-
-    // ✅ typing listeners
-    socket.on("userTyping", ({ userId: typingUserId }) => {
-      if (typingUserId !== user._id) {
-        setIsTyping(true);
-      }
-    });
-    socket.on("userStopTyping", ({ userId: typingUserId }) => {
-      if (typingUserId !== user._id) {
-        setIsTyping(false);
-      }
-    });
-
-    // ✅ seen listener - Only mark MY messages as seen when the other person reads them
-    socket.on("messagesSeen", ({ conversationId: seenId }) => {
-      if (seenId === conversationId) {
-        setMessages((prev) =>
-          prev.map(msg => {
-            const isMe = msg.sender === user._id || msg.sender?._id === user._id;
-            return isMe ? { ...msg, seen: true } : msg;
-          })
-        );
-      }
-    });
-
-    socket.on("messageDeleted", ({ messageId }) => {
-      setMessages((prev) => prev.filter(m => m._id !== messageId));
-    });
-
-    socket.on("statusUpdate", ({ userId, status }: { userId: string, status: string }) => {
-      setOnlineUsers(prev => {
-        const next = new Set(prev);
-        if (status === "online") next.add(userId);
-        else next.delete(userId);
-        return next;
-      });
-    });
-
-    socket.on("initialOnlineList", (list: string[]) => {
-      setOnlineUsers(new Set(list));
-    });
-
-
+    // 1. Fetch Initial Messages
     loadMessages();
+
+    const kbs = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const kbh = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+
+    // 2. Subscribe to New Messages via Supabase Realtime
+    const channel = supabase
+      .channel(`chat_${conversationId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversationId=eq.${conversationId}`
+        },
+        (payload) => {
+          const newMsg = payload.new;
+          // Ignore if we already appended it optimistically
+          if (newMsg.sender?._id === user._id) return;
+
+          setMessages((prev) => {
+            if (prev.find((m) => m._id === newMsg._id)) return prev;
+            return [newMsg, ...prev];
+          });
+          
+          // Mark as seen in Supabase (simulate read receipt)
+          supabase.from('messages').update({ seen: true }).eq('_id', newMsg._id).then();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversationId=eq.${conversationId}`
+        },
+        (payload) => {
+          // Handle read receipts
+          setMessages((prev) =>
+            prev.map((m) => (m._id === payload.new._id ? payload.new : m))
+          );
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversationId=eq.${conversationId}`
+        },
+        (payload) => {
+          setMessages((prev) => prev.filter(m => m._id !== payload.old._id));
+        }
+      )
+      .subscribe();
 
     // Hide tab bar when in chat
     const parent = navigation.getParent();
@@ -173,15 +160,9 @@ const Chat = ({ route, navigation }: any) => {
     }
 
     return () => {
-      socket.off("newMessage");
-      socket.off("userTyping");
-      socket.off("userStopTyping");
-      socket.off("messagesSeen");
-      socket.off("messageDeleted");
-      socket.off("statusUpdate");
-      socket.off("initialOnlineList");
-
-      socket.emit("leave", { conversationId }); // 🚀 Leave room to stop background events
+      kbs.remove();
+      kbh.remove();
+      supabase.removeChannel(channel);
 
       // Restore tab bar when leaving chat
       if (parent) {
@@ -211,19 +192,23 @@ const Chat = ({ route, navigation }: any) => {
     setLoadingMore(true);
 
     try {
-      const res = await axios.get(
-        `/chat/${conversationId}/messages`,
-        { params: { page, noCache: true } }
-      );
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversationId', conversationId)
+        .order('createdAt', { ascending: false })
+        .range((page - 1) * 20, page * 20 - 1);
 
+      if (error) throw error;
 
-      setMessages((prev) => {
-        const prevIds = new Set(prev.map(m => m._id));
-        const newUnique = res.data.messages.filter((m: any) => !prevIds.has(m._id));
-        return [...prev, ...newUnique];
-      });
-      setPage((prev) => prev + 1);
-
+      if (data) {
+        setMessages((prev) => {
+          const prevIds = new Set(prev.map(m => m._id));
+          const newUnique = data.filter((m: any) => !prevIds.has(m._id));
+          return [...prev, ...newUnique];
+        });
+        setPage((prev) => prev + 1);
+      }
     } catch (error) {
       console.log("Error loading messages", error);
     } finally {
@@ -233,34 +218,49 @@ const Chat = ({ route, navigation }: any) => {
   };
 
   /* ---------- SEND ---------- */
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!text.trim()) return;
 
     const tempMessage = {
       _id: Date.now().toString(),
+      conversationId,
       sender: user,
       message: text,
       createdAt: new Date().toISOString(),
+      replyTo: replyingTo || null,
       optimistic: true,
     };
 
     setMessages((prev) => [tempMessage, ...prev]);
-
-    socket.emit("sendMessage", {
-      conversationId,
-      senderId: user._id,
-      text,
-      replyTo: replyingTo?._id || null,
-    });
-
-    // stop typing when sent
-    socket.emit("stopTyping", {
-      conversationId,
-      userId: user._id,
-    });
-
     setText("");
     setReplyingTo(null);
+
+    // Save to Supabase
+    try {
+      // 1. Ensure conversation exists in Supabase (Upsert)
+      await supabase.from('conversations').upsert({
+        _id: conversationId,
+        participants: [user, otherUser],
+        lastMessage: tempMessage.message,
+        lastMessageSender: user._id,
+        updatedAt: tempMessage.createdAt
+      });
+
+      // 2. Insert message
+      const { data, error } = await supabase.from('messages').insert([{
+        conversationId,
+        sender: user,
+        message: tempMessage.message,
+        messageType: 'text',
+        replyTo: tempMessage.replyTo,
+      }]).select().single();
+
+      if (data) {
+        setMessages((prev) => prev.map(m => m._id === tempMessage._id ? data : m));
+      }
+    } catch (e) {
+      console.log("Failed to send", e);
+    }
   };
 
   const uploadMedia = async (uri: string, mimeType: string, type: string, fileName?: string) => {
@@ -347,25 +347,7 @@ const Chat = ({ route, navigation }: any) => {
   /* ---------- TYPING ---------- */
   const handleTyping = (value: string) => {
     setText(value);
-
-    const now = Date.now();
-    if (now - lastTypingSent.current > 3000) {
-      socket.emit("typing", {
-        conversationId,
-        userId: user._id,
-      });
-      lastTypingSent.current = now;
-    }
-
-    clearTimeout(typingTimeout.current);
-
-    typingTimeout.current = setTimeout(() => {
-      socket.emit("stopTyping", {
-        conversationId,
-        userId: user._id,
-      });
-      lastTypingSent.current = 0;
-    }, 2000);
+    // Realtime typing indicators can be implemented via Supabase Presence later.
   };
 
   const deleteMessage = (messageId: string) => {
@@ -376,10 +358,8 @@ const Chat = ({ route, navigation }: any) => {
         style: "destructive",
         onPress: async () => {
           try {
-            const res = await axios.delete(`/chat/message/${messageId}`);
-            if (res.data.success) {
-              setMessages((prev) => prev.filter((m) => m._id !== messageId));
-            }
+            await supabase.from('messages').delete().eq('_id', messageId);
+            setMessages((prev) => prev.filter((m) => m._id !== messageId));
           } catch (e) {
             console.log("Delete error", e);
           }
@@ -614,12 +594,13 @@ const Chat = ({ route, navigation }: any) => {
       </SafeAreaView>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 20}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-        <View style={{ flex: 1 }}>
-          {/* MESSAGE CONTAINER (ROUNDED CARD) */}
+        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+          <View style={{ flex: 1 }}>
+            {/* MESSAGE CONTAINER (ROUNDED CARD) */}
           <View className="flex-1 bg-white shadow-sm overflow-hidden border-t border-slate-200">
             {loading ? (
               <View className="flex-1 p-6">
@@ -661,7 +642,7 @@ const Chat = ({ route, navigation }: any) => {
           )}
 
           {/* INPUT AREA */}
-          <SafeAreaView edges={['bottom']}>
+          <View style={{ paddingBottom: isKeyboardVisible ? 20 : (insets.bottom > 0 ? insets.bottom : 12) }}>
             <View className="px-6 pb-2 pt-2 bg-white">
               <View className="flex-row items-center bg-gray-100 p-2 rounded-[28px] border border-slate-100 shadow-xl shadow-black/5">
                 <TouchableOpacity onPress={handlePickImage} className="w-10 h-10 items-center justify-center">
@@ -688,8 +669,9 @@ const Chat = ({ route, navigation }: any) => {
                 </TouchableOpacity>
               </View>
             </View>
-          </SafeAreaView>
+          </View>
         </View>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
       {/* FULL SCREEN IMAGE MODAL */}
       <Modal visible={!!selectedImage} transparent={true} animationType="fade">

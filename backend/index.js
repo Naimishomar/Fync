@@ -54,6 +54,7 @@ import opportunityRoute from './routes/opportunity.route.js';
 import arenaRoute from './routes/coding/arena.route.js';
 import arenaAdminRoute from './routes/coding/arenaAdmin.route.js';
 import entertainmentRoute from './routes/entertainment.routes.js';
+import gameRoute from './routes/game.route.js';
 import ContestManager from './services/contestManager.js';
 
 import { setCollegeChatIo } from './controllers/collegeChat.controller.js';
@@ -63,6 +64,7 @@ import { setEventCommunityIo } from './controllers/events/eventActivity.controll
 import { setCommunityIo } from './controllers/community/community.controller.js';
 import { setClubIo } from './controllers/club/message.controller.js';
 import { setChatIo } from './controllers/chat.controller.js';
+import { setChessIo } from './controllers/chess.socket.js';
 import { initCollegeChatCleanup } from './utils/collegeChatCleanup.js';
 import { initMentorshipCleanup } from './utils/mentorshipCleanup.js';
 import { initNightClubCleanup } from './utils/nightClubCleanup.js';
@@ -186,6 +188,7 @@ app.use('/profile', profileRoute);
 app.use('/arena', arenaRoute);
 app.use('/arena/admin', arenaAdminRoute);
 app.use('/entertainment', entertainmentRoute);
+app.use('/games', gameRoute);
 
 const startServer = async (retries = 5) => {
   try {
@@ -202,6 +205,7 @@ const startServer = async (retries = 5) => {
     setCommunityIo(io);
     setClubIo(io);
     setChatIo(io);
+    setChessIo(io);
 
     // 3. Initialize Monitors & Cleanups
     initCollegeChatCleanup();

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, Pressable, Linking, ActivityIndicator, Dimensions } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, Pressable, Linking, ActivityIndicator, Dimensions, Animated, Easing } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -36,6 +36,37 @@ export default function GitHubStatsCard({
   const updateLoading = (key: string, isLoading: boolean) => {
     setLoadingStates(prev => ({ ...prev, [key]: isLoading }));
   };
+
+  const spinValue = useRef(new Animated.Value(0)).current;
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSync = async () => {
+    if (!onSync || isSyncing) return;
+    setIsSyncing(true);
+    
+    const spinAnim = Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 1,
+        duration: 1000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+    spinAnim.start();
+
+    try {
+      await onSync();
+    } finally {
+      spinAnim.stop();
+      spinValue.setValue(0);
+      setIsSyncing(false);
+    }
+  };
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   if (!username && !isOwner) return null;
 
@@ -95,8 +126,10 @@ export default function GitHubStatsCard({
           </View>
           {isOwner && (
             <View className="flex-row gap-2">
-              <Pressable onPress={onSync} className="w-10 h-10 bg-slate-50 items-center justify-center rounded-xl border border-slate-100">
-                <Ionicons name="refresh" size={18} color="#18181b" />
+              <Pressable onPress={handleSync} disabled={isSyncing} className="w-10 h-10 bg-slate-50 items-center justify-center rounded-xl border border-slate-100">
+                <Animated.View style={{ transform: [{ rotate: spin }] }}>
+                  <Ionicons name="refresh" size={18} color="#18181b" />
+                </Animated.View>
               </Pressable>
               <Pressable onPress={onDisconnect} className="w-10 h-10 bg-rose-50 items-center justify-center rounded-xl border border-rose-100">
                 <Ionicons name="trash-outline" size={18} color="#ef4444" />

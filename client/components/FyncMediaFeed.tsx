@@ -1008,7 +1008,7 @@ export default function FyncMediaFeed() {
               </View>
 
               <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                behavior="padding"
                 className="flex-1"
               >
                 <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-100">
@@ -1120,7 +1120,7 @@ export default function FyncMediaFeed() {
         {/* Comment Modal */}
         <Modal visible={!!activeCommentMediaId} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setActiveCommentMediaId(null)}>
           <SafeAreaView className="flex-1 bg-white">
-            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1 bg-white">
+            <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white">
               <View className="flex-row justify-between items-center p-4 border-b border-gray-100 bg-white">
                 <Text className="font-black text-xl text-zinc-900">COMMENTS</Text>
                 <TouchableOpacity onPress={() => setActiveCommentMediaId(null)} className="p-1 bg-gray-50 rounded-full border border-gray-100">
