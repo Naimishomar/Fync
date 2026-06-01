@@ -157,6 +157,11 @@ const HackathonChannel = React.lazy(() => import('./components/hackathon/Hackath
 // Entertainment Module
 const EntertainmentHome = React.lazy(() => import('./components/entertainment/EntertainmentHome'));
 const MovieDetail = React.lazy(() => import('./components/entertainment/MovieDetail'));
+const TrailerReels = React.lazy(() => import('./components/entertainment/TrailerReels'));
+const MovieSearch = React.lazy(() => import('./components/entertainment/MovieSearch'));
+const MovieList = React.lazy(() => import('./components/entertainment/MovieList'));
+const PartyPoolHub = React.lazy(() => import('./components/partyPool/PartyPoolHub'));
+const SubscriptionScreen = React.lazy(() => import('./components/newFeatures/SubscriptionScreen'));
 
 // Secondary Screens
 const TermsAndCondition = React.lazy(() => import('./components/T&C'));
@@ -326,7 +331,11 @@ export type RootStackParamList = {
   // Entertainment Module
   EntertainmentHome: undefined;
   MovieDetail: { movieId: number };
-
+  TrailerReels: { movies?: any[], initialIndex?: number };
+  MovieSearch: undefined;
+  MovieList: { title: string; type: 'trending' | 'popular' | 'upcoming' | 'bollywood' };
+  PartyPool: undefined;
+  SubscriptionScreen: undefined;
 };
 
 
@@ -502,6 +511,11 @@ function AppStack() {
       {/* Entertainment Module */}
       <Stack.Screen name="EntertainmentHome" component={EntertainmentHome} />
       <Stack.Screen name="MovieDetail" component={MovieDetail} />
+      <Stack.Screen name="TrailerReels" component={TrailerReels} />
+      <Stack.Screen name="MovieSearch" component={MovieSearch} />
+      <Stack.Screen name="MovieList" component={MovieList} />
+      <Stack.Screen name="PartyPool" component={PartyPoolHub} />
+      <Stack.Screen name="SubscriptionScreen" component={SubscriptionScreen as any} />
       
 
     </Stack.Navigator>
