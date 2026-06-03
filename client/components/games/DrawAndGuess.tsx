@@ -25,6 +25,11 @@ const DrawAndGuess = () => {
   const batchedPoints = useRef<string[]>([]);
   const batchTimer = useRef<any>(null);
 
+  const matchDataRef = useRef(matchData);
+  useEffect(() => {
+    matchDataRef.current = matchData;
+  }, [matchData]);
+
   // --- SOCKET LISTENERS ---
   useEffect(() => {
     socket.on("draw_searching", () => {
@@ -126,8 +131,8 @@ const DrawAndGuess = () => {
   // --- DRAWING LOGIC (Throttled) ---
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => matchData?.role === "drawer",
-      onMoveShouldSetPanResponder: () => matchData?.role === "drawer",
+      onStartShouldSetPanResponder: () => matchDataRef.current?.role === "drawer",
+      onMoveShouldSetPanResponder: () => matchDataRef.current?.role === "drawer",
       onPanResponderGrant: (evt) => {
         const { locationX, locationY } = evt.nativeEvent;
         const point = `${locationX},${locationY}`;
@@ -142,14 +147,18 @@ const DrawAndGuess = () => {
 
         // Throttle sending to server (batch every 10 points)
         if (batchedPoints.current.length > 10) {
-          socket.emit("send_draw_data", { roomId: matchData.roomId, strokes: batchedPoints.current });
+          if (matchDataRef.current?.roomId) {
+            socket.emit("send_draw_data", { roomId: matchDataRef.current.roomId, strokes: batchedPoints.current });
+          }
           setPaths(prev => [...prev, batchedPoints.current]);
           batchedPoints.current = [];
         }
       },
       onPanResponderRelease: () => {
         if (batchedPoints.current.length > 0) {
-          socket.emit("send_draw_data", { roomId: matchData.roomId, strokes: batchedPoints.current });
+          if (matchDataRef.current?.roomId) {
+            socket.emit("send_draw_data", { roomId: matchDataRef.current.roomId, strokes: batchedPoints.current });
+          }
           setPaths(prev => [...prev, batchedPoints.current]);
         }
         setCurrentPath([]);

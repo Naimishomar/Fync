@@ -21,6 +21,7 @@ import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { CommentSkeleton } from "./Skeleton";
+import socket from "../utils/socket";
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
@@ -91,6 +92,40 @@ const Chat = ({ route, navigation }: any) => {
   useEffect(() => {
     fetchConversationUser();
 
+    // Reset unread count when opening chat
+    supabase.from('conversations').select('unreadCount').eq('_id', conversationId).single().then(({ data }) => {
+       if (data && data.unreadCount && data.unreadCount[user._id] > 0) {
+          supabase.from('conversations').update({
+             unreadCount: { ...data.unreadCount, [user._id]: 0 }
+          }).eq('_id', conversationId).then();
+       }
+    });
+
+    // Join Socket Room for transient events
+    socket.emit("join", { conversationId });
+    socket.emit("register", user._id); // ensure registered for online status
+
+    // Listen to typing events
+    socket.on("user_typing", ({ username }) => {
+      setIsTyping(true);
+    });
+    socket.on("user_stop_typing", () => {
+      setIsTyping(false);
+    });
+
+    // Listen to online status
+    socket.on("statusUpdate", ({ userId, status }: { userId: string, status: string }) => {
+      setOnlineUsers(prev => {
+        const next = new Set(prev);
+        if (status === "online") next.add(userId);
+        else next.delete(userId);
+        return next;
+      });
+    });
+    socket.on("initialOnlineList", (list: string[]) => {
+      setOnlineUsers(new Set(list));
+    });
+
     // 1. Fetch Initial Messages
     loadMessages();
 
@@ -120,6 +155,15 @@ const Chat = ({ route, navigation }: any) => {
           
           // Mark as seen in Supabase (simulate read receipt)
           supabase.from('messages').update({ seen: true }).eq('_id', newMsg._id).then();
+          
+          // Also clear unread count for this user when receiving a message while open
+          supabase.from('conversations').select('unreadCount').eq('_id', conversationId).single().then(({ data }) => {
+             if (data && data.unreadCount) {
+                supabase.from('conversations').update({
+                   unreadCount: { ...data.unreadCount, [user._id]: 0 }
+                }).eq('_id', conversationId).then();
+             }
+          });
         }
       )
       .on(
@@ -163,6 +207,10 @@ const Chat = ({ route, navigation }: any) => {
       kbs.remove();
       kbh.remove();
       supabase.removeChannel(channel);
+      socket.off("user_typing");
+      socket.off("user_stop_typing");
+      socket.off("statusUpdate");
+      socket.off("initialOnlineList");
 
       // Restore tab bar when leaving chat
       if (parent) {
@@ -237,13 +285,29 @@ const Chat = ({ route, navigation }: any) => {
 
     // Save to Supabase
     try {
-      // 1. Ensure conversation exists in Supabase (Upsert)
+      // Send Push Notification via backend socket
+      if (otherUser) {
+        socket.emit("chat_notify", { 
+          receiverId: otherUser._id, 
+          title: user.name, 
+          body: text 
+        });
+      }
+
+      // 1. Ensure conversation exists in Supabase (Upsert) and increment unreadCount
+      const { data: convData } = await supabase.from('conversations').select('unreadCount').eq('_id', conversationId).single();
+      const currentUnread = convData?.unreadCount?.[otherUser?._id] || 0;
+
       await supabase.from('conversations').upsert({
         _id: conversationId,
         participants: [user, otherUser],
         lastMessage: tempMessage.message,
         lastMessageSender: user._id,
-        updatedAt: tempMessage.createdAt
+        updatedAt: tempMessage.createdAt,
+        unreadCount: {
+           ...(convData?.unreadCount || {}),
+           [otherUser?._id]: currentUnread + 1
+        }
       });
 
       // 2. Insert message
@@ -289,6 +353,15 @@ const Chat = ({ route, navigation }: any) => {
     setMessages(prev => [tempMsg, ...prev]);
 
     try {
+      // Send Push Notification via backend socket
+      if (otherUser) {
+        socket.emit("chat_notify", { 
+          receiverId: otherUser._id, 
+          title: user.name, 
+          body: `Sent a ${type}` 
+        });
+      }
+
       const res = await axios.post("/chat/send", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -347,7 +420,17 @@ const Chat = ({ route, navigation }: any) => {
   /* ---------- TYPING ---------- */
   const handleTyping = (value: string) => {
     setText(value);
-    // Realtime typing indicators can be implemented via Supabase Presence later.
+    
+    // Emit typing indicator to socket
+    if (Date.now() - lastTypingSent.current > 2000) {
+      socket.emit("typing", { conversationId, username: user.username });
+      lastTypingSent.current = Date.now();
+    }
+    
+    if (typingTimeout.current) clearTimeout(typingTimeout.current);
+    typingTimeout.current = setTimeout(() => {
+      socket.emit("stopTyping", { conversationId, username: user.username });
+    }, 2000);
   };
 
   const deleteMessage = (messageId: string) => {
@@ -385,8 +468,8 @@ const Chat = ({ route, navigation }: any) => {
               <Image
                 source={{
                   uri: isMe
-                    ? (user.avatar || `https://ui-avatars.com/api/?name=${user.username}&background=333&color=fff`)
-                    : (item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}&background=f97316&color=fff`),
+                    ? (user?.avatar || `https://ui-avatars.com/api/?name=${user?.username}&background=333&color=fff`)
+                    : (item.sender?.avatar || `https://ui-avatars.com/api/?name=${item.sender?.username || 'U'}&background=f97316&color=fff`),
                 }}
                 className="w-full h-full"
               />

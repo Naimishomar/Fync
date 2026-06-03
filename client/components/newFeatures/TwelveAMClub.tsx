@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, Image, KeyboardAvoidingView, Platform, StatusBar, Alert, ActivityIndicator, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -158,9 +158,11 @@ export default function TwelveAMClub() {
   const skipMatch = () => {
       if (!CURRENT_USER_ID || !matchRoomId) return;
       socket.emit("skip_night_1v1", { userId: CURRENT_USER_ID, roomId: matchRoomId });
+      
+      // Clear current match and immediately requeue by invoking findMatch
       setMatchRoomId(null);
       setPrivateMessages([]);
-      setIsSearching(true);
+      findMatch();
   };
 
   const processAndSendMedia = async (uri: string) => {
@@ -270,7 +272,7 @@ export default function TwelveAMClub() {
     setReplyingTo(null);
   };
 
-  const renderMessage = ({ item }: { item: any }) => {
+  const renderMessage = useCallback(({ item }: { item: any }) => {
     const isMe = (mode === 'global' ? item.sender._id : item.senderId) === CURRENT_USER_ID;
     const identity = mode === 'global' ? getNightIdentity(item.sender._id) : { username: "Stranger", avatar: "https://api.dicebear.com/9.x/fun-emoji/png?seed=stranger" };
 
@@ -326,7 +328,7 @@ export default function TwelveAMClub() {
             </View>
         </View>
     );
-};
+  }, [mode, CURRENT_USER_ID, setReplyingTo]);
 
   if (!isOpen) {
     return (

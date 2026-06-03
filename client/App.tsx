@@ -142,32 +142,32 @@ import PlacementPredictor from './components/newFeatures/PlacementPredictor';
 import DSAAndDevelopmentContest from './components/contest/DSAAndDevelopmentContest';
 
 // Profile Builder
-const FyncProfileBuilder = React.lazy(() => import('./components/profile/FyncProfileBuilder'));
+import FyncProfileBuilder from './components/profile/FyncProfileBuilder';
 
 // Hackathon Ecosystem
-const HackathonHub = React.lazy(() => import('./components/hackathon/HackathonHub'));
-const HackathonCreate = React.lazy(() => import('./components/hackathon/HackathonCreate'));
-const HackathonDetail = React.lazy(() => import('./components/hackathon/HackathonDetail'));
-const HackathonTeamScreen = React.lazy(() => import('./components/hackathon/HackathonTeamScreen'));
-const HackathonSubmission = React.lazy(() => import('./components/hackathon/HackathonSubmission'));
-const HackathonLeaderboard = React.lazy(() => import('./components/hackathon/HackathonLeaderboard'));
-const HackathonJudgePanel = React.lazy(() => import('./components/hackathon/HackathonJudgePanel'));
-const HackathonChannel = React.lazy(() => import('./components/hackathon/HackathonChannel'));
+import HackathonHub from './components/hackathon/HackathonHub';
+import HackathonCreate from './components/hackathon/HackathonCreate';
+import HackathonDetail from './components/hackathon/HackathonDetail';
+import HackathonTeamScreen from './components/hackathon/HackathonTeamScreen';
+import HackathonSubmission from './components/hackathon/HackathonSubmission';
+import HackathonLeaderboard from './components/hackathon/HackathonLeaderboard';
+import HackathonJudgePanel from './components/hackathon/HackathonJudgePanel';
+import HackathonChannel from './components/hackathon/HackathonChannel';
 
 // Entertainment Module
-const EntertainmentHome = React.lazy(() => import('./components/entertainment/EntertainmentHome'));
-const MovieDetail = React.lazy(() => import('./components/entertainment/MovieDetail'));
-const TrailerReels = React.lazy(() => import('./components/entertainment/TrailerReels'));
-const MovieSearch = React.lazy(() => import('./components/entertainment/MovieSearch'));
-const MovieList = React.lazy(() => import('./components/entertainment/MovieList'));
-const PartyPoolHub = React.lazy(() => import('./components/partyPool/PartyPoolHub'));
-const SubscriptionScreen = React.lazy(() => import('./components/newFeatures/SubscriptionScreen'));
+import EntertainmentHome from './components/entertainment/EntertainmentHome';
+import MovieDetail from './components/entertainment/MovieDetail';
+import TrailerReels from './components/entertainment/TrailerReels';
+import MovieSearch from './components/entertainment/MovieSearch';
+import MovieList from './components/entertainment/MovieList';
+import PartyPoolHub from './components/partyPool/PartyPoolHub';
+import SubscriptionScreen from './components/newFeatures/SubscriptionScreen';
 
 // Secondary Screens
-const TermsAndCondition = React.lazy(() => import('./components/T&C'));
-const ContactUs = React.lazy(() => import('./components/ContactUs'));
-const MeetOurTeam = React.lazy(() => import('./components/MeetOurTeam'));
-const AdminPortal = React.lazy(() => import('./components/admin/AdminPortal'));
+import TermsAndCondition from './components/T&C';
+import ContactUs from './components/ContactUs';
+import MeetOurTeam from './components/MeetOurTeam';
+import AdminPortal from './components/admin/AdminPortal';
 
 // Daily Hub Utilities
 import './utils/commuteGuardTask';
@@ -539,7 +539,7 @@ function RootNavigator() {
   }
 
   return (
-    <React.Suspense fallback={<SplashScreen />}>
+    <>
       {isLoggedIn ? (
         <SubscriptionGuard>
           <AppStack />
@@ -547,7 +547,7 @@ function RootNavigator() {
       ) : (
         <AuthStack />
       )}
-    </React.Suspense>
+    </>
   );
 }
 

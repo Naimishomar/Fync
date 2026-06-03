@@ -22,6 +22,10 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
     const [gameOver, setGameOver] = useState(false);
     const [botThinking, setBotThinking] = useState(false);
     const [isInitializing, setIsInitializing] = useState(true);
+    
+    // 1 minute timer state
+    const [timeLeft, setTimeLeft] = useState(60);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         // Simulate loading time for board and connection setup
@@ -36,9 +40,19 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
         if (gameMode === 'pvp' && socket) {
             socket.on('chess_move_received', ({ move, fen }: any) => {
                 chess.load(fen);
-                chessboardRef.current?.move({ from: move.substring(0, 2), to: move.substring(2, 4) });
+                // `move` is now an object { from, to, promotion, san }
+                chessboardRef.current?.move({ from: move.from, to: move.to });
                 setIsMyTurn(true);
+                setTimeLeft(60);
                 checkEndGame();
+            });
+
+            socket.on('chess_turn_skipped', ({ fen }: any) => {
+                // Opponent ran out of time, their turn was skipped.
+                // We load the mutated FEN
+                chess.load(fen);
+                setIsMyTurn(true);
+                setTimeLeft(60);
             });
 
             socket.on('chess_game_over', ({ reason, winnerId }: any) => {
@@ -56,12 +70,46 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
 
         return () => {
             clearTimeout(timer);
+            if (timerRef.current) clearInterval(timerRef.current);
             if (socket) {
                 socket.off('chess_move_received');
+                socket.off('chess_turn_skipped');
                 socket.off('chess_game_over');
             }
         };
     }, []);
+
+    // Timer Logic
+    useEffect(() => {
+        if (!isMyTurn || gameOver || isInitializing) {
+            if (timerRef.current) clearInterval(timerRef.current);
+            return;
+        }
+
+        timerRef.current = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(timerRef.current!);
+                    handleTurnTimeout();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
+    }, [isMyTurn, gameOver, isInitializing]);
+
+    const handleTurnTimeout = () => {
+        // Skip our turn because time ran out
+        if (gameMode === 'pvp' && socket) {
+            socket.emit('chess_skip_turn', { matchRoomId: matchDetails.matchRoomId, userId: user?._id });
+        }
+        setIsMyTurn(false);
+        setTimeLeft(60);
+    };
 
     const checkEndGame = () => {
         if (chess.isGameOver()) {
@@ -134,11 +182,13 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
 
             if (moveObj) {
                 setIsMyTurn(false);
+                setTimeLeft(60); // Reset our timer since we moved
                 
                 if (gameMode === 'pvp' && socket) {
                     socket.emit('chess_move', {
                         matchRoomId: matchDetails.matchRoomId,
-                        move: moveObj.san,
+                        // Send the full move object instead of just SAN so the other side can parse it
+                        move: { from: moveObj.from, to: moveObj.to, promotion: moveObj.promotion, san: moveObj.san },
                         fen: chess.fen(),
                         userId: user?._id
                     });
@@ -211,6 +261,11 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                                         <ActivityIndicator color="#f97316" size="small" />
                                     </View>
                                 )}
+                                {!botThinking && !isMyTurn && gameMode === 'pvp' && (
+                                    <View className="bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+                                        <Text className="text-zinc-600 font-black text-xs uppercase tracking-widest">{timeLeft}s</Text>
+                                    </View>
+                                )}
                             </View>
 
                             {/* Chess Board */}
@@ -246,6 +301,13 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                                         </View>
                                     </View>
                                 </View>
+                                
+                                {isMyTurn && gameMode === 'pvp' && (
+                                    <View className="absolute left-1/2 -ml-6 bg-red-100 px-4 py-2 rounded-xl border border-red-200 shadow-sm">
+                                        <Text className={`font-black text-lg ${timeLeft <= 10 ? 'text-red-600' : 'text-red-500'}`}>{timeLeft}s</Text>
+                                    </View>
+                                )}
+
                                 <TouchableOpacity 
                                     onPress={handleResign}
                                     className="w-12 h-12 bg-red-50 rounded-2xl items-center justify-center border border-red-100 shadow-sm"

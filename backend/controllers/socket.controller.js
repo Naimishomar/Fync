@@ -108,7 +108,25 @@ export const socketController = (io) => {
     });
 
     // Socket Chat Handlers (Migrated to Supabase)
-    // sendMessage, markSeen, typing, stopTyping, deleteMessage have been removed.
+    // sendMessage, markSeen, deleteMessage have been removed as Supabase handles the database layer.
+    // However, we still use Socket.IO for transient events (typing, notifications).
+    socket.on("typing", ({ conversationId, username }) => {
+      if (!conversationId) return;
+      socket.to(conversationId).emit("user_typing", { username });
+    });
+
+    socket.on("stopTyping", ({ conversationId, username }) => {
+      if (!conversationId) return;
+      socket.to(conversationId).emit("user_stop_typing", { username });
+    });
+
+    socket.on("chat_notify", async ({ receiverId, title, body }) => {
+      try {
+        await sendPushNotification(receiverId, title, body, { type: "chat" });
+      } catch (err) {
+        console.error("Chat notify error", err);
+      }
+    });
     
     // --- ECHO COMMUNITIES ---
     socket.on("join_echo_room", ({ subId }) => {
@@ -422,11 +440,18 @@ export const socketController = (io) => {
     // --- 🌙 THE 12 AM CLUB LOGIC ---
 
     const checkClubStatus = () => {
-      const now = new Date();
-      const hour = now.getHours();
-      const isOpen = hour >= 0 && hour < 6; // 00:00 to 05:59
+      try {
+        const now = new Date();
+        const dateStr = now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hourCycle: 'h23' });
+        const hourMatch = dateStr.match(/,\s*(\d+):/);
+        let hour = hourMatch ? parseInt(hourMatch[1], 10) : now.getHours();
+        const isOpen = hour >= 0 && hour < 6; // 00:00 to 05:59
 
-      return { isOpen, hour };
+        return { isOpen, hour };
+      } catch (e) {
+        const hour = new Date().getHours();
+        return { isOpen: hour >= 0 && hour < 6, hour };
+      }
     };
 
     socket.on("join_night_club", async () => {
@@ -450,11 +475,15 @@ export const socketController = (io) => {
       const roomId = "night_club_global"; // Single global room
       socket.join(roomId);
 
-      // Load ephemeral history (only what hasn't expired yet)
-      const history = await NightMessage.find()
-        .sort({ createdAt: 1 })
-        .populate("sender", "name username avatar")
-        .limit(100);
+      // Load ephemeral history directly from Redis (lightning fast)
+      let historyStrs = [];
+      try {
+        historyStrs = await redisClient.lRange("night_club:history", 0, 99);
+      } catch (e) {
+        console.error("Redis history fetch error", e);
+      }
+      
+      const history = historyStrs.map(str => JSON.parse(str)).reverse();
 
       socket.emit("night_club_joined", {
         history,
@@ -473,22 +502,43 @@ export const socketController = (io) => {
       }
 
       try {
-        let nightMsg = await NightMessage.create({
-          sender: senderId,
+        // 1. Highly Optimized User Caching (Bypass MongoDB)
+        let senderStr = await redisClient.get(`user_cache:${senderId}`);
+        let sender;
+        if (!senderStr) {
+          sender = await User.findById(senderId).select("name username avatar").lean();
+          if (sender) await redisClient.set(`user_cache:${senderId}`, JSON.stringify(sender), { EX: 3600 });
+        } else {
+          sender = JSON.parse(senderStr);
+        }
+
+        if (!sender) return;
+
+        // 2. Build Message Object
+        const msgObj = {
+          _id: nanoid(10), // Unique ID without MongoDB
+          tempId: tempId || null,
+          sender: { _id: sender._id, name: sender.name, username: sender.username, avatar: sender.avatar },
           message: text?.trim() || "",
           messageType: type || 'text',
           fileUrl: mediaUrl || "",
-          replyTo: replyTo || null
-        });
-        nightMsg = await nightMsg.populate("sender", "name username avatar");
-        let msgObj = nightMsg.toObject();
-        if (tempId) {
-          msgObj.tempId = tempId;
+          replyTo: replyTo || null,
+          createdAt: new Date().toISOString()
+        };
+
+        // 3. Push to Redis & Cap at 100
+        await redisClient.lPush("night_club:history", JSON.stringify(msgObj));
+        await redisClient.lTrim("night_club:history", 0, 99);
+
+        // 4. Track images for the 6AM deletion sweep
+        if (mediaUrl) {
+          await redisClient.lPush("night_club:images", mediaUrl);
         }
+
         io.to("night_club_global").emit("new_night_message", msgObj);
 
       } catch (err) {
-        console.error("Night chat error:", err);
+        console.error("Night chat redis storage error:", err);
       }
     });
 
@@ -554,8 +604,9 @@ export const socketController = (io) => {
       const { isOpen } = checkClubStatus();
       if (!isOpen) return;
 
-      // Broadcast to partner in the private room
+      // Broadcast to partner in the private room with a unique ID for flatlist performance
       socket.to(roomId).emit("new_night_1v1_message", {
+        _id: nanoid(10), // Required for heavily optimized FlatList rendering on frontend
         senderId,
         message: text,
         messageType: type || 'text',
@@ -568,9 +619,6 @@ export const socketController = (io) => {
       socket.leave(roomId);
       socket.to(roomId).emit("night_1v1_partner_left");
       await redisClient.del(`user:night_1v1:${userId}`);
-      
-      // Trigger new search automatically
-      socket.emit("find_night_1v1", { userId });
     });
 
     socket.on("leave_night_1v1", async ({ userId, roomId }) => {

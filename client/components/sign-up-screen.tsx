@@ -114,27 +114,29 @@ export default function SignUpScreen() {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView 
-        behavior="padding"
-        style={{ flex: 1 }}
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={{ flex: 1 }}
+    >
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1 }} 
+        scrollEnabled={false} 
+        keyboardShouldPersistTaps="handled"
       >
-        <View className="flex-1 bg-[#F3F4F6]">
-          {/* Background */}
-          <ScrollView
-            contentContainerStyle={{ flexGrow: 1 }}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
+        <View className="flex-1 bg-[#F3F4F6] justify-end">
+          
+          {/* Background Image that shrinks */}
+          <View style={{ flex: 1, minHeight: 0 }}>
             <Image
               source={{ uri: 'https://i.pinimg.com/1200x/92/58/94/92589457f3c282c151c8da76c50a1316.jpg' }}
-              style={{ width: '100%', height: 400 }}
+              style={{ width: '100%', height: '100%' }}
               className="rounded-2xl"
               resizeMode="cover"
             />
+          </View>
 
-            {/* Signup Sheet */}
-            <View className="flex-1 rounded-t-[50px] bg-white px-6 pt-8 pb-12 -mt-10">
+          {/* Signup Sheet */}
+          <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-12 -mt-10">
               <Image source={require('../assets/Fync.png')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
               <Text className="text-gray-500 mb-2">Join the exclusive student network</Text>
 
@@ -235,16 +237,15 @@ export default function SignUpScreen() {
                 </Pressable>
               )}
 
-              <View className="mt-3 flex-row justify-center">
+              <View className="mt-3 flex-row justify-center mb-5">
                 <Text className="text-gray-600">Already have an account? </Text>
                 <Pressable onPress={() => navigation.navigate('Login')}>
                   <Text className="font-semibold text-black">Login</Text>
                 </Pressable>
               </View>
-            </View>
-          </ScrollView>
+          </View>
         </View>
-      </KeyboardAvoidingView>
-    </TouchableWithoutFeedback>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

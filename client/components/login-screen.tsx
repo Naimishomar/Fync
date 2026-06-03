@@ -39,6 +39,7 @@ export default function LoginScreen() {
       Toast.show({
         type: 'success',
         text1: 'Logged in successfully!',
+
       });
     } catch (error: any) {
       Toast.show({
@@ -52,28 +53,28 @@ export default function LoginScreen() {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView 
-        behavior="padding"
-        style={{ flex: 1 }}
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={{ flex: 1 }}
+    >
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1 }} 
+        scrollEnabled={false} 
+        keyboardShouldPersistTaps="handled"
       >
-        <View className="flex-1 bg-white">
-          {/* Background Feed */}
-          <ScrollView
-            contentContainerStyle={{ flexGrow: 1 }}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View className="">
+        <View className="flex-1 bg-white justify-end">
+          
+          {/* Top Image that shrinks */}
+          <View style={{ flex: 1, minHeight: 0 }}>
               <Image
                 source={{ uri: 'https://i.pinimg.com/1200x/d8/39/f1/d839f11ee984f4a725af419b6237af35.jpg' }}
-                style={{ width: '100%', height: 400 }}
+                style={{ width: '100%', height: '100%' }}
                 resizeMode="cover"
               />
-            </View>
+          </View>
 
-            {/* Login Sheet */}
-            <View className="flex-1 rounded-t-[50px] bg-white px-6 pt-8 pb-7 -mt-10">
+          {/* Login Sheet */}
+          <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-7 -mt-10">
               <Image source={require('../assets/Fync.png')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
               <Text className="text-gray-500 mb-2">Login to the exclusive student network</Text>
 
@@ -131,7 +132,7 @@ export default function LoginScreen() {
                 </Pressable>
               </View>
 
-              <View className="mt-4 border-t border-gray-50 pt-4">
+              <View className="mt-4 border-t border-gray-50 pt-4 pb-6">
                  <Text className="text-center text-gray-500 mb-3 text-xs uppercase tracking-widest font-bold">Other ways to join</Text>
                  <View className="flex-row gap-3">
                     <Pressable 
@@ -148,10 +149,9 @@ export default function LoginScreen() {
                     </Pressable>
                  </View>
               </View>
-            </View>
-          </ScrollView>
+          </View>
         </View>
-      </KeyboardAvoidingView>
-    </TouchableWithoutFeedback>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

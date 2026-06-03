@@ -101,7 +101,8 @@ export const setChessIo = (io) => {
         // chess.js validation is fast
         const chess = new Chess(gameData.fen);
         try {
-          chess.move(move); // Will throw if invalid
+          // If move is an object { from, to, promotion }, it works. If string, it works.
+          chess.move(move); 
         } catch (e) {
           socket.emit("chess_error", "Invalid move");
           return;
@@ -143,6 +144,29 @@ export const setChessIo = (io) => {
 
       } catch (err) {
         console.error("Chess Move Error:", err);
+      }
+    });
+
+    socket.on("chess_skip_turn", async ({ matchRoomId, userId }) => {
+      try {
+        const gameDataStr = await redisClient.get(matchRoomId);
+        if (!gameDataStr) return;
+        
+        const gameData = JSON.parse(gameDataStr);
+        const chess = new Chess(gameData.fen);
+        
+        // Skip turn by mutating the FEN manually (since chess.js doesn't natively support passing turns)
+        let fenParts = chess.fen().split(" ");
+        fenParts[1] = fenParts[1] === "w" ? "b" : "w"; // Swap color
+        fenParts[3] = "-"; // Reset en passant target
+        const skippedFen = fenParts.join(" ");
+
+        gameData.fen = skippedFen;
+        await redisClient.set(matchRoomId, JSON.stringify(gameData), { EX: 3600 });
+
+        socket.to(matchRoomId).emit("chess_turn_skipped", { fen: skippedFen });
+      } catch (err) {
+        console.error("Chess Skip Turn Error:", err);
       }
     });
 
