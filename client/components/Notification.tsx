@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { NotificationSkeleton } from './Skeleton';
 
 // --- TYPES ---
 interface NotificationItem {
@@ -277,9 +278,9 @@ const Notification = () => {
 
         {/* List */}
         {loading ? (
-          <View className="flex-1 px-8 pt-6">
-            {[1, 2, 3, 4, 5].map(i => (
-              <View key={i} className="mb-4 h-24 bg-white rounded-[24px] border border-slate-100 shadow-sm opacity-50" />
+          <View className="flex-1 px-6 pt-6">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <NotificationSkeleton key={i} />
             ))}
           </View>
         ) : (

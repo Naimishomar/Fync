@@ -24,6 +24,7 @@ import { useWindowDimensions } from 'react-native';
 
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
+import { ProjectSkeleton } from "./Skeleton";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width - 32;
@@ -605,7 +606,9 @@ export default function FundingFeed() {
           </View>
 
           {loading ? (
-            <ActivityIndicator size="large" color="#f97316" className="mt-20" />
+            <View className="mt-4">
+              {[1, 2].map(i => <ProjectSkeleton key={i} />)}
+            </View>
           ) : (
             <FlatList
               data={projects}

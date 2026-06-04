@@ -23,6 +23,7 @@ import {
   useWindowDimensions,
   StatusBar,
 } from 'react-native';
+import { PostSkeleton } from "./Skeleton";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Sparkles, Mic, Briefcase, Trophy, Rocket, Crown, MessageCircle, Megaphone, Users, Code } from 'lucide-react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -934,6 +935,11 @@ const renderFeatureStories = () => {
               <AdCarousel />
               {renderFeatureStories()}
               {/* <CreatePost /> */}
+              {loading && feed.length === 0 && (
+                <View>
+                  {[1, 2, 3].map(i => <PostSkeleton key={i} />)}
+                </View>
+              )}
             </View>
           </View>
         }

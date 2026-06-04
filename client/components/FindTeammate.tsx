@@ -10,6 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/auth.context';
 import axios from '../context/axiosConfig';
 import socket from '../utils/socket';
+import { TeammateSkeleton } from './Skeleton';
 
 const BG_IMAGE = "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000&auto=format&fit=crop";
 
@@ -124,22 +125,27 @@ export default function FindTeammate() {
 
             {/* Header */}
             <View className="flex-row items-center mb-5">
-                <View className="p-1 rounded-full border border-slate-100 shadow-sm bg-white">
-                    <Image
-                        source={{ uri: item.avatar || `https://ui-avatars.com/api/?name=${item.name}` }}
-                        className="w-16 h-16 rounded-full"
-                    />
-                </View>
-                <View className="ml-4 flex-1">
-                    <Text className="text-zinc-900 text-lg font-black  tracking-tighter uppercase">{item.name}</Text>
-                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">@{item.username}</Text>
-                    <View className="flex-row items-center mt-1.5 bg-slate-50 self-start px-2 py-0.5 rounded-full border border-slate-100">
-                        <MaterialCommunityIcons name="school" size={12} color="#94a3b8" />
-                        <Text className="text-slate-400 text-[9px] font-bold ml-1 uppercase tracking-tighter">
-                            {item.year}YR • {item.major}
-                        </Text>
+                <TouchableOpacity 
+                    className="flex-row items-center flex-1"
+                    onPress={() => navigation.navigate('PublicProfile', { userId: item._id })}
+                >
+                    <View className="p-1 rounded-full border border-slate-100 shadow-sm bg-white">
+                        <Image
+                            source={{ uri: item.avatar || `https://ui-avatars.com/api/?name=${item.name}` }}
+                            className="w-16 h-16 rounded-full"
+                        />
                     </View>
-                </View>
+                    <View className="ml-4 flex-1">
+                        <Text className="text-zinc-900 text-lg font-black  tracking-tighter uppercase">{item.name}</Text>
+                        <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">@{item.username}</Text>
+                        <View className="flex-row items-center mt-1.5 bg-slate-50 self-start px-2 py-0.5 rounded-full border border-slate-100">
+                            <MaterialCommunityIcons name="school" size={12} color="#94a3b8" />
+                            <Text className="text-slate-400 text-[9px] font-bold ml-1 uppercase tracking-tighter">
+                                {item.year}YR • {item.major}
+                            </Text>
+                        </View>
+                    </View>
+                </TouchableOpacity>
 
                 {/* Social Icons */}
                 <View className="flex-row gap-2">
@@ -317,14 +323,14 @@ export default function FindTeammate() {
                     </TouchableOpacity>
                 </View>
 
-                {/* LIST */}
-                {loading && !refreshing ? (
-                    <View className="mt-2">
-                        {[1, 2, 3].map(i => <TeammateSkeleton key={i} />)}
+                {/* CONTENT */}
+                {loading && developers.length === 0 ? (
+                    <View className="flex-1 mt-4">
+                        {[1, 2, 3, 4].map(i => <TeammateSkeleton key={i} />)}
                     </View>
                 ) : (
                     <FlatList
-                        data={filteredDevelopers}
+                        data={searchQuery.length > 0 ? filteredDevelopers : developers}
                         keyExtractor={(item) => item._id}
                         renderItem={renderCard}
                         contentContainerStyle={{ paddingBottom: 120 }}

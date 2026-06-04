@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Modal, StyleSheet, Animated, Dimensions } from 'react-native';
+import { View, Text, Modal, Animated, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 interface StreakModalProps {
   visible: boolean;
@@ -32,7 +32,7 @@ const StreakModal: React.FC<StreakModalProps> = ({ visible, streakCount, onClose
         }),
       ]).start();
 
-      // Auto close after 2 seconds
+      // Auto close after 2.5 seconds
       const timer = setTimeout(() => {
         // Exit animation
         Animated.parallel([
@@ -47,51 +47,69 @@ const StreakModal: React.FC<StreakModalProps> = ({ visible, streakCount, onClose
             useNativeDriver: true,
           }),
         ]).start(() => onClose());
-      }, 2000);
+      }, 2500);
 
       return () => clearTimeout(timer);
+    } else {
+      // Reset animations when not visible
+      scaleAnim.setValue(0);
+      opacityAnim.setValue(0);
     }
   }, [visible]);
 
   return (
     <Modal
-      transparent
+      transparent={true}
       visible={visible}
-      animationType="none"
+      animationType="fade"
+      onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
+      <View className="flex-1 bg-black/70 justify-center items-center">
         <Animated.View 
-          style={[
-            styles.container, 
-            { 
-              transform: [{ scale: scaleAnim }],
-              opacity: opacityAnim
-            }
-          ]}
+          className="w-[80%] rounded-[32px] overflow-hidden border border-orange-500/30"
+          style={{ 
+            transform: [{ scale: scaleAnim }],
+            opacity: opacityAnim
+          }}
         >
-          <BlurView intensity={80} tint="dark" style={styles.blur}>
+          <BlurView intensity={80} tint="dark" className="flex-1">
             <LinearGradient
               colors={['rgba(255, 140, 0, 0.2)', 'rgba(0, 0, 0, 0.8)']}
-              style={styles.gradient}
+              className="p-8 items-center"
             >
-              <View style={styles.iconContainer}>
-                <View style={styles.fireOuter}>
+              <View className="mb-5">
+                <View className="w-[110px] h-[110px] rounded-full bg-orange-500/20 justify-center items-center p-[5px]">
                   <LinearGradient
                     colors={['#FFD700', '#FF8C00', '#FF4500']}
-                    style={styles.fireGradient}
+                    className="w-[100px] h-[100px] rounded-full justify-center items-center shadow-lg shadow-orange-500 elevation-10"
                   >
                     <Ionicons name="flame" size={60} color="white" />
                   </LinearGradient>
                 </View>
               </View>
 
-              <Text style={styles.streakNumber}>{streakCount}</Text>
-              <Text style={styles.streakText}>Day Streak!</Text>
+              <Text 
+                className="text-6xl font-black text-yellow-400"
+                style={{
+                  textShadowColor: 'rgba(0, 0, 0, 0.5)',
+                  textShadowOffset: { width: 0, height: 2 },
+                  textShadowRadius: 10,
+                }}
+              >
+                {streakCount}
+              </Text>
+              <Text className="text-2xl font-bold text-white -mt-1 uppercase tracking-[2px]">
+                Day Streak!
+              </Text>
               
-              <View style={styles.messageContainer}>
-                <Text style={styles.message}>Daily Goal Achieved</Text>
-                <View style={styles.line} />
-                <Text style={styles.subMessage}>See you tomorrow!</Text>
+              <View className="mt-6 items-center">
+                <Text className="text-yellow-400 text-base font-bold tracking-[1px]">
+                  Daily Goal Achieved
+                </Text>
+                <View className="h-[1px] w-10 bg-white/20 my-2" />
+                <Text className="text-white/60 text-xs font-medium">
+                  See you tomorrow!
+                </Text>
               </View>
             </LinearGradient>
           </BlurView>
@@ -100,89 +118,5 @@ const StreakModal: React.FC<StreakModalProps> = ({ visible, streakCount, onClose
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  container: {
-    width: width * 0.8,
-    borderRadius: 32,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 140, 0, 0.3)',
-  },
-  blur: {
-    flex: 1,
-  },
-  gradient: {
-    padding: 30,
-    alignItems: 'center',
-  },
-  iconContainer: {
-    marginBottom: 20,
-  },
-  fireOuter: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    padding: 5,
-    backgroundColor: 'rgba(255, 140, 0, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  fireGradient: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#FF4500',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 15,
-    elevation: 10,
-  },
-  streakNumber: {
-    fontSize: 64,
-    fontWeight: '900',
-    color: '#FFD700',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 10,
-  },
-  streakText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-    marginTop: -5,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-  },
-  messageContainer: {
-    marginTop: 25,
-    alignItems: 'center',
-  },
-  message: {
-    color: '#FFD700',
-    fontSize: 16,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-  line: {
-    height: 1,
-    width: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    marginVertical: 8,
-  },
-  subMessage: {
-    color: 'rgba(255, 255, 255, 0.6)',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-});
 
 export default StreakModal;

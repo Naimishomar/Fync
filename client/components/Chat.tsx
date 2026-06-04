@@ -20,7 +20,7 @@ import { supabase } from "../utils/supabase";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { CommentSkeleton } from "./Skeleton";
+import { ChatSkeleton } from "./Skeleton";
 import socket from "../utils/socket";
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
@@ -687,7 +687,7 @@ const Chat = ({ route, navigation }: any) => {
           <View className="flex-1 bg-white shadow-sm overflow-hidden border-t border-slate-200">
             {loading ? (
               <View className="flex-1 p-6">
-                {[1, 2, 3, 4, 5, 6].map(i => <CommentSkeleton key={i} />)}
+                {[1, 2, 3, 4, 5, 6].map(i => <ChatSkeleton key={i} isMe={i % 2 === 0} />)}
               </View>
             ) : (
               <FlatList

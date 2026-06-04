@@ -60,15 +60,15 @@ export const syncGitHub = async (req, res) => {
             return res.status(400).json({ success: false, message: "GitHub not connected. Use /github/connect first." });
         }
 
-        // Throttle: only allow resync every 1 hour
-        const lastFetched = user.githubStats?.lastFetched;
-        if (lastFetched) {
-            const diffMs = Date.now() - new Date(lastFetched).getTime();
-            const diffHrs = diffMs / (1000 * 60 * 60);
-            if (diffHrs < 1) {
-                return res.status(429).json({ success: false, message: "GitHub sync is throttled — please wait at least 1 hour between syncs.", nextSyncIn: `${Math.ceil(60 - diffHrs * 60)} minutes` });
-            }
-        }
+        // Throttle: disabled for testing
+        // const lastFetched = user.githubStats?.lastFetched;
+        // if (lastFetched) {
+        //     const diffMs = Date.now() - new Date(lastFetched).getTime();
+        //     const diffMins = diffMs / (1000 * 60);
+        //     if (diffMins < 1) {
+        //         return res.status(429).json({ success: false, message: "GitHub sync is throttled — please wait at least 1 minute between syncs.", nextSyncIn: `${Math.ceil(1 - diffMins)} minutes` });
+        //     }
+        // }
 
         const stats = await fetchGitHubStats(user.githubUsername, user.githubAccessToken);
         await User.findByIdAndUpdate(req.user._id, { githubStats: stats });

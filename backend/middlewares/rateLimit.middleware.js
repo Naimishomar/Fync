@@ -4,10 +4,12 @@ import redisClient from '../utils/redis.js';
 
 const createRedisStore = (prefix) => new RedisStore({
   sendCommand: async (...args) => {
-    if (!redisClient.isReady) {
+    if (!redisClient.isOpen) {
+      // If it's not even open (or trying to connect), bypass
       throw new Error("Redis is offline, bypassing rate limit to prevent hang.");
     }
-    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Redis Timeout")), 1500));
+    // Allow up to 3 seconds for commands (handles initial connection/script loading latency)
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Redis Timeout")), 3000));
     return Promise.race([redisClient.sendCommand(args), timeout]);
   },
   prefix: prefix,

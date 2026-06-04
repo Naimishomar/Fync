@@ -377,7 +377,7 @@ const NoticeBoard = () => {
                   activeOpacity={0.8}
                 >
                   <ExpoImage
-                    source={{ uri: imgUri }}
+                    source={{ uri: imgUri || 'https://via.placeholder.com/150' }}
                     className="w-64 h-40 rounded-[28px] mr-4 bg-slate-50 border border-slate-100"
                     contentFit="cover"
                     cachePolicy="disk"
@@ -391,7 +391,7 @@ const NoticeBoard = () => {
 
           <View className="flex-row justify-between items-center">
             <View className="flex-row items-center">
-              <ExpoImage source={{ uri: avatarUrl }} className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-200" cachePolicy="disk" />
+              <ExpoImage source={{ uri: avatarUrl?.trim() ? avatarUrl : `https://ui-avatars.com/api/?name=User` }} className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-200" cachePolicy="disk" />
               <View className="ml-3">
                 <Text className="text-[8px] text-slate-400 uppercase tracking-widest font-black ">By Protocol</Text>
                 <Text className="text-zinc-900 text-xs font-black  uppercase mt-0.5 tracking-tight">
@@ -598,7 +598,7 @@ const NoticeBoard = () => {
 
               {images.length > 0 && (
                 <ScrollView horizontal className="mb-8" showsHorizontalScrollIndicator={false}>
-                  {images.map((img, i) => <Image key={i} source={{ uri: img.uri }} className="w-24 h-24 rounded-2xl mr-4 border border-slate-100" />)}
+                  {images.map((img, i) => <Image key={i} source={{ uri: img.uri || 'https://via.placeholder.com/150' }} className="w-24 h-24 rounded-2xl mr-4 border border-slate-100" />)}
                 </ScrollView>
               )}
 
@@ -643,7 +643,7 @@ const NoticeBoard = () => {
                   showsVerticalScrollIndicator={false}
                   renderItem={({ item }) => (
                     <View className="flex-row mb-6">
-                  <ExpoImage source={{ uri: item.commentor?.avatar || 'https://ui-avatars.com/api/?name=User' }} className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-200" cachePolicy="disk" />
+                  <ExpoImage source={{ uri: item.commentor?.avatar?.trim() ? item.commentor.avatar : 'https://ui-avatars.com/api/?name=User' }} className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-200" cachePolicy="disk" />
                       <View className="ml-4 flex-1 bg-slate-50 p-5 rounded-[28px] rounded-tl-sm border border-slate-100">
                         <Text className="font-black  text-[9px] text-orange-500 mb-1 uppercase tracking-widest">{item.commentor?.name || 'Anonymous'}</Text>
                         <Text className="text-slate-600 text-xs font-medium leading-5 ">"{item.text}"</Text>
@@ -710,7 +710,7 @@ const NoticeBoard = () => {
             <TouchableOpacity onPress={() => setPreviewVisible(false)} className="absolute top-12 right-8 z-50 w-12 h-12 bg-black/50 rounded-2xl items-center justify-center border border-white/20">
               <Ionicons name="close" size={24} color="white" />
             </TouchableOpacity>
-            {selectedImage && <ExpoImage source={{ uri: selectedImage }} className="w-full h-5/6" contentFit="contain" cachePolicy="disk" />}
+            {selectedImage ? <ExpoImage source={{ uri: selectedImage }} className="w-full h-5/6" contentFit="contain" cachePolicy="disk" /> : null}
             <View className="absolute bottom-12 items-center w-full">
               <Text className="text-white/40 text-[9px] font-black  uppercase tracking-widest leading-tight">Secure Preview Protocol • Tap to Close</Text>
             </View>

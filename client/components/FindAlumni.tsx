@@ -9,6 +9,7 @@ import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import Avatar from "./Avatar";
 import { LinearGradient } from 'expo-linear-gradient';
+import { TeammateSkeleton } from "./Skeleton";
 
 const { width } = Dimensions.get("window");
 
@@ -213,8 +214,8 @@ const FindAlumni = ({ navigation }: any) => {
                 </View>
 
                 {loading && !refreshing ? (
-                    <View className="flex-1 justify-center items-center">
-                        <ActivityIndicator size="large" color="#f97316" />
+                    <View className="flex-1 px-6 pt-2">
+                        {[1, 2, 3, 4].map(i => <TeammateSkeleton key={i} />)}
                     </View>
                 ) : (
                     <FlatList

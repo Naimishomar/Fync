@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, Pressable, RefreshControl,
-  ActivityIndicator, Alert, Linking, Dimensions, Platform, StatusBar
+  ActivityIndicator, Alert, Linking, Dimensions, Platform, StatusBar, TextInput
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
@@ -21,6 +21,8 @@ import AddProjectModal from './AddProjectModal';
 import AddInternshipModal from './AddInternshipModal';
 import AddCertificateModal from './AddCertificateModal';
 import CodingProfilesModal from './CodingProfilesModal';
+import EducationCard, { EducationEntry } from './EducationCard';
+import AddEducationModal from './AddEducationModal';
 
 const { width } = Dimensions.get('window');
 
@@ -78,9 +80,52 @@ function SectionHeader({ title, icon, onAdd, addLabel }: {
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function FyncProfileBuilder() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+
+  const [skills, setSkills] = useState<string[]>(user?.skills || []);
+  const [skillInput, setSkillInput] = useState('');
+
+  const updateSkillsOnServer = async (newSkills: string[]) => {
+    try {
+      const formData = new FormData();
+      if (newSkills.length === 0) {
+        formData.append('skills', ''); 
+      } else {
+        newSkills.forEach((skill) => formData.append('skills', skill));
+      }
+      const res = await axios.post('/user/update', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      if (res.data.success) {
+        if (setUser) setUser(res.data.user);
+        setProfile((prev: any) => ({ ...prev, user: res.data.user }));
+      }
+    } catch (error) {
+      Toast.show({ type: 'error', text1: 'Failed to update skills' });
+    }
+  };
+
+  const handleSkillInput = (text: string) => {
+    if (text.endsWith(',')) {
+      const newSkill = text.slice(0, -1).trim();
+      if (newSkill.length > 0 && !skills.includes(newSkill)) {
+        const updatedSkills = [...skills, newSkill];
+        setSkills(updatedSkills);
+        updateSkillsOnServer(updatedSkills);
+      }
+      setSkillInput('');
+    } else {
+      setSkillInput(text);
+    }
+  };
+
+  const removeSkill = (indexToRemove: number) => {
+    const updatedSkills = skills.filter((_, index) => index !== indexToRemove);
+    setSkills(updatedSkills);
+    updateSkillsOnServer(updatedSkills);
+  };
 
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -94,6 +139,8 @@ export default function FyncProfileBuilder() {
   const [editingProject, setEditingProject] = useState<any>(null);
   const [editingInternship, setEditingInternship] = useState<any>(null);
   const [editingCert, setEditingCert] = useState<any>(null);
+  const [showAddEducation, setShowAddEducation] = useState(false);
+  const [editingEducation, setEditingEducation] = useState<any>(null);
   const [showCodingModal, setShowCodingModal] = useState(false);
   const [uploadingResume, setUploadingResume] = useState(false);
 
@@ -194,6 +241,18 @@ export default function FyncProfileBuilder() {
     ]);
   };
 
+  const deleteEducation = (id: string) => {
+    Alert.alert('Remove Education', 'Are you sure?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete', style: 'destructive', onPress: async () => {
+          await axios.delete(`/profile/education/${id}`);
+          fetchProfile();
+        }
+      }
+    ]);
+  };
+
   const deleteCert = (id: string) => {
     Alert.alert('Delete Certificate', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
@@ -264,7 +323,7 @@ export default function FyncProfileBuilder() {
     </SafeAreaView>
   );
 
-  const { projects = [], internships = [], certificates = [], completeness } = profile || {};
+  const { projects = [], internships = [], education = [], certificates = [], completeness } = profile || {};
   const pct = completeness?.percentage || 0;
 
   const renderContent = () => {
@@ -338,6 +397,32 @@ export default function FyncProfileBuilder() {
                     Current: {profile.user.resumeName}
                  </Text>
               )}
+
+              {/* --- Skills Section --- */}
+              <View className="mt-6 border-t border-slate-100 pt-5">
+                <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-widest mb-3">Core Skills & Stack</Text>
+                <View className="bg-slate-50 rounded-2xl p-3 flex-row flex-wrap gap-2 border border-slate-100">
+                  {skills.map((skill, index) => (
+                    <View key={index} className="bg-indigo-100/50 border border-indigo-100 px-3 py-1.5 rounded-full flex-row items-center">
+                      <Text className="text-indigo-800 font-bold text-[10px] uppercase tracking-wider mr-1">{skill}</Text>
+                      <Pressable onPress={() => removeSkill(index)}>
+                        <Ionicons name="close-circle" size={14} color="#6366f1" />
+                      </Pressable>
+                    </View>
+                  ))}
+                  <TextInput
+                    value={skillInput}
+                    onChangeText={handleSkillInput}
+                    placeholder={skills.length > 0 ? "" : "React, Node.js, Design..."}
+                    placeholderTextColor="#94a3b8"
+                    className="text-slate-700 min-w-[120px] flex-1 py-1 text-[10px] font-bold uppercase tracking-wider"
+                  />
+                </View>
+                <Text className="text-slate-400 text-[8px] font-bold uppercase tracking-widest mt-2 ml-1">
+                   * Type and press comma (,) to add a skill. Auto-saves.
+                </Text>
+              </View>
+
             </View>
 
             <GitHubStatsCard
@@ -397,6 +482,27 @@ export default function FyncProfileBuilder() {
               <InternshipCard key={i._id} item={i} isOwner
                 onEdit={(i) => { setEditingInternship(i); setShowAddInternship(true); }}
                 onDelete={deleteInternship} />
+            ))}
+            
+            <View className="h-6" />
+
+            <SectionHeader title="Education" icon="school-outline"
+              onAdd={() => { setEditingEducation(null); setShowAddEducation(true); }}
+              addLabel="Add Education" />
+            {education.length === 0 ? (
+              <View className="items-center py-20 px-8">
+                <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-6">
+                  <Ionicons name="school-outline" size={32} color="#CBD5E1" />
+                </View>
+                <Text className="text-zinc-900 font-black uppercase text-xs tracking-widest text-center">No education added yet</Text>
+                <Text className="text-slate-400 font-bold text-[10px] mt-2 text-center uppercase tracking-wider">
+                  Add your academic background!
+                </Text>
+              </View>
+            ) : education.map((e: any) => (
+              <EducationCard key={e._id} item={e} isOwner
+                onEdit={(e) => { setEditingEducation(e); setShowAddEducation(true); }}
+                onDelete={deleteEducation} />
             ))}
           </View>
         );
@@ -517,6 +623,12 @@ export default function FyncProfileBuilder() {
           initial={editingCert}
           onClose={() => setShowAddCert(false)}
           onSuccess={() => { setShowAddCert(false); fetchProfile(); }}
+        />
+        <AddEducationModal
+          visible={showAddEducation}
+          initial={editingEducation}
+          onClose={() => setShowAddEducation(false)}
+          onSuccess={() => { setShowAddEducation(false); fetchProfile(); }}
         />
         <CodingProfilesModal
           visible={showCodingModal}

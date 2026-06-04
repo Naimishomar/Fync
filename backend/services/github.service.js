@@ -7,6 +7,124 @@ const GITHUB_API = "https://api.github.com";
  * Falls back to unauthenticated requests (60 req/hr limit) if no token is provided.
  */
 export const fetchGitHubStats = async (username, accessToken = null) => {
+    // ─── 1. GraphQL API (Highly Accurate, requires Token) ────────────────────
+    if (accessToken) {
+        try {
+            const query = `
+                query($login: String!) {
+                    user(login: $login) {
+                        avatarUrl
+                        bio
+                        contributionsCollection {
+                            contributionCalendar {
+                                weeks {
+                                    contributionDays {
+                                        contributionCount
+                                        date
+                                    }
+                                }
+                            }
+                        }
+                        repositories(first: 100) {
+                            totalCount
+                            nodes {
+                                stargazers {
+                                    totalCount
+                                }
+                                languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
+                                    edges {
+                                        size
+                                        node {
+                                            name
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            `;
+
+            const { data } = await axios.post(
+                'https://api.github.com/graphql',
+                { query, variables: { login: username } },
+                { headers: { Authorization: `Bearer ${accessToken}` } }
+            );
+
+            if (data.errors) throw new Error(data.errors[0].message);
+
+            const userNode = data.data.user;
+
+            // 1. All-Time Commits (via Search API to accurately get all historical commits)
+            let totalCommits = 0;
+            try {
+                const searchRes = await axios.get(`https://api.github.com/search/commits?q=author:${username}`, {
+                    headers: { 
+                        Authorization: `Bearer ${accessToken}`,
+                        Accept: 'application/vnd.github.cloak-preview' 
+                    }
+                });
+                if (searchRes.data && searchRes.data.total_count !== undefined) {
+                    totalCommits = searchRes.data.total_count;
+                }
+            } catch (e) {
+                // Fallback to 1-year total if search API fails
+                totalCommits = userNode.contributionsCollection.contributionCalendar.totalContributions || 0; 
+            }
+
+            // 2. Stars (Stars earned across all repos, including forks/collabs) & Languages
+            let totalStars = 0;
+            const langSizes = {};
+            userNode.repositories.nodes.forEach(repo => {
+                totalStars += repo.stargazers.totalCount;
+                repo.languages.edges.forEach(edge => {
+                    const lang = edge.node.name;
+                    langSizes[lang] = (langSizes[lang] || 0) + edge.size;
+                });
+            });
+
+            const topLanguages = Object.entries(langSizes)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(entry => entry[0]);
+
+            // 3. Streak
+            const weeks = userNode.contributionsCollection.contributionCalendar.weeks;
+            const days = weeks.flatMap(w => w.contributionDays).reverse(); // newest first
+            let streak = 0;
+            let todayFound = false;
+            let todayDate = new Date().toISOString().split('T')[0];
+
+            for (const day of days) {
+                if (!todayFound && day.date === todayDate) {
+                    todayFound = true;
+                    if (day.contributionCount > 0) streak++;
+                    continue;
+                }
+                
+                if (day.contributionCount > 0) {
+                    streak++;
+                } else {
+                    break; // Streak broken
+                }
+            }
+
+            return {
+                totalCommits,
+                totalRepos: userNode.repositories.totalCount,
+                totalStars,
+                topLanguages,
+                contributionStreak: streak,
+                avatarUrl: userNode.avatarUrl,
+                bio: userNode.bio,
+                lastFetched: new Date()
+            };
+        } catch (error) {
+            console.error("GraphQL GitHub fetch failed, falling back to REST:", error.message);
+        }
+    }
+
+    // ─── 2. REST API Fallback (Limited accurate metrics) ─────────────────────
     const headers = {
         Accept: "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",

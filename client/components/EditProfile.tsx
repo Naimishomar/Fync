@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/auth.context';
 import axios from '../context/axiosConfig';
@@ -26,13 +27,10 @@ export default function EditProfile() {
   // --- Basic Info ---
   const [name, setName] = useState(user?.name || '');
   const [username, setUsername] = useState(user?.username || '');
-  const [bio, setBio] = useState(user?.bio || '');
-  const [about, setAbout] = useState(user?.about || '');
-  const [experience, setExperience] = useState(user?.experience || '');
 
-  // --- Arrays / Tags ---
-  const [skills, setSkills] = useState<string[]>(user?.skills || []);
-  const [skillInput, setSkillInput] = useState('');
+  const [about, setAbout] = useState(user?.about || '');
+
+
 
   const [hobbies, setHobbies] = useState(user?.hobbies || '');
   const [interest, setInterest] = useState(user?.interest || '');
@@ -50,19 +48,18 @@ export default function EditProfile() {
   const [newBanner, setNewBanner] = useState<any>(null);
 
   // --- CHANGE DETECTION ---
-  const initialSkills = user?.skills || [];
+
   const hasChanges =
     name !== (user?.name || '') ||
     username !== (user?.username || '') ||
-    bio !== (user?.bio || '') ||
+
     about !== (user?.about || '') ||
-    experience !== (user?.experience || '') ||
+
     hobbies !== (user?.hobbies || '') ||
     interest !== (user?.interest || '') ||
     githubId !== (user?.github_id || '') ||
     linkedinId !== (user?.linkedIn_id || '') ||
     upiId !== (user?.upiId || '') ||
-    JSON.stringify(skills) !== JSON.stringify(initialSkills) ||
     newAvatar !== null ||
     newBanner !== null;
 
@@ -86,21 +83,7 @@ export default function EditProfile() {
     }
   };
 
-  const handleSkillInput = (text: string) => {
-    if (text.endsWith(',')) {
-      const newSkill = text.slice(0, -1).trim();
-      if (newSkill.length > 0 && !skills.includes(newSkill)) {
-        setSkills([...skills, newSkill]);
-      }
-      setSkillInput('');
-    } else {
-      setSkillInput(text);
-    }
-  };
 
-  const removeSkill = (indexToRemove: number) => {
-    setSkills(skills.filter((_, index) => index !== indexToRemove));
-  };
 
   // --- SUBMIT HANDLER ---
   const handleUpdate = async () => {
@@ -109,18 +92,15 @@ export default function EditProfile() {
       const formData = new FormData();
       formData.append('name', name);
       formData.append('username', username);
-      formData.append('bio', bio);
+
       formData.append('about', about);
-      formData.append('experience', experience);
+
       formData.append('interest', interest);
       formData.append('hobbies', hobbies);
       formData.append('github_id', githubId);
       formData.append('linkedIn_id', linkedinId);
       formData.append('upiId', upiId);
 
-      skills.forEach((skill) => {
-        formData.append('skills', skill);
-      });
 
       // Append Avatar
       if (newAvatar) {
@@ -163,9 +143,17 @@ export default function EditProfile() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-[#F8FAFC]">
+      {/* HEADER DECORATION */}
+      <View className="absolute top-0 w-full h-80 opacity-20">
+        <LinearGradient
+          colors={['#f97316', 'transparent']}
+          className="w-full h-full"
+        />
+      </View>
+
       {/* --- Header --- */}
-      <View className="flex-row items-center justify-between px-4 py-2 border-b border-black/5 bg-white z-10">
+      <View className="flex-row items-center justify-between px-4 py-2 border-b border-black/5 bg-transparent z-10">
         <Pressable onPress={() => navigation.goBack()}>
           <Text className="text-black text-lg">Cancel</Text>
         </Pressable>
@@ -176,9 +164,9 @@ export default function EditProfile() {
           style={{ opacity: (loading || !hasChanges) ? 0.5 : 1 }}
         >
           {loading ? (
-            <ActivityIndicator size="small" color="#3b82f6" />
+            <ActivityIndicator size="small" color="#f97316" />
           ) : (
-            <Text className={`text-lg font-bold ${!hasChanges ? 'text-gray-400' : 'text-blue-500'}`}>Save</Text>
+            <Text className={`text-lg font-bold ${!hasChanges ? 'text-gray-400' : 'text-orange-500'}`}>Save</Text>
           )}
         </Pressable>
       </View>
@@ -209,11 +197,11 @@ export default function EditProfile() {
               source={{ uri: avatar || `https://ui-avatars.com/api/?name=${username}` }}
               className="h-24 w-24 rounded-full border-4 border-white bg-gray-100"
             />
-            <View className="absolute bottom-0 right-0 bg-blue-600 p-1.5 rounded-full border-2 border-white">
+            <View className="absolute bottom-0 right-0 bg-orange-500 p-1.5 rounded-full border-2 border-white">
               <Ionicons name="pencil" size={14} color="white" />
             </View>
           </Pressable>
-          <Text className="text-blue-500 text-sm font-semibold mt-2">Change Profile Photo</Text>
+          <Text className="text-orange-500 text-sm font-semibold mt-2">Change Profile Photo</Text>
         </View>
 
         {/* --- Form Fields --- */}
@@ -222,32 +210,11 @@ export default function EditProfile() {
           <InputGroup label="Name" value={name} onChange={setName} placeholder="Your Name" />
           <InputGroup label="Username" value={username} onChange={setUsername} placeholder="username" />
 
-          <InputGroup label="Bio" value={bio} onChange={setBio} placeholder="Short bio..." multiline />
+
           <InputGroup label="About" value={about} onChange={setAbout} placeholder="Tell us more about yourself..." multiline />
 
-          {/* --- Skills Tag Input --- */}
-          <View>
-            <Text className="text-gray-500 text-sm mb-2 ml-1">Skills (Type & comma to add)</Text>
-            <View className="bg-gray-100 rounded-xl p-3 flex-row flex-wrap gap-2 border border-gray-200">
-              {skills.map((skill, index) => (
-                <View key={index} className="bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-full flex-row items-center">
-                  <Text className="text-blue-800 font-medium mr-1">{skill}</Text>
-                  <Pressable onPress={() => removeSkill(index)}>
-                    <Ionicons name="close-circle" size={16} color="#3b82f6" />
-                  </Pressable>
-                </View>
-              ))}
-              <TextInput
-                value={skillInput}
-                onChangeText={handleSkillInput}
-                placeholder={skills.length > 0 ? "" : "React, Node.js, Design..."}
-                placeholderTextColor="#9ca3af"
-                className="text-black min-w-[100px] flex-1 py-1"
-              />
-            </View>
-          </View>
 
-          <InputGroup label="Experience" value={experience} onChange={setExperience} placeholder="e.g. SDE at Google" />
+
           <InputGroup label="Interests" value={interest} onChange={setInterest} placeholder="e.g. AI, Web3, Cycling" />
           <InputGroup label="Hobbies" value={hobbies} onChange={setHobbies} placeholder="Reading, Gaming..." />
 

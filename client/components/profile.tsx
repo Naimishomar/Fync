@@ -18,6 +18,7 @@ import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getFullUrl } from '../utils/imageUtils';
 import { StatusBar } from 'expo-status-bar';
+import EducationCard, { EducationEntry } from './profile/EducationCard';
 
 const { width } = Dimensions.get('window');
 
@@ -25,7 +26,7 @@ const { width } = Dimensions.get('window');
 type UserType = {
   _id: string; name: string; username: string; avatar: string;
   user_access?: string; college?: string; interest?: string | string[];
-  bio?: string; about?: string; experience?: string; skills?: string[];
+  about?: string; experience?: string; skills?: string[];
   hobbies?: string | string[]; github_id?: string; linkedIn_id?: string;
   banner?: string; upiId?: string;
   codingProfiles?: { leetcode?: string; gfg?: string; codechef?: string };
@@ -36,13 +37,9 @@ type UserType = {
   githubUsername?: string; githubStats?: any;
 };
 
-type EducationEntry = {
-  _id: string; institution: string; degree?: string; field?: string;
-  grade?: string; startYear?: number; endYear?: number; isCurrent?: boolean; description?: string;
-};
 
 // ─── SECTION HEADER ──────────────────────────────────────────────────────────
-const SH = ({ title, icon, accent = '#6366F1' }: { title: string; icon: string; accent?: string }) => (
+const SH = ({ title, icon, accent = '#f97316' }: { title: string; icon: string; accent?: string }) => (
   <View className="flex-row items-center gap-3 mb-4 px-1">
     <View className="w-1.5 h-6 rounded-full" style={{ backgroundColor: accent, shadowColor: accent, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4 }} />
     <View className="bg-gray-50 p-1.5 rounded-lg border border-gray-100">
@@ -90,151 +87,6 @@ const CodingPlatformCard = ({ icon, name, color, bg, username, solved, rating, p
   );
 };
 
-// ─── EDUCATION CARD ────────────────────────────────────────────────────────────
-const EducationCard = ({ item, isOwner, onEdit, onDelete }: {
-  item: EducationEntry; isOwner?: boolean;
-  onEdit?: (i: EducationEntry) => void; onDelete?: (id: string) => void;
-}) => (
-  <View className="bg-white rounded-[24px] border border-gray-100 p-5 mb-4 shadow-sm">
-    <View className="flex-row">
-      <View className="w-12 h-12 bg-indigo-50 rounded-2xl items-center justify-center mr-4">
-        <Ionicons name="school" size={24} color="#6366F1" />
-      </View>
-      <View className="flex-1">
-        <Text className="text-gray-900 font-black text-[15px] mb-1">{item.institution}</Text>
-        {item.degree && (
-          <Text className="text-indigo-600 text-xs font-bold uppercase tracking-wider mb-2">
-            {item.degree}{item.field ? ` • ${item.field}` : ''}
-          </Text>
-        )}
-        <View className="flex-row flex-wrap items-center gap-2 mb-2">
-          <View className="bg-gray-100 px-2.5 py-1 rounded-full">
-            <Text className="text-gray-500 text-[10px] font-black uppercase">
-              {item.startYear || '?'} — {item.isCurrent ? 'Present' : (item.endYear || '?')}
-            </Text>
-          </View>
-          {item.grade && (
-            <View className="bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-              <Text className="text-emerald-700 text-[10px] font-black">{item.grade}</Text>
-            </View>
-          )}
-          {item.isCurrent && (
-            <View className="bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
-              <Text className="text-blue-600 text-[10px] font-black uppercase">Active</Text>
-            </View>
-          )}
-        </View>
-        {item.description && <Text className="text-gray-500 text-[13px] leading-5 font-medium" numberOfLines={3}>{item.description}</Text>}
-      </View>
-      {isOwner && (
-        <View className="ml-2 gap-3">
-          <Pressable onPress={() => onEdit?.(item)} className="bg-gray-50 p-2 rounded-xl border border-gray-100">
-            <Ionicons name="pencil-outline" size={16} color="#6366F1" />
-          </Pressable>
-          <Pressable onPress={() => onDelete?.(item._id)} className="bg-red-50 p-2 rounded-xl border border-red-100">
-            <Ionicons name="trash-outline" size={16} color="#EF4444" />
-          </Pressable>
-        </View>
-      )}
-    </View>
-  </View>
-);
-
-// ─── ADD EDUCATION MODAL ──────────────────────────────────────────────────────
-function AddEducationModal({ visible, initial, onClose, onSuccess }: {
-  visible: boolean; initial?: EducationEntry; onClose: () => void; onSuccess: () => void;
-}) {
-  const [form, setForm] = useState({
-    institution: '', degree: '', field: '', grade: '',
-    startYear: '', endYear: '', isCurrent: false, description: ''
-  });
-  const [saving, setSaving] = useState(false);
-  const isEdit = !!initial?._id;
-
-  useEffect(() => {
-    if (initial) {
-      setForm({
-        institution: initial.institution || '',
-        degree: initial.degree || '',
-        field: initial.field || '',
-        grade: initial.grade || '',
-        startYear: initial.startYear?.toString() || '',
-        endYear: initial.endYear?.toString() || '',
-        isCurrent: initial.isCurrent || false,
-        description: initial.description || ''
-      });
-    } else {
-      setForm({ institution: '', degree: '', field: '', grade: '', startYear: '', endYear: '', isCurrent: false, description: '' });
-    }
-  }, [initial, visible]);
-
-  const save = async () => {
-    if (!form.institution.trim()) return Toast.show({ type: 'error', text1: 'Institution is required' });
-    setSaving(true);
-    try {
-      const payload = { ...form, startYear: form.startYear ? Number(form.startYear) : undefined, endYear: form.endYear ? Number(form.endYear) : undefined };
-      if (isEdit) await axios.patch(`/profile/education/${initial!._id}`, payload);
-      else await axios.post('/profile/education', payload);
-      Toast.show({ type: 'success', text1: isEdit ? 'Education updated!' : 'Education added!' });
-      onSuccess();
-    } catch { Toast.show({ type: 'error', text1: 'Failed to save' }); }
-    finally { setSaving(false); }
-  };
-
-  return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <KeyboardAvoidingView className="flex-1 bg-white" behavior="padding">
-        <View className="flex-row items-center justify-between px-4 py-4 border-b border-gray-100">
-          <Pressable onPress={onClose}><Ionicons name="close" size={24} color="#374151" /></Pressable>
-          <Text className="font-bold text-gray-900 text-lg">{isEdit ? 'Edit Education' : 'Add Education'}</Text>
-          <Pressable onPress={save} disabled={saving} className="bg-indigo-600 px-4 py-2 rounded-xl">
-            {saving ? <ActivityIndicator size="small" color="white" /> : <Text className="text-white font-bold">Save</Text>}
-          </Pressable>
-        </View>
-        <ScrollView className="flex-1 px-4 pt-4" keyboardShouldPersistTaps="handled">
-          {[
-            { label: 'Institution *', key: 'institution', ph: 'e.g. IIT Delhi, DPS School' },
-            { label: 'Degree / Level', key: 'degree', ph: 'e.g. B.Tech, 12th, MBA' },
-            { label: 'Field / Stream', key: 'field', ph: 'e.g. Computer Science, PCM' },
-            { label: 'Grade / Percentage', key: 'grade', ph: 'e.g. 9.2 CGPA, 92%' },
-            { label: 'Start Year', key: 'startYear', ph: '2020' },
-          ].map(f => (
-            <View key={f.key} className="mb-4">
-              <Text className="text-gray-700 font-semibold text-sm mb-1.5">{f.label}</Text>
-              <TextInput className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 text-sm"
-                placeholder={f.ph} placeholderTextColor="#9CA3AF"
-                value={form[f.key as keyof typeof form] as string}
-                onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
-                keyboardType={f.key.includes('Year') ? 'numeric' : 'default'} />
-            </View>
-          ))}
-          <View className="flex-row items-center justify-between mb-4 bg-gray-50 px-4 py-3 rounded-xl border border-gray-200">
-            <Text className="text-gray-700 font-semibold text-sm">Currently Studying Here</Text>
-            <Switch value={form.isCurrent}
-              onValueChange={v => setForm(p => ({ ...p, isCurrent: v }))}
-              trackColor={{ true: '#6366F1' }} />
-          </View>
-          {!form.isCurrent && (
-            <View className="mb-4">
-              <Text className="text-gray-700 font-semibold text-sm mb-1.5">End Year</Text>
-              <TextInput className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 text-sm"
-                placeholder="2024" placeholderTextColor="#9CA3AF" keyboardType="numeric"
-                value={form.endYear} onChangeText={v => setForm(p => ({ ...p, endYear: v }))} />
-            </View>
-          )}
-          <View className="mb-6">
-            <Text className="text-gray-700 font-semibold text-sm mb-1.5">Description</Text>
-            <TextInput className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 text-sm"
-              placeholder="Clubs, achievements, projects..." placeholderTextColor="#9CA3AF"
-              style={{ height: 80, textAlignVertical: 'top' }}
-              value={form.description} multiline
-              onChangeText={v => setForm(p => ({ ...p, description: v }))} />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-}
 
 // ─── CODING STATS MODAL ───────────────────────────────────────────────────────
 function CodingStatsModal({ visible, user, onClose, onSuccess }: {
@@ -281,7 +133,7 @@ function CodingStatsModal({ visible, user, onClose, onSuccess }: {
         <View className="flex-row items-center justify-between px-4 py-4 border-b border-gray-100">
           <Pressable onPress={onClose}><Ionicons name="close" size={24} color="#374151" /></Pressable>
           <Text className="font-bold text-gray-900 text-lg">Update Coding Stats</Text>
-          <Pressable onPress={save} disabled={saving} className="bg-indigo-600 px-4 py-2 rounded-xl">
+          <Pressable onPress={save} disabled={saving} className="bg-orange-500 px-4 py-2 rounded-xl">
             {saving ? <ActivityIndicator size="small" color="white" /> : <Text className="text-white font-bold">Save</Text>}
           </Pressable>
         </View>
@@ -309,8 +161,6 @@ function CodingStatsModal({ visible, user, onClose, onSuccess }: {
 // ─── ABOUT TAB FULL REBUILD ───────────────────────────────────────────────────
 function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: boolean; onRefresh: () => void }) {
   const navigation = useNavigation<any>();
-  const [showAddEdu, setShowAddEdu] = useState(false);
-  const [editingEdu, setEditingEdu] = useState<EducationEntry | undefined>();
   const [showCodingModal, setShowCodingModal] = useState(false);
 
   const education = user?.education || [];
@@ -318,13 +168,6 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
   const cs = user?.codingStats || {};
   const cp = user?.codingProfiles || {};
 
-  const deleteEdu = (id: string) => Alert.alert('Delete', 'Remove this education entry?', [
-    { text: 'Cancel', style: 'cancel' },
-    { text: 'Delete', style: 'destructive', onPress: async () => {
-      await axios.delete(`/profile/education/${id}`);
-      onRefresh();
-    }}
-  ]);
 
   const hasCoding = cp.leetcode || cp.gfg || cp.codechef || cs.leetcodeSolved || cs.gfgSolved;
 
@@ -335,19 +178,19 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
       {user?.fyncScore !== undefined && (
         <Pressable onPress={() => navigation.navigate('FyncProfileBuilder')}
           className="mx-4 mt-6 mb-2 rounded-[28px] overflow-hidden">
-          <LinearGradient colors={['#6366F1', '#4F46E5']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} className="px-6 py-5 flex-row items-center">
+          <LinearGradient colors={['#f97316', '#fb923c']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} className="px-6 py-5 flex-row items-center">
             <View className="bg-white/20 w-14 h-14 rounded-2xl items-center justify-center mr-4">
               <Text style={{ fontSize: 32 }}>{BADGE_EMOJI[user.fyncBadge || 'Newcomer']}</Text>
             </View>
             <View className="flex-1">
               <View className="flex-row items-center justify-between mb-1">
                 <Text className="text-white font-black text-xl">{user.fyncScore}</Text>
-                <Text className="text-indigo-100 text-[10px] font-black uppercase tracking-widest">Score Portfolio</Text>
+                <Text className="text-orange-100 text-[10px] font-black uppercase tracking-widest">Score Portfolio</Text>
               </View>
               <View className="h-1.5 bg-black/10 rounded-full overflow-hidden mb-2">
                 <View className="h-full bg-white rounded-full" style={{ width: `${(user.fyncScore / 1000) * 100}%` }} />
               </View>
-              <Text className="text-indigo-100 text-[11px] font-bold">Level: {user.fyncBadge || 'Newcomer'} • Tap to expand →</Text>
+              <Text className="text-orange-100 text-[11px] font-bold">Level: {user.fyncBadge || 'Newcomer'} • Tap to expand →</Text>
             </View>
           </LinearGradient>
         </Pressable>
@@ -396,19 +239,12 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
       <View className="mx-4 mt-6">
         <View className="flex-row items-center justify-between mb-4 px-1">
           <View className="flex-row items-center gap-3">
-            <View className="w-1.5 h-6 rounded-full bg-blue-500" />
-            <View className="bg-blue-50 p-1.5 rounded-lg border border-blue-100">
-              <Ionicons name="school-outline" size={18} color="#3B82F6" />
+            <View className="w-1.5 h-6 rounded-full bg-orange-500" />
+            <View className="bg-orange-50 p-1.5 rounded-lg border border-orange-100">
+              <Ionicons name="school-outline" size={18} color="#f97316" />
             </View>
             <Text className="font-extrabold text-gray-900 text-xs uppercase tracking-[2px]">Education</Text>
           </View>
-          {isOwner && (
-            <Pressable onPress={() => { setEditingEdu(undefined); setShowAddEdu(true); }}
-              className="flex-row items-center gap-1.5 bg-white px-4 py-2 rounded-2xl border border-gray-100 shadow-sm">
-              <Ionicons name="add" size={16} color="#3B82F6" />
-              <Text className="text-gray-900 text-xs font-black uppercase tracking-wider">Add</Text>
-            </Pressable>
-          )}
         </View>
         {education.length === 0 ? (
           <View className="bg-white rounded-[32px] border border-gray-100 p-10 items-center shadow-sm">
@@ -419,9 +255,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
             <Text className="text-gray-400 text-xs mt-1 text-center">Highlight your academic journey here</Text>
           </View>
         ) : education.map(e => (
-          <EducationCard key={e._id} item={e} isOwner={isOwner}
-            onEdit={(i) => { setEditingEdu(i); setShowAddEdu(true); }}
-            onDelete={deleteEdu} />
+          <EducationCard key={e._id} item={e} isOwner={false} />
         ))}
       </View>
 
@@ -518,12 +352,6 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
         </View>
       )}
 
-      <AddEducationModal
-        visible={showAddEdu}
-        initial={editingEdu}
-        onClose={() => setShowAddEdu(false)}
-        onSuccess={() => { setShowAddEdu(false); onRefresh(); }}
-      />
       <CodingStatsModal
         visible={showCodingModal}
         user={user}
@@ -649,6 +477,8 @@ function Profile() {
 
   const handleLogout = async () => { await logout(); };
 
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+
   const clearAppCache = async () => {
     try {
       if (FileSystem.cacheDirectory) {
@@ -675,16 +505,42 @@ function Profile() {
           style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="disk" />
         <LinearGradient colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.2)']} className="absolute inset-0" />
         
-        <View className="absolute top-12 right-4 flex-row gap-3">
-          <Pressable onPress={clearAppCache} className="bg-white/20 p-2.5 rounded-2xl border border-white/30 backdrop-blur-md">
-            <Ionicons name="trash-outline" size={20} color="white" />
+        <View className="absolute top-12 right-4 z-50">
+          <Pressable 
+            onPress={() => setShowSettingsMenu(!showSettingsMenu)} 
+            className="bg-black/30 p-2.5 rounded-full backdrop-blur-md"
+          >
+            <Ionicons name="ellipsis-vertical" size={24} color="white" />
           </Pressable>
-          <Pressable onPress={() => Alert.alert('Logout', 'Are you sure?', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Logout', onPress: handleLogout, style: 'destructive' }
-          ])} className="bg-white/20 p-2.5 rounded-2xl border border-white/30 backdrop-blur-md">
-            <Ionicons name="log-out-outline" size={20} color="white" />
-          </Pressable>
+
+          {showSettingsMenu && (
+            <View className="absolute top-14 right-0 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden w-48 mt-1 z-50">
+              <Pressable 
+                onPress={() => {
+                  setShowSettingsMenu(false);
+                  clearAppCache();
+                }} 
+                className="flex-row items-center px-4 py-4 border-b border-slate-50 active:bg-slate-50"
+              >
+                <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                <Text className="ml-3 text-zinc-900 text-[10px] font-black uppercase tracking-widest">Clear Cache</Text>
+              </Pressable>
+
+              <Pressable 
+                onPress={() => {
+                  setShowSettingsMenu(false);
+                  Alert.alert('Logout', 'Are you sure?', [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Logout', onPress: handleLogout, style: 'destructive' }
+                  ]);
+                }} 
+                className="flex-row items-center px-4 py-4 active:bg-slate-50"
+              >
+                <Ionicons name="log-out-outline" size={18} color="#ef4444" />
+                <Text className="ml-3 text-zinc-900 text-[10px] font-black uppercase tracking-widest">Logout</Text>
+              </Pressable>
+            </View>
+          )}
         </View>
       </View>
 
@@ -698,18 +554,15 @@ function Profile() {
         {/* Name + badge */}
         <View className="flex-row items-center mt-4 gap-2">
           <Text className="text-3xl font-black text-gray-900 tracking-tight">{user?.name || user?.username}</Text>
-          <Pressable onPress={() => navigation.navigate('EditProfile')} className="bg-indigo-50 rounded-xl p-2 border border-indigo-100">
-            <Ionicons name="pencil" size={16} color="#6366F1" />
-          </Pressable>
         </View>
-        <Text className="text-indigo-500 font-black text-sm uppercase tracking-widest mt-1">@{user?.username}</Text>
+        <Text className="text-orange-500 font-black text-sm tracking-widest mt-1">@{user?.username}</Text>
 
         <Text className="text-gray-500 text-center mt-4 px-6 text-[14px] leading-[22px] font-medium">
-          {user?.bio || user?.about || "Elevating the future of networking at Fync 💫"}
+          {user?.about || "Elevating the future of networking at Fync 💫"}
         </Text>
 
         <View className="flex-row items-center mt-4 px-4 py-2 bg-gray-50 rounded-2xl border border-gray-100 gap-2">
-          <Ionicons name="location" size={16} color="#6366F1" />
+          <Ionicons name="location" size={16} color="#f97316" />
           <Text className="text-gray-900 text-xs font-black uppercase tracking-wider">{user?.college || 'Earth'}</Text>
         </View>
 
@@ -732,16 +585,16 @@ function Profile() {
 
         {/* Subscription Status Bar */}
         {subscription?.status === 'active' && (
-          <View className="w-full mt-4 bg-indigo-50 border border-indigo-100 rounded-2xl px-5 py-3 flex-row items-center justify-between">
+          <View className="w-full mt-4 bg-orange-50 border border-orange-100 rounded-2xl px-5 py-3 flex-row items-center justify-between">
             <View className="flex-row items-center">
-              <View className="w-8 h-8 bg-indigo-600 rounded-xl items-center justify-center mr-3">
+              <View className="w-8 h-8 bg-orange-500 rounded-xl items-center justify-center mr-3">
                 <Ionicons name="flash" size={16} color="white" />
               </View>
               <View>
-                <Text className="text-indigo-900 font-black text-[10px] uppercase tracking-widest">
+                <Text className="text-orange-900 font-black text-[10px] uppercase tracking-widest">
                   {subscription.isLifetime ? "Lifetime Access" : "Premium Member"}
                 </Text>
-                <Text className="text-indigo-600 font-bold text-[11px] mt-0.5">
+                <Text className="text-orange-600 font-bold text-[11px] mt-0.5">
                   {subscription.isLifetime ? "Infinite Protocol Active" : `${subscription.daysRemaining} Days remaining`}
                 </Text>
               </View>
@@ -749,9 +602,9 @@ function Profile() {
             {!subscription.isLifetime && (
               <Pressable 
                 onPress={() => navigation.navigate('SubscriptionScreen')}
-                className="bg-white px-3 py-1.5 rounded-lg border border-indigo-200"
+                className="bg-white px-3 py-1.5 rounded-lg border border-orange-200"
               >
-                <Text className="text-indigo-600 font-black text-[9px] uppercase tracking-tighter">Extend</Text>
+                <Text className="text-orange-600 font-black text-[9px] uppercase tracking-tighter">Extend</Text>
               </Pressable>
             )}
           </View>
@@ -782,7 +635,7 @@ function Profile() {
             <Text className="text-gray-900 font-black uppercase text-xs tracking-widest">Edit Profile</Text>
           </Pressable>
           <Pressable onPress={() => navigation.navigate('FyncProfileBuilder')}
-            className="flex-1 bg-indigo-600 py-4 rounded-[24px] items-center shadow-lg shadow-indigo-200">
+            className="flex-1 bg-orange-500 py-4 rounded-[24px] items-center shadow-lg shadow-orange-200">
             <Text className="text-white font-black uppercase text-xs tracking-widest">Portfolio</Text>
           </Pressable>
         </View>
@@ -801,11 +654,11 @@ function Profile() {
         const isActive = activeTab === t.key;
         return (
           <Pressable key={t.key} onPress={() => setActiveTab(t.key as any)} className="flex-1 items-center py-2 relative">
-            <View className={`w-14 h-10 rounded-2xl items-center justify-center ${isActive ? 'bg-indigo-50' : 'bg-transparent'}`}>
+            <View className={`w-14 h-10 rounded-2xl items-center justify-center ${isActive ? 'bg-orange-50' : 'bg-transparent'}`}>
               <Ionicons name={(isActive ? t.activeIcon : t.icon) as any} size={24}
-                color={isActive ? '#6366F1' : '#9CA3AF'} />
+                color={isActive ? '#f97316' : '#9CA3AF'} />
             </View>
-            {isActive && <View className="absolute bottom-[-4px] w-1 h-1 bg-indigo-600 rounded-full" />}
+            {isActive && <View className="absolute bottom-[-4px] w-1 h-1 bg-orange-500 rounded-full" />}
           </Pressable>
         );
       })}
@@ -835,8 +688,8 @@ function Profile() {
       ) : item.image?.length > 0 ? (
         <ExpoImage source={{ uri: getFullUrl(item.image[0]) || '' }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="disk" />
       ) : (
-        <View className="w-full h-full bg-indigo-50/50 items-center justify-center p-3">
-          <Text className="text-indigo-400 text-[10px] font-bold text-center" numberOfLines={4}>{item.title || item.description}</Text>
+        <View className="w-full h-full bg-orange-50/50 items-center justify-center p-3">
+          <Text className="text-orange-400 text-[10px] font-bold text-center" numberOfLines={4}>{item.title || item.description}</Text>
         </View>
       )}
       {!isShort && item.image?.length > 1 && (

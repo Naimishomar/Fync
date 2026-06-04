@@ -270,7 +270,7 @@ const PublicProfile = () => {
                     <>
                         <Image
                             source={{ uri: getFullUrl(item.image?.[0]) || '' }}
-                            className="flex-1 bg-gray-800"
+                            className="flex-1 bg-slate-100"
                             resizeMode="cover"
                         />
 
@@ -287,13 +287,13 @@ const PublicProfile = () => {
         );
     };
 
-    // --- ABOUT SECTION (Dark Mode) ---
+    // --- ABOUT SECTION (Light Mode) ---
     const AboutSection = () => (
-        <View className="px-4 py-6 pb-32">
+        <View className="px-5 py-6 pb-32">
             {/* About Card */}
-            <View className="bg-white/5 rounded-2xl p-5 border border-white/10 mb-6 shadow-sm">
-                <Text className="text-pink-500 text-xs font-bold uppercase mb-2 tracking-widest">About</Text>
-                <Text className="text-gray-300 text-base leading-relaxed">
+            <View className="bg-white rounded-[32px] p-6 border border-slate-100 mb-6 shadow-sm shadow-slate-200">
+                <Text className="text-orange-500 text-xs font-black uppercase mb-3 tracking-widest">About</Text>
+                <Text className="text-slate-600 text-sm font-medium leading-relaxed">
                     {profileUser?.about || "This user prefers to stay mysterious."}
                 </Text>
             </View>
@@ -301,13 +301,13 @@ const PublicProfile = () => {
             {/* Details Grid */}
             <View className="flex-row flex-wrap gap-4 mb-6">
                 {profileUser?.experience && (
-                    <View className="w-full bg-white/5 p-4 rounded-2xl border border-white/10 flex-row items-center">
-                        <View className="bg-indigo-500/20 p-2 rounded-lg mr-3">
-                            <Ionicons name="briefcase" size={20} color="#818cf8" />
+                    <View className="w-full bg-white p-5 rounded-[32px] border border-slate-100 flex-row items-center shadow-sm shadow-slate-200">
+                        <View className="bg-orange-50 p-3 rounded-2xl mr-4">
+                            <Ionicons name="briefcase" size={24} color="#f97316" />
                         </View>
                         <View className="flex-1">
-                            <Text className="text-indigo-400 text-xs font-bold uppercase tracking-wider">Experience</Text>
-                            <Text className="text-gray-200 text-sm mt-0.5">{profileUser.experience}</Text>
+                            <Text className="text-orange-500 text-[10px] font-black uppercase tracking-widest mb-1">Experience</Text>
+                            <Text className="text-slate-700 text-sm font-bold">{profileUser.experience}</Text>
                         </View>
                     </View>
                 )}
@@ -315,22 +315,22 @@ const PublicProfile = () => {
 
             {/* Tags Collection */}
             {(profileUser?.skills?.length || profileUser?.hobbies || profileUser?.interest) && (
-                <View className="mb-6">
-                    <Text className="text-gray-500 text-xs font-bold uppercase mb-3 tracking-wider ml-1">Tags & Interests</Text>
+                <View className="mb-6 bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm shadow-slate-200">
+                    <Text className="text-slate-400 text-[10px] font-black uppercase mb-4 tracking-widest">Tags & Interests</Text>
                     <View className="flex-row flex-wrap gap-2">
                         {profileUser?.skills?.map((skill, i) => (
-                            <View key={i} className="bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/30">
-                                <Text className="text-blue-400 text-xs font-bold">{skill}</Text>
+                            <View key={i} className="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                                <Text className="text-slate-600 text-[11px] font-black uppercase tracking-tight">{skill}</Text>
                             </View>
                         ))}
                         {profileUser?.interest && (
-                            <View className="bg-pink-500/10 px-3 py-1.5 rounded-lg border border-pink-500/30">
-                                <Text className="text-pink-400 text-xs font-bold">♥ {profileUser.interest}</Text>
+                            <View className="bg-orange-50 px-4 py-2 rounded-xl border border-orange-100">
+                                <Text className="text-orange-600 text-[11px] font-black uppercase tracking-tight">♥ {profileUser.interest}</Text>
                             </View>
                         )}
                         {profileUser?.hobbies && (
-                            <View className="bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/30">
-                                <Text className="text-emerald-400 text-xs font-bold">★ {profileUser.hobbies}</Text>
+                            <View className="bg-orange-50 px-4 py-2 rounded-xl border border-orange-100">
+                                <Text className="text-orange-600 text-[11px] font-black uppercase tracking-tight">★ {profileUser.hobbies}</Text>
                             </View>
                         )}
                     </View>
@@ -338,10 +338,10 @@ const PublicProfile = () => {
             )}
 
             {/* Social Links */}
-            <Text className="text-gray-500 text-xs font-bold uppercase mb-3 tracking-wider ml-1">Connect</Text>
+            <Text className="text-slate-400 text-[10px] font-black uppercase mb-4 tracking-widest ml-1">Connect</Text>
             
             {profileUser?.github_id && (
-                <View className="-mx-4 mb-6">
+                <View className="-mx-5 mb-6">
                     <GitHubStatsCard 
                         username={ (profileUser as any).githubUsername || profileUser.github_id.split('/').pop() }
                         stats={ (profileUser as any).githubStats }
@@ -352,31 +352,31 @@ const PublicProfile = () => {
 
             <View className="gap-3">
                 {profileUser?.github_id && (
-                    <Pressable onPress={() => Linking.openURL(profileUser.github_id!)} className="flex-row items-center bg-white/5 px-4 py-3 rounded-xl border border-white/10">
-                        <Ionicons name="logo-github" size={22} color="white" />
-                        <Text className="text-gray-200 ml-3 font-medium">GitHub</Text>
-                        <Ionicons name="open-outline" size={16} color="gray" style={{ marginLeft: 'auto' }} />
+                    <Pressable onPress={() => Linking.openURL(profileUser.github_id!)} className="flex-row items-center bg-white px-5 py-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <Ionicons name="logo-github" size={24} color="#18181b" />
+                        <Text className="text-zinc-900 ml-4 font-black uppercase tracking-tight">GitHub</Text>
+                        <Ionicons name="open-outline" size={18} color="#94a3b8" style={{ marginLeft: 'auto' }} />
                     </Pressable>
                 )}
                 {profileUser?.linkedIn_id && (
-                    <Pressable onPress={() => Linking.openURL(profileUser.linkedIn_id!)} className="flex-row items-center bg-white/5 px-4 py-3 rounded-xl border border-white/10">
-                        <Ionicons name="logo-linkedin" size={22} color="#0077b5" />
-                        <Text className="text-gray-200 ml-3 font-medium">LinkedIn</Text>
-                        <Ionicons name="open-outline" size={16} color="gray" style={{ marginLeft: 'auto' }} />
+                    <Pressable onPress={() => Linking.openURL(profileUser.linkedIn_id!)} className="flex-row items-center bg-white px-5 py-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <Ionicons name="logo-linkedin" size={24} color="#0077b5" />
+                        <Text className="text-zinc-900 ml-4 font-black uppercase tracking-tight">LinkedIn</Text>
+                        <Ionicons name="open-outline" size={18} color="#94a3b8" style={{ marginLeft: 'auto' }} />
                     </Pressable>
                 )}
                 {profileUser?.codingProfiles?.leetcode && (
-                    <Pressable onPress={() => Linking.openURL(`https://leetcode.com/${profileUser.codingProfiles?.leetcode}`)} className="flex-row items-center bg-white/5 px-4 py-3 rounded-xl border border-white/10">
-                        <Image source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png" }} className="w-5 h-5" style={{ tintColor: '#facc15' }} />
-                        <Text className="text-gray-200 ml-3 font-medium">LeetCode</Text>
-                        <Ionicons name="open-outline" size={16} color="gray" style={{ marginLeft: 'auto' }} />
+                    <Pressable onPress={() => Linking.openURL(`https://leetcode.com/${profileUser.codingProfiles?.leetcode}`)} className="flex-row items-center bg-white px-5 py-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <Image source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png" }} className="w-6 h-6" style={{ tintColor: '#facc15' }} />
+                        <Text className="text-zinc-900 ml-4 font-black uppercase tracking-tight">LeetCode</Text>
+                        <Ionicons name="open-outline" size={18} color="#94a3b8" style={{ marginLeft: 'auto' }} />
                     </Pressable>
                 )}
                 {profileUser?.codingProfiles?.gfg && (
-                    <Pressable onPress={() => Linking.openURL(`https://www.geeksforgeeks.org/user/${profileUser.codingProfiles?.gfg}`)} className="flex-row items-center bg-white/5 px-4 py-3 rounded-xl border border-white/10">
-                        <Image source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/4/43/GeeksforGeeks.svg" }} className="w-5 h-5" />
-                        <Text className="text-gray-200 ml-3 font-medium">GeeksForGeeks</Text>
-                        <Ionicons name="open-outline" size={16} color="gray" style={{ marginLeft: 'auto' }} />
+                    <Pressable onPress={() => Linking.openURL(`https://www.geeksforgeeks.org/user/${profileUser.codingProfiles?.gfg}`)} className="flex-row items-center bg-white px-5 py-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <Image source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/4/43/GeeksforGeeks.svg" }} className="w-6 h-6" />
+                        <Text className="text-zinc-900 ml-4 font-black uppercase tracking-tight">GeeksForGeeks</Text>
+                        <Ionicons name="open-outline" size={18} color="#94a3b8" style={{ marginLeft: 'auto' }} />
                     </Pressable>
                 )}
             </View>
@@ -528,136 +528,158 @@ const PublicProfile = () => {
     }
 
     return (
-        <View className="flex-1 bg-black">
-            <SafeAreaView className="flex-1">
-                {/* Header */}
-                <View className="flex-row items-center px-4 py-2 z-10">
-                    <Pressable onPress={() => navigation.goBack()} className="bg-white/10 p-2 rounded-full border border-white/10">
-                        <Ionicons name="arrow-back" size={24} color="white" />
-                    </Pressable>
-                    <View className="ml-4">
-                        <Text className="text-white font-bold text-lg tracking-wide">{profileUser.username}</Text>
-                        <Text className="text-gray-400 text-xs font-medium">{profileUser.name}</Text>
-                    </View>
-                </View>
+        <View className="flex-1 bg-slate-50">
+            {/* Back Button Overlay */}
+            <View className="absolute top-12 left-4 z-20">
+                <Pressable onPress={() => navigation.goBack()} className="bg-black/30 p-2.5 rounded-full backdrop-blur-md">
+                    <Ionicons name="arrow-back" size={24} color="white" />
+                </Pressable>
+            </View>
 
-                <FlatList
-                    key={activeTab} // Reset list when tab changes
-                    data={activeTab === 'tags' ? ['ABOUT'] : activeTab === 'posts' ? posts : shorts}
-                    numColumns={activeTab === 'tags' ? 1 : 3}
-                    keyExtractor={(item) => typeof item === 'string' ? item : item._id}
-                    showsVerticalScrollIndicator={false}
-                    onEndReached={handleLoadMore}
-                    onEndReachedThreshold={0.5}
-                    ListHeaderComponent={
-                        <>
-                            {/* Top Profile Card */}
-                            <View className="mx-4 mt-2 mb-6 bg-white/5 rounded-3xl p-5 border border-white/10 shadow-lg">
-                                <View className="flex-row items-center">
-                                    <Avatar
-                                        user={profileUser as any}
-                                        size={80}
-                                    />
-                                    <View className="flex-1 ml-6 flex-row justify-between pr-4">
-                                        <View className="items-center">
-                                            <Text className="text-xl font-bold text-white">{posts.length}</Text>
-                                            <Text className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Posts</Text>
-                                        </View>
-                                        <Pressable onPress={() => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "followers" })} className="items-center">
-                                            <Text className="text-xl font-bold text-white">{profileUser.followers?.length || 0}</Text>
-                                            <Text className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Followers</Text>
-                                        </Pressable>
-                                        <Pressable onPress={() => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "following" })} className="items-center">
-                                            <Text className="text-xl font-bold text-white">{profileUser.following?.length || 0}</Text>
-                                            <Text className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Following</Text>
-                                        </Pressable>
-                                    </View>
-                                </View>
-
-                                {/* Action Buttons */}
-                                {currentUser?._id !== profileUser._id && (
-                                    <View className="flex-row gap-3 mt-6">
-                                        <Pressable
-                                            onPress={handleFollowToggle}
-                                            className={`flex-1 py-3 rounded-xl items-center justify-center border ${isFollowing ? 'bg-transparent border-gray-500' : 'bg-pink-600 border-pink-600'}`}
-                                        >
-                                            <Text className={`font-bold tracking-wide ${isFollowing ? 'text-gray-300' : 'text-white'}`}>
-                                                {isFollowing ? "Following" : "Follow"}
-                                            </Text>
-                                        </Pressable>
-                                        <Pressable
-                                            onPress={startChat}
-                                            className="flex-1 bg-white/10 py-3 rounded-xl items-center justify-center border border-white/10"
-                                        >
-                                            <Text className="text-white font-bold tracking-wide">Message</Text>
-                                        </Pressable>
-                                    </View>
-                                )}
-                            </View>
-
-                            {/* Custom Tab Bar */}
-                            <View className="flex-row border-b border-white/10 mx-4 mb-2">
-                                <Pressable onPress={() => setActiveTab('posts')} className={`flex-1 items-center pb-3 ${activeTab === 'posts' ? 'border-b-2 border-pink-500' : ''}`}>
-                                    <Ionicons name="grid" size={22} color={activeTab === 'posts' ? '#ec4899' : '#666'} />
-                                </Pressable>
-                                <Pressable onPress={() => setActiveTab('shorts')} className={`flex-1 items-center pb-3 ${activeTab === 'shorts' ? 'border-b-2 border-pink-500' : ''}`}>
-                                    <Ionicons name="videocam" size={24} color={activeTab === 'shorts' ? '#ec4899' : '#666'} />
-                                </Pressable>
-                                <Pressable onPress={() => setActiveTab('tags')} className={`flex-1 items-center pb-3 ${activeTab === 'tags' ? 'border-b-2 border-pink-500' : ''}`}>
-                                    <MaterialCommunityIcons name="account-details" size={26} color={activeTab === 'tags' ? '#ec4899' : '#666'} />
-                                </Pressable>
-                            </View>
-                        </>
-                    }
-                    renderItem={({ item }: { item: any }) => {
-                        if (activeTab === 'tags') return <AboutSection />;
-                        return renderGridItem({ item });
-                    }}
-                    ListFooterComponent={
-                        isFetchingMore ? (
-                            <View className="py-4">
-                                <ActivityIndicator size="small" color="#ec4899" />
-                            </View>
-                        ) : null
-                    }
-                    ListEmptyComponent={
-                        <View className="items-center mt-20 opacity-50">
-                            <Ionicons name={activeTab === 'shorts' ? "videocam-off-outline" : "images-outline"} size={48} color="white" />
-                            <Text className="text-gray-400 mt-2">Nothing to see here</Text>
+            <FlatList
+                key={activeTab} // Reset list when tab changes
+                data={activeTab === 'tags' ? ['ABOUT'] : activeTab === 'posts' ? posts : shorts}
+                numColumns={activeTab === 'tags' ? 1 : 3}
+                keyExtractor={(item) => typeof item === 'string' ? item : item._id}
+                showsVerticalScrollIndicator={false}
+                onEndReached={handleLoadMore}
+                onEndReachedThreshold={0.5}
+                ListHeaderComponent={
+                    <View>
+                        {/* Banner Overlay */}
+                        <View className="h-64 w-full relative">
+                            <ExpoImage
+                                source={{ uri: getFullUrl((profileUser as any)?.banner) || 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000' }}
+                                style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="disk" 
+                            />
+                            <LinearGradient colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.2)']} className="absolute inset-0" />
                         </View>
-                    }
-                />
 
-                {/* Dark Modal */}
-                <Modal visible={modalVisible} transparent={true} animationType="fade" onRequestClose={() => setModalVisible(false)}>
-                    <BlurView intensity={90} tint="dark" className="flex-1 justify-center items-center px-4">
-                        <Pressable style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} onPress={() => setModalVisible(false)} />
+                        {/* Top Profile Card */}
+                        <View className="items-center pb-6 px-5 bg-white rounded-t-[40px] -mt-12 shadow-2xl">
+                            <View className="-mt-14 p-1.5 bg-white rounded-full shadow-2xl">
+                                <View className="rounded-full overflow-hidden border-4 border-white">
+                                    <Avatar user={profileUser as any} size={110} />
+                                </View>
+                            </View>
 
-                        {selectedItem && (
-                            <View className="w-full bg-[#121212] rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
-                                <View className="w-full h-96 bg-black justify-center items-center relative">
-                                    {activeTab === 'shorts' ? (
-                                        <View className="items-center">
-                                            <Ionicons name="play-circle" size={64} color="#ec4899" />
-                                            <Text className="text-gray-500 mt-2 text-xs">PREVIEW MODE</Text>
-                                        </View>
-                                    ) : (
-                                        <Image source={{ uri: getFullUrl(selectedItem.image ? selectedItem.image[0] : '') || '' }} className="w-full h-full" resizeMode="contain" />
-                                    )}
-                                    <Pressable onPress={() => setModalVisible(false)} className="absolute top-4 right-4 bg-black/50 p-2 rounded-full">
-                                        <Ionicons name="close" size={20} color="white" />
+                            {/* Name + username */}
+                            <Text className="text-3xl font-black text-gray-900 tracking-tight mt-4">
+                                {profileUser?.name || profileUser?.username}
+                            </Text>
+                            <Text className="text-orange-500 font-black text-sm tracking-widest mt-1">
+                                @{profileUser?.username}
+                            </Text>
+                            
+                            <Text className="text-gray-500 text-center mt-4 px-6 text-[14px] leading-[22px] font-medium">
+                                {profileUser?.about || "Ready to connect and collaborate 🚀"}
+                            </Text>
+
+                            <View className="flex-row items-center mt-4 px-4 py-2 bg-gray-50 rounded-2xl border border-gray-100 gap-2">
+                                <Ionicons name="location" size={16} color="#f97316" />
+                                <Text className="text-gray-900 text-xs font-black uppercase tracking-wider">{profileUser?.college || 'Earth'}</Text>
+                            </View>
+
+                            {/* Stats Dashboard */}
+                            <View className="flex-row w-full bg-zinc-900 rounded-[32px] mt-6 p-6 shadow-xl shadow-gray-300">
+                                {[
+                                    { label: 'Posts', value: posts.length },
+                                    { label: 'Followers', value: profileUser?.followers?.length || 0, onPress: () => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "followers" }) },
+                                    { label: 'Following', value: profileUser?.following?.length || 0, onPress: () => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "following" }) },
+                                ].map((s, i) => (
+                                    <React.Fragment key={i}>
+                                        {i > 0 && <View className="w-[1px] h-8 self-center bg-white/10" />}
+                                        <Pressable className="items-center flex-1" onPress={s.onPress}>
+                                            <Text className="text-xl font-black text-white">{s.value}</Text>
+                                            <Text className="text-gray-400 text-[9px] font-black uppercase tracking-widest mt-1">{s.label}</Text>
+                                        </Pressable>
+                                    </React.Fragment>
+                                ))}
+                            </View>
+
+                            {/* Action Buttons */}
+                            {currentUser?._id !== profileUser._id && (
+                                <View className="flex-row gap-3 mt-6 w-full">
+                                    <Pressable
+                                        onPress={handleFollowToggle}
+                                        className={`flex-1 py-4 rounded-3xl items-center justify-center border shadow-lg ${isFollowing ? 'bg-white border-slate-200 shadow-slate-200' : 'bg-orange-500 border-orange-500 shadow-orange-500/30'}`}
+                                    >
+                                        <Text className={`font-black uppercase tracking-widest text-xs ${isFollowing ? 'text-slate-500' : 'text-white'}`}>
+                                            {isFollowing ? "Following" : "Follow"}
+                                        </Text>
+                                    </Pressable>
+                                    <Pressable
+                                        onPress={startChat}
+                                        className="flex-1 bg-zinc-900 py-4 rounded-3xl items-center justify-center border border-zinc-900 shadow-lg shadow-zinc-900/30"
+                                    >
+                                        <Text className="text-white font-black uppercase tracking-widest text-xs">Message</Text>
                                     </Pressable>
                                 </View>
-                                <View className="p-5">
-                                    {activeTab === 'shorts' && <Text className="text-xl font-bold text-white mb-2">{selectedItem.title}</Text>}
-                                    <Text className="text-gray-400 leading-6">{selectedItem.description || "No caption."}</Text>
-                                </View>
-                            </View>
-                        )}
-                    </BlurView>
-                </Modal>
+                            )}
+                        </View>
 
-            </SafeAreaView>
+                        {/* Custom Tab Bar */}
+                        <View className="flex-row border-b border-slate-100 bg-white">
+                            <Pressable onPress={() => setActiveTab('posts')} className={`flex-1 items-center pb-4 pt-4 ${activeTab === 'posts' ? 'border-b-[3px] border-orange-500' : ''}`}>
+                                <Ionicons name="grid" size={22} color={activeTab === 'posts' ? '#f97316' : '#94a3b8'} />
+                            </Pressable>
+                            <Pressable onPress={() => setActiveTab('shorts')} className={`flex-1 items-center pb-4 pt-4 ${activeTab === 'shorts' ? 'border-b-[3px] border-orange-500' : ''}`}>
+                                <Ionicons name="videocam" size={24} color={activeTab === 'shorts' ? '#f97316' : '#94a3b8'} />
+                            </Pressable>
+                            <Pressable onPress={() => setActiveTab('tags')} className={`flex-1 items-center pb-4 pt-4 ${activeTab === 'tags' ? 'border-b-[3px] border-orange-500' : ''}`}>
+                                <MaterialCommunityIcons name="account-details" size={26} color={activeTab === 'tags' ? '#f97316' : '#94a3b8'} />
+                            </Pressable>
+                        </View>
+                    </View>
+                }
+                renderItem={({ item }: { item: any }) => {
+                    if (activeTab === 'tags') return <AboutSection />;
+                    return renderGridItem({ item });
+                }}
+                ListFooterComponent={
+                    isFetchingMore ? (
+                        <View className="py-4 bg-white">
+                            <ActivityIndicator size="small" color="#f97316" />
+                        </View>
+                    ) : null
+                }
+                ListEmptyComponent={
+                    <View className="items-center mt-20 opacity-50 bg-slate-50">
+                        <Ionicons name={activeTab === 'shorts' ? "videocam-off-outline" : "images-outline"} size={48} color="#cbd5e1" />
+                        <Text className="text-slate-400 mt-2 font-bold uppercase tracking-widest text-[10px]">Nothing to see here</Text>
+                    </View>
+                }
+                className="bg-slate-50"
+            />
+
+            {/* Light Modal */}
+            <Modal visible={modalVisible} transparent={true} animationType="fade" onRequestClose={() => setModalVisible(false)}>
+                <BlurView intensity={90} tint="light" className="flex-1 justify-center items-center px-4">
+                    <Pressable style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} onPress={() => setModalVisible(false)} />
+
+                    {selectedItem && (
+                        <View className="w-full bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-2xl">
+                            <View className="w-full h-96 bg-slate-100 justify-center items-center relative">
+                                {activeTab === 'shorts' ? (
+                                    <View className="items-center">
+                                        <Ionicons name="play-circle" size={64} color="#f97316" />
+                                        <Text className="text-slate-400 mt-2 font-bold uppercase tracking-widest text-[10px]">PREVIEW MODE</Text>
+                                    </View>
+                                ) : (
+                                    <Image source={{ uri: getFullUrl(selectedItem.image ? selectedItem.image[0] : '') || '' }} className="w-full h-full" resizeMode="cover" />
+                                )}
+                                <Pressable onPress={() => setModalVisible(false)} className="absolute top-4 right-4 bg-white/80 p-2 rounded-full">
+                                    <Ionicons name="close" size={20} color="#18181b" />
+                                </Pressable>
+                            </View>
+                            <View className="p-5">
+                                {activeTab === 'shorts' && <Text className="text-lg font-black text-zinc-900 mb-2 uppercase">{selectedItem.title}</Text>}
+                                <Text className="text-slate-500 font-medium leading-6">{selectedItem.description || "No caption."}</Text>
+                            </View>
+                        </View>
+                    )}
+                </BlurView>
+            </Modal>
         </View>
     );
 };

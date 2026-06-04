@@ -178,7 +178,7 @@ export default function GitHubStatsCard({
                   </View>
                 )}
                 <ExpoImage 
-                  source={{ uri: `https://github-readme-stats-sigma-five.vercel.app/api?username=${encodeURIComponent(username || '')}&show_icons=true&theme=transparent&hide_border=true&title_color=18181b&text_color=64748b&icon_color=f97316&cache_seconds=1800` }}
+                  source={{ uri: `https://github-readme-stats-sigma-five.vercel.app/api?username=${encodeURIComponent(username || '')}&show_icons=true&theme=transparent&hide_border=true&title_color=18181b&text_color=64748b&icon_color=f97316&cache_seconds=1800&t=${new Date(stats?.lastFetched || Date.now()).getTime()}` }}
                   style={{ width: '100%', height: 180 }}
                   contentFit="contain"
                   transition={500}
@@ -202,7 +202,7 @@ export default function GitHubStatsCard({
                     </View>
                   )}
                   <ExpoImage 
-                    source={{ uri: `https://github-readme-stats-sigma-five.vercel.app/api/top-langs/?username=${encodeURIComponent(username || '')}&layout=compact&theme=transparent&hide_border=true&title_color=18181b&text_color=64748b&cache_seconds=1800` }}
+                    source={{ uri: `https://github-readme-stats-sigma-five.vercel.app/api/top-langs/?username=${encodeURIComponent(username || '')}&layout=compact&theme=transparent&hide_border=true&title_color=18181b&text_color=64748b&cache_seconds=1800&t=${new Date(stats?.lastFetched || Date.now()).getTime()}` }}
                     style={{ width: '100%', height: 150 }}
                     contentFit="contain"
                     transition={600}
@@ -224,7 +224,7 @@ export default function GitHubStatsCard({
                     </View>
                   )}
                   <ExpoImage 
-                    source={{ uri: `https://streak-stats.demolab.com/?user=${encodeURIComponent(username || '')}&theme=transparent&hide_border=true&stroke=00000000&background=00000000&ring=f97316&fire=f97316&currStreakLabel=f97316&sideNums=64748b&sideLabels=64748b&dates=64748b` }}
+                    source={{ uri: `https://streak-stats.demolab.com/?user=${encodeURIComponent(username || '')}&theme=transparent&hide_border=true&stroke=00000000&background=00000000&ring=f97316&fire=f97316&currStreakLabel=f97316&sideNums=64748b&sideLabels=64748b&dates=64748b&t=${new Date(stats?.lastFetched || Date.now()).getTime()}` }}
                     style={{ width: '100%', height: 150 }}
                     contentFit="contain"
                     transition={700}

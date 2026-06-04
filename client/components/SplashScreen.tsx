@@ -3,6 +3,7 @@ import { Animated } from 'react-native';
 //@ts-ignore
 import LogoImage from '../assets/Fync.png';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 let animationStarted = false;
 
@@ -37,18 +38,23 @@ export default function SplashScreen({ navigation }: any) {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-white justify-center items-center">
-      <Animated.Image
-        source={LogoImage}
-        className="w-56 h-56 object-contain rounded-full"
-        style={{ transform: [{ translateX: logoX }] }}
-      />
-      <Animated.Text
-        className="text-md font-bold text-red-400  mt-5"
-        style={{ transform: [{ translateX: textX }] }}
-      >
-        Simplifying Students Life
-      </Animated.Text>
-    </SafeAreaView>
+    <LinearGradient 
+      colors={['#f97316', 'transparent']} 
+      className="h-full"
+    >
+      <SafeAreaView className="flex-1 justify-center items-center">
+        <Animated.Image
+          source={require('../assets/Fync.png')}
+          className="w-56 h-56 object-contain rounded-full border-4 border-white/20"
+          style={{ transform: [{ translateX: logoX }] }}
+        />
+        <Animated.Text
+          className="text-lg font-extrabold text-white mt-5 tracking-[2px]"
+          style={{ transform: [{ translateX: textX }] }}
+        >
+          Simplifying Students Life
+        </Animated.Text>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
