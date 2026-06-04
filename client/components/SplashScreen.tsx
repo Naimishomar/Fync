@@ -1,7 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated } from 'react-native';
-//@ts-ignore
-import LogoImage from '../assets/Fync.png';
+import { Animated, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -38,23 +36,27 @@ export default function SplashScreen({ navigation }: any) {
   }, []);
 
   return (
-    <LinearGradient 
-      colors={['#f97316', 'transparent']} 
-      className="h-full"
-    >
+    <View className="flex-1 bg-[#F8FAFC]">
+      {/* HEADER DECORATION */}
+      <View className="absolute top-0 w-full h-80 opacity-40">
+        <LinearGradient 
+          colors={['#f97316', 'transparent']} 
+          className="w-full h-full"
+        />
+      </View>
       <SafeAreaView className="flex-1 justify-center items-center">
         <Animated.Image
           source={require('../assets/Fync.png')}
-          className="w-56 h-56 object-contain rounded-full border-4 border-white/20"
+          className="w-56 h-56 object-contain rounded-full bg-white border border-slate-100 shadow-xl shadow-orange-500/20"
           style={{ transform: [{ translateX: logoX }] }}
         />
         <Animated.Text
-          className="text-lg font-extrabold text-white mt-5 tracking-[2px]"
+          className="text-lg font-bold text-zinc-900 mt-5 tracking-[2px] uppercase"
           style={{ transform: [{ translateX: textX }] }}
         >
           Simplifying Students Life
         </Animated.Text>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }

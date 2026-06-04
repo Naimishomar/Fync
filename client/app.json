@@ -44,6 +44,11 @@
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "androidStatusBar": {
+      "translucent": true,
+      "backgroundColor": "transparent",
+      "barStyle": "dark-content"
+    },
     "splash": {
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
@@ -94,7 +99,7 @@
       ],
       "usesCleartextTraffic": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/Fync.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#000"
       },
       "package": "com.naimishomar.fync",

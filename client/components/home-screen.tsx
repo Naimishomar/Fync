@@ -850,7 +850,7 @@ export default function HomeScreen() {
     );
   };
   const features = useMemo(() => [
-    { id: 'fyncAcademy', name: 'Fync Academy', Icon: Sparkles, colorHex: '#8b5cf6', bgClass: 'bg-purple-50', sparkle: true, onPress: () => navigation.navigate('MasterStudyHub') },
+    { id: 'fyncAcademy', name: 'Academy', Icon: Sparkles, colorHex: '#8b5cf6', bgClass: 'bg-purple-50', sparkle: true, onPress: () => navigation.navigate('MasterStudyHub') },
     { id: 'contest', name: 'Contests', Icon: Code, colorHex: '#4f46e5', bgClass: 'bg-indigo-50', sparkle: true, onPress: () => navigation.navigate('DSAAndDevelopmentContest') },
     { id: 'partyPool', name: 'Party Pool', Icon: Sparkles, colorHex: '#db2777', bgClass: 'bg-pink-50', sparkle: true, onPress: () => navigation.navigate('PartyPool') },
     { id: 'entertainment', name: 'Movies', Icon: Mic, colorHex: '#e11d48', bgClass: 'bg-rose-50', sparkle: true, onPress: () => navigation.navigate('EntertainmentHome') },
@@ -866,7 +866,7 @@ export default function HomeScreen() {
   const displayedFeatures = useMemo(() => features.slice(0, 6), [features]);
 const renderFeatureStories = () => {
   return (
-    <View className="bg-white py-4 px-2 w-full">
+    <View className="bg-white py-2 px-2 w-full">
       {/* Grid Container */}
       <View className="flex-row flex-wrap">
         {features.map((item, index) => (
@@ -906,9 +906,6 @@ const renderFeatureStories = () => {
           </Reanimated.View>
         ))}
       </View>
-      
-      {/* Softer divider */}
-      <View className="border-b border-slate-100 mx-4 mt-4" />
     </View>
   );
 }

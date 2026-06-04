@@ -628,7 +628,7 @@ export default function App() {
       <AuthProvider>
         <SafeAreaProvider>
           <NavigationContainer ref={navigationRef} linking={linking}>
-            <StatusBar style="dark" backgroundColor="#ffffff" />
+            <StatusBar style="dark" backgroundColor="transparent" translucent={true} />
             <RootNavigator />
             <Toast config={toastConfig} position="top" visibilityTime={4000} topOffset={60} />
           </NavigationContainer>
