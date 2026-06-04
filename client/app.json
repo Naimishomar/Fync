@@ -40,7 +40,14 @@
       "expo-notifications",
       "expo-build-properties",
       "expo-video",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": "Allow Fync to access your camera for video calls.",
+          "microphonePermission": "Allow Fync to access your microphone for audio calls."
+        }
+      ]
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "light",

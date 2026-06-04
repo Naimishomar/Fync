@@ -123,15 +123,7 @@ export class WebRTCManager {
     return answer;
   }
 
-  async setRemoteDescription(sdp: RTCSessionDescription) {
-    if (!this.peerConnection) throw new Error("PeerConnection not initialized");
-    await this.peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
-  }
 
-  async addIceCandidate(candidate: RTCIceCandidate) {
-    if (!this.peerConnection) throw new Error("PeerConnection not initialized");
-    await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-  }
   
   toggleMute(isMuted: boolean) {
     if (this.localStream) {
