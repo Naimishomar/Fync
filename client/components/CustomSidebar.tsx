@@ -298,6 +298,11 @@ export default function CustomSidebar(props: any) {
                     {/* ========================================= */}
                     <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1 px-6 mt-4">Fun & Entertainment</Text>
 
+                    <Pressable onPress={() => props.navigation.navigate('AudioCallLobby')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
+                        <Ionicons name="call-outline" size={22} color="#FF4500" />
+                        <Text className="text-zinc-900 text-sm ml-4 font-black uppercase tracking-tight flex-1">Live Audio Calling</Text>
+                    </Pressable>
+
                     <Pressable onPress={() => props.navigation.navigate('ConfessionFeed')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
                         <Ionicons name="chatbubble-ellipses-outline" size={22} color="#FF4500" />
                         <Text className="text-zinc-900 text-sm ml-4 font-black uppercase tracking-tight flex-1">Confession Feed</Text>

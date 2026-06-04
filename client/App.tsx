@@ -167,7 +167,9 @@ import SubscriptionScreen from './components/newFeatures/SubscriptionScreen';
 import TermsAndCondition from './components/T&C';
 import ContactUs from './components/ContactUs';
 import MeetOurTeam from './components/MeetOurTeam';
+// Admin & Tools
 import AdminPortal from './components/admin/AdminPortal';
+import AudioCallLobby from './components/audioCall/AudioCallLobby';
 
 // Daily Hub Utilities
 import './utils/commuteGuardTask';
@@ -336,10 +338,8 @@ export type RootStackParamList = {
   MovieList: { title: string; type: 'trending' | 'popular' | 'upcoming' | 'bollywood' };
   PartyPool: undefined;
   SubscriptionScreen: undefined;
+  AudioCallLobby: undefined;
 };
-
-
-
 function HomeDrawer() {
   const { user } = useAuth();
   const isAlumni = user?.user_access === 'alumni';
@@ -469,6 +469,7 @@ function AppStack() {
       <Stack.Screen name="PlacementPredictor" component={PlacementPredictor} />
       <Stack.Screen name="SpeakerSessionScreen" component={SpeakerSessionScreen} />
       <Stack.Screen name="BootcampScreen" component={BootcampScreen} />
+      <Stack.Screen name="AudioCallLobby" component={AudioCallLobby} />
 
       <Stack.Screen name="EventCommunityChat" component={EventCommunityChat} />
       <Stack.Screen name="CommunityList" component={CommunityListScreen} />

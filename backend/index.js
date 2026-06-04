@@ -54,6 +54,7 @@ import opportunityRoute from './routes/opportunity.route.js';
 import arenaRoute from './routes/coding/arena.route.js';
 import arenaAdminRoute from './routes/coding/arenaAdmin.route.js';
 import entertainmentRoute from './routes/entertainment.routes.js';
+import webrtcRoute from './routes/webrtc.route.js';
 import gameRoute from './routes/game.route.js';
 import ContestManager from './services/contestManager.js';
 
@@ -189,6 +190,7 @@ app.use('/arena', arenaRoute);
 app.use('/arena/admin', arenaAdminRoute);
 app.use('/entertainment', entertainmentRoute);
 app.use('/games', gameRoute);
+app.use('/webrtc', webrtcRoute);
 
 const startServer = async (retries = 5) => {
   try {
