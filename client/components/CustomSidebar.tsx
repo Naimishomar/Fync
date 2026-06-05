@@ -87,23 +87,23 @@ export default function CustomSidebar(props: any) {
                     {/* Score + Build Portfolio CTA */}
                     <Pressable
                         onPress={() => props.navigation.navigate('FyncProfileBuilder')}
-                        className="flex-row items-center justify-between bg-white/10 border border-white/20 px-4 py-3 rounded-3xl active:bg-white/20"
+                        className="flex-row items-center justify-between bg-white/10 border border-orange-300 px-4 py-3 rounded-3xl active:bg-white/20"
                     >
                         <View className="flex-row items-center gap-3">
-                            <View className="w-10 h-10 bg-white/20 rounded-2xl items-center justify-center border border-white/30">
+                            <View className="w-10 h-10 bg-white/20 rounded-2xl items-center justify-center border border-orange-300">
                                 <Text style={{ fontSize: 18 }}>
                                     {user?.fyncBadge === 'Legend' ? '🌟' : user?.fyncBadge === 'Pioneer' ? '🚀' : user?.fyncBadge === 'Innovator' ? '💡' : user?.fyncBadge === 'Builder' ? '🔨' : user?.fyncBadge === 'Explorer' ? '🗺️' : '🌱'}
                                 </Text>
                             </View>
                             <View>
-                                <Text className="text-white/80 text-[10px] font-black uppercase tracking-widest mb-0.5">{user?.fyncBadge || 'Newcomer'}</Text>
-                                <Text className="text-white text-base font-black uppercase tracking-tight">
-                                    {user?.fyncScore || 0} <Text className="text-white/60 text-[9px] font-bold tracking-widest">/ 1000</Text>
+                                <Text className="text-black text-[10px] font-black uppercase tracking-widest mb-0.5">{user?.fyncBadge || 'Newcomer'}</Text>
+                                <Text className="text-black text-base font-black uppercase tracking-tight">
+                                    {user?.fyncScore || 0} <Text className="text-black text-[9px] font-bold tracking-widest">/ 1000</Text>
                                 </Text>
                             </View>
                         </View>
                         <View className="w-8 h-8 bg-white rounded-xl items-center justify-center shadow-lg shadow-black/20">
-                            <Ionicons name="arrow-forward" size={14} color="#FF4500" />
+                            <Ionicons name="arrow-forward" size={14} color="#000" />
                         </View>
                     </Pressable>
                 </LinearGradient>
@@ -139,9 +139,6 @@ export default function CustomSidebar(props: any) {
                     <Pressable onPress={() => props.navigation.navigate('UtilityHubScreen')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
                         <Ionicons name="construct-outline" size={22} color="#FF4500" />
                         <Text className="text-zinc-900 text-sm ml-4 font-black uppercase tracking-tight">Utility Hub</Text>
-                        <View className="ml-auto bg-green-100 px-2.5 py-1 rounded-full border border-green-200">
-                            <Text className="text-[9px] text-green-600 font-black uppercase tracking-widest">New</Text>
-                        </View>
                     </Pressable>
 
                     {/* ========================================= */}

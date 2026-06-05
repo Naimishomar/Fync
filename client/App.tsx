@@ -18,6 +18,10 @@ import { StatusBar } from 'expo-status-bar';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { setupBackgroundHandler } from './services/NotificationService';
+// Initialize background push handler early
+setupBackgroundHandler();
+
 // Context
 import { AuthProvider, useAuth } from "./context/auth.context";
 import { navigationRef } from "./utils/navigation";

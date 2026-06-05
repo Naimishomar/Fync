@@ -113,6 +113,32 @@ export const searchUsers = async (req, res) => {
   }
 };
 
+import { sendPushNotification } from "../services/push.service.js";
+
+export const notifyUser = async (req, res) => {
+  try {
+    const { receiverId, title, body, data } = req.body;
+    if (!receiverId) return res.status(400).json({ success: false, message: "receiverId is required" });
+
+    const receiver = await User.findById(receiverId).select('fcmTokens');
+    if (!receiver || !receiver.fcmTokens || receiver.fcmTokens.length === 0) {
+      return res.status(200).json({ success: true, message: "User has no active devices for push" });
+    }
+
+    // Fire and forget (Zero backend load)
+    sendPushNotification(receiver.fcmTokens, {
+      title: title || "New Message",
+      body: body || "You have received a new message.",
+      data: data || {}
+    });
+
+    return res.status(200).json({ success: true, message: "Notification dispatched" });
+  } catch (error) {
+    console.error("notifyUser error:", error);
+    return res.status(500).json({ success: false, message: "Failed to dispatch notification" });
+  }
+};
+
 export const startChat = async (req, res) => {
   try {
     const myId = req.user.id;

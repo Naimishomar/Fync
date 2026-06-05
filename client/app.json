@@ -47,7 +47,8 @@
           "cameraPermission": "Allow Fync to access your camera for video calls.",
           "microphonePermission": "Allow Fync to access your microphone for audio calls."
         }
-      ]
+      ],
+      "@react-native-firebase/messaging"
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -65,6 +66,8 @@
     ],
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.naimishomar.fync",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "associatedDomains": [
         "applinks:fync-api.duckdns.org"
       ],
@@ -110,6 +113,7 @@
         "backgroundColor": "#000"
       },
       "package": "com.naimishomar.fync",
+      "googleServicesFile": "./google-services.json",
       "softwareKeyboardLayoutMode": "adjustResize"
     },
     "extra": {
@@ -118,6 +122,6 @@
       }
     },
     "owner": "naimishomar",
-    "newArchEnabled": true
+    "newArchEnabled": false
   }
 }

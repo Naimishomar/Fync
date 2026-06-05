@@ -54,3 +54,45 @@ export const markNotificationsRead = async (req, res) => {
         return res.status(500).json({ success: false, message: "Server error" });
     }
 };
+
+import User from "../models/user.model.js";
+import { sendPushNotification } from "../services/push.service.js";
+
+export const broadcastNotification = async (req, res) => {
+    try {
+        const { title, body } = req.body;
+        
+        if (!title || !body) {
+            return res.status(400).json({ success: false, message: "Title and body are required." });
+        }
+        
+        // Find all users with registered FCM tokens
+        const usersWithTokens = await User.find({ fcmTokens: { $exists: true, $not: { $size: 0 } } }).select("fcmTokens");
+        
+        let allTokens = [];
+        usersWithTokens.forEach(user => {
+            allTokens = allTokens.concat(user.fcmTokens);
+        });
+
+        // Unique tokens only
+        allTokens = [...new Set(allTokens)];
+
+        if (allTokens.length === 0) {
+            return res.status(400).json({ success: false, message: "No users have push notifications enabled." });
+        }
+
+        // Send in batches of 500 (FCM limit for multicast)
+        const batchSize = 500;
+        let successCount = 0;
+        for (let i = 0; i < allTokens.length; i += batchSize) {
+            const batch = allTokens.slice(i, i + batchSize);
+            await sendPushNotification(batch, { title, body });
+            successCount += batch.length;
+        }
+
+        return res.status(200).json({ success: true, message: `Broadcast successfully sent to ${successCount} devices.` });
+    } catch (error) {
+        console.error("Broadcast Notification Error:", error);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+};

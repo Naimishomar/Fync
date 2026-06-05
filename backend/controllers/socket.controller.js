@@ -122,7 +122,15 @@ export const socketController = (io) => {
 
     socket.on("chat_notify", async ({ receiverId, title, body }) => {
       try {
-        await sendPushNotification(receiverId, title, body, { type: "chat" });
+        const receiver = await User.findById(receiverId).select('fcmTokens');
+        if (receiver && receiver.fcmTokens && receiver.fcmTokens.length > 0) {
+          const { sendPushNotification } = await import('../services/push.service.js');
+          sendPushNotification(receiver.fcmTokens, {
+            title: title || "New Message",
+            body: body || "You have received a new message.",
+            data: { type: "chat" }
+          });
+        }
       } catch (err) {
         console.error("Chat notify error", err);
       }

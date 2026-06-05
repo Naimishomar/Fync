@@ -28,7 +28,7 @@ const AdminPortal = ({ navigation }: any) => {
         }
     }, [user]);
 
-    const [activeTab, setActiveTab] = useState<'ads' | 'rewards' | 'marketplace' | 'messages' | 'media' | 'reports' | 'users' | 'subscription'>('ads');
+    const [activeTab, setActiveTab] = useState<'ads' | 'rewards' | 'marketplace' | 'messages' | 'media' | 'reports' | 'users' | 'subscription' | 'broadcast'>('ads');
     const [view, setView] = useState<'hub' | 'feature'>('hub');
     const [subscriptionPrice, setSubscriptionPrice] = useState<string>('39');
     const [currentSubscriptionPrice, setCurrentSubscriptionPrice] = useState<string>('...');
@@ -103,6 +103,9 @@ const AdminPortal = ({ navigation }: any) => {
     const [imageUrl, setImageUrl] = useState('');
     const [tags, setTags] = useState('');
     const [userSearch, setUserSearch] = useState('');
+    const [broadcastTitle, setBroadcastTitle] = useState('');
+    const [broadcastBody, setBroadcastBody] = useState('');
+    const [sendingBroadcast, setSendingBroadcast] = useState(false);
 
     const fetchAds = async () => {
         try {
@@ -257,6 +260,29 @@ const AdminPortal = ({ navigation }: any) => {
             }
         } finally {
             setSubmittingPrice(false);
+        }
+    };
+
+    const handleBroadcast = async () => {
+        if (!broadcastTitle.trim() || !broadcastBody.trim()) {
+            return Alert.alert("Required", "Please fill in both title and message.");
+        }
+        setSendingBroadcast(true);
+        try {
+            const res = await axios.post('/notification/broadcast', {
+                title: broadcastTitle,
+                body: broadcastBody
+            });
+            if (res.data.success) {
+                Toast.show({ type: 'success', text1: 'Broadcast Sent!', text2: res.data.message });
+                setBroadcastTitle('');
+                setBroadcastBody('');
+            }
+        } catch (error: any) {
+            console.error(error);
+            Toast.show({ type: 'error', text1: 'Broadcast failed', text2: error.response?.data?.message || 'Server error' });
+        } finally {
+            setSendingBroadcast(false);
         }
     };
 
@@ -673,6 +699,13 @@ const AdminPortal = ({ navigation }: any) => {
                 description="Review and respond to official support and inquiry messages." 
             />
             <HubButton 
+                title="Global Broadcast" 
+                tab="broadcast" 
+                icon="notifications" 
+                color="#06b6d4" 
+                description="Send an instant push notification to all users." 
+            />
+            <HubButton 
                 title="Subscription Pricing" 
                 tab="subscription" 
                 icon="pricetag" 
@@ -890,6 +923,55 @@ const AdminPortal = ({ navigation }: any) => {
             ) : activeTab === 'subscription' ? (
                 // Subscription view is rendered above, so we render nothing here to prevent the FlatList fallback
                 null
+            ) : activeTab === 'broadcast' ? (
+                <View className="bg-white p-6 rounded-3xl mx-8 border border-slate-100 shadow-sm mt-4">
+                    <View className="flex-row items-center mb-6">
+                        <View className="w-12 h-12 bg-cyan-100 rounded-2xl items-center justify-center mr-4">
+                            <Ionicons name="notifications" size={24} color="#06b6d4" />
+                        </View>
+                        <View>
+                            <Text className="text-zinc-900 text-lg font-black uppercase tracking-tight">Global Broadcast</Text>
+                            <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Send alert to all users</Text>
+                        </View>
+                    </View>
+
+                    <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-4">
+                        <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[1px] mb-2">Notification Title</Text>
+                        <TextInput 
+                            className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-zinc-900 font-bold"
+                            value={broadcastTitle}
+                            onChangeText={setBroadcastTitle}
+                            placeholder="e.g., Server Maintenance"
+                        />
+                    </View>
+
+                    <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6">
+                        <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[1px] mb-2">Message Body</Text>
+                        <TextInput 
+                            className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-zinc-900 min-h-[100px]"
+                            value={broadcastBody}
+                            onChangeText={setBroadcastBody}
+                            placeholder="Enter the broadcast message here..."
+                            multiline
+                            textAlignVertical="top"
+                        />
+                    </View>
+
+                    <TouchableOpacity 
+                        onPress={handleBroadcast}
+                        disabled={sendingBroadcast}
+                        className="bg-zinc-900 h-14 rounded-2xl items-center justify-center flex-row shadow-lg shadow-black/20"
+                    >
+                        {sendingBroadcast ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <>
+                                <Ionicons name="send" size={18} color="white" />
+                                <Text className="text-white font-black text-[12px] uppercase tracking-[1.5px] ml-2">Send Broadcast</Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
+                </View>
             ) : (
                 loading ? (
                     <View className="flex-1 items-center justify-center">

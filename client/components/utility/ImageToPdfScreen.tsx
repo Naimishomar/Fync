@@ -7,10 +7,13 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import * as FileSystem from 'expo-file-system';
+
 export default function ImageToPdfScreen() {
   const navigation = useNavigation();
   const [images, setImages] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [generatedPdfUri, setGeneratedPdfUri] = useState<string | null>(null);
 
   const pickImages = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -22,11 +25,13 @@ export default function ImageToPdfScreen() {
     if (!result.canceled && result.assets) {
       const selectedUris = result.assets.map(asset => asset.uri);
       setImages(prev => [...prev, ...selectedUris]);
+      setGeneratedPdfUri(null); // Reset generated PDF when new images are picked
     }
   };
 
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
+    setGeneratedPdfUri(null);
   };
 
   const generatePdf = async () => {
@@ -37,7 +42,6 @@ export default function ImageToPdfScreen() {
 
     setIsProcessing(true);
     try {
-      // Build HTML
       const htmlContent = `
         <!DOCTYPE html>
         <html>
@@ -63,20 +67,51 @@ export default function ImageToPdfScreen() {
         base64: false
       });
 
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, {
-          mimeType: 'application/pdf',
-          dialogTitle: 'Save your PDF',
-          UTI: 'com.adobe.pdf'
-        });
-      } else {
-        Alert.alert('Success', 'PDF generated, but sharing is not available on this device.');
-      }
+      setGeneratedPdfUri(uri);
+      Alert.alert('Success', 'PDF generated successfully! You can now share or download it.');
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Failed to generate PDF. Please try again.');
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const sharePdf = async () => {
+    if (!generatedPdfUri) return;
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(generatedPdfUri, {
+        mimeType: 'application/pdf',
+        dialogTitle: 'Share your PDF',
+        UTI: 'com.adobe.pdf'
+      });
+    } else {
+      Alert.alert('Unavailable', 'Sharing is not available on this device.');
+    }
+  };
+
+  const downloadPdf = async () => {
+    if (!generatedPdfUri) return;
+    
+    if (Platform.OS === "android") {
+      try {
+        const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+        if (permissions.granted) {
+          const base64 = await FileSystem.readAsStringAsync(generatedPdfUri, { encoding: FileSystem.EncodingType.Base64 });
+          const createdUri = await FileSystem.StorageAccessFramework.createFileAsync(permissions.directoryUri, 'fync-document.pdf', 'application/pdf');
+          await FileSystem.writeAsStringAsync(createdUri, base64, { encoding: FileSystem.EncodingType.Base64 });
+          Alert.alert('Success', 'PDF saved to your device.');
+        } else {
+          Alert.alert('Permission Denied', 'Storage permission is required to save the PDF.');
+        }
+      } catch (e) {
+        console.error(e);
+        Alert.alert('Error', 'Could not save the file.');
+      }
+    } else {
+      // iOS doesn't have a direct "Save to Downloads" API without user interaction,
+      // so sharing with "Save to Files" is the native way.
+      sharePdf();
     }
   };
 
@@ -128,20 +163,39 @@ export default function ImageToPdfScreen() {
 
       {images.length > 0 && (
         <View className="absolute bottom-0 left-0 right-0 p-5 bg-white/90 backdrop-blur-xl border-t border-slate-200">
-          <TouchableOpacity
-            onPress={generatePdf}
-            disabled={isProcessing}
-            className={`w-full py-4 rounded-2xl items-center justify-center flex-row shadow-sm ${isProcessing ? 'bg-orange-400' : 'bg-orange-500'}`}
-          >
-            {isProcessing ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <>
-                <Ionicons name="document-text" size={20} color="white" className="mr-2" />
-                <Text className="text-white font-bold text-base ml-2">Generate PDF ({images.length} pages)</Text>
-              </>
-            )}
-          </TouchableOpacity>
+          {!generatedPdfUri ? (
+            <TouchableOpacity
+              onPress={generatePdf}
+              disabled={isProcessing}
+              className={`w-full py-4 rounded-2xl items-center justify-center flex-row shadow-sm ${isProcessing ? 'bg-orange-400' : 'bg-orange-500'}`}
+            >
+              {isProcessing ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <>
+                  <Ionicons name="document-text" size={20} color="white" className="mr-2" />
+                  <Text className="text-white font-bold text-base ml-2">Generate PDF ({images.length} pages)</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          ) : (
+            <View className="flex-row justify-between">
+              <TouchableOpacity
+                onPress={sharePdf}
+                className="flex-1 py-4 rounded-2xl items-center justify-center flex-row shadow-sm bg-indigo-500 mr-2"
+              >
+                <Ionicons name="share-social" size={20} color="white" className="mr-2" />
+                <Text className="text-white font-bold text-base ml-2">Share</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={downloadPdf}
+                className="flex-1 py-4 rounded-2xl items-center justify-center flex-row shadow-sm bg-orange-500 ml-2"
+              >
+                <Ionicons name="download" size={20} color="white" className="mr-2" />
+                <Text className="text-white font-bold text-base ml-2">Download</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       )}
       </SafeAreaView>

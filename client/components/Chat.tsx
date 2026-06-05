@@ -14,6 +14,8 @@ import {
   Linking,
   Keyboard,
   TouchableWithoutFeedback,
+  UIManager,
+  LayoutAnimation,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { supabase } from "../utils/supabase";
@@ -361,6 +363,12 @@ const Chat = ({ route, navigation }: any) => {
 
       if (data) {
         setMessages((prev) => prev.map(m => m._id === tempId ? data : m));
+        // Send Push Notification via existing socket event
+        socket.emit("chat_notify", {
+          receiverId: otherUser._id,
+          title: user.name,
+          body: tempMessage.message,
+        });
       } else if (error) {
         throw error;
       }

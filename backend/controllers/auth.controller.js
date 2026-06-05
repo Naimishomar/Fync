@@ -1024,3 +1024,23 @@ export const verifyAdminPassword = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
+export const updateFcmToken = async (req, res) => {
+  try {
+    const { fcmToken } = req.body;
+    if (!fcmToken) {
+      return res.status(400).json({ success: false, message: "FCM token is required" });
+    }
+    
+    // Add token if it doesn't exist in array
+    await User.findByIdAndUpdate(
+      req.user.id,
+      { $addToSet: { fcmTokens: fcmToken } }
+    );
+    
+    return res.status(200).json({ success: true, message: "FCM token registered" });
+  } catch (error) {
+    console.error("FCM Token Error:", error);
+    return res.status(500).json({ success: false, message: "Failed to register FCM token" });
+  }
+};

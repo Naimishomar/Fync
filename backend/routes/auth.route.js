@@ -26,7 +26,8 @@ import {
   verifyRecruiterOTP,
   getUsersForAdmin,
   banUser,
-  verifyAdminPassword
+  verifyAdminPassword,
+  updateFcmToken
 } from '../controllers/auth.controller.js';
 import { getStreakLeaderboard } from '../controllers/streak.controller.js';
 import { getDevelopers } from '../controllers/developer.controller.js'
@@ -64,6 +65,7 @@ router.get('/following/:id', authMiddleware, cacheMiddleware(3600), getFollowing
 router.get('/logout', authMiddleware, logout);
 router.get('/streak-leaderboard', authMiddleware, getStreakLeaderboard);
 router.post('/save-push-token', authMiddleware, savePushToken);
+router.post('/fcm-token', authMiddleware, updateFcmToken);
 
 //Developer Routes
 router.get('/find-team', authMiddleware, getDevelopers);

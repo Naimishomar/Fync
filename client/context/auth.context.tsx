@@ -4,6 +4,7 @@ import axios from "./axiosConfig";
 import * as Device from "expo-device";
 import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync, savePushTokenToBackend } from "../utils/notificationHelper";
+import { syncFcmToken } from "../services/NotificationService";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -26,6 +27,9 @@ export const AuthProvider = ({ children }: any) => {
       if (token) {
         await savePushTokenToBackend(token);
       }
+      
+      // Also register FCM token for WhatsApp-style chat push notifications
+      await syncFcmToken();
     } catch (e) {
       console.log("Error in push registration flow:", e);
     }

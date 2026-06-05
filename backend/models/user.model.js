@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema({
         type: Date,
         required: function() { return this.user_access === 'user'; }
     },
+    fcmTokens: {
+        type: [String],
+        default: []
+    },
     college: {
         type: String,
         required: function() { return this.user_access === 'user'; },
