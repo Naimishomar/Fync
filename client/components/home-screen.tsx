@@ -850,19 +850,20 @@ export default function HomeScreen() {
     );
   };
   const features = useMemo(() => [
-    { id: 'fyncAcademy', name: 'Academy', Icon: Sparkles, colorHex: '#8b5cf6', bgClass: 'bg-purple-50', sparkle: true, onPress: () => navigation.navigate('MasterStudyHub') },
-    { id: 'contest', name: 'Contests', Icon: Code, colorHex: '#4f46e5', bgClass: 'bg-indigo-50', sparkle: true, onPress: () => navigation.navigate('DSAAndDevelopmentContest') },
+    { id: 'fyncAcademy', name: 'Academy', imageUrl: 'https://i.pinimg.com/736x/5e/4e/cb/5e4ecb34c19b87cfed2053ee96bbf08f.jpg', colorHex: '#8b5cf6', bgClass: 'bg-purple-50', sparkle: true, onPress: () => navigation.navigate('MasterStudyHub') },
+    { id: 'internship', name: 'Internship', imageUrl: 'https://i.pinimg.com/736x/21/64/40/2164400be5fa3f7c681354a2df865bc8.jpg', colorHex: '#3b82f6', bgClass: 'bg-blue-50', sparkle: false, onPress: () => navigation.navigate('InternshipList') },
+    { id: 'jobs', name: 'Jobs', imageUrl: 'https://i.pinimg.com/736x/f1/97/94/f19794f0bc2872555bcf0a1424a3f090.jpg', colorHex: '#3b82f6', bgClass: 'bg-blue-50', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
+    { id: 'contest', name: 'Contests', imageUrl: 'https://i.pinimg.com/736x/62/f3/e9/62f3e929d234353e0cf48216012f1331.jpg', colorHex: '#4f46e5', bgClass: 'bg-indigo-50', sparkle: true, onPress: () => navigation.navigate('DSAAndDevelopmentContest') },
     { id: 'utilityHub', name: 'Utilities', Icon: Wrench, colorHex: '#10b981', bgClass: 'bg-emerald-50', sparkle: true, onPress: () => navigation.navigate('UtilityHubScreen') },
-    { id: 'partyPool', name: 'Party Pool', Icon: Sparkles, colorHex: '#db2777', bgClass: 'bg-pink-50', sparkle: true, onPress: () => navigation.navigate('PartyPool') },
-    { id: 'entertainment', name: 'Movies', Icon: Mic, colorHex: '#e11d48', bgClass: 'bg-rose-50', sparkle: true, onPress: () => navigation.navigate('EntertainmentHome') },
-    { id: 'fyncMedia', name: 'Fync Media', Icon: Mic, colorHex: '#f43f5e', bgClass: 'bg-rose-50', sparkle: false, onPress: () => navigation.navigate('FyncMediaFeed') },
-    { id: 'jobs', name: 'Jobs', Icon: Briefcase, colorHex: '#3b82f6', bgClass: 'bg-blue-50', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
-    { id: 'competitions', name: 'Reward', Icon: Trophy, colorHex: '#f59e0b', bgClass: 'bg-amber-50', sparkle: false, onPress: () => navigation.navigate('RewardsMarketplace') },
-    { id: 'bootcamps', name: 'Bootcamps', Icon: Rocket, colorHex: '#a855f7', bgClass: 'bg-purple-50', sparkle: true, onPress: () => navigation.navigate('BootcampScreen') },
-    { id: 'codingLeaderboard', name: 'Leaderboard', Icon: Crown, colorHex: '#f97316', bgClass: 'bg-orange-50', sparkle: false, onPress: () => navigation.navigate('CodingLeaderboard') },
-    { id: 'confessions', name: 'Confessions', Icon: MessageCircle, colorHex: '#14b8a6', bgClass: 'bg-teal-50', sparkle: false, onPress: () => navigation.navigate('ConfessionFeed') },
-    { id: 'speakers', name: 'Speakers', Icon: Megaphone, colorHex: '#6366f1', bgClass: 'bg-indigo-50', sparkle: false, onPress: () => navigation.navigate('SpeakerSessionScreen') },
-    { id: 'college_clubs', name: 'Clubs', Icon: Users, colorHex: '#10b981', bgClass: 'bg-emerald-50', sparkle: false, onPress: () => navigation.navigate('ClubList') },
+    { id: 'partyPool', name: 'Party Pool', imageUrl: 'https://i.pinimg.com/736x/e7/8b/09/e78b09f6adfd51c96062659dff826d03.jpg', colorHex: '#db2777', bgClass: 'bg-pink-50', sparkle: true, onPress: () => navigation.navigate('PartyPool') },
+    { id: 'entertainment', name: 'Movies', imageUrl: 'https://i.pinimg.com/736x/30/9f/86/309f86d79b2ca442fa81202ea7c879aa.jpg', colorHex: '#e11d48', bgClass: 'bg-rose-50', sparkle: true, onPress: () => navigation.navigate('EntertainmentHome') },
+    { id: 'fyncMedia', name: 'Fync Media', imageUrl: 'https://i.pinimg.com/736x/60/10/f3/6010f333db6714ec3861ec908973d6b1.jpg', colorHex: '#f43f5e', bgClass: 'bg-rose-50', sparkle: false, onPress: () => navigation.navigate('FyncMediaFeed') },
+    { id: 'competitions', name: 'Reward', imageUrl: 'https://i.pinimg.com/736x/8b/b1/a4/8bb1a490de08b581618ce6a0e0990122.jpg', colorHex: '#f59e0b', bgClass: 'bg-amber-50', sparkle: false, onPress: () => navigation.navigate('RewardsMarketplace') },
+    { id: 'bootcamps', name: 'Bootcamps', imageUrl: 'https://i.pinimg.com/736x/29/c1/be/29c1bea31c35e94c773a7b8f7b599ec0.jpg', colorHex: '#a855f7', bgClass: 'bg-purple-50', sparkle: true, onPress: () => navigation.navigate('BootcampScreen') },
+    { id: 'codingLeaderboard', name: 'Leaderboard', imageUrl: 'https://i.pinimg.com/736x/3b/26/26/3b2626a5c5153ac9d0d45673a36ad39a.jpg', colorHex: '#f97316', bgClass: 'bg-orange-50', sparkle: false, onPress: () => navigation.navigate('CodingLeaderboard') },
+    { id: 'confessions', name: 'Confessions', imageUrl: 'https://i.pinimg.com/736x/71/29/ca/7129ca1ff74ba44b9dda205b7425cb76.jpg', colorHex: '#14b8a6', bgClass: 'bg-teal-50', sparkle: false, onPress: () => navigation.navigate('ConfessionFeed') },
+    { id: 'speakers', name: 'Speakers', imageUrl: 'https://i.pinimg.com/736x/c2/c6/d3/c2c6d3c80febbfabe4b8e263806501d3.jpg', colorHex: '#6366f1', bgClass: 'bg-indigo-50', sparkle: false, onPress: () => navigation.navigate('SpeakerSessionScreen') },
+    { id: 'college_clubs', name: 'Clubs', imageUrl: 'https://i.pinimg.com/736x/ed/a3/5a/eda35ac4a08a5c5d6ffade9a94380d78.jpg', colorHex: '#10b981', bgClass: 'bg-emerald-50', sparkle: false, onPress: () => navigation.navigate('ClubList') },
   ], [navigation]);
   const displayedFeatures = useMemo(() => features.slice(0, 6), [features]);
 const renderFeatureStories = () => {
@@ -889,7 +890,11 @@ const renderFeatureStories = () => {
             >
               {/* Icon Container with soft background framing */}
               <View className={`rounded-full p-2.5 mb-2 relative flex items-center justify-center ${item.bgClass}`}>
-                <item.Icon size={24} color={item.colorHex} strokeWidth={1.5} />
+                {item.imageUrl ? (
+                  <ExpoImage source={{ uri: item.imageUrl }} style={{ width: 28, height: 28, borderRadius: 8 }} contentFit="cover" />
+                ) : (
+                  <item.Icon size={24} color={item.colorHex} strokeWidth={1.5} />
+                )}
                 
                 {/* Refined Sparkle badge overlapping the icon container */}
                 {item.sparkle && (

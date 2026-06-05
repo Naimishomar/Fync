@@ -468,8 +468,8 @@ export const login = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid credentials" });
     }
 
-    // STRICT DEVICE BINDING CHECK (Exempt recruiters and alumni)
-    if (user.user_access !== 'recruiter' && user.user_access !== 'alumni' && user.deviceId) {
+    // STRICT DEVICE BINDING CHECK (Exempt recruiters, alumni, and admin)
+    if (user.user_access !== 'recruiter' && user.user_access !== 'alumni' && user.user_access !== 'admin' && user.deviceId) {
       if (!deviceId || user.deviceId !== deviceId) {
         return res.status(400).json({
           success: false,
