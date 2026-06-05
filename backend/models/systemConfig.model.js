@@ -3,9 +3,12 @@ import mongoose from 'mongoose';
 const systemConfigSchema = new mongoose.Schema({
     subscriptionPrice: {
         type: Number,
-        default: 39 // Default base price
+        default: 49 // Default base price
     },
-    // Can add more global config here in the future
+    isSubscriptionEnabled: {
+        type: Boolean,
+        default: true
+    }
 }, { timestamps: true });
 
 const SystemConfig = mongoose.model('SystemConfig', systemConfigSchema);

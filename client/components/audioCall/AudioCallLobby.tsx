@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image, Modal, Alert } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../utils/supabase';
 import { useAuth } from '../../context/auth.context';
 import { Mic, PhoneCall, PhoneOff, Phone } from 'lucide-react-native';
@@ -14,6 +15,7 @@ export default function AudioCallLobby({ navigation }: any) {
   // Call States
   const [incomingCall, setIncomingCall] = useState<any>(null); // { callerId, callerName, sdp }
   const [activeCallUser, setActiveCallUser] = useState<any>(null); // Who we are calling / talking to
+  const [isCallConnected, setIsCallConnected] = useState(false);
   const activeCallUserRef = useRef<any>(null); // Ref for accurate state inside event listeners
   const callTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -41,6 +43,7 @@ export default function AudioCallLobby({ navigation }: any) {
                _id: id,
                name: userState.name,
                profilePic: userState.profilePic,
+               college: userState.college,
                status: userState.status,
              });
           }
@@ -93,6 +96,7 @@ export default function AudioCallLobby({ navigation }: any) {
           await room.track({
             name: user.name,
             profilePic: user.profilePic || '',
+            college: user.college || '',
             status: 'online', // or 'busy'
           });
         }
@@ -108,6 +112,7 @@ export default function AudioCallLobby({ navigation }: any) {
           payload: { targetUserId: activeCallUserRef.current._id, callerId: user._id, callerName: user.name }
         });
       }
+      room.untrack();
       room.unsubscribe();
       webRTCManager.cleanup();
     };
@@ -124,7 +129,7 @@ export default function AudioCallLobby({ navigation }: any) {
     activeCallUserRef.current = targetUser;
     
     // Update our own status to busy
-    await channel?.track({ name: user.name, profilePic: user.profilePic, status: 'busy' });
+    await channel?.track({ name: user.name, profilePic: user.profilePic, college: user.college, status: 'busy' });
 
     await webRTCManager.setupLocalStream();
     await webRTCManager.initializePeerConnection();
@@ -139,6 +144,9 @@ export default function AudioCallLobby({ navigation }: any) {
     };
 
     webRTCManager.onConnectionStateChange = (state) => {
+      if (state === 'connected') {
+        setIsCallConnected(true);
+      }
       if (state === 'disconnected' || state === 'failed') {
         Alert.alert("Connection Lost", "The audio call disconnected due to poor network.");
         endCall(false);
@@ -167,7 +175,7 @@ export default function AudioCallLobby({ navigation }: any) {
     const caller = { _id: incomingCall.callerId, name: incomingCall.callerName };
     setActiveCallUser(caller);
     activeCallUserRef.current = caller;
-    await channel?.track({ name: user.name, profilePic: user.profilePic, status: 'busy' });
+    await channel?.track({ name: user.name, profilePic: user.profilePic, college: user.college, status: 'busy' });
 
     await webRTCManager.setupLocalStream();
     await webRTCManager.initializePeerConnection();
@@ -182,6 +190,9 @@ export default function AudioCallLobby({ navigation }: any) {
     };
 
     webRTCManager.onConnectionStateChange = (state) => {
+      if (state === 'connected') {
+        setIsCallConnected(true);
+      }
       if (state === 'disconnected' || state === 'failed') {
         Alert.alert("Connection Lost", "The audio call disconnected due to poor network.");
         endCall(false);
@@ -223,17 +234,18 @@ export default function AudioCallLobby({ navigation }: any) {
     }
     setActiveCallUser(null);
     activeCallUserRef.current = null;
-    await channel?.track({ name: user.name, profilePic: user.profilePic, status: 'online' });
+    setIsCallConnected(false);
+    await channel?.track({ name: user.name, profilePic: user.profilePic, college: user.college, status: 'online' });
   };
 
   if (activeCallUser) {
-    return <ActiveAudioCall remoteUser={activeCallUser} onEndCall={() => endCall(true)} />;
+    return <ActiveAudioCall remoteUser={activeCallUser} isCallConnected={isCallConnected} onEndCall={() => endCall(true)} />;
   }
 
   return (
-    <View className="flex-1 bg-white pt-10">
-      <View className="px-5 py-4 border-b border-gray-100 flex-row items-center">
-        <Text className="text-xl font-bold text-gray-900">Audio Networking Lobby</Text>
+    <LinearGradient colors={['#ffffff', '#fff7ed', '#ffedd5']} className="flex-1 pt-10">
+      <View className="px-5 py-4 border-b border-orange-100 flex-row items-center">
+        <Text className="text-xl font-black text-gray-900 tracking-tight uppercase">Audio Networking</Text>
       </View>
       
       {onlineUsers.length === 0 ? (
@@ -246,18 +258,19 @@ export default function AudioCallLobby({ navigation }: any) {
           keyExtractor={(item) => item._id}
           contentContainerStyle={{ padding: 20 }}
           renderItem={({ item }) => (
-            <View className="flex-row items-center justify-between mb-4 p-4 bg-gray-50 rounded-2xl">
-              <View className="flex-row items-center">
+            <View className="flex-row items-center justify-between mb-4 p-4 bg-white/80 rounded-[24px] border border-orange-50 shadow-sm">
+              <View className="flex-row items-center flex-1">
                 {item.profilePic ? (
                   <Image source={{ uri: item.profilePic }} className="w-12 h-12 rounded-full mr-4 bg-gray-200" />
                 ) : (
-                  <View className="w-12 h-12 rounded-full mr-4 bg-orange-100 items-center justify-center">
+                  <View className="w-12 h-12 rounded-full mr-4 bg-orange-100 items-center justify-center border-2 border-white">
                     <Text className="text-orange-600 font-bold">{item.name?.charAt(0)}</Text>
                   </View>
                 )}
-                <View>
-                  <Text className="font-bold text-gray-900">{item.name}</Text>
-                  <Text className={`text-xs ${item.status === 'online' ? 'text-green-500' : 'text-red-500'}`}>
+                <View className="flex-1 pr-4">
+                  <Text className="font-bold text-gray-900 text-base">{item.name}</Text>
+                  {item.college && <Text className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1" numberOfLines={1}>{item.college}</Text>}
+                  <Text className={`text-[10px] font-black uppercase tracking-wider ${item.status === 'online' ? 'text-green-500' : 'text-orange-500'}`}>
                     {item.status === 'online' ? '● Online' : '● In a call'}
                   </Text>
                 </View>
@@ -296,6 +309,6 @@ export default function AudioCallLobby({ navigation }: any) {
           </View>
         </View>
       </Modal>
-    </View>
+    </LinearGradient>
   );
 }

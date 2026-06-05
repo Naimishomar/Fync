@@ -1,0 +1,190 @@
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Platform, Image, ActivityIndicator, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { Image as ImageCompressor } from 'react-native-compressor';
+import * as Sharing from 'expo-sharing';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as FileSystem from 'expo-file-system';
+
+export default function ImageCompressorScreen() {
+  const navigation = useNavigation();
+  const [originalUri, setOriginalUri] = useState<string | null>(null);
+  const [compressedUri, setCompressedUri] = useState<string | null>(null);
+  const [originalSize, setOriginalSize] = useState<number>(0);
+  const [compressedSize, setCompressedSize] = useState<number>(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [quality, setQuality] = useState<'high' | 'medium' | 'low'>('medium');
+
+  const getFileSize = async (uri: string) => {
+    try {
+      const info = await FileSystem.getInfoAsync(uri);
+      return info.size || 0;
+    } catch (e) {
+      return 0;
+    }
+  };
+
+  const formatSize = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1, // Get original
+    });
+
+    if (!result.canceled && result.assets) {
+      const uri = result.assets[0].uri;
+      setOriginalUri(uri);
+      setCompressedUri(null);
+      const size = await getFileSize(uri);
+      setOriginalSize(size);
+    }
+  };
+
+  const compressImage = async () => {
+    if (!originalUri) return;
+    setIsProcessing(true);
+    
+    try {
+      let q = 0.7; // Medium
+      let maxDim = 1200;
+      
+      if (quality === 'low') {
+        q = 0.4;
+        maxDim = 800;
+      } else if (quality === 'high') {
+        q = 0.9;
+        maxDim = 1920;
+      }
+
+      const result = await ImageCompressor.compress(originalUri, {
+        compressionMethod: 'auto',
+        quality: q,
+        maxWidth: maxDim,
+        maxHeight: maxDim,
+      });
+
+      setCompressedUri(result);
+      const newSize = await getFileSize(result);
+      setCompressedSize(newSize);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to compress image.');
+      console.error(error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const shareCompressed = async () => {
+    if (!compressedUri) return;
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(compressedUri, {
+        dialogTitle: 'Share compressed image',
+      });
+    } else {
+      Alert.alert('Notice', 'Sharing is not available on this device.');
+    }
+  };
+
+  return (
+    <LinearGradient colors={['#ffffff', '#fff7ed', '#ffedd5']} className="flex-1">
+      <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS === 'android' ? 25 : 0 }}>
+        <View className="px-5 py-4 flex-row items-center border-b border-orange-100 bg-transparent">
+          <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
+            <Ionicons name="arrow-back" size={24} color="#0f172a" />
+          </TouchableOpacity>
+          <Text className="text-xl font-black text-slate-900 tracking-tight flex-1">Compress Image</Text>
+        </View>
+
+        <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
+          {!originalUri ? (
+            <TouchableOpacity
+              onPress={pickImage}
+              className="w-full bg-white border-2 border-dashed border-sky-200 rounded-3xl p-8 items-center justify-center mb-6 shadow-sm"
+            >
+              <View className="w-16 h-16 bg-sky-50 rounded-full items-center justify-center mb-3">
+                <Ionicons name="image-outline" size={32} color="#0ea5e9" />
+              </View>
+              <Text className="text-lg font-bold text-slate-800 mb-1">Select Image</Text>
+              <Text className="text-xs font-medium text-slate-400 text-center">Tap to choose a large image</Text>
+            </TouchableOpacity>
+          ) : (
+            <View className="mb-6">
+              <View className="w-full aspect-[4/3] bg-slate-100 rounded-2xl overflow-hidden mb-4 border border-slate-200">
+                <Image source={{ uri: compressedUri || originalUri }} className="w-full h-full" resizeMode="contain" />
+                <TouchableOpacity 
+                  onPress={() => { setOriginalUri(null); setCompressedUri(null); }}
+                  className="absolute top-2 right-2 bg-black/50 w-8 h-8 rounded-full items-center justify-center backdrop-blur-md"
+                >
+                  <Ionicons name="close" size={18} color="white" />
+                </TouchableOpacity>
+              </View>
+
+              <View className="flex-row items-center justify-between bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-6">
+                <View>
+                  <Text className="text-xs text-slate-400 font-bold mb-1 uppercase tracking-wider">Original Size</Text>
+                  <Text className="text-base font-black text-slate-800">{formatSize(originalSize)}</Text>
+                </View>
+                <Ionicons name="arrow-forward" size={20} color="#cbd5e1" />
+                <View className="items-end">
+                  <Text className="text-xs text-sky-500 font-bold mb-1 uppercase tracking-wider">Compressed Size</Text>
+                  <Text className={`text-base font-black ${compressedUri ? 'text-sky-600' : 'text-slate-300'}`}>
+                    {compressedUri ? formatSize(compressedSize) : '---'}
+                  </Text>
+                </View>
+              </View>
+
+              {!compressedUri ? (
+                <View className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm mb-6">
+                  <Text className="text-sm font-bold text-slate-800 mb-4">Compression Quality</Text>
+                  <View className="flex-row justify-between mb-6">
+                    {['high', 'medium', 'low'].map((q) => (
+                      <TouchableOpacity
+                        key={q}
+                        onPress={() => setQuality(q as any)}
+                        className={`flex-1 mx-1 py-2 rounded-xl items-center justify-center border ${quality === q ? 'bg-sky-50 border-sky-500' : 'bg-white border-slate-200'}`}
+                      >
+                        <Text className={`text-xs font-bold capitalize ${quality === q ? 'text-sky-600' : 'text-slate-500'}`}>{q}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  
+                  <TouchableOpacity
+                    onPress={compressImage}
+                    disabled={isProcessing}
+                    className={`w-full py-4 rounded-xl items-center justify-center flex-row ${isProcessing ? 'bg-sky-400' : 'bg-sky-500'}`}
+                  >
+                    {isProcessing ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <>
+                        <Ionicons name="compress" size={20} color="white" className="mr-2" />
+                        <Text className="text-white font-bold text-base ml-2">Compress Now</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  onPress={shareCompressed}
+                  className="w-full py-4 rounded-2xl items-center justify-center flex-row bg-slate-900 shadow-sm"
+                >
+                  <Ionicons name="share-outline" size={20} color="white" className="mr-2" />
+                  <Text className="text-white font-bold text-base ml-2">Save / Share Image</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
+  );
+}

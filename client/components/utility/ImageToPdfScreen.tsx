@@ -1,0 +1,150 @@
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Platform, Image, ActivityIndicator, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+import { LinearGradient } from 'expo-linear-gradient';
+
+export default function ImageToPdfScreen() {
+  const navigation = useNavigation();
+  const [images, setImages] = useState<string[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const pickImages = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets) {
+      const selectedUris = result.assets.map(asset => asset.uri);
+      setImages(prev => [...prev, ...selectedUris]);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const generatePdf = async () => {
+    if (images.length === 0) {
+      Alert.alert('No Images', 'Please select at least one image to convert.');
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      // Build HTML
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
+              .page { width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; page-break-after: always; }
+              img { max-width: 95%; max-height: 95%; object-fit: contain; }
+            </style>
+          </head>
+          <body>
+            ${images.map(uri => `
+              <div class="page">
+                <img src="${uri}" />
+              </div>
+            `).join('')}
+          </body>
+        </html>
+      `;
+
+      const { uri } = await Print.printToFileAsync({
+        html: htmlContent,
+        base64: false
+      });
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: 'Save your PDF',
+          UTI: 'com.adobe.pdf'
+        });
+      } else {
+        Alert.alert('Success', 'PDF generated, but sharing is not available on this device.');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Failed to generate PDF. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <LinearGradient colors={['#ffffff', '#fff7ed', '#ffedd5']} className="flex-1">
+      <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS === 'android' ? 25 : 0 }}>
+        {/* Header */}
+        <View className="px-5 py-4 flex-row items-center border-b border-orange-100 bg-transparent">
+        <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
+          <Ionicons name="arrow-back" size={24} color="#0f172a" />
+        </TouchableOpacity>
+        <Text className="text-xl font-black text-slate-900 tracking-tight flex-1">Image to PDF</Text>
+        <TouchableOpacity onPress={() => setImages([])} className="p-2">
+          <Text className="text-sm font-bold text-slate-400">CLEAR</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
+        <TouchableOpacity
+          onPress={pickImages}
+          className="w-full bg-white border-2 border-dashed border-orange-200 rounded-3xl p-8 items-center justify-center mb-6 shadow-sm"
+        >
+          <View className="w-16 h-16 bg-orange-50 rounded-full items-center justify-center mb-3">
+            <Ionicons name="images-outline" size={32} color="#f97316" />
+          </View>
+          <Text className="text-lg font-bold text-slate-800 mb-1">Select Images</Text>
+          <Text className="text-xs font-medium text-slate-400 text-center">Tap here to choose multiple images from your gallery</Text>
+        </TouchableOpacity>
+
+        {images.length > 0 && (
+          <View className="flex-row flex-wrap justify-between pb-24">
+            {images.map((uri, index) => (
+              <View key={index} className="w-[48%] aspect-[3/4] mb-4 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden relative">
+                <Image source={{ uri }} className="w-full h-full" resizeMode="cover" />
+                <TouchableOpacity 
+                  onPress={() => removeImage(index)}
+                  className="absolute top-2 right-2 bg-black/50 w-8 h-8 rounded-full items-center justify-center backdrop-blur-md"
+                >
+                  <Ionicons name="close" size={18} color="white" />
+                </TouchableOpacity>
+                <View className="absolute bottom-2 left-2 bg-black/50 px-2 py-1 rounded-md backdrop-blur-md">
+                  <Text className="text-white text-[10px] font-bold">PAGE {index + 1}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+      </ScrollView>
+
+      {images.length > 0 && (
+        <View className="absolute bottom-0 left-0 right-0 p-5 bg-white/90 backdrop-blur-xl border-t border-slate-200">
+          <TouchableOpacity
+            onPress={generatePdf}
+            disabled={isProcessing}
+            className={`w-full py-4 rounded-2xl items-center justify-center flex-row shadow-sm ${isProcessing ? 'bg-orange-400' : 'bg-orange-500'}`}
+          >
+            {isProcessing ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <>
+                <Ionicons name="document-text" size={20} color="white" className="mr-2" />
+                <Text className="text-white font-bold text-base ml-2">Generate PDF ({images.length} pages)</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
+      </SafeAreaView>
+    </LinearGradient>
+  );
+}

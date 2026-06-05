@@ -112,12 +112,12 @@ export const socketController = (io) => {
     // However, we still use Socket.IO for transient events (typing, notifications).
     socket.on("typing", ({ conversationId, username }) => {
       if (!conversationId) return;
-      socket.to(conversationId).emit("user_typing", { username });
+      socket.to(conversationId).emit("user_typing", { conversationId, username });
     });
 
     socket.on("stopTyping", ({ conversationId, username }) => {
       if (!conversationId) return;
-      socket.to(conversationId).emit("user_stop_typing", { username });
+      socket.to(conversationId).emit("user_stop_typing", { conversationId, username });
     });
 
     socket.on("chat_notify", async ({ receiverId, title, body }) => {

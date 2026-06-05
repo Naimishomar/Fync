@@ -28,6 +28,17 @@ import * as DocumentPicker from "expo-document-picker";
 import { Video, ResizeMode } from "expo-av";
 import { ActivityIndicator, Modal } from "react-native";
 
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+  });
+};
+
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 const Chat = ({ route, navigation }: any) => {
@@ -48,6 +59,7 @@ const Chat = ({ route, navigation }: any) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
   const insets = useSafeAreaInsets();
   const typingTimeout = useRef<any>(null);
@@ -105,26 +117,37 @@ const Chat = ({ route, navigation }: any) => {
     socket.emit("join", { conversationId });
     socket.emit("register", user._id); // ensure registered for online status
 
-    // Listen to typing events
-    socket.on("user_typing", ({ username }) => {
+    const handleTyping = ({ username }: any) => {
       setIsTyping(true);
-    });
-    socket.on("user_stop_typing", () => {
+    };
+    const handleStopTyping = () => {
       setIsTyping(false);
-    });
-
-    // Listen to online status
-    socket.on("statusUpdate", ({ userId, status }: { userId: string, status: string }) => {
+    };
+    const handleStatusUpdate = ({ userId, status }: { userId: string, status: string }) => {
       setOnlineUsers(prev => {
         const next = new Set(prev);
         if (status === "online") next.add(userId);
         else next.delete(userId);
         return next;
       });
-    });
-    socket.on("initialOnlineList", (list: string[]) => {
+    };
+    const handleInitialOnlineList = (list: string[]) => {
       setOnlineUsers(new Set(list));
-    });
+    };
+
+    const handleConnect = () => {
+      socket.emit("join", { conversationId });
+      socket.emit("register", user._id);
+    };
+
+    // Listen to typing events
+    socket.on("user_typing", handleTyping);
+    socket.on("user_stop_typing", handleStopTyping);
+
+    // Listen to online status
+    socket.on("statusUpdate", handleStatusUpdate);
+    socket.on("initialOnlineList", handleInitialOnlineList);
+    socket.on("connect", handleConnect);
 
     // 1. Fetch Initial Messages
     loadMessages();
@@ -207,10 +230,12 @@ const Chat = ({ route, navigation }: any) => {
       kbs.remove();
       kbh.remove();
       supabase.removeChannel(channel);
-      socket.off("user_typing");
-      socket.off("user_stop_typing");
-      socket.off("statusUpdate");
-      socket.off("initialOnlineList");
+      socket.emit("stopTyping", { conversationId, username: user.username });
+      socket.off("user_typing", handleTyping);
+      socket.off("user_stop_typing", handleStopTyping);
+      socket.off("statusUpdate", handleStatusUpdate);
+      socket.off("initialOnlineList", handleInitialOnlineList);
+      socket.off("connect", handleConnect);
 
       // Restore tab bar when leaving chat
       if (parent) {
@@ -236,7 +261,7 @@ const Chat = ({ route, navigation }: any) => {
 
   /* ---------- LOAD ---------- */
   const loadMessages = async () => {
-    if (loadingMore) return;
+    if (loadingMore || !hasMore) return;
     setLoadingMore(true);
 
     try {
@@ -250,12 +275,19 @@ const Chat = ({ route, navigation }: any) => {
       if (error) throw error;
 
       if (data) {
+        if (data.length < 20) setHasMore(false);
         setMessages((prev) => {
           const prevIds = new Set(prev.map(m => m._id));
           const newUnique = data.filter((m: any) => !prevIds.has(m._id));
           return [...prev, ...newUnique];
         });
         setPage((prev) => prev + 1);
+
+        // Mark as seen
+        const unseenIds = data.filter((m: any) => m.sender?._id !== user._id && !m.seen).map((m: any) => m._id);
+        if (unseenIds.length > 0) {
+          supabase.from('messages').update({ seen: true }).in('_id', unseenIds).then();
+        }
       }
     } catch (error) {
       console.log("Error loading messages", error);
@@ -267,10 +299,12 @@ const Chat = ({ route, navigation }: any) => {
 
   /* ---------- SEND ---------- */
   const sendMessage = async () => {
-    if (!text.trim()) return;
+    if (!text.trim() || !otherUser) return;
 
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    const tempId = generateUUID();
     const tempMessage = {
-      _id: Date.now().toString(),
+      _id: tempId,
       conversationId,
       sender: user,
       message: text,
@@ -279,9 +313,14 @@ const Chat = ({ route, navigation }: any) => {
       optimistic: true,
     };
 
-    setMessages((prev) => [tempMessage, ...prev]);
+    setMessages((prev) => [tempMessage as any, ...prev]);
     setText("");
     setReplyingTo(null);
+
+    // Stop typing immediately when sending
+    if (typingTimeout.current) clearTimeout(typingTimeout.current);
+    socket.emit("stopTyping", { conversationId, username: user.username });
+    setIsTyping(false);
 
     // Save to Supabase
     try {
@@ -306,12 +345,13 @@ const Chat = ({ route, navigation }: any) => {
         updatedAt: tempMessage.createdAt,
         unreadCount: {
            ...(convData?.unreadCount || {}),
-           [otherUser?._id]: currentUnread + 1
+           [otherUser._id]: currentUnread + 1
         }
       });
 
       // 2. Insert message
       const { data, error } = await supabase.from('messages').insert([{
+        _id: tempId,
         conversationId,
         sender: user,
         message: tempMessage.message,
@@ -320,14 +360,19 @@ const Chat = ({ route, navigation }: any) => {
       }]).select().single();
 
       if (data) {
-        setMessages((prev) => prev.map(m => m._id === tempMessage._id ? data : m));
+        setMessages((prev) => prev.map(m => m._id === tempId ? data : m));
+      } else if (error) {
+        throw error;
       }
     } catch (e) {
       console.log("Failed to send", e);
+      setMessages(prev => prev.filter(m => m._id !== tempId));
+      Alert.alert("Failed to Send", "Could not send the message. Please check your connection.");
     }
   };
 
   const uploadMedia = async (uri: string, mimeType: string, type: string, fileName?: string) => {
+    if (!otherUser) return;
     const formData = new FormData();
     formData.append("media", {
       uri,
@@ -340,7 +385,7 @@ const Chat = ({ route, navigation }: any) => {
     if (replyingTo) formData.append("replyTo", replyingTo._id);
 
     // Optimistic message
-    const tempId = Date.now().toString();
+    const tempId = generateUUID();
     const tempMsg = {
       _id: tempId,
       sender: user,
@@ -366,7 +411,37 @@ const Chat = ({ route, navigation }: any) => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       if (res.data.success) {
-        setMessages(prev => prev.map(m => m._id === tempId ? res.data.message : m));
+        const mediaUrl = res.data.message.mediaUrl;
+
+        // Save to Supabase just like text message
+        const { data: convData } = await supabase.from('conversations').select('unreadCount').eq('_id', conversationId).single();
+        const currentUnread = convData?.unreadCount?.[otherUser?._id] || 0;
+
+        await supabase.from('conversations').upsert({
+          _id: conversationId,
+          participants: [user, otherUser],
+          lastMessage: type === 'image' ? 'Sent an image' : (type === 'video' ? 'Sent a video' : 'Sent a file'),
+          lastMessageSender: user._id,
+          updatedAt: new Date().toISOString(),
+          unreadCount: {
+             ...(convData?.unreadCount || {}),
+             [otherUser._id]: currentUnread + 1
+          }
+        });
+
+        const { data } = await supabase.from('messages').insert([{
+          _id: tempId,
+          conversationId,
+          sender: user,
+          message: "",
+          messageType: type,
+          mediaUrl: mediaUrl,
+          replyTo: replyingTo ? replyingTo : null,
+        }]).select().single();
+
+        if (data) {
+          setMessages(prev => prev.map(m => m._id === tempId ? data : m));
+        }
       }
     } catch (e) {
       console.error("Upload error:", e);
@@ -442,7 +517,31 @@ const Chat = ({ route, navigation }: any) => {
         onPress: async () => {
           try {
             await supabase.from('messages').delete().eq('_id', messageId);
-            setMessages((prev) => prev.filter((m) => m._id !== messageId));
+            setMessages((prev) => {
+              const newMessages = prev.filter((m) => m._id !== messageId);
+              
+              // If we deleted the most recent message, update the conversation's lastMessage
+              if (prev[0]?._id === messageId && newMessages.length > 0) {
+                const newLastMessage = newMessages[0];
+                const msgText = newLastMessage.messageType === 'text' 
+                  ? newLastMessage.message 
+                  : (newLastMessage.messageType === 'image' ? 'Sent an image' : 'Sent media');
+                  
+                supabase.from('conversations').update({
+                  lastMessage: msgText,
+                  lastMessageSender: newLastMessage.sender?._id || newLastMessage.sender,
+                  updatedAt: newLastMessage.createdAt,
+                }).eq('_id', conversationId).then();
+              } else if (prev[0]?._id === messageId && newMessages.length === 0) {
+                // If it was the only message left
+                supabase.from('conversations').update({
+                  lastMessage: "Message deleted",
+                  lastMessageSender: user._id,
+                }).eq('_id', conversationId).then();
+              }
+              
+              return newMessages;
+            });
           } catch (e) {
             console.log("Delete error", e);
           }

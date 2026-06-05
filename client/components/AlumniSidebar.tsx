@@ -130,6 +130,18 @@ export default function AlumniSidebar(props: any) {
                         </View>
                     </Pressable>
 
+                    {/* Utility Hub */}
+                    <Pressable
+                        onPress={() => props.navigation.navigate('UtilityHubScreen')}
+                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-gray-800"
+                    >
+                        <Ionicons name="construct-outline" size={24} color="#818cf8" />
+                        <Text className="text-white text-lg ml-4 font-medium">Utility Hub</Text>
+                        <View className="ml-2 bg-indigo-500 px-2 py-0.5 rounded-full">
+                            <Text className="text-[10px] text-white font-bold">New</Text>
+                        </View>
+                    </Pressable>
+
                     {/* Campus Alumni */}
                     <Pressable
                         onPress={() => props.navigation.navigate('FindAlumni')}

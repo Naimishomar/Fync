@@ -4,16 +4,21 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Mic, MicOff, PhoneOff } from 'lucide-react-native';
 import { webRTCManager } from '../../services/WebRTCService';
 
-export default function ActiveAudioCall({ remoteUser, onEndCall }: { remoteUser: any, onEndCall: () => void }) {
+export default function ActiveAudioCall({ remoteUser, isCallConnected, onEndCall }: { remoteUser: any, isCallConnected: boolean, onEndCall: () => void }) {
   const [isMuted, setIsMuted] = useState(false);
   const [duration, setDuration] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setDuration((prev) => prev + 1);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    let timer: NodeJS.Timeout;
+    if (isCallConnected) {
+      timer = setInterval(() => {
+        setDuration((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isCallConnected]);
 
   const formatDuration = (seconds: number) => {
     const m = Math.floor(seconds / 60);

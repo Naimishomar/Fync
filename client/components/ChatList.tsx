@@ -43,18 +43,40 @@ const ChatList = () => {
       loadChats();
       socket.emit("register", user._id);
 
-      socket.on("statusUpdate", ({ userId, status }: { userId: string, status: string }) => {
+      const handleStatusUpdate = ({ userId, status }: { userId: string, status: string }) => {
         setOnlineUsers(prev => {
           const next = new Set(prev);
           if (status === "online") next.add(userId);
           else next.delete(userId);
           return next;
         });
-      });
+      };
 
-      socket.on("initialOnlineList", (list: string[]) => {
+      const handleInitialList = (list: string[]) => {
         setOnlineUsers(new Set(list));
-      });
+      };
+
+      const handleTyping = ({ conversationId }: { conversationId: string }) => {
+        if (conversationId) setTypingStates(prev => ({ ...prev, [conversationId]: true }));
+      };
+
+      const handleStopTyping = ({ conversationId }: { conversationId: string }) => {
+        if (conversationId) setTypingStates(prev => ({ ...prev, [conversationId]: false }));
+      };
+
+      const handleConnect = () => {
+        socket.emit("register", user._id);
+        // Rejoin rooms if socket reconnects
+        conversations.forEach((c: any) => {
+          socket.emit("join", { conversationId: c._id });
+        });
+      };
+
+      socket.on("statusUpdate", handleStatusUpdate);
+      socket.on("initialOnlineList", handleInitialList);
+      socket.on("user_typing", handleTyping);
+      socket.on("user_stop_typing", handleStopTyping);
+      socket.on("connect", handleConnect);
 
       // ✅ SUPABASE REALTIME LISTENER FOR CONVERSATIONS
       const channel = supabase
@@ -69,8 +91,11 @@ const ChatList = () => {
         .subscribe();
 
       return () => {
-        socket.off("statusUpdate");
-        socket.off("initialOnlineList");
+        socket.off("statusUpdate", handleStatusUpdate);
+        socket.off("initialOnlineList", handleInitialList);
+        socket.off("user_typing", handleTyping);
+        socket.off("user_stop_typing", handleStopTyping);
+        socket.off("connect", handleConnect);
         supabase.removeChannel(channel);
       };
 
@@ -90,6 +115,10 @@ const ChatList = () => {
       
       if (data) {
         setConversations(data);
+        // Join all conversation rooms to listen for typing events
+        data.forEach((c: any) => {
+          socket.emit("join", { conversationId: c._id });
+        });
       }
     } catch (e) {
       console.log("Error loading chats from Supabase", e);
@@ -168,7 +197,7 @@ const ChatList = () => {
       (p: any) => p._id !== user._id
     );
     const unread = item.unreadCount?.[user._id] || 0;
-    const isLastMsgMine = item.lastMessage?.sender === user._id;
+    const isLastMsgMine = item.lastMessageSender === user._id;
 
     return (
       <TouchableOpacity
@@ -224,7 +253,7 @@ const ChatList = () => {
         </View>
       </TouchableOpacity>
     );
-  }, [user._id, onlineUsers, navigation]);
+  }, [user._id, onlineUsers, navigation, typingStates]);
 
   const renderUserItem = useCallback(({ item }: any) => (
     <TouchableOpacity

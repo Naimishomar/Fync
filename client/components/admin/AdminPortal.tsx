@@ -32,6 +32,8 @@ const AdminPortal = ({ navigation }: any) => {
     const [view, setView] = useState<'hub' | 'feature'>('hub');
     const [subscriptionPrice, setSubscriptionPrice] = useState<string>('39');
     const [currentSubscriptionPrice, setCurrentSubscriptionPrice] = useState<string>('...');
+    const [isSubscriptionEnabled, setIsSubscriptionEnabled] = useState<boolean>(true);
+    const [currentIsSubscriptionEnabled, setCurrentIsSubscriptionEnabled] = useState<boolean>(true);
     const [ads, setAds] = useState<any[]>([]);
     const [redemptions, setRedemptions] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
@@ -204,6 +206,11 @@ const AdminPortal = ({ navigation }: any) => {
             if (res.data.success && res.data.price !== undefined) {
                 setSubscriptionPrice(res.data.price.toString());
                 setCurrentSubscriptionPrice(res.data.price.toString());
+                
+                if (res.data.isSubscriptionEnabled !== undefined) {
+                    setIsSubscriptionEnabled(res.data.isSubscriptionEnabled);
+                    setCurrentIsSubscriptionEnabled(res.data.isSubscriptionEnabled);
+                }
             }
         } catch (e) {
             console.error("Fetch Config Error:", e);
@@ -230,10 +237,14 @@ const AdminPortal = ({ navigation }: any) => {
             const verifyRes = await axios.post('/user/admin/verify-password', { password: subConfirmPassword });
             if (verifyRes.data.success) {
                 // If verified, deploy new price
-                const res = await axios.put('/subscription/admin/config', { price: subscriptionPrice });
+                const res = await axios.put('/subscription/admin/config', { 
+                    price: subscriptionPrice,
+                    isSubscriptionEnabled: isSubscriptionEnabled 
+                });
                 if (res.data.success) {
                     setCurrentSubscriptionPrice(subscriptionPrice);
-                    Toast.show({ type: 'success', text1: 'Subscription Price Updated' });
+                    setCurrentIsSubscriptionEnabled(isSubscriptionEnabled);
+                    Toast.show({ type: 'success', text1: 'Subscription Config Updated' });
                     setSubConfirmModalVisible(false);
                 }
             }
@@ -826,7 +837,21 @@ const AdminPortal = ({ navigation }: any) => {
                             <View>
                                 <Text className="text-zinc-900 text-lg font-black uppercase tracking-tight">Global Price Engine</Text>
                                 <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Live Active Rate: ₹{currentSubscriptionPrice}/mo</Text>
+                                <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Status: {currentIsSubscriptionEnabled ? 'Enabled' : 'Disabled'}</Text>
                             </View>
+                        </View>
+                        
+                        <View className="flex-row justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-4">
+                            <View className="flex-1">
+                                <Text className="text-zinc-900 font-bold text-sm">Enable Subscriptions</Text>
+                                <Text className="text-gray-400 text-[10px] mt-1">If disabled, the app is free and all users instantly bypass the paywall.</Text>
+                            </View>
+                            <Switch
+                                value={isSubscriptionEnabled}
+                                onValueChange={setIsSubscriptionEnabled}
+                                trackColor={{ false: "#e4e4e7", true: "#fbcfe8" }}
+                                thumbColor={isSubscriptionEnabled ? "#ec4899" : "#a1a1aa"}
+                            />
                         </View>
                         
                         <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6">

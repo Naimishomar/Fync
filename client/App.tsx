@@ -172,6 +172,10 @@ import AdminPortal from './components/admin/AdminPortal';
 import AudioCallLobby from './components/audioCall/AudioCallLobby';
 
 // Daily Hub Utilities
+import UtilityHubScreen from './components/utility/UtilityHubScreen';
+import ImageToPdfScreen from './components/utility/ImageToPdfScreen';
+import ImageCompressorScreen from './components/utility/ImageCompressorScreen';
+import QRCodeToolScreen from './components/utility/QRCodeToolScreen';
 import './utils/commuteGuardTask';
 
 configureReanimatedLogger({
@@ -339,6 +343,10 @@ export type RootStackParamList = {
   PartyPool: undefined;
   SubscriptionScreen: undefined;
   AudioCallLobby: undefined;
+  UtilityHubScreen: undefined;
+  ImageToPdfScreen: undefined;
+  ImageCompressorScreen: undefined;
+  QRCodeToolScreen: undefined;
 };
 function HomeDrawer() {
   const { user } = useAuth();
@@ -470,6 +478,12 @@ function AppStack() {
       <Stack.Screen name="SpeakerSessionScreen" component={SpeakerSessionScreen} />
       <Stack.Screen name="BootcampScreen" component={BootcampScreen} />
       <Stack.Screen name="AudioCallLobby" component={AudioCallLobby} />
+      
+      {/* Utility Hub */}
+      <Stack.Screen name="UtilityHubScreen" component={UtilityHubScreen} />
+      <Stack.Screen name="ImageToPdfScreen" component={ImageToPdfScreen} />
+      <Stack.Screen name="ImageCompressorScreen" component={ImageCompressorScreen} />
+      <Stack.Screen name="QRCodeToolScreen" component={QRCodeToolScreen} />
 
       <Stack.Screen name="EventCommunityChat" component={EventCommunityChat} />
       <Stack.Screen name="CommunityList" component={CommunityListScreen} />

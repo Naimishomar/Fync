@@ -114,6 +114,16 @@ export const verifySubscriptionPayment = async (req, res) => {
 
 export const getSubscriptionStatus = async (req, res) => {
     try{
+        let config = await SystemConfig.findOne();
+        if (config && config.isSubscriptionEnabled === false) {
+            return res.status(200).json({
+                success: true,
+                status: 'active',
+                isLifetime: true,
+                message: "Subscriptions are globally disabled, app is free for all."
+            });
+        }
+
         const user = await User.findById(req.user.id);
         if (user && (user.user_access === 'recruiter' || user.user_access === 'admin')) {
             return res.status(200).json({
@@ -168,9 +178,13 @@ export const getSubscriptionStatus = async (req, res) => {
 export const getSubscriptionConfig = async (req, res) => {
     try {
         let config = await SystemConfig.findOne();
-        if (!config) config = await SystemConfig.create({ subscriptionPrice: 39 });
+        if (!config) config = await SystemConfig.create({ subscriptionPrice: 39, isSubscriptionEnabled: true });
         
-        res.status(200).json({ success: true, price: config.subscriptionPrice });
+        res.status(200).json({ 
+            success: true, 
+            price: config.subscriptionPrice,
+            isSubscriptionEnabled: config.isSubscriptionEnabled
+        });
     } catch (err) {
         console.error("Error fetching config:", err);
         res.status(500).json({ success: false, message: "Error fetching config" });
@@ -179,16 +193,26 @@ export const getSubscriptionConfig = async (req, res) => {
 
 export const updateSubscriptionConfig = async (req, res) => {
     try {
-        const { price } = req.body;
+        const { price, isSubscriptionEnabled } = req.body;
         if (!price || price < 1) {
              return res.status(400).json({ success: false, message: "Valid price is required" });
         }
         let config = await SystemConfig.findOne();
         if (!config) config = new SystemConfig();
         config.subscriptionPrice = Number(price);
+        
+        if (isSubscriptionEnabled !== undefined) {
+            config.isSubscriptionEnabled = Boolean(isSubscriptionEnabled);
+        }
+        
         await config.save();
         
-        res.status(200).json({ success: true, message: "Subscription price updated", price: config.subscriptionPrice });
+        res.status(200).json({ 
+            success: true, 
+            message: "Subscription config updated", 
+            price: config.subscriptionPrice,
+            isSubscriptionEnabled: config.isSubscriptionEnabled
+        });
     } catch (err) {
         console.error("Error updating config:", err);
         res.status(500).json({ success: false, message: "Error updating config" });

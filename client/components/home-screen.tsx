@@ -25,7 +25,7 @@ import {
 } from 'react-native';
 import { PostSkeleton } from "./Skeleton";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Sparkles, Mic, Briefcase, Trophy, Rocket, Crown, MessageCircle, Megaphone, Users, Code } from 'lucide-react-native';
+import { Sparkles, Mic, Briefcase, Trophy, Rocket, Crown, MessageCircle, Megaphone, Users, Code, Wrench } from 'lucide-react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Reanimated, { Layout, FadeIn, FadeOut } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -852,6 +852,7 @@ export default function HomeScreen() {
   const features = useMemo(() => [
     { id: 'fyncAcademy', name: 'Academy', Icon: Sparkles, colorHex: '#8b5cf6', bgClass: 'bg-purple-50', sparkle: true, onPress: () => navigation.navigate('MasterStudyHub') },
     { id: 'contest', name: 'Contests', Icon: Code, colorHex: '#4f46e5', bgClass: 'bg-indigo-50', sparkle: true, onPress: () => navigation.navigate('DSAAndDevelopmentContest') },
+    { id: 'utilityHub', name: 'Utilities', Icon: Wrench, colorHex: '#10b981', bgClass: 'bg-emerald-50', sparkle: true, onPress: () => navigation.navigate('UtilityHubScreen') },
     { id: 'partyPool', name: 'Party Pool', Icon: Sparkles, colorHex: '#db2777', bgClass: 'bg-pink-50', sparkle: true, onPress: () => navigation.navigate('PartyPool') },
     { id: 'entertainment', name: 'Movies', Icon: Mic, colorHex: '#e11d48', bgClass: 'bg-rose-50', sparkle: true, onPress: () => navigation.navigate('EntertainmentHome') },
     { id: 'fyncMedia', name: 'Fync Media', Icon: Mic, colorHex: '#f43f5e', bgClass: 'bg-rose-50', sparkle: false, onPress: () => navigation.navigate('FyncMediaFeed') },

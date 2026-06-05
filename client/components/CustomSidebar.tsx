@@ -136,6 +136,13 @@ export default function CustomSidebar(props: any) {
                         <Text className="text-zinc-900 text-sm ml-4 font-black uppercase tracking-tight">BunkOMeter</Text>
                     </Pressable>
 
+                    <Pressable onPress={() => props.navigation.navigate('UtilityHubScreen')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
+                        <Ionicons name="construct-outline" size={22} color="#FF4500" />
+                        <Text className="text-zinc-900 text-sm ml-4 font-black uppercase tracking-tight">Utility Hub</Text>
+                        <View className="ml-auto bg-green-100 px-2.5 py-1 rounded-full border border-green-200">
+                            <Text className="text-[9px] text-green-600 font-black uppercase tracking-widest">New</Text>
+                        </View>
+                    </Pressable>
 
                     {/* ========================================= */}
                     {/*             CAREER & GROWTH               */}
