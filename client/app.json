@@ -115,14 +115,13 @@
         "android.permission.READ_MEDIA_AUDIO",
         "android.permission.VIBRATE"
       ],
-      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#000"
+        "backgroundColor": "#000000"
       },
       "package": "com.naimishomar.fync",
       "googleServicesFile": "./google-services.json",
-      "softwareKeyboardLayoutMode": "adjustResize"
+      "softwareKeyboardLayoutMode": "resize"
     },
     "extra": {
       "eas": {
