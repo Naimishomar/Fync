@@ -38,7 +38,14 @@
       "expo-web-browser",
       "react-native-compressor",
       "expo-notifications",
-      "expo-build-properties",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "allowBackup": false
+          }
+        }
+      ],
       "expo-video",
       "@react-native-community/datetimepicker",
       [
