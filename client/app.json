@@ -55,7 +55,9 @@
           "microphonePermission": "Allow Fync to access your microphone for audio calls."
         }
       ],
-      "@react-native-firebase/messaging"
+      "@react-native-firebase/messaging",
+      "@react-native-firebase/app",
+      "@react-native-firebase/crashlytics"
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -129,6 +131,6 @@
       }
     },
     "owner": "naimishomar",
-    "newArchEnabled": false
+    "newArchEnabled": true
   }
 }

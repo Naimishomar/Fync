@@ -269,7 +269,7 @@ const AdminPortal = ({ navigation }: any) => {
         }
         setSendingBroadcast(true);
         try {
-            const res = await axios.post('/notification/broadcast', {
+            const res = await axios.post('/notifications/broadcast', {
                 title: broadcastTitle,
                 body: broadcastBody
             });

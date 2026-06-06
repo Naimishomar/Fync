@@ -33,7 +33,7 @@ export const syncFcmToken = async () => {
     const token = await messaging().getToken();
     console.log('FCM Token:', token);
 
-    await axios.post('/auth/fcm-token', { fcmToken: token });
+    await axios.post('/user/fcm-token', { fcmToken: token });
   } catch (error) {
     console.error('Error syncing FCM token:', error);
   }

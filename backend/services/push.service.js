@@ -44,7 +44,7 @@ export const sendPushNotification = async (tokens, payload) => {
   };
 
   try {
-    const response = await admin.messaging().sendMulticast(message);
+    const response = await admin.messaging().sendEachForMulticast(message);
     console.log(`Successfully sent message to ${response.successCount} devices`);
     if (response.failureCount > 0) {
       const failedTokens = [];
