@@ -12,6 +12,7 @@ import {
   RefreshControl,
   Pressable,
   Animated,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -21,6 +22,15 @@ import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/auth.context';
+
+// ─── Responsive helpers ─────────────────────────────────────────────────────────
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const isSmallScreen = SCREEN_WIDTH < 360;
+const isMediumScreen = SCREEN_WIDTH >= 360 && SCREEN_WIDTH < 414;
+const responsive = (small: number, medium: number, large: number) =>
+  isSmallScreen ? small : isMediumScreen ? medium : large;
+const hp = (percent: number) => SCREEN_HEIGHT * (percent / 100);
+const wp = (percent: number) => SCREEN_WIDTH * (percent / 100);
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Hackathon {
@@ -82,6 +92,13 @@ const HackathonCard = memo(({ item, onPress }: { item: Hackathon; onPress: (id: 
   const status = STATUS_META[item.status] ?? STATUS_META.upcoming;
   const start = item.hackathonstarts ? new Date(item.hackathonstarts).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—';
   const end = item.hackathonends ? new Date(item.hackathonends).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—';
+  
+  const cardMargin = responsive(4, 6, 8);
+  const bannerHeight = hp(responsive(28, 32, 35));
+  const borderRadius = responsive(36, 40, 48);
+  const contentPadding = responsive(8, 10, 12);
+  const titleSize = responsive(20, 24, 28);
+  
   return (
     <Pressable
       onPress={() => onPress(item._id)}
@@ -89,12 +106,13 @@ const HackathonCard = memo(({ item, onPress }: { item: Hackathon; onPress: (id: 
         {
           transform: [{ scale: pressed ? 0.98 : 1 }],
         },
+        { marginHorizontal: cardMargin },
       ]}
-      className="mb-10 mx-6"
+      className="mb-10"
     >
-      <View className="bg-white rounded-[48px] overflow-hidden border border-slate-100 shadow-2xl shadow-black/5">
+      <View className="bg-white overflow-hidden border border-slate-100 shadow-2xl shadow-black/5" style={{ borderRadius }}>
         {/* Banner with Cyber Overlay */}
-        <View className="relative h-64">
+        <View className="relative" style={{ height: bannerHeight }}>
           {item.bannerImage ? (
             <Image source={{ uri: item.bannerImage }} className="w-full h-full" resizeMode="cover" />
           ) : (
@@ -133,43 +151,43 @@ const HackathonCard = memo(({ item, onPress }: { item: Hackathon; onPress: (id: 
         </View>
 
         {/* Content Section */}
-        <View className="p-10">
-          <View className="flex-row items-center justify-between mb-8">
-            <View className="flex-row items-center flex-1">
-              <View className="w-14 h-14 rounded-[22px] bg-slate-50 border border-slate-100 items-center justify-center p-2.5 mr-5 shadow-inner">
+        <View className="p-10" style={{ padding: contentPadding }}>
+          <View className="flex-row items-center justify-between mb-8 flex-wrap">
+            <View className="flex-row items-center flex-1 flex-shrink">
+              <View className="w-14 h-14 rounded-[22px] bg-slate-50 border border-slate-100 items-center justify-center p-2.5 mr-5 shadow-inner flex-shrink-0">
                 {item.logo ? (
                   <Image source={{ uri: item.logo }} className="w-full h-full rounded-lg" resizeMode="contain" />
                 ) : (
                   <MaterialCommunityIcons name="cube-scan" size={24} color="#f97316" />
                 )}
               </View>
-              <View>
+              <View style={{ minWidth: 0 }}>
                 <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mb-0.5">Registry Host</Text>
-                <Text className="text-zinc-900 text-sm font-black uppercase tracking-tight">
+                <Text className="text-zinc-900 text-sm font-black uppercase tracking-tight" numberOfLines={1}>
                   {item.organiser?.name || "Fync Governance"}
                 </Text>
               </View>
             </View>
 
-            <View className="bg-orange-50/50 px-5 py-2.5 rounded-2xl border border-orange-100">
-              <Text className="text-orange-600 text-[10px] font-black uppercase tracking-tighter ">{start} – {end}</Text>
+            <View className="bg-orange-50/50 px-5 py-2.5 rounded-2xl border border-orange-100 flex-shrink-0 mt-2" style={{ marginTop: isSmallScreen ? 8 : 0 }}>
+              <Text className="text-orange-600 text-[10px] font-black uppercase tracking-tighter">{start} – {end}</Text>
             </View>
           </View>
 
-          <Text className="text-zinc-900 text-3xl font-black tracking-[-1.5px] leading-9 mb-8 uppercase" numberOfLines={2}>
+          <Text className="text-zinc-900 font-black tracking-[-1.5px] leading-tight mb-8" numberOfLines={2} style={{ fontSize: titleSize, textTransform: 'uppercase' }}>
             {item.title}
           </Text>
 
           {/* Technical Specs Meta */}
-          <View className="flex-row items-center gap-8 mb-10">
-            <View className="flex-row items-center">
-              <View className="bg-zinc-50 w-8 h-8 rounded-full items-center justify-center mr-3">
+          <View className="flex-row items-center gap-8 mb-10 flex-wrap">
+            <View className="flex-row items-center flex-shrink">
+              <View className="bg-zinc-50 w-8 h-8 rounded-full items-center justify-center mr-3 flex-shrink-0">
                 <Feather name="code" size={14} color="#f97316" />
               </View>
               <Text className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Innovation</Text>
             </View>
-            <View className="flex-row items-center">
-              <View className="bg-zinc-50 w-8 h-8 rounded-full items-center justify-center mr-3">
+            <View className="flex-row items-center flex-shrink">
+              <View className="bg-zinc-50 w-8 h-8 rounded-full items-center justify-center mr-3 flex-shrink-0">
                 <Feather name="zap" size={14} color="#f97316" />
               </View>
               <Text className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Fast Track</Text>
@@ -177,16 +195,16 @@ const HackathonCard = memo(({ item, onPress }: { item: Hackathon; onPress: (id: 
           </View>
 
           {/* Footer Interactive Row */}
-          <View className="flex-row items-center justify-between pt-8 border-t border-slate-100">
-            <View className="flex-row items-center gap-3">
+          <View className="flex-row items-center justify-between pt-8 border-t border-slate-100 flex-wrap">
+            <View className="flex-row items-center gap-3 flex-wrap flex-1">
               {item.tags?.slice(0, 2).map((tag, i) => (
-                <View key={i} className="bg-zinc-50 px-5 py-3 rounded-2xl border border-slate-100">
+                <View key={i} className="bg-zinc-50 px-5 py-3 rounded-2xl border border-slate-100 flex-shrink">
                   <Text className="text-[10px] text-zinc-400 font-black uppercase tracking-widest">#{tag}</Text>
                 </View>
               ))}
             </View>
 
-            <View className="bg-orange-500 w-16 h-16 rounded-[24px] items-center justify-center shadow-2xl shadow-orange-500/40">
+            <View className="bg-orange-500 w-16 h-16 rounded-[24px] items-center justify-center shadow-2xl shadow-orange-500/40 flex-shrink-0">
               <Feather name="arrow-right" size={28} color="white" />
             </View>
           </View>
@@ -297,7 +315,8 @@ const HackathonHub = () => {
               {isOrganiserOf(item) && (
                 <TouchableOpacity
                   onPress={() => navigation.navigate('HackathonDashboard', { hackathonId: item._id, hackathonTitle: item.title })}
-                  className="flex-row items-center justify-center bg-zinc-900 mx-6 mb-8 py-4 rounded-[20px]"
+                  className="flex-row items-center justify-center bg-zinc-900 mb-8 py-4 rounded-[20px]"
+                  style={{ marginHorizontal: responsive(4, 6, 8) }}
                 >
                   <MaterialCommunityIcons name="view-dashboard-outline" size={18} color="#f97316" />
                   <Text className="text-white text-[10px] font-black uppercase tracking-[2px] ml-2">
@@ -312,92 +331,102 @@ const HackathonHub = () => {
           onEndReachedThreshold={0.5}
           contentContainerStyle={{ paddingBottom: 120 }}
           showsVerticalScrollIndicator={false}
-          ListHeaderComponent={() => (
-            <View>
-              {/* Decorative Gradient Background (Moved inside to scroll) */}
-              <View className="absolute top-0 w-full h-96 opacity-10">
-                <LinearGradient colors={['#f97316', 'transparent']} className="w-full h-full" />
-              </View>
+          ListHeaderComponent={() => {
+            const headerHeight = hp(responsive(35, 40, 45));
+            const headerPadding = responsive(6, 8, 10);
+            const titleSize = responsive(28, 32, 40);
+            const buttonPadding = responsive(4, 5, 6);
+            const buttonRadius = responsive(18, 20, 24);
+            
+            return (
+              <View>
+                {/* Decorative Gradient Background (Moved inside to scroll) */}
+                <View className="absolute top-0 w-full opacity-10" style={{ height: headerHeight }}>
+                  <LinearGradient colors={['#f97316', 'transparent']} className="w-full h-full" />
+                </View>
 
-              {/* Header Section */}
-              <View className="px-8 pt-8 pb-4">
-                  <View className="flex-row items-center justify-between mb-2">
-                  <View>
-                    <Text className="text-zinc-900 text-4xl font-black tracking-tighter uppercase leading-tight">
-                        Hackathon <Text className="text-orange-500">Hub</Text>
-                    </Text>
-                    <View className="flex-row items-center">
-                        <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[3px]">Global Ecosystem Explorer</Text>
+                {/* Header Section */}
+                <View style={{ paddingHorizontal: headerPadding, paddingTop: responsive(6, 8, 10), paddingBottom: 4 }}>
+                    <View className="flex-row items-center justify-between mb-2 flex-wrap">
+                    <View>
+                      <Text className="text-zinc-900 font-black tracking-tighter uppercase leading-tight" style={{ fontSize: titleSize }}>
+                          Hackathon <Text className="text-orange-500">Hub</Text>
+                      </Text>
+                      <View className="flex-row items-center">
+                          <Text className="text-slate-500 font-black uppercase tracking-[3px]" style={{ fontSize: responsive(8, 9, 10) }}>Global Ecosystem Explorer</Text>
+                      </View>
                     </View>
-                  </View>
-                  <TouchableOpacity
-                    onPress={() => navigation.navigate('HackathonCreate')}
-                    className="flex-row items-center bg-zinc-900 px-6 py-4 rounded-[24px] shadow-2xl shadow-black/20"
-                  >
-                    <MaterialCommunityIcons name="rocket-launch" size={18} color="#f97316" />
-                    <Text className="text-white text-[11px] font-black uppercase tracking-[2px] ml-3">Host Hackathon</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* 🔍 Dynamic Search Bar */}
-              <View className="px-8 mb-4">
-                <View className="flex-row items-center bg-white rounded-[28px] px-6 py-2 border border-slate-100 shadow-sm">
-                  <Feather name="search" size={20} color="#f97316" />
-                  <TextInput
-                    placeholder="Search ecosystem, tech, protocols..."
-                    placeholderTextColor="#94a3b8"
-                    value={search}
-                    onChangeText={setSearch}
-                    className="flex-1 ml-4 text-zinc-900 text-xs font-black uppercase tracking-widest"
-                  />
-                  {search.length > 0 && (
-                    <TouchableOpacity onPress={() => setSearch('')}>
-                      <Ionicons name="close-circle" size={18} color="#94a3b8" />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-
-              {/* Discover / Mine Switcher */}
-              <View className="flex-row mx-8 mb-4 bg-white rounded-[24px] border border-slate-100 p-1.5">
-                {TABS.map(t => (
-                  <TouchableOpacity
-                    key={t.value}
-                    onPress={() => setView(t.value as 'discover' | 'mine')}
-                    className={`flex-1 flex-row items-center justify-center py-3.5 rounded-[18px] ${view === t.value ? 'bg-zinc-900' : ''}`}
-                  >
-                    <Ionicons name={t.icon as any} size={16} color={view === t.value ? '#f97316' : '#94a3b8'} />
-                    <Text className={`ml-2 text-[10px] font-black uppercase tracking-widest ${view === t.value ? 'text-white' : 'text-slate-400'}`}>
-                      {t.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {/* Cinematic Filter Chips */}
-              <View className="mb-6">
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ paddingHorizontal: 32, paddingBottom: 4, gap: 10 }}
-                >
-                  {FILTERS.map(f => (
                     <TouchableOpacity
-                      key={f.value}
-                      onPress={() => { setActiveFilter(f.value); setPage(1); setHasMore(true); }}
-                      className={`px-8 py-4 rounded-[22px] border ${view === 'mine' ? 'opacity-30' : activeFilter === f.value ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-slate-100'}`}
-                      disabled={view === 'mine'}
+                      onPress={() => navigation.navigate('HackathonCreate')}
+                      className="flex-row items-center bg-zinc-900 shadow-2xl shadow-black/20"
+                      style={{ paddingHorizontal: responsive(5, 6, 8), paddingVertical: buttonPadding, borderRadius: buttonRadius }}
                     >
-                      <Text className={`text-[10px] font-black uppercase tracking-[2px] ${view === 'mine' ? 'text-slate-300' : activeFilter === f.value ? 'text-white' : 'text-slate-400'}`}>
-                        {f.label}
+                      <MaterialCommunityIcons name="rocket-launch" size={18} color="#f97316" />
+                      <Text className="text-white font-black uppercase tracking-[2px] ml-3" style={{ fontSize: responsive(9, 10, 11) }}>Host Hackathon</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* 🔍 Dynamic Search Bar */}
+                <View style={{ paddingHorizontal: headerPadding, marginBottom: 4 }}>
+                  <View className="flex-row items-center bg-white rounded-[28px] border border-slate-100 shadow-sm">
+                    <Feather name="search" size={20} color="#f97316" />
+                    <TextInput
+                      placeholder="Search ecosystem, tech, protocols..."
+                      placeholderTextColor="#94a3b8"
+                      value={search}
+                      onChangeText={setSearch}
+                      className="flex-1 ml-4 text-zinc-900 font-black uppercase tracking-widest"
+                      style={{ fontSize: responsive(10, 11, 12), paddingVertical: responsive(2, 3, 4) }}
+                    />
+                    {search.length > 0 && (
+                      <TouchableOpacity onPress={() => setSearch('')}>
+                        <Ionicons name="close-circle" size={18} color="#94a3b8" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+
+                {/* Discover / Mine Switcher */}
+                <View className="flex-row mb-4 bg-white rounded-[24px] border border-slate-100 p-1.5" style={{ marginHorizontal: headerPadding }}>
+                  {TABS.map(t => (
+                    <TouchableOpacity
+                      key={t.value}
+                      onPress={() => setView(t.value as 'discover' | 'mine')}
+                      className={`flex-1 flex-row items-center justify-center py-3.5 rounded-[18px] ${view === t.value ? 'bg-zinc-900' : ''}`}
+                    >
+                      <Ionicons name={t.icon as any} size={16} color={view === t.value ? '#f97316' : '#94a3b8'} />
+                      <Text className={`ml-2 font-black uppercase tracking-widest ${view === t.value ? 'text-white' : 'text-slate-400'}`} style={{ fontSize: responsive(8, 9, 10) }}>
+                        {t.label}
                       </Text>
                     </TouchableOpacity>
                   ))}
-                </ScrollView>
+                </View>
+
+                {/* Cinematic Filter Chips */}
+                <View className="mb-6">
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingHorizontal: headerPadding, paddingBottom: 4, gap: 8 }}
+                  >
+                    {FILTERS.map(f => (
+                      <TouchableOpacity
+                        key={f.value}
+                        onPress={() => { setActiveFilter(f.value); setPage(1); setHasMore(true); }}
+                        className={`px-8 py-4 rounded-[22px] border ${view === 'mine' ? 'opacity-30' : activeFilter === f.value ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-slate-100'}`}
+                        disabled={view === 'mine'}
+                      >
+                        <Text className={`font-black uppercase tracking-[2px] ${view === 'mine' ? 'text-slate-300' : activeFilter === f.value ? 'text-white' : 'text-slate-400'}`} style={{ fontSize: responsive(8, 9, 10) }}>
+                          {f.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
               </View>
-            </View>
-          )}
+            );
+          }}
           ListFooterComponent={() =>
             loading ? (
               <View className="py-8 items-center">
