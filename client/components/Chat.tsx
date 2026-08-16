@@ -13,7 +13,6 @@ import {
   Dimensions,
   Linking,
   Keyboard,
-  TouchableWithoutFeedback,
   UIManager,
   LayoutAnimation,
 } from "react-native";
@@ -68,15 +67,6 @@ const Chat = ({ route, navigation }: any) => {
   const lastTypingSent = useRef<number>(0);
   const flatListRef = useRef<FlatList>(null);
 
-  /* ---------- SAFETY ---------- */
-  if (!conversationId) {
-    return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-white">
-        <Text className="text-gray-500">No conversation selected</Text>
-      </SafeAreaView>
-    );
-  }
-
   /* ---------- FETCH USER ---------- */
   const fetchConversationUser = async () => {
     if (otherUser) return; // Already have user info from params
@@ -104,6 +94,8 @@ const Chat = ({ route, navigation }: any) => {
 
   /* ---------- SUPABASE INIT ---------- */
   useEffect(() => {
+    if (!conversationId) return;
+
     fetchConversationUser();
 
     // Reset unread count when opening chat
@@ -326,15 +318,6 @@ const Chat = ({ route, navigation }: any) => {
 
     // Save to Supabase
     try {
-      // Send Push Notification via backend socket
-      if (otherUser) {
-        socket.emit("chat_notify", { 
-          receiverId: otherUser._id, 
-          title: user.name, 
-          body: text 
-        });
-      }
-
       // 1. Ensure conversation exists in Supabase (Upsert) and increment unreadCount
       const { data: convData } = await supabase.from('conversations').select('unreadCount').eq('_id', conversationId).single();
       const currentUnread = convData?.unreadCount?.[otherUser?._id] || 0;
@@ -714,6 +697,14 @@ const Chat = ({ route, navigation }: any) => {
     );
   };
 
+  if (!conversationId) {
+    return (
+      <SafeAreaView className="flex-1 justify-center items-center bg-white">
+        <Text className="text-gray-500">No conversation selected</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
       {/* HEADER DECORATION (SOLAR GLOW) */}
@@ -786,10 +777,9 @@ const Chat = ({ route, navigation }: any) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 56 : 0}
       >
-        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-          <View style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
             {/* MESSAGE CONTAINER (ROUNDED CARD) */}
           <View className="flex-1 bg-white shadow-sm overflow-hidden border-t border-slate-200">
             {loading ? (
@@ -806,6 +796,8 @@ const Chat = ({ route, navigation }: any) => {
                 onEndReached={loadMessages}
                 contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10 }}
                 showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
                 ListHeaderComponent={() => <View className="h-0" />}
               />
             )}
@@ -861,7 +853,6 @@ const Chat = ({ route, navigation }: any) => {
             </View>
           </View>
         </View>
-        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
       {/* FULL SCREEN IMAGE MODAL */}
       <Modal visible={!!selectedImage} transparent={true} animationType="fade">

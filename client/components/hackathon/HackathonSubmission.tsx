@@ -18,6 +18,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
+import * as DocumentPicker from 'expo-document-picker';
+import { useAuth } from '../../context/auth.context';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Submission {
@@ -34,6 +36,7 @@ interface Submission {
   status?: 'draft' | 'submitted' | 'underReview' | 'scored';
   submittedAt?: string;
   team?: { name: string };
+  files?: { _id?: string; name: string; Url: string; size?: string; type?: string }[];
 }
 
 const CATEGORIES = [
@@ -104,6 +107,7 @@ const HackathonSubmission = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { hackathonId } = route.params;
+  const { user } = useAuth();
 
   const [existing, setExisting] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
@@ -122,6 +126,8 @@ const HackathonSubmission = () => {
   const [demoUrl, setDemoUrl] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [presentationUrl, setPresentationUrl] = useState('');
+  const [files, setFiles] = useState<Submission['files']>([]);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     checkExisting();
@@ -143,6 +149,7 @@ const HackathonSubmission = () => {
       setDemoUrl(sub.demourl ?? '');
       setVideoUrl(sub.videoUrl ?? '');
       setPresentationUrl(sub.presentationUrl ?? '');
+      setFiles(sub.files ?? []);
     } catch {
       // No submission yet — fresh form
     } finally {
@@ -154,6 +161,64 @@ const HackathonSubmission = () => {
     const s = techInput.trim();
     if (s && !techStack.includes(s)) setTechStack(p => [...p, s]);
     setTechInput('');
+  };
+
+  const pickAndUploadFile = async () => {
+    if (!existing?._id) {
+      Toast.show({ type: 'error', text1: 'Save your draft before attaching files' });
+      return;
+    }
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      if (result.canceled || !result.assets?.length) return;
+      const asset = result.assets[0];
+
+      setUploading(true);
+      try {
+        // RN FormData file convention: { uri, name, type }
+        const formData = new FormData();
+        formData.append('file', {
+          uri: asset.uri,
+          name: asset.name,
+          type: asset.mimeType || 'application/octet-stream',
+        } as any);
+
+        const res = await axios.post(`/submissions/${existing._id}/upload`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        setFiles(res.data.files ?? []);
+        setExisting(prev => prev ? { ...prev, files: res.data.files ?? [] } : prev);
+        Toast.show({ type: 'success', text1: 'File attached ✅' });
+      } catch (err: any) {
+        Toast.show({ type: 'error', text1: err?.response?.data?.message ?? 'Upload failed' });
+      } finally {
+        setUploading(false);
+      }
+    } catch (e) {
+      Toast.show({ type: 'error', text1: 'Could not open file picker' });
+    }
+  };
+
+  const removeFile = async (fileId: string) => {
+    if (!existing?._id) return;
+    Alert.alert('Remove File', 'Remove this attachment?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove', onPress: async () => {
+          try {
+            const res = await axios.delete(`/submissions/${existing._id}/files/${fileId}`);
+            setFiles(res.data.files ?? []);
+            setExisting(prev => prev ? { ...prev, files: res.data.files ?? [] } : prev);
+          } catch (err: any) {
+            Toast.show({ type: 'error', text1: err?.response?.data?.message ?? 'Could not remove file' });
+          }
+        }
+      }
+    ]);
   };
 
   const saveDraft = async () => {
@@ -181,13 +246,13 @@ const HackathonSubmission = () => {
       if (existing?._id) {
         await axios.patch(`/submissions/${existing._id}`, payload);
       } else {
-        // Create — fetch the user's team for this hackathon first
+        // Create — find the user's team for this hackathon (single lookup)
+        const uid = String(user?._id || user?.id);
         const teamRes = await axios.get('/teams', { params: { hackathon: hackathonId } });
         const teams = teamRes.data.teams ?? [];
-        // Use /submissions/my/:hackathonId to avoid guessing user ID
-        const myTeam = (await axios.get(`/submissions/my/${hackathonId}`).catch(() => null));
-        const teamId = myTeam?.data?.data?.team?._id ||
-          teams.find((t: any) => t.members?.some((m: any) => m.role === 'leader' || m.role === 'member'))?._id;
+        const teamId = teams.find((t: any) =>
+          t.members?.some((m: any) => String(m.user?._id || m.user) === uid)
+        )?._id;
         await axios.post('/submissions', { ...payload, team: teamId });
       }
 
@@ -393,6 +458,41 @@ const HackathonSubmission = () => {
                     <Field label="Demo URL" value={demoUrl} onChange={setDemoUrl} placeholder="https://yourproject.live" keyboardType="url" optional />
                     <Field label="Video URL" value={videoUrl} onChange={setVideoUrl} placeholder="https://youtube.com/watch?v=..." keyboardType="url" optional />
                     <Field label="Presentation URL" value={presentationUrl} onChange={setPresentationUrl} placeholder="https://slides.com/..." keyboardType="url" optional />
+
+                    {/* File Attachments */}
+                    <View className="mb-5">
+                      <View className="flex-row items-center mb-2">
+                        <Text className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Attachments</Text>
+                        <Text className="text-slate-300 text-[10px] font-semibold ml-1">(optional)</Text>
+                      </View>
+
+                      {(files || []).map((f, i) => (
+                        <View key={f._id || i} className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-slate-200 mb-2">
+                          <Ionicons name="document-attach-outline" size={18} color="#6366f1" />
+                          <Text className="flex-1 text-zinc-800 font-semibold text-sm ml-2" numberOfLines={1}>{f.name}</Text>
+                          {f.size ? <Text className="text-slate-400 text-[10px] mr-2">{f.size}</Text> : null}
+                          {existing?.status === 'draft' && (
+                            <TouchableOpacity onPress={() => removeFile(f._id as string)} hitSlop={10}>
+                              <Ionicons name="close-circle" size={18} color="#ef4444" />
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      ))}
+
+                      <TouchableOpacity
+                        onPress={pickAndUploadFile}
+                        disabled={uploading}
+                        className="flex-row items-center justify-center border-2 border-dashed border-indigo-200 rounded-2xl py-4"
+                      >
+                        {uploading
+                          ? <ActivityIndicator size="small" color="#6366f1" />
+                          : <>
+                              <Ionicons name="cloud-upload-outline" size={18} color="#6366f1" />
+                              <Text className="text-indigo-600 font-black text-xs ml-2">Attach File (PDF / Image)</Text>
+                            </>
+                        }
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 )}
               </ScrollView>

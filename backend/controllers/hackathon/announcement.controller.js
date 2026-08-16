@@ -132,12 +132,13 @@ export const reactToAnnouncement = async (req, res, next) => {
 export const pinAnnouncement = async (req, res, next) => {
     try {
         const { isPinned } = req.body;
-        const ann = await Announcement.findById(req.params.announcementId).populate("hackathon");
+        const ann = await Announcement.findById(req.params.announcementId).populate("hackathon", "organiser");
         if (!ann) return res.status(404).json({ success: false, message: "Announcement not found" });
 
         // Check if user is organiser of that hackathon
-        const hack = await Hackathon.findById(ann.hackathon);
-        if (hack.organiser.toString() !== req.user.id.toString()) {
+        // FIX: ann.hackathon is now a populated doc — read .organiser from it, not a new findById(doc)
+        const organiserId = ann.hackathon?.organiser?._id || ann.hackathon?.organiser;
+        if (!organiserId || String(organiserId) !== String(req.user.id)) {
             return res.status(403).json({ success: false, message: "Only organiser can pin" });
         }
 
@@ -146,7 +147,7 @@ export const pinAnnouncement = async (req, res, next) => {
 
         const io = req.app.get("io");
         if (io) {
-            io.to(`hack:${ann.hackathon}`).emit("announcement:pinned", {
+            io.to(`hack:${ann.hackathon._id}`).emit("announcement:pinned", {
                 announcementId: ann._id,
                 isPinned
             });
@@ -164,7 +165,7 @@ export const markAnnouncementRead = async (req, res, next) => {
         const ann = await Announcement.findById(req.params.announcementId);
         if (!ann) return res.status(404).json({ success: false, message: "Announcement not found" });
 
-        if (!ann.readby.includes(req.user.id)) {
+        if (!ann.readby.some(id => String(id) === String(req.user.id))) {
             ann.readby.push(req.user.id);
             await ann.save();
         }

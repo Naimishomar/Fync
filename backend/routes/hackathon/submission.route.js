@@ -7,9 +7,12 @@ import {
     updateSubmission,
     finalizeSubmission,
     addFile,
+    uploadSubmissionFile,
     removeFile,
     deleteSubmission,
 } from "../../controllers/hackathon/submission.controller.js";
+import { upload } from "../../utils/r2.js";
+import { r2UploadMiddleware } from "../../utils/r2Upload.js";
 
 const router = express.Router();
 
@@ -30,6 +33,7 @@ router.post("/:id/finalize", authMiddleware, finalizeSubmission);
 
 // File attachments
 router.post("/:id/files", authMiddleware, addFile);
+router.post("/:id/upload", authMiddleware, upload.single("file"), r2UploadMiddleware({ __single__: "hackathon_submissions" }), uploadSubmissionFile);
 router.delete("/:id/files/:fileId", authMiddleware, removeFile);
 
 // Delete draft

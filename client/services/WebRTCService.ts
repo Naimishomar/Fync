@@ -24,29 +24,59 @@ export class WebRTCManager {
   onRemoteStream: ((stream: MediaStream) => void) | null = null;
   onConnectionStateChange: ((state: string) => void) | null = null;
 
-  async setupLocalStream(): Promise<MediaStream> {
+  async setupLocalStream(options?: { video?: boolean; facingMode?: 'user' | 'environment' }): Promise<MediaStream> {
     try {
-      const stream = await mediaDevices.getUserMedia({
+      const video = options?.video ?? false;
+      const constraints: any = {
         audio: true,
-        video: false,
-      });
+        video: video
+          ? { facingMode: options?.facingMode || 'user', width: 640, height: 480, frameRate: 30 }
+          : false,
+      };
+      const stream = await mediaDevices.getUserMedia(constraints);
       this.localStream = stream as MediaStream;
       return this.localStream;
     } catch (error) {
-      console.error('Error accessing microphone:', error);
+      console.error('Error accessing media devices:', error);
       throw error;
     }
   }
 
+  async toggleCamera() {
+    if (!this.localStream) return;
+    const videoTrack = this.localStream.getVideoTracks()[0] as any;
+    if (videoTrack && typeof videoTrack._switchCamera === 'function') {
+      try {
+        await videoTrack._switchCamera();
+      } catch (e) {
+        console.warn('Camera switch failed', e);
+      }
+    }
+  }
+
+  setVideoEnabled(enabled: boolean) {
+    if (!this.localStream) return;
+    this.localStream.getVideoTracks().forEach(track => {
+      track.enabled = enabled;
+    });
+  }
+
+  isVideoEnabled(): boolean {
+    const track = this.localStream?.getVideoTracks()[0];
+    return track ? track.enabled : false;
+  }
+
   async initializePeerConnection() {
-    let iceServers = [...GOOGLE_STUN_SERVERS];
+    let iceServers: any[] = [...GOOGLE_STUN_SERVERS];
 
     try {
       // Fetch secure Cloudflare TURN credentials from our backend
       const response = await axios.post('/webrtc/turn-credentials');
-      
-      if (response.data?.success && response.data?.iceServers) {
-        iceServers.push(response.data.iceServers); // Append Cloudflare TURN & STUN servers
+
+      if (response.data?.success && Array.isArray(response.data?.iceServers)) {
+        iceServers = [...iceServers, ...response.data.iceServers];
+      } else if (response.data?.iceServers) {
+        iceServers = [...iceServers, response.data.iceServers];
       }
     } catch (error) {
       console.warn("Failed to fetch Cloudflare TURN credentials from backend. Falling back to Pure P2P STUN.", error);
@@ -111,7 +141,10 @@ export class WebRTCManager {
 
   async createOffer(): Promise<RTCSessionDescription | null> {
     if (!this.peerConnection) throw new Error("PeerConnection not initialized");
-    const offer = await this.peerConnection.createOffer({});
+    const offer = await this.peerConnection.createOffer({
+      offerToReceiveAudio: true,
+      offerToReceiveVideo: true,
+    });
     await this.peerConnection.setLocalDescription(offer);
     return offer;
   }

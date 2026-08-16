@@ -9,6 +9,7 @@ import {
   getUpcomingContests, 
   getContestDetails, 
   registerForContest,
+  enterContest,
   getArchivedContests
 } from '../../controllers/coding/contest.controller.js';
 import { authMiddleware } from '../../middlewares/auth.middleware.js';
@@ -26,5 +27,6 @@ router.get('/contests', authMiddleware, getUpcomingContests);
 router.get('/contests/archive', authMiddleware, getArchivedContests);
 router.get('/contests/:id', authMiddleware, getContestDetails);
 router.post('/contests/:id/register', authMiddleware, registerForContest);
+router.post('/contests/:id/enter', authMiddleware, enterContest);
 
 export default router;

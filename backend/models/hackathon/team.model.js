@@ -16,7 +16,7 @@ const teamSchema = new mongoose.Schema({
     },
     members: [
         {
-            user: { type: mongoose.Schema.Types.ObjectId },
+            user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
             role: { type: String, enum: ["leader", "member"], default: "member" },
             joinedAt: { type: Date, default: Date.now }
         }
@@ -41,5 +41,13 @@ const teamSchema = new mongoose.Schema({
     isLocked: { type: Boolean, default: false },
     lookingForMembers: { type: Boolean, default: true },
 }, { timestamps: true })
+
+// Hot query paths:
+//  - getMyHackathons: "members.user" membership lookup per hackathon
+//  - createTeam/requesttoJoin/RespondtoInvite: one team per user per hackathon
+//  - matchTeams: open teams for skill matching
+teamSchema.index({ hackathon: 1, "members.user": 1 });
+teamSchema.index({ hackathon: 1, lookingForMembers: 1, isLocked: 1 });
+
 const HackathonTeam = mongoose.model("HackathonTeam", teamSchema);
 export default HackathonTeam;

@@ -6,7 +6,7 @@ import redisClient from "../../utils/redis.js";
 // ─── helper: recalculate aggregate score across all judges ───
 const recalcAndUpdateBoard = async (hackId, subId, io) => {
   const allScores = await Score.find({ submission: subId });
-  if (!allScores.length) return;
+  if (!allScores.length) return 0;
 
   const avg = allScores.reduce((s, sc) => s + (sc.totalScore || 0), 0) / allScores.length;
   const rounded = parseFloat(avg.toFixed(4));
@@ -15,16 +15,18 @@ const recalcAndUpdateBoard = async (hackId, subId, io) => {
   const boardKey = `hack:${hackId}:leaderboard`;
   await redisClient.zAdd(boardKey, { score: rounded, value: subId.toString() });
 
-  // Broadcast to all clients watching this hackathon
+  // Broadcast to all clients watching this hackathon (both main + leaderboard rooms)
   if (io) {
-    io.to(`hack:${hackId}`).emit("leaderboard:updated", {
+    const payload = {
       submissionId: subId,
       newScore:     parseFloat(avg.toFixed(2)),
       judgeCount:   allScores.length,
-    });
+    };
+    io.to(`hack:${hackId}`).emit("leaderboard:updated", payload);
+    io.to(`hack:${hackId}:leaderboard`).emit("leaderboard:updated", payload);
   }
 
-  return rounded;
+  return allScores.length;
 };
 
 // POST /api/scores  — judge submits or updates score
@@ -32,7 +34,8 @@ export const submitScore = async (req, res, next) => {
   try {
     const { submission: subId, criteria, feedback } = req.body;
 
-    const sub = await Submission.findById(subId).populate("hackathon");
+    // Only the fields needed for validation — not the whole hackathon doc
+    const sub = await Submission.findById(subId).populate("hackathon", "judges status judgingcriteria");
     if (!sub)
       return res.status(404).json({ success: false, message: "Submission not found" });
 
@@ -75,10 +78,9 @@ export const submitScore = async (req, res, next) => {
 
     // Recalc aggregate and push to Redis + socket
     const io = req.app.get("io");
-    await recalcAndUpdateBoard(hack._id, subId, io);
+    const scoreCount = await recalcAndUpdateBoard(hack._id, subId, io);
 
     // Check if all judges have scored this submission → mark as scored
-    const scoreCount = await Score.countDocuments({ submission: subId });
     if (scoreCount >= hack.judges.length) {
       sub.status = "scored";
       await sub.save();

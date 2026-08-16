@@ -105,7 +105,9 @@ export const deleteProduct = async (req, res) => {
         }
         else {
             if (product.product_image && Array.isArray(product.product_image)) {
+                for (const imgUrl of product.product_image) {
                     await deleteFromR2(imgUrl);
+                }
             }
             const deletedProduct = await OLX.findByIdAndDelete(req.params.id);
             return res.status(200).json({ success: true, message: "Product deleted successfully", product: deletedProduct });

@@ -1,6 +1,5 @@
 import Notice from "../models/notice.model.js";
 import Comment from "../models/comment.model.js";
-import { tryCatch } from "bullmq";
 import User from "../models/user.model.js";
 import { deleteFromR2 } from "../utils/r2.js";
 import crypto from 'crypto';
@@ -22,8 +21,6 @@ export const createNotice = async (req, res) => {
             user: req.user.id,
             college: req.user.college,
             image: noticeImage,
-            user: req.user.id,
-            college: req.user.college
         })
         return res.status(200).json({ success: true, message: "Notice created successfully", notice });
     } catch (error) {
@@ -289,7 +286,8 @@ export const likeNotice = async (req, res) => {
         if (!notice) {
             return res.status(404).json({ success: false, message: "Notice not found" });
         }
-        const isLiked = notice.liked_by.includes(userId);
+        const stringUserId = String(userId);
+        const isLiked = notice.liked_by.some(id => String(id) === stringUserId);
         let updatedNotice;
         if (isLiked) {
             updatedNotice = await Notice.findByIdAndUpdate(

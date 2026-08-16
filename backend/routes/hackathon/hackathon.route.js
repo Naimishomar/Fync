@@ -1,6 +1,9 @@
 import { 
     gethackathon , 
     gethackathons , 
+    getMyHackathons ,
+    getDashboard ,
+    assignWinners ,
     createHackathon , 
     addjudge , 
     removeJudge , 
@@ -19,8 +22,14 @@ const router = Router();
 // List hackathons with filters — backend uses req.body so this is a POST
 router.post("/list", authMiddleware, gethackathons);
 
+// My hackathons (organised / participated / in a team) — MUST be before /:hackathonId
+router.get("/my", authMiddleware, getMyHackathons);
+
 // Get single hackathon by ID
 router.get("/:hackathonId", authMiddleware, gethackathon);
+
+// Organiser analytics + moderation queue
+router.get("/:hackathonId/dashboard", authMiddleware, getDashboard);
 
 // Create hackathon (organizer)
 router.post("/", authMiddleware, 
@@ -41,6 +50,9 @@ router.delete("/:hackathonId", authMiddleware, deletehackathon);
 
 // Update status (active / upcoming / judging / completed / draft)
 router.patch("/:hackathonId/status", authMiddleware, updatestatus);
+
+// Assign / update winners
+router.patch("/:hackathonId/winners", authMiddleware, assignWinners);
 
 // Judges
 router.post("/:hackathonId/judge", authMiddleware, addjudge);

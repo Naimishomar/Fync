@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Zap, ArrowRight, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import api from '../lib/api';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -13,14 +13,12 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post(`${API_URL}/user/login`, {
+      const res = await api.post('/user/login', {
         email,
         password,
         deviceId: 'web-session',

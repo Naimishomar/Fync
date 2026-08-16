@@ -42,5 +42,29 @@ const ScoreSchema = mongoose.Schema({
 // Unique: one score entry per judge+submission pair
 ScoreSchema.index({ submission: 1, judge: 1 }, { unique: true });
 
+// Judge progress dashboard, judge pending/scored lists, leaderboard rebuild
+ScoreSchema.index({ hackathon: 1, judge: 1 });
+ScoreSchema.index({ hackathon: 1, submission: 1 });
+
+// Compute weighted totalScore from per-criteria scores (0–10 scale)
+ScoreSchema.pre("save", function (next) {
+  if (this.criteria && this.criteria.length) {
+    let weighted = 0;
+    let totalWeight = 0;
+    for (const c of this.criteria) {
+      const w = Number(c.weightage) || 0;
+      const s = Number(c.score) || 0;
+      weighted += s * w;
+      totalWeight += w;
+    }
+    this.totalScore = totalWeight > 0
+      ? parseFloat((weighted / totalWeight).toFixed(2))
+      : 0;
+  } else {
+    this.totalScore = 0;
+  }
+  next();
+});
+
 const Score = mongoose.model("Score", ScoreSchema);
 export default Score;

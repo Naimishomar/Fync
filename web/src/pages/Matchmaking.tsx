@@ -4,16 +4,25 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Swords, Zap, Search, Shield, Users, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../lib/api';
 
 const Matchmaking: React.FC = () => {
   const { user, token, loading: authLoading } = useAuth();
   const [status, setStatus] = useState<'idle' | 'searching' | 'found' | 'error'>('idle');
   const [timer, setTimer] = useState(0);
   const [socket, setSocket] = useState<Socket | null>(null);
-  const [opponent, setOpponent] = useState<any>(null);
   const navigate = useNavigate();
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const abortSearch = () => {
+    if (socket && user) {
+      socket.emit('cancel_coding_match', {
+        userId: user._id,
+        difficulty: 'medium',
+      });
+    }
+    setStatus('idle');
+    setTimer(0);
+  };
 
   useEffect(() => {
     if (!authLoading && !token) {
@@ -33,7 +42,6 @@ const Matchmaking: React.FC = () => {
 
       newSocket.on('coding_match_found', (data) => {
         setStatus('found');
-        setOpponent(data);
         setTimeout(() => {
           navigate(`/arena/match/${data.matchRoomId}`);
         }, 3000);
@@ -42,6 +50,12 @@ const Matchmaking: React.FC = () => {
       newSocket.on('connect_error', () => setStatus('error'));
 
       return () => {
+        if (newSocket.connected && user) {
+          newSocket.emit('cancel_coding_match', {
+            userId: user._id,
+            difficulty: 'medium',
+          });
+        }
         newSocket.disconnect();
       };
     }
@@ -145,7 +159,7 @@ const Matchmaking: React.FC = () => {
             </div>
 
             <button
-              onClick={() => setStatus('idle')}
+              onClick={abortSearch}
               className="mt-16 text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 hover:text-rose-600 border-b-2 border-transparent hover:border-rose-600 pb-2 transition-all"
             >
               Abort Uplink

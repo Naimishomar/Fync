@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
    Trophy,
    Users,
@@ -9,10 +8,8 @@ import {
    ChevronRight,
    Zap,
    Shield,
-   Target,
    ChevronLeft,
-   AlertCircle,
-   Play
+   AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 

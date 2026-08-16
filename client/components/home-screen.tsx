@@ -532,6 +532,7 @@ export default function HomeScreen() {
   const [forYouHasMore, setForYouHasMore] = useState(true);
   const [followingHasMore, setFollowingHasMore] = useState(true);
   const [followingLoadedOnce, setFollowingLoadedOnce] = useState(false);
+  const followingCursorRef = useRef<string | null>(null);
 
   const [feed, setFeed] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
@@ -577,10 +578,12 @@ export default function HomeScreen() {
       let serverHasMore = true;
 
       if (activeTab === 'following') {
-        const res = await axios.get(`/post/feed/followers?page=${pageNum}&limit=10`);
+        const cursorParam = (pageNum === 1 ? null : followingCursorRef.current);
+        const res = await axios.get(`/post/feed/followers?${cursorParam ? `cursor=${cursorParam}` : ''}&limit=10`);
         if (res.data.success) {
           newPosts = res.data.posts;
-          serverHasMore = newPosts.length >= 10;
+          serverHasMore = res.data.hasMore ?? newPosts.length >= 10;
+          followingCursorRef.current = res.data.nextCursor ?? null;
         }
       } else {
         const seenIds = await getSeenPostIds();

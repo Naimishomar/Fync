@@ -351,6 +351,8 @@ const ProfessionalHub = ({ navigation }: any) => {
                             renderItem={renderMessage}
                             contentContainerStyle={{ padding: 16 }}
                             showsVerticalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
                         />
                     )}
 

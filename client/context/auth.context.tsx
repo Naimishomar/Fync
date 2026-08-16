@@ -5,6 +5,7 @@ import * as Device from "expo-device";
 import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync, savePushTokenToBackend } from "../utils/notificationHelper";
 import { syncFcmToken } from "../services/NotificationService";
+import { trackUser } from "../utils/socket";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -101,6 +102,14 @@ export const AuthProvider = ({ children }: any) => {
 
     bootstrap();
   }, []);
+
+  // Keep socket presence in sync with the authenticated user so status,
+  // typing and push notifications remain reliable across reconnects.
+  useEffect(() => {
+    if (user?._id) {
+      trackUser(user._id);
+    }
+  }, [user?._id]);
 
   return (
     <AuthContext.Provider

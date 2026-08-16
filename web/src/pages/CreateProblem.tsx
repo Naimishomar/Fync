@@ -11,7 +11,6 @@ import {
   Zap,
   Target,
   FlaskConical,
-  Terminal,
   FileCode
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -35,8 +34,8 @@ const CreateProblem: React.FC = () => {
   const [difficulty, setDifficulty] = useState('Medium');
   const [category, setCategory] = useState('Data Structures');
   const [tags, setTags] = useState('');
-  const [timeLimit, setTimeLimit] = useState(1000);
-  const [memoryLimit, setMemoryLimit] = useState(256);
+  const [timeLimit] = useState(1000);
+  const [memoryLimit] = useState(256);
   const [points, setPoints] = useState(100);
 
   // Test Cases

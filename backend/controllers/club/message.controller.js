@@ -12,11 +12,17 @@ export const setClubIo = (io) => {
 
 export const postClubMessage = async (req, res) => {
     try {
-        const { subGroupId, senderId, text, repliedTo, isPoll, pollQuestion, pollOptions } = req.body;
-        
+        const { subGroupId, text, repliedTo, isPoll, pollQuestion, pollOptions } = req.body;
+        const senderId = req.user?.id || req.user?._id;
+        if (!senderId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
         const subGroup = await SubGroup.findById(subGroupId).populate('clubId');
-        const isSubAdmin = subGroup.admins.includes(senderId);
-        const isMember = subGroup.members.includes(senderId);
+        if (!subGroup) return res.status(404).json({ success: false, message: "Room not found" });
+
+        const stringId = String(senderId);
+        const isSubAdmin = (subGroup.admins || []).some(id => String(id) === stringId);
+        const isMember = (subGroup.members || []).some(id => String(id) === stringId);
+        const isClubAdmin = (subGroup.clubId?.admins || []).some(id => String(id) === stringId);
 
         if (!isMember && !isClubAdmin) {
             return res.status(403).json({ success: false, message: "Join the group to chat" });
@@ -82,6 +88,18 @@ export const postClubMessage = async (req, res) => {
 export const getClubMessages = async (req, res) => {
     try {
         const { subGroupId } = req.params;
+        const currentUserId = String(req.user?.id || req.user?._id);
+        if (!currentUserId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        const subGroup = await SubGroup.findById(subGroupId).populate('clubId');
+        if (!subGroup) return res.status(404).json({ success: false, message: "Room not found" });
+
+        const isMember = (subGroup.members || []).some(id => String(id) === currentUserId);
+        const isClubAdmin = (subGroup.clubId?.admins || []).some(id => String(id) === currentUserId);
+        if (!isMember && !isClubAdmin) {
+            return res.status(403).json({ success: false, message: "Join the group to view messages" });
+        }
+
         const cacheKey = `club_messages:${subGroupId}`;
 
         const cached = await redis.get(cacheKey);
@@ -94,7 +112,6 @@ export const getClubMessages = async (req, res) => {
             .limit(50);
 
         const sorted = messages.reverse();
-        const subGroup = await SubGroup.findById(subGroupId);
         await redis.setEx(cacheKey, 3600, JSON.stringify(sorted));
 
         return res.status(200).json({ success: true, messages: sorted, subGroup, source: 'db' });
@@ -105,7 +122,9 @@ export const getClubMessages = async (req, res) => {
 
 export const voteInPoll = async (req, res) => {
     try {
-        const { messageId, optionIndex, userId } = req.body;
+        const { messageId, optionIndex } = req.body;
+        const userId = req.user?.id || req.user?._id;
+        if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
         // Intelligent Connection Wait (Max 5s)
         let waitAttempts = 0;
@@ -128,16 +147,20 @@ export const voteInPoll = async (req, res) => {
 
         // Member Check
         const subGroup = await SubGroup.findById(message.subGroupId._id).populate('clubId');
-        const isMember = subGroup.members.includes(userId) || subGroup.clubId.admins.includes(userId);
+        const stringId = String(userId);
+        const isMember = (subGroup.members || []).some(id => String(id) === stringId) || (subGroup.clubId.admins || []).some(id => String(id) === stringId);
         if (!isMember) return res.status(403).json({ success: false, message: "Only room members can vote" });
+
+        const option = message.pollOptions[optionIndex];
+        if (!option) return res.status(400).json({ success: false, message: "Invalid poll option" });
 
         // Remove previous votes in this poll
         message.pollOptions.forEach(opt => {
-            opt.votes = opt.votes.filter(id => id.toString() !== userId);
+            opt.votes = opt.votes.filter(id => String(id) !== stringId);
         });
 
         // Add new vote
-        message.pollOptions[optionIndex].votes.push(userId);
+        option.votes.push(userId);
         await message.save();
 
         // Invalidate Cache for consistency
@@ -157,12 +180,15 @@ export const voteInPoll = async (req, res) => {
 
 export const togglePinMessage = async (req, res) => {
     try {
-        const { messageId, adminId } = req.body;
+        const { messageId } = req.body;
+        const adminId = req.user?.id || req.user?._id;
+        if (!adminId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const message = await ClubMessage.findById(messageId).populate('subGroupId');
         
         // Authorization check (Club Admin or Sub-Admin)
         const sub = await SubGroup.findById(message.subGroupId._id).populate('clubId');
-        const isAuthorized = sub.admins.includes(adminId) || sub.clubId.admins.includes(adminId);
+        const stringId = String(adminId);
+        const isAuthorized = (sub.admins || []).some(id => String(id) === stringId) || (sub.clubId.admins || []).some(id => String(id) === stringId);
         if (!isAuthorized) return res.status(403).json({ success: false, message: "Unauthorized" });
 
         message.isPinned = !message.isPinned;

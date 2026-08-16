@@ -45,6 +45,7 @@ export const authMiddleware = async (req, res, next) => {
       college: user.college,
       major: user.major,
       avatar: user.avatar,
+      skills: user.skills || [],
       user_access: user.user_access,
       graduationYear: user.graduationYear
     };

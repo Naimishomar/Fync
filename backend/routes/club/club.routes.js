@@ -31,42 +31,43 @@ import {
     togglePinMessage 
 } from '../../controllers/club/message.controller.js';
 import { upload, videoUpload } from '../../utils/r2.js';
+import { authMiddleware } from '../../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
 /**
  * Club & Sub-Group Management
  */
-router.post('/create', upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), createClub);
-router.post('/update', upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), updateClub);
-router.post('/subgroup/create', upload.single('logo'), createSubGroup);
-router.post('/subgroup/update', upload.single('logo'), updateSubGroup);
-router.post('/join-request', requestToJoinClub);
-router.post('/handle-request', handleJoinRequest);
-router.post('/toggle-admin', toggleClubAdmin);
-router.get('/all', getAllClubs);
-router.get('/search-users', searchUserForInvite);
-router.post('/join-by-code', joinByCode);
-router.post('/subgroup/join', joinSubGroup);
-router.post('/subgroup/handle-request', handleSubGroupJoinRequest);
-router.get('/subgroup/members/:subGroupId', getSubGroupMembers);
-router.post('/subgroup/toggle-admin', toggleSubGroupAdmin);
-router.post('/invite', inviteUser);
-router.post('/accept-invitation', acceptInvitation);
-router.post('/delete', deleteClub);
-router.post('/subgroup/delete', deleteSubGroup);
-router.post('/leave', leaveClub);
-router.post('/subgroup/leave', leaveSubGroup);
-router.post('/remove-member', removeFromClub);
-router.post('/subgroup/remove-member', removeFromSubGroup);
-router.get('/:id', getClubDetails);
+router.post('/create', authMiddleware, upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), createClub);
+router.post('/update', authMiddleware, upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), updateClub);
+router.post('/subgroup/create', authMiddleware, upload.single('logo'), createSubGroup);
+router.post('/subgroup/update', authMiddleware, upload.single('logo'), updateSubGroup);
+router.post('/join-request', authMiddleware, requestToJoinClub);
+router.post('/handle-request', authMiddleware, handleJoinRequest);
+router.post('/toggle-admin', authMiddleware, toggleClubAdmin);
+router.get('/all', authMiddleware, getAllClubs);
+router.get('/search-users', authMiddleware, searchUserForInvite);
+router.post('/join-by-code', authMiddleware, joinByCode);
+router.post('/subgroup/join', authMiddleware, joinSubGroup);
+router.post('/subgroup/handle-request', authMiddleware, handleSubGroupJoinRequest);
+router.get('/subgroup/members/:subGroupId', authMiddleware, getSubGroupMembers);
+router.post('/subgroup/toggle-admin', authMiddleware, toggleSubGroupAdmin);
+router.post('/invite', authMiddleware, inviteUser);
+router.post('/accept-invitation', authMiddleware, acceptInvitation);
+router.post('/delete', authMiddleware, deleteClub);
+router.post('/subgroup/delete', authMiddleware, deleteSubGroup);
+router.post('/leave', authMiddleware, leaveClub);
+router.post('/subgroup/leave', authMiddleware, leaveSubGroup);
+router.post('/remove-member', authMiddleware, removeFromClub);
+router.post('/subgroup/remove-member', authMiddleware, removeFromSubGroup);
+router.get('/:id', authMiddleware, getClubDetails);
 
 /**
  * Messaging & Features
  */
-router.post('/message/post', upload.single('file'), postClubMessage);
-router.get('/messages/:subGroupId', getClubMessages);
-router.post('/poll/vote', voteInPoll);
-router.post('/message/pin', togglePinMessage);
+router.post('/message/post', authMiddleware, upload.single('file'), postClubMessage);
+router.get('/messages/:subGroupId', authMiddleware, getClubMessages);
+router.post('/poll/vote', authMiddleware, voteInPoll);
+router.post('/message/pin', authMiddleware, togglePinMessage);
 
 export default router;

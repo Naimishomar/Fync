@@ -10,18 +10,22 @@ export const cacheMiddleware = (duration) => async (req, res, next) => {
     const sharedRoutes = [
         '/entertainment/home', '/entertainment/popular', '/entertainment/trending',
         '/entertainment/bollywood', '/entertainment/top-rated', '/entertainment/upcoming',
-        '/marketplace', '/paidGigs', '/short/all', '/post/posts'
+        '/marketplace', '/paidGigs'
     ];
 
     const isShared = sharedRoutes.some(route => req.originalUrl.includes(route));
     
     // Key structure: fync_cache:type:url
-    const key = `fync_cache:${isShared ? 'shared' : req.user?.id || 'guest'}:${req.originalUrl}`;
+    // NEVER put personal/authenticated routes (e.g. /post/posts which is per-user) in
+    // sharedRoutes — that would leak one user's data to every other user.
+    const key = `fync_cache:${isShared ? 'shared' : (req.user?.id || 'guest')}:${req.originalUrl}`;
 
     try {
         const cachedResponse = await redisClient.get(key);
         if (cachedResponse) {
-            console.log(`Cache Hit [${isShared ? 'SHARED' : 'PRIVATE'}] for ${key} ✅`);
+            if (process.env.NODE_ENV !== 'production') {
+                console.log(`Cache Hit [${isShared ? 'SHARED' : 'PRIVATE'}] for ${key} ✅`);
+            }
             
             // Observability: Track hit
             trackCacheHit(res);
@@ -65,8 +69,15 @@ export const cacheMiddleware = (duration) => async (req, res, next) => {
 
 export const clearCache = async (pattern) => {
     try {
-        // Find all keys matching the pattern regardless of userId
-        const keys = await redisClient.keys(`fync_cache:*${pattern}*`);
+        // Use SCAN iterator instead of KEYS so we never block Redis on large datasets
+        const patternKeys = pattern ? `*${pattern}*` : '*';
+        const keys = [];
+        for await (const key of redisClient.scanIterator({ MATCH: patternKeys, COUNT: 100 })) {
+            if (key.startsWith('fync_cache:')) {
+                keys.push(key);
+                if (keys.length >= 1000) break;
+            }
+        }
         if (keys.length > 0) {
             await redisClient.del(keys);
             console.log(`🧹 Redis Clear: ${keys.length} keys for pattern "${pattern}"`);

@@ -11,19 +11,19 @@ export const createFundingPost = async (req, res) => {
             return res.status(400).json({ message: "Missing required fields" });
         }
 
-        if (paymentRefId && razorpay_order_id && razorpay_signature) {
-            const body = razorpay_order_id + "|" + paymentRefId;
-            const expectedSignature = crypto
-                .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-                .update(body.toString())
-                .digest("hex");
-
-            if (expectedSignature !== razorpay_signature) {
-                return res.status(400).json({ success: false, message: "Invalid payment signature" });
-            }
-        } else if (!req.body.isEditing) {
-            // Require payment verification if it's a new post (not strictly defined by isEditing in body, but generally we need to secure this)
+        // Payment verification is REQUIRED for every new project.
+        if (!paymentRefId || !razorpay_order_id || !razorpay_signature) {
             return res.status(400).json({ success: false, message: "Payment verification failed" });
+        }
+
+        const body = razorpay_order_id + "|" + paymentRefId;
+        const expectedSignature = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+            .update(body.toString())
+            .digest("hex");
+
+        if (expectedSignature !== razorpay_signature) {
+            return res.status(400).json({ success: false, message: "Invalid payment signature" });
         }
         let image = [];
         let video = "";
@@ -154,7 +154,7 @@ export const likeAndUnlikeProject = async (req, res) => {
         if (!project) {
             return res.status(404).json({ success: false, message: "Project not found" });
         }
-        const isLiked = project.liked_by.includes(req.user.id);
+        const isLiked = (project.liked_by || []).some(id => String(id) === String(req.user.id));
         let updatedProject;
         if (isLiked) {
             updatedProject = await FundingProject.findByIdAndUpdate(

@@ -15,7 +15,10 @@ const codingBattleSockets = (io) => {
       
       if (!opponentString) {
         // Join queue
-        await redisClient.lPush(queueKey, JSON.stringify({ userId, socketId: socket.id }));
+        const queueEntry = JSON.stringify({ userId, socketId: socket.id });
+        await redisClient.lPush(queueKey, queueEntry);
+        socket.codingQueueKey = queueKey;
+        socket.codingQueueEntry = queueEntry;
         socket.emit("searching_opponent");
         return;
       }
@@ -63,6 +66,23 @@ const codingBattleSockets = (io) => {
     socket.on("code_update", ({ matchRoomId, userId, progress }) => {
       // Small optimization: only emit progress, not full code to save bandwidth
       socket.to(matchRoomId).emit("opponent_progress", { userId, progress });
+    });
+
+    // Reconnect / navigating client joins an existing battle room
+    socket.on("join_battle", async (matchRoomId) => {
+      try {
+        const battleDataString = await redisClient.get(matchRoomId);
+        if (!battleDataString) {
+          socket.emit("battle_error", { message: "Battle room not found or expired" });
+          return;
+        }
+        const battleData = JSON.parse(battleDataString);
+        socket.join(matchRoomId);
+        socket.emit("battle_sync", battleData);
+      } catch (err) {
+        console.error("Join Battle Error:", err);
+        socket.emit("battle_error", { message: "Failed to join battle" });
+      }
     });
 
     socket.on("submit_solution", async ({ matchRoomId, userId, code, languageId }) => {
@@ -122,9 +142,34 @@ const codingBattleSockets = (io) => {
       }
     });
 
+    // Cancel an active matchmaking search
+    socket.on("cancel_coding_match", async ({ userId, difficulty }) => {
+      const queueKey = `coding_queue:${difficulty || 'medium'}`;
+      try {
+        const entry = JSON.stringify({ userId, socketId: socket.id });
+        await redisClient.lRem(queueKey, 1, entry);
+        socket.codingQueueKey = null;
+        socket.codingQueueEntry = null;
+        socket.emit("coding_match_cancelled");
+      } catch (err) {
+        console.error("Cancel coding match error:", err);
+      }
+    });
+
     socket.on("leave_battle", (matchRoomId) => {
       socket.to(matchRoomId).emit("opponent_left");
       socket.leave(matchRoomId);
+    });
+
+    socket.on("disconnect", async () => {
+      // Remove this socket from any matchmaking queue it was waiting in
+      if (socket.codingQueueKey && socket.codingQueueEntry) {
+        try {
+          await redisClient.lRem(socket.codingQueueKey, 0, socket.codingQueueEntry);
+        } catch (err) {
+          console.error("Coding disconnect cleanup error:", err);
+        }
+      }
     });
   });
 };

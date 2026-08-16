@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, memo } from 'react';
+import React, { useEffect, useState, useCallback, memo, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   ScrollView,
   RefreshControl,
   Pressable,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -19,6 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useAuth } from '../../context/auth.context';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Hackathon {
@@ -29,20 +31,28 @@ interface Hackathon {
   status: 'draft' | 'upcoming' | 'active' | 'judging' | 'completed';
   hackathonstarts: string;
   hackathonends: string;
+  registrationstart: string;
+  registrationends: string;
   prizepool?: string;
+  prizes?: { rank: number; title: string; amount: string }[];
   tags?: string[];
   MaxTeamSize?: number;
   participants?: string[];
-  organiser?: { name: string; avatar?: string };
+  organiser?: { _id: string; name: string; avatar?: string };
+  sponsors?: { name: string; logo?: string; level: string }[];
+  description?: string;
+  myRole?: 'organiser' | 'participant' | 'team-member' | 'judge';
+  myTeam?: { _id?: string; name?: string };
+  mySubmission?: { _id?: string; status?: string };
 }
 
 // ─── Status config ────────────────────────────────────────────────────────────
-const STATUS_META: Record<string, { label: string; bg: string; text: string; dot: string }> = {
-  active: { label: 'Live', bg: '#ecfdf5', text: '#10b981', dot: '#10b981' },
-  upcoming: { label: 'Upcoming', bg: '#eff6ff', text: '#3b82f6', dot: '#3b82f6' },
-  judging: { label: 'Judging', bg: '#fffbeb', text: '#f59e0b', dot: '#f59e0b' },
-  completed: { label: 'Ended', bg: '#f8fafc', text: '#64748b', dot: '#94a3b8' },
-  draft: { label: 'Draft', bg: '#fdf2f8', text: '#ec4899', dot: '#ec4899' },
+const STATUS_META: Record<string, { label: string; bg: string; text: string; dot: string; icon: string }> = {
+  active: { label: 'Live', bg: '#ecfdf5', text: '#10b981', dot: '#10b981', icon: 'flash' },
+  upcoming: { label: 'Upcoming', bg: '#eff6ff', text: '#3b82f6', dot: '#3b82f6', icon: 'calendar' },
+  judging: { label: 'Judging', bg: '#fffbeb', text: '#f59e0b', dot: '#f59e0b', icon: 'trophy' },
+  completed: { label: 'Completed', bg: '#f8fafc', text: '#64748b', dot: '#94a3b8', icon: 'checkmark-circle' },
+  draft: { label: 'Draft', bg: '#fdf2f8', text: '#ec4899', dot: '#ec4899', icon: 'create' },
 };
 
 // ─── Filter tabs ──────────────────────────────────────────────────────────────
@@ -54,20 +64,24 @@ const FILTERS = [
   { label: 'DONE', value: 'completed' },
 ];
 
+const SORT_OPTIONS = [
+  { label: 'Newest', value: 'newest' },
+  { label: 'Starting Soon', value: 'starting-soon' },
+  { label: 'Prize: High to Low', value: 'prize-high' },
+  { label: 'Prize: Low to High', value: 'prize-low' },
+  { label: 'Most Participants', value: 'participants' },
+];
+
+const TABS = [
+  { label: 'Discover', value: 'discover', icon: 'compass' },
+  { label: 'My Hackathons', value: 'mine', icon: 'person' },
+];
+
 // ─── Hackathon Card ───────────────────────────────────────────────────────────
 const HackathonCard = memo(({ item, onPress }: { item: Hackathon; onPress: (id: string) => void }) => {
   const status = STATUS_META[item.status] ?? STATUS_META.upcoming;
   const start = item.hackathonstarts ? new Date(item.hackathonstarts).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—';
   const end = item.hackathonends ? new Date(item.hackathonends).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—';
-                <View className="mb-8">
-                  <Text className="text-zinc-900 text-4xl font-black tracking-tighter uppercase leading-tight">
-                      Hackathon <Text className="text-orange-500">Hub</Text>
-                  </Text>
-                  <View className="flex-row items-center mt-1">
-                      <View className="w-2 h-2 bg-emerald-500 rounded-full mr-2 shadow-sm shadow-emerald-500/50" />
-                      <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[3px]">Global Ecosystem Explorer</Text>
-                  </View>
-                </View>
   return (
     <Pressable
       onPress={() => onPress(item._id)}
@@ -185,6 +199,7 @@ const HackathonCard = memo(({ item, onPress }: { item: Hackathon; onPress: (id: 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 const HackathonHub = () => {
   const navigation = useNavigation<any>();
+  const { user } = useAuth();
   const [hackathons, setHackathons] = useState<Hackathon[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -192,10 +207,34 @@ const HackathonHub = () => {
   const [hasMore, setHasMore] = useState(true);
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('');
+  const [view, setView] = useState<'discover' | 'mine'>('discover');
 
   useEffect(() => {
-    fetchHackathons(1, activeFilter, true);
-  }, [activeFilter]);
+    setHackathons([]);
+    setPage(1);
+    setHasMore(true);
+    if (view === 'mine') {
+      fetchMyHackathons(true);
+    } else {
+      fetchHackathons(1, activeFilter, true);
+    }
+  }, [view, activeFilter]);
+
+  const fetchMyHackathons = async (reset = false) => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const res = await axios.get('/hackathons/my');
+      const data = res.data.hackathons ?? [];
+      setHackathons(data);
+      setHasMore(false);
+    } catch (err: any) {
+      Toast.show({ type: 'error', text1: 'Failed to load your hackathons' });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   const fetchHackathons = async (pageNum: number, status?: string, reset = false) => {
     if (loading) return;
@@ -226,19 +265,23 @@ const HackathonHub = () => {
     setRefreshing(true);
     setPage(1);
     setHasMore(true);
-    fetchHackathons(1, activeFilter, true);
-  }, [activeFilter]);
+    if (view === 'mine') fetchMyHackathons(true);
+    else fetchHackathons(1, activeFilter, true);
+  }, [view, activeFilter]);
 
   const handleLoadMore = useCallback(() => {
+    if (view === 'mine') return;
     if (hasMore && !loading) {
       fetchHackathons(page + 1, activeFilter);
     }
-  }, [hasMore, loading, page, activeFilter]);
+  }, [hasMore, loading, page, activeFilter, view]);
 
   const filtered = hackathons.filter(h =>
     h.title?.toLowerCase().includes(search.toLowerCase()) ||
     h.tags?.some(t => t.toLowerCase().includes(search.toLowerCase()))
   );
+
+  const isOrganiserOf = (h: any) => h.myRole === 'organiser' || h.organiser?._id === user?._id;
 
   return (
     <View className="flex-1 bg-[#F8FAFC]">
@@ -249,7 +292,20 @@ const HackathonHub = () => {
           data={filtered}
           keyExtractor={item => item._id}
           renderItem={({ item }) => (
-            <HackathonCard item={item} onPress={(id) => navigation.navigate('HackathonDetail', { hackathonId: id })} />
+            <View>
+              <HackathonCard item={item} onPress={(id) => navigation.navigate('HackathonDetail', { hackathonId: id })} />
+              {isOrganiserOf(item) && (
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('HackathonDashboard', { hackathonId: item._id, hackathonTitle: item.title })}
+                  className="flex-row items-center justify-center bg-zinc-900 mx-6 mb-8 py-4 rounded-[20px]"
+                >
+                  <MaterialCommunityIcons name="view-dashboard-outline" size={18} color="#f97316" />
+                  <Text className="text-white text-[10px] font-black uppercase tracking-[2px] ml-2">
+                    {view === 'mine' ? `Open Console · ${item.myRole}` : 'Open Organizer Console'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
           )}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />}
           onEndReached={handleLoadMore}
@@ -303,6 +359,22 @@ const HackathonHub = () => {
                 </View>
               </View>
 
+              {/* Discover / Mine Switcher */}
+              <View className="flex-row mx-8 mb-4 bg-white rounded-[24px] border border-slate-100 p-1.5">
+                {TABS.map(t => (
+                  <TouchableOpacity
+                    key={t.value}
+                    onPress={() => setView(t.value as 'discover' | 'mine')}
+                    className={`flex-1 flex-row items-center justify-center py-3.5 rounded-[18px] ${view === t.value ? 'bg-zinc-900' : ''}`}
+                  >
+                    <Ionicons name={t.icon as any} size={16} color={view === t.value ? '#f97316' : '#94a3b8'} />
+                    <Text className={`ml-2 text-[10px] font-black uppercase tracking-widest ${view === t.value ? 'text-white' : 'text-slate-400'}`}>
+                      {t.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
               {/* Cinematic Filter Chips */}
               <View className="mb-6">
                 <ScrollView
@@ -314,9 +386,10 @@ const HackathonHub = () => {
                     <TouchableOpacity
                       key={f.value}
                       onPress={() => { setActiveFilter(f.value); setPage(1); setHasMore(true); }}
-                      className={`px-8 py-4 rounded-[22px] border ${activeFilter === f.value ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-slate-100'}`}
+                      className={`px-8 py-4 rounded-[22px] border ${view === 'mine' ? 'opacity-30' : activeFilter === f.value ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-slate-100'}`}
+                      disabled={view === 'mine'}
                     >
-                      <Text className={`text-[10px] font-black uppercase tracking-[2px] ${activeFilter === f.value ? 'text-white' : 'text-slate-400'}`}>
+                      <Text className={`text-[10px] font-black uppercase tracking-[2px] ${view === 'mine' ? 'text-slate-300' : activeFilter === f.value ? 'text-white' : 'text-slate-400'}`}>
                         {f.label}
                       </Text>
                     </TouchableOpacity>

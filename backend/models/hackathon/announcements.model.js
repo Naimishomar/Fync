@@ -40,5 +40,8 @@ const announcementSchema = mongoose.Schema({
     }]
 },{ timestamps: true });
 
+// Feed query: pinned-first, newest first, per hackathon
+announcementSchema.index({ hackathon: 1, isPinned: -1, createdAt: -1 });
+
 const Announcement = mongoose.model("Announcement",announcementSchema);
 export default Announcement;

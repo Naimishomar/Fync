@@ -88,7 +88,7 @@ export const likeConfession = async (req, res) => {
             return res.status(404).json({ success: false, message: "Confession not found" });
         }
 
-        const isLiked = confession.liked_by.includes(userId);
+        const isLiked = confession.liked_by.some(id => String(id) === String(userId));
         let updatedConfession;
 
         if (isLiked) {

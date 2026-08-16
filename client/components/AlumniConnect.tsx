@@ -399,6 +399,7 @@ const AlumniConnect = ({ navigation }: any) => {
                             initialNumToRender={15}
                             maxToRenderPerBatch={10}
                             windowSize={10}
+                            keyboardShouldPersistTaps="handled"
                             removeClippedSubviews={Platform.OS === 'android'}
                         />
                     )}

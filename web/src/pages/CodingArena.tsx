@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Editor, { DiffEditor } from '@monaco-editor/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Play, Send, Terminal, Settings, ChevronRight, Layout, Moon, Sun, Clock, Zap, Bug, ShieldAlert, MonitorCheck } from 'lucide-react';
+import { Play, Send, Terminal, ChevronRight, Layout, Moon, Sun, Clock, Zap, Bug, ShieldAlert, MonitorCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,7 +20,6 @@ const CodingArena: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'desc' | 'solution' | 'submissions'>('desc');
   const [theme, setTheme] = useState<'vs-dark' | 'light'>('light');
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  const [showExitWarning, setShowExitWarning] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const queryParams = new URLSearchParams(window.location.search);
@@ -228,7 +227,7 @@ const CodingArena: React.FC = () => {
           <div className="flex border-b border-slate-100 bg-slate-50/50 p-1">
             {(['desc', 'solution', 'submissions'] as const).map(tab => {
               const isBug = window.location.pathname.includes('/arena/bug/');
-              let label = tab;
+              let label: string = tab;
               if (tab === 'desc') label = isBug ? 'Sanitization Briefing' : 'Briefing';
               return (
                 <button

@@ -5,6 +5,7 @@ import {
 } from '../controllers/fync media/fyncMedia.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { fyncMediaCombinedUpload } from '../utils/r2.js';
+import { r2UploadMiddleware } from '../utils/r2Upload.js';
 
 const router = express.Router();
 
@@ -14,13 +15,16 @@ const uploadFyncMedia = (req, res, next) => {
     { name: "video", maxCount: 1 }
   ])(req, res, async (err) => {
     if (err) return next(err);
-    if (req.files) {
-      req.files = {
-        thumbnail: req.files['thumbnail'] ? req.files['thumbnail'][0] : undefined,
-        video: req.files['video'] ? req.files['video'][0] : undefined
-      };
-    }
-    next();
+    // Upload buffered files to R2 and patch `.path` before reshaping
+    r2UploadMiddleware({ thumbnail: 'fync_media_thumbnails', video: 'fync_media_videos' })(req, res, () => {
+      if (req.files) {
+        req.files = {
+          thumbnail: req.files['thumbnail'] ? req.files['thumbnail'][0] : undefined,
+          video: req.files['video'] ? req.files['video'][0] : undefined
+        };
+      }
+      next();
+    });
   });
 };
 

@@ -86,8 +86,14 @@ import mongoSanitize from 'express-mongo-sanitize';
 import { monitoringMiddleware } from './middlewares/monitoring.middleware.js';
 import { generalLimiter } from './middlewares/rateLimit.middleware.js';
 
+// CORS: allow configurable origins for production. Wildcard cannot be combined
+// with credentials, so we only enable credentials for explicit origins.
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+  : '*';
+
 const app = express();
-app.use(morgan('dev'));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev', { skip: () => process.env.NODE_ENV === 'production' }));
 app.use(generalLimiter);
 
 
@@ -96,9 +102,9 @@ const PORT = process.env.PORT || 8000;
 
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: corsOrigins === '*' ? '*' : corsOrigins,
     methods: ["GET", "POST"],
-    credentials: true,
+    credentials: corsOrigins !== '*',
     allowedHeaders: ["my-custom-header"],
   },
   transports: ['websocket', 'polling'],
@@ -129,12 +135,17 @@ app.use(helmet({
   crossOriginResourcePolicy: false, 
 }));
 app.use(compression());
+
 app.use(cors({
-  origin: "*",
-  credentials: true
+  origin: corsOrigins === '*' ? '*' : corsOrigins,
+  credentials: corsOrigins !== '*',
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(mongoSanitize());
+
+app.set("io", io);
 
 app.use(monitoringMiddleware);
 
@@ -144,7 +155,6 @@ app.use("/receipts", express.static("receipts"));
 app.use('/user', authRoute);
 app.use('/post', postRoute);
 app.use('/opportunity', opportunityRoute);
-app.use('/chat', chatRoute);
 app.use('/chat', chatRoute);
 app.use('/payment', paymentRoute);
 app.use('/api/payment', paymentRoute);
@@ -208,6 +218,7 @@ const startServer = async (retries = 5) => {
     setClubIo(io);
     setChatIo(io);
     setChessIo(io);
+    codingBattleSockets(io);
 
     // 3. Initialize Monitors & Cleanups
     initCollegeChatCleanup();

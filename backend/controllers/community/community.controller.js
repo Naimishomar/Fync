@@ -4,6 +4,9 @@ import CommunityMessage from '../../models/community/communityMessage.model.js';
 import { deleteFromR2 } from '../../utils/r2.js';
 import redis from '../../utils/redis.js';
 
+const hasId = (arr, id) => Array.isArray(arr) && id != null && arr.some(x => String(x) === String(id));
+const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
 let communityIo;
 export const setCommunityIo = (io) => {
     communityIo = io;
@@ -11,7 +14,13 @@ export const setCommunityIo = (io) => {
 
 export const createCommunity = async (req, res) => {
     try {
-        const { name, description, creatorId, socialLinks, plan } = req.body;
+        const { name, description, socialLinks, plan } = req.body;
+        const creatorId = req.user?.id || req.user?._id;
+        if (!creatorId) {
+            if (req.files?.logo?.[0]?.path) await deleteFromR2(req.files.logo[0].path);
+            if (req.files?.banner?.[0]?.path) await deleteFromR2(req.files.banner[0].path);
+            return res.status(401).json({ success: false, message: "Unauthorized" });
+        }
         const logo = req.files?.logo?.[0]?.path;
         const banner = req.files?.banner?.[0]?.path;
 
@@ -77,7 +86,9 @@ export const createCommunity = async (req, res) => {
 
 export const updateCommunity = async (req, res) => {
     try {
-        const { communityId, name, description, userId, socialLinks } = req.body;
+        const { communityId, name, description, socialLinks } = req.body;
+        const userId = req.user?.id || req.user?._id;
+        if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const community = await Community.findById(communityId);
         if (!community) return res.status(404).json({ success: false, message: "Hub not found" });
         if (community.creator.toString() !== userId) return res.status(403).json({ success: false, message: "Denied" });
@@ -110,7 +121,9 @@ export const updateCommunity = async (req, res) => {
 
 export const deleteCommunity = async (req, res) => {
     try {
-        const { communityId, userId } = req.body;
+        const { communityId } = req.body;
+        const userId = req.user?.id || req.user?._id;
+        if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const community = await Community.findById(communityId);
         if (!community) return res.status(404).json({ success: false, message: "Hub not found" });
         if (community.creator.toString() !== userId) return res.status(403).json({ success: false, message: "Denied" });
@@ -178,7 +191,9 @@ export const getCommunityDetails = async (req, res) => {
 
 export const renewHubSubscription = async (req, res) => {
     try {
-        const { communityId, userId, plan } = req.body; // plan: 'monthly' or 'yearly'
+        const { communityId, plan } = req.body; // plan: 'monthly' or 'yearly'
+        const userId = req.user?.id || req.user?._id;
+        if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const community = await Community.findById(communityId);
         if (!community) return res.status(404).json({ success: false, message: "Hub not found" });
         if (community.creator.toString() !== userId) return res.status(403).json({ success: false, message: "Denied" });
@@ -208,11 +223,12 @@ export const renewHubSubscription = async (req, res) => {
 export const joinCommunity = async (req, res) => {
     try {
         const { id } = req.params;
-        const { userId } = req.body;
+        const userId = req.user?.id || req.user?._id;
+        if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const community = await Community.findById(id);
         if (!community) return res.status(404).json({ success: false, message: "Community not found" });
 
-        if (community.members.includes(userId)) {
+        if (hasId(community.members, userId)) {
             return res.status(400).json({ success: false, message: "Already a member" });
         }
 
@@ -228,7 +244,8 @@ export const joinCommunity = async (req, res) => {
 export const leaveCommunity = async (req, res) => {
     try {
         const { id } = req.params;
-        const { userId } = req.body;
+        const userId = req.user?.id || req.user?._id;
+        if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const community = await Community.findById(id);
         if (!community) return res.status(404).json({ success: false, message: "Hub not found" });
 
@@ -249,6 +266,18 @@ export const leaveCommunity = async (req, res) => {
 export const createSubCommunity = async (req, res) => {
     try {
         const { communityId, name, description, type } = req.body;
+        const userId = req.user?.id || req.user?._id;
+        if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+        const community = await Community.findById(communityId);
+        if (!community) return res.status(404).json({ success: false, message: "Hub not found" });
+
+        const isCreator = String(community.creator) === String(userId);
+        if (!isCreator && !hasId(community.members, userId)) {
+            if (req.file?.path) await deleteFromR2(req.file.path);
+            return res.status(403).json({ success: false, message: "Join the hub to create a room" });
+        }
+
         const logo = req.file?.path;
         const subCommunity = await SubCommunity.create({ communityId, name, description, type, logo });
         return res.status(201).json({ success: true, subCommunity });
@@ -259,7 +288,9 @@ export const createSubCommunity = async (req, res) => {
 
 export const updateSubCommunity = async (req, res) => {
     try {
-        const { subId, name, description, userId } = req.body;
+        const { subId, name, description } = req.body;
+        const userId = req.user?.id || req.user?._id;
+        if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const sub = await SubCommunity.findById(subId).populate('communityId');
         if (!sub) return res.status(404).json({ success: false, message: "Room not found" });
         if (sub.communityId.creator.toString() !== userId) return res.status(403).json({ success: false, message: "Denied" });
@@ -281,7 +312,9 @@ export const updateSubCommunity = async (req, res) => {
 
 export const deleteSubCommunity = async (req, res) => {
     try {
-        const { subId, userId } = req.body;
+        const { subId } = req.body;
+        const userId = req.user?.id || req.user?._id;
+        if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const sub = await SubCommunity.findById(subId).populate('communityId');
         if (!sub) return res.status(404).json({ success: false, message: "Room not found" });
         if (sub.communityId.creator.toString() !== userId) return res.status(403).json({ success: false, message: "Denied" });
@@ -309,7 +342,9 @@ export const deleteSubCommunity = async (req, res) => {
 
 export const deleteMessage = async (req, res) => {
     try {
-        const { messageId, userId } = req.body;
+        const { messageId } = req.body;
+        const userId = req.user?.id || req.user?._id;
+        if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const message = await CommunityMessage.findById(messageId).populate({
             path: 'subCommunityId',
             populate: { path: 'communityId' }
@@ -364,8 +399,8 @@ export const exportChatHistory = async (req, res) => {
 
         messages.forEach(m => {
             htmlContent += `<div class="msg">
-                <div class="header">${m.sender?.name} <span class="time">${m.createdAt?.toLocaleString()}</span></div>
-                <div>${m.text || "[Media]"}</div>
+                <div class="header">${escapeHtml(m.sender?.name)} <span class="time">${escapeHtml(m.createdAt?.toLocaleString())}</span></div>
+                <div>${escapeHtml(m.text) || "[Media]"}</div>
             </div>`;
         });
 
@@ -418,8 +453,10 @@ export const getSubCommunityMessages = async (req, res) => {
 
 export const postMessage = async (req, res) => {
     try {
-        const { subCommunityId, senderId, text, repliedTo } = req.body;
-        
+        const { subCommunityId, text, repliedTo } = req.body;
+        const senderId = req.user?.id || req.user?._id;
+        if (!senderId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
         const sub = await SubCommunity.findById(subCommunityId).populate('communityId');
         if (!sub) return res.status(404).json({ success: false, message: "Room not found" });
 
@@ -427,7 +464,13 @@ export const postMessage = async (req, res) => {
             return res.status(403).json({ success: false, message: "Hub is suspended. Renew activation to post." });
         }
 
-        if (sub.type === 'announcement' && sub.communityId.creator.toString() !== senderId) {
+        const isCreator = String(sub.communityId.creator) === String(senderId);
+        const isMember = hasId(sub.communityId.members, senderId);
+        if (!isCreator && !isMember) {
+            return res.status(403).json({ success: false, message: "Join the hub to post" });
+        }
+
+        if (sub.type === 'announcement' && !isCreator) {
             return res.status(403).json({ success: false, message: "Only administrators can message in official channels" });
         }
 

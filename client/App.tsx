@@ -157,6 +157,7 @@ import HackathonSubmission from './components/hackathon/HackathonSubmission';
 import HackathonLeaderboard from './components/hackathon/HackathonLeaderboard';
 import HackathonJudgePanel from './components/hackathon/HackathonJudgePanel';
 import HackathonChannel from './components/hackathon/HackathonChannel';
+import HackathonDashboard from './components/hackathon/HackathonDashboard';
 
 // Entertainment Module
 import EntertainmentHome from './components/entertainment/EntertainmentHome';
@@ -174,6 +175,7 @@ import MeetOurTeam from './components/MeetOurTeam';
 // Admin & Tools
 import AdminPortal from './components/admin/AdminPortal';
 import AudioCallLobby from './components/audioCall/AudioCallLobby';
+import VideoCallLobby from './components/videoCall/VideoCallLobby';
 
 // Daily Hub Utilities
 import UtilityHubScreen from './components/utility/UtilityHubScreen';
@@ -329,13 +331,14 @@ export type RootStackParamList = {
   MeetOurTeam: undefined;
   // Hackathon Ecosystem
   HackathonHub: undefined;
-  HackathonCreate: undefined;
+  HackathonCreate: { hackathonId?: string } | undefined;
   HackathonDetail: { hackathonId: string };
   HackathonTeamScreen: { hackathonId: string; mode?: 'create' | 'browse' };
   HackathonSubmission: { hackathonId: string };
   HackathonLeaderboard: { hackathonId: string; hackathonTitle?: string };
   HackathonJudgePanel: { hackathonId: string; judgingCriteria?: any[] };
   HackathonChannel: { hackathonId: string; hackathonTitle?: string };
+  HackathonDashboard: { hackathonId: string; hackathonTitle?: string };
   // Profile Builder
   FyncProfileBuilder: undefined;
   // Entertainment Module
@@ -347,6 +350,7 @@ export type RootStackParamList = {
   PartyPool: undefined;
   SubscriptionScreen: undefined;
   AudioCallLobby: undefined;
+  VideoCallLobby: undefined;
   UtilityHubScreen: undefined;
   ImageToPdfScreen: undefined;
   ImageCompressorScreen: undefined;
@@ -482,6 +486,7 @@ function AppStack() {
       <Stack.Screen name="SpeakerSessionScreen" component={SpeakerSessionScreen} />
       <Stack.Screen name="BootcampScreen" component={BootcampScreen} />
       <Stack.Screen name="AudioCallLobby" component={AudioCallLobby} />
+      <Stack.Screen name="VideoCallLobby" component={VideoCallLobby} />
       
       {/* Utility Hub */}
       <Stack.Screen name="UtilityHubScreen" component={UtilityHubScreen} />
@@ -524,6 +529,7 @@ function AppStack() {
       <Stack.Screen name="HackathonLeaderboard" component={HackathonLeaderboard} />
       <Stack.Screen name="HackathonJudgePanel" component={HackathonJudgePanel} />
       <Stack.Screen name="HackathonChannel" component={HackathonChannel} />
+      <Stack.Screen name="HackathonDashboard" component={HackathonDashboard} />
       {/* Profile Builder */}
       <Stack.Screen name="FyncProfileBuilder" component={FyncProfileBuilder} />
       

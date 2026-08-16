@@ -9,6 +9,7 @@ import ContactPage from './pages/ContactPage';
 import CodingArena from './pages/CodingArena';
 import ContestDashboard from './pages/ContestDashboard';
 import Matchmaking from './pages/Matchmaking';
+import MatchRoom from './pages/MatchRoom';
 import BugFinder from './pages/BugFinder';
 import Login from './pages/Login';
 import ArenaAdminDashboard from './pages/ArenaAdminDashboard';
@@ -17,6 +18,7 @@ import CreateBugMission from './pages/CreateBugMission';
 import CreateContest from './pages/CreateContest';
 import ContestDetails from './pages/ContestDetails';
 import Profile from './pages/Profile';
+import NotFound from './pages/NotFound';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -46,6 +48,7 @@ function App() {
             <Route path="/arena/contest/:contestId" element={<ContestDetails />} />
             <Route path="/arena/problem/:problemId" element={<CodingArena />} />
             <Route path="/arena/matchmaking" element={<Matchmaking />} />
+            <Route path="/arena/match/:roomId" element={<MatchRoom />} />
             <Route path="/arena/bugs" element={<BugFinder />} />
             <Route path="/arena/bug/:problemId" element={<CodingArena />} />
             <Route path="/profile" element={<Profile />} />
@@ -55,6 +58,7 @@ function App() {
             <Route path="/arena/admin/create-problem" element={<CreateProblem />} />
             <Route path="/arena/admin/create-bug" element={<CreateBugMission />} />
             <Route path="/arena/admin/create-contest" element={<CreateContest />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
 

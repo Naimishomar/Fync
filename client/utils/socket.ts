@@ -13,8 +13,18 @@ const socket = io(SOCKET_URL, {
   forceNew: true,
 });
 
+let trackedUserId: string | null = null;
+
+const registerUser = () => {
+  if (trackedUserId && socket.connected) {
+    socket.emit("register", trackedUserId);
+    socket.emit("identity", trackedUserId);
+  }
+};
+
 socket.on("connect", () => {
   console.log("✅ Socket Connected! ID:", socket.id);
+  registerUser();
 });
 
 socket.on("connect_error", (err) => {
@@ -24,5 +34,13 @@ socket.on("connect_error", (err) => {
 socket.on("disconnect", (reason) => {
   console.log("🔌 Socket Disconnected:", reason);
 });
+
+// Call once auth is ready so the user is always present (online status,
+// chat_notify, typing) even when no chat screen is mounted.
+export const trackUser = (userId: string | null | undefined) => {
+  if (!userId) return;
+  trackedUserId = userId;
+  registerUser();
+};
 
 export default socket;

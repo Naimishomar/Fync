@@ -6,7 +6,7 @@ import {
     trackAffiliateClick, 
     completeAffiliateSale 
 } from '../controllers/affiliate.controller.js';
-import { authMiddleware } from '../middlewares/auth.middleware.js'; // Assuming this exists based on common backend structure
+import { authMiddleware, isAdmin } from '../middlewares/auth.middleware.js'; // Assuming this exists based on common backend structure
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ router.post('/track', authMiddleware, trackAffiliateClick);
 // Completing sales (mock for demo)
 router.post('/complete', authMiddleware, completeAffiliateSale);
 
-// Adding products (In real app should be admin authorized)
-router.post('/add-product', authMiddleware, addAffiliateProduct);
+// Adding products (admin authorized)
+router.post('/add-product', authMiddleware, isAdmin, addAffiliateProduct);
 
 export default router;

@@ -47,9 +47,19 @@ const hackathonSchema = new mongoose.Schema({
    judgingcriteria: [
       {
          name: { type: String },
-         weightage: { type: String },
+         weightage: { type: Number, default: 1 },
          description: { type: String }
       }],
+   winners: [
+      {
+         rank: Number,
+         title: String,
+         amount: String,
+         submission: { type: mongoose.Schema.Types.ObjectId, ref: 'HackathonSubmission' },
+         team: { type: mongoose.Schema.Types.ObjectId, ref: 'HackathonTeam' },
+         wonAt: { type: Date, default: Date.now }
+      }
+   ],
    MaxTeamSize: {
       type: Number,
       default: 4
@@ -120,5 +130,9 @@ const hackathonSchema = new mongoose.Schema({
    })
 
 hackathonSchema.index({ status: 1, tags: 1 });
+// getMyHackathons (organiser + participant lookups), list sort by recency
+hackathonSchema.index({ organiser: 1 });
+hackathonSchema.index({ participants: 1 });
+hackathonSchema.index({ status: 1, createdAt: -1 });
 const Hackathon = mongoose.model("Hackathon", hackathonSchema);
 export default Hackathon;

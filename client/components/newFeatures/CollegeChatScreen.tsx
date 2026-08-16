@@ -396,7 +396,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
             <KeyboardAvoidingView
                 behavior="padding"
                 style={{ flex: 1 }}
-                keyboardVerticalOffset={0}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
             >
                 <View style={{ flex: 1 }}>
 
@@ -414,6 +414,8 @@ const CollegeChatScreen = ({ navigation }: any) => {
                                 renderItem={renderItem}
                                 contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 0, paddingBottom: 10 }}
                                 showsVerticalScrollIndicator={false}
+                                keyboardShouldPersistTaps="handled"
+                                keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
                                 ListHeaderComponent={() => <View className="h-0" />}
                             />
                         )}

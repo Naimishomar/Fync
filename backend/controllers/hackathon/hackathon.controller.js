@@ -1,6 +1,41 @@
 import Hackathon from "../../models/hackathon/hackathons.model.js";
 import HackathonChannel from "../../models/hackathon/Hackathonchannel.model.js";
 import Announcement from "../../models/hackathon/announcements.model.js";
+import HackathonTeam from "../../models/hackathon/team.model.js";
+import Submission from "../../models/hackathon/submission.model.js";
+import { nanoid } from "nanoid";
+
+// Normalize stringified judging criteria weightage → Number
+const normalizeCriteria = (criteria) => {
+  if (!Array.isArray(criteria)) return criteria;
+  return criteria.map((c) => ({
+    ...c,
+    weightage: c.weightage !== undefined && c.weightage !== "" ? Number(c.weightage) : 1,
+  }));
+};
+
+// For each judge: how many submissions they still have to score
+// Uses an aggregation so we never materialize the full Score collection for a hackathon.
+const getJudgeProgress = async (hackId) => {
+  const [activeSubs, judgedRows] = await Promise.all([
+    Submission.countDocuments({ hackathon: hackId, status: { $in: ["submitted", "underReview"] } }),
+    import("../../models/hackathon/score.model.js").then(({ default: Score }) =>
+      Score.aggregate([
+        { $match: { hackathon: hackId } },
+        { $group: { _id: "$judge", count: { $sum: 1 } } },
+      ])
+    ),
+  ]);
+
+  const perJudge = {};
+  judgedRows.forEach((row) => {
+    perJudge[row._id.toString()] = row.count;
+  });
+  return {
+    totalSubmissions: activeSubs,
+    judged: perJudge,
+  };
+};
 
 // POST /hackathons
 export const createHackathon = async (req, res, next) => {
@@ -23,6 +58,8 @@ export const createHackathon = async (req, res, next) => {
             }
         });
 
+        if (body.judgingcriteria) body.judgingcriteria = normalizeCriteria(body.judgingcriteria);
+
         // Handle image uploads
         if (req.files) {
             const files = Array.isArray(req.files) ? req.files : [];
@@ -43,9 +80,12 @@ export const createHackathon = async (req, res, next) => {
             }
         }
 
+        // hackathonId (nanoid) is required+unique on the schema — generate it here
+        body.hackathonId = nanoid(10);
+
         console.log("Saving Hackathon Body:", JSON.stringify(body, null, 2));
         const hack = await Hackathon.create({ ...body, organiser: req.user.id });
-        res.status(200).json({ message: "hackathon created successfully", success: true, hackathon: hack });
+        res.status(201).json({ message: "hackathon created successfully", success: true, hackathon: hack });
     } catch (error) {
         next(error);
     }
@@ -59,7 +99,15 @@ export const gethackathon = async (req, res, next) => {
         const hack = await Hackathon.findById(req.params.hackathonId)
             .populate("organiser", "name email avatar")
             .populate("judges", "name email avatar")
-            .populate("mentors", "name email avatar");
+            .populate("mentors", "name email avatar")
+            .populate({
+                path: "winners.submission",
+                select: "ProjectName TagLine status",
+            })
+            .populate({
+                path: "winners.team",
+                select: "name",
+            });
 
         if (!hack) {
             return res.status(404).json({ success: false, message: "Hackathon not found" });
@@ -72,9 +120,10 @@ export const gethackathon = async (req, res, next) => {
 
 // POST /hackathons/list  (body-based filtering — GET can't have a body reliably)
 export const gethackathons = async (req, res, next) => {
-    const { tags, status, mod, page = 1, limit = 10 } = req.body;
+    const { tags, status, page = 1, limit = 10 } = req.body;
     const filter = {};
     if (status) filter.status = status;
+    else filter.status = { $ne: "draft" };
     if (tags) filter.tags = { $in: Array.isArray(tags) ? tags : tags.split(",") };
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -88,6 +137,160 @@ export const gethackathons = async (req, res, next) => {
             Hackathon.countDocuments(filter),
         ]);
         res.status(200).json({ success: true, total, page: Number(page), hackathons });
+    } catch (error) {
+        next(error);
+    }
+}
+
+// GET /hackathons/my — hackathons the current user organised, participates in, or has a team in
+// Batch strategy: 3 queries total (teams + submissions are grouped per hackathon in memory)
+// instead of 2 extra queries PER hackathon.
+export const getMyHackathons = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+
+        const [myTeams, organised, participated] = await Promise.all([
+            HackathonTeam.distinct("hackathon", { "members.user": userId }),
+            Hackathon.find({ organiser: userId }).distinct("_id"),
+            Hackathon.find({ participants: userId }).distinct("_id"),
+        ]);
+
+        const idSet = new Set([...myTeams.map(String), ...organised.map(String), ...participated.map(String)]);
+        const ids = [...idSet];
+        if (!ids.length) return res.status(200).json({ success: true, hackathons: [], total: 0 });
+
+        const [hackathons, teams] = await Promise.all([
+            Hackathon.find({ _id: { $in: ids } })
+                .populate("organiser", "name avatar")
+                .select("title status hackathonstarts hackathonends registrationstart registrationends prizepool prizes tags MaxTeamSize participants bannerImage logo organiser")
+                .sort({ createdAt: -1 }),
+            // All teams the user belongs to across these hackathons (1 query)
+            HackathonTeam.find({ hackathon: { $in: ids }, "members.user": userId })
+                .select("hackathon name _id"),
+        ]);
+
+        const teamByHack = new Map();
+        teams.forEach((t) => teamByHack.set(t.hackathon.toString(), t));
+
+        // Only the user's team submissions (scoped to their teams, not all submissions)
+        const teamIds = teams.map((t) => t._id);
+        const submissions = teamIds.length
+            ? await Submission.find({ team: { $in: teamIds } })
+                .select("hackathon team status ProjectName")
+            : [];
+
+        const subByTeam = new Map();
+        submissions.forEach((s) => subByTeam.set(s.team.toString(), s));
+
+        const enriched = hackathons.map((h) => {
+            const isOrganiser = h.organiser?._id?.toString() === userId.toString();
+            const team = teamByHack.get(h._id.toString());
+            const submission = team ? subByTeam.get(team._id.toString()) : null;
+            return {
+                ...h.toObject(),
+                myRole: isOrganiser ? "organiser" : team ? "team-member" : "participant",
+                myTeam: team ? { _id: team._id, name: team.name } : null,
+                mySubmission: submission ? { _id: submission._id, status: submission.status, ProjectName: submission.ProjectName } : null,
+            };
+        });
+
+        res.status(200).json({ success: true, total: enriched.length, hackathons: enriched });
+    } catch (error) {
+        next(error);
+    }
+}
+
+// GET /hackathons/:hackathonId/dashboard — organiser analytics + moderation queue
+export const getDashboard = async (req, res, next) => {
+    try {
+        const hack = await Hackathon.findById(req.params.hackathonId);
+        if (!hack) return res.status(404).json({ success: false, message: "Hackathon not found" });
+        if (hack.organiser.toString() !== req.user.id.toString())
+            return res.status(403).json({ success: false, message: "Not authorised" });
+
+        const [participantCount, teamCount, submissionCount, scoredCount, pendingCount, recentSubmissions, judgeProgress] =
+            await Promise.all([
+                hack.participants?.length || 0,
+                HackathonTeam.countDocuments({ hackathon: hack._id }),
+                Submission.countDocuments({ hackathon: hack._id }),
+                Submission.countDocuments({ hackathon: hack._id, status: "scored" }),
+                Submission.countDocuments({ hackathon: hack._id, status: { $in: ["submitted", "underReview"] } }),
+                // Lean list for the moderation queue — only what the console renders
+                Submission.find({ hackathon: hack._id })
+                    .select("ProjectName TagLine status team submittedAt updatedAt")
+                    .populate("team", "name")
+                    .sort({ updatedAt: -1 })
+                    .limit(10),
+                getJudgeProgress(hack._id),
+            ]);
+
+        const judgeProgressCount = Object.keys(judgeProgress.judged || {}).length;
+
+        res.status(200).json({
+            success: true,
+            stats: {
+                participants: participantCount,
+                teams: teamCount,
+                submissions: submissionCount,
+                scored: scoredCount,
+                pendingReview: pendingCount,
+                judgeProgress: judgeProgressCount,
+                judges: hack.judges?.length || 0,
+            },
+            recentSubmissions,
+            judgeProgress,
+            winners: hack.winners || [],
+            hackathon: hack,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+// PATCH /hackathons/:hackathonId/winners — persist winners + credit fync score
+export const assignWinners = async (req, res, next) => {
+    try {
+        const hack = await Hackathon.findById(req.params.hackathonId);
+        if (!hack) return res.status(404).json({ success: false, message: "Hackathon not found" });
+        if (hack.organiser.toString() !== req.user.id.toString())
+            return res.status(403).json({ success: false, message: "Not authorised" });
+
+        const { winners } = req.body;
+        if (!Array.isArray(winners))
+            return res.status(400).json({ success: false, message: "winners must be an array" });
+
+        hack.winners = winners.map((w) => ({
+            rank: w.rank,
+            title: w.title || "",
+            amount: w.amount || "",
+            submission: w.submissionId || w.submission,
+            team: w.teamId || w.team,
+            wonAt: new Date(),
+        }));
+        await hack.save();
+
+        // Credit fync score "won" for winning team members
+        const winningTeamIds = hack.winners.map((w) => w.team?.toString()).filter(Boolean);
+        if (winningTeamIds.length) {
+            const teams = await HackathonTeam.find({ _id: { $in: winningTeamIds } });
+            const winnerIds = new Set();
+            teams.forEach((t) => {
+                t.members.forEach((m) => winnerIds.add(m.user.toString()));
+            });
+            for (const uid of winnerIds) {
+                try {
+                    const { calculateFyncScore } = await import("../../services/fyncScore.service.js");
+                    await calculateFyncScore(uid).catch(() => {});
+                } catch (e) { console.error("fync score update failed for", uid, e.message); }
+            }
+        }
+
+        const io = req.app.get("io");
+        if (io) {
+            io.to(`hack:${hack._id}`).emit("hackathon:winners_announced", { winners: hack.winners });
+        }
+
+        res.status(200).json({ success: true, winners: hack.winners });
     } catch (error) {
         next(error);
     }
@@ -114,6 +317,8 @@ export const updatehackathon = async (req, res, next) => {
                 } catch (e) {}
             }
         });
+
+        if (body.judgingcriteria) body.judgingcriteria = normalizeCriteria(body.judgingcriteria);
 
         if (req.files) {
             const files = Array.isArray(req.files) ? req.files : [];
@@ -228,20 +433,41 @@ export const deletehackathon = async (req, res, next) => {
 // POST /hackathons/:hackathonId/join
 export const Joinchannel = async (req, res, next) => {
     try {
-        const hack = await Hackathon.findById(req.params.hackathonId);
+        // Only the fields the guardrails need — avoid pulling the whole doc incl. participants array
+        const hack = await Hackathon.findById(req.params.hackathonId)
+            .select("status registrationstart registrationends participants title");
         if (!hack) return res.status(404).json({ success: false, message: "Hackathon not found" });
 
-        // Add user to participants list if not already there
+        // Registration-window + status validation (production-grade guardrails)
+        const now = new Date();
+        if (["draft", "completed"].includes(hack.status))
+            return res.status(400).json({ success: false, message: "Registrations are closed for this hackathon" });
+
+        if (hack.registrationstart && now < new Date(hack.registrationstart))
+            return res.status(400).json({ success: false, message: "Registration hasn't opened yet" });
+
+        if (hack.registrationends && now > new Date(hack.registrationends))
+            return res.status(400).json({ success: false, message: "Registration window has closed" });
+
+        // Atomic add — $addToSet avoids reading/writing the whole participants array
         const alreadyParticipant = hack.participants.map(String).includes(req.user.id.toString());
-        if (alreadyParticipant)
-            return res.status(400).json({ success: false, message: "Already joined this hackathon" });
+        if (!alreadyParticipant) {
+            await Hackathon.updateOne(
+                { _id: hack._id },
+                { $addToSet: { participants: req.user.id } }
+            );
+        }
 
-        hack.participants.push(req.user.id);
-        await hack.save();
-
-        // Find or create the channel
+        // Find or create the channel (previous code only ever found — never created)
         let channel = await HackathonChannel.findOne({ Hackathon: hack._id });
-        if (channel && !channel.members.some(m => m.user.toString() === req.user.id.toString())) {
+        if (!channel) {
+            channel = await HackathonChannel.create({
+                Hackathon: hack._id,
+                name: hack.title,
+                members: [],
+            });
+        }
+        if (!channel.members.some(m => m.user.toString() === req.user.id.toString())) {
             channel.members.push({ user: req.user.id, role: "participant" });
             await channel.save();
         }

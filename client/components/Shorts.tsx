@@ -65,7 +65,7 @@ interface ShortItem {
 
 /* ---------------- GLOBAL CACHE ---------------- */
 let globalShortsCache: ShortItem[] = [];
-let globalNextCursor: string | null = null;
+let globalShortsPage = 0;
 let globalHasMore = true;
 
 /* ---------------- COMPONENT ---------------- */
@@ -300,28 +300,29 @@ export default function Shorts() {
 
   /* ---------------- FETCH ---------------- */
 
-  const fetchShorts = async (cursor: string | null = null, shouldRefresh = false) => {
-    if (!globalHasMore && !shouldRefresh && cursor !== null) return;
-    if (cursor === null) setLoading(true);
-    if (cursor !== null) setLoadingMore(true);
+  const fetchShorts = async (page = 0, shouldRefresh = false) => {
+    const isFirstPage = page <= 1;
+    if (!globalHasMore && !shouldRefresh && !isFirstPage) return;
+    if (isFirstPage) setLoading(true);
+    else setLoadingMore(true);
 
     try {
       const seenIds = await getSeenShortIds();
 
-      const res = await axios.post(`/shorts/smart?cursor=${cursor || ''}`, { seenIds });
+      const res = await axios.post(`/shorts/smart?page=${Math.max(page, 1)}`, { seenIds });
 
       if (res.data.success) {
         const newShorts = res.data.shorts;
-        if (shouldRefresh || cursor === null) {
+        if (shouldRefresh || isFirstPage) {
           globalShortsCache = newShorts;
           setShorts(newShorts);
           if (newShorts.length > 0 && !activeVideoId) setActiveVideoId(newShorts[0]._id);
         } else {
-          globalShortsCache = [...globalShortsCache, ...newShorts];
+          globalShortsCache = [...globalShortsCache, ...newShorts.filter((s: ShortItem) => !globalShortsCache.find(x => x._id === s._id))];
           setShorts(globalShortsCache);
         }
 
-        globalNextCursor = res.data.nextCursor || (newShorts.length > 0 ? newShorts[newShorts.length - 1]._id : null);
+        globalShortsPage = isFirstPage ? 1 : page;
         globalHasMore = res.data.hasMore ?? newShorts.length >= 10;
 
         if (newShorts.length > 0) {
@@ -334,17 +335,18 @@ export default function Shorts() {
       }
     } catch (err) {
       try {
+        const cursor = isFirstPage ? '' : globalShortsCache[globalShortsCache.length - 1]?._id;
         const res = await axios.get(`/shorts/all?cursor=${cursor || ''}`);
         if (res.data.success) {
           const newShorts = res.data.shorts;
-          if (shouldRefresh || cursor === null) {
+          if (shouldRefresh || isFirstPage) {
             globalShortsCache = newShorts;
             setShorts(newShorts);
           } else {
-            globalShortsCache = [...globalShortsCache, ...newShorts];
+            globalShortsCache = [...globalShortsCache, ...newShorts.filter((s: ShortItem) => !globalShortsCache.find(x => x._id === s._id))];
             setShorts(globalShortsCache);
           }
-          globalNextCursor = res.data.nextCursor;
+          globalShortsPage = isFirstPage ? 1 : page;
           globalHasMore = res.data.hasMore;
         }
       } catch { /* silent */ }
@@ -357,14 +359,14 @@ export default function Shorts() {
 
   useEffect(() => {
     if (globalShortsCache.length === 0) {
-      checkAndStartSession().then(() => fetchShorts(null, true));
+      checkAndStartSession().then(() => fetchShorts(0, true));
     }
   }, []);
 
   const loadMore = () => {
-    if (!loadingMore && globalHasMore && globalNextCursor) {
-      console.log(`🌀 Pre-fetching Shorts via cursor: ${globalNextCursor}`);
-      fetchShorts(globalNextCursor);
+    if (!loadingMore && globalHasMore) {
+      console.log(`🌀 Pre-fetching Shorts page: ${globalShortsPage + 1}`);
+      fetchShorts(globalShortsPage + 1);
     }
   };
 
@@ -446,7 +448,7 @@ export default function Shorts() {
     try {
       setRefreshing(true);
       setActiveVideoId(null);
-      await fetchShorts(null, true);
+      await fetchShorts(0, true);
     } catch (e) {
       console.log("Refresh failed", e);
     } finally {

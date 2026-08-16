@@ -201,6 +201,11 @@ export const socketController = (io) => {
       socket.leave(`hack:${hackathonId}`);
     });
 
+    socket.on("leave_hack_room", ({ hackathonId }) => { // Backwards compatibility
+      if (!hackathonId) return;
+      socket.leave(`hack:${hackathonId}`);
+    });
+
     socket.on("join:team", ({ teamId }) => {
       if (!teamId) return;
       socket.join(`team:${teamId}`);

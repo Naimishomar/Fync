@@ -325,6 +325,8 @@ export default function EventCommunityChat({ route }: any) {
                         renderItem={renderMessage}
                         contentContainerStyle={{ paddingBottom: 20 }}
                         showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
+                        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
                         onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
                     />
                 )}
@@ -332,6 +334,7 @@ export default function EventCommunityChat({ route }: any) {
                 <KeyboardAvoidingView
                     behavior="padding"
                     keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+                    enabled={Platform.OS === 'ios'}
                 >
                     {/* Input Area */}
                     <View className="p-4 bg-white border-t border-gray-100">

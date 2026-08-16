@@ -123,7 +123,7 @@ export const Invite = async (req, res, next) => {
    try {
       const { Id } = req.params;
       const { userId } = req.body;
-      const team = await HackathonTeam.findById(Id).populate("hackathon");
+      const team = await HackathonTeam.findById(Id).populate("hackathon", "title MaxTeamSize");
       if (!team) {
          return res.status(404).json({ success: false, message: "team Doesn't exists" });
       }
@@ -174,7 +174,7 @@ export const RespondtoInvite = async (req, res, next) => {
    try {
       const { action } = req.body; // accept | decline
       // FIX: was findById(req.params) (the params object) — must use req.params.Id
-      const team = await HackathonTeam.findById(req.params.Id).populate("hackathon");
+      const team = await HackathonTeam.findById(req.params.Id).populate("hackathon", "title MaxTeamSize");
       if (!team) {
          return res.status(404).json({ success: false, message: "team Doesn't exists" });
       }
@@ -218,8 +218,8 @@ export const RespondtoInvite = async (req, res, next) => {
             });
 
             // Notify the hackathon channel
-            // FIX: was using req.user.Id (capital I)
-            io.to(`hackathon:${team.hackathon._id}`).emit("team:member_joined", {
+            // FIX: room prefix was `hackathon:` — clients join `hack:`
+            io.to(`hack:${team.hackathon._id}`).emit("team:member_joined", {
                teamId: team._id,
                teamName: team.name,
                user: { userId: req.user.id, name: req.user.name }
@@ -245,7 +245,7 @@ export const RespondtoInvite = async (req, res, next) => {
 // POST api/team/:Id/request  - user request to join open team
 export const requesttoJoin = async (req, res, next) => {
    try {
-      const team = await HackathonTeam.findById(req.params.Id).populate("hackathon");
+      const team = await HackathonTeam.findById(req.params.Id).populate("hackathon", "title MaxTeamSize");
       if (!team) {
          return res.status(404).json({ success: false, message: "team Doesn't exists" });
       }
@@ -295,7 +295,7 @@ export const respondToJoinRequest = async (req, res, next) => {
    try {
       const { action, requestId } = req.body;
       // FIX: was using undefined `Team` variable — should be HackathonTeam
-      const team = await HackathonTeam.findById(req.params.Id).populate("hackathon");
+      const team = await HackathonTeam.findById(req.params.Id).populate("hackathon", "title MaxTeamSize");
       if (!team)
          return res.status(404).json({ success: false, message: "Team not found" });
       // FIX: was req.user._id — should be req.user.id to match auth middleware

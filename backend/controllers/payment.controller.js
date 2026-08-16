@@ -21,8 +21,15 @@ const razorpay = new Razorpay({
 export const createOrder = async (req, res) => {
   try {
     const { amount, notes } = req.body;
+    const numericAmount = Number(amount);
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0 || numericAmount > 500000) {
+      return res.status(400).json({ success: false, message: "Invalid amount" });
+    }
+    if (notes !== undefined && (typeof notes !== 'object' || notes === null || Array.isArray(notes))) {
+      return res.status(400).json({ success: false, message: "Invalid notes" });
+    }
     const options = {
-      amount: amount * 100,
+      amount: Math.round(numericAmount * 100),
       currency: "INR",
       receipt: `receipt_${Math.floor(Math.random() * 10000)}`,
       notes: notes || {}

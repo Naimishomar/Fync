@@ -5,7 +5,7 @@ import { r2UploadMiddleware } from '../utils/r2Upload.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 const router = express.Router();
 
-router.post('/sell', upload.array('image'), r2UploadMiddleware({ image: 'olx' }), authMiddleware, sellProduct);
+router.post('/sell', authMiddleware, upload.array('image'), r2UploadMiddleware({ image: 'olx' }), sellProduct);
 router.get('/user/products', authMiddleware, listedProductsByUser);
 router.post('/update', authMiddleware, upload.fields([{ name: 'product_image', maxCount: 1 }]), r2UploadMiddleware({ product_image: 'olx' }), updateProduct);
 router.post('/delete/:id', authMiddleware, deleteProduct);

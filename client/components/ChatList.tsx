@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   StatusBar,
   TouchableOpacity,
+  Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -345,6 +346,8 @@ const ChatList = () => {
             renderItem={search.length > 0 ? renderUserItem : renderConversationItem}
             contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 120 }}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
             initialNumToRender={10}
             maxToRenderPerBatch={5}
             windowSize={5}

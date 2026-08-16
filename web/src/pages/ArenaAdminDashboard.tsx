@@ -7,11 +7,8 @@ import {
    Trophy,
    Layout,
    ChevronRight,
-   Clock,
    ShieldCheck,
    Zap,
-   BarChart3,
-   Search,
    Bug
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -23,7 +20,7 @@ const ArenaAdminDashboard: React.FC = () => {
    const [stats, setStats] = useState<any>(null);
    const [problems, setProblems] = useState<any[]>([]);
    const [bugs, setBugs] = useState<any[]>([]);
-   const [loading, setLoading] = useState(true);
+   const [, setLoading] = useState(true);
    const navigate = useNavigate();
 
    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -161,7 +158,7 @@ const ArenaAdminDashboard: React.FC = () => {
                            exit={{ opacity: 0, y: -10 }}
                         >
                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                              {problems.map((prob, i) => (
+                              {problems.map((prob) => (
                                  <div key={prob._id} className="bg-slate-50 border border-slate-100 p-8 rounded-[32px] hover:border-pink-600/30 transition-all group shadow-sm hover:shadow-xl hover:shadow-slate-200/50">
                                     <div className="flex items-center justify-between mb-6">
                                        <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${prob.difficulty === 'Easy' ? 'bg-emerald-100 text-emerald-700' :

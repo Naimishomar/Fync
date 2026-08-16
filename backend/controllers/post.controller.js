@@ -244,7 +244,7 @@ export const likePost = async (req, res) => {
         if (!post) {
             return res.status(404).json({ success: false, message: "Post not found" });
         }
-        const isLiked = post.liked_by.includes(userId);
+        const isLiked = post.liked_by.some(uid => String(uid) === String(userId));
         let updatedPost;
         if (isLiked) {
             updatedPost = await Post.findByIdAndUpdate(

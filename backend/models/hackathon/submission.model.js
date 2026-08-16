@@ -72,6 +72,9 @@ const SchemaSubmission = new mongoose.Schema({
     timestamps:true
 })
 SchemaSubmission.index({hackathon:1,team:1},{unique:true})
+// Dashboard moderation queue, judge pending lists, and "recent submissions"
+SchemaSubmission.index({ hackathon: 1, status: 1 });
+SchemaSubmission.index({ hackathon: 1, updatedAt: -1 });
 
 const SubmissionModel = mongoose.model("HackathonSubmission", SchemaSubmission);
 export default SubmissionModel;

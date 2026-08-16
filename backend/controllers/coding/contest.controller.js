@@ -20,8 +20,10 @@ export const getContestDetails = async (req, res) => {
     
     if (!contest) return res.status(404).json({ message: 'Contest not found' });
 
+    const currentUserId = req.user?.id || req.user?._id;
+
     // Find current user's participant record
-    const participant = contest.participants.find(p => p.user._id.toString() === req.userId || p.user.toString() === req.userId);
+    const participant = contest.participants.find(p => String(p.user?._id || p.user) === String(currentUserId));
     const hasEntered = participant && participant.enteredAt;
 
     // Redact problem content if not entered
@@ -68,10 +70,12 @@ export const registerForContest = async (req, res) => {
       return res.status(400).json({ message: 'Contest has already ended' });
     }
 
-    const alreadyRegistered = contest.participants.find(p => p.user.toString() === req.userId);
+    const currentUserId = req.user?.id || req.user?._id;
+
+    const alreadyRegistered = contest.participants.find(p => String(p.user?._id || p.user) === String(currentUserId));
     if (alreadyRegistered) return res.status(400).json({ message: 'Already registered' });
 
-    contest.participants.push({ user: req.userId });
+    contest.participants.push({ user: currentUserId });
     await contest.save();
     res.json({ message: 'Registered successfully' });
   } catch (error) {
@@ -84,8 +88,10 @@ export const enterContest = async (req, res) => {
     const contest = await Contest.findById(req.params.id).populate('problems');
     if (!contest) return res.status(404).json({ message: 'Contest not found' });
 
+    const currentUserId = req.user?.id || req.user?._id;
+
     // Verify registration
-    const participant = contest.participants.find(p => p.user.toString() === req.userId);
+    const participant = contest.participants.find(p => String(p.user?._id || p.user) === String(currentUserId));
     if (!participant) return res.status(403).json({ message: 'Not registered for this contest' });
 
     // Check timing

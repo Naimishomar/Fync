@@ -17,6 +17,14 @@ export const sendMedia = async (req, res) => {
       return res.status(400).json({ success: false, message: "No file uploaded" });
     }
 
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) return res.status(404).json({ success: false, message: "Conversation not found" });
+
+    // Only participants may send media to a conversation
+    if (!(conversation.participants || []).some(p => String(p) === String(senderId))) {
+      return res.status(403).json({ success: false, message: "Not a participant" });
+    }
+
     // 1. Upload to R2
     const folder = `chats/${conversationId}`;
     const mediaUrl = await uploadToR2(req.file.buffer, folder, req.file.originalname, req.file.mimetype);
@@ -30,11 +38,16 @@ export const sendMedia = async (req, res) => {
       mediaUrl
     });
 
-    // 3. Update Conversation
-    await Conversation.findByIdAndUpdate(conversationId, {
-      lastMessage: newMessage._id,
-      $inc: { [`unreadCount.${req.body.receiverId}`]: 1 } // Note: frontend should pass receiverId
-    });
+    // 3. Update Conversation — only allow incrementing a participant's counter
+    const receiverId = String(req.body.receiverId || "");
+    if (receiverId && conversation.participants.some(p => String(p) === receiverId) && String(receiverId) !== String(senderId)) {
+      await Conversation.findByIdAndUpdate(conversationId, {
+        lastMessage: newMessage._id,
+        $inc: { [`unreadCount.${receiverId}`]: 1 }
+      });
+    } else {
+      await Conversation.findByIdAndUpdate(conversationId, { lastMessage: newMessage._id });
+    }
 
     newMessage = await Message.findById(newMessage._id)
       .populate("sender", "name username avatar")
@@ -59,6 +72,14 @@ export const getMessages = async (req, res) => {
   const { conversationId } = req.params;
   const { page = 1 } = req.query;
   const limit = 20;
+
+  const conversation = await Conversation.findById(conversationId);
+  if (!conversation) return res.status(404).json({ success: false, message: "Conversation not found" });
+
+  const userId = String(req.user?.id || req.user?._id);
+  if (!(conversation.participants || []).some(p => String(p) === userId)) {
+    return res.status(403).json({ success: false, message: "Not a participant" });
+  }
 
   const messages = await Message.find({ conversationId })
     .sort({ createdAt: -1 })
@@ -98,13 +119,15 @@ export const getConversations = async (req, res) => {
 export const searchUsers = async (req, res) => {
   try {
     const { q } = req.query;
+    if (!q) return res.json({ success: true, users: [] });
 
+    const safeQ = String(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const users = await User.find({
       $or: [
-        { username: { $regex: q, $options: "i" } },
-        { name: { $regex: q, $options: "i" } }
+        { username: { $regex: safeQ, $options: "i" } },
+        { name: { $regex: safeQ, $options: "i" } }
       ]
-    }).select("username name avatar");
+    }).select("username name avatar").limit(20).lean();
 
     res.json({ success: true, users });
   } catch (error) {

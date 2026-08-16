@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../lib/api';
 
 interface AuthContextType {
   user: any;
@@ -16,21 +16,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
   useEffect(() => {
     const initializeAuth = async () => {
       const savedToken = localStorage.getItem('token');
       if (savedToken) {
         try {
-          const res = await axios.get(`${API_URL}/user/profile`, {
-            headers: { Authorization: `Bearer ${savedToken}` }
-          });
+          const res = await api.get('/user/profile');
           setUser(res.data.user);
           setToken(savedToken);
-        } catch (err) {
+        } catch {
           console.error('Auth sync failed');
-          logout();
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setToken(null);
+          setUser(null);
         }
       }
       setLoading(false);

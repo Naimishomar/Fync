@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import User from '../models/user.model.js';
 import jwt from 'jsonwebtoken';
 import { customAlphabet } from 'nanoid';
@@ -15,6 +16,17 @@ import { clearCache } from '../middlewares/cache.middleware.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/token.js';
 import { deleteFromR2 } from '../utils/r2.js';
 // import {sendPhoneOTP, verifyPhoneOTP } from '../utils/phoneOtp.js';
+
+const SENSITIVE_FIELDS = ['password', 'refreshToken', 'githubAccessToken', 'deviceId', 'deviceModel'];
+
+const sanitizeUser = (user) => {
+  if (!user) return user;
+  const obj = typeof user.toObject === 'function' ? user.toObject() : { ...user };
+  SENSITIVE_FIELDS.forEach((f) => { delete obj[f]; });
+  return obj;
+};
+
+const escapeRegExp = (str = '') => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export const sendOTP = async (req, res) => {
   try {
@@ -316,7 +328,7 @@ export const register = async (req, res) => {
 
 
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-    return res.status(200).json({ success: true, message: "User registered successfully", token, user: newUser });
+    return res.status(200).json({ success: true, message: "User registered successfully", token, user: sanitizeUser(newUser) });
   } catch (error) {
     console.error("Register Error:", error);
     return res.status(500).json({
@@ -373,7 +385,7 @@ export const registerAlumni = async (req, res) => {
     });
 
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-    return res.status(200).json({ success: true, message: "Alumni registered successfully", token, user: newUser });
+    return res.status(200).json({ success: true, message: "Alumni registered successfully", token, user: sanitizeUser(newUser) });
   } catch (error) {
     console.error("Alumni Register Error:", error);
     return res.status(500).json({
@@ -431,7 +443,7 @@ export const registerRecruiter = async (req, res) => {
     console.log("DEBUG: Recruiter Created Successfully:", newUser.email);
 
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-    return res.status(200).json({ success: true, message: "Recruiter registered successfully", token, user: newUser });
+    return res.status(200).json({ success: true, message: "Recruiter registered successfully", token, user: sanitizeUser(newUser) });
   } catch (error) {
     console.error("Recruiter Register Error:", error);
     return res.status(500).json({
@@ -446,22 +458,17 @@ export const login = async (req, res) => {
     let { email, password, deviceId, deviceModel } = req.body;
     if (email) email = email.toLowerCase().trim();
 
-    console.log("DEBUG: Login Attempt for identifier:", email);
-
-    // Look for user by email, username, mobileNumber, OR professionalEmail
-    // Let's also do a case-insensitive regex search just to be 100% sure
-    const user = await User.findOne({ 
+    const escape = escapeRegExp(email);
+    const user = await User.findOne({
       $or: [
-        { email: { $regex: new RegExp("^" + email + "$", "i") } }, 
-        { username: { $regex: new RegExp("^" + email + "$", "i") } }, 
+        { email: { $regex: new RegExp("^" + escape + "$", "i") } },
+        { username: { $regex: new RegExp("^" + escape + "$", "i") } },
         { mobileNumber: email },
-        { professionalEmail: { $regex: new RegExp("^" + email + "$", "i") } }
-      ] 
+        { professionalEmail: { $regex: new RegExp("^" + escape + "$", "i") } }
+      ]
     });
-    
-    console.log("DEBUG: Database search result:", user ? `Found User ID: ${user._id}, Access: ${user.user_access}` : "NOT FOUND");
     if (!user) {
-      return res.status(400).json({ success: false, message: "User not found" });
+      return res.status(400).json({ success: false, message: "Invalid credentials" });
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -491,7 +498,7 @@ export const login = async (req, res) => {
     }
     await user.save();
 
-    const userObj = user.toObject();
+    const userObj = sanitizeUser(user);
 
     res.status(200).json({ message: "Login successful", success: true, token: accessToken, refreshToken, user: userObj });
   } catch (err) {
@@ -602,7 +609,7 @@ export const getProfile = async (req, res) => {
     // Lazy reset streak if missed
     user = await checkAndResetStreak(user);
 
-    const userObj = user.toObject();
+    const userObj = sanitizeUser(user);
     return res.status(200).json({ success: true, message: "User fetched successfully", user: userObj });
   } catch (error) {
     console.error("Fetch Error:", error);
@@ -616,7 +623,7 @@ export const getUserProfileByName = async (req, res) => {
     if (!name) {
       return res.status(200).json({ success: true, users: [] });
     };
-    const searchRegex = new RegExp(name, "i");
+    const searchRegex = new RegExp(escapeRegExp(name), "i");
     const users = await User.find({ $or: [{ username: { $regex: searchRegex } }, { name: { $regex: searchRegex } }] })
       .select('_id name username avatar college year user_access')
       .limit(10);
@@ -648,7 +655,7 @@ export const getAlumniByCollege = async (req, res) => {
     }
 
     if (search) {
-      const searchRegex = new RegExp(search, "i");
+      const searchRegex = new RegExp(escapeRegExp(search), "i");
       query.$or = [
         { name: { $regex: searchRegex } },
         { username: { $regex: searchRegex } },
@@ -695,7 +702,7 @@ export const getUserProfile = async (req, res) => {
     // Lazily reset streak if the user missed a day, so viewers see accurate streaks
     user = await checkAndResetStreak(user);
 
-    return res.status(200).json({ success: true, message: 'User fetched successfully', user });
+    return res.status(200).json({ success: true, message: 'User fetched successfully', user: sanitizeUser(user) });
   } catch (error) {
     console.log("Internal server error", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
@@ -1010,15 +1017,18 @@ export const verifyAdminPassword = async (req, res) => {
       return res.status(500).json({ success: false, message: "Server misconfiguration: Admin password not set in environment." });
     }
 
-    console.log(`[AUTH] Verifying admin password. Received length: ${password ? password.length : 'undefined'}, Expected length: ${adminPassword ? adminPassword.length : 'undefined'}`);
-    console.log(`[AUTH] Received: '${password}', Expected: '${adminPassword}'`);
-
-    if (password && password.trim() === adminPassword.trim()) {
-      return res.status(200).json({ success: true, message: "Access granted" });
-    } else {
-      console.log(`[AUTH] Password mismatch! Denying access.`);
+    if (typeof password !== 'string' || password.length === 0) {
       return res.status(401).json({ success: false, message: "Invalid admin password" });
     }
+
+    const supplied = Buffer.from(password);
+    const expected = Buffer.from(adminPassword);
+    const isMatch = supplied.length === expected.length && crypto.timingSafeEqual(supplied, expected);
+
+    if (isMatch) {
+      return res.status(200).json({ success: true, message: "Access granted" });
+    }
+    return res.status(401).json({ success: false, message: "Invalid admin password" });
   } catch (error) {
     console.error("Verify Admin Password Error:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });

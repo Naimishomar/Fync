@@ -282,6 +282,8 @@ const SubGroupChat = ({ navigation, route }: any) => {
                             renderItem={renderMessage}
                             contentContainerStyle={{ padding: 20 }}
                             showsVerticalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
                             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
                         />
                     )}

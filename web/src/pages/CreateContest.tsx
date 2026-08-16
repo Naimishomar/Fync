@@ -3,15 +3,10 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus,
-  Trash2,
-  Save,
   ChevronLeft,
   Trophy,
-  Users,
-  Clock,
   Layout,
   Globe,
-  Lock,
   Zap,
   Check
 } from 'lucide-react';
@@ -34,7 +29,7 @@ const CreateContest: React.FC = () => {
   const [prizePool, setPrizePool] = useState('');
   const [visibility, setVisibility] = useState('Public');
   const [inviteCode, setInviteCode] = useState('');
-  const [penalty, setPenalty] = useState(5);
+  const [penalty] = useState(5);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 

@@ -418,6 +418,7 @@ export default function TwelveAMClub() {
                         keyExtractor={(item) => item._id || item.tempId || Math.random().toString()}
                         contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
                         showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
                         renderItem={renderMessage}
                     />
                 )}

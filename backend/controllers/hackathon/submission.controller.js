@@ -26,6 +26,25 @@ export const getSubmissions = async (req, res, next) => {
         if (status) filter.status = status;
         if (team) filter.team = team;
 
+        // Authorization gate: only organiser, judges, or team members may list
+        if (hackathon) {
+            const hack = await Hackathon.findById(hackathon).select("organiser judges status");
+            if (!hack) return res.status(404).json({ success: false, message: "Hackathon not found" });
+
+            const isOrganiser = hack.organiser.toString() === req.user.id.toString();
+            const isJudge = hack.judges.map(String).includes(req.user.id.toString());
+            const myTeam = await HackathonTeam.findOne({
+                hackathon,
+                "members.user": req.user.id,
+            }).select("_id");
+
+            if (!isOrganiser && !isJudge && !myTeam) {
+                return res.status(403).json({ success: false, message: "You are not authorised to view submissions" });
+            }
+            // Non-organisers/judges only see their own team's submission
+            if (!isOrganiser && !isJudge) filter.team = myTeam._id;
+        }
+
         const submissions = await SubmissionModel.find(filter)
             .populate("team", "name")
             .populate("submittedBy", "name email avatar")
@@ -121,7 +140,7 @@ export const createSubmission = async (req, res, next) => {
 export const updateSubmission = async (req, res, next) => {
     try {
         // FIX: was using undefined `Submission` — should be SubmissionModel
-        const sub = await SubmissionModel.findById(req.params.id).populate("hackathon");
+        const sub = await SubmissionModel.findById(req.params.id).populate("hackathon", "hackathonends status");
         if (!sub)
             return res.status(404).json({ success: false, message: "Submission not found" });
 
@@ -159,7 +178,7 @@ export const updateSubmission = async (req, res, next) => {
 export const finalizeSubmission = async (req, res, next) => {
     try {
         // FIX: was using undefined `Submission` — should be SubmissionModel
-        const sub = await SubmissionModel.findById(req.params.id).populate("hackathon");
+        const sub = await SubmissionModel.findById(req.params.id).populate("hackathon", "hackathonends status");
         if (!sub)
             return res.status(404).json({ success: false, message: "Submission not found" });
 
@@ -202,7 +221,7 @@ export const finalizeSubmission = async (req, res, next) => {
 export const addFile = async (req, res, next) => {
     try {
         // FIX: was using undefined `Submission` — should be SubmissionModel
-        const sub = await SubmissionModel.findById(req.params.id).populate("hackathon");
+        const sub = await SubmissionModel.findById(req.params.id).populate("hackathon", "hackathonends status");
         if (!sub)
             return res.status(404).json({ success: false, message: "Submission not found" });
 
@@ -223,6 +242,37 @@ export const addFile = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
+// POST /api/submissions/:id/upload  — multipart file upload straight to R2
+export const uploadSubmissionFile = async (req, res, next) => {
+    try {
+        const sub = await SubmissionModel.findById(req.params.id).populate("hackathon", "hackathonends status");
+        if (!sub)
+            return res.status(404).json({ success: false, message: "Submission not found" });
+
+        const { error } = await verifyTeamMember(sub.team, req.user.id);
+        if (error) return res.status(403).json({ success: false, message: error });
+
+        if (sub.status !== "draft")
+            return res.status(400).json({ success: false, message: "Cannot add files to a finalized submission" });
+
+        if (isDeadlinePassed(sub.hackathon))
+            return res.status(400).json({ success: false, message: "Deadline passed" });
+
+        if (!req.file || !req.file.path)
+            return res.status(400).json({ success: false, message: "No file uploaded" });
+
+        sub.files.push({
+            name: req.file.originalname,
+            Url: req.file.path,
+            size: String(req.file.size || 0),
+            type: req.file.mimetype,
+        });
+        await sub.save();
+
+        res.status(200).json({ success: true, files: sub.files });
+    } catch (err) { next(err); }
+};
+
 // DELETE /api/submissions/:id/files/:fileId  — remove a file from draft
 export const removeFile = async (req, res, next) => {
     try {
@@ -230,6 +280,10 @@ export const removeFile = async (req, res, next) => {
         const sub = await SubmissionModel.findById(req.params.id);
         if (!sub)
             return res.status(404).json({ success: false, message: "Submission not found" });
+
+        // FIX: was missing team-member verification — any auth user could delete files
+        const { error } = await verifyTeamMember(sub.team, req.user.id);
+        if (error) return res.status(403).json({ success: false, message: error });
 
         if (sub.status !== "draft")
             return res.status(400).json({ success: false, message: "Cannot modify a finalized submission" });

@@ -65,7 +65,10 @@ export const verifySubscriptionPayment = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid payment signature" });
         }
 
-        const subscription = await Subscription.findOne({ razorpayOrderId: razorpay_order_id });
+        const subscription = await Subscription.findOne({
+            razorpayOrderId: razorpay_order_id,
+            user: req.user.id
+        });
         if (!subscription) {
             return res.status(404).json({ success: false, message: "Subscription order not found" });
         }
@@ -93,19 +96,29 @@ export const verifySubscriptionPayment = async (req, res) => {
         const endDate = new Date(baseDate);
         endDate.setDate(endDate.getDate() + 30); // Add 30 days to baseDate (either now or current expiry)
 
-        // Update subscription record securely
-        subscription.razorpayPaymentId = razorpay_payment_id;
-        subscription.status = 'active';
-        subscription.startDate = startDate;
-        subscription.endDate = endDate;
-        await subscription.save();
+        // Atomically claim the pending order so concurrent verify calls can't double-activate.
+        const claimed = await Subscription.findOneAndUpdate(
+            { _id: subscription._id, status: 'pending' },
+            {
+                $set: {
+                    razorpayPaymentId: razorpay_payment_id,
+                    status: 'active',
+                    startDate,
+                    endDate
+                },
+            },
+            { new: true }
+        );
+        if (!claimed) {
+            return res.status(400).json({ success: false, message: "This payment has already been processed" });
+        }
 
         // Update user's is_subscribed status
         await User.findByIdAndUpdate(req.user.id, {
             is_subscribed: true
         });
 
-        res.status(200).json({ success: true, message: "Subscription activated!", subscription });
+        res.status(200).json({ success: true, message: "Subscription activated!", subscription: claimed });
     } catch (err) {
         console.error("Error verifying subscription payment:", err);
         res.status(500).json({ success: false, message: "Error activating subscription" });

@@ -74,7 +74,7 @@ export const upvoteQuestion = async (req, res) => {
         const question = await PlacementQuestion.findById(id);
         if (!question) return res.status(404).json({ success: false, message: "Question not found" });
 
-        const hasUpvoted = question.upvotes.includes(req.user.id);
+        const hasUpvoted = (question.upvotes || []).some(uid => String(uid) === String(req.user.id));
         if (hasUpvoted) {
             question.upvotes = question.upvotes.filter(uid => uid.toString() !== req.user.id);
         } else {
@@ -201,7 +201,7 @@ export const toggleSave = async (req, res) => {
         const question = await PlacementQuestion.findById(id);
         if (!question) return res.status(404).json({ success: false, message: "Question not found" });
 
-        const isSaved = question.savedBy.includes(req.user.id);
+        const isSaved = (question.savedBy || []).some(id => String(id) === String(req.user.id));
         if (isSaved) {
             question.savedBy = question.savedBy.filter(uid => uid.toString() !== req.user.id);
         } else {

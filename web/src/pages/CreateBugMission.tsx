@@ -9,7 +9,6 @@ import {
    Code,
    Layout,
    Zap,
-   Target,
    FlaskConical,
    Terminal,
    Bug,

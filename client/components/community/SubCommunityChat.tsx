@@ -209,12 +209,14 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                             renderItem={renderMessage} 
                             contentContainerStyle={{ padding: 24, paddingTop: 16 }}
                             showsVerticalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
                             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
                         />
                     )}
                 </View>
 
-                <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
+                <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0} enabled={Platform.OS === 'ios'}>
                     {subType === 'announcement' && !isCreator ? (
                         <View className="p-10 bg-white items-center justify-center border-t border-slate-100">
                             <View className="bg-slate-50 px-10 py-4 rounded-[28px] border border-slate-100 flex-row items-center gap-3">

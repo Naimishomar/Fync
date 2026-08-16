@@ -141,9 +141,13 @@ const HackathonDetail = () => {
     };
 
     socket.on('announcement:new', onNewAnnouncement);
+    socket.on('hackathon:status_changed', () => loadHackathon());
+    socket.on('hackathon:winners_announced', () => loadHackathon());
 
     return () => {
       socket.off('announcement:new', onNewAnnouncement);
+      socket.off('hackathon:status_changed');
+      socket.off('hackathon:winners_announced');
       socket.emit('leave_hack_room', { hackathonId });
     };
   }, [hackathonId]);
@@ -206,10 +210,10 @@ const HackathonDetail = () => {
 
   const isOfficial = () => {
     if (!hackathon || !user) return false;
-    const userId = user._id || user.id;
+    const userId = String(user._id || user.id);
     const organiserId = hackathon.organiser?._id || hackathon.organiser;
-    const isOrg = organiserId === userId;
-    const isJdg = hackathon.judges?.some((j: any) => (j._id || j) === userId);
+    const isOrg = organiserId ? String(organiserId) === userId : false;
+    const isJdg = hackathon.judges?.some((j: any) => String(j._id || j) === userId);
     return !!(isOrg || isJdg);
   };
 
@@ -233,7 +237,27 @@ const HackathonDetail = () => {
     ]);
   };
 
-  const isParticipant = hackathon?.participants?.includes(user?._id);
+  const isParticipant = !!hackathon?.participants?.map(String).includes(String(user?._id || user?.id));
+
+  // ─── Registration window awareness (Devfolio-style guardrails) ─────────────
+  const now = new Date();
+  const isRegOpen =
+    hackathon &&
+    !['draft', 'completed'].includes(hackathon.status) &&
+    (!hackathon.registrationstart || now >= new Date(hackathon.registrationstart)) &&
+    (!hackathon.registrationends || now <= new Date(hackathon.registrationends));
+
+  const regStatusLabel = !hackathon
+    ? ''
+    : hackathon.status === 'completed'
+    ? 'Event Concluded'
+    : hackathon.status === 'draft'
+    ? 'Draft · Not Live'
+    : !isRegOpen
+    ? (hackathon.registrationends && now > new Date(hackathon.registrationends))
+      ? 'Registration Closed'
+      : 'Registration Opens Soon'
+    : 'Registration Open';
 
   if (loading) {
     return (
@@ -282,6 +306,14 @@ const HackathonDetail = () => {
                 className="bg-white/90 rounded-2xl px-5 py-2.5 shadow-sm border border-white"
               >
                 <Text className="text-zinc-900 font-black  text-[10px] uppercase tracking-widest">My Team</Text>
+              </TouchableOpacity>
+            )}
+            {isOfficial() && (
+              <TouchableOpacity
+                onPress={() => navigation.navigate('HackathonDashboard', { hackathonId: hackathon._id, hackathonTitle: hackathon.title })}
+                className="bg-amber-400/90 rounded-2xl px-5 py-2.5 shadow-sm border border-amber-300"
+              >
+                <Text className="text-amber-900 font-black  text-[10px] uppercase tracking-widest">🛠️ Console</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -712,6 +744,34 @@ const HackathonDetail = () => {
           {activeTab === 7 && (
             <View>
               <Text className="text-zinc-900 font-black  text-xl uppercase tracking-tighter mb-6 mx-2">🏆 Bounty Distribution</Text>
+
+              {/* Assigned Winners */}
+              {hackathon.winners && hackathon.winners.length > 0 && (
+                <View className="bg-emerald-50/60 border border-emerald-100 rounded-[32px] p-6 mb-6">
+                  <Text className="text-emerald-700 font-black uppercase text-[10px] tracking-widest mb-4 flex-row items-center">
+                    ✅ Winners Announced
+                  </Text>
+                  {hackathon.winners
+                    .slice()
+                    .sort((a: any, b: any) => (a.rank || 0) - (b.rank || 0))
+                    .map((w: any, i: number) => (
+                      <View key={i} className="flex-row items-center py-3 border-b border-emerald-100 last:border-b-0">
+                        <View className="w-12 h-12 rounded-2xl bg-white items-center justify-center mr-4">
+                          <Text className="text-xl font-black">{['🥇','🥈','🥉'][(w.rank||1)-1] || `#${w.rank}`}</Text>
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-zinc-900 font-black text-sm uppercase tracking-tight">
+                            {w.submission?.ProjectName || `Rank ${w.rank}`}
+                          </Text>
+                          <Text className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-0.5">
+                            {w.team?.name || 'Team'} {w.title ? `· ${w.title}` : ''} {w.amount ? `· ${w.amount}` : ''}
+                          </Text>
+                        </View>
+                      </View>
+                    ))}
+                </View>
+              )}
+
               {hackathon.prizes && hackathon.prizes.length > 0 ? (
                 hackathon.prizes.map((prize: any, i: number) => {
                   const medalColors = [['#fef3c7', '#d97706'], ['#f1f5f9', '#64748b'], ['#fef3c7', '#92400e']];
@@ -743,15 +803,21 @@ const HackathonDetail = () => {
       {/* Professional Floating CTA Footer */}
       <View className="absolute bottom-0 left-0 right-0 px-6 pb-10 pt-4 bg-white/95 border-t border-slate-50 backdrop-blur-xl">
         {!isParticipant ? (
-          <TouchableOpacity onPress={handleJoin} disabled={joining} activeOpacity={0.9}>
-            <LinearGradient colors={['#ec4899', '#f43f5e']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} className="rounded-[24px] shadow-xl shadow-pink-500/20">
+          <TouchableOpacity onPress={isRegOpen ? handleJoin : undefined} disabled={joining || !isRegOpen} activeOpacity={0.9}>
+            <LinearGradient
+              colors={isRegOpen ? ['#ec4899', '#f43f5e'] : ['#cbd5e1', '#94a3b8']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+              className="rounded-[24px] shadow-xl shadow-pink-500/20"
+            >
               <View className="py-5 flex-row items-center justify-center">
                 {joining ? (
                   <ActivityIndicator size="small" color="white" />
                 ) : (
                   <>
-                    <Ionicons name="planet" size={20} color="white" />
-                    <Text className="text-white font-black  text-base uppercase tracking-widest ml-3">Join Ecosystem Registry</Text>
+                    <Ionicons name={isRegOpen ? "planet" : "lock-closed"} size={20} color="white" />
+                    <Text className="text-white font-black  text-base uppercase tracking-widest ml-3">
+                      {isRegOpen ? 'Join Ecosystem Registry' : regStatusLabel.toUpperCase()}
+                    </Text>
                   </>
                 )}
               </View>
