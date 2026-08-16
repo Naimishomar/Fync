@@ -1,9 +1,15 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 console.log("🌐 Axios Base URL:", BACKEND_URL);
 axios.defaults.baseURL = BACKEND_URL;
+
+// Use xhr adapter for React Native/Expo (not Node.js http/https)
+if (Platform.OS !== 'web') {
+  axios.defaults.adapter = 'xhr';
+}
 
 const CACHE_PREFIX = "fync_cache_";
 const LEGACY_PREFIX = "cache_";

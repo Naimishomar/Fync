@@ -27,7 +27,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { collegesInIndia } from '../../data/college';
 // @ts-ignore
 import { RAZORPAY_KEY_ID } from '@env';
-import * as XLSX from 'xlsx';
+import * as XLSX from '@e965/xlsx';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { CameraView, useCameraPermissions } from 'expo-camera';

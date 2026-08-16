@@ -82,9 +82,9 @@ import { socketController } from './controllers/socket.controller.js';
 import codingBattleSockets from './controllers/coding/battle.socket.js';
 import compression from 'compression';
 import helmet from 'helmet';
-import mongoSanitize from 'express-mongo-sanitize';
 import { monitoringMiddleware } from './middlewares/monitoring.middleware.js';
 import { generalLimiter } from './middlewares/rateLimit.middleware.js';
+import { mongoSanitize } from './middlewares/mongoSanitize.js';
 
 // CORS: allow configurable origins for production. Wildcard cannot be combined
 // with credentials, so we only enable credentials for explicit origins.
