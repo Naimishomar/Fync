@@ -1,14 +1,16 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// Import the xhr adapter directly for React Native/Expo
+// @ts-ignore - no declaration file for internal axios module
+import xhrAdapter from "axios/lib/adapters/xhr.js";
+
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 console.log("🌐 Axios Base URL:", BACKEND_URL);
 axios.defaults.baseURL = BACKEND_URL;
 
-// Axios 1.x auto-detects the correct adapter for each platform:
-// - Web: native XMLHttpRequest/fetch
-// - React Native/Expo: uses the XMLHttpRequest polyfill from react-native-get-random-values
-// No manual adapter needed - setting one causes "defaultAdapter is not a function" errors.
+// Explicitly use the xhr adapter function (not string) to avoid auto-detection issues in Expo
+axios.defaults.adapter = xhrAdapter;
 
 const CACHE_PREFIX = "fync_cache_";
 const LEGACY_PREFIX = "cache_";
