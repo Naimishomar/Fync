@@ -1,125 +1,153 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, Modal, Alert } from 'react-native';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Image, Modal, Alert, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { supabase } from '../../utils/supabase';
 import { useAuth } from '../../context/auth.context';
 import { Mic, PhoneCall, PhoneOff, Phone } from 'lucide-react-native';
 import { webRTCManager } from '../../services/WebRTCService';
+import { callSignaling } from '../../services/CallSignalingService';
+import axios from '../../context/axiosConfig';
 import ActiveAudioCall from './ActiveAudioCall';
+
+interface OnlineUser {
+  _id: string;
+  name: string;
+  profilePic?: string;
+  college?: string;
+  status: 'online' | 'busy';
+}
 
 export default function AudioCallLobby({ navigation }: any) {
   const { user } = useAuth();
-  const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
-  const [channel, setChannel] = useState<any>(null);
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
   
   // Call States
-  const [incomingCall, setIncomingCall] = useState<any>(null); // { callerId, callerName, sdp }
-  const [activeCallUser, setActiveCallUser] = useState<any>(null); // Who we are calling / talking to
+  const [incomingCall, setIncomingCall] = useState<any>(null);
+  const [activeCallUser, setActiveCallUser] = useState<OnlineUser | null>(null);
   const [isCallConnected, setIsCallConnected] = useState(false);
-  const activeCallUserRef = useRef<any>(null); // Ref for accurate state inside event listeners
+  const [userBusy, setUserBusy] = useState(false);
+  const activeCallUserRef = useRef<OnlineUser | null>(null);
   const callTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const signalingReady = useRef(false);
 
+  // Initialize signaling
   useEffect(() => {
     if (!user) return;
 
-    // 1. Join Presence Channel
-    const room = supabase.channel('room:networking', {
-      config: {
-        presence: {
-          key: user._id,
-        },
-      },
-    });
+    // Setup signaling callbacks
+    callSignaling.onIncomingCall = handleIncomingCall;
+    callSignaling.onCallAnswered = handleCallAnswered;
+    callSignaling.onIceCandidate = handleIceCandidate;
+    callSignaling.onCallEnded = handleCallEnded;
+    callSignaling.onCallRejected = handleCallRejected;
+    callSignaling.onCallBusy = handleCallBusy;
+    callSignaling.onCallFailed = handleCallFailed;
+    callSignaling.onOnlineUsers = handleOnlineUsers;
+    callSignaling.onUserStatus = handleUserStatus;
 
-    room
-      .on('presence', { event: 'sync' }, () => {
-        const state = room.presenceState();
-        const users = [];
-        for (const id in state) {
-          // Exclude self and map the data
-          if (id !== user._id) {
-             const userState = state[id][0] as any;
-             users.push({
-               _id: id,
-               name: userState.name,
-               profilePic: userState.profilePic,
-               college: userState.college,
-               status: userState.status,
-             });
-          }
-        }
-        setOnlineUsers(users);
-      })
-      .on('broadcast', { event: 'CALL_OFFER' }, async ({ payload }) => {
-        if (payload.targetUserId === user._id) {
-          if (activeCallUserRef.current) {
-            // Automatically reject if we are already in a call
-            room.send({
-              type: 'broadcast',
-              event: 'CALL_END',
-              payload: { targetUserId: payload.callerId, callerId: user._id, callerName: user.name, reason: 'busy' }
-            });
-            return;
-          }
-          setIncomingCall({
-            callerId: payload.callerId,
-            callerName: payload.callerName,
-            sdp: payload.sdp,
-          });
-        }
-      })
-      .on('broadcast', { event: 'CALL_ANSWER' }, async ({ payload }) => {
-        if (payload.targetUserId === user._id) {
-          if (callTimeoutRef.current) clearTimeout(callTimeoutRef.current);
-          await webRTCManager.setRemoteDescription(payload.sdp);
-        }
-      })
-      .on('broadcast', { event: 'ICE_CANDIDATE' }, async ({ payload }) => {
-        if (payload.targetUserId === user._id) {
-          await webRTCManager.addIceCandidate(payload.candidate);
-        }
-      })
-      .on('broadcast', { event: 'CALL_END' }, ({ payload }) => {
-        if (payload.targetUserId === user._id) {
-           endCall(false);
-           setIncomingCall((prev: any) => {
-             if (prev && prev.callerId === payload.callerId) {
-               return null;
-             }
-             return prev;
-           });
-           Alert.alert("Call Ended", `${payload.callerName} ended the call.`);
-        }
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await room.track({
-            name: user.name,
-            profilePic: user.profilePic || '',
-            college: user.college || '',
-            status: 'online', // or 'busy'
-          });
-        }
-      });
+    // Connect to signaling server
+    callSignaling.connect(user._id);
+    signalingReady.current = true;
 
-    setChannel(room);
+    // Fetch initial online users
+    fetchOnlineUsers();
 
     return () => {
+      // Cleanup
       if (activeCallUserRef.current) {
-        room.send({
-          type: 'broadcast',
-          event: 'CALL_END',
-          payload: { targetUserId: activeCallUserRef.current._id, callerId: user._id, callerName: user.name }
-        });
+        callSignaling.endCall(activeCallUserRef.current._id);
       }
-      room.untrack();
-      room.unsubscribe();
+      callSignaling.disconnect();
       webRTCManager.cleanup();
+      
+      // Clear callbacks
+      callSignaling.onIncomingCall = null;
+      callSignaling.onCallAnswered = null;
+      callSignaling.onIceCandidate = null;
+      callSignaling.onCallEnded = null;
+      callSignaling.onCallRejected = null;
+      callSignaling.onCallBusy = null;
+      callSignaling.onCallFailed = null;
+      callSignaling.onOnlineUsers = null;
+      callSignaling.onUserStatus = null;
     };
   }, [user]);
 
+  const fetchOnlineUsers = useCallback(async () => {
+    setLoadingUsers(true);
+    try {
+      const res = await axios.get('/user/online');
+      if (res.data?.success && Array.isArray(res.data.users)) {
+        setOnlineUsers(res.data.users);
+      }
+    } catch (error) {
+      console.error('Failed to fetch online users:', error);
+    } finally {
+      setLoadingUsers(false);
+    }
+  }, []);
+
+  const handleOnlineUsers = useCallback((users: OnlineUser[]) => {
+    setOnlineUsers(users);
+  }, []);
+
+  const handleUserStatus = useCallback((data: { userId: string; status: string }) => {
+    setOnlineUsers(prev => prev.map(u => 
+      u._id === data.userId ? { ...u, status: data.status as 'online' | 'busy' } : u
+    ));
+  }, []);
+
+  const handleIncomingCall = useCallback((data: { callerId: string; sdp: any; callerInfo: any }) => {
+    if (activeCallUserRef.current) {
+      // Auto-reject if already in a call
+      callSignaling.sendBusy(data.callerId);
+      return;
+    }
+
+    setIncomingCall({
+      callerId: data.callerId,
+      callerName: data.callerInfo?.name || 'Unknown',
+      sdp: data.sdp,
+    });
+  }, []);
+
+  const handleCallAnswered = useCallback(async (data: { sdp: any }) => {
+    if (callTimeoutRef.current) clearTimeout(callTimeoutRef.current);
+    await webRTCManager.setRemoteDescription(data.sdp);
+  }, []);
+
+  const handleIceCandidate = useCallback(async (data: { candidate: any }) => {
+    await webRTCManager.addIceCandidate(data.candidate);
+  }, []);
+
+  const handleCallEnded = useCallback((data: { reason: string }) => {
+    endCall(false);
+    setIncomingCall((prev: any) => {
+      if (prev && prev.callerId === data.reason) return null; // reason might be callerId in some cases
+      return prev;
+    });
+    if (data.reason && data.reason !== 'ended') {
+      Alert.alert("Call Ended", data.reason);
+    }
+  }, []);
+
+  const handleCallRejected = useCallback(() => {
+    endCall(false);
+    Alert.alert("Call Rejected", "The user declined your call.");
+  }, []);
+
+  const handleCallBusy = useCallback(() => {
+    endCall(false);
+    Alert.alert("User Busy", "The user is currently in another call.");
+  }, []);
+
+  const handleCallFailed = useCallback((data: { reason: string }) => {
+    endCall(false);
+    Alert.alert("Call Failed", data.reason || "Unable to connect. Please try again.");
+  }, []);
+
   // Handle outgoing call
-  const startCall = async (targetUser: any) => {
+  const startCall = useCallback(async (targetUser: OnlineUser) => {
     if (targetUser.status === 'busy') {
       Alert.alert("Busy", `${targetUser.name} is currently in another call.`);
       return;
@@ -127,136 +155,158 @@ export default function AudioCallLobby({ navigation }: any) {
 
     setActiveCallUser(targetUser);
     activeCallUserRef.current = targetUser;
-    
-    // Update our own status to busy
-    await channel?.track({ name: user.name, profilePic: user.profilePic, college: user.college, status: 'busy' });
+    setUserBusy(true);
 
-    await webRTCManager.setupLocalStream();
-    await webRTCManager.initializePeerConnection();
+    try {
+      await webRTCManager.setupLocalStream();
+      await webRTCManager.initializePeerConnection();
 
-    // Send ICE candidates to target user
-    webRTCManager.onIceCandidate = (candidate) => {
-      channel?.send({
-        type: 'broadcast',
-        event: 'ICE_CANDIDATE',
-        payload: { targetUserId: targetUser._id, candidate, callerId: user._id },
+      // Send ICE candidates to target user
+      webRTCManager.onIceCandidate = (candidate) => {
+        callSignaling.sendIceCandidate(targetUser._id, candidate);
+      };
+
+      webRTCManager.onConnectionStateChange = (state) => {
+        if (state === 'connected') {
+          setIsCallConnected(true);
+        }
+        if (state === 'disconnected' || state === 'failed') {
+          Alert.alert("Connection Lost", "The audio call disconnected due to poor network.");
+          endCall(false);
+        }
+      };
+
+      const offer = await webRTCManager.createOffer();
+      
+      callSignaling.sendOffer(targetUser._id, offer, {
+        name: user.name,
+        _id: user._id,
+        profilePic: user.profilePic,
       });
-    };
 
-    webRTCManager.onConnectionStateChange = (state) => {
-      if (state === 'connected') {
-        setIsCallConnected(true);
-      }
-      if (state === 'disconnected' || state === 'failed') {
-        Alert.alert("Connection Lost", "The audio call disconnected due to poor network.");
-        endCall(false);
-      }
-    };
-
-    const offer = await webRTCManager.createOffer();
-    
-    channel?.send({
-      type: 'broadcast',
-      event: 'CALL_OFFER',
-      payload: { targetUserId: targetUser._id, callerId: user._id, callerName: user.name, sdp: offer },
-    });
-
-    // Auto-cancel if no answer in 30 seconds
-    callTimeoutRef.current = setTimeout(() => {
-      endCall(true);
-      Alert.alert("No Answer", `${targetUser.name} did not answer the call.`);
-    }, 30000);
-  };
+      // Auto-cancel if no answer in 30 seconds
+      callTimeoutRef.current = setTimeout(() => {
+        endCall(true);
+        Alert.alert("No Answer", `${targetUser.name} did not answer the call.`);
+      }, 30000);
+    } catch (error) {
+      console.error('Start call error:', error);
+      Alert.alert("Error", "Failed to start call. Please try again.");
+      endCall(false);
+    }
+  }, [user]);
 
   // Handle answering call
-  const acceptCall = async () => {
+  const acceptCall = useCallback(async () => {
     if (!incomingCall) return;
 
-    const caller = { _id: incomingCall.callerId, name: incomingCall.callerName };
+    const caller: OnlineUser = { 
+      _id: incomingCall.callerId, 
+      name: incomingCall.callerName,
+      status: 'busy',
+    };
     setActiveCallUser(caller);
     activeCallUserRef.current = caller;
-    await channel?.track({ name: user.name, profilePic: user.profilePic, college: user.college, status: 'busy' });
+    setUserBusy(true);
 
-    await webRTCManager.setupLocalStream();
-    await webRTCManager.initializePeerConnection();
+    try {
+      await webRTCManager.setupLocalStream();
+      await webRTCManager.initializePeerConnection();
 
-    // Send ICE candidates
-    webRTCManager.onIceCandidate = (candidate) => {
-      channel?.send({
-        type: 'broadcast',
-        event: 'ICE_CANDIDATE',
-        payload: { targetUserId: incomingCall.callerId, candidate, callerId: user._id },
-      });
-    };
+      // Send ICE candidates
+      webRTCManager.onIceCandidate = (candidate) => {
+        callSignaling.sendIceCandidate(incomingCall.callerId, candidate);
+      };
 
-    webRTCManager.onConnectionStateChange = (state) => {
-      if (state === 'connected') {
-        setIsCallConnected(true);
-      }
-      if (state === 'disconnected' || state === 'failed') {
-        Alert.alert("Connection Lost", "The audio call disconnected due to poor network.");
-        endCall(false);
-      }
-    };
+      webRTCManager.onConnectionStateChange = (state) => {
+        if (state === 'connected') {
+          setIsCallConnected(true);
+        }
+        if (state === 'disconnected' || state === 'failed') {
+          Alert.alert("Connection Lost", "The audio call disconnected due to poor network.");
+          endCall(false);
+        }
+      };
 
-    await webRTCManager.setRemoteDescription(incomingCall.sdp);
-    const answer = await webRTCManager.createAnswer();
+      await webRTCManager.setRemoteDescription(incomingCall.sdp);
+      const answer = await webRTCManager.createAnswer();
 
-    channel?.send({
-      type: 'broadcast',
-      event: 'CALL_ANSWER',
-      payload: { targetUserId: incomingCall.callerId, callerId: user._id, sdp: answer },
-    });
+      callSignaling.sendAnswer(incomingCall.callerId, answer);
 
-    setIncomingCall(null);
-  };
+      setIncomingCall(null);
+    } catch (error) {
+      console.error('Accept call error:', error);
+      Alert.alert("Error", "Failed to answer call.");
+      endCall(false);
+    }
+  }, [incomingCall, user]);
 
-  const rejectCall = () => {
+  const rejectCall = useCallback(() => {
     if (incomingCall) {
-      channel?.send({
-        type: 'broadcast',
-        event: 'CALL_END',
-        payload: { targetUserId: incomingCall.callerId, callerId: user._id, callerName: user.name },
-      });
+      callSignaling.rejectCall(incomingCall.callerId);
       setIncomingCall(null);
     }
-  };
+  }, [incomingCall]);
 
-  const endCall = async (notifyOther = true) => {
+  const endCall = useCallback(async (notifyOther = true) => {
     if (callTimeoutRef.current) clearTimeout(callTimeoutRef.current);
+    
     webRTCManager.cleanup();
-    if (notifyOther && activeCallUser) {
-      channel?.send({
-        type: 'broadcast',
-        event: 'CALL_END',
-        payload: { targetUserId: activeCallUser._id, callerId: user._id, callerName: user.name },
-      });
+    
+    if (notifyOther && activeCallUserRef.current) {
+      callSignaling.endCall(activeCallUserRef.current._id);
     }
+    
     setActiveCallUser(null);
     activeCallUserRef.current = null;
     setIsCallConnected(false);
-    await channel?.track({ name: user.name, profilePic: user.profilePic, college: user.college, status: 'online' });
-  };
+    setUserBusy(false);
+  }, []);
 
+  // Show active call screen
   if (activeCallUser) {
-    return <ActiveAudioCall remoteUser={activeCallUser} isCallConnected={isCallConnected} onEndCall={() => endCall(true)} />;
+    return (
+      <ActiveAudioCall 
+        remoteUser={activeCallUser} 
+        isCallConnected={isCallConnected} 
+        onEndCall={() => endCall(true)} 
+      />
+    );
   }
 
   return (
-    <LinearGradient colors={['#ffffff', '#fff7ed', '#ffedd5']} className="flex-1 pt-10">
-      <View className="px-5 py-4 border-b border-orange-100 flex-row items-center">
+    <LinearGradient colors={['#ffffff', '#fff7ed', '#ffedd5']} className="flex-1">
+      <View className="px-5 py-4 border-b border-orange-100 flex-row items-center justify-between">
         <Text className="text-xl font-black text-gray-900 tracking-tight uppercase">Audio Networking</Text>
+        <View className="flex-row items-center gap-2">
+          <View 
+            className="w-2 h-2 rounded-full" 
+            style={{ backgroundColor: callSignaling.isConnected() ? '#10b981' : '#ef4444' }}
+          />
+          <Text className="text-[10px] font-bold text-gray-500 uppercase">
+            {callSignaling.isConnected() ? 'Connected' : 'Connecting...'}
+          </Text>
+        </View>
       </View>
       
-      {onlineUsers.length === 0 ? (
+      {loadingUsers ? (
         <View className="flex-1 items-center justify-center">
-          <Text className="text-gray-500">No one is online right now. Invite friends!</Text>
+          <ActivityIndicator size="large" color="#EA580C" />
+          <Text className="text-gray-500 mt-4">Loading users...</Text>
+        </View>
+      ) : onlineUsers.length === 0 ? (
+        <View className="flex-1 items-center justify-center px-10">
+          <View className="w-24 h-24 rounded-full bg-orange-100 items-center justify-center mb-6">
+            <Phone size={40} color="#EA580C" />
+          </View>
+          <Text className="text-xl font-bold text-gray-700 text-center mb-2">No one online yet</Text>
+          <Text className="text-gray-500 text-center text-sm">Invite friends to start calling!</Text>
         </View>
       ) : (
         <FlatList
           data={onlineUsers}
           keyExtractor={(item) => item._id}
-          contentContainerStyle={{ padding: 20 }}
+          contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
           renderItem={({ item }) => (
             <View className="flex-row items-center justify-between mb-4 p-4 bg-white/80 rounded-[24px] border border-orange-50 shadow-sm">
               <View className="flex-row items-center flex-1">
@@ -278,10 +328,10 @@ export default function AudioCallLobby({ navigation }: any) {
               
               <TouchableOpacity 
                 onPress={() => startCall(item)}
-                disabled={item.status === 'busy'}
-                className={`p-3 rounded-full ${item.status === 'busy' ? 'bg-gray-200' : 'bg-orange-500'}`}
+                disabled={item.status === 'busy' || userBusy}
+                className={`p-3 rounded-full ${item.status === 'busy' || userBusy ? 'bg-gray-200' : 'bg-orange-500'}`}
               >
-                <PhoneCall size={20} color={item.status === 'busy' ? '#9CA3AF' : '#FFF'} />
+                <PhoneCall size={20} color={item.status === 'busy' || userBusy ? '#9CA3AF' : '#FFF'} />
               </TouchableOpacity>
             </View>
           )}
@@ -289,7 +339,12 @@ export default function AudioCallLobby({ navigation }: any) {
       )}
 
       {/* Incoming Call Modal */}
-      <Modal visible={!!incomingCall} transparent animationType="slide">
+      <Modal 
+        visible={!!incomingCall} 
+        transparent 
+        animationType="slide"
+        onRequestClose={rejectCall}
+      >
         <View className="flex-1 bg-black/50 justify-end">
           <View className="bg-white rounded-t-3xl p-6 items-center">
             <View className="w-20 h-20 bg-orange-100 rounded-full items-center justify-center mb-4">
@@ -299,10 +354,18 @@ export default function AudioCallLobby({ navigation }: any) {
             <Text className="text-gray-500 mb-8">Incoming Audio Call...</Text>
             
             <View className="flex-row w-full justify-around mb-8">
-              <TouchableOpacity onPress={rejectCall} className="bg-red-500 w-16 h-16 rounded-full items-center justify-center">
+              <TouchableOpacity 
+                onPress={rejectCall} 
+                className="bg-red-500 w-16 h-16 rounded-full items-center justify-center"
+                activeOpacity={0.8}
+              >
                 <PhoneOff size={24} color="#FFF" />
               </TouchableOpacity>
-              <TouchableOpacity onPress={acceptCall} className="bg-green-500 w-16 h-16 rounded-full items-center justify-center">
+              <TouchableOpacity 
+                onPress={acceptCall} 
+                className="bg-green-500 w-16 h-16 rounded-full items-center justify-center"
+                activeOpacity={0.8}
+              >
                 <Phone size={24} color="#FFF" />
               </TouchableOpacity>
             </View>

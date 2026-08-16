@@ -27,7 +27,9 @@ import {
   getUsersForAdmin,
   banUser,
   verifyAdminPassword,
-  updateFcmToken
+  updateFcmToken,
+  getUserStatus,
+  getOnlineUsers
 } from '../controllers/auth.controller.js';
 import { getStreakLeaderboard } from '../controllers/streak.controller.js';
 import { getDevelopers } from '../controllers/developer.controller.js'
@@ -76,5 +78,8 @@ router.get('/admin/users', authMiddleware, isAdmin, getUsersForAdmin);
 router.post('/admin/ban/:userId', authMiddleware, isAdmin, banUser);
 router.post('/admin/verify-password', authMiddleware, isAdmin, verifyAdminPassword);
 
+// Call Status Routes
+router.get('/status/:userId', authMiddleware, getUserStatus);
+router.get('/online', authMiddleware, getOnlineUsers);
 
 export default router; 

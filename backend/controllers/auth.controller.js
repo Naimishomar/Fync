@@ -1054,3 +1054,51 @@ export const updateFcmToken = async (req, res) => {
     return res.status(500).json({ success: false, message: "Failed to register FCM token" });
   }
 };
+
+export const getUserStatus = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const redisClient = (await import('../utils/redis.js')).default;
+    
+    const isOnline = await redisClient.sIsMember('global_online_users', userId);
+    
+    res.json({ 
+      success: true, 
+      online: isOnline,
+      userId 
+    });
+  } catch (error) {
+    console.error("Get User Status Error:", error);
+    res.status(500).json({ success: false, message: "Failed to get user status" });
+  }
+};
+
+export const getOnlineUsers = async (req, res) => {
+  try {
+    const redisClient = (await import('../utils/redis.js')).default;
+    const onlineUserIds = await redisClient.sMembers('global_online_users');
+    
+    // Optionally filter out current user
+    const currentUserId = req.user?.id;
+    const filteredIds = currentUserId 
+      ? onlineUserIds.filter(id => id !== currentUserId)
+      : onlineUserIds;
+    
+    // Fetch user details for online users
+    const User = (await import('../models/user.model.js')).default;
+    const users = await User.find({ _id: { $in: filteredIds } })
+      .select('_id name profilePic college')
+      .lean();
+    
+    // Add online status
+    const usersWithStatus = users.map(user => ({
+      ...user,
+      status: 'online',
+    }));
+    
+    res.json({ success: true, users: usersWithStatus });
+  } catch (error) {
+    console.error("Get Online Users Error:", error);
+    res.status(500).json({ success: false, message: "Failed to get online users" });
+  }
+};

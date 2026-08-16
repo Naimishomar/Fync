@@ -302,8 +302,12 @@ const HackathonHub = () => {
   const isOrganiserOf = (h: any) => h.myRole === 'organiser' || h.organiser?._id === user?._id;
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
-      <StatusBar barStyle="dark-content" />
+    <View className="flex-1 bg-[#F8FAFC] px-3">
+      <StatusBar 
+        barStyle="dark-content" 
+        backgroundColor="transparent" 
+        translucent={true} 
+      />
 
       <SafeAreaView className="flex-1" edges={['top']}>
         <FlatList

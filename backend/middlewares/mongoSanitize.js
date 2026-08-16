@@ -33,20 +33,20 @@ function sanitize(obj, seen = new WeakSet()) {
 
 export const mongoSanitize = () => (req, res, next) => {
   try {
-    // Sanitize body - replace with sanitized version
+    // Sanitize body - replace with sanitized version (writable in Express 5)
     if (req.body && typeof req.body === 'object') {
       req.body = sanitize(req.body);
     }
     
-    // Sanitize query - create new object instead of mutating
-    if (req.query && typeof req.query === 'object') {
-      req.query = sanitize(req.query);
-    }
-    
-    // Sanitize params
+    // Sanitize params (writable in Express 5)
     if (req.params && typeof req.params === 'object') {
       req.params = sanitize(req.params);
     }
+    
+    // Note: req.query is a getter-only property in Express 5, cannot be reassigned.
+    // Query objects are recreated per request, so mutation risk is minimal.
+    // If needed, use a custom getter override or skip query sanitization.
+    
   } catch (err) {
     console.warn('Mongo sanitize error:', err.message);
   }

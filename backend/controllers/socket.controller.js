@@ -640,6 +640,55 @@ export const socketController = (io) => {
       await redisClient.del(`user:night_1v1:${userId}`);
     });
 
+    // --- 📞 WEBRTC AUDIO CALL SIGNALING ---
+    socket.on("call:offer", ({ targetUserId, sdp, callerInfo }) => {
+      const targetSocket = io.sockets.sockets.get(targetUserId);
+      if (targetSocket) {
+        targetSocket.emit("call:incoming", { 
+          callerId: socket.userId, 
+          sdp, 
+          callerInfo 
+        });
+      } else {
+        socket.emit("call:failed", { reason: "User not online" });
+      }
+    });
+
+    socket.on("call:answer", ({ targetUserId, sdp }) => {
+      const targetSocket = io.sockets.sockets.get(targetUserId);
+      if (targetSocket) {
+        targetSocket.emit("call:answered", { sdp });
+      }
+    });
+
+    socket.on("call:ice-candidate", ({ targetUserId, candidate }) => {
+      const targetSocket = io.sockets.sockets.get(targetUserId);
+      if (targetSocket) {
+        targetSocket.emit("call:ice-candidate", { candidate });
+      }
+    });
+
+    socket.on("call:end", ({ targetUserId, reason }) => {
+      const targetSocket = io.sockets.sockets.get(targetUserId);
+      if (targetSocket) {
+        targetSocket.emit("call:ended", { reason });
+      }
+    });
+
+    socket.on("call:reject", ({ targetUserId }) => {
+      const targetSocket = io.sockets.sockets.get(targetUserId);
+      if (targetSocket) {
+        targetSocket.emit("call:rejected", {});
+      }
+    });
+
+    socket.on("call:busy", ({ targetUserId }) => {
+      const targetSocket = io.sockets.sockets.get(targetUserId);
+      if (targetSocket) {
+        targetSocket.emit("call:busy", {});
+      }
+    });
+
     // --- 🎨 DRAW & GUESS LOGIC ---
 
     socket.on("find_draw_match", async ({ userId, username }) => {
