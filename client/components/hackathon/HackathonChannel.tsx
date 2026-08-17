@@ -164,19 +164,19 @@ const HackathonChannel = () => {
         <View className="flex-row items-center justify-between mb-3">
           <View className="flex-row items-center bg-white px-2.5 py-1 rounded-xl border border-slate-100">
             <Ionicons name={typeMeta.icon as any} size={11} color={typeMeta.color} />
-            <Text className="text-[10px] font-black uppercase tracking-widest ml-1.5" style={{ color: typeMeta.color }}>
+            <Text className="text-2xs font-black uppercase tracking-wide ml-1.5" style={{ color: typeMeta.color }}>
               {typeMeta.label}
             </Text>
           </View>
           {item.isPinned && (
             <View className="flex-row items-center bg-amber-100 px-2.5 py-1 rounded-xl">
               <Ionicons name="pin" size={10} color="#d97706" />
-              <Text className="text-amber-700 text-[10px] font-black uppercase ml-1">Pinned</Text>
+              <Text className="text-amber-700 text-2xs font-black uppercase ml-1">Pinned</Text>
             </View>
           )}
         </View>
 
-        <Text className="text-zinc-900 font-black  text-base mb-1.5 leading-5">{item.Title}</Text>
+        <Text className="text-slate-900 font-black  text-base mb-1.5 leading-5">{item.Title}</Text>
         <Text className="text-slate-500 text-xs leading-5 mb-4">{item.body}</Text>
 
         {/* Footer */}
@@ -190,8 +190,8 @@ const HackathonChannel = () => {
               </View>
             )}
             <View>
-              <Text className="text-zinc-800 font-black text-[10px]">{item.author?.name}</Text>
-              <Text className="text-slate-400 text-[8px] uppercase font-black">{new Date(item.createdAt).toLocaleDateString()}</Text>
+              <Text className="text-slate-800 font-black text-2xs">{item.author?.name}</Text>
+              <Text className="text-slate-500 text-2xs uppercase font-black">{new Date(item.createdAt).toLocaleDateString()}</Text>
             </View>
           </View>
 
@@ -231,8 +231,8 @@ const HackathonChannel = () => {
             <Ionicons name="arrow-back" size={20} color="#1e293b" />
           </TouchableOpacity>
           <View className="flex-1">
-            <Text className="text-zinc-900 text-xl font-black  uppercase tracking-tight">Channel</Text>
-            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest" numberOfLines={1}>{hackathonTitle}</Text>
+            <Text className="text-slate-900 text-xl font-black  uppercase tracking-tight">Channel</Text>
+            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide" numberOfLines={1}>{hackathonTitle}</Text>
           </View>
           {isOfficial && (
             <TouchableOpacity
@@ -247,7 +247,7 @@ const HackathonChannel = () => {
         {/* Compose Section */}
         {showCompose && (
           <View className="bg-white px-5 py-4 border-b border-slate-100">
-            <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest mb-3">Broadcast New Message</Text>
+            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-3">Broadcast New Message</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
               {ANN_TYPES.map(t => (
                 <TouchableOpacity
@@ -256,7 +256,7 @@ const HackathonChannel = () => {
                   className={`flex-row items-center px-3 py-2 rounded-xl border mr-2 ${draft.type === t.value ? 'bg-indigo-600 border-indigo-600' : 'bg-slate-50 border-slate-200'}`}
                 >
                   <Ionicons name={t.icon as any} size={11} color={draft.type === t.value ? 'white' : '#64748b'} />
-                  <Text className={`text-[10px] font-black uppercase ml-1.5 ${draft.type === t.value ? 'text-white' : 'text-slate-500'}`}>{t.label}</Text>
+                  <Text className={`text-2xs font-black uppercase ml-1.5 ${draft.type === t.value ? 'text-white' : 'text-slate-500'}`}>{t.label}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -264,7 +264,7 @@ const HackathonChannel = () => {
               placeholder="Headline..."
               value={draft.title}
               onChangeText={t => setDraft({ ...draft, title: t })}
-              className="bg-slate-50 rounded-2xl px-4 py-3 mb-2 font-bold text-zinc-900 border border-slate-100"
+              className="bg-slate-50 rounded-2xl px-4 py-3 mb-2 font-bold text-slate-900 border border-slate-100"
             />
             <TextInput
               placeholder="Detailed message..."
@@ -272,13 +272,13 @@ const HackathonChannel = () => {
               onChangeText={t => setDraft({ ...draft, body: t })}
               multiline
               numberOfLines={3}
-              className="bg-slate-50 rounded-2xl px-4 py-3 mb-3 font-semibold text-zinc-800 border border-slate-100 h-20"
+              className="bg-slate-50 rounded-2xl px-4 py-3 mb-3 font-semibold text-slate-800 border border-slate-100 h-20"
               textAlignVertical="top"
             />
             <View className="flex-row items-center justify-between mb-3">
               <View className="flex-row items-center">
                 <Ionicons name="pin" size={14} color={draft.isPinned ? '#d97706' : '#94a3b8'} />
-                <Text className="text-[11px] font-black text-slate-500 uppercase ml-2">Pin to top</Text>
+                <Text className="text-2xs font-black text-slate-500 uppercase ml-2">Pin to top</Text>
               </View>
               <Switch
                 value={draft.isPinned}
@@ -289,7 +289,7 @@ const HackathonChannel = () => {
             </View>
             <TouchableOpacity onPress={handlePost} disabled={posting} className="rounded-2xl overflow-hidden">
               <LinearGradient colors={['#6366f1', '#ec4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} className="py-3.5 items-center">
-                {posting ? <ActivityIndicator size="small" color="white" /> : <Text className="text-white font-black uppercase tracking-widest text-xs">Send Announcement 📣</Text>}
+                {posting ? <ActivityIndicator size="small" color="white" /> : <Text className="text-white font-black uppercase tracking-wide text-xs">Send Announcement 📣</Text>}
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -309,11 +309,11 @@ const HackathonChannel = () => {
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadAnnouncements(); }} />}
             ListEmptyComponent={() => (
               <View className="items-center py-20">
-                <LinearGradient colors={['#ede9fe', '#fce7f3']} className="w-20 h-20 rounded-[30px] items-center justify-center mb-5">
+                <LinearGradient colors={['#ede9fe', '#fce7f3']} className="w-20 h-20 rounded-3xl items-center justify-center mb-5">
                   <Ionicons name="megaphone-outline" size={36} color="#6366f1" />
                 </LinearGradient>
-                <Text className="text-zinc-700 font-black  text-lg uppercase mb-1">Silence is Golden</Text>
-                <Text className="text-slate-400 text-xs font-semibold">No announcements yet. Check back soon!</Text>
+                <Text className="text-slate-700 font-black  text-lg uppercase mb-1">Silence is Golden</Text>
+                <Text className="text-slate-500 text-xs font-semibold">No announcements yet. Check back soon!</Text>
               </View>
             )}
           />

@@ -11,7 +11,7 @@ const TCSection = ({ icon, title, content }: { icon: any; title: string; content
       <View className="w-10 h-10 rounded-2xl bg-indigo-50 items-center justify-center mr-3">
         <Ionicons name={icon} size={20} color="#6366f1" />
       </View>
-      <Text className="text-zinc-900 text-lg font-black  uppercase tracking-tighter">{title}</Text>
+      <Text className="text-slate-900 text-lg font-black  uppercase tracking-tighter">{title}</Text>
     </View>
     <Text className="text-slate-500 text-xs font-semibold leading-5 leading-relaxed">{content}</Text>
   </View>
@@ -34,8 +34,8 @@ export default function TermsAndCondition() {
             <Ionicons name="arrow-back" size={24} color="#1e293b" />
           </TouchableOpacity>
           <View className="items-end">
-            <Text className="text-zinc-900 text-xl font-black uppercase tracking-tighter">Legal Hub</Text>
-            <Text className="text-indigo-500 text-[10px] font-black uppercase tracking-widest">Fync Ecosystem</Text>
+            <Text className="text-slate-900 text-xl font-black uppercase tracking-tighter">Legal Hub</Text>
+            <Text className="text-indigo-500 text-2xs font-black uppercase tracking-wide">Fync Ecosystem</Text>
           </View>
           <View className='w-10'></View>
         </View>
@@ -49,7 +49,7 @@ export default function TermsAndCondition() {
             colors={['#6366f1', '#a855f7']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            className="rounded-[40px] p-8 mb-8 overflow-hidden relative"
+            className="rounded-5xl p-8 mb-8 overflow-hidden relative"
           >
             <Ionicons name="document-text" size={120} color="rgba(255,255,255,0.1)" style={{ position: 'absolute', right: -20, bottom: -20 }} />
             <Text className="text-white text-3xl font-black  tracking-tighter mb-2">Terms & Conditions</Text>
@@ -90,7 +90,7 @@ export default function TermsAndCondition() {
           />
 
           <View className="mt-4 items-center">
-            <Text className="text-slate-300 text-[10px] font-black uppercase tracking-[4px]">Verified By Fync Legal</Text>
+            <Text className="text-slate-300 text-2xs font-black uppercase tracking-wide">Verified By Fync Legal</Text>
           </View>
 
         </ScrollView>

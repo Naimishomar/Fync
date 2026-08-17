@@ -123,11 +123,11 @@ export default function BunkOMeter() {
                             <View className="flex-row items-center justify-between mb-6">
                                 <View className="flex-1">
                                     <View className="flex-row items-center">
-                                        <Text className="text-zinc-900 text-3xl font-black tracking-tighter leading-tight">
+                                        <Text className="text-slate-900 text-3xl font-black tracking-tighter leading-tight">
                                             BunkO<Text className="text-orange-500">Meter</Text>
                                         </Text>
                                     </View>
-                                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[1px]">Attendance Prediction Engine</Text>
+                                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Attendance Prediction Engine</Text>
                                 </View>
                             </View>
                         </View>
@@ -138,7 +138,7 @@ export default function BunkOMeter() {
                             {/* Row 1: Attended & Total */}
                             <View className="flex-row gap-5 mb-6">
                                 <View className="flex-1">
-                                    <Text className="text-slate-400 mb-2 font-black text-[9px] uppercase tracking-widest ml-1">Attended</Text>
+                                    <Text className="text-slate-500 mb-2 font-black text-2xs uppercase tracking-wide ml-1">Attended</Text>
                                     <View className="flex-row items-center bg-slate-50 border border-slate-100 rounded-xl px-4 h-14">
                                         <Ionicons name="checkmark-done" size={18} color="#f97316" />
                                         <TextInput
@@ -147,13 +147,13 @@ export default function BunkOMeter() {
                                             keyboardType="numeric"
                                             placeholder="0"
                                             placeholderTextColor="#94a3b8"
-                                            className="flex-1 text-zinc-900 text-lg font-black  ml-3 uppercase tracking-tighter"
+                                            className="flex-1 text-slate-900 text-lg font-black  ml-3 uppercase tracking-tighter"
                                         />
                                     </View>
                                 </View>
 
                                 <View className="flex-1">
-                                    <Text className="text-slate-400 mb-2 font-black text-[9px] uppercase tracking-widest ml-1">Total Held</Text>
+                                    <Text className="text-slate-500 mb-2 font-black text-2xs uppercase tracking-wide ml-1">Total Held</Text>
                                     <View className="flex-row items-center bg-slate-50 border border-slate-100 rounded-xl px-4 h-14">
                                         <Ionicons name="list" size={18} color="#94a3b8" />
                                         <TextInput
@@ -162,7 +162,7 @@ export default function BunkOMeter() {
                                             keyboardType="numeric"
                                             placeholder="0"
                                             placeholderTextColor="#94a3b8"
-                                            className="flex-1 text-zinc-900 text-lg font-black  ml-3 uppercase tracking-tighter"
+                                            className="flex-1 text-slate-900 text-lg font-black  ml-3 uppercase tracking-tighter"
                                         />
                                     </View>
                                 </View>
@@ -170,7 +170,7 @@ export default function BunkOMeter() {
 
                             {/* Row 2: Target */}
                             <View className="mb-8">
-                                <Text className="text-slate-400 mb-2 font-black text-[9px] uppercase tracking-widest ml-1">Target Percentage (%)</Text>
+                                <Text className="text-slate-500 mb-2 font-black text-2xs uppercase tracking-wide ml-1">Target Percentage (%)</Text>
                                 <View className="flex-row items-center bg-slate-50 border border-slate-100 rounded-xl px-4 h-14">
                                     <Ionicons name="flash" size={18} color="#f97316" />
                                     <TextInput
@@ -179,7 +179,7 @@ export default function BunkOMeter() {
                                         keyboardType="numeric"
                                         placeholder="75 (Threshold)"
                                         placeholderTextColor="#94a3b8"
-                                        className="flex-1 text-zinc-900 text-lg font-black  ml-3 uppercase tracking-tighter"
+                                        className="flex-1 text-slate-900 text-lg font-black  ml-3 uppercase tracking-tighter"
                                     />
                                 </View>
                             </View>
@@ -188,29 +188,29 @@ export default function BunkOMeter() {
                             <TouchableOpacity
                                 onPress={calculateAttendance}
                                 activeOpacity={0.9}
-                                className="bg-zinc-900 h-16 rounded-xl flex-row items-center justify-center shadow-xl shadow-black/20"
+                                className="bg-slate-900 h-16 rounded-xl flex-row items-center justify-center shadow-xl shadow-black/20"
                             >
-                                <Text className="text-white font-black  uppercase tracking-widest text-[11px]">Execute Analysis 📉</Text>
+                                <Text className="text-white font-black  uppercase tracking-wide text-2xs">Execute Analysis 📉</Text>
                             </TouchableOpacity>
                         </View>
 
                         {/* --- RESULT DISPLAY (Arena Style) --- */}
                         {result && (
-                            <View className="mx-8 mt-8 rounded-[36px] overflow-hidden border border-orange-100 shadow-xl shadow-orange-500/10 bg-white">
+                            <View className="mx-8 mt-8 rounded-4xl overflow-hidden border border-orange-100 shadow-xl shadow-orange-500/10 bg-white">
                                 <LinearGradient
                                     colors={['#fff7ed', '#ffffff']}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 0, y: 1 }}
                                     className="p-8 items-center"
                                 >
-                                    <Text className="text-orange-500 font-black uppercase text-[10px] tracking-[2px] mb-8">Attendance Score</Text>
+                                    <Text className="text-orange-500 font-black uppercase text-2xs tracking-wide mb-8">Attendance Score</Text>
 
                                     {/* Circular Percentage */}
                                     <View className="mb-8 w-40 h-40 rounded-full items-center justify-center border-[2px] border-orange-100 bg-white shadow-xl shadow-orange-500/5">
                                         <View className="w-32 h-32 rounded-full bg-white items-center justify-center shadow-inner border border-slate-50">
-                                            <Text className="text-zinc-900 text-3xl font-black  tracking-tighter">{result.percentage}%</Text>
+                                            <Text className="text-slate-900 text-3xl font-black  tracking-tighter">{result.percentage}%</Text>
                                             <View className="h-[2px] w-8 rounded-full bg-orange-500 my-1" />
-                                            <Text className="text-slate-400 font-black uppercase text-[8px] tracking-widest">Protocol</Text>
+                                            <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">Protocol</Text>
                                         </View>
                                     </View>
 
@@ -218,7 +218,7 @@ export default function BunkOMeter() {
                                     <View className="items-center w-full">
                                         <View className="flex-row items-center gap-3 mb-6 bg-white px-6 py-3 rounded-2xl border border-orange-100 shadow-sm shadow-orange-500/5">
                                             <Ionicons name={result.icon} size={20} color={result.color} />
-                                            <Text className="text-xs font-black text-zinc-900 uppercase tracking-widest">
+                                            <Text className="text-xs font-black text-slate-900 uppercase tracking-wide">
                                                 {result.status === 'SAFE' ? 'The Great Escape' : 'System Critical'}
                                             </Text>
                                         </View>
@@ -228,13 +228,13 @@ export default function BunkOMeter() {
                                         </Text>
 
                                         <View className="bg-white/60 p-3 rounded-xl border border-orange-50 border-2 border-dashed w-full mb-8">
-                                            <Text className="text-slate-500 font-bold text-center text-[12px] leading-5 tracking-tight">
+                                            <Text className="text-slate-500 font-bold text-center text-xs leading-5 tracking-tight">
                                                 {result.detail}
                                             </Text>
                                         </View>
 
                                         {/* Technical Advisory Box */}
-                                        <View className="bg-orange-500/10 p-5 rounded-[24px] w-full flex-row items-center border border-orange-500/20">
+                                        <View className="bg-orange-500/10 p-5 rounded-2xl w-full flex-row items-center border border-orange-500/20">
                                             <View className="bg-white p-2.5 rounded-xl border border-orange-100">
                                                 <Ionicons
                                                     name="flash"
@@ -243,8 +243,8 @@ export default function BunkOMeter() {
                                                 />
                                             </View>
                                             <View className="ml-4 flex-1">
-                                                <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-tight">Technical Advisory</Text>
-                                                <Text className="text-slate-500 text-[10px] font-bold leading-4 mt-0.5">
+                                                <Text className="text-slate-900 font-black uppercase text-2xs tracking-tight">Technical Advisory</Text>
+                                                <Text className="text-slate-500 text-2xs font-bold leading-4 mt-0.5">
                                                     {result.status === 'SAFE'
                                                         ? "Bunk protocols confirmed safe. Maintain current trajectory."
                                                         : "System failure imminent. Immediate lecture attendance required."}

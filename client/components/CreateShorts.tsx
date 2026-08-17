@@ -70,7 +70,7 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
           </View>
         )}
         <View className="absolute bottom-2 right-2 bg-black/60 px-2 py-0.5 rounded-lg">
-          <Text className="text-white text-[9px] font-black">
+          <Text className="text-white text-2xs font-black">
             {Math.floor(item.duration / 60)}:{Math.round(item.duration % 60).toString().padStart(2, '0')}
           </Text>
         </View>
@@ -227,7 +227,7 @@ const CreateShorts = () => {
         </TouchableOpacity>
         <View className="items-center">
           <Text className="text-[#1e293b] text-xl font-black uppercase tracking-tighter">Create Short</Text>
-          <Text className="text-slate-400 text-[8px] font-black uppercase tracking-[3px]">Gallery Sync</Text>
+          <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Gallery Sync</Text>
         </View>
         <TouchableOpacity 
           onPress={() => selectedAsset && setShowDetailsModal(true)}
@@ -240,7 +240,7 @@ const CreateShorts = () => {
 
       {/* Main Preview Container */}
       <View className="px-6 py-4" style={{ height: height * 0.35 }}>
-         <View className="flex-1 bg-slate-50 rounded-[32px] overflow-hidden border border-slate-100 shadow-sm">
+         <View className="flex-1 bg-slate-50 rounded-4xl overflow-hidden border border-slate-100 shadow-sm">
             {selectedAsset ? (
               <View className="flex-1">
                 <Video
@@ -265,11 +265,11 @@ const CreateShorts = () => {
                  ) : (
                    <View className="items-center px-10">
                       <Ionicons name="videocam-off-outline" size={40} color="#cbd5e1" />
-                      <Text className="text-slate-400 mt-2 font-black text-center text-[10px] uppercase tracking-widest">
+                      <Text className="text-slate-500 mt-2 font-black text-center text-2xs uppercase tracking-wide">
                           {permissionError ? "Permission Denied" : "No Content Found"}
                       </Text>
                       <TouchableOpacity onPress={pickFromSystem} className="mt-4 bg-[#f97316] px-6 py-3 rounded-2xl">
-                          <Text className="text-white font-black uppercase text-[10px] tracking-widest">Browse Vault</Text>
+                          <Text className="text-white font-black uppercase text-2xs tracking-wide">Browse Vault</Text>
                       </TouchableOpacity>
                    </View>
                  )}
@@ -283,7 +283,7 @@ const CreateShorts = () => {
         <View className="flex-row justify-between items-center px-2 mb-4">
            <View>
               <Text className="text-2xl font-black text-[#1e293b] tracking-tighter">GALLERY</Text>
-              <Text className="text-[8px] text-slate-400 font-black uppercase tracking-widest">{assets.length} Videos Available</Text>
+              <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide">{assets.length} Videos Available</Text>
            </View>
            <TouchableOpacity onPress={pickFromSystem} className="bg-slate-50 p-3 rounded-xl border border-slate-100">
               <Ionicons name="search-outline" size={20} color="#f97316" />
@@ -293,7 +293,7 @@ const CreateShorts = () => {
         {fetching ? (
           <View className="flex-1 items-center justify-center pb-20">
               <ActivityIndicator color="#f97316" />
-              <Text className="text-slate-400 mt-4 font-black uppercase text-[8px] tracking-widest">Indexing Assets...</Text>
+              <Text className="text-slate-500 mt-4 font-black uppercase text-2xs tracking-wide">Indexing Assets...</Text>
           </View>
         ) : (
           <FlatList
@@ -304,11 +304,11 @@ const CreateShorts = () => {
               contentContainerStyle={{ paddingBottom: 100 }}
               ListEmptyComponent={
                   <View className="flex-1 items-center justify-center pt-10">
-                      <Text className="text-slate-400 font-bold text-center text-xs px-10 leading-5">
+                      <Text className="text-slate-500 font-bold text-center text-xs px-10 leading-5">
                           Unable to access gallery. Please use the system browser to select a video.
                       </Text>
                       <TouchableOpacity onPress={pickFromSystem} className="mt-6 bg-[#1e293b] px-8 py-3 rounded-2xl shadow-lg">
-                          <Text className="text-white font-black uppercase text-[10px] tracking-widest">Open Browser</Text>
+                          <Text className="text-white font-black uppercase text-2xs tracking-wide">Open Browser</Text>
                       </TouchableOpacity>
                   </View>
               }
@@ -337,7 +337,7 @@ const CreateShorts = () => {
           />
           <View 
             style={{ height: height * 0.5 }} 
-            className="bg-white rounded-t-[48px] shadow-2xl overflow-hidden"
+            className="bg-white rounded-t-5xl shadow-2xl overflow-hidden"
           >
             <KeyboardAvoidingView 
               behavior="padding" 
@@ -353,7 +353,7 @@ const CreateShorts = () => {
                 <View className="w-10" />
                 <View className="items-center">
                   <Text className="text-[#1e293b] text-xl font-black uppercase tracking-tighter">Finalize</Text>
-                  <Text className="text-[#f97316] text-[9px] font-black uppercase tracking-[3px]">Details</Text>
+                  <Text className="text-[#f97316] text-2xs font-black uppercase tracking-wide">Details</Text>
                 </View>
                 <TouchableOpacity onPress={() => setShowDetailsModal(false)} className="w-10 h-10 rounded-full bg-slate-50 items-center justify-center">
                   <Ionicons name="close" size={20} color="#1e293b" />
@@ -362,7 +362,7 @@ const CreateShorts = () => {
 
               <View className="flex-1 px-8 pt-6">
                 <View className="mb-8">
-                  <Text className="text-slate-400 font-black text-[10px] mb-1 ml-1 uppercase tracking-[1px]">Title</Text>
+                  <Text className="text-slate-500 font-black text-2xs mb-1 ml-1 uppercase tracking-wide">Title</Text>
                   <View className="bg-slate-50 rounded-xl border border-slate-100 px-3 justify-center shadow-sm">
                     <TextInput
                       placeholder="WHAT'S THIS SHORT ABOUT?"
@@ -375,7 +375,7 @@ const CreateShorts = () => {
                 </View>
 
                 <View className="mb-10">
-                  <Text className="text-slate-400 font-black text-[10px] uppercase tracking-[1px] mb-1 ml-1">Description <Text className="text-slate-300">(Optional)</Text></Text>
+                  <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-1 ml-1">Description <Text className="text-slate-300">(Optional)</Text></Text>
                   <View className="bg-slate-50 rounded-xl border border-slate-100 px-3 py-1 min-h-[160px] shadow-sm">
                     <TextInput
                       placeholder="ADD A STORY OR TAGS TO YOUR SHORT..."
@@ -412,7 +412,7 @@ const CreateShorts = () => {
                   </LinearGradient>
                 </TouchableOpacity>
                 
-                <Text className="text-slate-300 text-center mt-2 font-black text-[8px] uppercase tracking-widest px-10">
+                <Text className="text-slate-300 text-center mt-2 font-black text-2xs uppercase tracking-wide px-10">
                   By posting, you agree to Fync's community guidelines and protocol standards.
                 </Text>
               </View>

@@ -623,7 +623,7 @@ const AdminPortal = ({ navigation }: any) => {
     const HubButton = ({ title, tab, icon, color, description }: { title: string, tab: any, icon: any, color: string, description: string }) => (
         <TouchableOpacity
             onPress={() => { setActiveTab(tab); setView('feature'); }}
-            className="mb-4 rounded-[32px] overflow-hidden border border-[#F1F5F9] shadow-sm bg-white"
+            className="mb-4 rounded-4xl overflow-hidden border border-[#F1F5F9] shadow-sm bg-white"
             activeOpacity={0.9}
         >
             <LinearGradient colors={[`${color}10`, '#fff']} className="flex-1 flex-row items-center p-6">
@@ -632,7 +632,7 @@ const AdminPortal = ({ navigation }: any) => {
                 </View>
                 <View className="flex-1">
                     <Text className="text-sm font-black text-[#1A1A1A] uppercase tracking-[0.5px] mb-1">{title}</Text>
-                    <Text className="text-[10px] text-[#64748B] leading-[14px] font-medium">{description}</Text>
+                    <Text className="text-2xs text-[#64748B] leading-[14px] font-medium">{description}</Text>
                 </View>
                 <View className="w-8 h-8 rounded-xl bg-[#F8FAFC] justify-center items-center ml-2 border border-[#F1F5F9]">
                     <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
@@ -647,7 +647,7 @@ const AdminPortal = ({ navigation }: any) => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 100 }}
         >
-            <Text className="text-[#94A3B8] text-[8px] font-black uppercase tracking-[2px] mb-6">Management Systems</Text>
+            <Text className="text-[#94A3B8] text-2xs font-black uppercase tracking-wide mb-6">Management Systems</Text>
             
             <HubButton 
                 title="Banner Ads" 
@@ -713,18 +713,18 @@ const AdminPortal = ({ navigation }: any) => {
                 description="Dynamically adjust the platform's premium subscription fee." 
             />
 
-            <View className="mt-8 p-6 bg-zinc-900 rounded-[32px] shadow-xl shadow-zinc-900/20">
+            <View className="mt-8 p-6 bg-slate-900 rounded-4xl shadow-xl shadow-slate-900/20">
                 <View className="flex-row items-center mb-4">
                     <Ionicons name="stats-chart" size={18} color="#ec4899" />
-                    <Text className="text-white font-black text-[10px] uppercase tracking-[2px] ml-3">System Health</Text>
+                    <Text className="text-white font-black text-2xs uppercase tracking-wide ml-3">System Health</Text>
                 </View>
                 <View className="flex-row justify-between">
                     <View>
-                        <Text className="text-zinc-500 text-[8px] font-black uppercase">Pending Reports</Text>
+                        <Text className="text-slate-500 text-2xs font-black uppercase">Pending Reports</Text>
                         <Text className="text-white text-xl font-black mt-1">{reports.length}</Text>
                     </View>
                     <View className="items-end">
-                        <Text className="text-zinc-500 text-[8px] font-black uppercase">Total Redemptions</Text>
+                        <Text className="text-slate-500 text-2xs font-black uppercase">Total Redemptions</Text>
                         <Text className="text-white text-xl font-black mt-1">{redemptions.length}</Text>
                     </View>
                 </View>
@@ -743,16 +743,16 @@ const AdminPortal = ({ navigation }: any) => {
                 />
                 
                 <SafeAreaView className="flex-1 justify-center px-8" edges={['top', 'bottom']}>
-                    <View className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-xl shadow-orange-500/10">
-                        <View className="w-16 h-16 bg-orange-50 rounded-[20px] items-center justify-center mb-6 border border-orange-100">
+                    <View className="bg-white p-8 rounded-4xl border border-slate-100 shadow-xl shadow-orange-500/10">
+                        <View className="w-16 h-16 bg-orange-50 rounded-2xl items-center justify-center mb-6 border border-orange-100">
                             <Ionicons name="shield-checkmark" size={32} color="#f97316" />
                         </View>
                         
                         <View className="mb-8">
-                            <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
+                            <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase leading-tight">
                                 ADMIN <Text className="text-orange-500">CHECK</Text>
                             </Text>
-                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-1 leading-4">
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1 leading-4">
                                 Admin protocol password required to access operational core.
                             </Text>
                         </View>
@@ -763,27 +763,27 @@ const AdminPortal = ({ navigation }: any) => {
                             placeholder="ENTER ADMIN PASSWORD"
                             placeholderTextColor="#94A3B8"
                             secureTextEntry
-                            className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-5 text-zinc-900 font-black tracking-widest text-[10px] shadow-sm mb-6"
+                            className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-5 text-slate-900 font-black tracking-wide text-2xs shadow-sm mb-6"
                             onSubmitEditing={handleVerifyPassword}
                         />
                         
                         <TouchableOpacity 
                             onPress={handleVerifyPassword}
                             disabled={verifyingPassword}
-                            className="bg-zinc-900 h-14 rounded-2xl items-center justify-center flex-row shadow-2xl shadow-black/40"
+                            className="bg-slate-900 h-14 rounded-2xl items-center justify-center flex-row shadow-2xl shadow-black/40"
                         >
                             {verifyingPassword ? (
                                 <ActivityIndicator color="white" />
                             ) : (
                                 <>
                                     <Ionicons name="key" size={16} color="white" />
-                                    <Text className="text-white font-black text-[10px] uppercase tracking-[2px] ml-3">Authorize Access</Text>
+                                    <Text className="text-white font-black text-2xs uppercase tracking-wide ml-3">Authorize Access</Text>
                                 </>
                             )}
                         </TouchableOpacity>
 
                         <TouchableOpacity onPress={() => navigation.goBack()} className="mt-6 items-center">
-                            <Text className="text-slate-400 font-black text-[10px] uppercase tracking-[2px]">Cancel Initialization</Text>
+                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide">Cancel Initialization</Text>
                         </TouchableOpacity>
                     </View>
                 </SafeAreaView>
@@ -808,10 +808,10 @@ const AdminPortal = ({ navigation }: any) => {
                     <View className="flex-row items-center justify-between mb-8">
                         <View className="flex-row items-center gap-4">
                             <View>
-                                <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
+                                <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase leading-tight">
                                     {view === 'hub' ? 'ADMIN PANEL' : activeTab === 'marketplace' ? 'Store' : activeTab === 'subscription' ? 'Config' : activeTab.toUpperCase()} <Text className="text-orange-500">{view === 'hub' ? 'PORTAL' : 'CORE'}</Text>
                                 </Text>
-                                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-0.5">
+                                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">
                                     {view === 'hub' ? 'Control Center v2.0' : 'Operational Protocol'}
                                 </Text>
                             </View>
@@ -819,7 +819,7 @@ const AdminPortal = ({ navigation }: any) => {
                         {view === 'feature' && activeTab !== 'rewards' && activeTab !== 'messages' && activeTab !== 'reports' && activeTab !== 'users' && activeTab !== 'subscription' && (
                             <TouchableOpacity
                                 onPress={() => { resetForm(); setModalVisible(true); }}
-                                className="w-14 h-14 bg-zinc-900 rounded-2xl items-center justify-center shadow-2xl shadow-black/40"
+                                className="w-14 h-14 bg-slate-900 rounded-2xl items-center justify-center shadow-2xl shadow-black/40"
                             >
                                 <Ionicons name="add" size={28} color="white" />
                             </TouchableOpacity>
@@ -831,7 +831,7 @@ const AdminPortal = ({ navigation }: any) => {
                             <View className="flex-row items-center flex-1 px-4 py-2.5">
                                 <Ionicons name="search" size={18} color="#64748B" />
                                 <TextInput 
-                                    className="flex-1 ml-3 text-[12px] font-black text-[#1A1A1A] uppercase tracking-[0.5px]"
+                                    className="flex-1 ml-3 text-xs font-black text-[#1A1A1A] uppercase tracking-wide"
                                     placeholder="Search student signals..."
                                     placeholderTextColor="#CBD5E1"
                                     value={userSearch}
@@ -855,7 +855,7 @@ const AdminPortal = ({ navigation }: any) => {
                                 }}
                                 className="bg-[#1A1A1A] px-5 py-3 rounded-xl ml-2"
                             >
-                                <Text className="text-white font-black text-[10px] uppercase tracking-[1px]">Search</Text>
+                                <Text className="text-white font-black text-2xs uppercase tracking-wide">Search</Text>
                             </TouchableOpacity>
                         </View>
                     )}
@@ -868,16 +868,16 @@ const AdminPortal = ({ navigation }: any) => {
                                 <Ionicons name="pricetag" size={24} color="#eab308" />
                             </View>
                             <View>
-                                <Text className="text-zinc-900 text-lg font-black uppercase tracking-tight">Global Price Engine</Text>
-                                <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Live Active Rate: ₹{currentSubscriptionPrice}/mo</Text>
-                                <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Status: {currentIsSubscriptionEnabled ? 'Enabled' : 'Disabled'}</Text>
+                                <Text className="text-slate-900 text-lg font-black uppercase tracking-tight">Global Price Engine</Text>
+                                <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-0.5">Live Active Rate: ₹{currentSubscriptionPrice}/mo</Text>
+                                <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-0.5">Status: {currentIsSubscriptionEnabled ? 'Enabled' : 'Disabled'}</Text>
                             </View>
                         </View>
                         
                         <View className="flex-row justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-4">
                             <View className="flex-1">
-                                <Text className="text-zinc-900 font-bold text-sm">Enable Subscriptions</Text>
-                                <Text className="text-gray-400 text-[10px] mt-1">If disabled, the app is free and all users instantly bypass the paywall.</Text>
+                                <Text className="text-slate-900 font-bold text-sm">Enable Subscriptions</Text>
+                                <Text className="text-slate-500 text-2xs mt-1">If disabled, the app is free and all users instantly bypass the paywall.</Text>
                             </View>
                             <Switch
                                 value={isSubscriptionEnabled}
@@ -888,11 +888,11 @@ const AdminPortal = ({ navigation }: any) => {
                         </View>
                         
                         <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6">
-                            <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[1px] mb-2">Configure New Rate (INR)</Text>
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-2">Configure New Rate (INR)</Text>
                             <View className="flex-row items-center">
-                                <Text className="text-zinc-900 text-2xl font-black mr-2">₹</Text>
+                                <Text className="text-slate-900 text-2xl font-black mr-2">₹</Text>
                                 <TextInput 
-                                    className="flex-1 text-3xl font-black text-zinc-900"
+                                    className="flex-1 text-3xl font-black text-slate-900"
                                     value={subscriptionPrice}
                                     onChangeText={setSubscriptionPrice}
                                     keyboardType="numeric"
@@ -904,14 +904,14 @@ const AdminPortal = ({ navigation }: any) => {
                         <TouchableOpacity 
                             onPress={handleUpdateSubscription}
                             disabled={submitting}
-                            className="bg-zinc-900 h-14 rounded-2xl items-center justify-center flex-row shadow-lg shadow-black/20"
+                            className="bg-slate-900 h-14 rounded-2xl items-center justify-center flex-row shadow-lg shadow-black/20"
                         >
                             {submitting ? (
                                 <ActivityIndicator color="white" />
                             ) : (
                                 <>
                                     <Ionicons name="save" size={18} color="white" />
-                                    <Text className="text-white font-black text-[12px] uppercase tracking-[1.5px] ml-2">Deploy New Pricing</Text>
+                                    <Text className="text-white font-black text-xs uppercase tracking-wide ml-2">Deploy New Pricing</Text>
                                 </>
                             )}
                         </TouchableOpacity>
@@ -930,15 +930,15 @@ const AdminPortal = ({ navigation }: any) => {
                             <Ionicons name="notifications" size={24} color="#06b6d4" />
                         </View>
                         <View>
-                            <Text className="text-zinc-900 text-lg font-black uppercase tracking-tight">Global Broadcast</Text>
-                            <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Send alert to all users</Text>
+                            <Text className="text-slate-900 text-lg font-black uppercase tracking-tight">Global Broadcast</Text>
+                            <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-0.5">Send alert to all users</Text>
                         </View>
                     </View>
 
                     <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-4">
-                        <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[1px] mb-2">Notification Title</Text>
+                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-2">Notification Title</Text>
                         <TextInput 
-                            className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-zinc-900 font-bold"
+                            className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-bold"
                             value={broadcastTitle}
                             onChangeText={setBroadcastTitle}
                             placeholder="e.g., Server Maintenance"
@@ -946,9 +946,9 @@ const AdminPortal = ({ navigation }: any) => {
                     </View>
 
                     <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6">
-                        <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[1px] mb-2">Message Body</Text>
+                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-2">Message Body</Text>
                         <TextInput 
-                            className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-zinc-900 min-h-[100px]"
+                            className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 min-h-[100px]"
                             value={broadcastBody}
                             onChangeText={setBroadcastBody}
                             placeholder="Enter the broadcast message here..."
@@ -960,14 +960,14 @@ const AdminPortal = ({ navigation }: any) => {
                     <TouchableOpacity 
                         onPress={handleBroadcast}
                         disabled={sendingBroadcast}
-                        className="bg-zinc-900 h-14 rounded-2xl items-center justify-center flex-row shadow-lg shadow-black/20"
+                        className="bg-slate-900 h-14 rounded-2xl items-center justify-center flex-row shadow-lg shadow-black/20"
                     >
                         {sendingBroadcast ? (
                             <ActivityIndicator color="white" />
                         ) : (
                             <>
                                 <Ionicons name="send" size={18} color="white" />
-                                <Text className="text-white font-black text-[12px] uppercase tracking-[1.5px] ml-2">Send Broadcast</Text>
+                                <Text className="text-white font-black text-xs uppercase tracking-wide ml-2">Send Broadcast</Text>
                             </>
                         )}
                     </TouchableOpacity>
@@ -975,7 +975,7 @@ const AdminPortal = ({ navigation }: any) => {
             ) : (
                 loading ? (
                     <View className="flex-1 items-center justify-center">
-                        <ActivityIndicator color="#ec4899" size="large" />
+                        <ActivityIndicator color="#f97316" size="large" />
                     </View>
                 ) : (
                     <FlatList
@@ -1007,7 +1007,7 @@ const AdminPortal = ({ navigation }: any) => {
                         showsVerticalScrollIndicator={false}
                         ListEmptyComponent={
                             <View className="flex-1 items-center justify-center py-20">
-                                <Text className="text-gray-400 font-bold text-sm">
+                                <Text className="text-slate-500 font-bold text-sm">
                                     {activeTab === 'ads' ? 'No ads found' :
                                         activeTab === 'marketplace' ? 'No reward items found' :
                                             activeTab === 'rewards' ? 'No reward applications found' :
@@ -1024,10 +1024,10 @@ const AdminPortal = ({ navigation }: any) => {
             <Modal visible={modalVisible} animationType="slide" transparent>
                 <View className="flex-1 bg-black/50 justify-end">
                     <KeyboardAvoidingView behavior="padding">
-                        <View className="bg-white rounded-t-[36px] p-6 pb-10 border-t border-gray-200">
+                        <View className="bg-white rounded-t-4xl p-6 pb-10 border-t border-slate-200">
                             <View className="flex-row justify-between items-center mb-6">
-                                <Text className="text-zinc-900 text-xl font-black">{editingAd || editingProduct ? 'Edit Item' : activeTab === 'ads' ? 'New Ad Banner' : activeTab === 'media' ? 'Publish Fync Media' : 'New Reward Item'}</Text>
-                                <TouchableOpacity onPress={() => { setModalVisible(false); resetForm(); }} className="w-8 h-8 bg-gray-100 rounded-full items-center justify-center">
+                                <Text className="text-slate-900 text-xl font-black">{editingAd || editingProduct ? 'Edit Item' : activeTab === 'ads' ? 'New Ad Banner' : activeTab === 'media' ? 'Publish Fync Media' : 'New Reward Item'}</Text>
+                                <TouchableOpacity onPress={() => { setModalVisible(false); resetForm(); }} className="w-8 h-8 bg-slate-100 rounded-full items-center justify-center">
                                     <Ionicons name="close" size={18} color="#1A1A1A" />
                                 </TouchableOpacity>
                             </View>
@@ -1035,13 +1035,13 @@ const AdminPortal = ({ navigation }: any) => {
                             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
                                 <TouchableOpacity
                                     onPress={pickImage}
-                                    className={`w-full ${activeTab === 'marketplace' || activeTab === 'media' ? '' : 'h-40'} bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 items-center justify-center mb-4 overflow-hidden`}
+                                    className={`w-full ${activeTab === 'marketplace' || activeTab === 'media' ? '' : 'h-40'} bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 items-center justify-center mb-4 overflow-hidden`}
                                     style={activeTab === 'marketplace' || activeTab === 'media' ? { aspectRatio: 16 / 9 } : {}}
                                 >
                                     {imageUri ? <Image source={{ uri: imageUri }} className="w-full h-full" resizeMode={activeTab === 'marketplace' ? "contain" : "cover"} /> : imageUrl ? <Image source={{ uri: imageUrl }} className="w-full h-full" resizeMode={activeTab === 'marketplace' ? "contain" : "cover"} /> : (
                                         <View className="items-center">
                                             <Ionicons name="image-outline" size={36} color="#9ca3af" />
-                                            <Text className="text-gray-400 font-medium text-sm mt-2">Pick {activeTab === 'marketplace' ? 'item' : activeTab === 'media' ? 'thumbnail' : 'banner'} image</Text>
+                                            <Text className="text-slate-500 font-medium text-sm mt-2">Pick {activeTab === 'marketplace' ? 'item' : activeTab === 'media' ? 'thumbnail' : 'banner'} image</Text>
                                         </View>
                                     )}
                                 </TouchableOpacity>
@@ -1049,7 +1049,7 @@ const AdminPortal = ({ navigation }: any) => {
                                 {activeTab === 'media' && (
                                     <TouchableOpacity
                                         onPress={pickVideo}
-                                        className="w-full aspect-video bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 items-center justify-center mb-4 overflow-hidden"
+                                        className="w-full aspect-video bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 items-center justify-center mb-4 overflow-hidden"
                                     >
                                         {videoUri ? (
                                             <View className="items-center">
@@ -1059,7 +1059,7 @@ const AdminPortal = ({ navigation }: any) => {
                                         ) : (
                                             <View className="items-center">
                                                 <Ionicons name="videocam-outline" size={36} color="#9ca3af" />
-                                                <Text className="text-gray-400 font-medium text-sm mt-2">Pick Video File</Text>
+                                                <Text className="text-slate-500 font-medium text-sm mt-2">Pick Video File</Text>
                                             </View>
                                         )}
                                     </TouchableOpacity>
@@ -1069,13 +1069,13 @@ const AdminPortal = ({ navigation }: any) => {
                                     value={imageUrl}
                                     onChangeText={t => { setImageUrl(t); setImageUri(null); }}
                                     placeholder="Or paste image URL"
-                                    className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4"
+                                    className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mb-4"
                                 />
                                 <TextInput
                                     value={title}
                                     onChangeText={setTitle}
                                     placeholder={activeTab === 'ads' ? "Ad Title" : activeTab === 'media' ? "Video Title" : "Product Name"}
-                                    className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4"
+                                    className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mb-4"
                                 />
 
                                 {activeTab === 'marketplace' && (
@@ -1085,7 +1085,7 @@ const AdminPortal = ({ navigation }: any) => {
                                             onChangeText={setDescription}
                                             placeholder="Product Description"
                                             multiline
-                                            className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4 min-h-[100px]"
+                                            className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mb-4 min-h-[100px]"
                                             textAlignVertical="top"
                                         />
                                         <TextInput
@@ -1093,7 +1093,7 @@ const AdminPortal = ({ navigation }: any) => {
                                             onChangeText={setCoins}
                                             placeholder="Coins Required"
                                             keyboardType="numeric"
-                                            className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4"
+                                            className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mb-4"
                                         />
                                     </>
                                 )}
@@ -1105,14 +1105,14 @@ const AdminPortal = ({ navigation }: any) => {
                                             onChangeText={setDescription}
                                             placeholder="Video Description"
                                             multiline
-                                            className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4 min-h-[100px]"
+                                            className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mb-4 min-h-[100px]"
                                             textAlignVertical="top"
                                         />
                                         <TextInput
                                             value={tags}
                                             onChangeText={setTags}
                                             placeholder="Tags (comma separated)"
-                                            className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4"
+                                            className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mb-4"
                                         />
                                     </>
                                 )}
@@ -1122,15 +1122,15 @@ const AdminPortal = ({ navigation }: any) => {
                                         value={linkUrl}
                                         onChangeText={setLinkUrl}
                                         placeholder="Link URL"
-                                        className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 mb-4"
+                                        className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mb-4"
                                     />
                                 )}
 
                                 {activeTab !== 'media' && (
-                                    <View className="flex-row justify-between items-center bg-gray-50 p-4 rounded-xl mb-6">
+                                    <View className="flex-row justify-between items-center bg-slate-50 p-4 rounded-xl mb-6">
                                         <View>
-                                            <Text className="text-zinc-900 font-bold text-sm">{activeTab === 'ads' ? 'Ad Visible' : 'Item Available'}</Text>
-                                            <Text className="text-gray-400 text-[10px]">Toggling this will hide/show the item</Text>
+                                            <Text className="text-slate-900 font-bold text-sm">{activeTab === 'ads' ? 'Ad Visible' : 'Item Available'}</Text>
+                                            <Text className="text-slate-500 text-2xs">Toggling this will hide/show the item</Text>
                                         </View>
                                         <Switch
                                             value={isActive}
@@ -1146,7 +1146,7 @@ const AdminPortal = ({ navigation }: any) => {
                                     disabled={submitting}
                                     className={`py-4 rounded-xl items-center flex-row justify-center ${submitting ? 'bg-pink-300' : 'bg-pink-500'}`}
                                 >
-                                    {submitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-black uppercase tracking-widest text-xs">{editingAd || editingProduct ? 'Save Changes' : activeTab === 'ads' ? 'Publish Ad' : 'Add to Store'}</Text>}
+                                    {submitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-black uppercase tracking-wide text-xs">{editingAd || editingProduct ? 'Save Changes' : activeTab === 'ads' ? 'Publish Ad' : 'Add to Store'}</Text>}
                                 </TouchableOpacity>
                             </ScrollView>
                         </View>
@@ -1156,18 +1156,18 @@ const AdminPortal = ({ navigation }: any) => {
             </SafeAreaView>
             {/* Subscription Confirmation Modal */}
             <Modal visible={subConfirmModalVisible} animationType="fade" transparent>
-                <View className="flex-1 bg-zinc-950/80 justify-center px-6">
+                <View className="flex-1 bg-slate-950/80 justify-center px-6">
                     <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={() => setSubConfirmModalVisible(false)} />
-                    <View className="bg-white rounded-[32px] p-8 shadow-2xl overflow-hidden border border-slate-100">
-                        <View className="w-16 h-16 bg-red-50 rounded-[20px] items-center justify-center mb-6 border border-red-100">
+                    <View className="bg-white rounded-4xl p-8 shadow-2xl overflow-hidden border border-slate-100">
+                        <View className="w-16 h-16 bg-red-50 rounded-2xl items-center justify-center mb-6 border border-red-100">
                             <Ionicons name="warning" size={32} color="#ef4444" />
                         </View>
                         
                         <View className="mb-8">
-                            <Text className="text-zinc-900 text-2xl font-black tracking-tighter uppercase leading-tight">
+                            <Text className="text-slate-900 text-2xl font-black tracking-tighter uppercase leading-tight">
                                 CONFIRM <Text className="text-red-500">CHANGE</Text>
                             </Text>
-                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-2 leading-4">
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-2 leading-4">
                                 You are about to change the global subscription price to ₹{subscriptionPrice}. Please re-authenticate.
                             </Text>
                         </View>
@@ -1178,7 +1178,7 @@ const AdminPortal = ({ navigation }: any) => {
                             placeholder="ENTER MASTER PASSWORD"
                             placeholderTextColor="#94A3B8"
                             secureTextEntry
-                            className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-5 text-zinc-900 font-black tracking-widest text-[10px] shadow-sm mb-6"
+                            className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-5 text-slate-900 font-black tracking-wide text-2xs shadow-sm mb-6"
                             onSubmitEditing={confirmAndDeploySubscriptionPrice}
                         />
 
@@ -1188,7 +1188,7 @@ const AdminPortal = ({ navigation }: any) => {
                                 disabled={submittingPrice}
                                 className="flex-1 bg-slate-100 h-14 rounded-2xl items-center justify-center border border-slate-200"
                             >
-                                <Text className="text-slate-500 font-black text-[10px] uppercase tracking-[2px]">Cancel</Text>
+                                <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide">Cancel</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity 
@@ -1199,7 +1199,7 @@ const AdminPortal = ({ navigation }: any) => {
                                 {submittingPrice ? (
                                     <ActivityIndicator color="white" />
                                 ) : (
-                                    <Text className="text-white font-black text-[10px] uppercase tracking-[2px]">Deploy Price</Text>
+                                    <Text className="text-white font-black text-2xs uppercase tracking-wide">Deploy Price</Text>
                                 )}
                             </TouchableOpacity>
                         </View>

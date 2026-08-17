@@ -3,6 +3,8 @@ import User from "../models/user.model.js";
 import Comment from "../models/comment.model.js";
 import { deleteFromR2 } from "../utils/r2.js";
 import crypto from 'crypto';
+import { getCommentThread } from "../utils/comments.js";
+import { toggleLike } from "../utils/likeToggle.js";
 
 export const createFundingPost = async (req, res) => {
     try {
@@ -150,39 +152,19 @@ export const updateProject = async (req, res) => {
 
 export const likeAndUnlikeProject = async (req, res) => {
     try {
-        const project = await FundingProject.findById(req.params.id);
-        if (!project) {
-            return res.status(404).json({ success: false, message: "Project not found" });
-        }
-        const isLiked = (project.liked_by || []).some(id => String(id) === String(req.user.id));
-        let updatedProject;
-        if (isLiked) {
-            updatedProject = await FundingProject.findByIdAndUpdate(
-                req.params.id,
-                {
-                    $inc: { likes: -1 },
-                    $pull: { liked_by: req.user.id }
-                },
-                { new: true }
-            );
-            return res.status(200).json({ success: true, message: "Project unliked successfully", project: updatedProject });
-        }
-        else {
-            updatedProject = await FundingProject.findByIdAndUpdate(
-                req.params.id,
-                {
-                    $inc: { likes: 1 },
-                    $addToSet: { liked_by: req.user.id }
-                },
-                { new: true }
-            );
-            return res.status(200).json({ success: true, message: "Project liked successfully", project: updatedProject });
-        }
+        const result = await toggleLike(FundingProject, req.params.id, req.user.id);
+        if (!result) return res.status(404).json({ success: false, message: "Project not found" });
+        return res.status(200).json({
+            success: true,
+            message: result.liked ? "Project liked successfully" : "Project unliked successfully",
+            project: result.doc
+        });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
+
 
 export const addComment = async (req, res) => {
     try {
@@ -229,17 +211,7 @@ export const addComment = async (req, res) => {
 
 export const getAllComments = async (req, res) => {
     try {
-        const comments = await Comment.find({ post: req.params.id, postType: "FundingProject", parentComment: null })
-            .sort({ createdAt: -1 })
-            .populate("commentor", "name avatar username");
-        
-        const commentsWithReplies = await Promise.all(comments.map(async (comment) => {
-            const replies = await Comment.find({ parentComment: comment._id })
-                .populate("commentor", "name avatar username")
-                .populate("replyToUser", "username")
-                .sort({ createdAt: 1 });
-            return { ...comment._doc, replies };
-        }));
+        const commentsWithReplies = await getCommentThread(req.params.id, "FundingProject");
 
         const totalComments = commentsWithReplies.length;
         return res.status(200).json({ success: true, message: "Comments fetched successfully", comments: commentsWithReplies, totalComments });
@@ -251,14 +223,19 @@ export const getAllComments = async (req, res) => {
 
 export const deleteComment = async (req, res) => {
     try {
-        const comment = await Comment.find({ post: req.params.id, postType: "FundingProject" });
-        if (!comment) {
+        // Was: Comment.find({ post: req.params.id }) — which returns an ARRAY, so
+        // the `!comment` check never fired, `comment.commentor` was undefined and
+        // this always threw. It also searched by post id rather than comment id,
+        // then deleted an arbitrary comment on that post regardless of author.
+        const comment = await Comment.findById(req.params.id);
+        if (!comment || comment.postType !== "FundingProject") {
             return res.status(404).json({ success: false, message: "Comment not found" });
         }
-        if (comment.commentor.toString() !== req.user.id) {
+        if (comment.commentor.toString() !== req.user.id.toString()) {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
-        await Comment.findOneAndDelete({ post: req.params.id });
+        await Comment.deleteMany({ parentComment: comment._id });
+        await Comment.findByIdAndDelete(comment._id);
         return res.status(200).json({ success: true, message: "Comment deleted successfully" });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal server error" });

@@ -166,7 +166,7 @@ export default function EditProfile() {
           {loading ? (
             <ActivityIndicator size="small" color="#f97316" />
           ) : (
-            <Text className={`text-lg font-bold ${!hasChanges ? 'text-gray-400' : 'text-orange-500'}`}>Save</Text>
+            <Text className={`text-lg font-bold ${!hasChanges ? 'text-slate-500' : 'text-orange-500'}`}>Save</Text>
           )}
         </Pressable>
       </View>
@@ -175,13 +175,13 @@ export default function EditProfile() {
 
         {/* --- Banner Image --- */}
         <Pressable onPress={() => pickImage('banner')} className="mb-6">
-          <View className="h-32 w-full bg-gray-100 rounded-xl overflow-hidden border border-gray-200 justify-center items-center">
+          <View className="h-32 w-full bg-slate-100 rounded-xl overflow-hidden border border-slate-200 justify-center items-center">
             {banner ? (
               <Image source={{ uri: banner }} className="w-full h-full" resizeMode="cover" />
             ) : (
               <View className="items-center">
                 <Ionicons name="image-outline" size={30} color="#6b7280" />
-                <Text className="text-gray-500 text-xs mt-1">Tap to add banner</Text>
+                <Text className="text-slate-500 text-xs mt-1">Tap to add banner</Text>
               </View>
             )}
             <View className="absolute bg-black/20 p-2 rounded-full">
@@ -195,7 +195,7 @@ export default function EditProfile() {
           <Pressable onPress={() => pickImage('avatar')}>
             <Image
               source={{ uri: avatar || `https://ui-avatars.com/api/?name=${username}` }}
-              className="h-24 w-24 rounded-full border-4 border-white bg-gray-100"
+              className="h-24 w-24 rounded-full border-4 border-white bg-slate-100"
             />
             <View className="absolute bottom-0 right-0 bg-orange-500 p-1.5 rounded-full border-2 border-white">
               <Ionicons name="pencil" size={14} color="white" />
@@ -225,7 +225,7 @@ export default function EditProfile() {
               onChange={setUpiId}
               placeholder="yourname@upi"
             />
-            <Text className="text-green-500/60 text-[10px] mt-1 ml-1 font-medium ">
+            <Text className="text-green-500/60 text-2xs mt-1 ml-1 font-medium ">
               * Other users will use this ID to pay you for your content.
             </Text>
           </View>
@@ -239,11 +239,11 @@ export default function EditProfile() {
 // --- Reusable Input Component ---
 const InputGroup = ({ label, value, onChange, placeholder, multiline = false }: any) => (
   <View>
-    <Text className="text-gray-500 text-sm mb-1.5 ml-1">{label}</Text>
+    <Text className="text-slate-500 text-sm mb-1.5 ml-1">{label}</Text>
     <TextInput
       value={value}
       onChangeText={onChange}
-      className={`bg-gray-100 text-black p-3.5 rounded-xl text-base border border-gray-200 ${multiline ? 'min-h-[80px]' : ''}`}
+      className={`bg-slate-100 text-black p-3.5 rounded-xl text-base border border-slate-200 ${multiline ? 'min-h-[80px]' : ''}`}
       placeholder={placeholder}
       placeholderTextColor="#9ca3af"
       multiline={multiline}

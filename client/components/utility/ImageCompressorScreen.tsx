@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Platform, Image, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform, Image, ActivityIndicator, Alert } from 'react-native';
+// SafeAreaView from 'react-native' is iOS-only — on Android it renders as a
+// plain View and applies no insets, so content collides with the status bar
+// and the gesture bar. The safe-area-context version works on both.
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Image as ImageCompressor } from 'react-native-compressor';
 import * as Sharing from 'expo-sharing';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as FileSystem from 'expo-file-system';
+// expo-file-system 19 moved documentDirectory / EncodingType /
+// StorageAccessFramework behind the legacy entry point; importing from the
+// package root leaves them undefined at runtime.
+import * as FileSystem from 'expo-file-system/legacy';
 
 export default function ImageCompressorScreen() {
   const navigation = useNavigation();
@@ -20,7 +27,8 @@ export default function ImageCompressorScreen() {
   const getFileSize = async (uri: string) => {
     try {
       const info = await FileSystem.getInfoAsync(uri);
-      return info.size || 0;
+      // FileInfo is a union: `size` only exists on the branch where exists is true.
+      return info.exists ? info.size : 0;
     } catch (e) {
       return 0;
     }
@@ -114,7 +122,7 @@ export default function ImageCompressorScreen() {
                 <Ionicons name="image-outline" size={32} color="#0ea5e9" />
               </View>
               <Text className="text-lg font-bold text-slate-800 mb-1">Select Image</Text>
-              <Text className="text-xs font-medium text-slate-400 text-center">Tap to choose a large image</Text>
+              <Text className="text-xs font-medium text-slate-500 text-center">Tap to choose a large image</Text>
             </TouchableOpacity>
           ) : (
             <View className="mb-6">
@@ -130,7 +138,7 @@ export default function ImageCompressorScreen() {
 
               <View className="flex-row items-center justify-between bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-6">
                 <View>
-                  <Text className="text-xs text-slate-400 font-bold mb-1 uppercase tracking-wider">Original Size</Text>
+                  <Text className="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider">Original Size</Text>
                   <Text className="text-base font-black text-slate-800">{formatSize(originalSize)}</Text>
                 </View>
                 <Ionicons name="arrow-forward" size={20} color="#cbd5e1" />
@@ -166,7 +174,7 @@ export default function ImageCompressorScreen() {
                       <ActivityIndicator color="white" />
                     ) : (
                       <>
-                        <Ionicons name="compress" size={20} color="white" className="mr-2" />
+                        <Ionicons name="contract" size={20} color="white" className="mr-2" />
                         <Text className="text-white font-bold text-base ml-2">Compress Now</Text>
                       </>
                     )}

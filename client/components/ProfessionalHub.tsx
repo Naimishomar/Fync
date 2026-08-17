@@ -261,28 +261,28 @@ const ProfessionalHub = ({ navigation }: any) => {
                 <View className={`ml-2 ${isMe ? "items-end" : "items-start"}`}>
                     {!isMe && (
                         <View className="flex-row items-center mb-1">
-                            <Text className={`text-[10px] font-bold ${isAlumni ? 'text-pink-500' : 'text-blue-500'}`}>
+                            <Text className={`text-2xs font-bold ${isAlumni ? 'text-pink-500' : 'text-blue-500'}`}>
                                 {sender?.name} {isAlumni ? '🎓' : '👤'}
                             </Text>
                             {sender?.company && (
-                                <Text className="text-[8px] text-gray-500 ml-1 font-medium tracking-tight">• {sender.company}</Text>
+                                <Text className="text-2xs text-slate-500 ml-1 font-medium tracking-tight">• {sender.company}</Text>
                             )}
                         </View>
                     )}
                     <TouchableOpacity
                         activeOpacity={0.9}
                         onLongPress={() => isMe ? handleDeleteMessage(item._id) : setReplyingTo(item)}
-                        className={`max-w-[280px] p-3 rounded-2xl ${isMe ? "bg-zinc-900 rounded-br-none" : "bg-white rounded-bl-none"} shadow-sm border ${isMe ? 'border-zinc-800' : 'border-gray-100'}`}>
+                        className={`max-w-[280px] p-3 rounded-2xl ${isMe ? "bg-slate-900 rounded-br-none" : "bg-white rounded-bl-none"} shadow-sm border ${isMe ? 'border-slate-800' : 'border-slate-100'}`}>
 
                         {item.replyTo && (
-                            <View className={`mb-2 p-2 rounded-lg border-l-2 border-pink-500 ${isMe ? 'bg-zinc-800' : 'bg-gray-50'}`}>
-                                <Text className="text-pink-500 text-[9px] font-bold">{item.replyTo.sender?.name || "User"}</Text>
-                                <Text className={`${isMe ? 'text-gray-400' : 'text-zinc-500'} text-[10px]`} numberOfLines={1}>{item.replyTo.message}</Text>
+                            <View className={`mb-2 p-2 rounded-lg border-l-2 border-pink-500 ${isMe ? 'bg-slate-800' : 'bg-slate-50'}`}>
+                                <Text className="text-pink-500 text-2xs font-bold">{item.replyTo.sender?.name || "User"}</Text>
+                                <Text className={`${isMe ? 'text-slate-500' : 'text-slate-500'} text-2xs`} numberOfLines={1}>{item.replyTo.message}</Text>
                             </View>
                         )}
 
                         {item.messageType === 'text' && (
-                            <Text className={`${isMe ? 'text-white' : 'text-zinc-800'} text-[14px] leading-5 font-medium`}>{item.message}</Text>
+                            <Text className={`${isMe ? 'text-white' : 'text-slate-800'} text-sm leading-5 font-medium`}>{item.message}</Text>
                         )}
                         {item.messageType === 'image' && (
                             <Image source={{ uri: item.fileUrl }} className="w-52 h-52 rounded-lg" resizeMode="cover" />
@@ -298,17 +298,17 @@ const ProfessionalHub = ({ navigation }: any) => {
                                         }
                                     }
                                 }}
-                                className={`flex-row items-center p-2 rounded-lg ${isMe ? 'bg-zinc-800' : 'bg-gray-100'}`}
+                                className={`flex-row items-center p-2 rounded-lg ${isMe ? 'bg-slate-800' : 'bg-slate-100'}`}
                             >
                                 <Ionicons name="document-text" size={24} color="#ec4899" />
                                 <View className="ml-2">
-                                    <Text className={`${isMe ? 'text-white' : 'text-zinc-800'} text-xs font-bold`} numberOfLines={1}>{item.fileName || "Document"}</Text>
-                                    <Text className="text-gray-500 text-[10px]">Mentorship Resource (Limit 5MB)</Text>
+                                    <Text className={`${isMe ? 'text-white' : 'text-slate-800'} text-xs font-bold`} numberOfLines={1}>{item.fileName || "Document"}</Text>
+                                    <Text className="text-slate-500 text-2xs">Mentorship Resource (Limit 5MB)</Text>
                                 </View>
                             </TouchableOpacity>
                         )}
                     </TouchableOpacity>
-                    <Text className="text-[8px] text-gray-400 mt-1 font-bold">
+                    <Text className="text-2xs text-slate-500 mt-1 font-bold">
                         {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>
                 </View>
@@ -321,18 +321,18 @@ const ProfessionalHub = ({ navigation }: any) => {
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1">
                 {/* Header */}
-                <View className="flex-row items-center justify-between px-4 py-4 bg-white border-b border-gray-100 shadow-sm">
+                <View className="flex-row items-center justify-between px-4 py-4 bg-white border-b border-slate-100 shadow-sm">
                     <View className="flex-row items-center">
-                        <Pressable onPress={() => navigation.goBack()} className="mr-2 p-2 bg-gray-50 rounded-full">
+                        <Pressable onPress={() => navigation.goBack()} className="mr-2 p-2 bg-slate-50 rounded-full">
                             <Ionicons name="arrow-back" size={22} color="#1A1A1A" />
                         </Pressable>
                         <View>
-                            <Text className="text-zinc-900 font-black text-lg  tracking-tight">Professional <Text className="text-pink-500">Hub</Text></Text>
-                            <Text className="text-pink-500 text-[9px] font-bold tracking-widest uppercase">{user?.college} Community</Text>
+                            <Text className="text-slate-900 font-black text-lg  tracking-tight">Professional <Text className="text-pink-500">Hub</Text></Text>
+                            <Text className="text-pink-500 text-2xs font-bold tracking-wide uppercase">{user?.college} Community</Text>
                         </View>
                     </View>
                     <View className="bg-pink-500 px-3 py-1.5 rounded-full border border-pink-100 shadow-sm shadow-pink-500/20">
-                        <Text className="text-white text-[9px] font-black  tracking-tighter">STUDENT-ALUMNI</Text>
+                        <Text className="text-white text-2xs font-black  tracking-tighter">STUDENT-ALUMNI</Text>
                     </View>
                 </View>
 
@@ -341,7 +341,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                     className="flex-1"
                 >
                     {loading ? (
-                        <ActivityIndicator className="flex-1" color="#ec4899" />
+                        <ActivityIndicator className="flex-1" color="#f97316" />
                     ) : (
                         <FlatList
                             ref={flatListRef}
@@ -357,16 +357,16 @@ const ProfessionalHub = ({ navigation }: any) => {
                     )}
 
                     {typingUsers.length > 0 && (
-                        <Text className="px-5 py-1 text-gray-500 text-[10px] font-bold ">
+                        <Text className="px-5 py-1 text-slate-500 text-2xs font-bold ">
                             {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
                         </Text>
                     )}
 
                     {replyingTo && (
-                        <View className="px-4 py-3 bg-white border-t border-gray-100 flex-row items-center justify-between">
+                        <View className="px-4 py-3 bg-white border-t border-slate-100 flex-row items-center justify-between">
                             <View className="border-l-2 border-pink-500 pl-3">
-                                <Text className="text-pink-500 text-[10px] font-black uppercase">REPLYING TO {replyingTo.sender?.name}</Text>
-                                <Text className="text-gray-500 text-xs mt-0.5 font-medium" numberOfLines={1}>{replyingTo.message}</Text>
+                                <Text className="text-pink-500 text-2xs font-black uppercase">REPLYING TO {replyingTo.sender?.name}</Text>
+                                <Text className="text-slate-500 text-xs mt-0.5 font-medium" numberOfLines={1}>{replyingTo.message}</Text>
                             </View>
                             <Pressable onPress={() => setReplyingTo(null)} className="p-1">
                                 <Ionicons name="close-circle" size={20} color="#9ca3af" />
@@ -375,19 +375,19 @@ const ProfessionalHub = ({ navigation }: any) => {
                     )}
 
                     {showMentions && mentionResults.length > 0 && (
-                        <View className="max-h-48 bg-white border-t border-gray-100 shadow-xl">
+                        <View className="max-h-48 bg-white border-t border-slate-100 shadow-xl">
                             <FlatList
                                 data={mentionResults}
                                 keyExtractor={(item) => item._id}
                                 renderItem={({ item }) => (
                                     <TouchableOpacity
                                         onPress={() => applyMention(item.username)}
-                                        className="flex-row items-center px-4 py-3 border-b border-gray-50 active:bg-gray-50"
+                                        className="flex-row items-center px-4 py-3 border-b border-slate-50 active:bg-slate-50"
                                     >
-                                        <Image source={{ uri: item.avatar }} className="w-9 h-9 rounded-full border border-gray-100" />
+                                        <Image source={{ uri: item.avatar }} className="w-9 h-9 rounded-full border border-slate-100" />
                                         <View className="ml-3">
-                                            <Text className="text-zinc-900 font-bold text-sm">@{item.username}</Text>
-                                            <Text className="text-gray-500 text-[10px] font-medium">{item.name}</Text>
+                                            <Text className="text-slate-900 font-bold text-sm">@{item.username}</Text>
+                                            <Text className="text-slate-500 text-2xs font-medium">{item.name}</Text>
                                         </View>
                                     </TouchableOpacity>
                                 )}
@@ -395,8 +395,8 @@ const ProfessionalHub = ({ navigation }: any) => {
                         </View>
                     )}
 
-                    <View className="p-4 bg-white border-t border-gray-100 shadow-sm">
-                        <View className="flex-row items-center bg-gray-50 rounded-3xl px-3 py-1 border border-gray-100">
+                    <View className="p-4 bg-white border-t border-slate-100 shadow-sm">
+                        <View className="flex-row items-center bg-slate-50 rounded-3xl px-3 py-1 border border-slate-100">
                             <Pressable onPress={handlePickMedia} className="p-2">
                                 <Ionicons name="image-outline" size={24} color="#6b7280" />
                             </Pressable>
@@ -408,7 +408,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                                 onChangeText={handleTyping}
                                 placeholder="Ask alumni anything..."
                                 placeholderTextColor="#9ca3af"
-                                className="flex-1 text-zinc-900 py-3 px-2 text-[14px] font-medium"
+                                className="flex-1 text-slate-900 py-3 px-2 text-sm font-medium"
                                 multiline
                             />
                             {text.trim().length > 0 && (
@@ -419,7 +419,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                         </View>
                         <View className="flex-row items-center justify-center mt-3">
                             <Ionicons name="at-circle" size={14} color="#ec4899" />
-                            <Text className="text-[10px] text-gray-500 ml-1 font-bold">Type @ followed by username to tag mentors or peers</Text>
+                            <Text className="text-2xs text-slate-500 ml-1 font-bold">Type @ followed by username to tag mentors or peers</Text>
                         </View>
                     </View>
                 </KeyboardAvoidingView>

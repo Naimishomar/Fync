@@ -118,7 +118,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingBottom: 24 }}
           >
-            <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-10">
+            <View className="rounded-t-5xl bg-white px-6 pt-8 pb-10">
               <Image
                 source={require('../assets/Fync.png')}
                 className="h-20 w-20 self-center rounded-full mb-4"
@@ -131,7 +131,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
 
               {/* Email Input (Always Visible) */}
               <TextInput
-                className={`mb-4 rounded-xl border border-gray-300 px-4 py-4 text-base ${isOtpSent ? 'bg-gray-100 text-gray-500' : 'bg-white text-black'}`}
+                className={`mb-4 rounded-xl border border-slate-300 px-4 py-4 text-base ${isOtpSent ? 'bg-slate-100 text-slate-500' : 'bg-white text-black'}`}
                 placeholder="Enter your email"
                 placeholderTextColor="#9CA3AF"
                 value={email}
@@ -146,7 +146,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
                 <>
                   {/* OTP Input */}
                   <TextInput
-                    className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-base text-black"
+                    className="mb-4 rounded-xl border border-slate-300 px-4 py-4 text-base text-black"
                     placeholder="Enter 6-digit OTP"
                     placeholderTextColor="#9CA3AF"
                     value={otp}
@@ -157,7 +157,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
                   />
 
                   {/* Password Input */}
-                  <View className="mb-6 flex-row items-center rounded-xl border border-gray-300 px-4">
+                  <View className="mb-6 flex-row items-center rounded-xl border border-slate-300 px-4">
                     <TextInput
                       className="flex-1 py-4 text-base text-black"
                       placeholder="New Password"
@@ -196,7 +196,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
               {/* Back to Edit Email (Optional UX improvement) */}
               {isOtpSent && !isLoading && (
                 <Pressable onPress={() => setIsOtpSent(false)} className="mt-4 items-center">
-                  <Text className="text-gray-500 font-medium">Change Email or Resend</Text>
+                  <Text className="text-slate-500 font-medium">Change Email or Resend</Text>
                 </Pressable>
               )}
 

@@ -267,29 +267,29 @@ const ClubAdminPanel = () => {
     if (loading) return <View className="flex-1 bg-white justify-center items-center"><ActivityIndicator color="#000" /></View>;
 
     return (
-        <View className="flex-1 bg-zinc-50">
+        <View className="flex-1 bg-slate-50">
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top']}>
                 {/* Header */}
-                <View className="px-5 py-4 border-b border-zinc-100 bg-white flex-row items-center">
+                <View className="px-5 py-4 border-b border-slate-100 bg-white flex-row items-center">
                     <TouchableOpacity onPress={() => navigation.goBack()}>
                         <Ionicons name="arrow-back" size={24} color="black" />
                     </TouchableOpacity>
                     <View className="ml-4">
-                        <Text className="text-zinc-900 text-lg font-black uppercase tracking-widest">Control Panel</Text>
-                        <Text className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest">{club.name}</Text>
+                        <Text className="text-slate-900 text-lg font-black uppercase tracking-widest">Control Panel</Text>
+                        <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide">{club.name}</Text>
                     </View>
                 </View>
 
                 {/* Tabs */}
-                <View className="flex-row bg-white border-b border-zinc-100">
+                <View className="flex-row bg-white border-b border-slate-100">
                     {['requests', 'recruit', 'members', 'settings'].map((tab: any) => (
                         <TouchableOpacity 
                             key={tab}
                             onPress={() => setActiveTab(tab as any)}
-                            className={`flex-1 py-4 items-center border-b-2 ${activeTab === tab ? 'border-zinc-900' : 'border-transparent'}`}
+                            className={`flex-1 py-4 items-center border-b-2 ${activeTab === tab ? 'border-slate-900' : 'border-transparent'}`}
                         >
-                            <Text className={`text-[9px] font-black uppercase tracking-widest ${activeTab === tab ? 'text-zinc-900' : 'text-zinc-400'}`}>
+                            <Text className={`text-2xs font-black uppercase tracking-widest ${activeTab === tab ? 'text-slate-900' : 'text-slate-500'}`}>
                                 {tab}
                             </Text>
                         </TouchableOpacity>
@@ -299,19 +299,19 @@ const ClubAdminPanel = () => {
                 <ScrollView className="flex-1 p-5">
                     {activeTab === 'requests' && (
                         <View>
-                            <Text className="text-zinc-400 font-bold uppercase text-[10px] mb-4 tracking-widest">Incoming Requests ({club.joinRequests?.length || 0})</Text>
+                            <Text className="text-slate-500 font-bold uppercase text-2xs mb-4 tracking-wide">Incoming Requests ({club.joinRequests?.length || 0})</Text>
                             {club.joinRequests?.map((req: any) => (
-                                <View key={req._id} className="bg-white p-4 rounded-3xl border border-zinc-100 mb-3 flex-row items-center">
+                                <View key={req._id} className="bg-white p-4 rounded-3xl border border-slate-100 mb-3 flex-row items-center">
                                     <Image source={{ uri: req.avatar || 'https://via.placeholder.com/150' }} className="w-12 h-12 rounded-full" />
                                     <View className="flex-1 ml-4">
-                                        <Text className="text-zinc-900 font-bold text-sm">{req.name}</Text>
-                                        <Text className="text-zinc-400 text-xs text-black">@{req.username}</Text>
+                                        <Text className="text-slate-900 font-bold text-sm">{req.name}</Text>
+                                        <Text className="text-slate-500 text-xs text-black">@{req.username}</Text>
                                     </View>
                                     <View className="flex-row gap-2">
                                         <TouchableOpacity onPress={() => handleRequestAction(req._id, 'approve')} className="w-9 h-9 bg-emerald-500 rounded-xl items-center justify-center">
                                             <Feather name="check" size={18} color="white" />
                                         </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => handleRequestAction(req._id, 'reject')} className="w-9 h-9 bg-zinc-100 rounded-xl items-center justify-center">
+                                        <TouchableOpacity onPress={() => handleRequestAction(req._id, 'reject')} className="w-9 h-9 bg-slate-100 rounded-xl items-center justify-center">
                                             <Feather name="x" size={18} color="#71717a" />
                                         </TouchableOpacity>
                                     </View>
@@ -320,7 +320,7 @@ const ClubAdminPanel = () => {
                             {club.joinRequests?.length === 0 && (
                                 <View className="items-center mt-20">
                                     <Feather name="inbox" size={32} color="#e5e7eb" />
-                                    <Text className="text-center text-zinc-300 mt-4 text-[10px] font-bold uppercase tracking-widest">No pending requests</Text>
+                                    <Text className="text-center text-slate-300 mt-4 text-2xs font-bold uppercase tracking-wide">No pending requests</Text>
                                 </View>
                             )}
                         </View>
@@ -328,12 +328,12 @@ const ClubAdminPanel = () => {
 
                     {activeTab === 'recruit' && (
                         <View>
-                            <Text className="text-zinc-400 font-bold uppercase text-[10px] mb-4 tracking-widest">Recruit Members</Text>
-                            <View className="bg-white p-4 rounded-3xl border border-zinc-100 mb-6 flex-row items-center">
+                            <Text className="text-slate-500 font-bold uppercase text-2xs mb-4 tracking-wide">Recruit Members</Text>
+                            <View className="bg-white p-4 rounded-3xl border border-slate-100 mb-6 flex-row items-center">
                                 <Feather name="search" size={18} color="#a1a1aa" />
                                 <TextInput 
                                     placeholder="Search by username..."
-                                    className="flex-1 ml-3 font-bold text-zinc-900"
+                                    className="flex-1 ml-3 font-bold text-slate-900"
                                     value={searchQuery}
                                     onChangeText={handleSearch}
                                 />
@@ -342,32 +342,32 @@ const ClubAdminPanel = () => {
 
                             {searchResults.length > 0 && (
                                 <View className="mb-8">
-                                    <Text className="text-zinc-400 font-bold uppercase text-[9px] mb-3 ml-1">Search Results</Text>
+                                    <Text className="text-slate-500 font-bold uppercase text-2xs mb-3 ml-1">Search Results</Text>
                                     {searchResults.map((u: any) => (
-                                        <View key={u._id} className="bg-white p-4 rounded-3xl border border-zinc-100 mb-2 flex-row items-center">
+                                        <View key={u._id} className="bg-white p-4 rounded-3xl border border-slate-100 mb-2 flex-row items-center">
                                             <Image source={{ uri: u.avatar || 'https://via.placeholder.com/150' }} className="w-10 h-10 rounded-full" />
-                                            <Text className="flex-1 ml-3 text-zinc-900 font-bold">{u.username}</Text>
+                                            <Text className="flex-1 ml-3 text-slate-900 font-bold">{u.username}</Text>
                                             <TouchableOpacity 
                                                 onPress={() => handleInvite(u._id)}
                                                 className="bg-black px-4 py-2 rounded-xl"
                                             >
-                                                <Text className="text-white font-bold text-[10px] uppercase">Invite</Text>
+                                                <Text className="text-white font-bold text-2xs uppercase">Invite</Text>
                                             </TouchableOpacity>
                                         </View>
                                     ))}
                                 </View>
                             )}
 
-                            <Text className="text-zinc-400 font-bold uppercase text-[10px] mb-4 tracking-widest">Pending Invitations ({club.invitations?.length || 0})</Text>
+                            <Text className="text-slate-500 font-bold uppercase text-2xs mb-4 tracking-wide">Pending Invitations ({club.invitations?.length || 0})</Text>
                             {club.invitations?.map((inv: any) => (
-                                <View key={inv._id} className="bg-white p-4 rounded-3xl border border-zinc-100 mb-3 flex-row items-center opacity-60">
+                                <View key={inv._id} className="bg-white p-4 rounded-3xl border border-slate-100 mb-3 flex-row items-center opacity-60">
                                     <Image source={{ uri: inv.avatar || 'https://via.placeholder.com/150' }} className="w-12 h-12 rounded-full" />
                                     <View className="flex-1 ml-4">
-                                        <Text className="text-zinc-900 font-bold text-sm">{inv.name}</Text>
-                                        <Text className="text-zinc-400 text-xs text-black">@{inv.username}</Text>
+                                        <Text className="text-slate-900 font-bold text-sm">{inv.name}</Text>
+                                        <Text className="text-slate-500 text-xs text-black">@{inv.username}</Text>
                                     </View>
-                                    <View className="bg-zinc-100 px-3 py-1.5 rounded-full">
-                                        <Text className="text-zinc-400 font-black text-[8px] uppercase">Sent</Text>
+                                    <View className="bg-slate-100 px-3 py-1.5 rounded-full">
+                                        <Text className="text-slate-500 font-black text-2xs uppercase">Sent</Text>
                                     </View>
                                 </View>
                             ))}
@@ -376,20 +376,20 @@ const ClubAdminPanel = () => {
 
                     {activeTab === 'members' && (
                         <View>
-                            <Text className="text-zinc-400 font-bold uppercase text-[10px] mb-4 tracking-widest">Active Members ({club.members?.length || 0})</Text>
+                            <Text className="text-slate-500 font-bold uppercase text-2xs mb-4 tracking-wide">Active Members ({club.members?.length || 0})</Text>
                             {club.members?.map((member: any) => {
                                 const isCurrentAdmin = club.admins.some((a: any) => (a._id || a) === member._id);
                                 return (
-                                    <View key={member._id} className="bg-white p-4 rounded-3xl border border-zinc-100 mb-3 flex-row items-center">
+                                    <View key={member._id} className="bg-white p-4 rounded-3xl border border-slate-100 mb-3 flex-row items-center">
                                         <Image source={{ uri: member.avatar || 'https://via.placeholder.com/150' }} className="w-12 h-12 rounded-full" />
                                         <View className="flex-1 ml-4">
-                                            <Text className="text-zinc-900 font-bold text-sm">{member.name}</Text>
-                                            <Text className="text-zinc-400 text-xs text-black">@{member.username}</Text>
+                                            <Text className="text-slate-900 font-bold text-sm">{member.name}</Text>
+                                            <Text className="text-slate-500 text-xs text-black">@{member.username}</Text>
                                         </View>
                                         {isCurrentAdmin ? (
                                             <View className="flex-row items-center gap-2">
-                                                <View className="bg-zinc-100 px-3 py-1.5 rounded-full">
-                                                    <Text className="text-zinc-500 font-black text-[8px] uppercase">Admin</Text>
+                                                <View className="bg-slate-100 px-3 py-1.5 rounded-full">
+                                                    <Text className="text-slate-500 font-black text-2xs uppercase">Admin</Text>
                                                 </View>
                                                 {/* Super Admin (Creator) Demotion Logic */}
                                                 {(club.creator?._id === user?._id || club.creator === user?._id) && member._id !== user?._id && (
@@ -397,13 +397,13 @@ const ClubAdminPanel = () => {
                                                         onPress={() => handleToggleAdmin(member._id, true)} 
                                                         className="bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/20"
                                                     >
-                                                        <Text className="text-red-500 font-black text-[8px] uppercase">Revoke</Text>
+                                                        <Text className="text-red-500 font-black text-2xs uppercase">Revoke</Text>
                                                     </TouchableOpacity>
                                                 )}
                                             </View>
                                         ) : (
                                             <TouchableOpacity onPress={() => handleToggleAdmin(member._id, false)} className="bg-blue-600 px-3 py-1.5 rounded-full">
-                                                <Text className="text-white font-black text-[8px] uppercase">Promote</Text>
+                                                <Text className="text-white font-black text-2xs uppercase">Promote</Text>
                                             </TouchableOpacity>
                                         )}
                                         {!isCurrentAdmin && (
@@ -422,26 +422,26 @@ const ClubAdminPanel = () => {
 
                     {activeTab === 'settings' && (
                         <View>
-                            <Text className="text-zinc-400 font-bold uppercase text-[10px] mb-4 tracking-widest">Lobby & Privacy</Text>
-                            <View className="bg-white p-6 rounded-[32px] border border-zinc-100 mb-6 flex-row items-center justify-between">
+                            <Text className="text-slate-500 font-bold uppercase text-2xs mb-4 tracking-wide">Lobby & Privacy</Text>
+                            <View className="bg-white p-6 rounded-4xl border border-slate-100 mb-6 flex-row items-center justify-between">
                                 <View>
-                                    <Text className="text-zinc-900 font-black text-2xl tracking-widest">{club.joinCode || '000000'}</Text>
-                                    <Text className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest mt-1">Unique Lobby Code</Text>
+                                    <Text className="text-slate-900 font-black text-2xl tracking-widest">{club.joinCode || '000000'}</Text>
+                                    <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-1">Unique Lobby Code</Text>
                                 </View>
                                 <View className="flex-row gap-3">
                                     <TouchableOpacity 
                                         onPress={copyJoinCode}
-                                        className="w-10 h-10 bg-zinc-50 rounded-xl items-center justify-center border border-zinc-100"
+                                        className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center border border-slate-100"
                                     >
                                         <Feather name="copy" size={16} color="black" />
                                     </TouchableOpacity>
                                 </View>
                             </View>
 
-                            <View className="bg-white p-6 rounded-[32px] border border-zinc-100 mb-10 flex-row items-center justify-between">
+                            <View className="bg-white p-6 rounded-4xl border border-slate-100 mb-10 flex-row items-center justify-between">
                                 <View className="flex-1 mr-4">
-                                    <Text className="text-zinc-900 font-black text-xs uppercase tracking-widest">Enable Code Entry</Text>
-                                    <Text className="text-zinc-400 text-[9px] font-bold uppercase tracking-wider mt-1">Allow students to discover club via code</Text>
+                                    <Text className="text-slate-900 font-black text-xs uppercase tracking-wide">Enable Code Entry</Text>
+                                    <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wider mt-1">Allow students to discover club via code</Text>
                                 </View>
                                 <Switch 
                                     value={isJoinCodeEnabled}
@@ -451,18 +451,18 @@ const ClubAdminPanel = () => {
                                 />
                             </View>
 
-                            <Text className="text-zinc-400 font-bold uppercase text-[10px] mb-4 tracking-widest">Edit Club Profile</Text>
-                            <View className="bg-white p-6 rounded-[32px] border border-zinc-100 mb-10">
+                            <Text className="text-slate-500 font-bold uppercase text-2xs mb-4 tracking-wide">Edit Club Profile</Text>
+                            <View className="bg-white p-6 rounded-4xl border border-slate-100 mb-10">
                                 <View className="flex-row mb-8">
                                     <TouchableOpacity onPress={() => pickImage('logo')} className="relative">
-                                        <Image source={{ uri: newLogo?.uri || club.logo || 'https://via.placeholder.com/150' }} className="w-16 h-16 rounded-2xl bg-zinc-50 border border-zinc-100" />
+                                        <Image source={{ uri: newLogo?.uri || club.logo || 'https://via.placeholder.com/150' }} className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100" />
                                         <View className="absolute -bottom-1 -right-1 bg-black w-6 h-6 rounded-full items-center justify-center border-2 border-white">
                                             <Feather name="camera" size={10} color="white" />
                                         </View>
                                     </TouchableOpacity>
                                     
                                     <TouchableOpacity onPress={() => pickImage('banner')} className="flex-1 ml-4 relative">
-                                        <Image source={{ uri: newBanner?.uri || club.banner || 'https://via.placeholder.com/150' }} className="w-full h-16 rounded-2xl bg-zinc-50 border border-zinc-100" />
+                                        <Image source={{ uri: newBanner?.uri || club.banner || 'https://via.placeholder.com/150' }} className="w-full h-16 rounded-2xl bg-slate-50 border border-slate-100" />
                                         <View className="absolute -bottom-1 -right-1 bg-black w-6 h-6 rounded-full items-center justify-center border-2 border-white">
                                             <Feather name="image" size={10} color="white" />
                                         </View>
@@ -471,19 +471,19 @@ const ClubAdminPanel = () => {
 
                                 <TextInput 
                                     placeholder="Club Name"
-                                    className="bg-zinc-50 p-4 rounded-2xl mb-4 font-bold border border-zinc-100"
+                                    className="bg-slate-50 p-4 rounded-2xl mb-4 font-bold border border-slate-100"
                                     value={editName}
                                     onChangeText={setEditName}
                                 />
                                 <TextInput 
                                     placeholder="Category"
-                                    className="bg-zinc-50 p-4 rounded-2xl mb-4 font-bold border border-zinc-100"
+                                    className="bg-slate-50 p-4 rounded-2xl mb-4 font-bold border border-slate-100"
                                     value={editCategory}
                                     onChangeText={setEditCategory}
                                 />
                                 <TextInput 
                                     placeholder="Mission Statement"
-                                    className="bg-zinc-50 p-4 rounded-2xl mb-6 font-semibold border border-zinc-100"
+                                    className="bg-slate-50 p-4 rounded-2xl mb-6 font-semibold border border-slate-100"
                                     value={editDesc}
                                     onChangeText={setEditDesc}
                                     multiline
@@ -491,25 +491,25 @@ const ClubAdminPanel = () => {
                                 <TouchableOpacity 
                                     onPress={handleUpdateClub}
                                     disabled={updating}
-                                    className="bg-zinc-900 py-4 rounded-2xl items-center"
+                                    className="bg-slate-900 py-4 rounded-2xl items-center"
                                 >
                                     {updating ? <ActivityIndicator color="white" /> : (
-                                        <Text className="text-white font-black uppercase tracking-widest text-xs">Synchronize Profile</Text>
+                                        <Text className="text-white font-black uppercase tracking-wide text-xs">Synchronize Profile</Text>
                                     )}
                                 </TouchableOpacity>
                             </View>
 
-                            <Text className="text-zinc-400 font-bold uppercase text-[10px] mb-4 tracking-widest">Room Management</Text>
+                            <Text className="text-slate-500 font-bold uppercase text-2xs mb-4 tracking-wide">Room Management</Text>
                             {club.subGroups?.map((sub: any) => (
-                                <View key={sub._id} className="bg-white p-4 rounded-3xl border border-zinc-100 mb-3 flex-row items-center">
-                                    <Image source={{ uri: sub.logo || 'https://via.placeholder.com/150' }} className="w-10 h-10 rounded-xl bg-zinc-50" />
+                                <View key={sub._id} className="bg-white p-4 rounded-3xl border border-slate-100 mb-3 flex-row items-center">
+                                    <Image source={{ uri: sub.logo || 'https://via.placeholder.com/150' }} className="w-10 h-10 rounded-xl bg-slate-50" />
                                     <View className="flex-1 ml-4">
-                                        <Text className="text-zinc-900 font-bold text-sm tracking-tight">{sub.name}</Text>
-                                        <Text className="text-zinc-400 text-[10px] font-bold uppercase">{sub.members?.length || 0} Members</Text>
+                                        <Text className="text-slate-900 font-bold text-sm tracking-tight">{sub.name}</Text>
+                                        <Text className="text-slate-500 text-2xs font-bold uppercase">{sub.members?.length || 0} Members</Text>
                                     </View>
                                     <TouchableOpacity 
                                         onPress={() => navigation.navigate('EditSubGroup', { subGroupId: sub._id })}
-                                        className="w-8 h-8 bg-zinc-50 rounded-lg items-center justify-center border border-zinc-100"
+                                        className="w-8 h-8 bg-slate-50 rounded-lg items-center justify-center border border-slate-100"
                                     >
                                         <Feather name="edit-3" size={14} color="#52525b" />
                                     </TouchableOpacity>
@@ -517,12 +517,12 @@ const ClubAdminPanel = () => {
                             ))}
 
                             {/* Danger Zone */}
-                            <View className="mt-12 bg-red-50 p-6 rounded-[32px] border border-red-100 mb-5">
+                            <View className="mt-12 bg-red-50 p-6 rounded-4xl border border-red-100 mb-5">
                                 <View className="flex-row items-center mb-2">
                                     <Ionicons name="warning-outline" size={16} color="#ef4444" />
-                                    <Text className="text-red-600 font-black text-[10px] uppercase tracking-widest ml-2">Danger Zone</Text>
+                                    <Text className="text-red-600 font-black text-2xs uppercase tracking-wide ml-2">Danger Zone</Text>
                                 </View>
-                                <Text className="text-red-400 text-[9px] font-bold uppercase tracking-wider mb-5">
+                                <Text className="text-red-400 text-2xs font-bold uppercase tracking-wider mb-5">
                                     Once you delete a club, there is no going back. Please be certain.
                                 </Text>
                                 <TouchableOpacity 
@@ -531,7 +531,7 @@ const ClubAdminPanel = () => {
                                     className="bg-red-500 py-4 rounded-2xl items-center shadow-lg shadow-red-500/20"
                                 >
                                     {updating ? <ActivityIndicator color="white" /> : (
-                                        <Text className="text-white font-black uppercase tracking-widest text-[10px]">Terminate Club Group</Text>
+                                        <Text className="text-white font-black uppercase tracking-wide text-2xs">Terminate Club Group</Text>
                                     )}
                                 </TouchableOpacity>
                             </View>

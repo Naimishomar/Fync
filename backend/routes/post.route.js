@@ -9,12 +9,12 @@ const router = express.Router();
 
 // ── Specific named routes MUST come before wildcard /:id routes ──
 router.post('/create', authMiddleware, createLimiter, upload.array('image'), r2UploadMiddleware({ image: 'posts' }), createPost);
-router.get('/posts', authMiddleware, cacheMiddleware(300), getPosts);
+router.get('/posts', authMiddleware, cacheMiddleware(300, { tags: (req) => [`posts:user:${req.user.id}`] }), getPosts);
 
 // Feed routes
-router.get('/feed', authMiddleware, feedLimiter, cacheMiddleware(60), getFeed);
-router.get('/feed/followers', authMiddleware, feedLimiter, cacheMiddleware(60), getFollowingPosts);
-router.get('/feed/:userId', authMiddleware, cacheMiddleware(1), getPostsByUserId);
+router.get('/feed', authMiddleware, feedLimiter, cacheMiddleware(60, { tags: ['posts'] }), getFeed);
+router.get('/feed/followers', authMiddleware, feedLimiter, cacheMiddleware(60, { tags: ['posts'] }), getFollowingPosts);
+router.get('/feed/:userId', authMiddleware, cacheMiddleware(1, { tags: (req) => [`posts:user:${req.params.userId}`] }), getPostsByUserId);
 
 // Smart feed — POST so it can receive seenIds in the body
 // MUST be above /:id or Express will treat "smart-feed" as an ObjectId
@@ -26,7 +26,7 @@ router.post('/vote/:id', authMiddleware, votePost);
 router.post('/comment/:id', authMiddleware, addComment);
 router.delete('/comment/:id', authMiddleware, deleteComment);
 router.post('/comment/update/:id', authMiddleware, updateComment);
-router.get('/comment/:id', authMiddleware, cacheMiddleware(60), getComments);
+router.get('/comment/:id', authMiddleware, cacheMiddleware(60, { tags: (req) => [`post:${req.params.id}`] }), getComments);
 
 // Report routes
 router.post('/report', authMiddleware, reportPost);
@@ -35,7 +35,7 @@ router.post('/admin/delete-post', authMiddleware, isAdmin, adminDeletePost);
 
 
 // Individual post
-router.get('/individual/:postId', authMiddleware, cacheMiddleware(300), getPostByPostId);
+router.get('/individual/:postId', authMiddleware, cacheMiddleware(300, { tags: (req) => [`post:${req.params.postId}`] }), getPostByPostId);
 
 // Wildcard /:id routes — MUST be last (they match everything)
 router.post('/:id', authMiddleware, upload.array('image'), r2UploadMiddleware({ image: 'posts' }), updatePost);

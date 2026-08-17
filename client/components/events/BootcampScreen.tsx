@@ -27,7 +27,7 @@ import { useAuth } from '../../context/auth.context';
 import * as ImagePicker from 'expo-image-picker';
 import { collegesInIndia } from '../../data/college';
 // @ts-ignore
-import { RAZORPAY_KEY_ID } from '@env';
+import { RAZORPAY_KEY_ID } from '../../constants/keys';
 import * as XLSX from '@e965/xlsx';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
@@ -117,21 +117,21 @@ const JoinedBootcampCard = memo(({ item, onShowQR, onRefresh }: { item: Bootcamp
     if (!session) return null;
 
     return (
-        <View className="bg-white rounded-[32px] mb-6 mx-8 overflow-hidden border border-slate-100 shadow-sm shadow-black/5 border-l-4 border-l-indigo-500">
+        <View className="bg-white rounded-4xl mb-6 mx-8 overflow-hidden border border-slate-100 shadow-sm shadow-black/5 border-l-4 border-l-indigo-500">
             <View className="p-6">
                 <View className="flex-row justify-between items-start mb-4">
                     <View className="flex-1 mr-4">
-                        <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">
+                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-1">
                             {(item as any).isAdmin ? 'Organizer Intel' : 'Bootcamp Archive'}
                         </Text>
-                        <Text className="text-zinc-900 text-lg font-black  uppercase tracking-tighter leading-tight" numberOfLines={1}>
+                        <Text className="text-slate-900 text-lg font-black  uppercase tracking-tighter leading-tight" numberOfLines={1}>
                             {session.eventName}
                         </Text>
                     </View>
                     <View className="flex-row gap-2">
                         {(item as any).isAdmin && (
                             <View className="bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
-                                <Text className="text-indigo-600 text-[8px] font-black uppercase tracking-widest">Admin</Text>
+                                <Text className="text-indigo-600 text-2xs font-black uppercase tracking-wide">Admin</Text>
                             </View>
                         )}
                     </View>
@@ -139,7 +139,7 @@ const JoinedBootcampCard = memo(({ item, onShowQR, onRefresh }: { item: Bootcamp
 
                 <View className="flex-row items-center mb-6 bg-slate-50 self-start px-4 py-2 rounded-2xl border border-slate-100">
                     <Ionicons name="time-outline" size={14} color="#6366f1" />
-                    <Text className="text-zinc-900 text-[10px] font-black  uppercase ml-2 tracking-tight">
+                    <Text className="text-slate-900 text-2xs font-black  uppercase ml-2 tracking-tight">
                         {session.startTime} - {session.endTime}
                     </Text>
                 </View>
@@ -150,7 +150,7 @@ const JoinedBootcampCard = memo(({ item, onShowQR, onRefresh }: { item: Bootcamp
                     className="flex-row items-center justify-center py-4 rounded-2xl bg-slate-50 border border-slate-100"
                 >
                     <Ionicons name="qr-code" size={16} color="#4f46e5" />
-                    <Text className="text-zinc-900 font-black  uppercase text-xs ml-3 tracking-widest">
+                    <Text className="text-slate-900 font-black  uppercase text-xs ml-3 tracking-wide">
                         Access Pass
                     </Text>
                 </TouchableOpacity>
@@ -181,7 +181,7 @@ const BootcampCard = memo(({ item, onRegister, isAdmin, isPrimaryAdmin, onViewAt
                 )}
 
                 <View className="absolute top-6 left-6 bg-white/90 px-4 py-2 rounded-2xl border border-white/20 backdrop-blur-md">
-                    <Text className="text-zinc-900 text-[8px] font-black uppercase tracking-widest ">{item.college}</Text>
+                    <Text className="text-slate-900 text-2xs font-black uppercase tracking-wide ">{item.college}</Text>
                 </View>
 
                 {isAdmin && (
@@ -200,11 +200,11 @@ const BootcampCard = memo(({ item, onRegister, isAdmin, isPrimaryAdmin, onViewAt
                     </View>
                 )}
 
-                <View className="absolute -bottom-6 left-8 w-20 h-20 bg-white rounded-[24px] p-1.5 border border-slate-100 shadow-xl shadow-black/10">
+                <View className="absolute -bottom-6 left-8 w-20 h-20 bg-white rounded-2xl p-1.5 border border-slate-100 shadow-xl shadow-black/10">
                     {item.logo ? (
-                        <Image source={{ uri: item.logo }} className="w-full h-full rounded-[20px]" />
+                        <Image source={{ uri: item.logo }} className="w-full h-full rounded-2xl" />
                     ) : (
-                        <View className="w-full h-full bg-indigo-50 rounded-[20px] items-center justify-center">
+                        <View className="w-full h-full bg-indigo-50 rounded-2xl items-center justify-center">
                             <Ionicons name="rocket" size={24} color="#6366f1" />
                         </View>
                     )}
@@ -212,34 +212,34 @@ const BootcampCard = memo(({ item, onRegister, isAdmin, isPrimaryAdmin, onViewAt
             </View>
 
             <View className="mt-12 p-6">
-                <Text className="text-zinc-900 text-2xl font-black  uppercase tracking-tighter leading-tight mb-2" numberOfLines={2}>{item.eventName}</Text>
+                <Text className="text-slate-900 text-2xl font-black  uppercase tracking-tighter leading-tight mb-2" numberOfLines={2}>{item.eventName}</Text>
 
                 <Text className="text-slate-600 text-sm font-medium  leading-6 mb-8" numberOfLines={3}>
                     "{item.description}"
                 </Text>
 
                 {item.contactDetails && item.contactDetails.length > 0 && (
-                    <View className="mb-8 bg-slate-50 p-6 rounded-[28px] border border-slate-100">
-                        <Text className="text-slate-400 font-black  text-[8px] uppercase tracking-widest mb-4">Contact Protocol</Text>
+                    <View className="mb-8 bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                        <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide mb-4">Contact Protocol</Text>
                         {item.contactDetails.map((contact, idx) => (
                             <View key={idx} className="flex-row items-center justify-between mb-4 last:mb-0">
                                 <View className="flex-1">
-                                    <Text className="text-zinc-900 font-black  uppercase text-[10px] tracking-tight">{contact.name}</Text>
+                                    <Text className="text-slate-900 font-black  uppercase text-2xs tracking-tight">{contact.name}</Text>
                                     <View className="flex-row items-center gap-4 mt-1.5">
                                         {contact.mobile && (
                                             <TouchableOpacity onPress={() => Linking.openURL(`tel:${contact.mobile}`)} className="flex-row items-center">
                                                 <View className="w-5 h-5 bg-indigo-100 rounded-lg items-center justify-center mr-2">
                                                     <Ionicons name="call" size={8} color="#4f46e5" />
                                                 </View>
-                                                <Text className="text-indigo-600 font-black  text-[8px] uppercase tracking-widest">{contact.mobile}</Text>
+                                                <Text className="text-indigo-600 font-black  text-2xs uppercase tracking-wide">{contact.mobile}</Text>
                                             </TouchableOpacity>
                                         )}
                                         {contact.email && (
                                             <TouchableOpacity onPress={() => Linking.openURL(`mailto:${contact.email}`)} className="flex-row items-center">
-                                                <View className="w-5 h-5 bg-zinc-900 rounded-lg items-center justify-center mr-2">
+                                                <View className="w-5 h-5 bg-slate-900 rounded-lg items-center justify-center mr-2">
                                                     <Ionicons name="mail" size={8} color="white" />
                                                 </View>
-                                                <Text className="text-zinc-900 font-black  text-[8px] uppercase tracking-widest">Email Intel</Text>
+                                                <Text className="text-slate-900 font-black  text-2xs uppercase tracking-wide">Email Intel</Text>
                                             </TouchableOpacity>
                                         )}
                                     </View>
@@ -252,54 +252,54 @@ const BootcampCard = memo(({ item, onRegister, isAdmin, isPrimaryAdmin, onViewAt
                 <View className="flex-row items-center gap-3 mb-8">
                     <View className="flex-row items-center bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100">
                         <Ionicons name="calendar-outline" size={14} color="#94a3b8" />
-                        <Text className="text-zinc-900 text-[9px] font-black  uppercase ml-2 tracking-tight">
+                        <Text className="text-slate-900 text-2xs font-black  uppercase ml-2 tracking-tight">
                             {new Date(item.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                         </Text>
                     </View>
                     <View className="flex-row items-center bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100">
                         <Ionicons name="time-outline" size={14} color="#94a3b8" />
-                        <Text className="text-zinc-900 text-[9px] font-black  uppercase ml-2 tracking-tight">{item.startTime}</Text>
+                        <Text className="text-slate-900 text-2xs font-black  uppercase ml-2 tracking-tight">{item.startTime}</Text>
                     </View>
                 </View>
 
                 {item.isCollegeSpecific && (
                     <View className="flex-row items-center bg-blue-50 px-3 py-1.5 rounded-full self-start mb-6 border border-blue-100">
                         <Ionicons name="shield-checkmark" size={12} color="#3f8df4ff" />
-                        <Text className="text-blue-500 text-[8px] font-black uppercase tracking-widest ml-1.5 ">College Specific</Text>
+                        <Text className="text-blue-500 text-2xs font-black uppercase tracking-wide ml-1.5 ">College Specific</Text>
                     </View>
                 )}
 
                 {(isRegistered || isAdmin) && item.isCommunityActive !== false && (
                     <TouchableOpacity
                         onPress={() => navigate('EventCommunityChat', { eventId: item._id, eventName: item.eventName, type: 'Bootcamp' })}
-                        className="bg-indigo-50/50 p-6 rounded-[28px] flex-row items-center justify-between border border-indigo-100/50 mb-4"
+                        className="bg-indigo-50/50 p-6 rounded-3xl flex-row items-center justify-between border border-indigo-100/50 mb-4"
                     >
                         <View className="flex-row items-center gap-4">
                             <View className="w-12 h-12 bg-indigo-600 rounded-2xl items-center justify-center">
                                 <Ionicons name="chatbubbles" size={20} color="white" />
                             </View>
                             <View>
-                                <Text className="text-indigo-900 font-black  uppercase text-[10px] tracking-tight">Intelligence Network</Text>
-                                <Text className="text-indigo-400 font-bold text-[8px] uppercase tracking-[1px] mt-0.5">Established Community</Text>
+                                <Text className="text-indigo-900 font-black  uppercase text-2xs tracking-tight">Intelligence Network</Text>
+                                <Text className="text-indigo-400 font-bold text-2xs uppercase tracking-wide mt-0.5">Established Community</Text>
                             </View>
                         </View>
                         <Ionicons name="chevron-forward" size={18} color="#4f46e5" />
                     </TouchableOpacity>
                 )}
 
-                <View className="flex-row justify-between items-center bg-zinc-900 p-5 rounded-2xl mt-4 shadow-xl shadow-black/20">
+                <View className="flex-row justify-between items-center bg-slate-900 p-5 rounded-2xl mt-4 shadow-xl shadow-black/20">
                     <View>
-                        <Text className="text-white/40 font-black  uppercase text-[8px] tracking-widest">Entry Protocol</Text>
+                        <Text className="text-white/40 font-black  uppercase text-2xs tracking-wide">Entry Protocol</Text>
                         <Text className="text-white text-xl font-black  uppercase mt-0.5">{item.fee && item.fee > 0 ? `₹${item.fee}` : 'FREE ENTRY'}</Text>
                     </View>
 
                     <TouchableOpacity
                         activeOpacity={0.8}
                         onPress={() => !isRegistered && item.status === 'open' && !isLimitReached && onRegister(item)}
-                        className={`px-8 py-4 rounded-2xl border ${(isRegistered || item.status === 'closed' || isLimitReached) ? 'bg-zinc-800 border-zinc-700' : 'bg-white border-white'}`}
+                        className={`px-8 py-4 rounded-2xl border ${(isRegistered || item.status === 'closed' || isLimitReached) ? 'bg-slate-800 border-slate-700' : 'bg-white border-white'}`}
                         disabled={isRegistered || item.status === 'closed' || isLimitReached}
                     >
-                        <Text className={`${(isRegistered || item.status === 'closed' || isLimitReached) ? 'text-zinc-500' : 'text-zinc-900'} font-black  text-[10px] uppercase tracking-widest`}>
+                        <Text className={`${(isRegistered || item.status === 'closed' || isLimitReached) ? 'text-slate-500' : 'text-slate-900'} font-black  text-2xs uppercase tracking-widest`}>
                             {item.status === 'closed' ? 'Archived' : isRegistered ? 'Joined' : isLimitReached ? 'FULL' : 'Join'}
                         </Text>
                     </TouchableOpacity>
@@ -707,10 +707,10 @@ export default function BootcampScreen() {
                         <View className="px-8 pt-6">
                             <View className="flex-row justify-between items-center mb-10">
                                 <View>
-                                    <Text className="text-3xl font-black  text-zinc-900 tracking-tighter uppercase leading-tight">
+                                    <Text className="text-3xl font-black  text-slate-900 tracking-tighter uppercase leading-tight">
                                         Bootcamp <Text className="text-orange-500">Hub</Text> 🚀
                                     </Text>
-                                    <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[2px] mt-0.5">Intelligence Archive</Text>
+                                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Intelligence Archive</Text>
                                 </View>
                                 <View className="flex-row gap-3">
                                     <TouchableOpacity
@@ -724,7 +724,7 @@ export default function BootcampScreen() {
                                         setEventLogo(null);
                                         setEventBanner(null);
                                         setSessionModalVisible(true);
-                                    }} className="w-12 h-12 bg-zinc-900 rounded-2xl items-center justify-center shadow-lg shadow-black/20">
+                                    }} className="w-12 h-12 bg-slate-900 rounded-2xl items-center justify-center shadow-lg shadow-black/20">
                                         <Ionicons name="add" size={24} color="white" />
                                     </TouchableOpacity>
                                 </View>
@@ -759,18 +759,18 @@ export default function BootcampScreen() {
                         />
                     )}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchSessions} />}
-                    ListEmptyComponent={<View className="py-20 items-center"><Text className="text-gray-400 font-bold ">No bootcamps available</Text></View>}
+                    ListEmptyComponent={<View className="py-20 items-center"><Text className="text-slate-500 font-bold ">No bootcamps available</Text></View>}
                 />
 
                 {/* MODALS (Simplified for now, can expand UI same as Speaker) */}
                 <Modal visible={attendeeModalVisible} transparent animationType="slide">
                     <View className="flex-1 bg-black/50 justify-end">
-                        <View className="bg-white h-[90%] rounded-t-[50px] overflow-hidden">
-                            <View className="p-8 bg-zinc-900 h-48">
+                        <View className="bg-white h-[90%] rounded-t-5xl overflow-hidden">
+                            <View className="p-8 bg-slate-900 h-48">
                                 <View className="flex-row justify-between items-center mb-6">
                                     <View>
                                         <Text className="text-white text-2xl font-black  tracking-tighter uppercase">Participants</Text>
-                                        <Text className="text-white/50 font-bold text-[10px] uppercase tracking-widest mt-1">Multi-Day Attendance Tracker</Text>
+                                        <Text className="text-white/50 font-bold text-2xs uppercase tracking-wide mt-1">Multi-Day Attendance Tracker</Text>
                                     </View>
                                     <View className="flex-row items-center gap-2">
                                         <TouchableOpacity
@@ -812,7 +812,7 @@ export default function BootcampScreen() {
                                                     onPress={() => setAttendanceDate(date)}
                                                     className={`mr-3 px-6 h-12 rounded-2xl items-center justify-center border ${isSelected ? 'bg-indigo-600 border-indigo-600' : 'bg-white/10 border-white/20'}`}
                                                 >
-                                                    <Text className={`font-black  text-[10px] uppercase tracking-widest ${isSelected ? 'text-white' : 'text-white/40'}`}>
+                                                    <Text className={`font-black  text-2xs uppercase tracking-widest ${isSelected ? 'text-white' : 'text-white/40'}`}>
                                                         {dateObj.toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
                                                     </Text>
                                                 </TouchableOpacity>
@@ -823,7 +823,7 @@ export default function BootcampScreen() {
                             </View>
                             <View className="bg-amber-50 px-8 py-3 border-b border-amber-100 flex-row items-center gap-3">
                                 <Ionicons name="information-circle" size={18} color="#d97706" />
-                                <Text className="text-amber-800 text-[9px] font-bold uppercase tracking-tight flex-1">
+                                <Text className="text-amber-800 text-2xs font-bold uppercase tracking-tight flex-1">
                                     Download the list now. All participant details and and community messages will be permanently deleted 7 days after event completion.
                                 </Text>
                             </View>
@@ -840,25 +840,25 @@ export default function BootcampScreen() {
                                     const isPrimaryAdminForThis = activeSession?.admin_email.toLowerCase() === user?.email?.toLowerCase();
 
                                     return (
-                                        <View className="p-6 border-b border-gray-50 bg-white">
+                                        <View className="p-6 border-b border-slate-50 bg-white">
                                             <View className="flex-row justify-between items-start mb-4">
                                                 <View className="flex-1">
                                                     <View className="flex-row items-center gap-2 mb-2">
-                                                        <Text className="text-zinc-900 font-black text-lg  tracking-tighter uppercase">{u.name}</Text>
-                                                        <View className={`px-3 py-1 rounded-full border ${isPresentToday ? 'bg-indigo-100 border-indigo-200' : 'bg-gray-100 border-gray-200'}`}>
-                                                            <Text className={`text-[8px] font-black uppercase ${isPresentToday ? 'text-indigo-600' : 'text-gray-400'}`}>
+                                                        <Text className="text-slate-900 font-black text-lg  tracking-tighter uppercase">{u.name}</Text>
+                                                        <View className={`px-3 py-1 rounded-full border ${isPresentToday ? 'bg-indigo-100 border-indigo-200' : 'bg-slate-100 border-slate-200'}`}>
+                                                            <Text className={`text-2xs font-black uppercase ${isPresentToday ? 'text-indigo-600' : 'text-slate-500'}`}>
                                                                 {isPresentToday ? 'Present' : 'Absent'}
                                                             </Text>
                                                         </View>
                                                     </View>
-                                                    <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">{u.email}</Text>
+                                                    <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide">{u.email}</Text>
                                                 </View>
-                                                <Text className="text-gray-300 font-black  text-xs">#{index + 1}</Text>
+                                                <Text className="text-slate-300 font-black  text-xs">#{index + 1}</Text>
                                             </View>
-                                            <View className="flex-row items-center justify-between border-t border-gray-50 pt-4">
+                                            <View className="flex-row items-center justify-between border-t border-slate-50 pt-4">
                                                 <View className="flex-row flex-wrap gap-2 flex-1 mr-4">
-                                                    {u.college && <View className="bg-zinc-50 px-2 py-1 rounded-lg border border-gray-100"><Text className="text-zinc-600 text-[8px] font-bold">{u.college}</Text></View>}
-                                                    {u.department && <View className="bg-indigo-50 px-2 py-1 rounded-lg border border-indigo-100"><Text className="text-indigo-600 text-[8px] font-bold">{u.department}</Text></View>}
+                                                    {u.college && <View className="bg-slate-50 px-2 py-1 rounded-lg border border-slate-100"><Text className="text-slate-600 text-2xs font-bold">{u.college}</Text></View>}
+                                                    {u.department && <View className="bg-indigo-50 px-2 py-1 rounded-lg border border-indigo-100"><Text className="text-indigo-600 text-2xs font-bold">{u.department}</Text></View>}
                                                 </View>
                                                 <View className="flex-row items-center space-x-2">
                                                     {item.status === 'pending' && isPrimaryAdminForThis && (
@@ -866,12 +866,12 @@ export default function BootcampScreen() {
                                                             onPress={() => approvePayment(item._id)}
                                                             className="px-4 py-3 bg-green-600 rounded-2xl shadow-sm"
                                                         >
-                                                            <Text className="text-[10px] font-black uppercase text-white">Approve</Text>
+                                                            <Text className="text-2xs font-black uppercase text-white">Approve</Text>
                                                         </TouchableOpacity>
                                                     )}
                                                     {isPresentToday && (
                                                         <View className="bg-indigo-600 px-8 py-3 rounded-2xl shadow-sm">
-                                                            <Text className="text-[10px] font-black uppercase text-white">Present</Text>
+                                                            <Text className="text-2xs font-black uppercase text-white">Present</Text>
                                                         </View>
                                                     )}
                                                 </View>
@@ -895,19 +895,19 @@ export default function BootcampScreen() {
                         <View className="absolute inset-0 items-center justify-between py-20 px-10">
                             <View className="items-center">
                                 <Text className="text-white text-2xl font-black  tracking-tighter uppercase mb-2">QR Ticket Scanner</Text>
-                                <Text className="text-white/60 text-[10px] font-bold uppercase tracking-[3px]">Bootcamp Entry & Attendance</Text>
+                                <Text className="text-white/60 text-2xs font-bold uppercase tracking-wide">Bootcamp Entry & Attendance</Text>
                             </View>
 
-                            <View className="w-72 h-72 border-2 border-white/30 rounded-[40px] items-center justify-center">
+                            <View className="w-72 h-72 border-2 border-white/30 rounded-5xl items-center justify-center">
                                 {/* Scanner Frame */}
-                                <View className="w-64 h-64 border-2 border-indigo-500 rounded-[30px] shadow-2xl shadow-indigo-500/50" />
+                                <View className="w-64 h-64 border-2 border-indigo-500 rounded-3xl shadow-2xl shadow-indigo-500/50" />
                             </View>
 
                             <TouchableOpacity
                                 onPress={() => setScannerVisible(false)}
-                                className="bg-white/10 px-12 py-5 rounded-[22px] border border-white/20 shadow-lg"
+                                className="bg-white/10 px-12 py-5 rounded-2xl border border-white/20 shadow-lg"
                             >
-                                <Text className="text-white font-black  uppercase tracking-widest text-xs">Cancel Scan</Text>
+                                <Text className="text-white font-black  uppercase tracking-wide text-xs">Cancel Scan</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -915,34 +915,34 @@ export default function BootcampScreen() {
 
                 <Modal visible={sessionModalVisible} transparent animationType="slide">
                     <View className="flex-1 bg-black/50 justify-end">
-                        <View className="bg-white h-[80%] rounded-t-[50px] overflow-hidden">
+                        <View className="bg-white h-[80%] rounded-t-5xl overflow-hidden">
                             <View className="p-8 flex-row justify-between items-center">
                                 <View>
                                     <Text className="text-black text-2xl font-black  tracking-tighter uppercase">Configure Bootcamp Hub</Text>
-                                    <Text className="text-black/50 font-bold text-[10px] uppercase tracking-widest mt-1">Design your training session</Text>
+                                    <Text className="text-black/50 font-bold text-2xs uppercase tracking-wide mt-1">Design your training session</Text>
                                 </View>
                                 <TouchableOpacity onPress={() => setSessionModalVisible(false)} className="w-12 h-12 bg-white rounded-2xl items-center justify-center">
                                     <Ionicons name="close" size={24} color="#6366f1" />
                                 </TouchableOpacity>
                             </View>
                             <ScrollView className="p-8">
-                                <Text className="text-zinc-400 font-bold text-[10px] uppercase tracking-widest mb-3">Event Branding (Optional)</Text>
+                                <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wide mb-3">Event Branding (Optional)</Text>
                                 <View className="flex-row gap-4 mb-8">
-                                    <TouchableOpacity onPress={() => pickImage(setEventBanner)} className="flex-1 h-32 bg-gray-50 rounded-3xl items-center justify-center border border-dashed border-gray-300 overflow-hidden">
-                                        {eventBanner ? <Image source={{ uri: eventBanner }} className="w-full h-full" /> : <Text className="text-[10px] font-black text-gray-400 uppercase">Banner</Text>}
+                                    <TouchableOpacity onPress={() => pickImage(setEventBanner)} className="flex-1 h-32 bg-slate-50 rounded-3xl items-center justify-center border border-dashed border-slate-300 overflow-hidden">
+                                        {eventBanner ? <Image source={{ uri: eventBanner }} className="w-full h-full" /> : <Text className="text-2xs font-black text-slate-500 uppercase">Banner</Text>}
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => pickImage(setEventLogo)} className="w-32 h-32 bg-gray-50 rounded-3xl items-center justify-center border border-dashed border-gray-300 overflow-hidden">
-                                        {eventLogo ? <Image source={{ uri: eventLogo }} className="w-full h-full" /> : <Text className="text-[10px] font-black text-gray-400 uppercase">Logo</Text>}
+                                    <TouchableOpacity onPress={() => pickImage(setEventLogo)} className="w-32 h-32 bg-slate-50 rounded-3xl items-center justify-center border border-dashed border-slate-300 overflow-hidden">
+                                        {eventLogo ? <Image source={{ uri: eventLogo }} className="w-full h-full" /> : <Text className="text-2xs font-black text-slate-500 uppercase">Logo</Text>}
                                     </TouchableOpacity>
                                 </View>
-                                <Text className="text-zinc-400 font-bold text-[10px] uppercase tracking-widest mb-4">Event Details</Text>
+                                <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wide mb-4">Event Details</Text>
 
                                 <TextInput
                                     placeholder="Bootcamp Title (e.g., MERN Masterclass)"
                                     placeholderTextColor="#94a3b8"
                                     value={editData.eventName}
                                     onChangeText={(t) => setEditData({ ...editData, eventName: t })}
-                                    className="bg-gray-50 p-6 rounded-2xl mb-4 font-bold text-zinc-900 border border-gray-100"
+                                    className="bg-slate-50 p-6 rounded-2xl mb-4 font-bold text-slate-900 border border-slate-100"
                                 />
 
                                 <TextInput
@@ -951,12 +951,12 @@ export default function BootcampScreen() {
                                     multiline
                                     value={editData.description}
                                     onChangeText={(t) => setEditData({ ...editData, description: t })}
-                                    className="bg-gray-50 p-6 rounded-2xl mb-4 font-medium text-zinc-600 border border-gray-100 h-32"
+                                    className="bg-slate-50 p-6 rounded-2xl mb-4 font-medium text-slate-600 border border-slate-100 h-32"
                                 />
 
                                 <View className="mb-8">
                                     <View className="flex-row justify-between items-center mb-4 px-1">
-                                        <Text className="text-zinc-400 font-bold text-[8px] uppercase tracking-widest">Connect Mentors (Optional)</Text>
+                                        <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wide">Connect Mentors (Optional)</Text>
                                         <TouchableOpacity
                                             onPress={() => {
                                                 const contacts = [...(editData.contactDetails || []), { name: '', mobile: '', email: '' }];
@@ -964,12 +964,12 @@ export default function BootcampScreen() {
                                             }}
                                             className="bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100"
                                         >
-                                            <Text className="text-indigo-600 font-black text-[8px] uppercase">+ Add More</Text>
+                                            <Text className="text-indigo-600 font-black text-2xs uppercase">+ Add More</Text>
                                         </TouchableOpacity>
                                     </View>
 
                                     {(editData.contactDetails || []).map((contact, idx) => (
-                                        <View key={idx} className="bg-white p-6 rounded-[30px] mb-4 border border-indigo-50 relative">
+                                        <View key={idx} className="bg-white p-6 rounded-3xl mb-4 border border-indigo-50 relative">
                                             <TouchableOpacity
                                                 onPress={() => {
                                                     const contacts = (editData.contactDetails || []).filter((_, i) => i !== idx);
@@ -989,7 +989,7 @@ export default function BootcampScreen() {
                                                     contacts[idx].name = t;
                                                     setEditData({ ...editData, contactDetails: contacts });
                                                 }}
-                                                className="bg-gray-50 p-4 rounded-xl mb-3 font-bold text-zinc-900 text-[10px] border border-gray-100"
+                                                className="bg-slate-50 p-4 rounded-xl mb-3 font-bold text-slate-900 text-2xs border border-slate-100"
                                             />
                                             <View className="flex-row gap-3">
                                                 <View className="flex-1">
@@ -1003,7 +1003,7 @@ export default function BootcampScreen() {
                                                             setEditData({ ...editData, contactDetails: contacts });
                                                         }}
                                                         keyboardType="phone-pad"
-                                                        className="bg-gray-50 p-4 rounded-xl font-bold text-zinc-900 text-[10px] border border-gray-100"
+                                                        className="bg-slate-50 p-4 rounded-xl font-bold text-slate-900 text-2xs border border-slate-100"
                                                     />
                                                 </View>
                                                 <View className="flex-1">
@@ -1018,7 +1018,7 @@ export default function BootcampScreen() {
                                                         }}
                                                         autoCapitalize="none"
                                                         keyboardType="email-address"
-                                                        className="bg-gray-50 p-4 rounded-xl font-bold text-zinc-900 text-[10px] border border-gray-100"
+                                                        className="bg-slate-50 p-4 rounded-xl font-bold text-slate-900 text-2xs border border-slate-100"
                                                     />
                                                 </View>
                                             </View>
@@ -1028,42 +1028,42 @@ export default function BootcampScreen() {
 
                                 <View className="flex-row gap-4 mb-4">
                                     <View className="flex-1">
-                                        <Text className="text-zinc-400 font-bold text-[10px] uppercase mb-2">Starts</Text>
+                                        <Text className="text-slate-500 font-bold text-2xs uppercase mb-2">Starts</Text>
                                         <TouchableOpacity
                                             onPress={() => setShowStartDatePicker(true)}
-                                            className="bg-gray-50 p-5 rounded-2xl border border-gray-100"
+                                            className="bg-slate-50 p-5 rounded-2xl border border-slate-100"
                                         >
-                                            <Text className="text-zinc-900 font-bold">{editData.startDate || 'Select Date'}</Text>
+                                            <Text className="text-slate-900 font-bold">{editData.startDate || 'Select Date'}</Text>
                                         </TouchableOpacity>
                                     </View>
                                     <View className="flex-1">
-                                        <Text className="text-zinc-400 font-bold text-[10px] uppercase mb-2">Ends</Text>
+                                        <Text className="text-slate-500 font-bold text-2xs uppercase mb-2">Ends</Text>
                                         <TouchableOpacity
                                             onPress={() => setShowEndDatePicker(true)}
-                                            className="bg-gray-50 p-5 rounded-2xl border border-gray-100"
+                                            className="bg-slate-50 p-5 rounded-2xl border border-slate-100"
                                         >
-                                            <Text className="text-zinc-900 font-bold">{editData.endDate || 'Select Date'}</Text>
+                                            <Text className="text-slate-900 font-bold">{editData.endDate || 'Select Date'}</Text>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
 
                                 <View className="flex-row gap-4 mb-4">
                                     <View className="flex-1">
-                                        <Text className="text-zinc-400 font-bold text-[10px] uppercase mb-2">Time Start</Text>
+                                        <Text className="text-slate-500 font-bold text-2xs uppercase mb-2">Time Start</Text>
                                         <TouchableOpacity
                                             onPress={() => setShowStartTimePicker(true)}
-                                            className="bg-gray-50 p-5 rounded-2xl border border-gray-100"
+                                            className="bg-slate-50 p-5 rounded-2xl border border-slate-100"
                                         >
-                                            <Text className="text-zinc-900 font-bold">{editData.startTime || 'Select Time'}</Text>
+                                            <Text className="text-slate-900 font-bold">{editData.startTime || 'Select Time'}</Text>
                                         </TouchableOpacity>
                                     </View>
                                     <View className="flex-1">
-                                        <Text className="text-zinc-400 font-bold text-[10px] uppercase mb-2">Time End</Text>
+                                        <Text className="text-slate-500 font-bold text-2xs uppercase mb-2">Time End</Text>
                                         <TouchableOpacity
                                             onPress={() => setShowEndTimePicker(true)}
-                                            className="bg-gray-50 p-5 rounded-2xl border border-gray-100"
+                                            className="bg-slate-50 p-5 rounded-2xl border border-slate-100"
                                         >
-                                            <Text className="text-zinc-900 font-bold">{editData.endTime || 'Select Time'}</Text>
+                                            <Text className="text-slate-900 font-bold">{editData.endTime || 'Select Time'}</Text>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
@@ -1120,9 +1120,9 @@ export default function BootcampScreen() {
 
                                 <TouchableOpacity
                                     onPress={() => setCollegeModalVisible(true)}
-                                    className="bg-gray-50 p-6 rounded-2xl mb-4 flex-row justify-between items-center border border-gray-100"
+                                    className="bg-slate-50 p-6 rounded-2xl mb-4 flex-row justify-between items-center border border-slate-100"
                                 >
-                                    <Text className={editData.college ? 'text-zinc-900 font-bold' : 'text-slate-400 font-bold'}>
+                                    <Text className={editData.college ? 'text-slate-900 font-bold' : 'text-slate-500 font-bold'}>
                                         {editData.college || 'College'}
                                     </Text>
                                     <Ionicons name="business" size={18} color="#94a3b8" />
@@ -1133,45 +1133,45 @@ export default function BootcampScreen() {
                                     placeholderTextColor="#94a3b8"
                                     value={editData.venue}
                                     onChangeText={(t) => setEditData({ ...editData, venue: t })}
-                                    className="bg-gray-50 p-6 rounded-2xl mb-4 font-bold text-zinc-900 border border-gray-100"
+                                    className="bg-slate-50 p-6 rounded-2xl mb-4 font-bold text-slate-900 border border-slate-100"
                                 />
                                 <View className="flex-row gap-4 mb-8">
                                     <View className="flex-1">
-                                        <Text className="text-zinc-400 font-bold text-[10px] uppercase mb-2">Student Limit</Text>
+                                        <Text className="text-slate-500 font-bold text-2xs uppercase mb-2">Student Limit</Text>
                                         <TextInput
                                             placeholder="100"
                                             placeholderTextColor="#94a3b8"
                                             keyboardType="numeric"
                                             value={editData.userLimit?.toString()}
                                             onChangeText={(t) => setEditData({ ...editData, userLimit: parseInt(t) || 0 })}
-                                            className="bg-gray-50 p-4 rounded-xl font-bold text-zinc-900 border border-gray-100"
+                                            className="bg-slate-50 p-4 rounded-xl font-bold text-slate-900 border border-slate-100"
                                         />
                                     </View>
                                     <View className="flex-1">
-                                        <Text className="text-zinc-400 font-bold text-[10px] uppercase mb-2">Fee (INR)</Text>
+                                        <Text className="text-slate-500 font-bold text-2xs uppercase mb-2">Fee (INR)</Text>
                                         <TextInput
                                             placeholder="0 (Free)"
                                             placeholderTextColor="#94a3b8"
                                             keyboardType="numeric"
                                             value={editData.fee?.toString()}
                                             onChangeText={(t) => setEditData({ ...editData, fee: parseInt(t) || 0 })}
-                                            className="bg-gray-50 p-4 rounded-xl font-bold text-zinc-900 border border-gray-100"
+                                            className="bg-slate-50 p-4 rounded-xl font-bold text-slate-900 border border-slate-100"
                                         />
                                     </View>
                                 </View>
 
                                 {editData._id && (
                                     <View className="mb-8">
-                                        <Text className="text-zinc-400 font-bold text-[10px] uppercase tracking-widest mb-4">Collaborators (Secondary Admins)</Text>
+                                        <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wide mb-4">Collaborators (Secondary Admins)</Text>
                                         <View className="flex-row items-center gap-2 mb-4">
-                                            <View className="flex-1 bg-gray-50 rounded-2xl px-6 py-4 flex-row items-center border border-gray-100">
+                                            <View className="flex-1 bg-slate-50 rounded-2xl px-6 py-4 flex-row items-center border border-slate-100">
                                                 <Ionicons name="at" size={16} color="#94a3b8" />
                                                 <TextInput
                                                     placeholder="Admin Username"
                                                     placeholderTextColor="#94a3b8"
                                                     value={adminEmailInput}
                                                     onChangeText={setAdminEmailInput}
-                                                    className="flex-1 ml-3 font-bold text-zinc-900 text-xs"
+                                                    className="flex-1 ml-3 font-bold text-slate-900 text-xs"
                                                 />
                                             </View>
                                             <TouchableOpacity
@@ -1185,7 +1185,7 @@ export default function BootcampScreen() {
 
                                         {/* Search Suggestions */}
                                         {adminSuggestions.length > 0 && (
-                                            <View className="bg-white border border-gray-100 rounded-3xl mb-6 shadow-xl shadow-black/5 overflow-hidden">
+                                            <View className="bg-white border border-slate-100 rounded-3xl mb-6 shadow-xl shadow-black/5 overflow-hidden">
                                                 {adminSuggestions.map((suggestion) => (
                                                     <TouchableOpacity
                                                         key={suggestion._id}
@@ -1193,15 +1193,15 @@ export default function BootcampScreen() {
                                                             setAdminEmailInput(suggestion.username);
                                                             setAdminSuggestions([]);
                                                         }}
-                                                        className="flex-row items-center p-4 border-b border-gray-50 active:bg-gray-50"
+                                                        className="flex-row items-center p-4 border-b border-slate-50 active:bg-slate-50"
                                                     >
                                                         <Image
                                                             source={{ uri: suggestion.avatar }}
-                                                            className="w-10 h-10 rounded-xl bg-gray-100"
+                                                            className="w-10 h-10 rounded-xl bg-slate-100"
                                                         />
                                                         <View className="ml-4 flex-1">
-                                                            <Text className="text-zinc-900 font-bold text-xs">{suggestion.name}</Text>
-                                                            <Text className="text-zinc-400 text-[10px] font-bold uppercase mt-0.5">@{suggestion.username}</Text>
+                                                            <Text className="text-slate-900 font-bold text-xs">{suggestion.name}</Text>
+                                                            <Text className="text-slate-500 text-2xs font-bold uppercase mt-0.5">@{suggestion.username}</Text>
                                                         </View>
                                                         <Ionicons name="add-circle" size={20} color="#6366f1" />
                                                     </TouchableOpacity>
@@ -1214,8 +1214,8 @@ export default function BootcampScreen() {
                                                 const adminId = typeof admin === 'string' ? admin : admin._id;
                                                 const display = typeof admin === 'string' ? admin : admin.username;
                                                 return (
-                                                    <View key={adminId} className="bg-gray-50 flex-row items-center py-2 px-4 rounded-xl border border-gray-100">
-                                                        <Text className="text-zinc-600 font-bold text-[10px] mr-2">{display}</Text>
+                                                    <View key={adminId} className="bg-slate-50 flex-row items-center py-2 px-4 rounded-xl border border-slate-100">
+                                                        <Text className="text-slate-600 font-bold text-2xs mr-2">{display}</Text>
                                                         {editData.admin_email === user?.email && (
                                                             <TouchableOpacity onPress={() => handleRemoveAdmin(adminId)}>
                                                                 <Ionicons name="close-circle" size={16} color="#ef4444" />
@@ -1230,16 +1230,16 @@ export default function BootcampScreen() {
 
                                 <TouchableOpacity
                                     onPress={() => setEditData({ ...editData, isCommunityActive: !editData.isCommunityActive })}
-                                    className={`flex-row items-center gap-4 p-6 rounded-3xl mb-8 border ${editData.isCommunityActive !== false ? 'bg-indigo-50 border-indigo-100' : 'bg-gray-50 border-gray-100'}`}
+                                    className={`flex-row items-center gap-4 p-6 rounded-3xl mb-8 border ${editData.isCommunityActive !== false ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100'}`}
                                 >
-                                    <View className={`w-12 h-12 rounded-2xl items-center justify-center ${editData.isCommunityActive !== false ? 'bg-indigo-600' : 'bg-gray-200'}`}>
+                                    <View className={`w-12 h-12 rounded-2xl items-center justify-center ${editData.isCommunityActive !== false ? 'bg-indigo-600' : 'bg-slate-200'}`}>
                                         <Ionicons name="people" size={24} color="white" />
                                     </View>
                                     <View className="flex-1">
-                                        <Text className={`font-black uppercase text-xs ${editData.isCommunityActive !== false ? 'text-indigo-600' : 'text-zinc-600'}`}>
+                                        <Text className={`font-black uppercase text-xs ${editData.isCommunityActive !== false ? 'text-indigo-600' : 'text-slate-600'}`}>
                                             {editData.isCommunityActive !== false ? "Community Active" : "Community Disabled"}
                                         </Text>
-                                        <Text className="text-[10px] text-zinc-400 font-bold uppercase mt-1">
+                                        <Text className="text-2xs text-slate-500 font-bold uppercase mt-1">
                                             {editData.isCommunityActive !== false ? "Enable group chat for all participants" : "Disable the interactive event group chat"}
                                         </Text>
                                     </View>
@@ -1247,16 +1247,16 @@ export default function BootcampScreen() {
 
                                 <TouchableOpacity
                                     onPress={() => setEditData({ ...editData, isCollegeSpecific: !editData.isCollegeSpecific })}
-                                    className={`flex-row items-center gap-4 p-6 rounded-3xl mb-8 border ${editData.isCollegeSpecific ? 'bg-indigo-50 border-indigo-100' : 'bg-gray-50 border-gray-100'}`}
+                                    className={`flex-row items-center gap-4 p-6 rounded-3xl mb-8 border ${editData.isCollegeSpecific ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100'}`}
                                 >
-                                    <View className={`w-12 h-12 rounded-2xl items-center justify-center ${editData.isCollegeSpecific ? 'bg-indigo-600' : 'bg-gray-200'}`}>
+                                    <View className={`w-12 h-12 rounded-2xl items-center justify-center ${editData.isCollegeSpecific ? 'bg-indigo-600' : 'bg-slate-200'}`}>
                                         <Ionicons name={editData.isCollegeSpecific ? "shield-checkmark" : "globe-outline"} size={24} color="white" />
                                     </View>
                                     <View className="flex-1">
-                                        <Text className={`font-black uppercase text-xs ${editData.isCollegeSpecific ? 'text-indigo-600' : 'text-zinc-600'}`}>
+                                        <Text className={`font-black uppercase text-xs ${editData.isCollegeSpecific ? 'text-indigo-600' : 'text-slate-600'}`}>
                                             {editData.isCollegeSpecific ? "College Specific (Locked)" : "Open to All Colleges"}
                                         </Text>
-                                        <Text className="text-[10px] text-zinc-400 font-bold uppercase mt-1">
+                                        <Text className="text-2xs text-slate-500 font-bold uppercase mt-1">
                                             {editData.isCollegeSpecific ? "Only students of your college can see & join" : "Anyone on Fync can discover and enrol"}
                                         </Text>
                                     </View>
@@ -1265,7 +1265,7 @@ export default function BootcampScreen() {
                                 <Pressable
                                     onPress={handleSave}
                                     disabled={saving}
-                                    className="bg-zinc-900 py-4 rounded-2xl items-center justify-center mb-20 shadow-xl"
+                                    className="bg-slate-900 py-4 rounded-2xl items-center justify-center mb-20 shadow-xl"
                                 >
                                     {saving ? <ActivityIndicator color="white" /> : (
                                         <Text className="text-white text-lg font-black  tracking-tighter uppercase">
@@ -1280,7 +1280,7 @@ export default function BootcampScreen() {
                                         className="bg-red-50 p-6 rounded-3xl items-center justify-center mb-20 border border-red-100 flex-row gap-2"
                                     >
                                         <Ionicons name="trash" size={18} color="#ef4444" />
-                                        <Text className="text-red-600 font-black  text-xs uppercase tracking-widest">Delete Bootcamp Hub</Text>
+                                        <Text className="text-red-600 font-black  text-xs uppercase tracking-wide">Delete Bootcamp Hub</Text>
                                     </TouchableOpacity>
                                 )}
                             </ScrollView>
@@ -1291,14 +1291,14 @@ export default function BootcampScreen() {
                 {/* My Tickets Dashboard Modal */}
                 <Modal visible={ticketsModalVisible} transparent animationType="slide" onRequestClose={() => setTicketsModalVisible(false)}>
                     <View className="flex-1 bg-black/50 justify-end">
-                        <View className="bg-white h-[70%] rounded-t-[50px] overflow-hidden">
+                        <View className="bg-white h-[70%] rounded-t-5xl overflow-hidden">
                             <View className="p-1 pt-12 flex-1">
                                 <View className="flex-row justify-between items-center mb-8 px-5">
                                     <View>
-                                        <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase">My Passes</Text>
-                                        <Text className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">{userRegistrations.length} Active Tickets</Text>
+                                        <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase">My Passes</Text>
+                                        <Text className="text-slate-500 text-xs font-bold uppercase tracking-wide mt-1">{userRegistrations.length} Active Tickets</Text>
                                     </View>
-                                    <TouchableOpacity onPress={() => setTicketsModalVisible(false)} className="w-12 h-12 bg-gray-50 rounded-2xl items-center justify-center border border-gray-100">
+                                    <TouchableOpacity onPress={() => setTicketsModalVisible(false)} className="w-12 h-12 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
                                         <Ionicons name="close" size={24} color="black" />
                                     </TouchableOpacity>
                                 </View>
@@ -1318,7 +1318,7 @@ export default function BootcampScreen() {
                                             <View className="w-24 h-24 bg-slate-50 rounded-full items-center justify-center mb-6">
                                                 <Ionicons name="ticket-outline" size={40} color="#CBD5E1" />
                                             </View>
-                                            <Text className="text-slate-400 font-black  text-center uppercase tracking-widest text-[10px]">No active bootcamps found</Text>
+                                            <Text className="text-slate-500 font-black  text-center uppercase tracking-wide text-2xs">No active bootcamps found</Text>
                                         </View>
                                     }
                                     contentContainerStyle={{ paddingBottom: 50 }}
@@ -1331,18 +1331,18 @@ export default function BootcampScreen() {
                 {/* Entry Pass Modal */}
                 <Modal visible={qrModalVisible} transparent onRequestClose={() => setQrModalVisible(false)}>
                     <View className="flex-1 bg-black/80 justify-center items-center px-8">
-                        <View className="bg-white w-full rounded-[40px] overflow-hidden">
+                        <View className="bg-white w-full rounded-5xl overflow-hidden">
                             <LinearGradient colors={['#6366f1', '#4338ca']} className="p-8 items-center flex-row justify-center">
                                 <Text className="text-white text-xl font-black  text-center tracking-tighter">{(selectedReg?.eventId as any)?.eventName}</Text>
                             </LinearGradient>
-                            <View className="p-8 items-center bg-gray-50/50">
+                            <View className="p-8 items-center bg-slate-50/50">
                                 <View className="flex-row items-center gap-4">
                                     <View className="p-3 bg-white border-2 border-indigo-100 rounded-3xl shadow-sm">
                                         {selectedReg?.qrCode && <Image source={{ uri: selectedReg.qrCode }} style={{ width: 140, height: 140 }} resizeMode="contain" />}
                                     </View>
                                 </View>
                                 <Text className='font-semibold mt-2'>{user?.name}</Text>
-                                <TouchableOpacity onPress={() => setQrModalVisible(false)} className="mt-8 bg-zinc-900 w-full py-5 rounded-xl items-center shadow-lg">
+                                <TouchableOpacity onPress={() => setQrModalVisible(false)} className="mt-8 bg-slate-900 w-full py-5 rounded-xl items-center shadow-lg">
                                     <Text className="text-white font-black text-xs uppercase">CLOSE TICKET</Text>
                                 </TouchableOpacity>
                             </View>
@@ -1352,8 +1352,8 @@ export default function BootcampScreen() {
 
                 <Modal visible={collegeModalVisible} transparent animationType="fade" onRequestClose={() => setCollegeModalVisible(false)}>
                     <View className="flex-1 bg-black/50 items-center justify-center px-10">
-                        <View className="bg-white w-full max-h-[70%] rounded-[40px] overflow-hidden">
-                            <View className="p-6 bg-zinc-900">
+                        <View className="bg-white w-full max-h-[70%] rounded-5xl overflow-hidden">
+                            <View className="p-6 bg-slate-900">
                                 <View className="flex-row justify-between items-center mb-4">
                                     <Text className="text-white text-lg font-black  tracking-tighter uppercase">Select Bootcamp Base</Text>
                                     <TouchableOpacity onPress={() => setCollegeModalVisible(false)} className="w-10 h-10 bg-white/10 rounded-xl items-center justify-center">
@@ -1381,16 +1381,16 @@ export default function BootcampScreen() {
                                             setCollegeModalVisible(false);
                                             setCollegeSearch('');
                                         }}
-                                        className="p-5 border-b border-gray-50 flex-row items-center"
+                                        className="p-5 border-b border-slate-50 flex-row items-center"
                                     >
                                         <Ionicons name="business-outline" size={16} color="#6366f1" />
-                                        <Text className="text-zinc-900 font-bold ml-3 text-xs">{item}</Text>
+                                        <Text className="text-slate-900 font-bold ml-3 text-xs">{item}</Text>
                                     </TouchableOpacity>
                                 )}
-                                ListEmptyComponent={<View className="p-10 items-center"><Text className="text-gray-400 font-bold">No institution found</Text></View>}
+                                ListEmptyComponent={<View className="p-10 items-center"><Text className="text-slate-500 font-bold">No institution found</Text></View>}
                             />
                             <TouchableOpacity onPress={() => setCollegeModalVisible(false)} className="p-6 items-center">
-                                <Text className="text-slate-400 font-black  text-[10px] uppercase tracking-widest">Cancel</Text>
+                                <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide">Cancel</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

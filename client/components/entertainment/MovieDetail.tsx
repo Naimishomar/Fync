@@ -100,10 +100,10 @@ const MovieDetail = () => {
                 <Ionicons name="star" size={16} color="#fbbf24" />
                 <Text className="text-white text-sm ml-1 font-bold">{movie.vote_average.toFixed(1)}</Text>
               </View>
-              <Text className="text-gray-400">•</Text>
-              <Text className="text-gray-400 text-sm font-medium">{releaseYear}</Text>
-              <Text className="text-gray-400">•</Text>
-              <Text className="text-gray-400 text-sm font-medium">{runtime}</Text>
+              <Text className="text-slate-500">•</Text>
+              <Text className="text-slate-500 text-sm font-medium">{releaseYear}</Text>
+              <Text className="text-slate-500">•</Text>
+              <Text className="text-slate-500 text-sm font-medium">{runtime}</Text>
             </View>
 
             <View className="flex-row gap-4">
@@ -121,7 +121,7 @@ const MovieDetail = () => {
         {/* Details Section */}
         <View className="px-6 py-6">
           <Text className="text-white text-xl font-bold mb-3">Overview</Text>
-          <Text className="text-gray-400 leading-6 text-base mb-8">
+          <Text className="text-slate-500 leading-6 text-base mb-8">
             {movie.overview}
           </Text>
 

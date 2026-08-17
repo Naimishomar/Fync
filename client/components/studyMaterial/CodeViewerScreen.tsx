@@ -75,7 +75,7 @@ const CodeViewerScreen = ({ route, navigation } : any) => {
         startInLoadingState={true}
         renderLoading={() => (
           <View className="absolute inset-0 items-center justify-center bg-[#1d1f21]">
-            <ActivityIndicator size="large" color="#ec4899" />
+            <ActivityIndicator size="large" color="#f97316" />
           </View>
         )}
       />

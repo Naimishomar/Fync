@@ -97,10 +97,10 @@ const CreateCommunityScreen = () => {
 
         setLoading(true);
         try {
-            const amount = plan === 'monthly' ? 99 : 999;
-            const orderRes = await axios.post('/payment/order', { 
-                amount,
-                notes: { type: 'community_creation', creatorEmail: user?.email, name }
+            const orderRes = await axios.post('/payment/order', {
+                purpose: 'community_creation',
+                plan,
+                name,
             });
 
             if (!orderRes.data.id) throw new Error("Order generation failed");
@@ -110,7 +110,7 @@ const CreateCommunityScreen = () => {
                 image: logo || 'https://i.imgur.com/39M8xXo.png',
                 currency: 'INR',
                 key: RAZORPAY_KEY_ID, 
-                amount: amount * 100,
+                amount: orderRes.data.amount,
                 name: 'Fync Ecosystem',
                 order_id: orderRes.data.id,
                 prefill: {
@@ -129,7 +129,7 @@ const CreateCommunityScreen = () => {
                     <script>
                     var options = {
                         key: "${RAZORPAY_KEY_ID}",
-                        amount: "${amount * 100}",
+                        amount: "${orderRes.data.amount}",
                         currency: "INR",
                         name: "Fync Ecosystem",
                         description: "Ignite ${name}",
@@ -215,7 +215,7 @@ const CreateCommunityScreen = () => {
             />
 
             <View 
-                className="w-full bg-[#F8FAFC] rounded-t-[40px] overflow-hidden"
+                className="w-full bg-[#F8FAFC] rounded-t-5xl overflow-hidden"
                 style={{ height: screenHeight * 0.8 }}
             >
                 <View className="w-12 h-1.5 bg-slate-200 rounded-full self-center mt-4 mb-2" />
@@ -228,48 +228,48 @@ const CreateCommunityScreen = () => {
                         <Ionicons name="close" size={20} color="#18181b" />
                     </TouchableOpacity>
                     <View className="items-center">
-                        <Text className="text-zinc-900 text-xl font-black uppercase tracking-tight">Generate <Text className="text-orange-500">Hub</Text></Text>
-                        <Text className="text-slate-400 text-[8px] font-black uppercase tracking-[2px] mt-0.5">Ecosystem Initiation Protocol</Text>
+                        <Text className="text-slate-900 text-xl font-black uppercase tracking-tight">Generate <Text className="text-orange-500">Hub</Text></Text>
+                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Ecosystem Initiation Protocol</Text>
                     </View>
                     <View className="w-11" />
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false} className="px-8 flex-1">
-                    <Text className="text-slate-400 font-black uppercase text-[9px] tracking-widest mb-4 mt-4">Visual Identity</Text>
+                    <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide mb-4 mt-4">Visual Identity</Text>
                     <View className="flex-row gap-4 mb-10">
                         <TouchableOpacity 
                             onPress={() => pickImage(setBanner, true)}
-                            className="flex-[2] h-40 bg-white rounded-[32px] border border-dashed border-slate-200 items-center justify-center overflow-hidden shadow-sm shadow-black/5"
+                            className="flex-[2] h-40 bg-white rounded-4xl border border-dashed border-slate-200 items-center justify-center overflow-hidden shadow-sm shadow-black/5"
                         >
                             {banner ? (
                                 <Image source={{ uri: banner }} className="w-full h-full" resizeMode="cover" />
                             ) : (
                                 <View className="items-center">
                                     <Feather name="image" size={24} color="#CBD5E1" />
-                                    <Text className="text-slate-300 font-black uppercase text-[7px] tracking-widest mt-2">Banner Asset</Text>
+                                    <Text className="text-slate-300 font-black uppercase text-2xs tracking-wide mt-2">Banner Asset</Text>
                                 </View>
                             )}
                         </TouchableOpacity>
                         <TouchableOpacity 
                             onPress={() => pickImage(setLogo, false)}
-                            className="flex-1 h-40 bg-white rounded-[32px] border border-dashed border-slate-200 items-center justify-center overflow-hidden shadow-sm shadow-black/5"
+                            className="flex-1 h-40 bg-white rounded-4xl border border-dashed border-slate-200 items-center justify-center overflow-hidden shadow-sm shadow-black/5"
                         >
                             {logo ? (
                                 <Image source={{ uri: logo }} className="w-full h-full" resizeMode="cover" />
                             ) : (
                                 <View className="items-center">
                                     <Feather name="camera" size={24} color="#CBD5E1" />
-                                    <Text className="text-slate-300 font-black uppercase text-[7px] tracking-widest mt-2">1:1 Logo</Text>
+                                    <Text className="text-slate-300 font-black uppercase text-2xs tracking-wide mt-2">1:1 Logo</Text>
                                 </View>
                             )}
                         </TouchableOpacity>
                     </View>
 
-                    <Text className="text-slate-400 font-black uppercase text-[9px] tracking-widest mb-4">Core Directives</Text>
+                    <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide mb-4">Core Directives</Text>
                     <TextInput 
                         placeholder="Ecosystem Designation" 
                         placeholderTextColor="#CBD5E1"
-                        className="bg-white p-5 rounded-3xl border border-slate-100 font-black text-xs mb-4 shadow-sm shadow-black/5 text-zinc-900" 
+                        className="bg-white p-5 rounded-3xl border border-slate-100 font-black text-xs mb-4 shadow-sm shadow-black/5 text-slate-900" 
                         value={name}
                         onChangeText={setName}
                     />
@@ -277,59 +277,59 @@ const CreateCommunityScreen = () => {
                         placeholder="Describe the mission parameters of this hub..." 
                         placeholderTextColor="#CBD5E1"
                         multiline
-                        className="bg-white p-5 rounded-3xl border border-slate-100 font-medium text-xs mb-10 h-32 text-zinc-600 shadow-sm shadow-black/5" 
+                        className="bg-white p-5 rounded-3xl border border-slate-100 font-medium text-xs mb-10 h-32 text-slate-600 shadow-sm shadow-black/5" 
                         textAlignVertical="top"
                         value={desc}
                         onChangeText={setDesc}
                     />
 
-                    <Text className="text-slate-400 font-black uppercase text-[9px] tracking-widest mb-4">Activation Tier</Text>
+                    <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide mb-4">Activation Tier</Text>
                     <View className="flex-row gap-3 mb-10">
                         <TouchableOpacity 
                             onPress={() => setPlan('monthly')}
-                            className={`flex-1 p-5 rounded-3xl border ${plan === 'monthly' ? 'bg-zinc-900 border-zinc-900 shadow-xl shadow-black/20' : 'bg-white border-slate-100 shadow-sm shadow-black/5'}`}
+                            className={`flex-1 p-5 rounded-3xl border ${plan === 'monthly' ? 'bg-slate-900 border-slate-900 shadow-xl shadow-black/20' : 'bg-white border-slate-100 shadow-sm shadow-black/5'}`}
                         >
-                            <Text className={`font-black uppercase text-[9px] tracking-widest ${plan === 'monthly' ? 'text-white' : 'text-zinc-900'}`}>Monthly</Text>
-                            <Text className={`font-bold text-[8px] mt-1 ${plan === 'monthly' ? 'text-white/60' : 'text-slate-400'}`}>₹99 / 30 Days</Text>
+                            <Text className={`font-black uppercase text-2xs tracking-widest ${plan === 'monthly' ? 'text-white' : 'text-slate-900'}`}>Monthly</Text>
+                            <Text className={`font-bold text-2xs mt-1 ${plan === 'monthly' ? 'text-white/60' : 'text-slate-500'}`}>₹99 / 30 Days</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
                             onPress={() => setPlan('yearly')}
                             className={`flex-1 p-5 rounded-3xl border ${plan === 'yearly' ? 'bg-orange-500 border-orange-500 shadow-xl shadow-orange-500/20' : 'bg-white border-slate-100 shadow-sm shadow-black/5'}`}
                         >
                             <View className="flex-row justify-between items-center">
-                                <Text className={`font-black uppercase text-[9px] tracking-widest ${plan === 'yearly' ? 'text-white' : 'text-zinc-900'}`}>Yearly</Text>
+                                <Text className={`font-black uppercase text-2xs tracking-widest ${plan === 'yearly' ? 'text-white' : 'text-slate-900'}`}>Yearly</Text>
                                 <View className="bg-white/20 px-2 py-0.5 rounded-full">
-                                    <Text className="text-[6px] text-white font-black uppercase">Elite</Text>
+                                    <Text className="text-2xs text-white font-black uppercase">Elite</Text>
                                 </View>
                             </View>
-                            <Text className={`font-bold text-[8px] mt-1 ${plan === 'yearly' ? 'text-white/90' : 'text-slate-400'}`}>₹999 / 365 Days</Text>
+                            <Text className={`font-bold text-2xs mt-1 ${plan === 'yearly' ? 'text-white/90' : 'text-slate-500'}`}>₹999 / 365 Days</Text>
                         </TouchableOpacity>
                     </View>
 
-                    <Text className="text-slate-400 font-black uppercase text-[9px] tracking-widest mb-4">External Links</Text>
-                    <View className="bg-white p-6 rounded-[32px] border border-slate-100 mb-10 shadow-sm shadow-black/5">
+                    <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide mb-4">External Links</Text>
+                    <View className="bg-white p-6 rounded-4xl border border-slate-100 mb-10 shadow-sm shadow-black/5">
                         <View className="flex-row items-center gap-4 mb-6">
                             <FontAwesome5 name="youtube" size={16} color="#ef4444" />
-                            <TextInput placeholder="YouTube Protocol" placeholderTextColor="#CBD5E1" value={youtube} onChangeText={setYoutube} className="flex-1 font-black text-[10px] text-zinc-900" />
+                            <TextInput placeholder="YouTube Protocol" placeholderTextColor="#CBD5E1" value={youtube} onChangeText={setYoutube} className="flex-1 font-black text-2xs text-slate-900" />
                         </View>
                         <View className="flex-row items-center gap-4 mb-6">
                             <FontAwesome5 name="github" size={16} color="#1a1a1a" />
-                            <TextInput placeholder="GitHub Repository" placeholderTextColor="#CBD5E1" value={github} onChangeText={setGithub} className="flex-1 font-black text-[10px] text-zinc-900" />
+                            <TextInput placeholder="GitHub Repository" placeholderTextColor="#CBD5E1" value={github} onChangeText={setGithub} className="flex-1 font-black text-2xs text-slate-900" />
                         </View>
                         <View className="flex-row items-center gap-4">
                             <SimpleLineIcons name="globe" size={16} color="#f97316" />
-                            <TextInput placeholder="Web Portal" placeholderTextColor="#CBD5E1" value={website} onChangeText={setWebsite} className="flex-1 font-black text-[10px] text-zinc-900" />
+                            <TextInput placeholder="Web Portal" placeholderTextColor="#CBD5E1" value={website} onChangeText={setWebsite} className="flex-1 font-black text-2xs text-slate-900" />
                         </View>
                     </View>
 
                     <TouchableOpacity 
                         onPress={handleCreate}
                         disabled={loading}
-                        className={`p-6 rounded-[28px] items-center shadow-2xl mb-20 ${loading ? 'bg-slate-100' : 'bg-zinc-900 shadow-black/40'}`}
+                        className={`p-6 rounded-3xl items-center shadow-2xl mb-20 ${loading ? 'bg-slate-100' : 'bg-slate-900 shadow-black/40'}`}
                     >
                         {loading ? <ActivityIndicator color="#f97316" /> : (
                             <View className="flex-row items-center">
-                                <Text className="text-white font-black uppercase tracking-widest text-xs mr-3">Deploy Ecosystem Hub</Text>
+                                <Text className="text-white font-black uppercase tracking-wide text-xs mr-3">Deploy Ecosystem Hub</Text>
                                 <Ionicons name="rocket" size={18} color="white" />
                             </View>
                         )}

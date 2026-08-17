@@ -54,7 +54,7 @@ const StepIndicator = ({ total, current }: { total: number; current: number }) =
         >
           {i < current
             ? <Ionicons name="checkmark" size={14} color="white" />
-            : <Text className={`font-black text-xs ${i === current ? 'text-white' : 'text-slate-400'}`}>{i + 1}</Text>
+            : <Text className={`font-black text-xs ${i === current ? 'text-white' : 'text-slate-500'}`}>{i + 1}</Text>
           }
         </View>
         {i < total - 1 && (
@@ -85,8 +85,8 @@ const Field = ({
 }) => (
   <View className="mb-5">
     <View className="flex-row items-center mb-2">
-      <Text className="text-slate-500 text-[10px] font-black uppercase tracking-widest">{label}</Text>
-      {optional && <Text className="text-slate-300 text-[10px] font-semibold ml-1">(optional)</Text>}
+      <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">{label}</Text>
+      {optional && <Text className="text-slate-300 text-2xs font-semibold ml-1">(optional)</Text>}
     </View>
     <TextInput
       value={value}
@@ -97,7 +97,7 @@ const Field = ({
       numberOfLines={multiline ? 4 : 1}
       textAlignVertical={multiline ? 'top' : 'center'}
       keyboardType={keyboardType}
-      className={`bg-white rounded-2xl px-4 py-3.5 text-zinc-900 font-semibold border border-slate-200 ${multiline ? 'h-28' : ''}`}
+      className={`bg-white rounded-2xl px-4 py-3.5 text-slate-900 font-semibold border border-slate-200 ${multiline ? 'h-28' : ''}`}
     />
   </View>
 );
@@ -322,8 +322,8 @@ const HackathonSubmission = () => {
               <Ionicons name="arrow-back" size={22} color="#1e293b" />
             </TouchableOpacity>
             <View className="flex-1">
-              <Text className="text-zinc-900 text-xl font-black ">Submission</Text>
-              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
+              <Text className="text-slate-900 text-xl font-black ">Submission</Text>
+              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">
                 {isSubmitted ? '✅ Finalized' : existing?._id ? '📝 Draft' : 'New'}
               </Text>
             </View>
@@ -335,7 +335,7 @@ const HackathonSubmission = () => {
               <LinearGradient colors={['#10b981', '#059669']} className="rounded-3xl p-6 mb-5 items-center">
                 <Text className="text-5xl mb-3">🎉</Text>
                 <Text className="text-white font-black  text-2xl text-center">{existing?.ProjectName}</Text>
-                <Text className="text-emerald-200 text-xs uppercase tracking-widest mt-1">Submitted Successfully</Text>
+                <Text className="text-emerald-200 text-xs uppercase tracking-wide mt-1">Submitted Successfully</Text>
                 {existing?.submittedAt && (
                   <Text className="text-emerald-300 text-xs mt-2">
                     {new Date(existing.submittedAt).toLocaleString('en-IN')}
@@ -351,14 +351,14 @@ const HackathonSubmission = () => {
                 { label: 'Demo', value: existing?.demourl },
               ].filter(x => x.value).map((item, i) => (
                 <View key={i} className="bg-white rounded-2xl px-4 py-3.5 mb-3 border border-slate-100">
-                  <Text className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">{item.label}</Text>
-                  <Text className="text-zinc-800 font-semibold text-sm">{item.value}</Text>
+                  <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide mb-1">{item.label}</Text>
+                  <Text className="text-slate-800 font-semibold text-sm">{item.value}</Text>
                 </View>
               ))}
 
               {existing?.techStack && existing.techStack.length > 0 && (
                 <View className="bg-white rounded-2xl px-4 py-3.5 mb-3 border border-slate-100">
-                  <Text className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">Tech Stack</Text>
+                  <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide mb-2">Tech Stack</Text>
                   <View className="flex-row flex-wrap gap-2">
                     {existing.techStack.map((t, i) => (
                       <View key={i} className="bg-indigo-50 border border-indigo-100 rounded-xl px-3 py-1.5">
@@ -374,7 +374,7 @@ const HackathonSubmission = () => {
               {/* Step Indicator */}
               <View className="px-5">
                 <StepIndicator total={STEPS.length} current={step} />
-                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest text-center mb-4">
+                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide text-center mb-4">
                   Step {step + 1} of {STEPS.length} — {STEPS[step]}
                 </Text>
               </View>
@@ -398,7 +398,7 @@ const HackathonSubmission = () => {
                   <View>
                     {/* Category picker */}
                     <View className="mb-5">
-                      <Text className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">Category</Text>
+                      <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-2">Category</Text>
                       <View className="flex-row flex-wrap gap-2">
                         {CATEGORIES.map((c, i) => (
                           <TouchableOpacity
@@ -414,7 +414,7 @@ const HackathonSubmission = () => {
 
                     {/* Tech Stack */}
                     <View className="mb-5">
-                      <Text className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">Tech Stack</Text>
+                      <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-2">Tech Stack</Text>
                       <View className="flex-row mb-3">
                         <TextInput
                           value={techInput}
@@ -422,7 +422,7 @@ const HackathonSubmission = () => {
                           onSubmitEditing={addTech}
                           placeholder="e.g. React Native"
                           placeholderTextColor="#94a3b8"
-                          className="flex-1 bg-white rounded-2xl px-4 py-3 text-zinc-900 font-semibold border border-slate-200 mr-2"
+                          className="flex-1 bg-white rounded-2xl px-4 py-3 text-slate-900 font-semibold border border-slate-200 mr-2"
                         />
                         <TouchableOpacity
                           onPress={addTech}
@@ -462,15 +462,15 @@ const HackathonSubmission = () => {
                     {/* File Attachments */}
                     <View className="mb-5">
                       <View className="flex-row items-center mb-2">
-                        <Text className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Attachments</Text>
-                        <Text className="text-slate-300 text-[10px] font-semibold ml-1">(optional)</Text>
+                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Attachments</Text>
+                        <Text className="text-slate-300 text-2xs font-semibold ml-1">(optional)</Text>
                       </View>
 
                       {(files || []).map((f, i) => (
                         <View key={f._id || i} className="flex-row items-center bg-white rounded-2xl px-4 py-3 border border-slate-200 mb-2">
                           <Ionicons name="document-attach-outline" size={18} color="#6366f1" />
-                          <Text className="flex-1 text-zinc-800 font-semibold text-sm ml-2" numberOfLines={1}>{f.name}</Text>
-                          {f.size ? <Text className="text-slate-400 text-[10px] mr-2">{f.size}</Text> : null}
+                          <Text className="flex-1 text-slate-800 font-semibold text-sm ml-2" numberOfLines={1}>{f.name}</Text>
+                          {f.size ? <Text className="text-slate-500 text-2xs mr-2">{f.size}</Text> : null}
                           {existing?.status === 'draft' && (
                             <TouchableOpacity onPress={() => removeFile(f._id as string)} hitSlop={10}>
                               <Ionicons name="close-circle" size={18} color="#ef4444" />

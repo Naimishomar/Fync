@@ -14,7 +14,7 @@ import {
 const router = express.Router();
 
 router.post("/create", authMiddleware, upload.single("product_image"), createProduct);
-router.get("/", authMiddleware, cacheMiddleware(300), getProduct);
+router.get("/", authMiddleware, cacheMiddleware(300, { shared: true, tags: ['marketplace'] }), getProduct);
 router.put("/:product_id", authMiddleware, updateProduct);
 router.delete("/:product_id", authMiddleware, deleteProduct);
 router.post("/:product_id/buy", authMiddleware, buyProduct);

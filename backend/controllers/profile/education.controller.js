@@ -83,6 +83,8 @@ export const updateCodingStats = async (req, res) => {
 
         // Recompute totalSolved
         const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
         const lc = leetcodeSolved !== undefined ? Number(leetcodeSolved) : (user.codingStats?.leetcodeSolved || 0);
         const gfg = gfgSolved !== undefined ? Number(gfgSolved) : (user.codingStats?.gfgSolved || 0);
         const cc = codechefSolved !== undefined ? Number(codechefSolved) : (user.codingStats?.codechefSolved || 0);

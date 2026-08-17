@@ -119,15 +119,15 @@ export default function RecruiterSignup() {
 
         <View className="absolute bottom-0 w-full">
           <ScrollView keyboardShouldPersistTaps="handled">
-            <View className="rounded-t-[50px] bg-white px-6 pt-6 pb-8 border-t border-gray-100">
-              <View className="h-1 w-12 bg-gray-300 rounded-full self-center mb-6" />
-              <Text className="text-2xl font-black text-gray-900 mb-1">Join as a Recruiter</Text>
-              <Text className="text-gray-500 mb-6 text-sm font-medium">Hire top talent and host internships.</Text>
+            <View className="rounded-t-5xl bg-white px-6 pt-6 pb-8 border-t border-slate-100">
+              <View className="h-1 w-12 bg-slate-300 rounded-full self-center mb-6" />
+              <Text className="text-2xl font-black text-slate-900 mb-1">Join as a Recruiter</Text>
+              <Text className="text-slate-500 mb-6 text-sm font-medium">Hire top talent and host internships.</Text>
 
               {!otpSent ? (
                 <>
                   <TextInput
-                    className="mb-4 rounded-2xl bg-gray-50 border border-gray-200 px-4 py-4 font-medium text-black"
+                    className="mb-4 rounded-2xl bg-slate-50 border border-slate-200 px-4 py-4 font-medium text-black"
                     placeholder="Work Email"
                     value={email}
                     onChangeText={setEmail}
@@ -136,7 +136,7 @@ export default function RecruiterSignup() {
                   />
                   
                   <TextInput
-                    className="mb-4 rounded-2xl bg-gray-50 border border-gray-200 px-4 py-4 font-medium text-black"
+                    className="mb-4 rounded-2xl bg-slate-50 border border-slate-200 px-4 py-4 font-medium text-black"
                     placeholder="Username"
                     value={username}
                     onChangeText={setUsername}
@@ -144,7 +144,7 @@ export default function RecruiterSignup() {
                   />
 
                   <TextInput
-                    className="mb-4 rounded-2xl bg-gray-50 border border-gray-200 px-4 py-4 font-medium text-black"
+                    className="mb-4 rounded-2xl bg-slate-50 border border-slate-200 px-4 py-4 font-medium text-black"
                     placeholder="Mobile Number"
                     keyboardType="phone-pad"
                     value={phoneNumber}
@@ -153,13 +153,13 @@ export default function RecruiterSignup() {
 
                   <View className="mb-6 flex-row items-center px-2">
                     <Checkbox value={agreeTerms} onValueChange={setAgreeTerms} color={agreeTerms ? '#111' : undefined} />
-                    <Text className="ml-3 text-gray-600 font-medium text-xs flex-1">
+                    <Text className="ml-3 text-slate-600 font-medium text-xs flex-1">
                       I agree to the Recruiter Terms & Conditions
                     </Text>
                   </View>
 
                   <Pressable
-                    className={`rounded-full py-4 items-center ${isLoading || !agreeTerms ? 'bg-gray-300' : 'bg-black'}`}
+                    className={`rounded-full py-4 items-center ${isLoading || !agreeTerms ? 'bg-slate-300' : 'bg-black'}`}
                     onPress={sendOtpToWorkEmail}
                     disabled={isLoading || !agreeTerms}
                   >
@@ -172,9 +172,9 @@ export default function RecruiterSignup() {
                 </>
               ) : (
                 <>
-                  <Text className="text-gray-600 mb-4 font-medium">We've sent an OTP to your email inbox</Text>
+                  <Text className="text-slate-600 mb-4 font-medium">We've sent an OTP to your email inbox</Text>
                   <TextInput
-                    className="mb-6 rounded-2xl bg-gray-50 border border-gray-200 px-4 py-4 text-center font-bold tracking-widest text-lg text-black"
+                    className="mb-6 rounded-2xl bg-slate-50 border border-slate-200 px-4 py-4 text-center font-bold tracking-widest text-lg text-black"
                     placeholder="Enter OTP"
                     value={otp}
                     onChangeText={setOtp}
@@ -196,7 +196,7 @@ export default function RecruiterSignup() {
 
                   <View className="flex-row justify-between w-full mt-4 px-4">
                     <Pressable className="items-center py-2" onPress={() => setOtpSent(false)}>
-                      <Text className="text-gray-500 font-bold">Back to details</Text>
+                      <Text className="text-slate-500 font-bold">Back to details</Text>
                     </Pressable>
                     <Pressable className="items-center py-2" onPress={sendOtpToWorkEmail} disabled={isLoading}>
                       <Text className="text-indigo-600 font-bold">Resend OTP</Text>
@@ -206,12 +206,12 @@ export default function RecruiterSignup() {
               )}
 
               <View className="mt-6 flex-row justify-center items-center">
-                <Text className="text-gray-500 font-medium">Already recruiting with us? </Text>
+                <Text className="text-slate-500 font-medium">Already recruiting with us? </Text>
                 <Pressable onPress={() => navigation.navigate('Login')}>
                   <Text className="font-bold text-black border-b border-black">Log in</Text>
                 </Pressable>
               </View>
-              <Text className="mt-6 text-center text-gray-400 text-xs font-bold uppercase tracking-widest">Step 1 of 2</Text>
+              <Text className="mt-6 text-center text-slate-500 text-xs font-bold uppercase tracking-wide">Step 1 of 2</Text>
             </View>
           </ScrollView>
         </View>

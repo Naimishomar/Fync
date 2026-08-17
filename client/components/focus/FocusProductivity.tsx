@@ -222,8 +222,8 @@ export default function FocusProductivity() {
         <View className="flex-1 px-8 pt-10">
             <View className="flex-row justify-between items-center mb-10">
                 <View>
-                    <Text className="text-zinc-900 text-3xl font-black uppercase tracking-tighter leading-tight">Focus <Text className="text-green-500">Forest</Text></Text>
-                    <Text className="text-slate-400 text-[10px] uppercase font-black tracking-widest mt-1">Grow your productivity</Text>
+                    <Text className="text-slate-900 text-3xl font-black uppercase tracking-tighter leading-tight">Focus <Text className="text-green-500">Forest</Text></Text>
+                    <Text className="text-slate-500 text-2xs uppercase font-black tracking-wide mt-1">Grow your productivity</Text>
                 </View>
                 <TouchableOpacity onPress={() => setActiveTab('forest')} className="bg-green-50 w-12 h-12 rounded-2xl items-center justify-center border border-green-100">
                     <Ionicons name="leaf" size={24} color="#22c55e" />
@@ -236,12 +236,12 @@ export default function FocusProductivity() {
                         key={type}
                         onPress={() => setSessionType(type)}
                         style={{ width: (width - 80) / 2 }}
-                        className={`p-6 rounded-[32px] border ${sessionType === type ? 'border-green-500 bg-white' : 'border-slate-100 bg-white'}`}
+                        className={`p-6 rounded-4xl border ${sessionType === type ? 'border-green-500 bg-white' : 'border-slate-100 bg-white'}`}
                     >
                         <View className={`w-12 h-12 rounded-2xl items-center justify-center mb-4 ${sessionType === type ? 'bg-green-500' : 'bg-slate-50'}`}>
                             <Ionicons name={SESSION_THEMES[type].icon as any} size={24} color={sessionType === type ? 'white' : '#CBD5E1'} />
                         </View>
-                        <Text className={`font-black uppercase text-[10px] tracking-widest ${sessionType === type ? 'text-zinc-900' : 'text-slate-400'}`}>{SESSION_THEMES[type].label}</Text>
+                        <Text className={`font-black uppercase text-2xs tracking-widest ${sessionType === type ? 'text-slate-900' : 'text-slate-500'}`}>{SESSION_THEMES[type].label}</Text>
                     </TouchableOpacity>
                 ))}
             </View>
@@ -251,25 +251,25 @@ export default function FocusProductivity() {
                     <TouchableOpacity onPress={() => setSeconds(Math.max(60, seconds - 300))} className="w-14 h-14 rounded-2xl border border-slate-100 bg-white items-center justify-center">
                         <Ionicons name="remove" size={24} color="#18181b" />
                     </TouchableOpacity>
-                    <Text className="text-zinc-900 text-6xl font-black tracking-tighter">{Math.floor(seconds / 60)}</Text>
+                    <Text className="text-slate-900 text-6xl font-black tracking-tighter">{Math.floor(seconds / 60)}</Text>
                     <TouchableOpacity onPress={() => setSeconds(seconds + 300)} className="w-14 h-14 rounded-2xl border border-slate-100 bg-white items-center justify-center">
                         <Ionicons name="add" size={24} color="#18181b" />
                     </TouchableOpacity>
                 </View>
-                <Text className="text-slate-400 uppercase tracking-[4px] text-[10px] font-black">Minutes to Focus</Text>
+                <Text className="text-slate-500 uppercase tracking-wide text-2xs font-black">Minutes to Focus</Text>
             </View>
 
             <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={startSession}
-                className="mt-auto mb-10 overflow-hidden rounded-[24px]"
+                className="mt-auto mb-10 overflow-hidden rounded-2xl"
             >
                 <LinearGradient
                     colors={['#22c55e', '#15803d']}
                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                     className="py-5 items-center justify-center"
                 >
-                    <Text className="text-white font-black text-xs uppercase tracking-widest">Plant a Tree</Text>
+                    <Text className="text-white font-black text-xs uppercase tracking-wide">Plant a Tree</Text>
                 </LinearGradient>
             </TouchableOpacity>
         </View>
@@ -278,9 +278,9 @@ export default function FocusProductivity() {
     const renderActive = () => (
         <View className="flex-1 items-center justify-center px-8">
             <View className="absolute top-16 items-center">
-                <Text className="text-zinc-900 font-black uppercase tracking-widest text-xs mb-2">{SESSION_THEMES[sessionType].label} Session</Text>
+                <Text className="text-slate-900 font-black uppercase tracking-wide text-xs mb-2">{SESSION_THEMES[sessionType].label} Session</Text>
                 <View className="bg-slate-50 px-4 py-1.5 rounded-full border border-slate-200">
-                    <Text className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Lockdown Active</Text>
+                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Lockdown Active</Text>
                 </View>
             </View>
 
@@ -296,10 +296,10 @@ export default function FocusProductivity() {
                 {() => (
                     <View className="items-center">
                         <Text style={{ fontSize: 72, marginBottom: 10 }}>{getTreeStage()}</Text>
-                        <Text className="text-zinc-900 text-5xl font-black tracking-tighter">
+                        <Text className="text-slate-900 text-5xl font-black tracking-tighter">
                             {formatTime(seconds)}
                         </Text>
-                        <Animated.Text style={{ opacity: fadeAnim }} className="text-slate-400 text-[10px] font-black uppercase mt-4 text-center px-8 tracking-widest leading-5">
+                        <Animated.Text style={{ opacity: fadeAnim }} className="text-slate-500 text-2xs font-black uppercase mt-4 text-center px-8 tracking-wide leading-5">
                             "{currentQuote}"
                         </Animated.Text>
                     </View>
@@ -310,16 +310,16 @@ export default function FocusProductivity() {
                 {seconds <= 0 ? (
                     <TouchableOpacity
                         onPress={() => { setActiveTab('setup'); setSeconds(25 * 60); }}
-                        className="bg-zinc-900 px-12 py-5 rounded-[24px]"
+                        className="bg-slate-900 px-12 py-5 rounded-2xl"
                     >
-                        <Text className="text-white font-black uppercase tracking-widest text-xs">Claim Tree</Text>
+                        <Text className="text-white font-black uppercase tracking-wide text-xs">Claim Tree</Text>
                     </TouchableOpacity>
                 ) : (
                     <TouchableOpacity
                         onPress={giveUp}
                         className="bg-red-50 px-8 py-4 rounded-full border border-red-100 mt-4"
                     >
-                        <Text className="text-red-500 text-[10px] font-black uppercase tracking-widest">Give Up</Text>
+                        <Text className="text-red-500 text-2xs font-black uppercase tracking-wide">Give Up</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -333,34 +333,34 @@ export default function FocusProductivity() {
 
         return (
             <View className="flex-1 px-6 pt-6">
-                <Text className="text-zinc-900 text-2xl font-black uppercase tracking-tighter mb-6">My Forest</Text>
+                <Text className="text-slate-900 text-2xl font-black uppercase tracking-tighter mb-6">My Forest</Text>
 
                 <View className="flex-row justify-between mb-8">
                     <View className="bg-green-50 p-4 rounded-3xl flex-1 mr-2 items-center border border-green-100">
                         <Text className="text-3xl mb-1">🌲</Text>
-                        <Text className="text-zinc-900 text-xl font-black">{successfulTrees}</Text>
-                        <Text className="text-slate-500 text-[9px] uppercase font-black tracking-widest">Trees Grown</Text>
+                        <Text className="text-slate-900 text-xl font-black">{successfulTrees}</Text>
+                        <Text className="text-slate-500 text-2xs uppercase font-black tracking-wide">Trees Grown</Text>
                     </View>
                     <View className="bg-slate-50 p-4 rounded-3xl flex-1 mx-1 items-center border border-slate-100">
                         <Text className="text-3xl mb-1">⏱️</Text>
-                        <Text className="text-zinc-900 text-xl font-black">{totalMinutes}</Text>
-                        <Text className="text-slate-500 text-[9px] uppercase font-black tracking-widest">Total Mins</Text>
+                        <Text className="text-slate-900 text-xl font-black">{totalMinutes}</Text>
+                        <Text className="text-slate-500 text-2xs uppercase font-black tracking-wide">Total Mins</Text>
                     </View>
                     <View className="bg-red-50 p-4 rounded-3xl flex-1 ml-2 items-center border border-red-100">
                         <Text className="text-3xl mb-1">🥀</Text>
-                        <Text className="text-zinc-900 text-xl font-black">{witheredTrees}</Text>
-                        <Text className="text-slate-500 text-[9px] uppercase font-black tracking-widest">Withered</Text>
+                        <Text className="text-slate-900 text-xl font-black">{witheredTrees}</Text>
+                        <Text className="text-slate-500 text-2xs uppercase font-black tracking-wide">Withered</Text>
                     </View>
                 </View>
 
-                <Text className="text-slate-400 text-[10px] uppercase font-black tracking-widest mb-4">Recent Sessions</Text>
+                <Text className="text-slate-500 text-2xs uppercase font-black tracking-wide mb-4">Recent Sessions</Text>
 
                 <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
                     {forestHistory.length === 0 ? (
                         <View className="items-center justify-center py-10 opacity-50">
                             <Text className="text-4xl mb-4">🌱</Text>
-                            <Text className="text-slate-400 font-bold">Your forest is empty.</Text>
-                            <Text className="text-slate-400 text-xs">Complete a focus session to plant a tree.</Text>
+                            <Text className="text-slate-500 font-bold">Your forest is empty.</Text>
+                            <Text className="text-slate-500 text-xs">Complete a focus session to plant a tree.</Text>
                         </View>
                     ) : (
                         forestHistory.map((item) => (
@@ -370,12 +370,12 @@ export default function FocusProductivity() {
                                         <Text className="text-2xl">{item.status === 'success' ? SESSION_THEMES[item.type as SessionType].tree : '🥀'}</Text>
                                     </View>
                                     <View>
-                                        <Text className="text-zinc-900 font-black text-sm">{SESSION_THEMES[item.type as SessionType].label}</Text>
-                                        <Text className="text-slate-400 text-xs font-medium">{new Date(item.date).toLocaleDateString()} • {Math.floor(item.duration / 60)} mins</Text>
+                                        <Text className="text-slate-900 font-black text-sm">{SESSION_THEMES[item.type as SessionType].label}</Text>
+                                        <Text className="text-slate-500 text-xs font-medium">{new Date(item.date).toLocaleDateString()} • {Math.floor(item.duration / 60)} mins</Text>
                                     </View>
                                 </View>
                                 <View className={`px-3 py-1 rounded-full ${item.status === 'success' ? 'bg-green-100' : 'bg-red-100'}`}>
-                                    <Text className={`text-[10px] font-black uppercase tracking-widest ${item.status === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                                    <Text className={`text-2xs font-black uppercase tracking-widest ${item.status === 'success' ? 'text-green-600' : 'text-red-600'}`}>
                                         {item.status}
                                     </Text>
                                 </View>
@@ -405,7 +405,7 @@ export default function FocusProductivity() {
                             <Ionicons name={activeTab === 'forest' ? "arrow-back" : "close"} size={24} color="#18181b" />
                         </TouchableOpacity>
                         <View className="bg-white px-4 py-2 rounded-full border border-slate-100">
-                            <Text className="text-[10px] text-green-500 font-black uppercase tracking-widest">Focus Forest</Text>
+                            <Text className="text-2xs text-green-500 font-black uppercase tracking-wide">Focus Forest</Text>
                         </View>
                         <View className="w-12 h-12 opacity-0" />
                     </View>

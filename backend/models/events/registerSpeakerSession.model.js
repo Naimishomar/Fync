@@ -23,5 +23,11 @@ const RegisterSpeakerSessionSchema = new mongoose.Schema({
         default: false
     }
 });
+// The controller guards double-registration with a findOne-then-create, which
+// two concurrent requests can both pass. Enforce it in the database instead.
+RegisterSpeakerSessionSchema.index({ eventId: 1, userId: 1 }, { unique: true });
+// "my registered sessions" listing.
+RegisterSpeakerSessionSchema.index({ userId: 1, isPaid: 1 });
+
 const RegisterSpeakerSession = mongoose.model('RegisterSpeakerSession', RegisterSpeakerSessionSchema);  
 export default RegisterSpeakerSession;

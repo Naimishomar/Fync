@@ -3,16 +3,16 @@ import { createClient } from 'redis';
 const client = createClient({
   url: process.env.REDIS_URL,
   socket: {
-    tls: true,
-    reconnectStrategy: (retries) => {
-      if (retries > 5) {
-        console.error('❌ Redis: Max reconnection attempts reached. Continuing without cache.');
-        return false;
-      }
-      const delay = Math.min(retries * 500, 5000);
-      console.log(`Retrying Redis connection (${retries}/5) in ${delay}ms...`);
-      return delay;
-    }
+    // Derive TLS from the URL scheme instead of forcing it on: a hardcoded
+    // `tls: true` cannot talk to a plain redis:// instance (local, or Redis on
+    // the same EC2 box), and the handshake fails with an opaque socket error.
+    tls: (process.env.REDIS_URL || '').startsWith('rediss://'),
+    keepAlive: 30000,
+    // Give up on the *initial* connect, but keep retrying forever afterwards.
+    // Bailing out permanently after 5 attempts meant one Redis blip left the
+    // process running with rate limiting, caching and presence dead until a
+    // manual restart.
+    reconnectStrategy: (retries) => Math.min(1000 + retries * 500, 10000),
   },
 });
 

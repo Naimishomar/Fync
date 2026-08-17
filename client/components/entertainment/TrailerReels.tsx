@@ -163,7 +163,7 @@ const ReelItem = ({
             source={webViewSource}
           />
         ) : (
-          <View className="flex-1 bg-zinc-900 justify-center items-center">
+          <View className="flex-1 bg-slate-900 justify-center items-center">
             {loading ? (
               <ActivityIndicator size="small" color="#e11d48" />
             ) : (
@@ -189,13 +189,13 @@ const ReelItem = ({
             </Text>
             <View className="flex-row items-center gap-3">
                <View className="bg-rose-600/20 px-3 py-1 rounded-full border border-rose-600/30">
-                  <Text className="text-rose-500 text-[10px] font-black uppercase tracking-widest">TRAILER</Text>
+                  <Text className="text-rose-500 text-2xs font-black uppercase tracking-wide">TRAILER</Text>
                </View>
                <View className="flex-row items-center">
                   <Ionicons name="star" size={14} color="#fbbf24" />
                   <Text className="text-white text-sm ml-1 font-bold">{movie.vote_average.toFixed(1)}</Text>
                </View>
-               <Text className="text-slate-500 text-xs font-bold uppercase tracking-widest">
+               <Text className="text-slate-500 text-xs font-bold uppercase tracking-wide">
                   {movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}
                </Text>
             </View>
@@ -221,43 +221,43 @@ const ReelItem = ({
         {/* Extended Metadata */}
         <View className="flex-row flex-wrap gap-2 mb-8">
            {['Action', 'Blockbuster', 'Trending', 'Hot'].map((tag) => (
-             <View key={tag} className="bg-zinc-800/50 px-4 py-2 rounded-xl border border-white/5">
-                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest">{tag}</Text>
+             <View key={tag} className="bg-slate-800/50 px-4 py-2 rounded-xl border border-white/5">
+                <Text className="text-slate-400 text-2xs font-black uppercase tracking-wide">{tag}</Text>
              </View>
            ))}
         </View>
 
         <View className="mb-4">
-          <Text className="text-rose-500 font-black text-xs uppercase tracking-[3px] mb-2">Synopsis</Text>
+          <Text className="text-rose-500 font-black text-xs uppercase tracking-wide mb-2">Synopsis</Text>
           <Text className="text-slate-300 text-base leading-7 font-medium">
             {movie.overview || "No description available for this cinematic masterpiece."}
           </Text>
         </View>
 
         {/* Production Details Card */}
-        <View className="bg-zinc-900/50 p-8 rounded-[40px] border border-white/5 mb-4">
+        <View className="bg-slate-900/50 p-8 rounded-5xl border border-white/5 mb-4">
             <Text className="text-white font-black text-sm uppercase tracking-widest mb-6">Production Details</Text>
             <View className="flex-row justify-between mb-4">
-               <Text className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Original Language</Text>
-               <Text className="text-white font-black uppercase text-[10px] tracking-widest">{movie.original_language || 'EN'}</Text>
+               <Text className="text-slate-500 font-bold uppercase text-2xs tracking-wide">Original Language</Text>
+               <Text className="text-white font-black uppercase text-2xs tracking-wide">{movie.original_language || 'EN'}</Text>
             </View>
             <View className="flex-row justify-between mb-4">
-               <Text className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Vote Count</Text>
-               <Text className="text-white font-black uppercase text-[10px] tracking-widest">{movie.vote_count || '0'}+</Text>
+               <Text className="text-slate-500 font-bold uppercase text-2xs tracking-wide">Vote Count</Text>
+               <Text className="text-white font-black uppercase text-2xs tracking-wide">{movie.vote_count || '0'}+</Text>
             </View>
             <View className="flex-row justify-between">
-               <Text className="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Popularity Score</Text>
-               <Text className="text-emerald-500 font-black uppercase text-[10px] tracking-widest">{Math.round(movie.popularity || 0)}</Text>
+               <Text className="text-slate-500 font-bold uppercase text-2xs tracking-wide">Popularity Score</Text>
+               <Text className="text-emerald-500 font-black uppercase text-2xs tracking-wide">{Math.round(movie.popularity || 0)}</Text>
             </View>
         </View>
 
         <View className="mb-20">
-           <View className="bg-rose-600/10 p-8 rounded-[40px] border border-rose-600/20">
+           <View className="bg-rose-600/10 p-8 rounded-5xl border border-rose-600/20">
               <View className="flex-row items-center mb-4">
                  <View className="bg-rose-600 p-2 rounded-xl mr-3">
                     <Ionicons name="sparkles" size={18} color="white" />
                  </View>
-                 <Text className="text-white font-black uppercase text-xs tracking-widest">Fync Smart Recommendation</Text>
+                 <Text className="text-white font-black uppercase text-xs tracking-wide">Fync Smart Recommendation</Text>
               </View>
               <Text className="text-slate-400 text-sm leading-6 font-medium">
                 Our AI suggests this title based on your recent activity in Fync Media. Swipe down to discover more legends.

@@ -138,7 +138,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
         <Pressable className="absolute inset-0" onPress={onClose} />
         <KeyboardAvoidingView
           behavior="padding"
-          className="bg-white rounded-t-[40px] overflow-hidden"
+          className="bg-white rounded-t-5xl overflow-hidden"
           style={{ height: screenHeight * 0.85 }}
         >
           {/* Handle */}
@@ -149,10 +149,10 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
           {/* Header */}
           <View className="flex-row items-center justify-between px-6 pb-4 border-b border-slate-50">
             <View>
-              <Text className="text-zinc-900 font-black uppercase text-xl tracking-tighter">
+              <Text className="text-slate-900 font-black uppercase text-xl tracking-tighter">
                 {isEdit ? 'Update' : 'Record'} <Text className="text-orange-500">Experience</Text>
               </Text>
-              <Text className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-0.5">Career History Module</Text>
+              <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wide mt-0.5">Career History Module</Text>
             </View>
             <Pressable onPress={onClose} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
               <Ionicons name="close" size={20} color="#18181b" />
@@ -164,14 +164,14 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
             <View className="mb-6">
               <View className="flex-row items-center gap-2 mb-3">
                 <Feather name="layers" size={12} color="#94A3B8" />
-                <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">Engagement Type</Text>
+                <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">Engagement Type</Text>
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row gap-2 pr-6">
                   {TYPES.map(t => (
                     <Pressable key={t} onPress={() => setForm(p => ({ ...p, type: t }))}
-                      className={`px-4 py-2.5 rounded-xl border items-center shadow-sm ${form.type === t ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-slate-100'}`}>
-                      <Text className={`text-[10px] font-black uppercase tracking-widest ${form.type === t ? 'text-white' : 'text-slate-400'}`}>{t.replace('-', ' ')}</Text>
+                      className={`px-4 py-2.5 rounded-xl border items-center shadow-sm ${form.type === t ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-100'}`}>
+                      <Text className={`text-2xs font-black uppercase tracking-widest ${form.type === t ? 'text-white' : 'text-slate-500'}`}>{t.replace('-', ' ')}</Text>
                     </Pressable>
                   ))}
                 </View>
@@ -189,10 +189,10 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
               <View key={f.key} className="mb-6">
                 <View className="flex-row items-center gap-2 mb-2">
                   <Feather name={f.icon as any} size={12} color="#94A3B8" />
-                  <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">{f.label}</Text>
+                  <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">{f.label}</Text>
                 </View>
                 <TextInput
-                  className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-zinc-900 text-sm font-semibold"
+                  className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 text-sm font-semibold"
                   style={f.multi ? { height: 100, textAlignVertical: 'top' } : {}}
                   placeholder={f.ph} placeholderTextColor="#94A3B8"
                   value={form[f.key as keyof typeof form] as string}
@@ -206,7 +206,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
             <View className="flex-row items-center justify-between mb-6 bg-slate-50 px-5 py-4 rounded-2xl border border-slate-100">
               <View className="flex-row items-center gap-2">
                 <Feather name="clock" size={12} color="#18181b" />
-                <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-widest">Currently Active</Text>
+                <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">Currently Active</Text>
               </View>
               <Switch value={form.isCurrentlyWorking}
                 onValueChange={v => setForm(p => ({ ...p, isCurrentlyWorking: v }))}
@@ -217,9 +217,9 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
               <View className="mb-6">
                 <View className="flex-row items-center gap-2 mb-2">
                   <Feather name="calendar" size={12} color="#94A3B8" />
-                  <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">End Date (YYYY-MM-DD)</Text>
+                  <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">End Date (YYYY-MM-DD)</Text>
                 </View>
-                <TextInput className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-zinc-900 text-sm font-semibold"
+                <TextInput className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 text-sm font-semibold"
                   placeholder="2024-09-30" placeholderTextColor="#94A3B8"
                   value={form.endDate} onChangeText={v => setForm(p => ({ ...p, endDate: v }))} />
               </View>
@@ -229,35 +229,35 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
             <View className="mb-8">
               <View className="flex-row items-center gap-2 mb-3">
                 <Feather name="globe" size={12} color="#94A3B8" />
-                <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">Work Mode</Text>
+                <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">Work Mode</Text>
               </View>
               <View className="flex-row gap-3">
                 {MODES.map(m => (
                   <Pressable key={m} onPress={() => setForm(p => ({ ...p, workMode: m }))}
-                    className={`flex-1 py-3.5 rounded-2xl border items-center shadow-sm ${form.workMode === m ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-slate-100'}`}>
-                    <Text className={`text-[10px] font-black uppercase tracking-widest ${form.workMode === m ? 'text-white' : 'text-slate-400'}`}>{m}</Text>
+                    className={`flex-1 py-3.5 rounded-2xl border items-center shadow-sm ${form.workMode === m ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-100'}`}>
+                    <Text className={`text-2xs font-black uppercase tracking-widest ${form.workMode === m ? 'text-white' : 'text-slate-500'}`}>{m}</Text>
                   </Pressable>
                 ))}
               </View>
             </View>
 
             {/* Document Section */}
-            <View className="mb-12 p-6 bg-orange-50 border border-orange-100 rounded-[28px] shadow-sm shadow-orange-500/10">
+            <View className="mb-12 p-6 bg-orange-50 border border-orange-100 rounded-3xl shadow-sm shadow-orange-500/10">
                <View className="flex-row items-center mb-4">
                  <View className="w-8 h-8 bg-white rounded-xl items-center justify-center shadow-sm mr-3">
                    <Ionicons name="shield-checkmark" size={16} color="#f97316" />
                  </View>
-                 <Text className="text-zinc-900 font-black uppercase text-xs tracking-tight">Integrity Verification</Text>
+                 <Text className="text-slate-900 font-black uppercase text-xs tracking-tight">Integrity Verification</Text>
                </View>
                
                {form.isCurrentlyWorking ? (
                  <View>
-                   <Text className="text-orange-600 text-[8px] uppercase font-black tracking-[2px] mb-3 ml-1">Upload Offer Letter (PDF)</Text>
+                   <Text className="text-orange-600 text-2xs uppercase font-black tracking-wide mb-3 ml-1">Upload Offer Letter (PDF)</Text>
                    <Pressable onPress={() => pickDocument('offer')} 
                      className="bg-white border border-orange-100 p-5 rounded-2xl flex-row items-center justify-between shadow-sm">
                       <View className="flex-row items-center flex-1 pr-4">
                         <Feather name="file-text" size={18} color="#f97316" />
-                        <Text className="text-zinc-900 text-[11px] ml-3 font-black uppercase tracking-tight" numberOfLines={1}>
+                        <Text className="text-slate-900 text-2xs ml-3 font-black uppercase tracking-tight" numberOfLines={1}>
                           {offerLetter ? offerLetter.name : (existingOfferLetter ? 'Offer Letter Synced ✅' : 'Select PDF Manifest')}
                         </Text>
                       </View>
@@ -266,12 +266,12 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
                  </View>
                ) : (
                  <View>
-                   <Text className="text-orange-600 text-[8px] uppercase font-black tracking-[2px] mb-3 ml-1">Upload Completion Proof (PDF)</Text>
+                   <Text className="text-orange-600 text-2xs uppercase font-black tracking-wide mb-3 ml-1">Upload Completion Proof (PDF)</Text>
                    <Pressable onPress={() => pickDocument('cert')} 
                      className="bg-white border border-orange-100 p-5 rounded-2xl flex-row items-center justify-between shadow-sm">
                       <View className="flex-row items-center flex-1 pr-4">
                         <Feather name="award" size={18} color="#f97316" />
-                        <Text className="text-zinc-900 text-[11px] ml-3 font-black uppercase tracking-tight" numberOfLines={1}>
+                        <Text className="text-slate-900 text-2xs ml-3 font-black uppercase tracking-tight" numberOfLines={1}>
                           {completionCertificate ? completionCertificate.name : (existingCertificate ? 'Proof Synced ✅' : 'Select PDF Manifest')}
                         </Text>
                       </View>
@@ -286,12 +286,12 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
           {/* Footer Action */}
           <View className="p-6 border-t border-slate-50 bg-white shadow-2xl shadow-black">
             <Pressable onPress={save} disabled={saving}
-              className="bg-zinc-900 py-5 rounded-[24px] flex-row items-center justify-center shadow-xl shadow-black/20">
+              className="bg-slate-900 py-5 rounded-2xl flex-row items-center justify-center shadow-xl shadow-black/20">
               {saving ? <ActivityIndicator size="small" color="#f97316" />
                 : (
                   <>
                     <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />
-                    <Text className="text-white font-black uppercase text-xs tracking-[2px] ml-2">
+                    <Text className="text-white font-black uppercase text-xs tracking-wide ml-2">
                       {isEdit ? 'Update Record' : 'Commit Experience'}
                     </Text>
                   </>

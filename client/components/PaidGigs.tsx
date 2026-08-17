@@ -38,16 +38,16 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
     const posterName = item.postedBy?.name || (isOwner ? currentUser?.name : 'Anonymous');
 
     return (
-        <View className="bg-white mx-8 mb-6 rounded-[32px] border border-slate-100 shadow-sm shadow-black/5 overflow-hidden">
+        <View className="bg-white mx-8 mb-6 rounded-4xl border border-slate-100 shadow-sm shadow-black/5 overflow-hidden">
             <View className="absolute left-0 top-0 bottom-0 w-[6px] bg-pink-500" />
 
             <View className="p-6 pl-8">
                 <View className="flex-row justify-between items-start mb-4">
                     <View className="flex-1 mr-4">
-                        <Text className="text-zinc-900 font-black  text-lg uppercase tracking-tight leading-tight" numberOfLines={2}>
+                        <Text className="text-slate-900 font-black  text-lg uppercase tracking-tight leading-tight" numberOfLines={2}>
                             {item.title}
                         </Text>
-                        <Text className="text-slate-400 text-[10px] mt-1 uppercase tracking-widest font-black ">
+                        <Text className="text-slate-500 text-2xs mt-1 uppercase tracking-wide font-black ">
                             {moment(item.createdAt).fromNow()}
                         </Text>
                     </View>
@@ -65,7 +65,7 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
 
                 <View className="flex-row items-center bg-emerald-50 self-start px-3 py-1.5 rounded-xl border border-emerald-100 mb-6">
                     <Ionicons name="cash-outline" size={14} color="#10b981" />
-                    <Text className="text-emerald-600 text-[10px] font-black ml-1.5 uppercase tracking-widest">
+                    <Text className="text-emerald-600 text-2xs font-black ml-1.5 uppercase tracking-wide">
                         {item.stipend || 'Pay: Open'}
                     </Text>
                 </View>
@@ -76,7 +76,7 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                         : item.description
                     }"
                     {item.description.length > MAX_CHAR && (
-                        <Text onPress={() => setIsExpanded(!isExpanded)} className="text-pink-500 font-black ml-1 uppercase text-[10px]">
+                        <Text onPress={() => setIsExpanded(!isExpanded)} className="text-pink-500 font-black ml-1 uppercase text-2xs">
                             {isExpanded ? " Less" : " Read More"}
                         </Text>
                     )}
@@ -91,8 +91,8 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                             className="w-10 h-10 rounded-2xl border border-slate-200 bg-slate-50"
                         />
                         <View className="ml-3">
-                            <Text className="text-[8px] text-slate-400 uppercase tracking-widest font-black ">Poster</Text>
-                            <Text className="text-zinc-900 text-xs font-black  uppercase mt-0.5 tracking-tight" numberOfLines={1}>
+                            <Text className="text-2xs text-slate-500 uppercase tracking-wide font-black ">Poster</Text>
+                            <Text className="text-slate-900 text-xs font-black  uppercase mt-0.5 tracking-tight" numberOfLines={1}>
                                 {posterName}
                             </Text>
                         </View>
@@ -100,7 +100,7 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
 
                     {!isOwner && (
                         <View className="bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100">
-                            <Text className="text-slate-400 font-black text-[8px] uppercase tracking-widest" numberOfLines={1}>
+                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide" numberOfLines={1}>
                                 {item.postedUserCollege}
                             </Text>
                         </View>
@@ -113,7 +113,7 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                         className="w-full py-5 bg-rose-50 border border-rose-100 rounded-3xl items-center justify-center flex-row shadow-sm"
                     >
                         <Ionicons name="close-circle" size={18} color="#f43f5e" />
-                        <Text className="text-rose-500 font-black text-[10px] uppercase tracking-widest ml-2 ">Terminate Gig</Text>
+                        <Text className="text-rose-500 font-black text-2xs uppercase tracking-wide ml-2 ">Terminate Gig</Text>
                     </TouchableOpacity>
                 ) : (
                     <TouchableOpacity
@@ -133,7 +133,7 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                             ) : (
                                 <>
                                     <Ionicons name="chatbubble-ellipses" size={18} color="white" />
-                                    <Text className="text-white font-black text-[10px] uppercase tracking-[2px] ml-2 ">Initiate Contact</Text>
+                                    <Text className="text-white font-black text-2xs uppercase tracking-wide ml-2 ">Initiate Contact</Text>
                                 </>
                             )}
                         </LinearGradient>
@@ -366,7 +366,7 @@ export default function PaidGigs({ navigation }: any) {
         return (
             <Animated.View
                 style={{ opacity: pulseAnim }}
-                className="bg-white mx-8 mb-6 rounded-[32px] border border-slate-100 p-8 shadow-sm shadow-black/5"
+                className="bg-white mx-8 mb-6 rounded-4xl border border-slate-100 p-8 shadow-sm shadow-black/5"
             >
                 <View className="flex-row justify-between items-center mb-6">
                     <View className="h-6 bg-slate-50 rounded w-2/3" />
@@ -399,21 +399,21 @@ export default function PaidGigs({ navigation }: any) {
                 <View className="px-8 pt-6">
                     <View className="flex-row justify-between items-center mb-8">
                         <View>
-                            <Text className="text-3xl font-black  text-zinc-900 tracking-tighter uppercase leading-tight">
+                            <Text className="text-3xl font-black  text-slate-900 tracking-tighter uppercase leading-tight">
                                 Paid <Text className="text-pink-500">Gigs</Text> 💰
                             </Text>
-                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-0.5">Freelance Work Protocol</Text>
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Freelance Work Protocol</Text>
                         </View>
                         <TouchableOpacity
                             onPress={openCreateModal}
                             activeOpacity={0.8}
-                            className="w-14 h-14 rounded-2xl bg-zinc-900 items-center justify-center shadow-2xl shadow-black/40"
+                            className="w-14 h-14 rounded-2xl bg-slate-900 items-center justify-center shadow-2xl shadow-black/40"
                         >
                             <Ionicons name="add" size={28} color="white" />
                         </TouchableOpacity>
                     </View>
 
-                    <View className="flex-row bg-white p-1.5 rounded-[22px] mb-8 border border-slate-100">
+                    <View className="flex-row bg-white p-1.5 rounded-2xl mb-8 border border-slate-100">
                         {[
                             { key: 'college', label: 'College' },
                             { key: 'global', label: 'Global' },
@@ -422,9 +422,9 @@ export default function PaidGigs({ navigation }: any) {
                             <TouchableOpacity
                                 key={t.key}
                                 onPress={() => setActiveTab(t.key as any)}
-                                className={`flex-1 py-3.5 items-center rounded-[18px] ${activeTab === t.key ? 'bg-zinc-900' : 'bg-transparent'}`}
+                                className={`flex-1 py-3.5 items-center rounded-xl ${activeTab === t.key ? 'bg-slate-900' : 'bg-transparent'}`}
                             >
-                                <Text className={`font-black tracking-widest text-[10px]  uppercase ${activeTab === t.key ? 'text-white' : 'text-slate-400'}`}>
+                                <Text className={`font-black tracking-widest text-2xs  uppercase ${activeTab === t.key ? 'text-white' : 'text-slate-500'}`}>
                                     {t.label}
                                 </Text>
                             </TouchableOpacity>
@@ -439,7 +439,7 @@ export default function PaidGigs({ navigation }: any) {
                         data={gigs}
                         keyExtractor={(item) => item._id}
                         showsVerticalScrollIndicator={false}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ec4899" />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />}
                         contentContainerStyle={{ paddingBottom: 120, paddingTop: 10 }}
                         renderItem={({ item }) => (
                             <GigCard
@@ -457,17 +457,17 @@ export default function PaidGigs({ navigation }: any) {
                         ListFooterComponent={() => (
                             loadingMore ? (
                                 <View className="py-6 items-center">
-                                    <ActivityIndicator size="small" color="#ec4899" />
+                                    <ActivityIndicator size="small" color="#f97316" />
                                 </View>
                             ) : <View className="h-10" />
                         )}
                         ListEmptyComponent={
                             <View className="items-center justify-center mt-20 px-10">
-                                <View className="w-20 h-20 bg-white rounded-[32px] items-center justify-center mb-6 border border-slate-100 shadow-sm">
+                                <View className="w-20 h-20 bg-white rounded-4xl items-center justify-center mb-6 border border-slate-100 shadow-sm">
                                     <Ionicons name="briefcase-outline" size={32} color="#CBD5E1" />
                                 </View>
-                                <Text className="text-zinc-400 font-black  uppercase text-xs tracking-widest text-center">No Gigs Active</Text>
-                                <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center">Transmission silence detected.</Text>
+                                <Text className="text-slate-500 font-black  uppercase text-xs tracking-wide text-center">No Gigs Active</Text>
+                                <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center">Transmission silence detected.</Text>
                             </View>
                         }
                     />
@@ -479,7 +479,7 @@ export default function PaidGigs({ navigation }: any) {
                 <View className="flex-1 bg-[#F8FAFC]">
                     <StatusBar barStyle="dark-content" />
                     <View className="flex-row justify-between items-center px-8 py-6 border-b border-slate-100 bg-white">
-                        <Text className="text-xl font-black text-zinc-900  tracking-tighter uppercase leading-tight">
+                        <Text className="text-xl font-black text-slate-900  tracking-tighter uppercase leading-tight">
                             {editMode ? 'Edit' : 'New'} <Text className="text-pink-500">Gig Protocol</Text>
                         </Text>
                         <TouchableOpacity onPress={closeModal} className="bg-slate-50 p-2 rounded-2xl border border-slate-100">
@@ -490,44 +490,44 @@ export default function PaidGigs({ navigation }: any) {
                     <KeyboardAvoidingView behavior="padding" className="flex-1">
                         <ScrollView className="p-8" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
 
-                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Subject Matter</Text>
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Subject Matter</Text>
                             <TextInput
                                 value={title} onChangeText={setTitle}
                                 placeholder="Requirement Heading"
                                 placeholderTextColor="#CBD5E1"
-                                className="bg-white p-5 rounded-3xl mb-6 border border-slate-100 shadow-sm text-zinc-900 font-black  uppercase text-xs"
+                                className="bg-white p-5 rounded-3xl mb-6 border border-slate-100 shadow-sm text-slate-900 font-black  uppercase text-xs"
                             />
 
-                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Visible Radius</Text>
-                            <View className="flex-row bg-white p-1.5 rounded-[22px] mb-8 border border-slate-100 shadow-sm">
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Visible Radius</Text>
+                            <View className="flex-row bg-white p-1.5 rounded-2xl mb-8 border border-slate-100 shadow-sm">
                                 <TouchableOpacity
                                     onPress={() => setVisibility('College')}
-                                    className={`flex-1 py-3.5 items-center rounded-[18px] ${visibility === 'College' ? 'bg-zinc-900' : 'bg-transparent'}`}
+                                    className={`flex-1 py-3.5 items-center rounded-xl ${visibility === 'College' ? 'bg-slate-900' : 'bg-transparent'}`}
                                 >
-                                    <Text className={`font-black tracking-widest text-[10px]  uppercase ${visibility === 'College' ? 'text-white' : 'text-slate-400'}`}>
+                                    <Text className={`font-black tracking-widest text-2xs  uppercase ${visibility === 'College' ? 'text-white' : 'text-slate-500'}`}>
                                         Campus Only
                                     </Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     onPress={() => setVisibility('Global')}
-                                    className={`flex-1 py-3.5 items-center rounded-[18px] ${visibility === 'Global' ? 'bg-pink-500' : 'bg-transparent'}`}
+                                    className={`flex-1 py-3.5 items-center rounded-xl ${visibility === 'Global' ? 'bg-pink-500' : 'bg-transparent'}`}
                                 >
-                                    <Text className={`font-black tracking-widest text-[10px]  uppercase ${visibility === 'Global' ? 'text-white' : 'text-slate-400'}`}>
+                                    <Text className={`font-black tracking-widest text-2xs  uppercase ${visibility === 'Global' ? 'text-white' : 'text-slate-500'}`}>
                                         Global Unit
                                     </Text>
                                 </TouchableOpacity>
                             </View>
 
-                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Transmission Intel</Text>
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Transmission Intel</Text>
                             <TextInput
                                 value={description} onChangeText={setDescription}
                                 multiline numberOfLines={5} textAlignVertical="top"
                                 placeholder="Establish the requirements..."
                                 placeholderTextColor="#CBD5E1"
-                                className="bg-white p-5 rounded-3xl mb-6 border border-slate-100 shadow-sm text-zinc-700 leading-6 min-h-[150px] font-medium text-xs "
+                                className="bg-white p-5 rounded-3xl mb-6 border border-slate-100 shadow-sm text-slate-700 leading-6 min-h-[150px] font-medium text-xs "
                             />
 
-                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Stipend Allocation</Text>
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Stipend Allocation</Text>
                             <TextInput
                                 value={stipend} onChangeText={setStipend}
                                 placeholder="Credit Amount (Optional)"
@@ -538,11 +538,11 @@ export default function PaidGigs({ navigation }: any) {
                             <TouchableOpacity
                                 onPress={handleSubmit} disabled={submitting}
                                 activeOpacity={0.8}
-                                className={`py-5 rounded-[24px] items-center shadow-xl flex-row justify-center ${submitting ? 'bg-slate-100' : 'bg-zinc-900 shadow-black/20'}`}
+                                className={`py-5 rounded-2xl items-center shadow-xl flex-row justify-center ${submitting ? 'bg-slate-100' : 'bg-slate-900 shadow-black/20'}`}
                             >
-                                {submitting ? <ActivityIndicator color="#ec4899" /> : (
+                                {submitting ? <ActivityIndicator color="#f97316" /> : (
                                     <>
-                                        <Text className="text-white font-black  uppercase tracking-widest text-xs mr-3">
+                                        <Text className="text-white font-black  uppercase tracking-wide text-xs mr-3">
                                             {editMode ? 'Sync Changes' : 'Deploy Gig'}
                                         </Text>
                                         <Ionicons name={editMode ? "checkmark-circle" : "paper-plane"} size={16} color="white" />

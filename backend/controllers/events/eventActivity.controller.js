@@ -215,6 +215,7 @@ export const deleteEventMessage = async (req, res) => {
         const RegModel = getRegistrationModel(message.eventModel);
         const Model = getEventModel(message.eventModel);
         const event = await Model.findById(message.eventId);
+        if (!event) return res.status(404).json({ success: false, message: "Event not found" });
 
         const isAdmin = (message.eventModel === 'Bootcamp' 
             ? (event.admin_email.toLowerCase() === req.user.email.toLowerCase() || (event.secondaryAdmins || []).some(a => a.toString() === req.user.id.toString()))

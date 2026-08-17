@@ -60,16 +60,16 @@ const ReactionMaster = () => {
   };
 
   return (
-    <View className="p-6 bg-white rounded-[40px] border border-[#F1F5F9] shadow-sm items-center" style={{ width: width - 40 }}>
+    <View className="p-6 bg-white rounded-5xl border border-[#F1F5F9] shadow-sm items-center" style={{ width: width - 40 }}>
       <View className="items-center mb-[30px]">
         <Text className="text-2xl font-black text-[#1A1A1A] uppercase tracking-[-1px]">REACTION <Text className="text-[#db2777]">MASTER</Text></Text>
-        <Text className="text-[8px] text-[#94A3B8] font-black uppercase tracking-[2px] mt-1">Neural Sync Protocol v1.0</Text>
+        <Text className="text-2xs text-[#94A3B8] font-black uppercase tracking-wide mt-1">Neural Sync Protocol v1.0</Text>
       </View>
 
       <TouchableOpacity 
         activeOpacity={1}
         onPress={handleTap}
-        className="w-full rounded-[32px] overflow-hidden bg-[#F8FAFC] border border-[#F1F5F9]"
+        className="w-full rounded-4xl overflow-hidden bg-[#F8FAFC] border border-[#F1F5F9]"
       >
         <Animated.View className="flex-1" style={{ transform: [{ scale: scaleAnim }] }}>
             {gameState === 'idle' && (
@@ -78,7 +78,7 @@ const ReactionMaster = () => {
                     <Text className="text-sm text-[#64748B] font-semibold mt-[15px] mb-[30px] text-center">Ready to test your speed?</Text>
                     <TouchableOpacity onPress={startGame} className="w-full h-[54px] rounded-2xl overflow-hidden shadow-sm">
                         <LinearGradient colors={['#1A1A1A', '#000']} className="flex-1 justify-center items-center">
-                            <Text className="text-white text-[10px] font-black tracking-[2px]">START TEST</Text>
+                            <Text className="text-white text-2xs font-black tracking-wide">START TEST</Text>
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>
@@ -86,7 +86,7 @@ const ReactionMaster = () => {
 
             {gameState === 'waiting' && (
                 <View className="flex-1 justify-center items-center p-[30px]">
-                    <Text className="text-[18px] font-black text-[#94A3B8] tracking-[2px]">WAIT FOR PINK...</Text>
+                    <Text className="text-lg font-black text-[#94A3B8] tracking-[2px]">WAIT FOR PINK...</Text>
                     <View className="mt-[30px] w-[60px] h-[60px] rounded-full bg-[#F1F5F9] justify-center items-center">
                          <View className="w-5 h-5 rounded-full bg-[#db2777] opacity-30" />
                     </View>
@@ -104,17 +104,17 @@ const ReactionMaster = () => {
 
             {gameState === 'result' && reactionTime && (
                 <View className="flex-1 justify-center items-center p-6">
-                    <View className="bg-white px-8 py-10 rounded-[32px] border border-[#F1F5F9] shadow-xl items-center w-full">
-                        <Text className="text-[10px] font-black text-[#94A3B8] tracking-[3px] mb-2 uppercase">RESULT LOGGED</Text>
+                    <View className="bg-white px-8 py-10 rounded-4xl border border-[#F1F5F9] shadow-xl items-center w-full">
+                        <Text className="text-2xs font-black text-[#94A3B8] tracking-wide mb-2 uppercase">RESULT LOGGED</Text>
                         <View className="flex-row items-baseline">
-                            <Text className="text-[72px] font-black text-[#1A1A1A] tracking-[-4px]">{reactionTime}</Text>
+                            <Text className="text-4xl font-black text-[#1A1A1A] tracking-[-4px]">{reactionTime}</Text>
                             <Text className="text-2xl font-black text-[#db2777] ml-2 uppercase">ms</Text>
                         </View>
                         <Text className="text-sm font-black text-[#db2777] mt-2 mb-6 text-center">{getPerformanceMessage(reactionTime)}</Text>
                         
                         <View className="flex-row bg-[#F8FAFC] p-4 rounded-2xl border border-[#F1F5F9] w-full justify-around">
                             <View className="items-center">
-                                <Text className="text-[8px] text-[#94A3B8] font-black mb-1 uppercase tracking-widest">PERSONAL BEST</Text>
+                                <Text className="text-2xs text-[#94A3B8] font-black mb-1 uppercase tracking-wide">PERSONAL BEST</Text>
                                 <Text className="text-base font-black text-[#1A1A1A]">{bestTime} ms</Text>
                             </View>
                         </View>
@@ -122,7 +122,7 @@ const ReactionMaster = () => {
 
                     <TouchableOpacity onPress={startGame} className="w-full h-[58px] rounded-2xl overflow-hidden shadow-lg mt-8">
                         <LinearGradient colors={['#f97316', '#ea580c']} className="flex-1 justify-center items-center">
-                            <Text className="text-white text-xs font-black tracking-[3px]">RETRY PROTOCOL</Text>
+                            <Text className="text-white text-xs font-black tracking-wide">RETRY PROTOCOL</Text>
                         </LinearGradient>
                     </TouchableOpacity>
                 </View>
@@ -132,7 +132,7 @@ const ReactionMaster = () => {
 
       {gameState === 'result' && (
         <TouchableOpacity onPress={resetGame} className="mt-5">
-            <Text className="text-[10px] text-[#94A3B8] font-black tracking-[1px]">RESET SESSION</Text>
+            <Text className="text-2xs text-[#94A3B8] font-black tracking-wide">RESET SESSION</Text>
         </TouchableOpacity>
       )}
     </View>

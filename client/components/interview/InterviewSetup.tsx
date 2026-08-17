@@ -195,34 +195,34 @@ export default function InterviewSetup() {
           <View className="flex-row items-center px-6 pt-4 mb-2">
             <TouchableOpacity
               onPress={() => navigation.goBack()}
-              className="p-2 bg-gray-100 rounded-full mr-4 border border-gray-200"
+              className="p-2 bg-slate-100 rounded-full mr-4 border border-slate-200"
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Ionicons name="chevron-back" size={24} color="#1f2937" />
             </TouchableOpacity>
-            <Text className="text-gray-900 text-3xl font-black  tracking-tighter">
+            <Text className="text-slate-900 text-3xl font-black  tracking-tighter">
               AI <Text className="text-pink-500">INTERVIEW</Text> 🤖
             </Text>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} className="px-6">
 
-            <Text className="text-gray-500 mb-8 mt-2 text-sm leading-5">
+            <Text className="text-slate-500 mb-8 mt-2 text-sm leading-5">
               Configure your AI interviewer. Upload your resume and let the system tailor the technical questions to your profile.
             </Text>
 
             {/* MAIN FORM CARD */}
-            <View className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+            <View className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
 
               <View className="gap-6">
 
                 {/* Domain Input */}
                 <View>
-                  <Text className="text-gray-400 font-bold mb-2 ml-1 text-xs uppercase tracking-wider">Target Role / Domain</Text>
+                  <Text className="text-slate-500 font-bold mb-2 ml-1 text-xs uppercase tracking-wider">Target Role / Domain</Text>
                   <TextInput
                     placeholder="e.g. React Native, Data Scientist"
                     placeholderTextColor="#9ca3af"
-                    className="bg-gray-50 text-gray-900 p-4 rounded-2xl border border-gray-200 font-medium"
+                    className="bg-slate-50 text-slate-900 p-4 rounded-2xl border border-slate-200 font-medium"
                     value={domain}
                     onChangeText={setDomain}
                   />
@@ -230,11 +230,11 @@ export default function InterviewSetup() {
 
                 {/* Experience Input */}
                 <View>
-                  <Text className="text-gray-400 font-bold mb-2 ml-1 text-xs uppercase tracking-wider">Years of Experience</Text>
+                  <Text className="text-slate-500 font-bold mb-2 ml-1 text-xs uppercase tracking-wider">Years of Experience</Text>
                   <TextInput
                     placeholder="e.g. 2"
                     placeholderTextColor="#9ca3af"
-                    className="bg-gray-50 text-gray-900 p-4 rounded-2xl border border-gray-200 font-medium"
+                    className="bg-slate-50 text-slate-900 p-4 rounded-2xl border border-slate-200 font-medium"
                     keyboardType="numeric"
                     value={experience}
                     onChangeText={setExperience}
@@ -243,7 +243,7 @@ export default function InterviewSetup() {
 
                 {/* Duration Selector */}
                 <View>
-                  <Text className="text-gray-400 font-bold mb-3 ml-1 text-xs uppercase tracking-wider">Interview Duration & Price</Text>
+                  <Text className="text-slate-500 font-bold mb-3 ml-1 text-xs uppercase tracking-wider">Interview Duration & Price</Text>
                   <View className="flex-row gap-3">
                     {[10, 15].map((min) => (
                       <TouchableOpacity
@@ -252,13 +252,13 @@ export default function InterviewSetup() {
                         onPress={() => setDuration(min)}
                         className={`flex-1 p-4 rounded-2xl items-center border transition-all ${duration === min
                             ? 'bg-pink-50 border-pink-500'
-                            : 'bg-gray-50 border-gray-200'
+                            : 'bg-slate-50 border-slate-200'
                           }`}
                       >
-                        <Text className={`font-bold text-lg ${duration === min ? 'text-pink-600' : 'text-gray-500'}`}>
+                        <Text className={`font-bold text-lg ${duration === min ? 'text-pink-600' : 'text-slate-500'}`}>
                           {min} <Text className="text-xs font-medium">min</Text>
                         </Text>
-                        <Text className={`text-xs font-bold mt-1 ${duration === min ? 'text-pink-500' : 'text-gray-400'}`}>
+                        <Text className={`text-xs font-bold mt-1 ${duration === min ? 'text-pink-500' : 'text-slate-500'}`}>
                           ₹{min === 10 ? '5' : '7'}
                         </Text>
                       </TouchableOpacity>
@@ -268,10 +268,10 @@ export default function InterviewSetup() {
 
                 {/* File Upload */}
                 <View>
-                  <Text className="text-gray-400 font-bold mb-3 ml-1 text-xs uppercase tracking-wider">Resume (PDF)</Text>
+                  <Text className="text-slate-500 font-bold mb-3 ml-1 text-xs uppercase tracking-wider">Resume (PDF)</Text>
                   <Pressable
                     onPress={pickResume}
-                    className={`p-6 rounded-3xl border-2 border-dashed items-center justify-center transition-all ${resume ? 'border-pink-500 bg-pink-50' : 'border-gray-200 bg-gray-50'
+                    className={`p-6 rounded-3xl border-2 border-dashed items-center justify-center transition-all ${resume ? 'border-pink-500 bg-pink-50' : 'border-slate-200 bg-slate-50'
                       }`}
                   >
                     {resume ? (
@@ -279,16 +279,16 @@ export default function InterviewSetup() {
                         <View className="bg-pink-100 p-3 rounded-full mb-3 border border-pink-200">
                           <Ionicons name="document-text" size={32} color="#ec4899" />
                         </View>
-                        <Text className="text-gray-900 font-bold text-center" numberOfLines={1}>
+                        <Text className="text-slate-900 font-bold text-center" numberOfLines={1}>
                           {resume.name}
                         </Text>
-                        <Text className="text-pink-500 font-bold text-xs mt-1 uppercase tracking-widest">Ready to upload</Text>
+                        <Text className="text-pink-500 font-bold text-xs mt-1 uppercase tracking-wide">Ready to upload</Text>
                       </View>
                     ) : (
                       <View className="items-center py-2">
                         <Ionicons name="cloud-upload-outline" size={40} color="#9ca3af" />
-                        <Text className="text-gray-400 font-bold mt-3">Tap to Upload Resume</Text>
-                        <Text className="text-gray-500 text-xs mt-1">PDF format only</Text>
+                        <Text className="text-slate-500 font-bold mt-3">Tap to Upload Resume</Text>
+                        <Text className="text-slate-500 text-xs mt-1">PDF format only</Text>
                       </View>
                     )}
                   </Pressable>
@@ -323,8 +323,8 @@ export default function InterviewSetup() {
       {/* Razorpay WebView Modal */}
       <Modal visible={showWebView} animationType="slide" transparent={false}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-          <View className="flex-row items-center justify-between p-4 border-b border-gray-100 bg-white">
-            <Text className="text-gray-900 font-bold text-lg">Secure Checkout</Text>
+          <View className="flex-row items-center justify-between p-4 border-b border-slate-100 bg-white">
+            <Text className="text-slate-900 font-bold text-lg">Secure Checkout</Text>
             <Pressable onPress={() => {
               setShowWebView(false);
               setLoading(false);
@@ -342,7 +342,7 @@ export default function InterviewSetup() {
             />
           ) : (
             <View className="flex-1 bg-white justify-center items-center">
-              <ActivityIndicator size="large" color="#ec4899" />
+              <ActivityIndicator size="large" color="#f97316" />
             </View>
           )}
         </SafeAreaView>

@@ -3,6 +3,7 @@ import Comment from "../models/comment.model.js";
 import User from "../models/user.model.js";
 import { deleteFromR2 } from "../utils/r2.js";
 import crypto from 'crypto';
+import { toggleLike } from "../utils/likeToggle.js";
 
 export const createNotice = async (req, res) => {
     try {
@@ -281,37 +282,16 @@ export const deleteComment = async (req, res) => {
 
 export const likeNotice = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const notice = await Notice.findById(req.params.id);
-        if (!notice) {
-            return res.status(404).json({ success: false, message: "Notice not found" });
-        }
-        const stringUserId = String(userId);
-        const isLiked = notice.liked_by.some(id => String(id) === stringUserId);
-        let updatedNotice;
-        if (isLiked) {
-            updatedNotice = await Notice.findByIdAndUpdate(
-                req.params.id,
-                {
-                    $inc: { likes: -1 },
-                    $pull: { liked_by: userId }
-                },
-                { new: true }
-            );
-            return res.status(200).json({ success: true, message: "Notice unliked successfully", notice: updatedNotice });
-        } else {
-            updatedNotice = await Notice.findByIdAndUpdate(
-                req.params.id,
-                {
-                    $inc: { likes: 1 },
-                    $addToSet: { liked_by: userId }
-                },
-                { new: true }
-            );
-            return res.status(200).json({ success: true, message: "Notice liked successfully", notice: updatedNotice });
-        }
+        const result = await toggleLike(Notice, req.params.id, req.user.id);
+        if (!result) return res.status(404).json({ success: false, message: "Notice not found" });
+        return res.status(200).json({
+            success: true,
+            message: result.liked ? "Notice liked successfully" : "Notice unliked successfully",
+            notice: result.doc
+        });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+

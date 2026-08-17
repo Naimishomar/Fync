@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Platform, Image, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform, Image, ActivityIndicator, Alert } from 'react-native';
+// SafeAreaView from 'react-native' is iOS-only — on Android it renders as a
+// plain View and applies no insets, so content collides with the status bar
+// and the gesture bar. The safe-area-context version works on both.
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -7,7 +11,10 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import * as FileSystem from 'expo-file-system';
+// expo-file-system 19 moved documentDirectory / EncodingType /
+// StorageAccessFramework behind the legacy entry point; importing from the
+// package root leaves them undefined at runtime.
+import * as FileSystem from 'expo-file-system/legacy';
 
 export default function ImageToPdfScreen() {
   const navigation = useNavigation();
@@ -125,7 +132,7 @@ export default function ImageToPdfScreen() {
         </TouchableOpacity>
         <Text className="text-xl font-black text-slate-900 tracking-tight flex-1">Image to PDF</Text>
         <TouchableOpacity onPress={() => setImages([])} className="p-2">
-          <Text className="text-sm font-bold text-slate-400">CLEAR</Text>
+          <Text className="text-sm font-bold text-slate-500">CLEAR</Text>
         </TouchableOpacity>
       </View>
 
@@ -138,7 +145,7 @@ export default function ImageToPdfScreen() {
             <Ionicons name="images-outline" size={32} color="#f97316" />
           </View>
           <Text className="text-lg font-bold text-slate-800 mb-1">Select Images</Text>
-          <Text className="text-xs font-medium text-slate-400 text-center">Tap here to choose multiple images from your gallery</Text>
+          <Text className="text-xs font-medium text-slate-500 text-center">Tap here to choose multiple images from your gallery</Text>
         </TouchableOpacity>
 
         {images.length > 0 && (
@@ -153,7 +160,7 @@ export default function ImageToPdfScreen() {
                   <Ionicons name="close" size={18} color="white" />
                 </TouchableOpacity>
                 <View className="absolute bottom-2 left-2 bg-black/50 px-2 py-1 rounded-md backdrop-blur-md">
-                  <Text className="text-white text-[10px] font-bold">PAGE {index + 1}</Text>
+                  <Text className="text-white text-2xs font-bold">PAGE {index + 1}</Text>
                 </View>
               </View>
             ))}

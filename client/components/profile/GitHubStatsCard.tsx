@@ -72,23 +72,23 @@ export default function GitHubStatsCard({
 
   if (!username) {
     return (
-      <View className="mx-4 mb-6 bg-white rounded-[32px] p-8 items-center shadow-xl shadow-black/5 border border-slate-100">
+      <View className="mx-4 mb-6 bg-white rounded-4xl p-8 items-center shadow-xl shadow-black/5 border border-slate-100">
         <LinearGradient
           colors={['#18181b', '#27272a']}
-          className="w-20 h-20 rounded-[24px] items-center justify-center mb-6 shadow-lg"
+          className="w-20 h-20 rounded-2xl items-center justify-center mb-6 shadow-lg"
         >
           <Ionicons name="logo-github" size={40} color="#f97316" />
         </LinearGradient>
-        <Text className="text-zinc-900 font-black text-xl tracking-tighter text-center">Open Source Identity</Text>
-        <Text className="text-slate-400 text-[11px] font-medium text-center mt-3 leading-5 px-6 uppercase tracking-wider">
+        <Text className="text-slate-900 font-black text-xl tracking-tighter text-center">Open Source Identity</Text>
+        <Text className="text-slate-500 text-2xs font-medium text-center mt-3 leading-5 px-6 uppercase tracking-wider">
           Connect your GitHub to showcase your contributions, streaks, and top languages to recruiters.
         </Text>
         <Pressable
           onPress={onConnect}
-          className="mt-8 bg-zinc-900 w-full py-4 rounded-2xl shadow-lg flex-row items-center justify-center gap-3"
+          className="mt-8 bg-slate-900 w-full py-4 rounded-2xl shadow-lg flex-row items-center justify-center gap-3"
         >
           <Ionicons name="logo-github" size={18} color="white" />
-          <Text className="text-white font-black uppercase text-[11px] tracking-widest">Connect GitHub</Text>
+          <Text className="text-white font-black uppercase text-2xs tracking-wide">Connect GitHub</Text>
         </Pressable>
       </View>
     );
@@ -99,13 +99,13 @@ export default function GitHubStatsCard({
       <View className="bg-white p-2 rounded-xl mb-2 shadow-sm">
         <Ionicons name={icon} size={16} color={color} />
       </View>
-      <Text className="text-zinc-900 font-black text-lg tracking-tighter">{value}</Text>
-      <Text className="text-slate-400 text-[8px] font-black uppercase tracking-widest mt-0.5">{label}</Text>
+      <Text className="text-slate-900 font-black text-lg tracking-tighter">{value}</Text>
+      <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">{label}</Text>
     </View>
   );
 
   return (
-    <View className="mx-4 mb-6 bg-white rounded-[32px] overflow-hidden shadow-xl shadow-black/5 border border-slate-100">
+    <View className="mx-4 mb-6 bg-white rounded-4xl overflow-hidden shadow-xl shadow-black/5 border border-slate-100">
       {/* Header Profile Section */}
       <View className="p-6 pb-0">
         <View className="flex-row items-center justify-between mb-6">
@@ -115,13 +115,13 @@ export default function GitHubStatsCard({
                 source={{ uri: stats?.avatarUrl || `https://github.com/${username}.png` }}
                 style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: '#f1f5f9', borderWidth: 2, borderColor: '#f8fafc' }}
               />
-              <View className="absolute -bottom-1 -right-1 bg-zinc-900 p-1 rounded-lg border-2 border-white">
+              <View className="absolute -bottom-1 -right-1 bg-slate-900 p-1 rounded-lg border-2 border-white">
                 <Ionicons name="logo-github" size={10} color="white" />
               </View>
             </View>
             <View>
-              <Text className="text-zinc-900 font-black text-lg tracking-tight">@{username}</Text>
-              <Text className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">GitHub Analytics</Text>
+              <Text className="text-slate-900 font-black text-lg tracking-tight">@{username}</Text>
+              <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wide">GitHub Analytics</Text>
             </View>
           </View>
           {isOwner && (
@@ -148,7 +148,7 @@ export default function GitHubStatsCard({
         {/* Bio if exists */}
         {stats?.bio && (
           <View className="bg-slate-50 p-4 rounded-2xl mb-4 border border-slate-100">
-            <Text className="text-slate-500 text-[11px] leading-4 font-medium italic">"{stats.bio}"</Text>
+            <Text className="text-slate-500 text-2xs leading-4 font-medium italic">"{stats.bio}"</Text>
           </View>
         )}
 
@@ -157,21 +157,21 @@ export default function GitHubStatsCard({
           <View className="flex-row items-center justify-between mb-5">
             <View className="flex-row items-center gap-2">
               <View className="w-1.5 h-5 bg-orange-500 rounded-full" />
-              <Text className="text-zinc-900 font-black uppercase text-[11px] tracking-widest">Dev Analytics</Text>
+              <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">Dev Analytics</Text>
             </View>
-            <View className="bg-zinc-100 px-2 py-1 rounded-lg">
-              <Text className="text-zinc-400 font-black text-[7px] uppercase tracking-widest">Real-time Data</Text>
+            <View className="bg-slate-100 px-2 py-1 rounded-lg">
+              <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide">Real-time Data</Text>
             </View>
           </View>
           
           <View className="gap-5">
             {/* Hero Card: General Performance */}
-            <View className="bg-white rounded-[32px] border border-slate-100 shadow-sm shadow-black/5 overflow-hidden">
+            <View className="bg-white rounded-4xl border border-slate-100 shadow-sm shadow-black/5 overflow-hidden">
               <View className="flex-row items-center gap-2 px-5 py-4 border-b border-slate-50 bg-slate-50/30">
                 <Ionicons name="bar-chart" size={14} color="#18181b" />
-                <Text className="text-zinc-900 font-black uppercase text-[8px] tracking-widest">General Performance</Text>
+                <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">General Performance</Text>
               </View>
-              <View className="p-4 bg-zinc-50/50 justify-center items-center relative" style={{ minHeight: 180 }}>
+              <View className="p-4 bg-slate-50/50 justify-center items-center relative" style={{ minHeight: 180 }}>
                 {loadingStates.general && (
                   <View className="absolute z-10">
                     <ActivityIndicator color="#f97316" />
@@ -191,11 +191,11 @@ export default function GitHubStatsCard({
             {/* Sub-widgets Grid */}
             <View className="flex-row gap-4">
               {/* Language Distribution */}
-              <View className="flex-1 bg-white rounded-[32px] border border-slate-100 shadow-sm shadow-black/5 overflow-hidden">
+              <View className="flex-1 bg-white rounded-4xl border border-slate-100 shadow-sm shadow-black/5 overflow-hidden">
                 <View className="px-4 py-3 border-b border-slate-50 bg-slate-50/30 items-center">
-                  <Text className="text-zinc-900 font-black uppercase text-[7px] tracking-widest">Languages</Text>
+                  <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">Languages</Text>
                 </View>
-                <View className="p-3 bg-zinc-50/50 justify-center items-center relative" style={{ minHeight: 150 }}>
+                <View className="p-3 bg-slate-50/50 justify-center items-center relative" style={{ minHeight: 150 }}>
                   {loadingStates.langs && (
                     <View className="absolute z-10">
                       <ActivityIndicator color="#f97316" />
@@ -213,11 +213,11 @@ export default function GitHubStatsCard({
               </View>
 
               {/* Momentum / Streak */}
-              <View className="flex-1 bg-white rounded-[32px] border border-slate-100 shadow-sm shadow-black/5 overflow-hidden">
+              <View className="flex-1 bg-white rounded-4xl border border-slate-100 shadow-sm shadow-black/5 overflow-hidden">
                 <View className="px-4 py-3 border-b border-slate-50 bg-slate-50/30 items-center">
-                  <Text className="text-zinc-900 font-black uppercase text-[7px] tracking-widest">Momentum</Text>
+                  <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">Momentum</Text>
                 </View>
-                <View className="p-3 bg-zinc-50/50 justify-center items-center relative" style={{ minHeight: 150 }}>
+                <View className="p-3 bg-slate-50/50 justify-center items-center relative" style={{ minHeight: 150 }}>
                   {loadingStates.streak && (
                     <View className="absolute z-10">
                       <ActivityIndicator color="#f97316" />
@@ -241,7 +241,7 @@ export default function GitHubStatsCard({
         <View className="mt-6 flex-row items-center justify-between pb-6">
           <View className="flex-row items-center gap-2">
             <View className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <Text className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
+            <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide">
               Updated {stats?.lastFetched ? new Date(stats.lastFetched).toLocaleDateString() : 'Just now'}
             </Text>
           </View>
@@ -249,7 +249,7 @@ export default function GitHubStatsCard({
             onPress={() => Linking.openURL(`https://github.com/${username}`)}
             className="flex-row items-center gap-1.5"
           >
-            <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-widest">View Profile</Text>
+            <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">View Profile</Text>
             <Ionicons name="arrow-forward" size={12} color="#18181b" />
           </Pressable>
         </View>

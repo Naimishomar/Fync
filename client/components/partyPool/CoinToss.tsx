@@ -32,11 +32,11 @@ const CoinToss = () => {
   });
 
   return (
-    <View className="p-8 bg-white rounded-[40px] border border-[#F1F5F9] shadow-sm items-center" style={{ width: width - 40 }}>
+    <View className="p-8 bg-white rounded-5xl border border-[#F1F5F9] shadow-sm items-center" style={{ width: width - 40 }}>
       {/* Header */}
       <View className="items-center mb-[50px]">
         <Text className="text-2xl font-black text-[#1A1A1A] uppercase tracking-[-1px]">COIN <Text className="text-[#f97316]">TOSS</Text></Text>
-        <Text className="text-[8px] text-[#94A3B8] font-black uppercase tracking-[2px] mt-1">Probability Engine v1.4</Text>
+        <Text className="text-2xs text-[#94A3B8] font-black uppercase tracking-wide mt-1">Probability Engine v1.4</Text>
       </View>
 
       <View className="items-center mb-[50px]">
@@ -62,8 +62,8 @@ const CoinToss = () => {
       <View className="h-20 justify-center mb-10">
         {result ? (
           <View className="items-center bg-[#F8FAFC] px-6 py-3 rounded-2xl border border-[#F1F5F9]">
-            <Text className="text-[8px] font-black text-[#94A3B8] tracking-[1px] mb-1">OUTCOME DETECTED</Text>
-            <Text className="text-[28px] font-black text-[#f97316]">{result.toUpperCase()}</Text>
+            <Text className="text-2xs font-black text-[#94A3B8] tracking-wide mb-1">OUTCOME DETECTED</Text>
+            <Text className="text-2xl font-black text-[#f97316]">{result.toUpperCase()}</Text>
           </View>
         ) : (
           <Text className="text-sm color-[#94A3B8] font-semibold italic">Awaiting Transmission...</Text>

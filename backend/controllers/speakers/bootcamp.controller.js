@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 import { deleteFromR2 } from "../../utils/r2.js";
 import Razorpay from "razorpay";
 import dotenv from "dotenv";
+import PaymentOrder from "../../models/paymentOrder.model.js";
 dotenv.config({ quiet: true });
 
 const razorpay = new Razorpay({
@@ -182,6 +183,16 @@ export const registerBootcamp = async(req,res)=>{
                 receipt: `bc_reg_${registration._id}`,
                 notes: { type: 'bootcamp', registrationId: registration._id, userId: req.user.id }
             });
+
+            // Mirrors /payment/order so the shared verify endpoint can amount-check
+            // this and grant the entitlement exactly once.
+            await PaymentOrder.create({
+                razorpayOrderId: order.id,
+                user: req.user.id,
+                purpose: 'bootcamp',
+                amount: session.fee * 100,
+                meta: { registrationId: String(registration._id) },
+            });
         }
 
         return res.status(200).json({ success: true, registration, order });
@@ -193,6 +204,12 @@ export const registerBootcamp = async(req,res)=>{
 export const markBootcampAttendance = async (req, res) => {
     try {
         const { registrationId, date } = req.body; // date format YYYY-MM-DD
+        if (!registrationId) {
+            return res.status(400).json({ success: false, message: "registrationId is required" });
+        }
+        if (date !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(String(date))) {
+            return res.status(400).json({ success: false, message: "date must be in YYYY-MM-DD format" });
+        }
         const realToday = formatDate(new Date());
         const today = date || realToday;
 

@@ -1,10 +1,17 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Platform, TextInput, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform, TextInput, Alert } from 'react-native';
+// SafeAreaView from 'react-native' is iOS-only — on Android it renders as a
+// plain View and applies no insets, so content collides with the status bar
+// and the gesture bar. The safe-area-context version works on both.
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
+// expo-file-system 19 moved documentDirectory / EncodingType /
+// StorageAccessFramework behind the legacy entry point; importing from the
+// package root leaves them undefined at runtime.
+import * as FileSystem from 'expo-file-system/legacy';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function QRCodeToolScreen() {

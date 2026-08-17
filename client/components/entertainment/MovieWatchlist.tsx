@@ -80,7 +80,7 @@ const MovieWatchlist = () => {
           ListEmptyComponent={
             <View className="flex-1 items-center mt-20">
               <Ionicons name="bookmark-outline" size={64} color="#1f2937" />
-              <Text className="text-gray-500 mt-4 text-lg">Your watchlist is empty</Text>
+              <Text className="text-slate-500 mt-4 text-lg">Your watchlist is empty</Text>
               <TouchableOpacity 
                 onPress={() => navigation.navigate('EntertainmentHome')}
                 className="mt-6 bg-rose-600 px-8 py-3 rounded-full"

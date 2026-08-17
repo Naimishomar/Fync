@@ -82,50 +82,50 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
 
     return (
         <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={onClose}>
-            <View className="flex-1 bg-zinc-900/60 justify-end">
+            <View className="flex-1 bg-slate-900/60 justify-end">
                 <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={onClose} />
-                <View className="bg-[#F8FAFC] rounded-t-[48px] h-[75%] overflow-hidden shadow-2xl">
+                <View className="bg-[#F8FAFC] rounded-t-5xl h-[75%] overflow-hidden shadow-2xl">
                     <View className="w-12 h-1.5 bg-slate-200 rounded-full self-center mt-4 mb-2" />
 
                     <View className="flex-row justify-between items-center px-8 py-2 border-b border-slate-100">
-                        <Text className="text-zinc-900 text-2xl font-black uppercase tracking-tight">List <Text className="text-orange-500">Artifact</Text></Text>
+                        <Text className="text-slate-900 text-2xl font-black uppercase tracking-tight">List <Text className="text-orange-500">Artifact</Text></Text>
                         <TouchableOpacity onPress={onClose} className="bg-white p-2 rounded-full border border-slate-100">
                             <Ionicons name="close" size={20} color="#18181b" />
                         </TouchableOpacity>
                     </View>
 
                     <ScrollView className="p-8" showsVerticalScrollIndicator={false}>
-                        <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Visual Documentation</Text>
+                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Visual Documentation</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-8">
                             <TouchableOpacity onPress={pickImage} className="w-28 h-28 bg-white border border-dashed border-slate-200 rounded-3xl items-center justify-center mr-4 shadow-sm">
                                 <Ionicons name="camera-outline" size={24} color="#f97316" />
-                                <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest mt-2">Add Assets</Text>
+                                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-2">Add Assets</Text>
                             </TouchableOpacity>
                             {images.map((img, index) => (<Image key={index} source={{ uri: img.uri }} className="w-28 h-28 rounded-3xl mr-4 bg-slate-100 border border-slate-200" />))}
                         </ScrollView>
 
-                        <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Metadata Details</Text>
-                        <TextInput value={name} onChangeText={setName} className="bg-white text-zinc-900 p-5 rounded-3xl border border-slate-100 shadow-sm mb-4 font-black  uppercase text-xs" placeholder="Artifact Name" placeholderTextColor="#CBD5E1" />
-                        <TextInput value={price} onChangeText={setPrice} keyboardType="numeric" className="bg-white text-zinc-900 p-5 rounded-3xl border border-slate-100 shadow-sm mb-6 font-black  uppercase text-xs" placeholder="Valuation (INR)" placeholderTextColor="#CBD5E1" />
+                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Metadata Details</Text>
+                        <TextInput value={name} onChangeText={setName} className="bg-white text-slate-900 p-5 rounded-3xl border border-slate-100 shadow-sm mb-4 font-black  uppercase text-xs" placeholder="Artifact Name" placeholderTextColor="#CBD5E1" />
+                        <TextInput value={price} onChangeText={setPrice} keyboardType="numeric" className="bg-white text-slate-900 p-5 rounded-3xl border border-slate-100 shadow-sm mb-6 font-black  uppercase text-xs" placeholder="Valuation (INR)" placeholderTextColor="#CBD5E1" />
 
-                        <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Classification</Text>
+                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Classification</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-8">
                             {['electronics', 'books', 'fashion', 'others'].map(cat => (
                                 <TouchableOpacity
                                     key={cat}
                                     onPress={() => setCategory(cat)}
-                                    className={`px-6 py-3 rounded-2xl border mr-3 ${category === cat ? 'bg-zinc-900 border-zinc-900 shadow-lg shadow-black/20' : 'bg-white border-slate-100 shadow-sm'}`}
+                                    className={`px-6 py-3 rounded-2xl border mr-3 ${category === cat ? 'bg-slate-900 border-slate-900 shadow-lg shadow-black/20' : 'bg-white border-slate-100 shadow-sm'}`}
                                 >
-                                    <Text className={`font-black uppercase  text-[9px] tracking-widest ${category === cat ? 'text-white' : 'text-slate-400'}`}>{cat}</Text>
+                                    <Text className={`font-black uppercase  text-2xs tracking-widest ${category === cat ? 'text-white' : 'text-slate-500'}`}>{cat}</Text>
                                 </TouchableOpacity>
                             ))}
                         </ScrollView>
 
-                        <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4 mt-2">Technical Description</Text>
-                        <TextInput value={desc} onChangeText={setDesc} multiline numberOfLines={4} className="bg-white text-zinc-900 p-5 rounded-3xl border border-slate-100 shadow-sm mb-10 font-medium text-xs leading-5" placeholder="Operational status, physical condition, etc." placeholderTextColor="#CBD5E1" textAlignVertical="top" />
+                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4 mt-2">Technical Description</Text>
+                        <TextInput value={desc} onChangeText={setDesc} multiline numberOfLines={4} className="bg-white text-slate-900 p-5 rounded-3xl border border-slate-100 shadow-sm mb-10 font-medium text-xs leading-5" placeholder="Operational status, physical condition, etc." placeholderTextColor="#CBD5E1" textAlignVertical="top" />
 
-                        <TouchableOpacity onPress={handleSell} disabled={loading} className={`p-5 rounded-[24px] items-center mb-20 shadow-xl ${loading ? 'bg-slate-100' : 'bg-zinc-900 shadow-black/20'}`}>
-                            {loading ? <ActivityIndicator color="#f97316" /> : <Text className="text-white font-black uppercase tracking-widest text-xs">Deploy to Marketplace</Text>}
+                        <TouchableOpacity onPress={handleSell} disabled={loading} className={`p-5 rounded-2xl items-center mb-20 shadow-xl ${loading ? 'bg-slate-100' : 'bg-slate-900 shadow-black/20'}`}>
+                            {loading ? <ActivityIndicator color="#f97316" /> : <Text className="text-white font-black uppercase tracking-wide text-xs">Deploy to Marketplace</Text>}
                         </TouchableOpacity>
                     </ScrollView>
                 </View>
@@ -141,9 +141,9 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
 
     return (
         <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={onClose}>
-            <View className="flex-1 bg-zinc-900/60 justify-end">
+            <View className="flex-1 bg-slate-900/60 justify-end">
                 <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={onClose} />
-                <View className="bg-white rounded-t-[48px] overflow-hidden max-h-[90%] w-full shadow-2xl">
+                <View className="bg-white rounded-t-5xl overflow-hidden max-h-[90%] w-full shadow-2xl">
                     <View className="w-12 h-1.5 bg-slate-100 rounded-full self-center mt-4 mb-2" />
                     <ScrollView showsVerticalScrollIndicator={false}>
                         <View className="relative">
@@ -155,15 +155,15 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                                 <View className="flex-1">
                                     <View className="flex-row items-center mb-1">
                                         <View className="bg-orange-500 px-2 py-0.5 rounded mr-2">
-                                            <Text className="text-white font-black text-[7px] uppercase tracking-widest">{product.product_type}</Text>
+                                            <Text className="text-white font-black text-2xs uppercase tracking-wide">{product.product_type}</Text>
                                         </View>
-                                        <Text className="text-slate-400 text-[8px] font-bold uppercase tracking-widest">Listing ID: {product._id.slice(-6)}</Text>
+                                        <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide">Listing ID: {product._id.slice(-6)}</Text>
                                     </View>
-                                    <Text className="text-zinc-900 text-3xl font-black uppercase tracking-tighter mb-2 leading-tight">{product.product_name}</Text>
+                                    <Text className="text-slate-900 text-3xl font-black uppercase tracking-tighter mb-2 leading-tight">{product.product_name}</Text>
                                     <View className="flex-row items-center">
-                                        <Text className="text-zinc-900 text-2xl font-black tracking-tighter mr-2">₹{product.price}</Text>
+                                        <Text className="text-slate-900 text-2xl font-black tracking-tighter mr-2">₹{product.price}</Text>
                                         <View className="bg-green-50 px-3 py-1 rounded-full border border-green-100">
-                                            <Text className="text-green-600 font-black text-[8px] uppercase tracking-widest">In Stock</Text>
+                                            <Text className="text-green-600 font-black text-2xs uppercase tracking-wide">In Stock</Text>
                                         </View>
                                     </View>
                                 </View>
@@ -174,7 +174,7 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                                 )}
                             </View>
 
-                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Seller Information</Text>
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Seller Information</Text>
                             <Pressable
                                 onPress={() => { onClose(); navigation.navigate("PublicProfile", { user: product?.seller }); }}
                                 className="flex-row items-center mb-8 bg-slate-50 p-4 rounded-2xl border border-slate-100"
@@ -184,23 +184,23 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                                     className="w-12 h-12 rounded-xl bg-white border border-slate-200"
                                 />
                                 <View className="ml-4">
-                                    <Text className="text-zinc-900 font-black uppercase text-xs tracking-tight">{product.seller.name}</Text>
-                                    <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">@{product.seller.username} • {product.college}</Text>
+                                    <Text className="text-slate-900 font-black uppercase text-xs tracking-tight">{product.seller.name}</Text>
+                                    <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-1">@{product.seller.username} • {product.college}</Text>
                                 </View>
                                 <View className="ml-auto w-8 h-8 bg-white rounded-full items-center justify-center border border-slate-100">
                                     <Ionicons name="chevron-forward" size={14} color="#CBD5E1" />
                                 </View>
                             </Pressable>
 
-                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2">Description</Text>
-                            <Text className="text-zinc-600 font-medium text-sm leading-6 mb-8 ">"{product.product_description}"</Text>
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-2">Description</Text>
+                            <Text className="text-slate-600 font-medium text-sm leading-6 mb-8 ">"{product.product_description}"</Text>
 
                             <View className="flex-row gap-3 mb-10">
-                                <View className="bg-zinc-900 px-5 py-2.5 rounded-2xl border border-black shadow-sm">
-                                    <Text className="text-white text-[9px] font-black uppercase tracking-widest">{product.product_type}</Text>
+                                <View className="bg-slate-900 px-5 py-2.5 rounded-2xl border border-black shadow-sm">
+                                    <Text className="text-white text-2xs font-black uppercase tracking-wide">{product.product_type}</Text>
                                 </View>
                                 <View className="bg-white px-5 py-2.5 rounded-2xl border border-slate-100 shadow-sm">
-                                    <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest">Listed {new Date(product.createdAt).toLocaleDateString()}</Text>
+                                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Listed {new Date(product.createdAt).toLocaleDateString()}</Text>
                                 </View>
                             </View>
 
@@ -221,7 +221,7 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                                     }}
                                 >
                                     <Ionicons name="chatbubbles" size={20} color="white" />
-                                    <Text className="text-white font-black uppercase tracking-widest text-xs">Chat with Seller</Text>
+                                    <Text className="text-white font-black uppercase tracking-wide text-xs">Chat with Seller</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -311,18 +311,18 @@ const MarketplaceScreen = () => {
                 />
                 {/* Badge */}
                 <View className="absolute bottom-2 left-2 bg-orange-500 px-2 py-0.5 rounded-md">
-                    <Text className="text-white text-[7px] font-black uppercase tracking-widest">{item.product_type}</Text>
+                    <Text className="text-white text-2xs font-black uppercase tracking-wide">{item.product_type}</Text>
                 </View>
             </View>
 
             <View className="p-3">
-                <Text className="text-zinc-900 font-bold text-xs mb-1" numberOfLines={1}>
+                <Text className="text-slate-900 font-bold text-xs mb-1" numberOfLines={1}>
                     {item.product_name}
                 </Text>
 
                 <View className="flex-row items-center justify-between mb-2">
                     <View className="flex-row items-center">
-                        <Text className="text-zinc-900 font-black text-base tracking-tighter">₹{item.price}</Text>
+                        <Text className="text-slate-900 font-black text-base tracking-tighter">₹{item.price}</Text>
                     </View>
                 </View>
 
@@ -331,11 +331,11 @@ const MarketplaceScreen = () => {
                         source={{ uri: item.seller.avatar || `https://ui-avatars.com/api/?name=${item.seller.username}` }}
                         className="w-4 h-4 rounded-full mr-1.5 bg-slate-200"
                     />
-                    <Text className="text-slate-400 text-[8px] font-medium flex-1" numberOfLines={1}>
+                    <Text className="text-slate-500 text-2xs font-medium flex-1" numberOfLines={1}>
                         {item.seller.username}
                     </Text>
                     <View className="bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">
-                        <Text className="text-slate-400 text-[6px] font-black uppercase">Verified</Text>
+                        <Text className="text-slate-500 text-2xs font-black uppercase">Verified</Text>
                     </View>
                 </View>
             </View>
@@ -359,12 +359,12 @@ const MarketplaceScreen = () => {
                 <View className='px-8 pt-6 bg-transparent'>
                     <View className="flex-row items-center justify-between mb-8">
                         <View>
-                            <Text className="text-zinc-900 text-4xl font-black tracking-tighter uppercase leading-tight">Fync <Text className="text-orange-500">Market</Text></Text>
-                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-0.5">Campus Asset exchange</Text>
+                            <Text className="text-slate-900 text-4xl font-black tracking-tighter uppercase leading-tight">Fync <Text className="text-orange-500">Market</Text></Text>
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Campus Asset exchange</Text>
                         </View>
                         <TouchableOpacity
                             onPress={() => setSellModalVisible(true)}
-                            className="w-14 h-14 rounded-2xl items-center justify-center bg-zinc-900 shadow-2xl shadow-black/40"
+                            className="w-14 h-14 rounded-2xl items-center justify-center bg-slate-900 shadow-2xl shadow-black/40"
                         >
                             <Ionicons name="add" size={28} color="white" />
                         </TouchableOpacity>
@@ -378,7 +378,7 @@ const MarketplaceScreen = () => {
                             placeholderTextColor="#CBD5E1"
                             value={search}
                             onChangeText={setSearch}
-                            className="flex-1 text-zinc-900 font-bold text-sm tracking-tight p-3"
+                            className="flex-1 text-slate-900 font-bold text-sm tracking-tight p-3"
                         />
                         {search.length > 0 && (
                             <TouchableOpacity onPress={() => setSearch("")}>
@@ -393,9 +393,9 @@ const MarketplaceScreen = () => {
                             <TouchableOpacity
                                 key={tab}
                                 onPress={() => setActiveTab(tab)}
-                                className={`px-6 py-3 rounded-xl border border-slate-100 mr-3 ${activeTab === tab ? 'bg-zinc-900 shadow-lg shadow-black/20' : 'bg-white shadow-sm'}`}
+                                className={`px-6 py-3 rounded-xl border border-slate-100 mr-3 ${activeTab === tab ? 'bg-slate-900 shadow-lg shadow-black/20' : 'bg-white shadow-sm'}`}
                             >
-                                <Text className={`font-black text-[9px] uppercase tracking-widest ${activeTab === tab ? 'text-white' : 'text-slate-400'}`}>{tab}</Text>
+                                <Text className={`font-black text-2xs uppercase tracking-widest ${activeTab === tab ? 'text-white' : 'text-slate-500'}`}>{tab}</Text>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
@@ -404,7 +404,7 @@ const MarketplaceScreen = () => {
                 {loading && !refreshing ? (
                     <View className="mt-10 px-8">
                         <ActivityIndicator color="#f97316" size="large" />
-                        <Text className="text-slate-400 text-center font-black  uppercase text-[10px] tracking-widest mt-4">Syncing Marketplace Indices...</Text>
+                        <Text className="text-slate-500 text-center font-black  uppercase text-2xs tracking-wide mt-4">Syncing Marketplace Indices...</Text>
                     </View>
                 ) : (
                     <FlatList
@@ -420,11 +420,11 @@ const MarketplaceScreen = () => {
                         }
                         ListEmptyComponent={
                             <View className="items-center justify-center mt-20 px-10">
-                                <View className="w-20 h-20 bg-white rounded-[32px] items-center justify-center mb-6 border border-slate-100 shadow-sm">
+                                <View className="w-20 h-20 bg-white rounded-4xl items-center justify-center mb-6 border border-slate-100 shadow-sm">
                                     <Ionicons name="basket-outline" size={32} color="#CBD5E1" />
                                 </View>
-                                <Text className="text-zinc-400 font-black  uppercase text-xs tracking-widest text-center">No Active Listings</Text>
-                                <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center">Be the first hunter to deploy assets here.</Text>
+                                <Text className="text-slate-500 font-black  uppercase text-xs tracking-wide text-center">No Active Listings</Text>
+                                <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center">Be the first hunter to deploy assets here.</Text>
                             </View>
                         }
                     />

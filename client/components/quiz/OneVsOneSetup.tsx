@@ -130,25 +130,25 @@ const OneVsOneSetup = () => {
                         <View className="w-48 h-48 rounded-full border-4 border-pink-500/10 items-center justify-center">
                             <View className="w-40 h-40 rounded-full border-2 border-pink-500/20 items-center justify-center">
                                 <View className="w-32 h-32 rounded-full bg-pink-50 items-center justify-center">
-                                    <ActivityIndicator size="large" color="#ec4899" />
+                                    <ActivityIndicator size="large" color="#f97316" />
                                 </View>
                             </View>
                         </View>
                     </Animated.View>
 
-                    <Text className="text-zinc-900 text-3xl font-black  tracking-tight text-center uppercase">
+                    <Text className="text-slate-900 text-3xl font-black  tracking-tight text-center uppercase">
                         Locating <Text className="text-pink-500">Rival</Text>
                     </Text>
-                    <Text className="text-slate-400 text-xs mt-4 text-center px-4 tracking-widest uppercase font-bold">
+                    <Text className="text-slate-500 text-xs mt-4 text-center px-4 tracking-wide uppercase font-bold">
                         Searching {domain} Arena...
                     </Text>
 
                     <View className="mt-20 w-full">
                         <TouchableOpacity
                             onPress={() => setSearching(false)}
-                            className="w-full py-5 bg-white rounded-[30px] border border-slate-100 shadow-sm shadow-black/5"
+                            className="w-full py-5 bg-white rounded-3xl border border-slate-100 shadow-sm shadow-black/5"
                         >
-                            <Text className="text-zinc-900 text-center font-black  uppercase tracking-widest text-xs">Abort Protocol</Text>
+                            <Text className="text-slate-900 text-center font-black  uppercase tracking-wide text-xs">Abort Protocol</Text>
                         </TouchableOpacity>
                     </View>
                 </SafeAreaView>
@@ -173,17 +173,17 @@ const OneVsOneSetup = () => {
                     >
                         <Avatar user={user as any} size={30} />
                         <View className="ml-2">
-                            <Text className="text-zinc-900 text-[10px] font-black uppercase  tracking-tighter">RANK #{stats.rank}</Text>
+                            <Text className="text-slate-900 text-2xs font-black uppercase  tracking-tighter">RANK #{stats.rank}</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-8">
                     <View className="mt-6 mb-10">
-                        <Text className="text-zinc-900 text-4xl font-black  uppercase tracking-tighter line-clamp-1">
+                        <Text className="text-slate-900 text-4xl font-black  uppercase tracking-tighter line-clamp-1">
                             Choose <Text className="text-pink-500">Arena</Text>
                         </Text>
-                        <Text className="text-slate-400 mt-2 tracking-widest uppercase text-[10px] font-bold">Select your combat domain</Text>
+                        <Text className="text-slate-500 mt-2 tracking-wide uppercase text-2xs font-bold">Select your combat domain</Text>
                     </View>
 
                     {/* Arena Card System */}
@@ -196,7 +196,7 @@ const OneVsOneSetup = () => {
                                     Vibration.vibrate(10);
                                 }}
                                 style={{ width: (width - 80) / 2 }}
-                                className={`p-6 rounded-[35px] mb-4 border transition-all ${domain === arena.name ? 'border-pink-500 bg-white shadow-xl shadow-pink-500/10' : 'border-slate-100 bg-white shadow-sm shadow-black/5'}`}
+                                className={`p-6 rounded-4xl mb-4 border transition-all ${domain === arena.name ? 'border-pink-500 bg-white shadow-xl shadow-pink-500/10' : 'border-slate-100 bg-white shadow-sm shadow-black/5'}`}
                             >
                                 <View className={`w-12 h-12 rounded-2xl items-center justify-center mb-4 ${domain === arena.name ? 'bg-pink-50' : 'bg-slate-50 border border-slate-100'}`}>
                                     <MaterialCommunityIcons
@@ -205,8 +205,8 @@ const OneVsOneSetup = () => {
                                         color={domain === arena.name ? '#ec4899' : '#94a3b8'}
                                     />
                                 </View>
-                                <Text className={`font-black  uppercase text-[11px] ${domain === arena.name ? 'text-zinc-900' : 'text-slate-400'}`}>{arena.name}</Text>
-                                <Text className="text-slate-400 text-[8px] mt-1 leading-3 font-bold uppercase" numberOfLines={2}>{arena.description}</Text>
+                                <Text className={`font-black  uppercase text-2xs ${domain === arena.name ? 'text-slate-900' : 'text-slate-500'}`}>{arena.name}</Text>
+                                <Text className="text-slate-500 text-2xs mt-1 leading-3 font-bold uppercase" numberOfLines={2}>{arena.description}</Text>
                             </TouchableOpacity>
                         ))}
                     </View>
@@ -214,20 +214,20 @@ const OneVsOneSetup = () => {
                     {/* Leaderboard Summary */}
                     <View className="mt-10 mb-20">
                         <View className="flex-row justify-between items-center mb-6">
-                            <Text className="text-zinc-900 text-lg font-black  uppercase tracking-tighter">Global Aces</Text>
+                            <Text className="text-slate-900 text-lg font-black  uppercase tracking-tighter">Global Aces</Text>
                             <Ionicons name="trophy" size={20} color="#fbbf24" />
                         </View>
 
                         {leaderboard.slice(0, 5).map((player, index) => (
                             <View key={player._id} className="bg-white p-4 rounded-3xl border border-slate-100 flex-row items-center mb-2 shadow-sm shadow-black/5">
-                                <Text className={`w-8 font-black  text-xs ${index === 0 ? 'text-amber-500' : 'text-slate-400'}`}>#{index + 1}</Text>
+                                <Text className={`w-8 font-black  text-xs ${index === 0 ? 'text-amber-500' : 'text-slate-500'}`}>#{index + 1}</Text>
                                 <Image source={{ uri: player.avatar || `https://ui-avatars.com/api/?name=${player.username}` }} className="w-10 h-10 rounded-xl mr-3 border border-slate-100" />
                                 <View className="flex-1">
-                                    <Text className="text-zinc-900 font-black  text-xs uppercase tracking-tight">{player.name || player.username}</Text>
-                                    <Text className="text-slate-400 text-[8px] font-bold uppercase tracking-widest">@{player.username}</Text>
+                                    <Text className="text-slate-900 font-black  text-xs uppercase tracking-tight">{player.name || player.username}</Text>
+                                    <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide">@{player.username}</Text>
                                 </View>
                                 <View className="bg-pink-50 px-3 py-1 rounded-full border border-pink-100">
-                                    <Text className="text-pink-500 font-black  text-[10px] uppercase">{player.oneVsOnePoints} PTS</Text>
+                                    <Text className="text-pink-500 font-black  text-2xs uppercase">{player.oneVsOnePoints} PTS</Text>
                                 </View>
                             </View>
                         ))}
@@ -238,7 +238,7 @@ const OneVsOneSetup = () => {
                     <TouchableOpacity
                         onPress={findMatch}
                         activeOpacity={0.8}
-                        className='flex-row items-center justify-center bg-pink-500 py-4 rounded-[30px] shadow-xl shadow-pink-500/20'
+                        className='flex-row items-center justify-center bg-pink-500 py-4 rounded-3xl shadow-xl shadow-pink-500/20'
                     >
                         <Text className="text-white font-black  text-lg uppercase tracking-[4px] mr-3">Locate Rival</Text>
                         <Ionicons name="flash" size={22} color="white" />

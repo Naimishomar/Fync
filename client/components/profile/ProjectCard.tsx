@@ -41,7 +41,7 @@ export default function ProjectCard({
   const isLiked = project.likes?.includes(currentUserId || '');
 
   return (
-    <View className="mx-4 mb-6 bg-white rounded-[28px] border border-slate-100 overflow-hidden shadow-sm shadow-black/5">
+    <View className="mx-4 mb-6 bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm shadow-black/5">
       {/* Images Slider */}
       {project.images && project.images.length > 0 ? (
         <ScrollView 
@@ -64,7 +64,7 @@ export default function ProjectCard({
           <View className="w-12 h-12 bg-white rounded-2xl items-center justify-center shadow-sm">
             <Feather name="box" size={24} color="#f97316" />
           </View>
-          <Text className="text-[9px] text-slate-400 font-black uppercase mt-3 tracking-[2px]">No Screenshots Added</Text>
+          <Text className="text-2xs text-slate-500 font-black uppercase mt-3 tracking-wide">No Screenshots Added</Text>
         </View>
       )}
 
@@ -76,22 +76,22 @@ export default function ProjectCard({
               {project.isFeatured && (
                 <View className="bg-orange-500 w-2 h-2 rounded-full shadow-sm shadow-orange-500/50" />
               )}
-              <Text className="text-zinc-900 font-black uppercase text-[15px] tracking-tight leading-tight" numberOfLines={1}>
+              <Text className="text-slate-900 font-black uppercase text-sm tracking-tight leading-tight" numberOfLines={1}>
                 {project.title}
               </Text>
             </View>
             {project.tagline && (
-              <Text className="text-slate-400 font-bold text-[10px] uppercase tracking-wider" numberOfLines={1}>{project.tagline}</Text>
+              <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wider" numberOfLines={1}>{project.tagline}</Text>
             )}
           </View>
           <View className="px-3 py-1.5 rounded-xl border border-slate-100" style={{ backgroundColor: status.bg }}>
-            <Text className="text-[8px] font-black uppercase tracking-widest" style={{ color: status.color }}>{status.label}</Text>
+            <Text className="text-2xs font-black uppercase tracking-wide" style={{ color: status.color }}>{status.label}</Text>
           </View>
         </View>
 
         {/* Description */}
         {project.description && (
-          <Text className="text-slate-600 text-[13px] leading-[20px] font-medium mb-4" numberOfLines={3}>
+          <Text className="text-slate-600 text-xs leading-[20px] font-medium mb-4" numberOfLines={3}>
             {project.description}
           </Text>
         )}
@@ -100,13 +100,13 @@ export default function ProjectCard({
         {project.techStack && project.techStack.length > 0 && (
           <View className="flex-row flex-wrap gap-2 mb-6">
             {project.techStack.slice(0, 5).map((tech, i) => (
-              <View key={i} className="bg-zinc-900 px-3 py-1.5 rounded-xl">
-                <Text className="text-white text-[8px] font-black uppercase tracking-widest">{tech}</Text>
+              <View key={i} className="bg-slate-900 px-3 py-1.5 rounded-xl">
+                <Text className="text-white text-2xs font-black uppercase tracking-wide">{tech}</Text>
               </View>
             ))}
             {project.techStack.length > 5 && (
               <View className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-                <Text className="text-slate-400 text-[8px] font-black">+{project.techStack.length - 5}</Text>
+                <Text className="text-slate-500 text-2xs font-black">+{project.techStack.length - 5}</Text>
               </View>
             )}
           </View>
@@ -135,7 +135,7 @@ export default function ProjectCard({
             <Pressable onPress={() => onLike?.(project._id)} className="flex-row items-center gap-1.5 bg-slate-50 px-3 py-2 rounded-xl">
               <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={14}
                 color={isLiked ? '#ef4444' : '#64748b'} />
-              <Text className="text-slate-500 font-black text-[10px]">{project.likes?.length || 0}</Text>
+              <Text className="text-slate-500 font-black text-2xs">{project.likes?.length || 0}</Text>
             </Pressable>
 
             {/* Owner actions */}
@@ -145,7 +145,7 @@ export default function ProjectCard({
                   <Ionicons name={project.isFeatured ? 'star' : 'star-outline'} size={14}
                     color={project.isFeatured ? '#f97316' : '#94a3b8'} />
                 </Pressable>
-                <Pressable onPress={() => onEdit?.(project)} className="w-8 h-8 items-center justify-center bg-zinc-900 rounded-xl">
+                <Pressable onPress={() => onEdit?.(project)} className="w-8 h-8 items-center justify-center bg-slate-900 rounded-xl">
                   <Feather name="edit-3" size={12} color="white" />
                 </Pressable>
                 <Pressable onPress={() => onDelete?.(project._id)} className="w-8 h-8 items-center justify-center bg-rose-50 rounded-xl">

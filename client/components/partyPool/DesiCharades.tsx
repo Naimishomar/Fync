@@ -40,10 +40,10 @@ const DesiCharades = () => {
   const toggleTimer = () => setIsTimerRunning(!isTimerRunning);
 
   return (
-    <View className="p-6 bg-white rounded-[40px] border border-[#F1F5F9] shadow-sm items-center" style={{ width: width - 40 }}>
+    <View className="p-6 bg-white rounded-5xl border border-[#F1F5F9] shadow-sm items-center" style={{ width: width - 40 }}>
       <View className="items-center mb-6">
         <Text className="text-2xl font-black text-[#1A1A1A] uppercase tracking-[-1px]">DESI <Text className="text-[#db2777]">CHARADES</Text></Text>
-        <Text className="text-[8px] text-[#94A3B8] font-black uppercase tracking-[2px] mt-1">Cultural Expression Engine v2.0</Text>
+        <Text className="text-2xs text-[#94A3B8] font-black uppercase tracking-wide mt-1">Cultural Expression Engine v2.0</Text>
       </View>
 
       {/* Category Picker */}
@@ -59,7 +59,7 @@ const DesiCharades = () => {
             }}
             className={`px-6 py-2 rounded-full mx-1 border ${activeCategory === cat ? 'bg-[#1A1A1A] border-[#1A1A1A]' : 'bg-white border-[#F1F5F9]'}`}
           >
-            <Text className={`text-[10px] font-black uppercase tracking-widest ${activeCategory === cat ? 'text-white' : 'text-[#94A3B8]'}`}>
+            <Text className={`text-2xs font-black uppercase tracking-widest ${activeCategory === cat ? 'text-white' : 'text-[#94A3B8]'}`}>
               {cat}
             </Text>
           </TouchableOpacity>
@@ -70,20 +70,20 @@ const DesiCharades = () => {
       <View className="w-full h-[180px] mb-8">
         <LinearGradient
             colors={['#FDF2F8', '#fff']}
-            className="flex-1 rounded-[32px] border border-[#FCE7F3] items-center justify-center p-6"
+            className="flex-1 rounded-4xl border border-[#FCE7F3] items-center justify-center p-6"
         >
             {currentPrompt ? (
                 <>
-                    <Text className="text-[10px] font-black text-[#db2777] uppercase tracking-[2px] mb-2">{activeCategory}</Text>
+                    <Text className="text-2xs font-black text-[#db2777] uppercase tracking-wide mb-2">{activeCategory}</Text>
                     <Text className="text-2xl font-black text-[#1A1A1A] text-center" numberOfLines={3}>
                         {currentPrompt}
                     </Text>
-                    <Text className="text-[8px] font-bold text-[#94A3B8] mt-2 uppercase">Items in collection: {CATEGORIES[activeCategory].length}</Text>
+                    <Text className="text-2xs font-bold text-[#94A3B8] mt-2 uppercase">Items in collection: {CATEGORIES[activeCategory].length}</Text>
                 </>
             ) : (
                 <View className="items-center">
                     <Ionicons name="sparkles" size={32} color="#94A3B8" />
-                    <Text className="text-[10px] font-black text-[#94A3B8] uppercase mt-2 text-center">
+                    <Text className="text-2xs font-black text-[#94A3B8] uppercase mt-2 text-center">
                         {activeCategory === 'BOLLYWOOD' ? '1000+ MOVIES LOADED' : '200+ PERSONALITIES LOADED'}
                     </Text>
                 </View>
@@ -109,7 +109,7 @@ const DesiCharades = () => {
         className="w-full h-[60px] rounded-2xl overflow-hidden shadow-lg"
       >
         <LinearGradient colors={['#db2777', '#9d174d']} className="flex-1 justify-center items-center">
-            <Text className="text-white text-xs font-black tracking-[3px] uppercase">GENERATE PROMPT</Text>
+            <Text className="text-white text-xs font-black tracking-wide uppercase">GENERATE PROMPT</Text>
         </LinearGradient>
       </TouchableOpacity>
     </View>

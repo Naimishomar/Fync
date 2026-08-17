@@ -182,7 +182,6 @@ import UtilityHubScreen from './components/utility/UtilityHubScreen';
 import ImageToPdfScreen from './components/utility/ImageToPdfScreen';
 import ImageCompressorScreen from './components/utility/ImageCompressorScreen';
 import QRCodeToolScreen from './components/utility/QRCodeToolScreen';
-import './utils/commuteGuardTask';
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,

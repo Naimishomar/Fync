@@ -112,14 +112,14 @@ export default function AlumniSignup() {
 
         <View className="absolute bottom-0 w-full">
           <ScrollView keyboardShouldPersistTaps="handled">
-            <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-12">
+            <View className="rounded-t-5xl bg-white px-6 pt-8 pb-12">
               <Image source={require('../assets/Fync.png')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
-              <Text className="text-gray-500 mb-2">Join the exclusive professional network</Text>
+              <Text className="text-slate-500 mb-2">Join the exclusive professional network</Text>
 
               {!otpSent ? (
                 <>
                   <TextInput
-                    className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black"
+                    className="mb-4 rounded-xl border border-slate-300 px-4 py-4 text-black"
                     placeholder="Work Email"
                     value={email}
                     onChangeText={setEmail}
@@ -128,7 +128,7 @@ export default function AlumniSignup() {
                   />
 
                   <TextInput
-                    className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black"
+                    className="mb-4 rounded-xl border border-slate-300 px-4 py-4 text-black"
                     placeholder="Mobile Number"
                     keyboardType="phone-pad"
                     value={phoneNumber}
@@ -137,7 +137,7 @@ export default function AlumniSignup() {
 
                   <View className="mb-6 flex-row items-center">
                     <Checkbox value={agreeTerms} onValueChange={setAgreeTerms} />
-                    <Text className="ml-2 text-gray-600">
+                    <Text className="ml-2 text-slate-600">
                       I agree to the Terms & Conditions
                     </Text>
                   </View>
@@ -156,9 +156,9 @@ export default function AlumniSignup() {
                 </>
               ) : (
                 <>
-                  <Text className="text-gray-600 mb-4">We've sent an OTP to {email}</Text>
+                  <Text className="text-slate-600 mb-4">We've sent an OTP to {email}</Text>
                   <TextInput
-                    className="mb-6 rounded-xl border border-gray-300 px-4 py-4 text-black"
+                    className="mb-6 rounded-xl border border-slate-300 px-4 py-4 text-black"
                     placeholder="Enter OTP"
                     value={otp}
                     onChangeText={setOtp}
@@ -178,18 +178,18 @@ export default function AlumniSignup() {
                   </Pressable>
 
                   <Pressable className="mt-4 items-center" onPress={() => setOtpSent(false)}>
-                    <Text className="text-gray-500">Back to details</Text>
+                    <Text className="text-slate-500">Back to details</Text>
                   </Pressable>
                 </>
               )}
 
               <View className="mt-3 flex-row justify-center">
-                <Text className="text-gray-600">Already have an account? </Text>
+                <Text className="text-slate-600">Already have an account? </Text>
                 <Pressable onPress={() => navigation.navigate('Login')}>
                   <Text className="font-semibold text-black">Login</Text>
                 </Pressable>
               </View>
-              <Text className="mt-5 text-center text-gray-500">Step 1 of 3</Text>
+              <Text className="mt-5 text-center text-slate-500">Step 1 of 3</Text>
             </View>
           </ScrollView>
         </View>

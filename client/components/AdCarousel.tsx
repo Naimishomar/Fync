@@ -53,7 +53,7 @@ const AdCarousel = () => {
 
   if (loading) {
     return (
-      <View style={{ height: imageHeight }} className="items-center justify-center bg-gray-100">
+      <View style={{ height: imageHeight }} className="items-center justify-center bg-slate-100">
         <ActivityIndicator color="#ff841fff" />
       </View>
     );

@@ -56,7 +56,7 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
         <Pressable className="absolute inset-0" onPress={onClose} />
         <KeyboardAvoidingView
           behavior="padding"
-          className="bg-white rounded-t-[40px] overflow-hidden"
+          className="bg-white rounded-t-5xl overflow-hidden"
           style={{ height: screenHeight * 0.85 }}
         >
           {/* Handle */}
@@ -67,10 +67,10 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
           {/* Header */}
           <View className="flex-row items-center justify-between px-6 pb-4 border-b border-slate-50">
             <View>
-              <Text className="text-zinc-900 font-black uppercase text-xl tracking-tighter">
+              <Text className="text-slate-900 font-black uppercase text-xl tracking-tighter">
                 {isEdit ? 'Update' : 'Record'} <Text className="text-orange-500">Education</Text>
               </Text>
-              <Text className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-0.5">Academic History Module</Text>
+              <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wide mt-0.5">Academic History Module</Text>
             </View>
             <Pressable onPress={onClose} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
               <Ionicons name="close" size={20} color="#18181b" />
@@ -88,10 +88,10 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
               <View key={f.key} className="mb-6">
                 <View className="flex-row items-center gap-2 mb-2">
                   <Feather name={f.icon as any} size={12} color="#94A3B8" />
-                  <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">{f.label}</Text>
+                  <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">{f.label}</Text>
                 </View>
                 <TextInput
-                  className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-zinc-900 text-sm font-semibold"
+                  className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 text-sm font-semibold"
                   placeholder={f.ph} placeholderTextColor="#94A3B8"
                   value={form[f.key as keyof typeof form] as string}
                   onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
@@ -104,7 +104,7 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
             <View className="flex-row items-center justify-between mb-6 bg-slate-50 px-5 py-4 rounded-2xl border border-slate-100">
               <View className="flex-row items-center gap-2">
                 <Feather name="clock" size={12} color="#18181b" />
-                <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-widest">Currently Studying Here</Text>
+                <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">Currently Studying Here</Text>
               </View>
               <Switch value={form.isCurrent}
                 onValueChange={v => setForm(p => ({ ...p, isCurrent: v }))}
@@ -115,9 +115,9 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
               <View className="mb-6">
                 <View className="flex-row items-center gap-2 mb-2">
                   <Feather name="calendar" size={12} color="#94A3B8" />
-                  <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">End Year</Text>
+                  <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">End Year</Text>
                 </View>
-                <TextInput className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-zinc-900 text-sm font-semibold"
+                <TextInput className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 text-sm font-semibold"
                   placeholder="2024" placeholderTextColor="#94A3B8" keyboardType="numeric"
                   value={form.endYear} onChangeText={v => setForm(p => ({ ...p, endYear: v }))} />
               </View>
@@ -126,9 +126,9 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
             <View className="mb-12">
               <View className="flex-row items-center gap-2 mb-2">
                 <Feather name="align-left" size={12} color="#94A3B8" />
-                <Text className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">Description</Text>
+                <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">Description</Text>
               </View>
-              <TextInput className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-zinc-900 text-sm font-semibold"
+              <TextInput className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 text-sm font-semibold"
                 placeholder="Clubs, achievements, projects..." placeholderTextColor="#94A3B8"
                 style={{ height: 100, textAlignVertical: 'top' }}
                 value={form.description} multiline
@@ -140,12 +140,12 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
           {/* Footer Action */}
           <View className="p-6 border-t border-slate-50 bg-white shadow-2xl shadow-black">
             <Pressable onPress={save} disabled={saving}
-              className="bg-zinc-900 py-5 rounded-[24px] flex-row items-center justify-center shadow-xl shadow-black/20">
+              className="bg-slate-900 py-5 rounded-2xl flex-row items-center justify-center shadow-xl shadow-black/20">
               {saving ? <ActivityIndicator size="small" color="#f97316" />
                 : (
                   <>
                     <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />
-                    <Text className="text-white font-black uppercase text-xs tracking-[2px] ml-2">
+                    <Text className="text-white font-black uppercase text-xs tracking-wide ml-2">
                       {isEdit ? 'Update Record' : 'Commit Education'}
                     </Text>
                   </>

@@ -6,8 +6,16 @@ import { nanoid } from "nanoid";
 export const createRoom = async (req, res) => {
   try {
     const { domain, maxMembers, startTime, duration, questions } = req.body;
-    const roomId = nanoid(6).toUpperCase();
+
     const startObj = new Date(startTime);
+    if (Number.isNaN(startObj.getTime())) {
+      return res.status(400).json({ success: false, message: "A valid startTime is required" });
+    }
+    if (!Number.isFinite(Number(duration)) || Number(duration) <= 0) {
+      return res.status(400).json({ success: false, message: "A positive duration (minutes) is required" });
+    }
+
+    const roomId = nanoid(6).toUpperCase();
     const expireTime = new Date(startObj.getTime() + (duration * 60000) + 3600000); 
 
     await Room.create({

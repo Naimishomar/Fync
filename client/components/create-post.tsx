@@ -183,18 +183,18 @@ function CreatePost() {
               <Ionicons name="arrow-back" size={22} color="#1e293b" />
             </Pressable>
             <View className="items-center">
-              <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-[3px]">Mission Briefing</Text>
-              <Text className='text-xl font-black text-gray-900 mt-1 uppercase tracking-tighter'>Create <Text className="text-orange-500">Post</Text></Text>
+              <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">Mission Briefing</Text>
+              <Text className='text-xl font-black text-slate-900 mt-1 uppercase tracking-tighter'>Create <Text className="text-orange-500">Post</Text></Text>
             </View>
             <View className="w-11" />
           </View>
 
           <ScrollView className="flex-1 px-6 mt-4" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {/* Main Input Card */}
-            <View className="bg-white rounded-[32px] p-6 shadow-2xl shadow-black/5 border border-slate-50 min-h-[350px] relative z-50">
+            <View className="bg-white rounded-4xl p-6 shadow-2xl shadow-black/5 border border-slate-50 min-h-[350px] relative z-50">
               <View className="flex-row items-center mb-6">
                   <View className="w-1.5 h-6 bg-orange-500 rounded-full mr-3" />
-                  <Text className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Share your thoughts</Text>
+                  <Text className="text-2xs font-black text-slate-500 uppercase tracking-wide">Share your thoughts</Text>
               </View>
               
               <TextInput
@@ -205,11 +205,11 @@ function CreatePost() {
                 onSelectionChange={(e) => setCursorPosition(e.nativeEvent.selection.start)}
                 multiline
                 textAlignVertical="top"
-                className="text-zinc-800 text-lg font-bold flex-1 min-h-[180px]"
+                className="text-slate-800 text-lg font-bold flex-1 min-h-[180px]"
               />
 
               {showSuggestions && suggestions.length > 0 && (
-                <View className="absolute top-32 left-6 right-6 bg-white border border-slate-100 rounded-[24px] shadow-2xl shadow-black/10 max-h-56 z-[100] elevation-5 overflow-hidden">
+                <View className="absolute top-32 left-6 right-6 bg-white border border-slate-100 rounded-2xl shadow-2xl shadow-black/10 max-h-56 z-[100] elevation-5 overflow-hidden">
                     <ScrollView keyboardShouldPersistTaps="handled">
                         {suggestions.map((user) => (
                             <TouchableOpacity
@@ -219,8 +219,8 @@ function CreatePost() {
                             >
                                 <Image source={{ uri: user.avatar || 'https://ui-avatars.com/api/?name=' + user.name }} className="w-10 h-10 rounded-2xl bg-slate-100" />
                                 <View className="ml-4">
-                                    <Text className="text-sm font-black text-gray-900 uppercase tracking-tight">{user.name}</Text>
-                                    <Text className="text-[10px] font-black text-orange-500 uppercase tracking-widest mt-0.5">@{user.username}</Text>
+                                    <Text className="text-sm font-black text-slate-900 uppercase tracking-tight">{user.name}</Text>
+                                    <Text className="text-2xs font-black text-orange-500 uppercase tracking-wide mt-0.5">@{user.username}</Text>
                                 </View>
                             </TouchableOpacity>
                         ))}
@@ -232,10 +232,10 @@ function CreatePost() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3 pt-4">
                   {images.map((uri, index) => (
                     <View key={index} className="mr-4 relative">
-                      <Image source={{ uri }} className="h-24 w-24 rounded-[20px] bg-slate-100 border border-slate-50" />
+                      <Image source={{ uri }} className="h-24 w-24 rounded-2xl bg-slate-100 border border-slate-50" />
                       <Pressable
                         onPress={() => removeImage(index)}
-                        className="absolute -top-2 -right-2 bg-zinc-900 h-7 w-7 rounded-full items-center justify-center border-2 border-white shadow-md"
+                        className="absolute -top-2 -right-2 bg-slate-900 h-7 w-7 rounded-full items-center justify-center border-2 border-white shadow-md"
                       >
                         <Ionicons name="close" size={14} color="white" />
                       </Pressable>
@@ -251,36 +251,36 @@ function CreatePost() {
                   className="flex-row items-center bg-slate-50 px-5 py-3 rounded-2xl border border-slate-100"
                 >
                   <Ionicons name="image" size={18} color="#f97316" />
-                  <Text className="text-zinc-900 text-[10px] font-black uppercase tracking-widest ml-3">Add Photos</Text>
+                  <Text className="text-slate-900 text-2xs font-black uppercase tracking-wide ml-3">Add Photos</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
             {/* Settings Section */}
-            <Text className="text-[10px] font-black text-slate-400 uppercase tracking-[2px] mt-10 mb-4 ml-2">Post Settings</Text>
+            <Text className="text-2xs font-black text-slate-500 uppercase tracking-wide mt-10 mb-4 ml-2">Post Settings</Text>
             
             <View className="gap-y-4">
-              <TouchableOpacity className="bg-white rounded-[28px] flex-row items-center justify-between p-5 shadow-2xl shadow-black/5 border border-slate-50">
+              <TouchableOpacity className="bg-white rounded-3xl flex-row items-center justify-between p-5 shadow-2xl shadow-black/5 border border-slate-50">
                 <View className="flex-row items-center">
                   <View className="w-10 h-10 rounded-2xl bg-orange-50 items-center justify-center border border-orange-100">
                     <Ionicons name="location" size={18} color="#f97316" />
                   </View>
-                  <Text className="text-zinc-800 font-black uppercase text-[11px] tracking-widest ml-4">Add Location</Text>
+                  <Text className="text-slate-800 font-black uppercase text-2xs tracking-wide ml-4">Add Location</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={16} color="#cbd5e1" />
               </TouchableOpacity>
 
               <TouchableOpacity 
                 onPress={() => setIsPrivate(!isPrivate)}
-                className="bg-white rounded-[28px] flex-row items-center justify-between p-5 shadow-2xl shadow-black/5 border border-slate-50"
+                className="bg-white rounded-3xl flex-row items-center justify-between p-5 shadow-2xl shadow-black/5 border border-slate-50"
               >
                 <View className="flex-row items-center">
                   <View className={`w-10 h-10 rounded-2xl items-center justify-center border ${isPrivate ? 'bg-orange-50 border-orange-100' : 'bg-slate-50 border-slate-100'}`}>
                     <Ionicons name={isPrivate ? "lock-closed" : "earth"} size={18} color={isPrivate ? "#f97316" : "#64748b"} />
                   </View>
                   <View className="ml-4">
-                      <Text className="text-zinc-800 font-black uppercase text-[11px] tracking-widest">Visibility</Text>
-                      <Text className={`text-[9px] font-black uppercase tracking-widest mt-1 ${isPrivate ? 'text-orange-500' : 'text-slate-400'}`}>
+                      <Text className="text-slate-800 font-black uppercase text-2xs tracking-wide">Visibility</Text>
+                      <Text className={`text-2xs font-black uppercase tracking-widest mt-1 ${isPrivate ? 'text-orange-500' : 'text-slate-500'}`}>
                           {isPrivate ? "Private Protocol" : "Public Broadcast"}
                       </Text>
                   </View>
@@ -299,13 +299,13 @@ function CreatePost() {
               <TouchableOpacity 
                 onPress={handleSubmit}
                 disabled={isLoading}
-                className="bg-zinc-900 h-16 rounded-3xl flex-row items-center justify-center shadow-2xl shadow-black/20"
+                className="bg-slate-900 h-16 rounded-3xl flex-row items-center justify-center shadow-2xl shadow-black/20"
               >
                 {isLoading ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <>
-                      <Text className="text-white font-black uppercase text-xs tracking-[4px]">Initiate Post</Text>
+                      <Text className="text-white font-black uppercase text-xs tracking-wide">Initiate Post</Text>
                       <Ionicons name="send" size={16} color="white" style={{ marginLeft: 10 }} />
                   </>
                 )}

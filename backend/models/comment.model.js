@@ -36,7 +36,18 @@ const commentSchema = new mongoose.Schema({
   }
 },{timestamps:true});
 
-commentSchema.index({ createdAt: 1 }, {expiresAfterSeconds: 0});
+// Was: index({ createdAt: 1 }, { expiresAfterSeconds: 0 }).
+// `expiresAfterSeconds` is a typo for `expireAfterSeconds`, so Mongo silently
+// built a plain index and no TTL ever ran — and "fixing" the spelling in place
+// would have deleted every comment the moment it was created. The TTL belongs on
+// the `expiresAt` field, where documents with a null value are simply never
+// reaped, which is the behaviour this schema was reaching for.
+commentSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
+// Comment lists were collection-scanning: these cover the three read shapes used
+// by post/funding/shorts controllers.
+commentSchema.index({ post: 1, postType: 1, parentComment: 1, createdAt: -1 });
+commentSchema.index({ parentComment: 1, createdAt: 1 });
 
 const Comment = mongoose.model("Comment", commentSchema);
 export default Comment;

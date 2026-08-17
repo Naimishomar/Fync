@@ -137,12 +137,12 @@ const ContactUs = () => {
                         <Ionicons name="checkmark-done" size={48} color="white" />
                     </View>
                     
-                    <Text className="text-zinc-900 text-4xl font-[900] text-center leading-[45px] mb-8 tracking-[-1px]">
+                    <Text className="text-slate-900 text-4xl font-[900] text-center leading-[45px] mb-8 tracking-[-1px]">
                         Nice to meet you, we will chat soon.
                     </Text>
 
                     <TouchableOpacity
-                        className="bg-black w-full py-6 rounded-[32px] items-center shadow-2xl shadow-black/20"
+                        className="bg-black w-full py-6 rounded-4xl items-center shadow-2xl shadow-black/20"
                         onPress={() => navigation.navigate('Tabs')}
                     >
                         <Text className="text-white text-base font-bold">Take me back home</Text>
@@ -171,32 +171,32 @@ const ContactUs = () => {
                 >
                     <View className="px-8 mt-5">
                         <View className="mb-10">
-                            <Text className="text-zinc-900 text-4xl font-black uppercase tracking-tighter">
+                            <Text className="text-slate-900 text-4xl font-black uppercase tracking-tighter">
                                 Support <Text className="text-orange-500">Team</Text>
                             </Text>
-                            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[1px]">Feel Free To Contact Us</Text>
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Feel Free To Contact Us</Text>
                         </View>
 
-                        <View className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-2xl shadow-black/5 flex-row items-center mb-10">
+                        <View className="bg-white p-6 rounded-4xl border border-slate-100 shadow-2xl shadow-black/5 flex-row items-center mb-10">
                             <View className="w-12 h-12 bg-orange-50 rounded-2xl items-center justify-center">
                                 <Ionicons name="business" size={20} color="#f97316" />
                             </View>
                             <View className="ml-4 flex-1">
-                                <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-tight">Main HQ</Text>
-                                <Text className="text-slate-400 font-bold text-[9px] uppercase mt-0.5">KIET Deemed University, UP</Text>
+                                <Text className="text-slate-900 font-black uppercase text-2xs tracking-tight">Main HQ</Text>
+                                <Text className="text-slate-500 font-bold text-2xs uppercase mt-0.5">KIET Deemed University, UP</Text>
                             </View>
                             <View className="items-end">
-                                <Text className="text-orange-500 font-black text-[9px] uppercase">Active Now</Text>
+                                <Text className="text-orange-500 font-black text-2xs uppercase">Active Now</Text>
                                 <View className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1 shadow-sm shadow-emerald-500/50" />
                             </View>
                         </View>
 
                         {/* Form Card */}
-                        <View className="bg-white rounded-[40px] p-8 shadow-2xl shadow-black/10 border border-slate-50">
+                        <View className="bg-white rounded-5xl p-8 shadow-2xl shadow-black/10 border border-slate-50">
                             <View className="mb-8">
-                                <Text className="text-[9px] font-black text-slate-400 uppercase tracking-[2px] mb-3 ml-2">Operator Identity</Text>
+                                <Text className="text-2xs font-black text-slate-500 uppercase tracking-wide mb-3 ml-2">Operator Identity</Text>
                                 <TextInput
-                                    className="bg-slate-50 p-5 rounded-3xl text-xs text-zinc-900 font-black uppercase tracking-tight border border-slate-100"
+                                    className="bg-slate-50 p-5 rounded-3xl text-xs text-slate-900 font-black uppercase tracking-tight border border-slate-100"
                                     placeholder="e.g. Naimish Omar"
                                     placeholderTextColor="#CBD5E1"
                                     value={formData.name}
@@ -205,9 +205,9 @@ const ContactUs = () => {
                             </View>
 
                             <View className="mb-8">
-                                <Text className="text-[9px] font-black text-slate-400 uppercase tracking-[2px] mb-3 ml-2">Signal Frequency (Phone)</Text>
+                                <Text className="text-2xs font-black text-slate-500 uppercase tracking-wide mb-3 ml-2">Signal Frequency (Phone)</Text>
                                 <TextInput
-                                    className="bg-slate-50 p-5 rounded-3xl text-xs text-zinc-900 font-black uppercase tracking-tight border border-slate-100"
+                                    className="bg-slate-50 p-5 rounded-3xl text-xs text-slate-900 font-black uppercase tracking-tight border border-slate-100"
                                     placeholder="+91 1234567890"
                                     placeholderTextColor="#CBD5E1"
                                     keyboardType="phone-pad"
@@ -217,9 +217,9 @@ const ContactUs = () => {
                             </View>
 
                             <View className="mb-8">
-                                <Text className="text-[9px] font-black text-slate-400 uppercase tracking-[2px] mb-3 ml-2">Digital Ledger (Email)</Text>
+                                <Text className="text-2xs font-black text-slate-500 uppercase tracking-wide mb-3 ml-2">Digital Ledger (Email)</Text>
                                 <TextInput
-                                    className="bg-slate-50 p-5 rounded-3xl text-xs text-zinc-900 font-black uppercase tracking-tight border border-slate-100"
+                                    className="bg-slate-50 p-5 rounded-3xl text-xs text-slate-900 font-black uppercase tracking-tight border border-slate-100"
                                     placeholder="dev.fync@email.com"
                                     placeholderTextColor="#CBD5E1"
                                     keyboardType="email-address"
@@ -230,9 +230,9 @@ const ContactUs = () => {
                             </View>
 
                             <View className="mb-10">
-                                <Text className="text-[9px] font-black text-slate-400 uppercase tracking-[2px] mb-3 ml-2">Transmission Content</Text>
+                                <Text className="text-2xs font-black text-slate-500 uppercase tracking-wide mb-3 ml-2">Transmission Content</Text>
                                 <TextInput
-                                    className="bg-slate-50 p-6 rounded-[32px] text-xs text-zinc-700 font-medium min-h-[160px] border border-slate-100"
+                                    className="bg-slate-50 p-6 rounded-4xl text-xs text-slate-700 font-medium min-h-[160px] border border-slate-100"
                                     placeholder='Define the requirements / issues...'
                                     placeholderTextColor="#CBD5E1"
                                     multiline
@@ -246,15 +246,15 @@ const ContactUs = () => {
                             {/* Evidence */}
                             <View className="mb-12">
                                 <View className="flex-row justify-between items-center mb-4 px-2">
-                                    <Text className="text-[9px] font-black text-slate-400 uppercase tracking-[2px]">Visual Evidence (Max 3)</Text>
+                                    <Text className="text-2xs font-black text-slate-500 uppercase tracking-wide">Visual Evidence (Max 3)</Text>
                                     <View className="bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
-                                        <Text className="text-[9px] text-slate-400 font-black uppercase tracking-widest">{selectedImages.length}/3</Text>
+                                        <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide">{selectedImages.length}/3</Text>
                                     </View>
                                 </View>
 
                                 <View className="flex-row gap-4">
                                     {selectedImages.map((uri, index) => (
-                                        <View key={index} className="relative w-20 h-20 rounded-[20px] overflow-hidden bg-slate-50 border border-slate-200">
+                                        <View key={index} className="relative w-20 h-20 rounded-2xl overflow-hidden bg-slate-50 border border-slate-200">
                                             <Image source={{ uri }} className="w-full h-full" />
                                             <TouchableOpacity
                                                 onPress={() => removeImage(index)}
@@ -268,10 +268,10 @@ const ContactUs = () => {
                                     {selectedImages.length < 3 && (
                                         <TouchableOpacity
                                             onPress={pickImages}
-                                            className="w-20 h-20 rounded-[20px] border border-dashed border-slate-300 justify-center items-center bg-white"
+                                            className="w-20 h-20 rounded-2xl border border-dashed border-slate-300 justify-center items-center bg-white"
                                         >
                                             <MaterialCommunityIcons name="camera-plus-outline" size={24} color="#CBD5E1" />
-                                            <Text className="text-[8px] font-black text-slate-300 mt-1 uppercase">Attach</Text>
+                                            <Text className="text-2xs font-black text-slate-300 mt-1 uppercase">Attach</Text>
                                         </TouchableOpacity>
                                     )}
                                 </View>
@@ -279,14 +279,14 @@ const ContactUs = () => {
 
                             <TouchableOpacity
                                 activeOpacity={0.9}
-                                className={`bg-zinc-900 py-6 items-center rounded-[32px] shadow-2xl shadow-black/30 ${isLoading ? 'opacity-70' : ''}`}
+                                className={`bg-slate-900 py-6 items-center rounded-4xl shadow-2xl shadow-black/30 ${isLoading ? 'opacity-70' : ''}`}
                                 onPress={handleSubmit}
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
                                     <ActivityIndicator color="white" />
                                 ) : (
-                                    <Text className="text-white text-xs font-black uppercase tracking-[3px]">Deploy Transmission</Text>
+                                    <Text className="text-white text-xs font-black uppercase tracking-wide">Deploy Transmission</Text>
                                 )}
                             </TouchableOpacity>
 
@@ -294,7 +294,7 @@ const ContactUs = () => {
                                 onPress={() => navigation.navigate('MeetOurTeam')}
                                 className="mt-8 items-center"
                             >
-                                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px]">Meet <Text className="text-orange-500">Team HQ</Text></Text>
+                                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Meet <Text className="text-orange-500">Team HQ</Text></Text>
                                 <View className="w-12 h-0.5 bg-orange-500/20 mt-1 rounded-full" />
                             </Pressable>
                         </View>

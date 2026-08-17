@@ -103,12 +103,12 @@ export default function StudyAssistant() {
                     {/* --- CUSTOM HEADER --- */}
                     <View className="flex-row items-center justify-between py-6">
                         <View>
-                            <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase ">
+                            <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase ">
                                 Study <Text className="text-pink-500">AI</Text>
                             </Text>
                             <View className="flex-row items-center mt-1">
                                 <View className={`w-2 h-2 rounded-full mr-2 ${pdfContent ? 'bg-green-500' : 'bg-slate-200'}`} />
-                                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px]">
+                                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">
                                     {pdfContent ? 'Intelligence Active' : 'Waiting for Source'}
                                 </Text>
                             </View>
@@ -131,16 +131,16 @@ export default function StudyAssistant() {
                                 activeOpacity={0.9}
                                 className="w-full"
                             >
-                                <View className="bg-white border border-slate-100 rounded-[48px] p-12 items-center shadow-2xl shadow-black/5">
-                                    <View className="bg-pink-50 p-8 rounded-[32px] mb-8 border border-pink-100">
+                                <View className="bg-white border border-slate-100 rounded-5xl p-12 items-center shadow-2xl shadow-black/5">
+                                    <View className="bg-pink-50 p-8 rounded-4xl mb-8 border border-pink-100">
                                         <Ionicons name="cloud-upload" size={48} color="#ec4899" />
                                     </View>
-                                    <Text className="text-zinc-900 text-2xl font-black  uppercase tracking-tighter text-center leading-tight">Sync <Text className="text-pink-500">Source</Text></Text>
-                                    <Text className="text-slate-400 text-center font-bold text-[10px] mt-4 leading-5 px-6 uppercase tracking-widest ">
+                                    <Text className="text-slate-900 text-2xl font-black  uppercase tracking-tighter text-center leading-tight">Sync <Text className="text-pink-500">Source</Text></Text>
+                                    <Text className="text-slate-500 text-center font-bold text-2xs mt-4 leading-5 px-6 uppercase tracking-wide ">
                                         Upload your lecture PDF to activate institutional AI analysis.
                                     </Text>
-                                    <View className="mt-10 bg-zinc-900 px-8 py-3.5 rounded-2xl shadow-xl shadow-black/20">
-                                        <Text className="text-white text-[10px] font-black uppercase tracking-widest ">Initialize Ledger</Text>
+                                    <View className="mt-10 bg-slate-900 px-8 py-3.5 rounded-2xl shadow-xl shadow-black/20">
+                                        <Text className="text-white text-2xs font-black uppercase tracking-wide ">Initialize Ledger</Text>
                                     </View>
                                 </View>
                             </TouchableOpacity>
@@ -156,7 +156,7 @@ export default function StudyAssistant() {
                                             onPress={() => runAiTask('CHAT', item)}
                                             className="bg-white border border-slate-100 px-6 py-3 rounded-2xl mr-3 shadow-sm shadow-black/5"
                                         >
-                                            <Text className="text-zinc-900 font-black  text-[9px] uppercase tracking-widest">{item}</Text>
+                                            <Text className="text-slate-900 font-black  text-2xs uppercase tracking-wide">{item}</Text>
                                         </TouchableOpacity>
                                     ))}
                                 </ScrollView>
@@ -164,7 +164,7 @@ export default function StudyAssistant() {
                                 <TouchableOpacity
                                     onPress={() => runAiTask('QUESTIONS')}
                                     activeOpacity={0.8}
-                                    className="mt-2 overflow-hidden rounded-[28px] shadow-lg shadow-pink-500/20"
+                                    className="mt-2 overflow-hidden rounded-3xl shadow-lg shadow-pink-500/20"
                                 >
                                     <LinearGradient
                                         colors={['#ec4899', '#f97316']}
@@ -173,7 +173,7 @@ export default function StudyAssistant() {
                                     >
                                         <View className="flex-row items-center">
                                             <Ionicons name="flash" size={18} color="white" />
-                                            <Text className="text-white font-black  ml-4 text-[10px] uppercase tracking-[2px]">Generate Protocol Guide</Text>
+                                            <Text className="text-white font-black  ml-4 text-2xs uppercase tracking-wide">Generate Protocol Guide</Text>
                                         </View>
                                         <Ionicons name="arrow-forward" size={18} color="white" />
                                     </LinearGradient>
@@ -190,20 +190,20 @@ export default function StudyAssistant() {
                                 {chat.map((msg, i) => (
                                     <View
                                         key={i}
-                                        className={`p-6 rounded-[32px] mb-5 max-w-[90%] shadow-sm ${msg.role === 'user'
-                                                ? 'bg-zinc-900 self-end rounded-tr-none shadow-black/20'
+                                        className={`p-6 rounded-4xl mb-5 max-w-[90%] shadow-sm ${msg.role === 'user'
+                                                ? 'bg-slate-900 self-end rounded-tr-none shadow-black/20'
                                                 : 'bg-white self-start border border-slate-100 rounded-tl-none shadow-black/5'
                                             }`}
                                     >
-                                        <Text className={`text-[13px] leading-6 ${msg.role === 'user' ? 'text-white font-black  uppercase tracking-tight' : 'text-zinc-600 font-medium '}`}>
+                                        <Text className={`text-xs leading-6 ${msg.role === 'user' ? 'text-white font-black  uppercase tracking-tight' : 'text-slate-600 font-medium '}`}>
                                             {msg.role === 'bot' ? `"${msg.text}"` : msg.text}
                                         </Text>
                                     </View>
                                 ))}
                                 {loading && (
-                                    <View className="flex-row items-center p-5 bg-white rounded-[24px] border border-slate-100 self-start shadow-sm shadow-black/5">
-                                        <ActivityIndicator color="#ec4899" size="small" />
-                                        <Text className="text-slate-400 text-[9px] font-black  uppercase tracking-widest ml-4">Analyzing Intel...</Text>
+                                    <View className="flex-row items-center p-5 bg-white rounded-2xl border border-slate-100 self-start shadow-sm shadow-black/5">
+                                        <ActivityIndicator color="#f97316" size="small" />
+                                        <Text className="text-slate-500 text-2xs font-black  uppercase tracking-wide ml-4">Analyzing Intel...</Text>
                                     </View>
                                 )}
                             </ScrollView>
@@ -212,18 +212,18 @@ export default function StudyAssistant() {
 
                     {/* --- INPUT DOCK --- */}
                     {pdfContent && (
-                        <View className="flex-row items-center bg-white p-2.5 rounded-[32px] border border-slate-100 mb-10 shadow-2xl shadow-black/5">
+                        <View className="flex-row items-center bg-white p-2.5 rounded-4xl border border-slate-100 mb-10 shadow-2xl shadow-black/5">
                             <TextInput
                                 placeholder="Query the intelligence..."
                                 placeholderTextColor="#CBD5E1"
                                 value={inputText}
                                 onChangeText={setInputText}
-                                className="flex-1 text-zinc-900 px-6 text-xs font-black  uppercase tracking-tight"
+                                className="flex-1 text-slate-900 px-6 text-xs font-black  uppercase tracking-tight"
                                 multiline={false}
                             />
                             <TouchableOpacity
                                 onPress={() => runAiTask('CHAT')}
-                                className="bg-zinc-900 w-14 h-14 rounded-2xl items-center justify-center shadow-lg"
+                                className="bg-slate-900 w-14 h-14 rounded-2xl items-center justify-center shadow-lg"
                             >
                                 <Ionicons name="send" size={18} color="white" />
                             </TouchableOpacity>

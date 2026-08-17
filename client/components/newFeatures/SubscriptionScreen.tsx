@@ -145,34 +145,34 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                     ) : (
                         <View className="w-10" />
                     )}
-                    <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-widest">Premium Plan</Text>
+                    <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">Premium Plan</Text>
                     <View className='w-10'></View>
                 </View>
 
                 <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 32, paddingBottom: 50 }}>
                     <View className="items-center mt-8 mb-10">
-                        <View className="w-24 h-24 bg-white rounded-[40px] items-center justify-center shadow-2xl shadow-orange-500/20 border border-slate-100 mb-8">
+                        <View className="w-24 h-24 bg-white rounded-5xl items-center justify-center shadow-2xl shadow-orange-500/20 border border-slate-100 mb-8">
                             <Ionicons name="flash" size={48} color="#f97316" />
                         </View>
 
-                        <Text className="text-zinc-900 text-4xl font-black uppercase tracking-tighter text-center">Fync<Text className="text-orange-500"> Pro</Text></Text>
-                        <Text className="text-slate-400 text-center font-black uppercase text-[10px] tracking-widest mt-4 leading-5 px-6">
+                        <Text className="text-slate-900 text-4xl font-black uppercase tracking-tighter text-center">Fync<Text className="text-orange-500"> Pro</Text></Text>
+                        <Text className="text-slate-500 text-center font-black uppercase text-2xs tracking-wide mt-4 leading-5 px-6">
                             {user?.is_subscribed ? "Your mission is active. Extend to maintain your elite status." : "Unlock the full potential of your campus experience."}
                         </Text>
                     </View>
 
                     {/* Plan Card */}
-                    <View className="w-full bg-zinc-900 p-8 rounded-[40px] border border-zinc-800 shadow-2xl shadow-black/20 overflow-hidden">
+                    <View className="w-full bg-slate-900 p-8 rounded-5xl border border-slate-800 shadow-2xl shadow-black/20 overflow-hidden">
                         <View className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -mr-16 -mt-16" />
                         
                         <View className="flex-row justify-between items-start mb-10">
                             <View>
                                 <Text className="text-white font-black uppercase text-xs tracking-tight">Full Access Pass</Text>
-                                <Text className="text-orange-500 text-[8px] font-black uppercase tracking-widest mt-1">Limited Time Offer</Text>
+                                <Text className="text-orange-500 text-2xs font-black uppercase tracking-wide mt-1">Limited Time Offer</Text>
                             </View>
                             <View className="items-end">
                                 <Text className="text-white font-black text-3xl tracking-tighter">₹{subscriptionAmount}</Text>
-                                <Text className="text-zinc-500 font-black uppercase text-[8px] tracking-widest">/ Month</Text>
+                                <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">/ Month</Text>
                             </View>
                         </View>
 
@@ -187,7 +187,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                                     <View className="w-8 h-8 rounded-xl bg-white/5 items-center justify-center mr-4 border border-white/10">
                                         <Ionicons name={item.icon as any} size={16} color={item.color} />
                                     </View>
-                                    <Text className="text-zinc-300 font-black uppercase text-[9px] tracking-widest">{item.text}</Text>
+                                    <Text className="text-slate-300 font-black uppercase text-2xs tracking-wide">{item.text}</Text>
                                 </View>
                             ))}
                         </View>
@@ -202,7 +202,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                                 <ActivityIndicator size="small" color="#000" />
                             ) : (
                                 <View className="flex-row items-center">
-                                    <Text className="text-zinc-900 font-black uppercase tracking-widest text-[10px] mr-2">
+                                    <Text className="text-slate-900 font-black uppercase tracking-wide text-2xs mr-2">
                                         {user?.is_subscribed ? "Extend Subscription" : "Unlock Premium Now"}
                                     </Text>
                                     <Ionicons name="chevron-forward" size={16} color="#000" />
@@ -215,7 +215,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                         <View className="w-8 h-8 rounded-xl bg-slate-50 items-center justify-center border border-slate-100">
                             <Ionicons name="shield-checkmark" size={16} color="#94a3b8" />
                         </View>
-                        <Text className="text-slate-300 text-[8px] font-black uppercase tracking-widest text-center leading-4 max-w-[200px]">
+                        <Text className="text-slate-300 text-2xs font-black uppercase tracking-wide text-center leading-4 max-w-[200px]">
                             Secure 256-bit encrypted payment processed by Razorpay.
                         </Text>
                     </View>

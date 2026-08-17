@@ -1,4 +1,6 @@
-const TMDB_BASE_URL = 'http://api.themoviedb.org/3';
+// Was http:// — the bearer token travelled unencrypted and anyone on the
+// network path could read it straight out of the Authorization header.
+const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const tmdbFetch = async (endpoint) => {
   const token = process.env.TMDB_ACCESS_TOKEN;
   const url = `${TMDB_BASE_URL}${endpoint}`;
@@ -10,10 +12,22 @@ const tmdbFetch = async (endpoint) => {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
     }
   };
-  const response = await fetch(url, options);
+  // A DNS failure, a refused connection or the timeout above all reject here,
+  // before the response is ever inspected — so they need the same upstream tag
+  // as a non-2xx reply, otherwise TMDB being down reports as our 500.
+  let response;
+  try {
+    response = await fetch(url, { ...options, signal: AbortSignal.timeout(8000) });
+  } catch (cause) {
+    const err = new Error(`TMDB unreachable: ${cause.message}`);
+    err.upstream = true;
+    throw err;
+  }
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.status_message || `HTTP error! status: ${response.status}`);
+    const err = new Error(error.status_message || `TMDB responded ${response.status}`);
+    err.upstream = true;
+    throw err;
   }
   return response.json();
 };
@@ -24,7 +38,7 @@ export const getTrending = async (req, res) => {
     res.status(200).json({ success: true, results: data.results });
   } catch (error) {
     console.error('TMDB Trending Error:', error.message);
-    res.status(500).json({ success: false, message: 'Failed to fetch trending movies' });
+    res.status(error?.upstream ? 502 : 500).json({ success: false, message: 'Failed to fetch trending movies' });
   }
 };
 
@@ -34,7 +48,7 @@ export const getPopular = async (req, res) => {
     res.status(200).json({ success: true, results: data.results });
   } catch (error) {
     console.error('TMDB Popular Error:', error.message);
-    res.status(500).json({ success: false, message: 'Failed to fetch popular movies' });
+    res.status(error?.upstream ? 502 : 500).json({ success: false, message: 'Failed to fetch popular movies' });
   }
 };
 
@@ -44,7 +58,7 @@ export const getUpcoming = async (req, res) => {
     res.status(200).json({ success: true, results: data.results });
   } catch (error) {
     console.error('TMDB Upcoming Error:', error.message);
-    res.status(500).json({ success: false, message: 'Failed to fetch upcoming movies' });
+    res.status(error?.upstream ? 502 : 500).json({ success: false, message: 'Failed to fetch upcoming movies' });
   }
 };
 
@@ -55,7 +69,7 @@ export const getMovieDetails = async (req, res) => {
     res.status(200).json({ success: true, movie: data });
   } catch (error) {
     console.error('TMDB Movie Details Error:', error.message);
-    res.status(500).json({ success: false, message: 'Failed to fetch movie details' });
+    res.status(error?.upstream ? 502 : 500).json({ success: false, message: 'Failed to fetch movie details' });
   }
 };
 
@@ -67,7 +81,7 @@ export const searchMovies = async (req, res) => {
     res.status(200).json({ success: true, results: data.results });
   } catch (error) {
     console.error('TMDB Search Error:', error.message);
-    res.status(500).json({ success: false, message: 'Failed to search movies' });
+    res.status(error?.upstream ? 502 : 500).json({ success: false, message: 'Failed to search movies' });
   }
 };
 
@@ -77,7 +91,7 @@ export const getBollywood = async (req, res) => {
     res.status(200).json({ success: true, results: data.results });
   } catch (error) {
     console.error('TMDB Bollywood Error:', error.message);
-    res.status(500).json({ success: false, message: 'Failed to fetch Bollywood movies' });
+    res.status(error?.upstream ? 502 : 500).json({ success: false, message: 'Failed to fetch Bollywood movies' });
   }
 };
 
@@ -87,7 +101,7 @@ export const getTopRated = async (req, res) => {
     res.status(200).json({ success: true, results: data.results });
   } catch (error) {
     console.error('TMDB Top Rated Error:', error.message);
-    res.status(500).json({ success: false, message: 'Failed to fetch top rated movies' });
+    res.status(error?.upstream ? 502 : 500).json({ success: false, message: 'Failed to fetch top rated movies' });
   }
 };
 
@@ -98,7 +112,7 @@ export const getByGenre = async (req, res) => {
     res.status(200).json({ success: true, results: data.results });
   } catch (error) {
     console.error('TMDB Genre Error:', error.message);
-    res.status(500).json({ success: false, message: 'Failed to fetch movies by genre' });
+    res.status(error?.upstream ? 502 : 500).json({ success: false, message: 'Failed to fetch movies by genre' });
   }
 };
 
@@ -110,7 +124,7 @@ export const getMovieTrailers = async (req, res) => {
     res.status(200).json({ success: true, results: trailers });
   } catch (error) {
     console.error('TMDB Trailers Error:', error.message);
-    res.status(500).json({ success: false, message: 'Failed to fetch movie trailers' });
+    res.status(error?.upstream ? 502 : 500).json({ success: false, message: 'Failed to fetch movie trailers' });
   }
 };
 
@@ -148,7 +162,7 @@ export const getEntertainmentHome = async (req, res) => {
     });
   } catch (error) {
     console.error('TMDB Entertainment Home Error:', error.message);
-    res.status(500).json({ success: false, message: 'Failed to fetch entertainment home data' });
+    res.status(error?.upstream ? 502 : 500).json({ success: false, message: 'Failed to fetch entertainment home data' });
   }
 };
 
@@ -177,6 +191,6 @@ export const getTrailersBatch = async (req, res) => {
     res.status(200).json({ success: true, trailers: trailerMap });
   } catch (error) {
     console.error('TMDB Trailers Batch Error:', error.message);
-    res.status(500).json({ success: false, message: 'Failed to fetch trailers batch' });
+    res.status(error?.upstream ? 502 : 500).json({ success: false, message: 'Failed to fetch trailers batch' });
   }
 };

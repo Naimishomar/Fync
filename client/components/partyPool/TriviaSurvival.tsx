@@ -130,7 +130,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
 
     if (loading) {
         return (
-            <View className="flex-1 bg-zinc-900 justify-center items-center h-[500px] rounded-[36px]">
+            <View className="flex-1 bg-slate-900 justify-center items-center h-[500px] rounded-4xl">
                 <ActivityIndicator size="large" color="#ef4444" />
                 <Text className="text-white mt-4 font-black tracking-widest uppercase">Loading Trivia...</Text>
             </View>
@@ -139,7 +139,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
 
     if (status === 'gameover') {
         return (
-            <View className="flex-1 bg-zinc-900 justify-center items-center h-[500px] rounded-[36px] p-6 border-2 border-red-500/30">
+            <View className="flex-1 bg-slate-900 justify-center items-center h-[500px] rounded-4xl p-6 border-2 border-red-500/30">
                 <Ionicons name="skull" size={80} color="#ef4444" />
                 <Text className="text-white text-3xl font-black uppercase mt-4 text-center">You Died</Text>
                 
@@ -151,11 +151,11 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
                     onPress={restartGame}
                     className="mt-10 bg-white px-8 py-4 rounded-full w-full items-center shadow-lg shadow-red-500/30"
                 >
-                    <Text className="text-zinc-900 font-black uppercase tracking-widest">Respawn</Text>
+                    <Text className="text-slate-900 font-black uppercase tracking-widest">Respawn</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                     onPress={onClose}
-                    className="mt-4 bg-zinc-800 px-8 py-4 rounded-full w-full items-center border border-zinc-700"
+                    className="mt-4 bg-slate-800 px-8 py-4 rounded-full w-full items-center border border-slate-700"
                 >
                     <Text className="text-white font-black uppercase tracking-widest">Exit</Text>
                 </TouchableOpacity>
@@ -168,18 +168,18 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
     const healthColor = health > 50 ? '#22c55e' : health > 20 ? '#eab308' : '#ef4444';
 
     return (
-        <View className="flex-1 w-full h-[600px] rounded-[36px] overflow-hidden bg-zinc-900 border border-zinc-800">
+        <View className="flex-1 w-full h-[600px] rounded-4xl overflow-hidden bg-slate-900 border border-slate-800">
             {/* Top Bar - Health & Score */}
-            <View className="flex-row items-center justify-between p-6 bg-zinc-800">
+            <View className="flex-row items-center justify-between p-6 bg-slate-800">
                 <TouchableOpacity onPress={onClose} className="bg-white/10 p-2 rounded-full">
                     <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
-                <View className="flex-1 mx-4 h-6 bg-zinc-900 rounded-full overflow-hidden border border-zinc-700 relative">
+                <View className="flex-1 mx-4 h-6 bg-slate-900 rounded-full overflow-hidden border border-slate-700 relative">
                     <View 
                         style={{ width: `${health}%`, backgroundColor: healthColor }} 
                         className="h-full rounded-full"
                     />
-                    <Text className="absolute w-full text-center text-[10px] font-black text-white uppercase tracking-widest leading-6">
+                    <Text className="absolute w-full text-center text-2xs font-black text-white uppercase tracking-wide leading-6">
                         Time Left: {(health / 10).toFixed(1)}s
                     </Text>
                 </View>
@@ -190,7 +190,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
 
             {/* Question */}
             <View className="h-[200px] p-6 justify-center">
-                <Text className="text-orange-500 font-black text-[10px] tracking-[3px] uppercase mb-4 text-center">
+                <Text className="text-orange-500 font-black text-2xs tracking-wide uppercase mb-4 text-center">
                     {q?.category} • {q?.difficulty}
                 </Text>
                 <Text 
@@ -208,7 +208,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
                     <TouchableOpacity 
                         key={i}
                         onPress={() => handleAnswer(opt)}
-                        className="bg-zinc-800 px-6 h-[64px] justify-center rounded-2xl border border-zinc-700"
+                        className="bg-slate-800 px-6 h-[64px] justify-center rounded-2xl border border-slate-700"
                     >
                         <Text 
                             className="text-white text-sm font-black text-center"

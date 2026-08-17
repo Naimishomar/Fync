@@ -54,7 +54,7 @@ const MovieSearch = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        <View className="flex-1 bg-zinc-900 rounded-full flex-row items-center px-4 py-2 border border-zinc-800">
+        <View className="flex-1 bg-slate-900 rounded-full flex-row items-center px-4 py-2 border border-slate-800">
           <Ionicons name="search" size={20} color="#9ca3af" />
           <TextInput
             autoFocus
@@ -96,12 +96,12 @@ const MovieSearch = () => {
             query.length > 2 ? (
               <View className="flex-1 items-center mt-20">
                 <Ionicons name="film-outline" size={64} color="#1f2937" />
-                <Text className="text-gray-500 mt-4 text-lg">No movies found for "{query}"</Text>
+                <Text className="text-slate-500 mt-4 text-lg">No movies found for "{query}"</Text>
               </View>
             ) : (
               <View className="flex-1 items-center mt-20">
                 <Ionicons name="search-outline" size={64} color="#1f2937" />
-                <Text className="text-gray-500 mt-4 text-lg text-center px-10">
+                <Text className="text-slate-500 mt-4 text-lg text-center px-10">
                   Search for your favorite movies and watch their trailers.
                 </Text>
               </View>

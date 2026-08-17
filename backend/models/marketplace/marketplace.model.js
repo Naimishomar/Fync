@@ -27,5 +27,20 @@ const marketplaceSchema = new mongoose.Schema({
     }
 },{timestamps: true});
 
+// The listing for this collection is cached and shared by every user, so a
+// create/update/delete must bust it. Hooking the model covers every write path,
+// including ones added later.
+const bustMarketplace = async () => {
+    try {
+        const { clearCacheTags } = await import('../../middlewares/cache.middleware.js');
+        await clearCacheTags(['marketplace']);
+    } catch (err) {
+        console.error('Cache invalidation error:', err.message);
+    }
+};
+marketplaceSchema.post('save', bustMarketplace);
+marketplaceSchema.post(/^findOneAnd/, bustMarketplace);
+marketplaceSchema.post(['updateOne', 'updateMany', 'deleteOne', 'deleteMany'], bustMarketplace);
+
 const MarketPlace = mongoose.model("MarketPlace", marketplaceSchema);
 export default MarketPlace;

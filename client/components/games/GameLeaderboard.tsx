@@ -52,7 +52,7 @@ const GameLeaderboard = () => {
         </View>
       ) : leaderboard.length === 0 ? (
         <View className="flex-1 justify-center items-center">
-          <Text className="text-slate-400">No scores yet. Be the first!</Text>
+          <Text className="text-slate-500">No scores yet. Be the first!</Text>
         </View>
       ) : (
         <FlatList
@@ -62,7 +62,7 @@ const GameLeaderboard = () => {
           renderItem={({ item, index }) => (
             <View className="flex-row items-center bg-white p-4 mb-3 rounded-2xl shadow-sm border border-slate-100">
               <View className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${index === 0 ? 'bg-amber-100' : index === 1 ? 'bg-slate-200' : index === 2 ? 'bg-orange-100' : 'bg-slate-50'}`}>
-                <Text className={`font-bold ${index === 0 ? 'text-amber-600' : index === 1 ? 'text-slate-500' : index === 2 ? 'text-orange-600' : 'text-slate-400'}`}>
+                <Text className={`font-bold ${index === 0 ? 'text-amber-600' : index === 1 ? 'text-slate-500' : index === 2 ? 'text-orange-600' : 'text-slate-500'}`}>
                   #{index + 1}
                 </Text>
               </View>
@@ -79,7 +79,7 @@ const GameLeaderboard = () => {
 
               <View className="items-end">
                 <Text className="font-black text-indigo-600 text-lg">{item.highScore}</Text>
-                <Text className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Score</Text>
+                <Text className="text-slate-500 text-2xs uppercase font-bold tracking-wider">Score</Text>
               </View>
             </View>
           )}

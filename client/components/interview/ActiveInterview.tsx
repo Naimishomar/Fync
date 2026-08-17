@@ -222,29 +222,29 @@ export default function ActiveInterview() {
           <View className="bg-green-100 p-4 rounded-full mb-4">
             <Ionicons name="checkmark-circle" size={60} color="#10b981" />
           </View>
-          <Text className="text-3xl font-black text-gray-900 tracking-tighter ">
+          <Text className="text-3xl font-black text-slate-900 tracking-tighter ">
             INTERVIEW<Text className="text-pink-500">COMPLETE</Text>
           </Text>
-          <Text className="text-gray-500 mt-2">Evaluation results are ready</Text>
+          <Text className="text-slate-500 mt-2">Evaluation results are ready</Text>
         </View>
 
         <ScrollView className="flex-1 mb-6" showsVerticalScrollIndicator={false}>
           {/* Score Row */}
           <View className="flex-row gap-4 mb-6">
-            <View className="flex-1 bg-gray-50 p-5 rounded-3xl border border-gray-100 items-center">
-              <Text className="text-gray-400 font-bold text-xs uppercase mb-1">Technical</Text>
-              <Text className="text-3xl font-black text-pink-600">{report.technical_score}<Text className="text-gray-300 text-lg">/10</Text></Text>
+            <View className="flex-1 bg-slate-50 p-5 rounded-3xl border border-slate-100 items-center">
+              <Text className="text-slate-500 font-bold text-xs uppercase mb-1">Technical</Text>
+              <Text className="text-3xl font-black text-pink-600">{report.technical_score}<Text className="text-slate-300 text-lg">/10</Text></Text>
             </View>
-            <View className="flex-1 bg-gray-50 p-5 rounded-3xl border border-gray-100 items-center">
-              <Text className="text-gray-400 font-bold text-xs uppercase mb-1">Soft Skills</Text>
-              <Text className="text-3xl font-black text-blue-600">{report.communication_score}<Text className="text-gray-300 text-lg">/10</Text></Text>
+            <View className="flex-1 bg-slate-50 p-5 rounded-3xl border border-slate-100 items-center">
+              <Text className="text-slate-500 font-bold text-xs uppercase mb-1">Soft Skills</Text>
+              <Text className="text-3xl font-black text-blue-600">{report.communication_score}<Text className="text-slate-300 text-lg">/10</Text></Text>
             </View>
           </View>
 
           {/* Summary */}
-          <View className="bg-gray-50 p-6 rounded-3xl border border-gray-100 mb-6">
-            <Text className="text-gray-900 font-bold mb-2">Detailed Summary</Text>
-            <Text className="text-gray-600 leading-6">{report.summary}</Text>
+          <View className="bg-slate-50 p-6 rounded-3xl border border-slate-100 mb-6">
+            <Text className="text-slate-900 font-bold mb-2">Detailed Summary</Text>
+            <Text className="text-slate-600 leading-6">{report.summary}</Text>
           </View>
 
           {/* Verdict */}
@@ -257,25 +257,25 @@ export default function ActiveInterview() {
           {/* Lists */}
           <View className="gap-6">
             <View>
-              <Text className="text-gray-900 font-bold mb-3 flex-row items-center">
+              <Text className="text-slate-900 font-bold mb-3 flex-row items-center">
                 <Ionicons name="star" size={16} color="#eab308" /> Strengths
               </Text>
               {report.strengths.map((s: string, i: number) => (
                 <View key={i} className="flex-row items-start mb-2 bg-green-50/50 p-3 rounded-xl">
                   <Ionicons name="caret-forward" size={14} color="#10b981" style={{ marginTop: 4, marginRight: 8 }} />
-                  <Text className="text-gray-700 flex-1">{s}</Text>
+                  <Text className="text-slate-700 flex-1">{s}</Text>
                 </View>
               ))}
             </View>
 
             <View>
-              <Text className="text-gray-900 font-bold mb-3">
+              <Text className="text-slate-900 font-bold mb-3">
                 <Ionicons name="build" size={16} color="#3b82f6" /> Areas of Improvement
               </Text>
               {report.improvements.map((s: string, i: number) => (
                 <View key={i} className="flex-row items-start mb-2 bg-blue-50/50 p-3 rounded-xl">
                   <Ionicons name="caret-forward" size={14} color="#3b82f6" style={{ marginTop: 4, marginRight: 8 }} />
-                  <Text className="text-gray-700 flex-1">{s}</Text>
+                  <Text className="text-slate-700 flex-1">{s}</Text>
                 </View>
               ))}
             </View>
@@ -293,9 +293,9 @@ export default function ActiveInterview() {
 
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            className="w-full bg-white border border-gray-200 py-5 rounded-2xl items-center"
+            className="w-full bg-white border border-slate-200 py-5 rounded-2xl items-center"
           >
-            <Text className="text-gray-500 font-bold text-lg uppercase tracking-widest">Close</Text>
+            <Text className="text-slate-500 font-bold text-lg uppercase tracking-widest">Close</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -311,7 +311,7 @@ export default function ActiveInterview() {
           <Ionicons name="chevron-back" size={28} color="#1f2937" />
         </TouchableOpacity>
 
-        <View className="bg-gray-50 px-4 py-2 rounded-full border border-gray-100 flex-row items-center gap-2">
+        <View className="bg-slate-50 px-4 py-2 rounded-full border border-slate-100 flex-row items-center gap-2">
           <Ionicons name="time-outline" size={20} color={timeLeft < 60 ? "#ef4444" : "#ec4899"} />
           <Text className={`font-mono text-xl font-bold ${timeLeft < 60 ? 'text-red-500' : 'text-pink-500'}`}>
             {formatTime(timeLeft)}
@@ -325,7 +325,7 @@ export default function ActiveInterview() {
         <View className={`w-56 h-56 rounded-full border-2 items-center justify-center mb-8 shadow-sm
             ${aiState === 'SPEAKING' ? 'border-pink-500 bg-pink-50' :
             aiState === 'PROCESSING' ? 'border-blue-500 bg-blue-50' :
-              aiState === 'LISTENING' ? 'border-red-500 bg-red-50' : 'border-gray-100 bg-gray-50'}`}
+              aiState === 'LISTENING' ? 'border-red-500 bg-red-50' : 'border-slate-100 bg-slate-50'}`}
         >
           {aiState === 'PROCESSING' ? (
             <ActivityIndicator size="large" color="#3b82f6" />
@@ -336,13 +336,13 @@ export default function ActiveInterview() {
                 size={60}
                 color={aiState === 'LISTENING' ? "#ef4444" : "#ec4899"}
               />
-              <Text className="text-[10px] font-black text-pink-300 uppercase tracking-tighter mt-2">Laura AI</Text>
+              <Text className="text-2xs font-black text-pink-300 uppercase tracking-tighter mt-2">Laura AI</Text>
             </View>
           )}
         </View>
 
-        <View className="bg-gray-50 px-8 py-6 rounded-3xl w-full min-h-[140px] justify-center border border-gray-100">
-          <Text className="text-gray-800 text-center text-xl leading-8 font-semibold ">
+        <View className="bg-slate-50 px-8 py-6 rounded-3xl w-full min-h-[140px] justify-center border border-slate-100">
+          <Text className="text-slate-800 text-center text-xl leading-8 font-semibold ">
             "{currentQuestion}"
           </Text>
         </View>
@@ -350,7 +350,7 @@ export default function ActiveInterview() {
 
       {/* Controls */}
       <View className="items-center w-full gap-8 mb-4">
-        <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest">
+        <Text className="text-slate-500 text-xs font-bold uppercase tracking-wide">
           {aiState === 'SPEAKING' ? "Laura is speaking..." :
             aiState === 'LISTENING' ? "Release when done" :
               aiState === 'PROCESSING' ? "Thinking..." : "Hold to answer"}
@@ -370,7 +370,7 @@ export default function ActiveInterview() {
             onPressOut={stopRecordingAndSend}
             className={`w-28 h-28 rounded-full items-center justify-center shadow-lg
                     ${aiState === 'LISTENING' ? 'bg-red-500 scale-110' :
-                aiState === 'SPEAKING' || aiState === 'PROCESSING' ? 'bg-gray-200 opacity-50' : 'bg-pink-600'}`}
+                aiState === 'SPEAKING' || aiState === 'PROCESSING' ? 'bg-slate-200 opacity-50' : 'bg-pink-600'}`}
           >
             <Ionicons name={aiState === 'LISTENING' ? "mic" : "mic-outline"} size={48} color="white" />
           </TouchableOpacity>

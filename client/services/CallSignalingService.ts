@@ -1,10 +1,9 @@
 // Socket.io based WebRTC signaling service
 // Replaces Supabase Realtime for audio/video call signaling
 
-import { io, Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 import axios from '../context/axiosConfig';
-
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+import sharedSocket from '../utils/socket';
 
 interface OnlineUser {
   _id: string;
@@ -30,30 +29,13 @@ class CallSignalingService {
   onUserStatus: ((data: { userId: string; status: string }) => void) | null = null;
 
   connect(userId: string) {
-    if (this.socket?.connected) return;
-    
+    // Reuse the app-wide authenticated socket instead of opening a second
+    // connection. The server rejects handshakes without a JWT, and signaling
+    // needs the same `user:<id>` room presence the shared socket already has.
+    if (this.socket) return;
+
     this.userId = userId;
-    this.socket = io(BACKEND_URL, {
-      transports: ['websocket', 'polling'],
-      query: { userId },
-      autoConnect: true,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
-
-    this.socket.on('connect', () => {
-      console.log('📞 Call signaling connected:', this.socket?.id);
-      this.socket?.emit('identity', userId);
-    });
-
-    this.socket.on('disconnect', (reason) => {
-      console.log('📞 Call signaling disconnected:', reason);
-    });
-
-    this.socket.on('connect_error', (error) => {
-      console.error('📞 Call signaling error:', error);
-    });
+    this.socket = sharedSocket;
 
     // Call signaling events
     this.socket.on('call:incoming', (data) => {
@@ -101,11 +83,17 @@ class CallSignalingService {
   }
 
   disconnect() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-      this.userId = null;
+    if (!this.socket) return;
+    // Detach this service's listeners only; the socket is shared app-wide and
+    // logout is what actually tears it down.
+    for (const event of [
+      'call:incoming', 'call:answered', 'call:ice-candidate', 'call:ended',
+      'call:rejected', 'call:busy', 'call:failed', 'initialOnlineList', 'statusUpdate',
+    ]) {
+      this.socket.off(event);
     }
+    this.socket = null;
+    this.userId = null;
   }
 
   // Call methods

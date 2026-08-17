@@ -25,6 +25,11 @@ export const createClub = async (req, res) => {
         const { name, description, category } = req.body;
         const creatorId = req.user?.id || req.user?._id;
         if (!creatorId) return res.status(401).json({ success: false, message: "Unauthorized" });
+        // Without this the missing field reached Mongoose and came back as a 500
+        // carrying the raw schema message.
+        if (!name || !String(name).trim()) {
+            return res.status(400).json({ success: false, message: "Club name is required" });
+        }
         
         const existing = await Club.findOne({ name });
         if (existing) return res.status(400).json({ success: false, message: "Club name already exists" });
@@ -115,7 +120,8 @@ export const updateClub = async (req, res) => {
         const adminId = req.user?.id || req.user?._id;
         if (!adminId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const club = await Club.findById(clubId);
-        
+        if (!club) return res.status(404).json({ success: false, message: "Club not found" });
+
         if (!hasId(club.admins, adminId)) return res.status(403).json({ success: false, message: "Unauthorized" });
 
         if (name) club.name = name;
@@ -155,7 +161,8 @@ export const updateSubGroup = async (req, res) => {
         const adminId = req.user?.id || req.user?._id;
         if (!adminId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const subGroup = await SubGroup.findById(subGroupId).populate('clubId');
-        
+        if (!subGroup?.clubId) return res.status(404).json({ success: false, message: "Sub-group not found" });
+
         const isClubAdmin = hasId(subGroup.clubId.admins, adminId);
         const isSubAdmin = hasId(subGroup.admins, adminId);
         
@@ -189,6 +196,7 @@ export const getSubGroupMembers = async (req, res) => {
             .populate('members', 'name username avatar')
             .populate('admins', '_id')
             .populate('joinRequests', 'name username avatar');
+        if (!subGroup) return res.status(404).json({ success: false, message: "Sub-group not found" });
             
         return res.status(200).json({ 
             success: true, 
@@ -207,6 +215,7 @@ export const toggleSubGroupAdmin = async (req, res) => {
         const adminId = req.user?.id || req.user?._id;
         if (!adminId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const subGroup = await SubGroup.findById(subGroupId).populate('clubId');
+        if (!subGroup?.clubId) return res.status(404).json({ success: false, message: "Sub-group not found" });
 
         // Only Main Club Admins can toggle Sub-Admins
         if (!hasId(subGroup.clubId.admins, adminId)) {
@@ -236,7 +245,9 @@ export const requestToJoinClub = async (req, res) => {
         const userId = req.user?.id || req.user?._id;
         if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const club = await Club.findById(clubId);
-        
+        if (!club) return res.status(404).json({ success: false, message: "Club not found" });
+        if (!club) return res.status(404).json({ success: false, message: "Club not found" });
+
         if (hasId(club.members, userId)) return res.status(400).json({ success: false, message: "Already a member" });
         if (hasId(club.joinRequests, userId)) return res.status(400).json({ success: false, message: "Request already pending" });
 
@@ -255,6 +266,7 @@ export const handleJoinRequest = async (req, res) => {
         const adminId = req.user?.id || req.user?._id;
         if (!adminId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const club = await Club.findById(clubId);
+        if (!club) return res.status(404).json({ success: false, message: "Club not found" });
 
         if (!hasId(club.admins, adminId)) return res.status(403).json({ success: false, message: "Unauthorized" });
 
@@ -373,6 +385,8 @@ export const inviteUser = async (req, res) => {
         const adminId = req.user?.id || req.user?._id;
         if (!adminId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const club = await Club.findById(clubId);
+        if (!club) return res.status(404).json({ success: false, message: "Club not found" });
+
         if (!hasId(club.admins, adminId)) return res.status(403).json({ success: false, message: "Unauthorized" });
 
         if (hasId(club.members, targetUserId)) return res.status(400).json({ success: false, message: "User already a member" });
@@ -393,7 +407,8 @@ export const acceptInvitation = async (req, res) => {
         const userId = req.user?.id || req.user?._id;
         if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const club = await Club.findById(clubId);
-        
+        if (!club) return res.status(404).json({ success: false, message: "Club not found" });
+
         if (!hasId(club.invitations, userId)) return res.status(400).json({ success: false, message: "No invitation found" });
 
         club.members.push(userId);
@@ -652,6 +667,8 @@ export const removeFromClub = async (req, res) => {
         const adminId = req.user?.id || req.user?._id;
         if (!adminId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const club = await Club.findById(clubId);
+        if (!club) return res.status(404).json({ success: false, message: "Club not found" });
+
         if (!hasId(club.admins, adminId)) return res.status(403).json({ success: false, message: "Unauthorized" });
 
         if (hasId(club.admins, targetUserId)) {
@@ -678,7 +695,8 @@ export const removeFromSubGroup = async (req, res) => {
         const adminId = req.user?.id || req.user?._id;
         if (!adminId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const subGroup = await SubGroup.findById(subGroupId).populate('clubId');
-        
+        if (!subGroup?.clubId) return res.status(404).json({ success: false, message: "Sub-group not found" });
+
         const isClubAdmin = hasId(subGroup.clubId.admins, adminId);
         const isSubAdmin = hasId(subGroup.admins, adminId);
         if (!isClubAdmin && !isSubAdmin) return res.status(403).json({ success: false, message: "Unauthorized" });

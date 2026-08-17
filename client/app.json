@@ -42,7 +42,14 @@
         "expo-build-properties",
         {
           "android": {
-            "allowBackup": false
+            "allowBackup": false,
+            "usesCleartextTraffic": false,
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "minSdkVersion": 24
+          },
+          "ios": {
+            "deploymentTarget": "15.1"
           }
         }
       ],
@@ -79,11 +86,7 @@
       "googleServicesFile": "./GoogleService-Info.plist",
       "associatedDomains": [
         "applinks:fync-api.duckdns.org"
-      ],
-      "infoPlist": {
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Used to show campus crowd density",
-        "NSLocationAlwaysUsageDescription": "Used to show campus crowd density"
-      }
+      ]
     },
     "android": {
       "intentFilters": [
@@ -104,12 +107,8 @@
         }
       ],
       "permissions": [
-        "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.ACCESS_BACKGROUND_LOCATION",
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
         "android.permission.ACCESS_MEDIA_LOCATION",
         "android.permission.READ_MEDIA_IMAGES",
@@ -123,7 +122,8 @@
       },
       "package": "com.naimishomar.fync",
       "googleServicesFile": "./google-services.json",
-      "softwareKeyboardLayoutMode": "resize"
+      "softwareKeyboardLayoutMode": "resize",
+      "versionCode": 1
     },
     "extra": {
       "eas": {

@@ -14,11 +14,12 @@ import { resumeUpload, upload } from "../../utils/r2.js";
 import { r2UploadMiddleware } from "../../utils/r2Upload.js";
 
 import { cacheMiddleware } from "../../middlewares/cache.middleware.js";
+import { feedLimiter } from "../../middlewares/rateLimit.middleware.js";
 
 const router = express.Router();
 
 // ─── Full Profile ─────────────────────────────────────────────────────────────
-router.get("/full/:userId",        verifyToken, cacheMiddleware(300), getFullProfile);
+router.get("/full/:userId",        verifyToken, cacheMiddleware(300, { tags: (req) => [`profile:${req.params.userId}`] }), getFullProfile);
 router.patch("/visibility",        verifyToken, updateVisibility);
 
 // ─── Projects ─────────────────────────────────────────────────────────────────
@@ -44,7 +45,7 @@ router.patch("/certificates/:id",                 verifyToken, upload.single('im
 router.delete("/certificates/:id",               verifyToken, deleteCertificate);
 
 // ─── Fync Score ───────────────────────────────────────────────────────────────
-router.get("/score/:userId",                      verifyToken, cacheMiddleware(300), getScore);
+router.get("/score/:userId",                      verifyToken, cacheMiddleware(300, { tags: (req) => [`profile:${req.params.userId}`] }), getScore);
 router.post("/score/recalculate",                 verifyToken, recalculateScore);
 
 // ─── GitHub OAuth ─────────────────────────────────────────────────────────────
@@ -55,7 +56,10 @@ router.delete("/github/disconnect",               verifyToken, disconnectGitHub)
 
 // ─── Resume ───────────────────────────────────────────────────────────────────
 // PDF download (no auth — shareable public link)
-router.get("/resume/:userId/pdf",                 generateResumePDF);
+// Was fully public: any guessed user id returned a PDF containing that
+// user's email and profile. Also CPU-heavy to render, so it is rate limited
+// — an open PDF generator is a cheap way to pin a small instance.
+router.get("/resume/:userId/pdf",                 verifyToken, feedLimiter, generateResumePDF);
 router.post("/resume/upload",                     verifyToken, resumeUpload.single('resume'), r2UploadMiddleware({ __single__: 'resumes' }), uploadResume);
 
 // ─── Education ────────────────────────────────────────────────────────────────

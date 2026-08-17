@@ -138,7 +138,7 @@ export default function RecruiterEditProfile() {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="close" size={24} color="#1f2937" />
         </TouchableOpacity>
-        <Text className="text-zinc-900 font-black  uppercase text-xs tracking-widest">Global Profile Settings</Text>
+        <Text className="text-slate-900 font-black  uppercase text-xs tracking-wide">Global Profile Settings</Text>
         <TouchableOpacity
           onPress={handleUpdate}
           disabled={loading || !hasChanges}
@@ -147,7 +147,7 @@ export default function RecruiterEditProfile() {
           {loading ? (
             <ActivityIndicator size="small" color="white" />
           ) : (
-            <Text className="text-white font-black  uppercase text-[10px] tracking-widest">Save</Text>
+            <Text className="text-white font-black  uppercase text-2xs tracking-wide">Save</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -161,7 +161,7 @@ export default function RecruiterEditProfile() {
           ) : (
             <View className="flex-1 items-center justify-center">
               <Ionicons name="image-outline" size={32} color="#94a3b8" />
-              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-2">Add Banner</Text>
+              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-2">Add Banner</Text>
             </View>
           )}
           <View className="absolute bottom-3 right-3 bg-white/90 p-2 rounded-full shadow-md">
@@ -180,7 +180,7 @@ export default function RecruiterEditProfile() {
               <Ionicons name="pencil" size={14} color="white" />
             </View>
           </TouchableOpacity>
-          <Text className="text-slate-400 text-[8px] font-black uppercase tracking-widest mt-3">Company Logo / Profile</Text>
+          <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-3">Company Logo / Profile</Text>
         </View>
 
         <View className="px-5 mt-8 pb-10 gap-6">
@@ -211,9 +211,9 @@ export default function RecruiterEditProfile() {
               <InputGroup label="Role / Designation" value={role} onChange={setRole} placeholder="e.g. Head of Talent" />
 
               <View>
-                <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest mb-1.5 ml-1">Username (Fixed)</Text>
+                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-1.5 ml-1">Username (Fixed)</Text>
                 <View className="bg-slate-100 p-4 rounded-2xl border border-slate-200">
-                  <Text className="text-slate-400 font-bold text-sm">@{user?.username}</Text>
+                  <Text className="text-slate-500 font-bold text-sm">@{user?.username}</Text>
                 </View>
               </View>
             </View>
@@ -247,17 +247,17 @@ const SectionHeader = ({ title, icon, color }: any) => (
   <View className="flex-row items-center gap-2 mb-4">
     <View className="w-1 h-5 rounded-full" style={{ backgroundColor: color }} />
     <Ionicons name={icon} size={16} color={color} />
-    <Text className="text-zinc-900 font-black  uppercase text-[11px] tracking-wide">{title}</Text>
+    <Text className="text-slate-900 font-black  uppercase text-2xs tracking-wide">{title}</Text>
   </View>
 );
 
 const InputGroup = ({ label, value, onChange, placeholder, multiline = false, keyboardType = 'default' }: any) => (
   <View>
-    <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest mb-1.5 ml-1">{label}</Text>
+    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-1.5 ml-1">{label}</Text>
     <TextInput
       value={value}
       onChangeText={onChange}
-      className={`bg-slate-50 text-zinc-900 p-4 rounded-2xl text-sm font-bold border border-slate-100 ${multiline ? 'min-h-[100px]' : ''}`}
+      className={`bg-slate-50 text-slate-900 p-4 rounded-2xl text-sm font-bold border border-slate-100 ${multiline ? 'min-h-[100px]' : ''}`}
       placeholder={placeholder}
       placeholderTextColor="#94a3b8"
       multiline={multiline}

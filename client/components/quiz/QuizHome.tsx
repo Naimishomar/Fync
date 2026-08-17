@@ -27,7 +27,7 @@ const LightCard = ({ title, subtitle, onPress, iconName, neonColor }: CyberCardP
             })}
         >
             <View
-                className="bg-white rounded-[32px] p-5 shadow-sm shadow-black/5 border border-slate-100 flex-row items-center"
+                className="bg-white rounded-4xl p-5 shadow-sm shadow-black/5 border border-slate-100 flex-row items-center"
             >
                 {/* Left Box Icon */}
                 <View
@@ -39,10 +39,10 @@ const LightCard = ({ title, subtitle, onPress, iconName, neonColor }: CyberCardP
 
                 {/* Center: Text */}
                 <View className="flex-1">
-                    <Text className="text-zinc-900 text-lg font-black  tracking-tight uppercase">
+                    <Text className="text-slate-900 text-lg font-black  tracking-tight uppercase">
                         {title}
                     </Text>
-                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">
+                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">
                         {subtitle}
                     </Text>
                 </View>
@@ -73,10 +73,10 @@ const QuizHome = () => {
                                 <Ionicons name="trophy" size={24} color="white" />
                             </View>
                             <View>
-                                <Text className="text-zinc-900 text-4xl font-black  tracking-tighter">
+                                <Text className="text-slate-900 text-4xl font-black  tracking-tighter">
                                     QUIZ <Text className="text-pink-500">ARENA</Text>
                                 </Text>
-                                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-0.5">
+                                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">
                                     GLOBAL BATTLEGROUND SITE
                                 </Text>
                             </View>
@@ -128,7 +128,7 @@ const QuizHome = () => {
                     {/* --- BOTTOM DECORATION --- */}
                     <View className="items-center mt-8 mb-12 opacity-50">
                         <View className="h-[1px] w-full bg-slate-200 mb-6" />
-                        <Text className="text-slate-400 font-bold text-[10px] tracking-widest uppercase">System Protocol Active • V.2.0.4</Text>
+                        <Text className="text-slate-500 font-bold text-2xs tracking-wide uppercase">System Protocol Active • V.2.0.4</Text>
                     </View>
 
 

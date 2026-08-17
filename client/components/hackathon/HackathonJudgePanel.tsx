@@ -55,9 +55,9 @@ const ScoreSlider = ({
     <View className="mb-6">
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-1 mr-3">
-          <Text className="text-zinc-800 font-black text-sm">{criterion.name}</Text>
+          <Text className="text-slate-800 font-black text-sm">{criterion.name}</Text>
           {criterion.description && (
-            <Text className="text-slate-400 text-xs mt-0.5">{criterion.description}</Text>
+            <Text className="text-slate-500 text-xs mt-0.5">{criterion.description}</Text>
           )}
         </View>
         <View className="bg-indigo-600 rounded-xl px-3 py-1.5 min-w-[44px] items-center">
@@ -68,7 +68,7 @@ const ScoreSlider = ({
       {/* Weight badge */}
       <View className="flex-row items-center mb-3">
         <View className="bg-amber-100 rounded-lg px-2.5 py-1">
-          <Text className="text-amber-700 font-black text-[10px] uppercase tracking-widest">
+          <Text className="text-amber-700 font-black text-2xs uppercase tracking-wide">
             Weight: {criterion.weightage}%
           </Text>
         </View>
@@ -133,18 +133,18 @@ const PendingCard = ({
   >
     <View className="flex-row items-start justify-between mb-2">
       <View className="flex-1 mr-3">
-        <Text className="text-zinc-900 font-black  text-base leading-5">{sub.ProjectName}</Text>
+        <Text className="text-slate-900 font-black  text-base leading-5">{sub.ProjectName}</Text>
         {sub.tagline && <Text className="text-slate-500 text-xs mt-0.5" numberOfLines={1}>{sub.tagline}</Text>}
       </View>
       <View className="bg-amber-100 rounded-xl px-2.5 py-1">
-        <Text className="text-amber-700 font-black text-[10px] uppercase">Pending</Text>
+        <Text className="text-amber-700 font-black text-2xs uppercase">Pending</Text>
       </View>
     </View>
 
     {sub.team && (
       <View className="flex-row items-center mb-3">
         <Ionicons name="people-outline" size={12} color="#94a3b8" />
-        <Text className="text-slate-400 text-xs font-semibold ml-1">{sub.team.name}</Text>
+        <Text className="text-slate-500 text-xs font-semibold ml-1">{sub.team.name}</Text>
       </View>
     )}
 
@@ -157,7 +157,7 @@ const PendingCard = ({
       >
         <View className="py-3 flex-row items-center justify-center">
           <Ionicons name="star" size={14} color="white" />
-          <Text className="text-white font-black uppercase tracking-widest text-xs ml-2">Score This</Text>
+          <Text className="text-white font-black uppercase tracking-wide text-xs ml-2">Score This</Text>
         </View>
       </LinearGradient>
     </TouchableOpacity>
@@ -308,7 +308,7 @@ const HackathonJudgePanel = () => {
             </TouchableOpacity>
             <View className="flex-1">
               <Text className="text-white text-xl font-black  tracking-tight">Judge Panel</Text>
-              <Text className="text-indigo-300 text-[10px] font-black uppercase tracking-widest">
+              <Text className="text-indigo-300 text-2xs font-black uppercase tracking-wide">
                 Review & Score Submissions
               </Text>
             </View>
@@ -323,7 +323,7 @@ const HackathonJudgePanel = () => {
               onPress={() => setActiveTab('pending')}
               className={`flex-1 rounded-2xl px-4 py-3 border ${activeTab === 'pending' ? 'bg-white border-white' : 'bg-white/10 border-white/10'}`}
             >
-              <Text className={`text-center font-black uppercase tracking-widest text-[10px] ${activeTab === 'pending' ? 'text-indigo-900' : 'text-white/60'}`}>
+              <Text className={`text-center font-black uppercase tracking-widest text-2xs ${activeTab === 'pending' ? 'text-indigo-900' : 'text-white/60'}`}>
                 To Score ({pending.length})
               </Text>
             </TouchableOpacity>
@@ -331,7 +331,7 @@ const HackathonJudgePanel = () => {
               onPress={() => setActiveTab('scored')}
               className={`flex-1 rounded-2xl px-4 py-3 border ${activeTab === 'scored' ? 'bg-white border-white' : 'bg-white/10 border-white/10'}`}
             >
-              <Text className={`text-center font-black uppercase tracking-widest text-[10px] ${activeTab === 'scored' ? 'text-indigo-900' : 'text-white/60'}`}>
+              <Text className={`text-center font-black uppercase tracking-widest text-2xs ${activeTab === 'scored' ? 'text-indigo-900' : 'text-white/60'}`}>
                 Scored ({scoredSubmissions.length})
               </Text>
             </TouchableOpacity>
@@ -347,13 +347,13 @@ const HackathonJudgePanel = () => {
       ) : activeTab === 'pending' ? (
         pending.length === 0 ? (
           <View className="flex-1 items-center justify-center px-10">
-            <LinearGradient colors={['#d1fae5', '#a7f3d0']} className="w-24 h-24 rounded-[32px] items-center justify-center mb-5">
+            <LinearGradient colors={['#d1fae5', '#a7f3d0']} className="w-24 h-24 rounded-4xl items-center justify-center mb-5">
               <Ionicons name="checkmark-circle" size={44} color="#10b981" />
             </LinearGradient>
-            <Text className="text-zinc-900 font-black  text-xl tracking-tight text-center uppercase mb-2">
+            <Text className="text-slate-900 font-black  text-xl tracking-tight text-center uppercase mb-2">
               All Scored!
             </Text>
-            <Text className="text-slate-400 text-center font-semibold text-xs uppercase tracking-widest">
+            <Text className="text-slate-500 text-center font-semibold text-xs uppercase tracking-wide">
               You have scored all submissions for this hackathon.
             </Text>
           </View>
@@ -375,20 +375,20 @@ const HackathonJudgePanel = () => {
           renderItem={({ item }) => (
             <View className="bg-white rounded-2xl p-4 mb-3 border border-slate-100 opacity-80">
               <View className="flex-row items-center justify-between mb-2">
-                <Text className="text-zinc-900 font-bold flex-1 mr-2">{item.submission?.ProjectName || 'Unknown Project'}</Text>
+                <Text className="text-slate-900 font-bold flex-1 mr-2">{item.submission?.ProjectName || 'Unknown Project'}</Text>
                 <View className="bg-indigo-50 px-2 py-1 rounded-lg">
                   <Text className="text-indigo-600 font-black text-xs">{item.totalScore}/10</Text>
                 </View>
               </View>
               <TouchableOpacity onPress={() => openScoring(item)}>
-                <Text className="text-indigo-500 font-black text-[10px] uppercase tracking-widest text-right">Edit Score →</Text>
+                <Text className="text-indigo-500 font-black text-2xs uppercase tracking-wide text-right">Edit Score →</Text>
               </TouchableOpacity>
             </View>
           )}
           ListEmptyComponent={() => (
             <View className="flex-1 items-center justify-center mt-20">
               <Ionicons name="star-outline" size={48} color="#cbd5e1" />
-              <Text className="text-slate-400 font-black  mt-4">No scored items yet</Text>
+              <Text className="text-slate-500 font-black  mt-4">No scored items yet</Text>
             </View>
           )}
         />
@@ -401,10 +401,10 @@ const HackathonJudgePanel = () => {
             {/* Modal Header */}
             <View className="flex-row items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 bg-white">
               <View className="flex-1 mr-4">
-                <Text className="text-zinc-900 font-black  text-lg" numberOfLines={1}>
+                <Text className="text-slate-900 font-black  text-lg" numberOfLines={1}>
                   {selectedSub?.ProjectName}
                 </Text>
-                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Score Submission</Text>
+                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Score Submission</Text>
               </View>
               <TouchableOpacity onPress={() => setScoringModal(false)}>
                 <Ionicons name="close" size={24} color="#64748b" />
@@ -422,7 +422,7 @@ const HackathonJudgePanel = () => {
                 className="rounded-2xl px-5 py-4 mb-6 flex-row items-center justify-between"
               >
                 <View>
-                  <Text className="text-indigo-500 text-[10px] font-black uppercase tracking-widest">Weighted Total</Text>
+                  <Text className="text-indigo-500 text-2xs font-black uppercase tracking-wide">Weighted Total</Text>
                   <Text className="text-indigo-900 font-black text-3xl">{computeTotalScore()}<Text className="text-indigo-400 text-lg">/10</Text></Text>
                 </View>
                 <Ionicons name="star" size={32} color="#6366f1" />
@@ -453,7 +453,7 @@ const HackathonJudgePanel = () => {
 
               {/* Feedback */}
               <View className="mb-6">
-                <Text className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">
+                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-2">
                   Feedback <Text className="text-slate-300">(optional)</Text>
                 </Text>
                 <TextInput
@@ -464,7 +464,7 @@ const HackathonJudgePanel = () => {
                   multiline
                   numberOfLines={4}
                   textAlignVertical="top"
-                  className="bg-white rounded-2xl px-4 py-3.5 text-zinc-900 font-semibold border border-slate-200 h-28"
+                  className="bg-white rounded-2xl px-4 py-3.5 text-slate-900 font-semibold border border-slate-200 h-28"
                 />
               </View>
 

@@ -13,11 +13,11 @@ router.use((req, res, next) => {
 });
 
 router.post('/create', authMiddleware, createLimiter, videoUpload.single('video'), r2UploadMiddleware({ __single__: 'video' }), createShorts);
-router.get('/all', authMiddleware, feedLimiter, cacheMiddleware(60), fetchShorts);
-router.get('/your', authMiddleware, cacheMiddleware(300), getYourShorts);
+router.get('/all', authMiddleware, feedLimiter, cacheMiddleware(60, { tags: ['shorts'] }), fetchShorts);
+router.get('/your', authMiddleware, cacheMiddleware(300, { tags: (req) => [`shorts:user:${req.user.id}`] }), getYourShorts);
 router.post('/smart', authMiddleware, feedLimiter, getSmartShorts);
 
-router.get('/feed/:userId', authMiddleware, cacheMiddleware(1), getShortsByUserId);
+router.get('/feed/:userId', authMiddleware, cacheMiddleware(1, { tags: (req) => [`shorts:user:${req.params.userId}`] }), getShortsByUserId);
 
 router.post('/update/:id', authMiddleware, videoUpload.single('video'), r2UploadMiddleware({ __single__: 'video' }), updateShort);
 router.post('/delete/:id', authMiddleware, deleteShort);
@@ -25,13 +25,13 @@ router.delete('/delete/:id', authMiddleware, deleteShort); // Keep DELETE for co
 
 
 // Individual and user specific
-router.get('/user/:userId', authMiddleware, cacheMiddleware(300), getShortsByUserId);
-router.get('/individual/:shortId', authMiddleware, cacheMiddleware(300), getShortByShortId);
+router.get('/user/:userId', authMiddleware, cacheMiddleware(300, { tags: (req) => [`shorts:user:${req.params.userId}`] }), getShortsByUserId);
+router.get('/individual/:shortId', authMiddleware, cacheMiddleware(300, { tags: (req) => [`short:${req.params.shortId}`] }), getShortByShortId);
 
 // Interaction routes
 router.post('/like/:id', authMiddleware, likeAndUnlikeShort);
 router.post('/comment/:id', authMiddleware, addComment);
-router.get('/comments/:id', authMiddleware, cacheMiddleware(60), getAllComments);
+router.get('/comments/:id', authMiddleware, cacheMiddleware(60, { tags: (req) => [`short:${req.params.id}`] }), getAllComments);
 router.post('/comment/update/:id', authMiddleware, updateComment);
 router.post('/comment/delete/:id', authMiddleware, deleteComment);
 router.delete('/comment/:id', authMiddleware, deleteComment);

@@ -183,7 +183,7 @@ const ClubHubScreen = () => {
                         <View className="relative">
                             <Image 
                                 source={{ uri: club.logo || 'https://via.placeholder.com/150' }} 
-                                className="w-24 h-24 rounded-[32px] border-4 border-white/20 bg-white"
+                                className="w-24 h-24 rounded-4xl border-4 border-white/20 bg-white"
                             />
                             {hasAccess && <View className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full border-4 border-black" />}
                         </View>
@@ -191,15 +191,15 @@ const ClubHubScreen = () => {
                             <Text className="text-white text-3xl font-black uppercase tracking-tighter leading-tight" numberOfLines={2}>{club.name}</Text>
                             <View className="flex-row items-center bg-white/10 px-4 py-2 rounded-2xl border border-white/20 mt-3 self-start backdrop-blur-sm">
                                 <Feather name="users" size={12} color="white" />
-                                <Text className="text-white text-[9px] font-black uppercase tracking-widest ml-2">{club.members?.length || 0} Registered Personnel</Text>
+                                <Text className="text-white text-2xs font-black uppercase tracking-wide ml-2">{club.members?.length || 0} Registered Personnel</Text>
                             </View>
                         </View>
                     </View>
                 </View>
 
                 {/* About Section */}
-                <View className="px-8 py-10 bg-white rounded-b-[48px] shadow-sm">
-                    <Text className="text-slate-400 font-black uppercase text-[10px] tracking-[4px] mb-4">Briefing Details</Text>
+                <View className="px-8 py-10 bg-white rounded-b-5xl shadow-sm">
+                    <Text className="text-slate-400 font-black uppercase text-2xs tracking-wide mb-4">Briefing Details</Text>
                     <Text className="text-slate-600 leading-7 text-sm font-medium italic">
                         "{club.description || "The ultimate campus ecosystem for high-velocity growth and achievement."}"
                     </Text>
@@ -211,13 +211,13 @@ const ClubHubScreen = () => {
                         <View className="px-8 py-10">
                             <View className="flex-row justify-between items-center mb-8">
                                 <View>
-                                    <Text className="text-zinc-900 text-2xl font-black uppercase tracking-tighter">Secure <Text className="text-orange-500">Rooms</Text></Text>
-                                    <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[2px] mt-1">Authorized Sub-Domains</Text>
+                                    <Text className="text-slate-900 text-2xl font-black uppercase tracking-tighter">Secure <Text className="text-orange-500">Rooms</Text></Text>
+                                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">Authorized Sub-Domains</Text>
                                 </View>
                                 {isAdmin && (
                                     <TouchableOpacity 
                                         onPress={() => navigation.navigate('CreateSubGroup', { clubId: club._id })} 
-                                        className="w-12 h-12 bg-zinc-900 rounded-2xl items-center justify-center shadow-lg shadow-black/20"
+                                        className="w-12 h-12 bg-slate-900 rounded-2xl items-center justify-center shadow-lg shadow-black/20"
                                     >
                                         <Ionicons name="add" size={28} color="white" />
                                     </TouchableOpacity>
@@ -235,21 +235,21 @@ const ClubHubScreen = () => {
                                             activeOpacity={0.8}
                                             disabled={!isSubMember}
                                             onPress={() => isSubMember && navigation.navigate('SubGroupChat', { subGroupId: sub._id, subGroupName: sub.name, clubId: club._id })}
-                                            className={`p-6 rounded-[32px] border ${sub.isGeneral ? 'bg-zinc-900 border-zinc-800 shadow-xl shadow-black/20' : 'bg-white border-slate-100 shadow-sm'} mb-6 flex-row items-center`}
+                                            className={`p-6 rounded-4xl border ${sub.isGeneral ? 'bg-slate-900 border-slate-800 shadow-xl shadow-black/20' : 'bg-white border-slate-100 shadow-sm'} mb-6 flex-row items-center`}
                                         >
-                                            <View className={`w-16 h-16 rounded-[24px] items-center justify-center ${sub.isGeneral ? 'bg-zinc-800' : 'bg-slate-50 border border-slate-100'}`}>
+                                            <View className={`w-16 h-16 rounded-2xl items-center justify-center ${sub.isGeneral ? 'bg-slate-800' : 'bg-slate-50 border border-slate-100'}`}>
                                                 {sub.isGeneral ? (
                                                     <MaterialCommunityIcons name="shield-check" size={28} color="#f97316" />
                                                 ) : (
-                                                    <Image source={{ uri: sub.logo || 'https://via.placeholder.com/150' }} className="w-full h-full rounded-[24px]" />
+                                                    <Image source={{ uri: sub.logo || 'https://via.placeholder.com/150' }} className="w-full h-full rounded-2xl" />
                                                 )}
                                             </View>
                                             
                                             <View className="flex-1 ml-5 pr-4">
-                                                <Text className={`${sub.isGeneral ? 'text-white' : 'text-zinc-900'} font-black text-lg uppercase tracking-tighter`}>
+                                                <Text className={`${sub.isGeneral ? 'text-white' : 'text-slate-900'} font-black text-lg uppercase tracking-tighter`}>
                                                     {sub.name}
                                                 </Text>
-                                                <Text className={`${sub.isGeneral ? 'text-slate-500' : 'text-slate-400'} text-[10px] font-black uppercase tracking-widest mt-1`} numberOfLines={1}>
+                                                <Text className={`${sub.isGeneral ? 'text-slate-500' : 'text-slate-400'} text-2xs font-black uppercase tracking-widest mt-1`} numberOfLines={1}>
                                                     {sub.isGeneral ? "HQ / OFFICIAL CHANNEL" : sub.description || "SPECIALIZED SECTOR"}
                                                 </Text>
                                             </View>
@@ -258,7 +258,7 @@ const ClubHubScreen = () => {
                                                 <Ionicons name="chevron-forward" size={20} color={sub.isGeneral ? "#3f3f46" : "#cbd5e1"} />
                                             ) : isPendingJoin ? (
                                                 <View className="bg-slate-100 px-4 py-2 rounded-xl border border-slate-200">
-                                                    <Text className="text-slate-400 font-black text-[8px] uppercase tracking-widest">Pending</Text>
+                                                    <Text className="text-slate-400 font-black text-2xs uppercase tracking-wide">Pending</Text>
                                                 </View>
                                             ) : (
                                                 <TouchableOpacity 
@@ -267,7 +267,7 @@ const ClubHubScreen = () => {
                                                     className="bg-orange-600 px-5 py-3 rounded-2xl shadow-lg shadow-orange-600/30"
                                                 >
                                                     {joining === sub._id ? <ActivityIndicator size="small" color="white" /> : (
-                                                        <Text className="text-white font-black text-[9px] uppercase tracking-widest">Join</Text>
+                                                        <Text className="text-white font-black text-2xs uppercase tracking-wide">Join</Text>
                                                     )}
                                                 </TouchableOpacity>
                                             )}
@@ -275,17 +275,17 @@ const ClubHubScreen = () => {
                                     );
                                 })
                             ) : (
-                                <View className="items-center p-12 bg-white rounded-[40px] border border-dashed border-slate-200 mt-4">
+                                <View className="items-center p-12 bg-white rounded-5xl border border-dashed border-slate-200 mt-4">
                                     <Feather name="layers" size={48} color="#e5e7eb" />
-                                    <Text className="mt-4 text-slate-300 font-black text-[10px] uppercase tracking-[2px] text-center">No localized sub-domains established</Text>
+                                    <Text className="mt-4 text-slate-300 font-black text-2xs uppercase tracking-wide text-center">No localized sub-domains established</Text>
                                 </View>
                             )}
                         </View>
                     </>
                 ) : (
                     <View className="px-8 py-12 mt-4">
-                        <View className="bg-zinc-900 p-10 rounded-[48px] items-center shadow-2xl shadow-black/40">
-                            <View className="w-20 h-20 bg-zinc-800 rounded-[32px] items-center justify-center mb-8 border border-zinc-700">
+                        <View className="bg-slate-900 p-10 rounded-5xl items-center shadow-2xl shadow-black/40">
+                            <View className="w-20 h-20 bg-slate-800 rounded-4xl items-center justify-center mb-8 border border-slate-700">
                                 <Feather name="lock" size={32} color="#f97316" />
                             </View>
                             <Text className="text-white text-2xl font-black uppercase tracking-tighter text-center">Protocol Restricted</Text>
@@ -294,24 +294,24 @@ const ClubHubScreen = () => {
                             </Text>
 
                             {isPending ? (
-                                <View className="bg-zinc-800 py-5 px-10 rounded-3xl border border-zinc-700">
-                                    <Text className="text-orange-500 font-black uppercase tracking-[3px] text-[10px]">Clearance Request Pending</Text>
+                                <View className="bg-slate-800 py-5 px-10 rounded-3xl border border-slate-700">
+                                    <Text className="text-orange-500 font-black uppercase tracking-wide text-2xs">Clearance Request Pending</Text>
                                 </View>
                             ) : isInvited ? (
                                 <TouchableOpacity 
                                     onPress={() => navigation.navigate('ClubList')}
-                                    className="bg-orange-600 py-6 px-12 rounded-[32px] w-full items-center shadow-xl shadow-orange-600/30"
+                                    className="bg-orange-600 py-6 px-12 rounded-4xl w-full items-center shadow-xl shadow-orange-600/30"
                                 >
-                                    <Text className="text-white font-black uppercase tracking-[3px] text-[12px]">Accept Invitation</Text>
+                                    <Text className="text-white font-black uppercase tracking-wide text-xs">Accept Invitation</Text>
                                 </TouchableOpacity>
                             ) : (
                                 <TouchableOpacity 
                                     onPress={handleRequestAccess}
                                     disabled={requesting}
-                                    className="bg-white py-6 px-12 rounded-[32px] w-full items-center shadow-xl shadow-black/20"
+                                    className="bg-white py-6 px-12 rounded-4xl w-full items-center shadow-xl shadow-black/20"
                                 >
                                     {requesting ? <ActivityIndicator color="black" /> : (
-                                        <Text className="text-black font-black uppercase tracking-[3px] text-[12px]">Request Clearance</Text>
+                                        <Text className="text-black font-black uppercase tracking-wide text-xs">Request Clearance</Text>
                                     )}
                                 </TouchableOpacity>
                             )}

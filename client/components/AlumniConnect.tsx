@@ -307,17 +307,17 @@ const AlumniConnect = ({ navigation }: any) => {
                 )}
                 <View className={`ml-2 ${isMe ? "items-end" : "items-start"}`}>
                     {!isMe && (
-                        <Text className="text-[10px] text-gray-500 mb-1 ml-1">
+                        <Text className="text-2xs text-slate-500 mb-1 ml-1">
                             {sender?.name} {sender?.company ? `• ${sender.company}` : ""}
                         </Text>
                     )}
                     <Pressable
                         onLongPress={() => isMe && !item.pending && handleDeleteMessage(item._id)}
                         delayLongPress={500}
-                        className={`max-w-[280px] p-3 rounded-2xl ${isMe ? "bg-pink-600 rounded-br-none" : "bg-zinc-800 rounded-bl-none"} border border-white/5`}
+                        className={`max-w-[280px] p-3 rounded-2xl ${isMe ? "bg-pink-600 rounded-br-none" : "bg-slate-800 rounded-bl-none"} border border-white/5`}
                     >
                         {item.messageType === 'text' && (
-                            <Text className="text-white text-[15px]">{item.message}</Text>
+                            <Text className="text-white text-sm">{item.message}</Text>
                         )}
                         {item.messageType === 'image' && (
                             <Pressable onPress={() => { }}>
@@ -345,12 +345,12 @@ const AlumniConnect = ({ navigation }: any) => {
                                 <Ionicons name="document-text" size={24} color="#FFD700" />
                                 <View className="ml-2">
                                     <Text className="text-white text-xs font-bold" numberOfLines={1}>{item.fileName || "Document"}</Text>
-                                    <Text className="text-gray-400 text-[10px]">Tap to view (Limit 5MB)</Text>
+                                    <Text className="text-slate-500 text-2xs">Tap to view (Limit 5MB)</Text>
                                 </View>
                             </TouchableOpacity>
                         )}
                     </Pressable>
-                    <Text className="text-[8px] text-gray-600 mt-1">
+                    <Text className="text-2xs text-slate-600 mt-1">
                         {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>
                 </View>
@@ -406,7 +406,7 @@ const AlumniConnect = ({ navigation }: any) => {
 
                     {typingUsers.length > 0 && (
                         <View className="px-5 py-1">
-                            <Text className="text-gray-500 text-[10px] ">
+                            <Text className="text-slate-500 text-2xs ">
                                 {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
                             </Text>
                         </View>
@@ -414,7 +414,7 @@ const AlumniConnect = ({ navigation }: any) => {
 
                     {/* Input Bar */}
                     <View className="p-3 bg-black/80 border-t border-white/10">
-                        <View className="flex-row items-center bg-zinc-900 rounded-2xl px-3 py-1 border border-white/5">
+                        <View className="flex-row items-center bg-slate-900 rounded-2xl px-3 py-1 border border-white/5">
                             <Pressable onPress={handlePickMedia} className="p-2">
                                 <Ionicons name="image" size={22} color="gray" />
                             </Pressable>
@@ -427,7 +427,7 @@ const AlumniConnect = ({ navigation }: any) => {
                                 onChangeText={handleTyping}
                                 placeholder="Message your batch..."
                                 placeholderTextColor="gray"
-                                className="flex-1 text-white py-3 px-2 text-[15px]"
+                                className="flex-1 text-white py-3 px-2 text-sm"
                                 multiline
                             />
 
@@ -459,7 +459,7 @@ const AlumniConnect = ({ navigation }: any) => {
 
                         {/* Search Bar */}
                         <View className="px-6 py-4">
-                            <View className="flex-row items-center bg-zinc-900 rounded-xl px-4 py-2 border border-white/10">
+                            <View className="flex-row items-center bg-slate-900 rounded-xl px-4 py-2 border border-white/10">
                                 <Ionicons name="search" size={18} color="gray" />
                                 <TextInput
                                     placeholder="Search by name or company..."
@@ -486,11 +486,11 @@ const AlumniConnect = ({ navigation }: any) => {
                                     <Avatar user={item} size={50} />
                                     <View className="ml-4">
                                         <Text className="text-white font-bold text-base">{item.name}</Text>
-                                        <Text className="text-gray-400 text-xs">@{item.username}</Text>
+                                        <Text className="text-slate-500 text-xs">@{item.username}</Text>
                                         {item.company && (
                                             <View className="flex-row items-center mt-1">
                                                 <Ionicons name="briefcase" size={10} color="#FFD700" />
-                                                <Text className="text-pink-500 text-[10px] font-bold ml-1">{item.role} at {item.company}</Text>
+                                                <Text className="text-pink-500 text-2xs font-bold ml-1">{item.role} at {item.company}</Text>
                                             </View>
                                         )}
                                     </View>
@@ -500,7 +500,7 @@ const AlumniConnect = ({ navigation }: any) => {
                             ListEmptyComponent={
                                 <View className="flex-1 items-center justify-center mt-20">
                                     <ActivityIndicator size="small" color="#FFD700" />
-                                    <Text className="text-gray-500 mt-4">No classmates found</Text>
+                                    <Text className="text-slate-500 mt-4">No classmates found</Text>
                                 </View>
                             }
                         />

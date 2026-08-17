@@ -6,9 +6,11 @@ import Notification from '../models/notification.model.js';
 import User from '../models/user.model.js';
 import { deleteFromR2 } from '../utils/r2.js';
 import { getShortsPool, getUserInterestProfile, rankFeed, invalidatePool } from '../utils/feedEngine.js';
-import { clearCache } from '../middlewares/cache.middleware.js';
+import { clearCacheTags } from '../middlewares/cache.middleware.js';
 
 import { updateStreak } from '../utils/streak.js';
+import { getCommentThread } from "../utils/comments.js";
+import { toggleLike } from "../utils/likeToggle.js";
 
 export const createShorts = async (req, res) => {
     try {
@@ -35,7 +37,7 @@ export const createShorts = async (req, res) => {
 
         // Invalidate Redis shorts pool so next fetch picks this up
         invalidatePool('global', 'shorts').catch(() => { });
-        clearCache('shorts').catch(() => { });
+        clearCacheTags(['shorts', `shorts:user:${req.user.id}`]).catch(() => { });
         return res.status(200).json({ 
             success: true, 
             message: 'Short created successfully', 
@@ -172,8 +174,7 @@ export const deleteShort = async (req, res) => {
         console.log(`📉 [DeleteShort] Deleting short from DB...`);
         const deletedShort = await Shorts.findByIdAndDelete(req.params.id);
         
-        clearCache('shorts').catch(() => { });
-        clearCache(`individual/${req.params.id}`).catch(() => { });
+        clearCacheTags(['shorts', `short:${req.params.id}`]).catch(() => { });
         
         console.log(`✅ [DeleteShort] Successfully deleted short: ${req.params.id}`);
         return res.status(200).json({ success: true, message: "Short deleted successfully", short: deletedShort });
@@ -185,65 +186,35 @@ export const deleteShort = async (req, res) => {
 
 export const likeAndUnlikeShort = async (req, res) => {
     try {
-        const short = await Shorts.findById(req.params.id);
-        if (!short) {
-            return res.status(404).json({ success: false, message: "Short not found" });
-        }
-        const isLiked = short.liked_by.some(id => id.toString() === req.user.id.toString());
-        let updatedShort;
-        if (isLiked) {
-            updatedShort = await Shorts.findByIdAndUpdate(
-                req.params.id,
-                {
-                    $inc: { likes: -1 },
-                    $pull: { liked_by: req.user.id }
-                },
-                { new: true }
-            );
-            clearCache('shorts').catch(() => { });
-            clearCache(`individual/${req.params.id}`).catch(() => { });
-            clearCache(`feed/${short.user}`).catch(() => { });
-            invalidatePool('global', 'shorts').catch(() => { });
+        const result = await toggleLike(Shorts, req.params.id, req.user.id);
+        if (!result) return res.status(404).json({ success: false, message: "Short not found" });
+        const { doc: updatedShort, liked } = result;
 
-            return res.status(200).json({ success: true, message: "Short unliked successfully", short: updatedShort });
-        }
-        else {
-            updatedShort = await Shorts.findByIdAndUpdate(
-                req.params.id,
-                {
-                    $inc: { likes: 1 },
-                    $addToSet: { liked_by: req.user.id }
-                },
-                { new: true }
-            );
-            if (short.user.toString() !== req.user.id.toString()) {
-                const existing = await Notification.findOne({
-                    recipient: short.user,
-                    sender: req.user.id,
-                    type: 'story_like',
-                    shorts: short._id
+        if (liked && updatedShort.user.toString() !== req.user.id.toString()) {
+            const existing = await Notification.findOne({
+                recipient: updatedShort.user, sender: req.user.id, type: 'story_like', shorts: updatedShort._id
+            });
+            if (!existing) {
+                await Notification.create({
+                    recipient: updatedShort.user, sender: req.user.id, type: 'story_like', shorts: updatedShort._id
                 });
-                if (!existing) {
-                    await Notification.create({
-                        recipient: short.user,
-                        sender: req.user.id,
-                        type: 'story_like',
-                        shorts: short._id
-                    });
-                }
             }
-            clearCache('shorts').catch(() => { });
-            clearCache(`individual/${req.params.id}`).catch(() => { });
-            clearCache(`feed/${short.user}`).catch(() => { });
-            invalidatePool('global', 'shorts').catch(() => { });
-
-            return res.status(200).json({ success: true, message: "Short liked successfully", short: updatedShort });
         }
+
+        clearCacheTags(['shorts', `short:${req.params.id}`, `shorts:user:${updatedShort.user}`]).catch(() => { });
+        invalidatePool('global', 'shorts').catch(() => { });
+
+        return res.status(200).json({
+            success: true,
+            message: liked ? "Short liked successfully" : "Short unliked successfully",
+            short: updatedShort
+        });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
+
 
 export const addComment = async (req, res) => {
     try {
@@ -296,7 +267,7 @@ export const addComment = async (req, res) => {
             .populate("commentor", "name avatar username")
             .populate("replyToUser", "username");
 
-        clearCache(`comments/${req.params.id}`).catch(() => { });
+        clearCacheTags([`short:${req.params.id}`]).catch(() => { });
         return res.status(200).json({ success: true, message: "Comment created successfully", comment: commenterDetails });
     } catch (error) {
         console.log("Internal server error", error);
@@ -306,17 +277,7 @@ export const addComment = async (req, res) => {
 
 export const getAllComments = async (req, res) => {
     try {
-        const comments = await Comment.find({ post: req.params.id, postType: "Shorts", parentComment: null })
-            .populate("commentor", "name avatar username")
-            .sort({ createdAt: -1 });
-
-        const commentsWithReplies = await Promise.all(comments.map(async (comment) => {
-            const replies = await Comment.find({ parentComment: comment._id })
-                .populate("commentor", "name avatar username")
-                .populate("replyToUser", "username")
-                .sort({ createdAt: 1 });
-            return { ...comment._doc, replies };
-        }));
+        const commentsWithReplies = await getCommentThread(req.params.id, "Shorts");
 
         return res.status(200).json({ success: true, message: "Comments fetched successfully", comments: commentsWithReplies, totalComments: commentsWithReplies.length });
     } catch (error) {

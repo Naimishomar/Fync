@@ -2,6 +2,7 @@ import { nanoid } from "nanoid";
 import redisClient from "../utils/redis.js";
 import User from "../models/user.model.js";
 import { Chess } from "chess.js";
+import { getSocketAcrossCluster } from "../utils/socketCluster.js";
 
 export const setChessIo = (io) => {
   io.on("connection", (socket) => {
@@ -43,7 +44,7 @@ export const setChessIo = (io) => {
           continue;
         }
 
-        const opponentSocket = io.sockets.sockets.get(opponent.socketId);
+        const opponentSocket = await getSocketAcrossCluster(io, opponent.socketId);
         if (!opponentSocket) {
           continue; // opponent disconnected
         }

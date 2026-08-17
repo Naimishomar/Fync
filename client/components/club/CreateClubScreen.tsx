@@ -83,11 +83,11 @@ const CreateClubScreen = () => {
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top']}>
                 {/* Header */}
-                <View className="px-5 py-4 flex-row items-center justify-between border-b border-zinc-100">
+                <View className="px-5 py-4 flex-row items-center justify-between border-b border-slate-100">
                     <TouchableOpacity onPress={() => navigation.goBack()}>
                         <Ionicons name="close" size={28} color="black" />
                     </TouchableOpacity>
-                    <Text className="text-zinc-900 text-lg font-black uppercase tracking-widest">Establish Club</Text>
+                    <Text className="text-slate-900 text-lg font-black uppercase tracking-widest">Establish Club</Text>
                     <View className="w-7"></View>
                 </View>
 
@@ -97,14 +97,14 @@ const CreateClubScreen = () => {
                         {/* Banner Upload */}
                         <TouchableOpacity 
                             onPress={() => pickImage('banner')}
-                            className="w-full h-40 bg-zinc-100 rounded-3xl overflow-hidden items-center justify-center border border-dashed border-zinc-300"
+                            className="w-full h-40 bg-slate-100 rounded-3xl overflow-hidden items-center justify-center border border-dashed border-slate-300"
                         >
                             {banner ? (
                                 <Image source={{ uri: banner.uri }} className="w-full h-full" />
                             ) : (
                                 <View className="items-center">
                                     <Feather name="image" size={32} color="#a1a1aa" />
-                                    <Text className="text-zinc-400 font-bold text-[10px] uppercase mt-2">Upload Banner (16:9)</Text>
+                                    <Text className="text-slate-500 font-bold text-2xs uppercase mt-2">Upload Banner (16:9)</Text>
                                 </View>
                             )}
                         </TouchableOpacity>
@@ -123,26 +123,26 @@ const CreateClubScreen = () => {
 
                         {/* Form Fields */}
                         <View className="mt-8">
-                            <Text className="text-zinc-400 font-black text-[10px] uppercase tracking-widest mb-2 ml-1">Identity</Text>
+                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-2 ml-1">Identity</Text>
                             <TextInput 
                                 placeholder="Club Name"
-                                className="bg-zinc-50 p-5 rounded-2xl mb-4 font-bold border border-zinc-100 text-zinc-900"
+                                className="bg-slate-50 p-5 rounded-2xl mb-4 font-bold border border-slate-100 text-slate-900"
                                 value={name}
                                 onChangeText={setName}
                             />
                             
-                            <Text className="text-zinc-400 font-black text-[10px] uppercase tracking-widest mb-2 ml-1">Specialization</Text>
+                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-2 ml-1">Specialization</Text>
                             <TextInput 
                                 placeholder="Category (e.g. Technical, Sports)"
-                                className="bg-zinc-50 p-5 rounded-2xl mb-4 font-bold border border-zinc-100 text-zinc-900"
+                                className="bg-slate-50 p-5 rounded-2xl mb-4 font-bold border border-slate-100 text-slate-900"
                                 value={category}
                                 onChangeText={setCategory}
                             />
 
-                            <Text className="text-zinc-400 font-black text-[10px] uppercase tracking-widest mb-2 ml-1">Mission Statement</Text>
+                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-2 ml-1">Mission Statement</Text>
                             <TextInput 
                                 placeholder="Describe the club's goal..."
-                                className="bg-zinc-50 p-5 rounded-2xl mb-6 font-semibold border border-zinc-100 text-zinc-900"
+                                className="bg-slate-50 p-5 rounded-2xl mb-6 font-semibold border border-slate-100 text-slate-900"
                                 multiline
                                 numberOfLines={4}
                                 value={description}

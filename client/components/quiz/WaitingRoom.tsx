@@ -113,7 +113,7 @@ const WaitingRoom: React.FC<Props> = ({ route, navigation }) => {
           >
             <Ionicons name="close" size={24} color="#18181b" />
           </TouchableOpacity>
-          <Text className="text-zinc-900 text-3xl font-black  tracking-tighter uppercase">
+          <Text className="text-slate-900 text-3xl font-black  tracking-tighter uppercase">
             The <Text className="text-pink-500">Lobby</Text>
           </Text>
           <View style={{ width: 48 }} /> {/* Spacer for centering */}
@@ -125,37 +125,37 @@ const WaitingRoom: React.FC<Props> = ({ route, navigation }) => {
           {/* Room ID Badge */}
           <View className="bg-white px-8 py-3 rounded-full border border-slate-100 mb-14 flex-row items-center shadow-sm shadow-black/5">
             <View className="w-2 h-2 bg-pink-500 rounded-full animate-pulse" />
-            <Text className="text-slate-400 font-black  tracking-[2px] ml-3 uppercase">Node: <Text className="text-zinc-900">{roomId}</Text></Text>
+            <Text className="text-slate-500 font-black  tracking-[2px] ml-3 uppercase">Node: <Text className="text-slate-900">{roomId}</Text></Text>
           </View>
 
           {/* Pulsing Timer Circle */}
           <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-            <View className={`w-72 h-72 rounded-[64px] border border-slate-100 items-center justify-center shadow-2xl overflow-hidden bg-white shadow-black/5`}>
+            <View className={`w-72 h-72 rounded-5xl border border-slate-100 items-center justify-center shadow-2xl overflow-hidden bg-white shadow-black/5`}>
               <View className="absolute top-0 right-0 w-32 h-32 bg-pink-50 rounded-full -mr-16 -mt-16" />
               <View className="absolute bottom-0 left-0 w-32 h-32 bg-slate-50 rounded-full -ml-16 -mb-16" />
 
               {!isStarting && (
-                <Text className="text-slate-400 font-black  text-[10px] tracking-[4px] uppercase mb-4">Initializes In</Text>
+                <Text className="text-slate-500 font-black  text-2xs tracking-wide uppercase mb-4">Initializes In</Text>
               )}
-              <Text className={`font-black  tracking-tighter uppercase text-center px-4 ${isStarting ? 'text-zinc-900 text-4xl' : 'text-zinc-900 text-6xl'}`}>
+              <Text className={`font-black  tracking-tighter uppercase text-center px-4 ${isStarting ? 'text-slate-900 text-4xl' : 'text-slate-900 text-6xl'}`}>
                 {timeString}
               </Text>
             </View>
           </Animated.View>
 
-          <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-16 text-center px-8 leading-5">
+          <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-16 text-center px-8 leading-5">
             {isStarting ? "Establish connection... Preparing module." : "Awaiting Host protocol to initiate the sequence."}
           </Text>
 
         </View>
 
         {/* FOOTER WARNING */}
-        <View className="bg-white p-8 rounded-[40px] flex-row items-center shadow-2xl shadow-black/5 border border-slate-100">
+        <View className="bg-white p-8 rounded-5xl flex-row items-center shadow-2xl shadow-black/5 border border-slate-100">
           <View className="w-12 h-12 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
             <Ionicons name="shield-checkmark" size={24} color="#ec4899" />
           </View>
-          <Text className="text-slate-400 ml-5 flex-1 text-[10px] font-bold uppercase tracking-wide leading-5">
-            <Text className="font-black text-zinc-900 ">Protocol Active.</Text> Maintain active connection. Disconnection will result in session void.
+          <Text className="text-slate-500 ml-5 flex-1 text-2xs font-bold uppercase tracking-wide leading-5">
+            <Text className="font-black text-slate-900 ">Protocol Active.</Text> Maintain active connection. Disconnection will result in session void.
           </Text>
         </View>
 

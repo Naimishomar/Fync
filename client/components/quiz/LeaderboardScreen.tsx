@@ -155,7 +155,7 @@ const LeaderboardScreen = () => {
     let iconColor = '#94a3b8';
     let cardBg = 'bg-white';
     if (index === 0) { rankColor = 'text-yellow-600'; iconColor = '#d97706'; cardBg = 'bg-amber-50/50'; } // Gold
-    else if (index === 1) { rankColor = 'text-slate-400'; iconColor = '#64748b'; cardBg = 'bg-slate-50/50'; } // Silver
+    else if (index === 1) { rankColor = 'text-slate-500'; iconColor = '#64748b'; cardBg = 'bg-slate-50/50'; } // Silver
     else if (index === 2) { rankColor = 'text-orange-600'; iconColor = '#c2410c'; cardBg = 'bg-orange-50/50'; } // Bronze
 
     return (
@@ -180,16 +180,16 @@ const LeaderboardScreen = () => {
 
         {/* User Info */}
         <View className="flex-1">
-          <Text className="font-black  text-zinc-900 text-base uppercase tracking-tight" numberOfLines={1}>
+          <Text className="font-black  text-slate-900 text-base uppercase tracking-tight" numberOfLines={1}>
             {item.user?.name || item.user?.username || "Global User"}
           </Text>
-          <Text className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">@{item.user?.username || "unknown"}</Text>
+          <Text className="text-2xs text-slate-500 font-bold uppercase tracking-wide mt-0.5">@{item.user?.username || "unknown"}</Text>
         </View>
 
         {/* Score Badge */}
         <View className="bg-pink-50 px-4 py-2 rounded-2xl shadow-sm border border-pink-100 transform rotate-2">
           <Text className="font-black  text-pink-500 text-base">
-            {item.score} <Text className="text-[10px] uppercase tracking-tighter">Pts</Text>
+            {item.score} <Text className="text-2xs uppercase tracking-tighter">Pts</Text>
           </Text>
         </View>
       </View>
@@ -210,7 +210,7 @@ const LeaderboardScreen = () => {
             <Ionicons name="home" size={20} color="#18181b" />
           </TouchableOpacity>
 
-          <Text className="text-3xl font-black  text-zinc-900 tracking-tighter uppercase">
+          <Text className="text-3xl font-black  text-slate-900 tracking-tighter uppercase">
             Leader<Text className="text-pink-500">Board</Text>
           </Text>
 
@@ -237,23 +237,23 @@ const LeaderboardScreen = () => {
         {/* Room ID Badge */}
         <View className="items-center mb-8">
           <View className="bg-white px-6 py-2 rounded-full border border-slate-100 shadow-sm shadow-black/5">
-            <Text className="text-[10px] font-black  text-slate-400 tracking-[2px] uppercase">Node: <Text className="text-zinc-900">{roomId}</Text></Text>
+            <Text className="text-2xs font-black  text-slate-500 tracking-wide uppercase">Node: <Text className="text-slate-900">{roomId}</Text></Text>
           </View>
         </View>
 
         {/* User's Own Score Card (If played) */}
         {myScore !== undefined && (
-          <View className="mx-8 bg-white p-8 rounded-[40px] mb-8 shadow-2xl shadow-black/5 items-center overflow-hidden border border-slate-100">
+          <View className="mx-8 bg-white p-8 rounded-5xl mb-8 shadow-2xl shadow-black/5 items-center overflow-hidden border border-slate-100">
             <View className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-full -mr-16 -mt-16" />
-            <Text className="text-pink-500 font-black  text-[10px] uppercase tracking-[3px] mb-2">My Final Ranking</Text>
-            <Text className="text-zinc-900 text-6xl font-black  tracking-tighter">{myScore}</Text>
-            <Text className="text-slate-400 font-black  text-[10px] uppercase tracking-[2px] mt-2">Points Verified</Text>
+            <Text className="text-pink-500 font-black  text-2xs uppercase tracking-wide mb-2">My Final Ranking</Text>
+            <Text className="text-slate-900 text-6xl font-black  tracking-tighter">{myScore}</Text>
+            <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide mt-2">Points Verified</Text>
           </View>
         )}
 
         {/* Leaderboard List */}
         {loading ? (
-          <ActivityIndicator size="large" color="#ec4899" className="mt-20" />
+          <ActivityIndicator size="large" color="#f97316" className="mt-20" />
         ) : (
           <FlatList
             data={leaders}
@@ -263,11 +263,11 @@ const LeaderboardScreen = () => {
             contentContainerStyle={{ paddingBottom: 40 }}
             ListEmptyComponent={
               <View className="items-center justify-center mt-20 px-10">
-                <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
+                <View className="w-20 h-20 bg-slate-50 rounded-4xl items-center justify-center mb-6">
                   <Ionicons name="people" size={40} color="#CBD5E1" />
                 </View>
-                <Text className="text-zinc-900 font-black  text-xl tracking-tight text-center uppercase">Dev Void</Text>
-                <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-wide">
+                <Text className="text-slate-900 font-black  text-xl tracking-tight text-center uppercase">Dev Void</Text>
+                <Text className="text-slate-500 text-center font-bold text-xs mt-2 uppercase tracking-wide">
                   Awaiting entry from challengers.
                 </Text>
               </View>

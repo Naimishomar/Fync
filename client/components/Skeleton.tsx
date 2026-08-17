@@ -89,7 +89,7 @@ export const ShortsSkeleton = () => {
 };
 
 export const ConfessionSkeleton = () => (
-    <View className="bg-zinc-900/50 p-5 rounded-3xl mb-4 border border-white/5">
+    <View className="bg-slate-900/50 p-5 rounded-3xl mb-4 border border-white/5">
         <View className="flex-row items-center mb-4">
             <Skeleton width={40} height={40} borderRadius={20} />
             <View className="ml-3">
@@ -118,7 +118,7 @@ export const ProfileSkeleton = () => (
 
         <Skeleton width="100%" height={256} borderRadius={0} lightMode />
 
-        <View className="items-center pb-6 px-5 bg-white rounded-t-[40px] -mt-12 shadow-2xl">
+        <View className="items-center pb-6 px-5 bg-white rounded-t-5xl -mt-12 shadow-2xl">
             <View className="-mt-14 p-1.5 bg-white rounded-full shadow-2xl">
                 <View className="rounded-full overflow-hidden border-4 border-white">
                     <Skeleton width={110} height={110} borderRadius={55} lightMode />
@@ -134,7 +134,7 @@ export const ProfileSkeleton = () => (
                 <Skeleton width={60} height={14} lightMode />
             </View>
 
-            <View className="flex-row w-full bg-slate-100 rounded-[32px] mt-6 p-6 border border-slate-200">
+            <View className="flex-row w-full bg-slate-100 rounded-4xl mt-6 p-6 border border-slate-200">
                 <View className="flex-1 items-center">
                     <Skeleton width={30} height={24} lightMode />
                     <Skeleton width={50} height={10} style={{ marginTop: 6 }} lightMode />
@@ -237,7 +237,7 @@ export const UserListSkeleton = () => (
 export const PostSkeleton = () => {
     const { width } = Dimensions.get('window');
     return (
-        <View className="bg-white border-b border-gray-100 py-4 px-3 mb-2">
+        <View className="bg-white border-b border-slate-100 py-4 px-3 mb-2">
             <View className="flex-row items-center justify-between mb-3">
                 <View className="flex-row items-center">
                     <Skeleton width={28} height={28} borderRadius={14} lightMode />
@@ -263,7 +263,7 @@ export const PostSkeleton = () => {
 };
 
 export const TeammateSkeleton = () => (
-    <View className="bg-white rounded-[32px] p-6 mb-5 border border-slate-100 mx-5">
+    <View className="bg-white rounded-4xl p-6 mb-5 border border-slate-100 mx-5">
         <View className="flex-row items-center mb-5">
             <View className="p-1 rounded-full border border-slate-100 shadow-sm bg-white">
                 <Skeleton width={64} height={64} borderRadius={32} lightMode />
@@ -285,7 +285,7 @@ export const TeammateSkeleton = () => (
             <Skeleton width="100%" height={12} style={{ marginBottom: 6 }} lightMode />
             <Skeleton width="80%" height={12} lightMode />
         </View>
-        <View className="flex-row justify-between items-center p-2 rounded-[24px]">
+        <View className="flex-row justify-between items-center p-2 rounded-2xl">
             <View className="flex-row items-center flex-1 ml-1 mr-4">
                 <Skeleton width={100} height={12} lightMode />
             </View>
@@ -306,7 +306,7 @@ export const NotificationSkeleton = () => (
 );
 
 export const ProjectSkeleton = () => (
-    <View className="mx-6 mb-10 rounded-[32px] bg-white border border-slate-100 shadow-sm p-6">
+    <View className="mx-6 mb-10 rounded-4xl bg-white border border-slate-100 shadow-sm p-6">
         <View className="flex-row items-center mb-6">
             <Skeleton width={48} height={48} borderRadius={24} lightMode />
             <View className="ml-3">

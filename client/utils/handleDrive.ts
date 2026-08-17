@@ -1,7 +1,14 @@
 
 
 export const fetchDriveData = async (folderId: string) => {
-  const API_KEY = process.env.EXPO_DRIVE_DATA_KEY;
+  // Expo only inlines variables prefixed EXPO_PUBLIC_. The old name had no
+  // prefix, so this was `undefined` at runtime and every request went out as
+  // `&key=undefined` — the Drive browser has never worked in a build.
+  const API_KEY = process.env.EXPO_PUBLIC_DRIVE_API_KEY;
+  if (!API_KEY) {
+    console.error('Google Drive: EXPO_PUBLIC_DRIVE_API_KEY is not set.');
+    return [];
+  }
   const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+trashed=false&fields=files(id,name,mimeType)&key=${API_KEY}`;
 
   try {

@@ -78,13 +78,13 @@ const CreateSubGroupScreen = () => {
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top']}>
                 {/* Header */}
-                <View className="px-5 py-4 flex-row items-center justify-between border-b border-zinc-100">
+                <View className="px-5 py-4 flex-row items-center justify-between border-b border-slate-100">
                     <TouchableOpacity onPress={() => navigation.goBack()}>
                         <Ionicons name="close" size={28} color="black" />
                     </TouchableOpacity>
                     <View className="items-center">
-                        <Text className="text-zinc-900 text-lg font-black uppercase tracking-widest">Generate Room</Text>
-                        <Text className="text-zinc-400 text-[8px] font-bold uppercase tracking-widest mt-0.5">Expanding your Hub</Text>
+                        <Text className="text-slate-900 text-lg font-black uppercase tracking-widest">Generate Room</Text>
+                        <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-0.5">Expanding your Hub</Text>
                     </View>
                     <View className="w-8" />
                 </View>
@@ -96,11 +96,11 @@ const CreateSubGroupScreen = () => {
                         <View className="items-center mb-8 mt-4">
                             <TouchableOpacity onPress={pickLogo} activeOpacity={0.8} className="relative">
                                 {logo ? (
-                                    <Image source={{ uri: logo.uri }} className="w-24 h-24 rounded-[32px] border-2 border-zinc-100 bg-zinc-50" />
+                                    <Image source={{ uri: logo.uri }} className="w-24 h-24 rounded-4xl border-2 border-slate-100 bg-slate-50" />
                                 ) : (
-                                    <View className="w-24 h-24 bg-zinc-50 rounded-[32px] items-center justify-center border-2 border-dashed border-zinc-200">
+                                    <View className="w-24 h-24 bg-slate-50 rounded-4xl items-center justify-center border-2 border-dashed border-slate-200">
                                         <Feather name="image" size={24} color="#a1a1aa" />
-                                        <Text className="text-[8px] font-black uppercase text-zinc-400 mt-2">Add Logo</Text>
+                                        <Text className="text-2xs font-black uppercase text-slate-500 mt-2">Add Logo</Text>
                                     </View>
                                 )}
                                 <View className="absolute -bottom-1 -right-1 bg-black w-8 h-8 rounded-full items-center justify-center border-4 border-white">
@@ -111,18 +111,18 @@ const CreateSubGroupScreen = () => {
 
                         {/* Form Fields */}
                         <View className="mt-2">
-                            <Text className="text-zinc-400 font-black text-[10px] uppercase tracking-widest mb-2 ml-1">Room Identity</Text>
+                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-2 ml-1">Room Identity</Text>
                             <TextInput 
                                 placeholder="e.g. Web Development, AI, Sports Talk"
-                                className="bg-zinc-50 p-5 rounded-2xl mb-4 font-bold border border-zinc-100 text-zinc-900"
+                                className="bg-slate-50 p-5 rounded-2xl mb-4 font-bold border border-slate-100 text-slate-900"
                                 value={name}
                                 onChangeText={setName}
                             />
                             
-                            <Text className="text-zinc-400 font-black text-[10px] uppercase tracking-widest mb-2 ml-1">Scope & Mission</Text>
+                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-2 ml-1">Scope & Mission</Text>
                             <TextInput 
                                 placeholder="Briefly describe what happens in this room..."
-                                className="bg-zinc-50 p-5 rounded-2xl mb-10 font-semibold border border-zinc-100 text-zinc-900"
+                                className="bg-slate-50 p-5 rounded-2xl mb-10 font-semibold border border-slate-100 text-slate-900"
                                 multiline
                                 numberOfLines={4}
                                 value={description}

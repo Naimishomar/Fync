@@ -50,10 +50,10 @@ const JoinRoomInput = () => {
             <Ionicons name="arrow-back" size={24} color="#18181b" />
           </TouchableOpacity>
           <View>
-            <Text className="text-zinc-900 text-3xl font-black  tracking-tighter uppercase">
+            <Text className="text-slate-900 text-3xl font-black  tracking-tighter uppercase">
               Join <Text className="text-pink-500">Room</Text>
             </Text>
-            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">Initialize Remote Sync</Text>
+            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Initialize Remote Sync</Text>
           </View>
         </View>
 
@@ -61,14 +61,14 @@ const JoinRoomInput = () => {
         <View className="flex-1 justify-center px-8 pb-24">
 
           {/* Main Card */}
-          <View className="bg-white p-10 rounded-[40px] border border-slate-100 items-center shadow-2xl shadow-black/5">
+          <View className="bg-white p-10 rounded-5xl border border-slate-100 items-center shadow-2xl shadow-black/5">
 
-            <View className="bg-slate-50 w-24 h-24 rounded-[32px] items-center justify-center mb-8 border border-slate-100">
+            <View className="bg-slate-50 w-24 h-24 rounded-4xl items-center justify-center mb-8 border border-slate-100">
               <Ionicons name="keypad" size={40} color="#ec4899" />
             </View>
 
-            <Text className="text-2xl font-black  text-zinc-900 mb-3 text-center uppercase tracking-tight">Enter Room Node</Text>
-            <Text className="text-slate-400 text-center mb-12 text-[10px] font-black uppercase tracking-wider leading-5 px-4">
+            <Text className="text-2xl font-black  text-slate-900 mb-3 text-center uppercase tracking-tight">Enter Room Node</Text>
+            <Text className="text-slate-500 text-center mb-12 text-2xs font-black uppercase tracking-wider leading-5 px-4">
               Establish connection by entering the 6-character room identifier provided by the host.
             </Text>
 
@@ -78,7 +78,7 @@ const JoinRoomInput = () => {
               onChangeText={setRoomId}
               placeholder="000000"
               placeholderTextColor="#CBD5E1"
-              className="w-full bg-slate-50 border border-slate-100 p-6 rounded-3xl mb-10 text-center text-zinc-900 text-4xl font-black  tracking-[12px] uppercase"
+              className="w-full bg-slate-50 border border-slate-100 p-6 rounded-3xl mb-10 text-center text-slate-900 text-4xl font-black  tracking-[12px] uppercase"
               autoCapitalize="characters"
               maxLength={6}
               autoCorrect={false}
@@ -89,7 +89,7 @@ const JoinRoomInput = () => {
               onPress={handleJoin}
               disabled={loading}
               activeOpacity={0.9}
-              className={`w-full py-6 rounded-[32px] shadow-2xl flex-row justify-center items-center ${loading ? 'bg-pink-400' : 'bg-pink-500 shadow-pink-500/20'
+              className={`w-full py-6 rounded-4xl shadow-2xl flex-row justify-center items-center ${loading ? 'bg-pink-400' : 'bg-pink-500 shadow-pink-500/20'
                 }`}
             >
               {loading ? (

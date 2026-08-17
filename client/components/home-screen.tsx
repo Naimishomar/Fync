@@ -51,6 +51,7 @@ import { BlurView } from 'expo-blur';
 import StreakLeaderboardModal from './StreakLeaderboardModal';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getFullUrl } from '../utils/imageUtils';
+import { useTabBarClearance, useBottomInset } from '../constants/layout';
 
 const { width } = Dimensions.get('window');
 
@@ -90,6 +91,7 @@ interface Post {
 
 // --- COMMENTS MODAL ---
 const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded }: any) => {
+  const commentInputInset = useBottomInset();
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
@@ -162,26 +164,26 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
   };
 
   const CommentItem = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => (
-    <View className={`${isReply ? 'ml-12 mt-2' : 'px-4 py-3 border-b border-gray-50'}`}>
+    <View className={`${isReply ? 'ml-12 mt-2' : 'px-4 py-3 border-b border-slate-50'}`}>
       <View className="flex-row">
         <ExpoImage
           source={{ uri: getFullUrl(comment.commentor?.avatar) || `https://ui-avatars.com/api/?name=${comment.commentor?.username}` }}
           style={{ width: isReply ? 28 : 36, height: isReply ? 28 : 36, borderRadius: 999 }}
-          className="bg-gray-100"
+          className="bg-slate-100"
           cachePolicy="disk"
         />
         <View className="ml-3 flex-1">
           <View className="flex-row items-baseline mb-1">
-            <Text className="text-zinc-900 font-bold text-[13px] mr-2">{comment.commentor?.username}</Text>
-            <Text className="text-gray-400 text-[10px]">{new Date(comment.createdAt).toLocaleDateString()}</Text>
+            <Text className="text-slate-900 font-bold text-xs mr-2">{comment.commentor?.username}</Text>
+            <Text className="text-slate-500 text-2xs">{new Date(comment.createdAt).toLocaleDateString()}</Text>
           </View>
-          <Text className="text-zinc-700 text-sm leading-5">
+          <Text className="text-slate-700 text-sm leading-5">
             {comment.replyToUser && <Text className="text-pink-500">@{comment.replyToUser.username} </Text>}
             {comment.text}
           </Text>
           {!isReply && (
             <Pressable onPress={() => handleReply(comment)} className="mt-2">
-              <Text className="text-gray-500 text-xs font-bold">Reply</Text>
+              <Text className="text-slate-500 text-xs font-bold">Reply</Text>
             </Pressable>
           )}
         </View>
@@ -205,30 +207,32 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
           className="w-full"
         >
           <View className="bg-white h-[650px] rounded-t-3xl w-full overflow-hidden">
-            <View className="flex-row justify-center items-center py-4 border-b border-gray-100">
-              <View className="w-12 h-1 bg-gray-200 rounded-full absolute top-2 self-center" />
-              <Text className="text-zinc-900 font-bold text-base">Comments</Text>
+            <View className="flex-row justify-center items-center py-4 border-b border-slate-100">
+              <View className="w-12 h-1 bg-slate-200 rounded-full absolute top-2 self-center" />
+              <Text className="text-slate-900 font-bold text-base">Comments</Text>
               <Pressable onPress={onClose} className="absolute right-4 p-1">
                 <Ionicons name="close" size={24} color="#1A1A1A" />
               </Pressable>
             </View>
             {loading ? (
-              <ActivityIndicator size="large" color="#ec4899" className="mt-10" />
+              <ActivityIndicator size="large" color="#f97316" className="mt-10" />
             ) : (
               <FlatList
                 data={comments}
                 renderItem={({ item }) => <CommentItem comment={item} />}
                 keyExtractor={(item) => item._id}
                 contentContainerStyle={{ paddingBottom: 150 }}
-                ListEmptyComponent={<Text className="text-gray-400 text-center mt-10">No comments yet.</Text>}
+                ListEmptyComponent={<Text className="text-slate-500 text-center mt-10">No comments yet.</Text>}
                 showsVerticalScrollIndicator={false}
               />
             )}
 
-            <View className="w-full bg-white border-t border-gray-100 px-4 pt-2 pb-5" style={{ paddingBottom: Platform.OS === 'ios' ? 40 : 20 }}>
+            {/* Guessing 40 on iOS / 20 on Android put this input under the gesture
+                bar on tall Android devices and left a gap on older ones. */}
+            <View className="w-full bg-white border-t border-slate-100 px-4 pt-2" style={{ paddingBottom: commentInputInset }}>
               {replyingTo && (
-                <View className="flex-row items-center justify-between bg-zinc-50 px-3 py-2 mb-2 rounded-lg">
-                  <Text className="text-zinc-500 text-xs">Replying to <Text className="font-bold">@{replyingTo.commentor.username}</Text></Text>
+                <View className="flex-row items-center justify-between bg-slate-50 px-3 py-2 mb-2 rounded-lg">
+                  <Text className="text-slate-500 text-xs">Replying to <Text className="font-bold">@{replyingTo.commentor.username}</Text></Text>
                   <Pressable onPress={() => setReplyingTo(null)}>
                     <Ionicons name="close-circle" size={18} color="#9ca3af" />
                   </Pressable>
@@ -247,11 +251,11 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
                   onChangeText={setNewComment}
                   placeholder={replyingTo ? "Add a reply..." : "Add a comment..."}
                   placeholderTextColor="#9ca3af"
-                  className="flex-1 text-black bg-gray-50 rounded-full px-4 py-3 mr-3 border border-gray-100"
+                  className="flex-1 text-black bg-slate-50 rounded-full px-4 py-3 mr-3 border border-slate-100"
                   multiline
                 />
                 <Pressable onPress={handlePostComment} disabled={posting || !newComment.trim()}>
-                  {posting ? <ActivityIndicator size="small" color="#ec4899" /> : <Text className={`font-bold ${!newComment.trim() ? 'text-gray-300' : 'text-pink-500'}`}>Post</Text>}
+                  {posting ? <ActivityIndicator size="small" color="#f97316" /> : <Text className={`font-bold ${!newComment.trim() ? 'text-slate-300' : 'text-pink-500'}`}>Post</Text>}
                 </Pressable>
               </View>
             </View>
@@ -368,7 +372,7 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
   };
 
   return (
-    <View className="bg-white border-b border-gray-100 py-4 px-3 mb-2">
+    <View className="bg-white border-b border-slate-100 py-4 px-3 mb-2">
       {/* Top Header Row (Reddit Style) */}
       <View className="flex-row items-center justify-between mb-3">
         <View className="flex-row items-center">
@@ -377,14 +381,14 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
               <Avatar user={item.user as any} size={28} />
             ) : (
               <View className="w-7 h-7 rounded-full bg-indigo-500 items-center justify-center">
-                <Text className="text-white font-bold text-[10px]">{(item.user?.name || 'U').charAt(0).toUpperCase()}</Text>
+                <Text className="text-white font-bold text-2xs">{(item.user?.name || 'U').charAt(0).toUpperCase()}</Text>
               </View>
             )}
           </Pressable>
           <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })} className="ml-2 flex-row items-center">
-            <Text className="text-zinc-900 font-bold text-[14px]">{item.user?.username || "Unknown"}</Text>
-            <Text className="text-gray-400 text-[14px] mx-1">·</Text>
-            <Text className="text-gray-500 text-[14px] font-medium">{timeAgo(item.createdAt)}</Text>
+            <Text className="text-slate-900 font-bold text-sm">{item.user?.username || "Unknown"}</Text>
+            <Text className="text-slate-500 text-sm mx-1">·</Text>
+            <Text className="text-slate-500 text-sm font-medium">{timeAgo(item.createdAt)}</Text>
           </Pressable>
         </View>
         <Pressable onPress={() => {
@@ -419,7 +423,7 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
       </View>
 
       <View className="mb-3 px-1">
-        <Text className="text-zinc-900 text-[15px] font-medium leading-6">
+        <Text className="text-slate-900 text-sm font-medium leading-6">
           {isExpanded || (item.description?.length || 0) <= MAX_CHAR_LIMIT
             ? item.description
             : `${item.description?.slice(0, MAX_CHAR_LIMIT)}...`}
@@ -462,7 +466,7 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
         {/* Image Counter (Top Right) */}
         {(item.image?.length || 0) > 1 && (
           <View className="absolute top-3 right-3 bg-black/50 px-2 py-1 rounded-lg">
-            <Text className="text-white text-[10px] font-bold">
+            <Text className="text-white text-2xs font-bold">
               {activeIndex + 1}/{(item.image?.length || 0)}
             </Text>
           </View>
@@ -479,11 +483,11 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
       {/* Action Bar (Reddit Style Pills) */}
       <View className="flex-row items-center gap-2">
         {/* Vote Pill */}
-        <Animated.View style={{ transform: [{ scale: springValue }] }} className="flex-row items-center bg-gray-50 rounded-full px-1 py-0.5">
+        <Animated.View style={{ transform: [{ scale: springValue }] }} className="flex-row items-center bg-slate-50 rounded-full px-1 py-0.5">
           <Pressable onPress={() => handleVote('up')} className="p-1.5">
-            <Ionicons name={vote === 'up' ? "arrow-up" : "arrow-up-outline"} size={19} color={vote === 'up' ? "#FF4500" : "#536471"} />
+            <Ionicons name={vote === 'up' ? "arrow-up" : "arrow-up-outline"} size={19} color={vote === 'up' ? "#f97316" : "#536471"} />
           </Pressable>
-          <Text className={`font-semibold text-[13px] px-1 min-w-[20px] text-center ${vote === 'up' ? 'text-[#FF4500]' : vote === 'down' ? 'text-[#7193FF]' : 'text-[#536471]'}`}>
+          <Text className={`font-semibold text-xs px-1 min-w-[20px] text-center ${vote === 'up' ? 'text-[#f97316]' : vote === 'down' ? 'text-[#7193FF]' : 'text-[#536471]'}`}>
             {score === 0 ? 'Vote' : score > 999 ? formatCount(score) : score}
           </Text>
           <Pressable onPress={() => handleVote('down')} className="p-1.5">
@@ -494,19 +498,19 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
         {/* Comment Pill */}
         <Pressable 
           onPress={() => openComments(item._id)}
-          className="flex-row items-center bg-gray-50 rounded-full px-3 py-1.5"
+          className="flex-row items-center bg-slate-50 rounded-full px-3 py-1.5"
         >
           <Ionicons name="chatbubble-outline" size={17} color="#536471" />
-          <Text className="text-[#536471] font-semibold text-[13px] ml-1.5">{formatCount(displayCommentCount)}</Text>
+          <Text className="text-[#536471] font-semibold text-xs ml-1.5">{formatCount(displayCommentCount)}</Text>
         </Pressable>
 
         {/* Share Pill */}
         <Pressable 
           onPress={handleShare}
-          className="flex-row items-center bg-gray-50 rounded-full px-3 py-1.5"
+          className="flex-row items-center bg-slate-50 rounded-full px-3 py-1.5"
         >
           <Ionicons name="share-social-outline" size={17} color="#536471" />
-          <Text className="text-[#536471] font-semibold text-[13px] ml-1.5">Share</Text>
+          <Text className="text-[#536471] font-semibold text-xs ml-1.5">Share</Text>
         </Pressable>
 
         <View className="flex-1" />
@@ -518,6 +522,7 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
 
 // --- MAIN SCREEN ---
 export default function HomeScreen() {
+  const tabBarClearance = useTabBarClearance();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const [profileImage, setProfileImage] = useState<string | undefined>('');
@@ -766,11 +771,11 @@ export default function HomeScreen() {
           <ExpoImage
             source={{ uri: getFullUrl(profileImage) || `https://ui-avatars.com/api/?name=${user?.username}&background=random&color=fff` }}
             style={{ width: 32, height: 32, borderRadius: 999 }}
-            className="mr-3 rounded-full border border-gray-100"
+            className="mr-3 rounded-full border border-slate-100"
             cachePolicy="disk"
           />
         </Pressable>
-        <Text className="text-xl font-bold text-zinc-900 tracking-tighter">{`Hi, ${user?.name?.split(" ")[0]}`}</Text>
+        <Text className="text-xl font-bold text-slate-900 tracking-tighter">{`Hi, ${user?.name?.split(" ")[0]}`}</Text>
       </View>
 
       <View className="flex-row items-center gap-5">
@@ -798,7 +803,7 @@ export default function HomeScreen() {
             <Ionicons name="heart-outline" size={26} color="#1A1A1A" />
             {unreadCount > 0 && (
               <View className="absolute -top-2 -right-2 bg-orange-500 rounded-full w-5 h-5 justify-center items-center border border-white">
-                <Text className="text-white text-[10px] font-bold">
+                <Text className="text-white text-2xs font-bold">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </Text>
               </View>
@@ -810,7 +815,7 @@ export default function HomeScreen() {
             <Ionicons name="chatbubble-ellipses-outline" size={26} color="#1A1A1A" />
             {chatUnreadCount > 0 && (
               <View className="absolute -top-1 -right-1 bg-pink-500 rounded-full w-5 h-5 justify-center items-center border border-white">
-                <Text className="text-white text-[10px] font-bold">
+                <Text className="text-white text-2xs font-bold">
                   {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
                 </Text>
               </View>
@@ -834,10 +839,10 @@ export default function HomeScreen() {
             onPress={() => setActiveTab(key as any)}
             className="flex-1 items-center pb-2 pt-1"
           >
-            <Text className={`text-base font-bold ${isActive ? 'text-zinc-900' : 'text-gray-400'}`}>
+            <Text className={`text-base font-bold ${isActive ? 'text-slate-900' : 'text-slate-500'}`}>
               {tabTitle}
             </Text>
-            {isActive && <View className="absolute bottom-0 h-0.5 bg-zinc-900 w-1/2 rounded-full" />}
+            {isActive && <View className="absolute bottom-0 h-0.5 bg-slate-900 w-1/2 rounded-full" />}
           </Pressable>
         );
       })}
@@ -849,7 +854,7 @@ export default function HomeScreen() {
     if (!loadingMore) return <View className="h-20" />;
     return (
       <View className="py-4 h-20">
-        <ActivityIndicator size="small" color="#ec4899" />
+        <ActivityIndicator size="small" color="#f97316" />
       </View>
     );
   };
@@ -908,7 +913,7 @@ export default function HomeScreen() {
               </View>
 
               {/* Title below image */}
-              <Text className="text-slate-800 font-bold text-[10px] text-center px-0.5 leading-tight" numberOfLines={2}>
+              <Text className="text-slate-800 font-bold text-2xs text-center px-0.5 leading-tight" numberOfLines={2}>
                 {item.name}
               </Text>
             </Pressable>
@@ -933,10 +938,10 @@ export default function HomeScreen() {
                 aspectRatio: 1
               }}
             >
-              <View className="w-full flex-1 rounded-xl overflow-hidden mb-1 justify-center items-center bg-white border border-gray-100">
+              <View className="w-full flex-1 rounded-xl overflow-hidden mb-1 justify-center items-center bg-white border border-slate-100">
                  <Ionicons name="grid-outline" size={24} color="#64748b" />
               </View>
-              <Text className="text-slate-800 font-bold text-[10px] text-center px-0.5 leading-tight" numberOfLines={2}>
+              <Text className="text-slate-800 font-bold text-2xs text-center px-0.5 leading-tight" numberOfLines={2}>
                 View More
               </Text>
             </Pressable>
@@ -961,10 +966,10 @@ export default function HomeScreen() {
                 aspectRatio: 1
               }}
             >
-              <View className="w-full flex-1 rounded-xl overflow-hidden mb-1 justify-center items-center bg-gray-50 border border-gray-100">
+              <View className="w-full flex-1 rounded-xl overflow-hidden mb-1 justify-center items-center bg-slate-50 border border-slate-100">
                  <Ionicons name="chevron-up" size={24} color="#64748b" />
               </View>
-              <Text className="text-slate-800 font-bold text-[10px] text-center px-0.5 leading-tight" numberOfLines={2}>
+              <Text className="text-slate-800 font-bold text-2xs text-center px-0.5 leading-tight" numberOfLines={2}>
                 Show Less
               </Text>
             </Pressable>
@@ -1007,7 +1012,7 @@ export default function HomeScreen() {
         }
 
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ec4899" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />
         }
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
@@ -1020,14 +1025,14 @@ export default function HomeScreen() {
                 className="h-48 w-[80%]"
                 contentFit="contain"
               />
-              <Text className="text-xl font-bold text-zinc-900 mt-4">Welcome to Fync!</Text>
-              <Text className="text-gray-400 text-center mt-2 px-10">
+              <Text className="text-xl font-bold text-slate-900 mt-4">Welcome to Fync!</Text>
+              <Text className="text-slate-500 text-center mt-2 px-10">
                 Your feed is empty. Start following people or create a post to see updates here.
               </Text>
             </View>
           ) : null
         }
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingBottom: tabBarClearance }}
         showsVerticalScrollIndicator={false}
       />
 

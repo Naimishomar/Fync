@@ -588,7 +588,7 @@ const Chat = ({ route, navigation }: any) => {
                 borderBottomRightRadius: isMe ? 6 : 16,
               }}
               className={`px-5 py-3 ${isMe
-                ? "bg-zinc-900 shadow-md shadow-black/20"
+                ? "bg-slate-900 shadow-md shadow-black/20"
                 : "bg-white border border-slate-100 shadow-sm"
                 }`}
             >
@@ -596,17 +596,17 @@ const Chat = ({ route, navigation }: any) => {
               {item.replyTo && (
                 <View className={`mb-2 p-2 rounded-xl border-l-2 ${isMe ? "bg-white/10 border-orange-500" : "bg-slate-50 border-orange-500"
                   }`}>
-                  <Text className={`text-[9px] font-black uppercase tracking-widest ${isMe ? "text-orange-400" : "text-orange-600"}`}>
+                  <Text className={`text-2xs font-black uppercase tracking-widest ${isMe ? "text-orange-400" : "text-orange-600"}`}>
                     REF: {item.replyTo.sender?.name || (item.replyTo.sender === user._id ? "YOU" : "USER")}
                   </Text>
-                  <Text className={`${isMe ? "text-slate-300" : "text-slate-500"} text-[11px] font-medium`} numberOfLines={1}>
+                  <Text className={`${isMe ? "text-slate-300" : "text-slate-500"} text-2xs font-medium`} numberOfLines={1}>
                     {item.replyTo.message}
                   </Text>
                 </View>
               )}
 
               {(item.messageType === "text" || !item.messageType) && item.message ? (
-                <Text className={`text-[15px] leading-6 font-bold tracking-tight ${isMe ? "text-white" : "text-zinc-900"}`}>
+                <Text className={`text-sm leading-6 font-bold tracking-tight ${isMe ? "text-white" : "text-slate-900"}`}>
                   {item.message}
                 </Text>
               ) : null}
@@ -626,7 +626,7 @@ const Chat = ({ route, navigation }: any) => {
                 <Pressable 
                   onPress={(e) => e.stopPropagation()} 
                   onLongPress={(e) => e.stopPropagation()}
-                  className="w-64 h-40 bg-zinc-900 rounded-xl overflow-hidden shadow-lg"
+                  className="w-64 h-40 bg-slate-900 rounded-xl overflow-hidden shadow-lg"
                 >
                   <Video
                     source={{ uri: item.mediaUrl }}
@@ -656,14 +656,14 @@ const Chat = ({ route, navigation }: any) => {
                   onLongPress={(e) => e.stopPropagation()}
                   className={`flex-row items-center p-3 rounded-xl ${isMe ? 'bg-white/10' : 'bg-black/5'}`}
                 >
-                  <View className={`w-10 h-10 rounded-lg items-center justify-center ${isMe ? 'bg-zinc-800' : 'bg-orange-100'}`}>
+                  <View className={`w-10 h-10 rounded-lg items-center justify-center ${isMe ? 'bg-slate-800' : 'bg-orange-100'}`}>
                     <Ionicons name="document-text" size={24} color={isMe ? "white" : "#f97316"} />
                   </View>
                   <View className="ml-3 flex-1">
-                    <Text className={`text-sm font-bold ${isMe ? "text-white" : "text-zinc-900"}`} numberOfLines={1}>
+                    <Text className={`text-sm font-bold ${isMe ? "text-white" : "text-slate-900"}`} numberOfLines={1}>
                       {item.message || 'Shared PDF'}
                     </Text>
-                    <Text className={`${isMe ? "text-zinc-400" : "text-zinc-500"} text-[10px] uppercase font-bold`}>Tap to view PDF</Text>
+                    <Text className={`${isMe ? "text-slate-500" : "text-slate-500"} text-2xs uppercase font-bold`}>Tap to view PDF</Text>
                   </View>
                   <Ionicons name="chevron-forward" size={18} color={isMe ? "white" : "#cbd5e1"} />
                 </Pressable>
@@ -673,7 +673,7 @@ const Chat = ({ route, navigation }: any) => {
             {/* TIMESTAMP & STATUS */}
             <View className={`mt-1.5 ${isMe ? "items-end" : "items-start"}`}>
               <View className="flex-row items-center">
-                <Text className="text-[9px] text-slate-400 font-black uppercase tracking-tighter">
+                <Text className="text-2xs text-slate-500 font-black uppercase tracking-tighter">
                   {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </Text>
                 
@@ -684,7 +684,7 @@ const Chat = ({ route, navigation }: any) => {
                       size={12}
                       color={item.seen ? "#f97316" : "#cbd5e1"}
                     />
-                    <Text className={`text-[9px] ml-0.5 font-black uppercase ${item.seen ? "text-orange-500" : "text-slate-300"}`}>
+                    <Text className={`text-2xs ml-0.5 font-black uppercase ${item.seen ? "text-orange-500" : "text-slate-300"}`}>
                       {item.seen ? "READ" : "SENT"}
                     </Text>
                   </View>
@@ -700,7 +700,7 @@ const Chat = ({ route, navigation }: any) => {
   if (!conversationId) {
     return (
       <SafeAreaView className="flex-1 justify-center items-center bg-white">
-        <Text className="text-gray-500">No conversation selected</Text>
+        <Text className="text-slate-500">No conversation selected</Text>
       </SafeAreaView>
     );
   }
@@ -755,15 +755,15 @@ const Chat = ({ route, navigation }: any) => {
                 </View>
 
                 <View className="ml-3">
-                  <Text className="font-black text-zinc-900 text-base tracking-tight">
+                  <Text className="font-black text-slate-900 text-base tracking-tight">
                     {otherUser.name}
                   </Text>
                   {isTyping ? (
-                    <Text className="text-[10px] text-green-500 font-bold uppercase tracking-widest">
+                    <Text className="text-2xs text-green-500 font-bold uppercase tracking-wide">
                       typing...
                     </Text>
                   ) : (
-                    <Text className="text-[10px] text-orange-500 font-black tracking-widest">
+                    <Text className="text-2xs text-orange-500 font-black tracking-wide">
                       @{otherUser.username}
                     </Text>
                   )}
@@ -807,7 +807,7 @@ const Chat = ({ route, navigation }: any) => {
           {replyingTo && (
             <View className="mx-6 mb-2 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm flex-row items-center justify-between">
               <View className="flex-1 border-l-2 border-orange-500 pl-3">
-                <Text className="text-orange-500 text-[10px] font-black uppercase tracking-widest mb-1">
+                <Text className="text-orange-500 text-2xs font-black uppercase tracking-wide mb-1">
                   Reference: {replyingTo.sender?.name || (replyingTo.sender === user._id ? "You" : "User")}
                 </Text>
                 <Text className="text-slate-600 text-xs font-bold" numberOfLines={1}>
@@ -826,7 +826,7 @@ const Chat = ({ route, navigation }: any) => {
           {/* INPUT AREA */}
           <View style={{ paddingBottom: isKeyboardVisible ? 20 : (insets.bottom > 0 ? insets.bottom : 12) }}>
             <View className="px-6 pb-2 pt-2 bg-white">
-              <View className="flex-row items-center bg-gray-100 p-2 rounded-[28px] border border-slate-100 shadow-xl shadow-black/5">
+              <View className="flex-row items-center bg-slate-100 p-2 rounded-3xl border border-slate-100 shadow-xl shadow-black/5">
                 <TouchableOpacity onPress={handlePickImage} className="w-10 h-10 items-center justify-center">
                   <Ionicons name="image-outline" size={22} color="#64748b" />
                 </TouchableOpacity>
@@ -838,14 +838,14 @@ const Chat = ({ route, navigation }: any) => {
                   onChangeText={handleTyping}
                   placeholder="Encrypting transmission..."
                   placeholderTextColor="#CBD5E1"
-                  className="flex-1 px-3 text-zinc-900 font-bold text-sm tracking-tight py-2 placeholder:text-black"
+                  className="flex-1 px-3 text-slate-900 font-bold text-sm tracking-tight py-2 placeholder:text-black"
                   multiline={true}
                   numberOfLines={1}
                 />
 
                 <TouchableOpacity
                   onPress={sendMessage}
-                  className="w-11 h-11 bg-zinc-900 rounded-full items-center justify-center shadow-lg shadow-black/20"
+                  className="w-11 h-11 bg-slate-900 rounded-full items-center justify-center shadow-lg shadow-black/20"
                 >
                   <Ionicons name="paper-plane" size={18} color="white" />
                 </TouchableOpacity>

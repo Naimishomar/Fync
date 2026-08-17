@@ -98,11 +98,11 @@ const MovieList = () => {
               className={`mr-3 px-6 py-2 rounded-full border ${
                 selectedGenre === genre.id 
                   ? 'bg-rose-600 border-rose-600' 
-                  : 'bg-zinc-900 border-zinc-800'
+                  : 'bg-slate-900 border-slate-800'
               }`}
             >
               <Text className={`font-bold ${
-                selectedGenre === genre.id ? 'text-white' : 'text-gray-400'
+                selectedGenre === genre.id ? 'text-white' : 'text-slate-500'
               }`}>
                 {genre.name}
               </Text>
@@ -135,7 +135,7 @@ const MovieList = () => {
             ListEmptyComponent={
               <View className="flex-1 items-center mt-20">
                 <Ionicons name="film-outline" size={64} color="#1f2937" />
-                <Text className="text-gray-500 mt-4 text-lg">No movies found in this category</Text>
+                <Text className="text-slate-500 mt-4 text-lg">No movies found in this category</Text>
               </View>
             }
           />

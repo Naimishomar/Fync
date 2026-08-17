@@ -12,6 +12,7 @@ export const getStreakLeaderboard = async (req, res) => {
             .select('name username avatar streakCount college');
 
         const currentUser = await User.findById(req.user.id).select('streakCount lastPostDate');
+        if (!currentUser) return res.status(404).json({ success: false, message: "User not found" });
         
         let rank = -1;
         let completedToday = false;

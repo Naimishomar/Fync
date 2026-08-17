@@ -91,7 +91,7 @@ const MeetOurTeam = () => {
                             TEAM
                         </Text>
                     </View>
-                    <Text className="text-[11px] text-gray-400 font-bold tracking-[2px] mt-4 uppercase text-center">
+                    <Text className="text-2xs text-slate-500 font-bold tracking-wide mt-4 uppercase text-center">
                         Responsible for making the magic happen
                     </Text>
                 </View>
@@ -103,7 +103,7 @@ const MeetOurTeam = () => {
                             <View key={member.id} style={{ width: '50%' }} className="items-center mb-12 px-3">
                                 {/* Circular Frame */}
                                 <View
-                                    className={`relative w-36 h-36 rounded-full items-center justify-center p-1 overflow-hidden ${member.isHighlighted ? 'bg-cyan-400' : 'bg-gray-100'}`}
+                                    className={`relative w-36 h-36 rounded-full items-center justify-center p-1 overflow-hidden ${member.isHighlighted ? 'bg-cyan-400' : 'bg-slate-100'}`}
                                 >
                                     <Image
                                         source={{ uri: member.image }}
@@ -112,16 +112,16 @@ const MeetOurTeam = () => {
                                     />
                                     {/* Overlay for grayscale effect if not highlighted */}
                                     {!member.isHighlighted && (
-                                        <View className="absolute inset-0 bg-gray-500/10" />
+                                        <View className="absolute inset-0 bg-slate-500/10" />
                                     )}
                                 </View>
 
                                 {/* Member Details */}
                                 <View className="mt-5 items-center">
-                                    <Text className="text-[14px] font-black text-[#1A1A1A] tracking-[1.5px] text-center uppercase">
+                                    <Text className="text-sm font-black text-[#1A1A1A] tracking-[1.5px] text-center uppercase">
                                         {member.name}
                                     </Text>
-                                    <Text className="text-[11px] text-gray-400 font-semibold  mt-1 text-center">
+                                    <Text className="text-2xs text-slate-500 font-semibold  mt-1 text-center">
                                         {member.role}
                                     </Text>
 

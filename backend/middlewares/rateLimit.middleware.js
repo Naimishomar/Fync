@@ -1,6 +1,27 @@
 import rateLimit from 'express-rate-limit';
+import { ipKeyGenerator } from 'express-rate-limit';
 import { RedisStore } from 'rate-limit-redis';
+import jwt from 'jsonwebtoken';
 import redisClient from '../utils/redis.js';
+
+// A whole campus sits behind one NAT address, so a purely IP-keyed limit throttles
+// hundreds of students as if they were one client. Key authenticated traffic by
+// user id instead and fall back to IP only for anonymous requests.
+//
+// The token is verified rather than merely decoded: an unverified `sub` would let
+// anyone mint a fresh limit bucket per request and bypass the limiter entirely.
+const userOrIpKey = (req, res) => {
+  const header = req.headers.authorization;
+  if (header?.startsWith('Bearer ')) {
+    try {
+      const { id } = jwt.verify(header.slice(7), process.env.JWT_SECRET);
+      if (id) return `u:${id}`;
+    } catch {
+      // Fall through to IP for expired/invalid tokens.
+    }
+  }
+  return ipKeyGenerator(req, res);
+};
 
 const createRedisStore = (prefix) => new RedisStore({
   sendCommand: async (...args) => {
@@ -8,14 +29,24 @@ const createRedisStore = (prefix) => new RedisStore({
       // If it's not even open (or trying to connect), bypass
       throw new Error("Redis is offline, bypassing rate limit to prevent hang.");
     }
-    // Allow up to 3 seconds for commands (handles initial connection/script loading latency)
-    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Redis Timeout")), 3000));
-    return Promise.race([redisClient.sendCommand(args), timeout]);
+    // Allow up to 3 seconds for commands (handles initial connection/script loading latency).
+    // The timer must be cleared: leaving it pending kept one live timer per request,
+    // which at a few thousand requests a minute is a steady leak for no reason.
+    let timer;
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error("Redis Timeout")), 3000);
+    });
+    try {
+      return await Promise.race([redisClient.sendCommand(args), timeout]);
+    } finally {
+      clearTimeout(timer);
+    }
   },
   prefix: prefix,
 });
 
 export const createLimiter = rateLimit({
+    keyGenerator: userOrIpKey,
     store: createRedisStore('rl_create:'),
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 5, // Limit each IP to 5 creations per window
@@ -42,6 +73,7 @@ export const authLimiter = rateLimit({
 });
 
 export const feedLimiter = rateLimit({
+    keyGenerator: userOrIpKey,
     store: createRedisStore('rl_feed:'),
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 200, // High limit for scrollers
@@ -52,6 +84,7 @@ export const feedLimiter = rateLimit({
 });
 
 export const generalLimiter = rateLimit({
+    keyGenerator: userOrIpKey,
     store: createRedisStore('rl_general:'),
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 100, // Balanced for typical usage

@@ -387,5 +387,25 @@ userSchema.index({ codingRating: -1 });              // Arena Leaderboard
 userSchema.index({ college: 1, user_access: 1 });    // Campus filtering
 userSchema.index({ createdAt: -1 });                 // New user sorting
 
+// The auth middleware caches a projection of this document in Redis. Invalidate
+// here rather than at each of the ~30 call sites that mutate a user, so a ban or
+// a profile edit can never be served stale.
+const dropAuthCache = async (id) => {
+    if (!id) return;
+    try {
+        const { default: redisClient } = await import('../utils/redis.js');
+        await redisClient.del(`auth:user:${String(id)}`);
+    } catch (err) {
+        console.error('Auth cache invalidation error:', err.message);
+    }
+};
+
+userSchema.post('save', function (doc) { dropAuthCache(doc?._id); });
+userSchema.post(/^findOneAnd/, function (doc) { dropAuthCache(doc?._id); });
+userSchema.post(['updateOne', 'updateMany'], async function () {
+    const id = this.getFilter?.()?._id;
+    if (id) await dropAuthCache(id);
+});
+
 const User = mongoose.model('User', userSchema);
 export default User;

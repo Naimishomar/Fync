@@ -109,24 +109,24 @@ const GitHubFolderScreen = () => {
         <View className='px-8 pt-8 bg-transparent'>
           <View className="flex-row items-center justify-between mb-8">
             <View className="flex-1 mr-4">
-              <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase" numberOfLines={1}>
+              <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase" numberOfLines={1}>
                 {title.length > 15 ? title.substring(0, 12) + '...' : title}
               </Text>
-              <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[2px] mt-0.5">Repo Explorer / {path || 'root'}</Text>
+              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Repo Explorer / {path || 'root'}</Text>
             </View>
             <TouchableOpacity onPress={() => navigation.goBack()} className="w-12 h-12 rounded-2xl items-center justify-center border border-slate-100 bg-white shadow-sm">
               <Ionicons name="arrow-back" size={20} color="#18181b" />
             </TouchableOpacity>
           </View>
 
-          <View className="flex-row items-center bg-white px-4 py-1 rounded-[20px] border border-slate-100 mb-6">
+          <View className="flex-row items-center bg-white px-4 py-1 rounded-2xl border border-slate-100 mb-6">
             <Ionicons name="search" size={20} color="#CBD5E1" />
             <TextInput
               placeholder="Search in this folder..."
               placeholderTextColor="#CBD5E1"
               value={search}
               onChangeText={setSearch}
-              className="flex-1 text-zinc-900 font-black text-sm tracking-tight p-3"
+              className="flex-1 text-slate-900 font-black text-sm tracking-tight p-3"
             />
           </View>
         </View>
@@ -134,7 +134,7 @@ const GitHubFolderScreen = () => {
         {loading ? (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#3b82f6" />
-            <Text className="mt-4 text-slate-400 font-black text-[10px] uppercase tracking-widest">Fetching Protocol...</Text>
+            <Text className="mt-4 text-slate-500 font-black text-2xs uppercase tracking-wide">Fetching Protocol...</Text>
           </View>
         ) : (
           <FlatList
@@ -147,7 +147,7 @@ const GitHubFolderScreen = () => {
               return (
                 <TouchableOpacity
                   activeOpacity={0.7}
-                  className="flex-row items-center p-5 mx-6 mb-4 bg-white rounded-[28px] border border-slate-100"
+                  className="flex-row items-center p-5 mx-6 mb-4 bg-white rounded-3xl border border-slate-100"
                   onPress={() => handlePress(item)}
                 >
                   <View className="w-14 h-14 bg-slate-50 rounded-2xl items-center justify-center p-2.5">
@@ -159,10 +159,10 @@ const GitHubFolderScreen = () => {
                   </View>
 
                   <View className="ml-4 flex-1">
-                    <Text className="text-zinc-900 text-sm font-black uppercase tracking-tight" numberOfLines={1}>
+                    <Text className="text-slate-900 text-sm font-black uppercase tracking-tight" numberOfLines={1}>
                       {(item.name || "").replace('.md', '')}
                     </Text>
-                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">
+                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">
                       {isFolder ? 'Category' : 'Note File'}
                     </Text>
                   </View>
@@ -175,10 +175,10 @@ const GitHubFolderScreen = () => {
             }}
             ListEmptyComponent={
               <View className="items-center mt-20 px-10">
-                <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
+                <View className="w-20 h-20 bg-slate-50 rounded-4xl items-center justify-center mb-6">
                   <Ionicons name="folder-open-outline" size={32} color="#CBD5E1" />
                 </View>
-                <Text className="text-slate-400 font-black text-xs text-center uppercase tracking-widest">No protocol files found</Text>
+                <Text className="text-slate-500 font-black text-xs text-center uppercase tracking-wide">No protocol files found</Text>
               </View>
             }
           />

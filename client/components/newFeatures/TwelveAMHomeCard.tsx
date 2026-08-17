@@ -97,8 +97,8 @@ export default function TwelveAMLockScreen() {
             <View className={`px-4 py-2 rounded-full border flex-row items-center ${
                 isOpen ? 'bg-green-500/20 border-green-500' : 'bg-white/10 border-white/10'
             }`}>
-              <View key={isOpen ? "live" : "offline"} className={`w-2 h-2 rounded-full mr-2 ${isOpen ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`} />
-                <Text className={`text-xs font-bold tracking-widest ${isOpen ? 'text-green-400' : 'text-gray-300'}`}>
+              <View key={isOpen ? "live" : "offline"} className={`w-2 h-2 rounded-full mr-2 ${isOpen ? 'bg-green-400 animate-pulse' : 'bg-slate-400'}`} />
+                <Text className={`text-xs font-bold tracking-widest ${isOpen ? 'text-green-400' : 'text-slate-300'}`}>
                     {isOpen ? 'LIVE' : 'OFFLINE'}
                 </Text>
             </View>
@@ -123,11 +123,11 @@ export default function TwelveAMLockScreen() {
 
             {/* THE BIG CLOCK */}
             <View className="mt-10 items-center">
-                <Text className="text-gray-400 text-xs font-bold tracking-widest mb-2">
+                <Text className="text-slate-500 text-xs font-bold tracking-wide mb-2">
                     {statusText}
                 </Text>
                 <Text className={`text-6xl font-mono font-bold tracking-tighter ${
-                    isOpen ? 'text-white text-shadow-glow' : 'text-gray-500'
+                    isOpen ? 'text-white text-shadow-glow' : 'text-slate-500'
                 }`}>
                     {timerString}
                 </Text>
@@ -136,7 +136,7 @@ export default function TwelveAMLockScreen() {
 
         {/* --- FOOTER (Action Button) --- */}
         <View className="mb-6">
-            <Text className="text-gray-400 text-center text-xs mb-6 px-8 leading-5">
+            <Text className="text-slate-500 text-center text-xs mb-6 px-8 leading-5">
                 {isOpen 
                     ? "Messages are encrypted and ephemeral. Everything is deleted at 6:00 AM." 
                     : "The club is currently closed. Come back at midnight to join the anonymous chat."
@@ -152,7 +152,7 @@ export default function TwelveAMLockScreen() {
                 ) : (
                     <View className="flex-row items-center justify-center bg-pink-500/20 py-3 rounded-full">
                         <Ionicons name="lock-closed" size={20} color="#6b7280" style={{ marginRight: 8 }} />
-                        <Text className="text-gray-500 font-bold text-lg">LOCKED</Text>
+                        <Text className="text-slate-500 font-bold text-lg">LOCKED</Text>
                     </View>
                 )}
             </TouchableOpacity>

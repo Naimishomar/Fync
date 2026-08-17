@@ -233,12 +233,12 @@ export default function VideoCallLobby({ navigation }: any) {
   return (
     <LinearGradient colors={['#ffffff', '#f5f3ff', '#ede9fe']} className="flex-1 pt-10">
       <View className="px-5 py-4 border-b border-violet-100 flex-row items-center">
-        <Text className="text-xl font-black text-gray-900 tracking-tight uppercase">Video Networking</Text>
+        <Text className="text-xl font-black text-slate-900 tracking-tight uppercase">Video Networking</Text>
       </View>
 
       {onlineUsers.length === 0 ? (
         <View className="flex-1 items-center justify-center">
-          <Text className="text-gray-500">No one is online right now. Invite friends!</Text>
+          <Text className="text-slate-500">No one is online right now. Invite friends!</Text>
         </View>
       ) : (
         <FlatList
@@ -246,19 +246,19 @@ export default function VideoCallLobby({ navigation }: any) {
           keyExtractor={(item) => item._id}
           contentContainerStyle={{ padding: 20 }}
           renderItem={({ item }) => (
-            <View className="flex-row items-center justify-between mb-4 p-4 bg-white/80 rounded-[24px] border border-violet-50 shadow-sm">
+            <View className="flex-row items-center justify-between mb-4 p-4 bg-white/80 rounded-2xl border border-violet-50 shadow-sm">
               <View className="flex-row items-center flex-1">
                 {item.profilePic ? (
-                  <Image source={{ uri: item.profilePic }} className="w-12 h-12 rounded-full mr-4 bg-gray-200" />
+                  <Image source={{ uri: item.profilePic }} className="w-12 h-12 rounded-full mr-4 bg-slate-200" />
                 ) : (
                   <View className="w-12 h-12 rounded-full mr-4 bg-violet-100 items-center justify-center border-2 border-white">
                     <Text className="text-violet-600 font-bold">{item.name?.charAt(0)}</Text>
                   </View>
                 )}
                 <View className="flex-1 pr-4">
-                  <Text className="font-bold text-gray-900 text-base">{item.name}</Text>
-                  {item.college && <Text className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1" numberOfLines={1}>{item.college}</Text>}
-                  <Text className={`text-[10px] font-black uppercase tracking-wider ${item.status === 'online' ? 'text-green-500' : 'text-violet-500'}`}>
+                  <Text className="font-bold text-slate-900 text-base">{item.name}</Text>
+                  {item.college && <Text className="text-2xs text-slate-500 font-bold uppercase tracking-wider mb-1" numberOfLines={1}>{item.college}</Text>}
+                  <Text className={`text-2xs font-black uppercase tracking-wider ${item.status === 'online' ? 'text-green-500' : 'text-violet-500'}`}>
                     {item.status === 'online' ? '● Online' : '● In a call'}
                   </Text>
                 </View>
@@ -267,7 +267,7 @@ export default function VideoCallLobby({ navigation }: any) {
               <TouchableOpacity
                 onPress={() => startCall(item)}
                 disabled={item.status === 'busy'}
-                className={`p-3 rounded-full ${item.status === 'busy' ? 'bg-gray-200' : 'bg-violet-600'}`}
+                className={`p-3 rounded-full ${item.status === 'busy' ? 'bg-slate-200' : 'bg-violet-600'}`}
               >
                 <Video size={20} color={item.status === 'busy' ? '#9CA3AF' : '#FFF'} />
               </TouchableOpacity>
@@ -283,7 +283,7 @@ export default function VideoCallLobby({ navigation }: any) {
               <Camera size={40} color="#7C3AED" />
             </View>
             <Text className="text-2xl font-bold mb-2">{incomingCall?.callerName}</Text>
-            <Text className="text-gray-500 mb-8">Incoming Video Call...</Text>
+            <Text className="text-slate-500 mb-8">Incoming Video Call...</Text>
 
             <View className="flex-row w-full justify-around mb-8">
               <TouchableOpacity onPress={rejectCall} className="bg-red-500 w-16 h-16 rounded-full items-center justify-center">

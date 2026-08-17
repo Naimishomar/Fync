@@ -120,12 +120,12 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
       <View className="flex-1 bg-[#F8FAFC]">
         <StatusBar barStyle="dark-content" />
         <SafeAreaView className="flex-1 justify-center items-center px-10">
-          <View className="bg-white p-10 rounded-[40px] border border-slate-100 items-center w-full shadow-2xl shadow-black/5">
+          <View className="bg-white p-10 rounded-5xl border border-slate-100 items-center w-full shadow-2xl shadow-black/5">
             <View className="bg-pink-50 p-6 rounded-full mb-8 border border-pink-100">
-              <ActivityIndicator size="large" color="#ec4899" />
+              <ActivityIndicator size="large" color="#f97316" />
             </View>
-            <Text className="text-3xl font-black  tracking-tighter text-zinc-900 mb-2 text-center uppercase">Submitted!</Text>
-            <Text className="text-slate-400 text-center text-lg font-bold uppercase tracking-tight">
+            <Text className="text-3xl font-black  tracking-tighter text-slate-900 mb-2 text-center uppercase">Submitted!</Text>
+            <Text className="text-slate-500 text-center text-lg font-bold uppercase tracking-tight">
               Waiting for <Text className="font-black text-pink-500 ">{opponent?.name || "Target"}</Text> to finalize...
             </Text>
           </View>
@@ -153,19 +153,19 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
                   )}
                 </View>
                 <View>
-                  <Text className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Global Opponent</Text>
-                  <Text className="font-black  text-zinc-900 uppercase tracking-tighter">{opponent.name || opponent.username}</Text>
+                  <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide">Global Opponent</Text>
+                  <Text className="font-black  text-slate-900 uppercase tracking-tighter">{opponent.name || opponent.username}</Text>
                 </View>
               </View>
               <View className="bg-pink-500 px-4 py-1.5 rounded-full shadow-lg shadow-pink-500/20">
-                <Text className="text-white font-black  text-[10px] tracking-widest uppercase">1V1 Match</Text>
+                <Text className="text-white font-black  text-2xs tracking-wide uppercase">1V1 Match</Text>
               </View>
             </View>
           )}
 
           <View className="flex-row justify-between items-center">
             <View className="flex-row items-center">
-              <Text className="font-black  text-xl text-zinc-900 tracking-tighter uppercase">
+              <Text className="font-black  text-xl text-slate-900 tracking-tighter uppercase">
                 Q. <Text className="text-pink-500 text-2xl">{currentIndex + 1}</Text> / {questions.length}
               </Text>
             </View>
@@ -173,7 +173,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
             <View className={`px-5 py-2.5 rounded-2xl border flex-row items-center shadow-sm ${timeLeft < 60 ? 'bg-red-50 border-red-100 shadow-red-500/5' : 'bg-slate-50 border-slate-100 shadow-black/5'
               }`}>
               <Ionicons name="stopwatch" size={20} color={timeLeft < 60 ? '#f87171' : '#ec4899'} />
-              <Text className={`font-black  text-xl ml-3 tracking-tighter uppercase ${timeLeft < 60 ? 'text-red-400' : 'text-zinc-900'}`}>
+              <Text className={`font-black  text-xl ml-3 tracking-tighter uppercase ${timeLeft < 60 ? 'text-red-400' : 'text-slate-900'}`}>
                 {formatTime(timeLeft)}
               </Text>
             </View>
@@ -190,8 +190,8 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
 
         {/* --- CURRENT QUESTION --- */}
         <ScrollView className="flex-1 px-8 pt-10" showsVerticalScrollIndicator={false}>
-          <View className="mb-10 bg-white p-8 rounded-[40px] border border-slate-100 shadow-2xl shadow-black/5">
-            <Text className="text-2xl font-black  text-zinc-900 mb-10 leading-8 tracking-tighter uppercase">
+          <View className="mb-10 bg-white p-8 rounded-5xl border border-slate-100 shadow-2xl shadow-black/5">
+            <Text className="text-2xl font-black  text-slate-900 mb-10 leading-8 tracking-tighter uppercase">
               {currentQuestion.question}
             </Text>
 
@@ -241,7 +241,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
             <TouchableOpacity
               onPress={() => setCurrentIndex(prev => prev + 1)}
               activeOpacity={0.9}
-              className="py-5 px-16 rounded-[30px] bg-pink-500 shadow-xl shadow-pink-500/20 flex-row items-center"
+              className="py-5 px-16 rounded-3xl bg-pink-500 shadow-xl shadow-pink-500/20 flex-row items-center"
             >
               <Text className="text-white font-black  uppercase tracking-[2px] text-sm mr-3">Next Step</Text>
               <Ionicons name="arrow-forward" size={18} color="white" />
@@ -251,7 +251,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
               onPress={() => setShowConfirmModal(true)}
               disabled={submitted}
               activeOpacity={0.9}
-              className="py-5 px-16 rounded-[30px] bg-pink-500 shadow-xl shadow-pink-500/20 flex-row items-center"
+              className="py-5 px-16 rounded-3xl bg-pink-500 shadow-xl shadow-pink-500/20 flex-row items-center"
             >
               <Text className="text-white font-black  uppercase tracking-[2px] text-sm mr-3">Finalize</Text>
               <Ionicons name="rocket" size={22} color="white" />
@@ -267,19 +267,19 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
           animationType="fade"
           onRequestClose={() => setShowConfirmModal(false)}
         >
-          <View className="flex-1 bg-zinc-900/60 justify-center items-center px-8">
-            <View className="bg-white p-10 rounded-[40px] border border-slate-100 w-full items-center shadow-2xl">
+          <View className="flex-1 bg-slate-900/60 justify-center items-center px-8">
+            <View className="bg-white p-10 rounded-5xl border border-slate-100 w-full items-center shadow-2xl">
               <View className="bg-amber-50 p-6 rounded-full mb-8 border border-amber-100">
                 <Ionicons name="alert-circle" size={48} color="#d97706" />
               </View>
-              <Text className="text-3xl font-black  tracking-tighter text-zinc-900 mb-3 text-center uppercase">Complete Quiz?</Text>
+              <Text className="text-3xl font-black  tracking-tighter text-slate-900 mb-3 text-center uppercase">Complete Quiz?</Text>
 
               {answers.includes(-1) ? (
                 <Text className="text-red-500 text-center font-bold text-lg mb-10 tracking-tight">
                   Warning: <Text className="font-black ">{answers.filter(a => a === -1).length}</Text> questions remain unaddressed!
                 </Text>
               ) : (
-                <Text className="text-slate-400 text-center font-bold text-base mb-10 tracking-tight uppercase">
+                <Text className="text-slate-500 text-center font-bold text-base mb-10 tracking-tight uppercase">
                   Protocol finished. Verify your inputs before final submission.
                 </Text>
               )}
@@ -289,14 +289,14 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
                   onPress={() => setShowConfirmModal(false)}
                   className="flex-1 py-5 bg-slate-50 rounded-3xl border border-slate-100 items-center shadow-sm"
                 >
-                  <Text className="text-slate-500 font-black  uppercase tracking-widest text-[12px]">Review</Text>
+                  <Text className="text-slate-500 font-black  uppercase tracking-wide text-xs">Review</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={submitQuiz}
                   className="flex-1 py-5 bg-pink-500 rounded-3xl shadow-xl shadow-pink-500/20 items-center"
                 >
-                  <Text className="text-white font-black  uppercase tracking-widest text-[12px]">Confirm</Text>
+                  <Text className="text-white font-black  uppercase tracking-wide text-xs">Confirm</Text>
                 </TouchableOpacity>
               </View>
             </View>

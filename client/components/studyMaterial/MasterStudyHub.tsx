@@ -83,8 +83,8 @@ export default function MasterStudyHub() {
         {/* TOP BAR */}
         <View className="px-6 py-4 flex-row items-center justify-between">
           <View>
-            <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase">Fync <Text className="text-purple-600">Academy</Text></Text>
-            <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[2px] mt-0.5">The Infinite Tech Protocol</Text>
+            <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase">Fync <Text className="text-purple-600">Academy</Text></Text>
+            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">The Infinite Tech Protocol</Text>
           </View>
           <TouchableOpacity 
             onPress={() => navigation.goBack()} 
@@ -100,15 +100,15 @@ export default function MasterStudyHub() {
           contentContainerStyle={{ paddingBottom: 100 }}
         >
           {/* SEARCH BAR */}
-          <View className="mb-6 bg-white p-4 rounded-[32px] shadow-sm border border-slate-100">
+          <View className="mb-6 bg-white p-4 rounded-4xl shadow-sm border border-slate-100">
             <View className="flex-row items-center mb-3 ml-2">
               <Ionicons name="logo-google" size={16} color="#3b82f6" />
-              <Text className="text-zinc-900 font-black text-[10px] uppercase tracking-widest ml-2">Fync Search</Text>
+              <Text className="text-slate-900 font-black text-2xs uppercase tracking-wide ml-2">Fync Search</Text>
               <View className="ml-2 bg-red-100 px-2 py-0.5 rounded-md">
-                <Text className="text-red-600 font-bold text-[8px] uppercase tracking-widest">PDF Only</Text>
+                <Text className="text-red-600 font-bold text-2xs uppercase tracking-wide">PDF Only</Text>
               </View>
             </View>
-            <View className="flex-row items-center bg-slate-50 rounded-[20px] px-5 py-4 border border-slate-200">
+            <View className="flex-row items-center bg-slate-50 rounded-2xl px-5 py-4 border border-slate-200">
               <Ionicons name="search" size={20} color="#94a3b8" />
               <TextInput 
                 className="flex-1 ml-3 text-slate-700 font-bold text-sm p-0"
@@ -134,7 +134,7 @@ export default function MasterStudyHub() {
                 key={cat.id}
                 onPress={cat.onPress}
                 activeOpacity={0.8}
-                className="w-full mb-4 overflow-hidden rounded-[32px] bg-white border border-slate-100"
+                className="w-full mb-4 overflow-hidden rounded-4xl bg-white border border-slate-100"
                 style={{
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: 10 },
@@ -157,7 +157,7 @@ export default function MasterStudyHub() {
                       <Text className="text-white font-black text-xl uppercase tracking-tighter leading-tight">
                         {cat.name}
                       </Text>
-                      <Text className="text-white/70 text-[10px] font-bold uppercase tracking-widest mt-0.5">
+                      <Text className="text-white/70 text-2xs font-bold uppercase tracking-wide mt-0.5">
                         {cat.description}
                       </Text>
                     </View>
@@ -170,18 +170,18 @@ export default function MasterStudyHub() {
             ))}
 
             {/* MOTIVATIONAL CARD */}
-            <View className="mt-4 rounded-[40px] bg-zinc-900 p-8 border border-zinc-800">
+            <View className="mt-4 rounded-5xl bg-slate-900 p-8 border border-slate-800">
               <View className="flex-row items-center mb-4">
                 <View className="bg-pink-500 p-2 rounded-xl mr-3">
                   <Ionicons name="rocket-outline" size={20} color="white" />
                 </View>
                 <Text className="text-white font-black text-lg uppercase tracking-tighter">Mission: Expert</Text>
               </View>
-              <Text className="text-slate-400 text-sm leading-relaxed font-medium">
+              <Text className="text-slate-500 text-sm leading-relaxed font-medium">
                 Unlock the world's most comprehensive technical library. From the fundamentals of DSA to elite FAANG preparation, your journey to mastery begins here.
               </Text>
               <TouchableOpacity className="mt-6 bg-white self-start px-6 py-3 rounded-2xl shadow-lg">
-                <Text className="text-black font-black text-xs uppercase tracking-widest">Start Learning</Text>
+                <Text className="text-black font-black text-xs uppercase tracking-wide">Start Learning</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -196,8 +196,8 @@ export default function MasterStudyHub() {
               <Ionicons name="close" size={24} color="#1e293b" />
             </TouchableOpacity>
             <View className="items-center">
-              <Text className="text-zinc-900 font-black text-sm uppercase tracking-widest">{searchQuery}</Text>
-              <Text className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">PDF Results</Text>
+              <Text className="text-slate-900 font-black text-sm uppercase tracking-widest">{searchQuery}</Text>
+              <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wide">PDF Results</Text>
             </View>
             <View className="w-10" />
           </View>
@@ -250,7 +250,7 @@ export default function MasterStudyHub() {
             {webViewLoading && (
               <View className="absolute inset-0 items-center justify-center bg-white z-10">
                 <ActivityIndicator size="large" color="#3b82f6" />
-                <Text className="mt-4 text-slate-500 font-black text-xs uppercase tracking-widest">Indexing PDFs...</Text>
+                <Text className="mt-4 text-slate-500 font-black text-xs uppercase tracking-wide">Indexing PDFs...</Text>
               </View>
             )}
           </View>

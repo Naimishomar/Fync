@@ -1,16 +1,19 @@
-import express from "express";
 import Razorpay from "razorpay";
 import dotenv from "dotenv";
 import crypto from "crypto";
-import fs from "fs";
-import PDFDocument from "pdfkit";
-import QRCode from "qrcode";
+import { randomUUID } from "crypto";
 import { Jimp } from "jimp";
 import jsQR from "jsqr";
 import RegisterSpeakerSession from "../models/events/registerSpeakerSession.model.js";
 import RegisterBootcamp from "../models/events/registerBootcamp.model.js";
 import Community from "../models/community/community.model.js";
+import PaymentOrder from "../models/paymentOrder.model.js";
+import { resolvePurchase } from "../utils/pricing.js";
 dotenv.config({ quiet: true });
+
+// resolvePurchase throws plain Errors for anything the caller got wrong; this
+// keeps those as 400s instead of 500s.
+class PriceError extends Error {}
 
 
 const razorpay = new Razorpay({
@@ -18,175 +21,129 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-export const createOrder = async (req, res) => {
+export const createOrder = async (req, res, next) => {
   try {
-    const { amount, notes } = req.body;
-    const numericAmount = Number(amount);
-    if (!Number.isFinite(numericAmount) || numericAmount <= 0 || numericAmount > 500000) {
-      return res.status(400).json({ success: false, message: "Invalid amount" });
+    const { purpose, ...options } = req.body;
+
+    // The amount is resolved from the server-side catalog. It used to be taken
+    // straight from req.body, so any price could be sent for any product.
+    let priced;
+    try {
+      priced = await resolvePurchase(purpose, options, req.user.id);
+    } catch (e) {
+      throw Object.assign(new PriceError(e.message), { cause: e });
     }
-    if (notes !== undefined && (typeof notes !== 'object' || notes === null || Array.isArray(notes))) {
-      return res.status(400).json({ success: false, message: "Invalid notes" });
-    }
-    const options = {
-      amount: Math.round(numericAmount * 100),
+    const { amount, meta } = priced;
+
+    const order = await razorpay.orders.create({
+      amount,
       currency: "INR",
-      receipt: `receipt_${Math.floor(Math.random() * 10000)}`,
-      notes: notes || {}
-    };
-    const order = await razorpay.orders.create(options);
-    res.json(order);
+      // Must be unique per order; the old `receipt_${Math.random()*10000}`
+      // collided roughly once every hundred orders.
+      receipt: `rcpt_${randomUUID()}`,
+      notes: { purpose, userId: req.user.id },
+    });
+
+    await PaymentOrder.create({
+      razorpayOrderId: order.id,
+      user: req.user.id,
+      purpose,
+      amount,
+      meta,
+    });
+
+    // Only what the checkout sheet needs.
+    res.json({ id: order.id, amount: order.amount, currency: order.currency, receipt: order.receipt });
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Error creating order");
+    if (err instanceof PriceError) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+    next(err);
   }
 };
 
-export const verifyOrder = async (req, res) => {
-  const {
-    razorpay_order_id,
-    razorpay_payment_id,
-    razorpay_signature,
-    customerName,
-    customerEmail,
-    amount,
-    merchantUpiId,
-    merchantName,
-  } = req.body;
-
-  const body = razorpay_order_id + "|" + razorpay_payment_id;
-  const expectedSignature = crypto
-    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-    .update(body.toString())
-    .digest("hex");
-
-  if (expectedSignature !== razorpay_signature) {
-    return res.status(400).json({ success: false });
-  }
-
-  // ==========================
-  //     PDF GENERATION
-  // ==========================
-
-  // Make sure receipts folder exists
-  if (!fs.existsSync("./receipts")) {
-    fs.mkdirSync("./receipts");
-  }
-
-  const filePath = `./receipts/${razorpay_order_id}.pdf`;
-  const doc = new PDFDocument({ margin: 50 });
-
-  // Pipe into write stream
-  const stream = fs.createWriteStream(filePath);
-  doc.pipe(stream);
-
-  // ---------- Header ----------
-  doc.fontSize(24).text("Payment Receipt", { align: "center" }).moveDown();
-  doc.moveDown();
-
-  // ---------- Customer Info ----------
-  doc.fontSize(16).text("Customer Details", { underline: true });
-  doc.moveDown(0.5);
-  doc.fontSize(12).text(`Name: ${customerName || "N/A"}`);
-  doc.text(`Email: ${customerEmail || "N/A"}`);
-  doc.moveDown();
-
-  if (merchantName || merchantUpiId) {
-    doc.fontSize(16).text("Paid To (Creator)", { underline: true });
-    doc.moveDown(0.5);
-    doc.fontSize(12).text(`Name: ${merchantName || "N/A"}`);
-    doc.text(`UPI ID: ${merchantUpiId || "N/A"}`);
-    doc.moveDown();
-  }
-
-  // ---------- Payment Info ----------
-  doc.fontSize(16).text("Payment Info", { underline: true });
-  doc.moveDown(0.5);
-  doc.fontSize(12).text(`Order ID: ${razorpay_order_id}`);
-  doc.text(`Payment ID: ${razorpay_payment_id}`);
-  doc.text(`Amount: ₹${amount}`);
-  doc.text(`Date: ${new Date().toLocaleString()}`);
-  doc.text(`Status: SUCCESS`);
-  doc.moveDown();
-
-  // ---------- QR Code ----------
-  const qrData = `Order: ${razorpay_order_id}\nPayment: ${razorpay_payment_id}\nAmount: ₹${amount}`;
-  const qrImage = await QRCode.toDataURL(qrData);
-
-  const qrBuffer = Buffer.from(qrImage.split(",")[1], "base64");
-  doc.image(qrBuffer, { width: 120, align: "center" });
-
-  doc.moveDown(2);
-
-  // ---------- Footer ----------
-  doc
-    .fontSize(10)
-    .text("Thank you for your purchase!", { align: "center" })
-    .text(
-      "This is a system-generated receipt and does not require a signature.",
-      {
-        align: "center",
-      }
-    );
-
-  doc.end();
-
-  stream.on("finish", async () => {
-    const protocol = req.protocol;
-    const host = req.get('host');
-    const url = `${protocol}://${host}/receipts/${razorpay_order_id}.pdf`;
-
-    res.json({
-      success: true,
-      receipt_url: url,
-    });
-
-    // --- CUSTOM LOGIC FOR ECOSYSTEMS ---
-    try {
-      const orderDetails = await razorpay.orders.fetch(razorpay_order_id);
-      if (orderDetails.notes) {
-          const { type } = orderDetails.notes;
-          
-          if (type === 'speaker_session') {
-              const { registrationId } = orderDetails.notes;
-              await RegisterSpeakerSession.findByIdAndUpdate(registrationId, { isPaid: true });
-          } else if (type === 'bootcamp') {
-              const { registrationId } = orderDetails.notes;
-              await RegisterBootcamp.findByIdAndUpdate(registrationId, { isPaid: true });
-          } else if (type === 'community_spark') {
-              const { communityId, plan } = orderDetails.notes;
-              const CommunityDoc = await Community.findById(communityId);
-              if (CommunityDoc) {
-                  const now = new Date();
-                  let newExpiry;
-                  const daysToAdd = plan === 'yearly' ? 365 : 30;
-                  
-                  // Stacking check
-                  if (CommunityDoc.subscription.expiryDate && new Date(CommunityDoc.subscription.expiryDate) > now) {
-                      newExpiry = new Date(new Date(CommunityDoc.subscription.expiryDate).getTime() + daysToAdd * 24 * 60 * 60 * 1000);
-                  } else {
-                      newExpiry = new Date(now.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
-                  }
-
-                  CommunityDoc.subscription.expiryDate = newExpiry;
-                  CommunityDoc.subscription.status = 'active';
-                  CommunityDoc.subscription.lastPaymentDate = now;
-                  await CommunityDoc.save();
-                  console.log(`✨ Community ${communityId} renewed via HubSpark Pipeline.`);
-              }
-          }
-      }
-    } catch (updateErr) {
-      console.error("Failed to update ignition status:", updateErr);
+export const verifyOrder = async (req, res, next) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ success: false, message: "Missing payment details" });
     }
 
-    setTimeout(() => {
-      fs.unlink(filePath, (err) => {
-        if (err) console.error("Error deleting PDF:", err);
-        else console.log("Deleted PDF:", filePath);
-      });
-    }, 10000);
-  });
+    const expected = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest();
+    const received = Buffer.from(String(razorpay_signature), "hex");
+    // Constant-time compare; timingSafeEqual throws on a length mismatch.
+    if (received.length !== expected.length || !crypto.timingSafeEqual(expected, received)) {
+      return res.status(400).json({ success: false, message: "Invalid payment signature" });
+    }
+
+    // Atomically claim the order. A replayed request finds status already
+    // 'paid' and matches nothing, so the entitlement is granted exactly once.
+    const order = await PaymentOrder.findOneAndUpdate(
+      { razorpayOrderId: razorpay_order_id, user: req.user.id, status: "created" },
+      { status: "paid", razorpayPaymentId: razorpay_payment_id, paidAt: new Date() },
+      { new: true }
+    );
+
+    if (!order) {
+      const existing = await PaymentOrder.findOne({ razorpayOrderId: razorpay_order_id }).lean();
+      if (existing && existing.status === "paid") {
+        // Already processed — report success without granting anything again.
+        return res.json({ success: true, alreadyProcessed: true });
+      }
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    // Confirm with Razorpay that the money actually arrived, and in full. The
+    // signature only proves the ids came from Razorpay, not that it was captured.
+    const payment = await razorpay.payments.fetch(razorpay_payment_id);
+    const captured = payment.status === "captured" || payment.status === "authorized";
+    if (!captured || Number(payment.amount) !== order.amount) {
+      await PaymentOrder.updateOne({ _id: order._id }, { status: "failed" });
+      return res.status(400).json({ success: false, message: "Payment not captured for the expected amount" });
+    }
+
+    // Entitlements are granted from `order.meta`, which the server wrote at
+    // creation time — not from the notes echoed back by Razorpay, which
+    // originate on the client and were previously trusted.
+    await grantEntitlement(order);
+
+    res.json({ success: true, orderId: order.razorpayOrderId, purpose: order.purpose });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Applies whatever the user just paid for. Runs before the response so a
+// failure surfaces as an error instead of a success with nothing delivered.
+const grantEntitlement = async (order) => {
+  const { purpose, meta } = order;
+
+  if (purpose === "community_spark") {
+    const community = await Community.findById(meta.communityId);
+    if (!community) return;
+    const now = new Date();
+    const days = meta.plan === "yearly" ? 365 : 30;
+    const current = community.subscription?.expiryDate;
+    // Stack onto remaining time rather than truncating it.
+    const base = current && new Date(current) > now ? new Date(current) : now;
+    community.subscription.expiryDate = new Date(base.getTime() + days * 86400000);
+    community.subscription.status = "active";
+    community.subscription.lastPaymentDate = now;
+    await community.save();
+    return;
+  }
+
+  if (purpose === "speaker_session" && meta.registrationId) {
+    await RegisterSpeakerSession.findByIdAndUpdate(meta.registrationId, { isPaid: true });
+    return;
+  }
+
+  if (purpose === "bootcamp" && meta.registrationId) {
+    await RegisterBootcamp.findByIdAndUpdate(meta.registrationId, { isPaid: true });
+  }
 };
 
 export const scanQRImage = async (req, res) => {

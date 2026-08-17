@@ -81,7 +81,7 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
   };
 
   if (loading) return (
-    <View className="mx-4 my-3 bg-white rounded-[28px] p-6 border border-slate-100 items-center justify-center h-28 shadow-sm shadow-black/5">
+    <View className="mx-4 my-3 bg-white rounded-3xl p-6 border border-slate-100 items-center justify-center h-28 shadow-sm shadow-black/5">
       <ActivityIndicator color="#f97316" />
     </View>
   );
@@ -94,10 +94,10 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
   const categories = score.breakdown ? Object.entries(score.breakdown) : [];
 
   return (
-    <View className="mx-4 my-3 rounded-[28px] overflow-hidden border border-slate-100 bg-white shadow-sm shadow-black/5">
+    <View className="mx-4 my-3 rounded-3xl overflow-hidden border border-slate-100 bg-white shadow-sm shadow-black/5">
       <Pressable onPress={() => setExpanded(e => !e)} className="flex-row items-center p-6">
         <View
-          className="w-16 h-16 rounded-[20px] items-center justify-center mr-4 shadow-sm"
+          className="w-16 h-16 rounded-2xl items-center justify-center mr-4 shadow-sm"
           style={{ backgroundColor: cfg.bg, borderWidth: 1, borderColor: cfg.border }}
         >
           <Text style={{ fontSize: 28 }}>{cfg.emoji}</Text>
@@ -105,10 +105,10 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
 
         <View className="flex-1">
           <View className="flex-row items-baseline gap-2 mb-1">
-            <Text className="text-zinc-900 font-black text-2xl tracking-tighter">{score.totalScore}</Text>
-            <Text className="text-slate-400 font-black uppercase text-[10px] tracking-widest">/ 1000 Pts</Text>
+            <Text className="text-slate-900 font-black text-2xl tracking-tighter">{score.totalScore}</Text>
+            <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">/ 1000 Pts</Text>
           </View>
-          <Text className="font-black uppercase text-[10px] tracking-[2px]" style={{ color: cfg.color }}>Level: {badge}</Text>
+          <Text className="font-black uppercase text-2xs tracking-wide" style={{ color: cfg.color }}>Level: {badge}</Text>
           <View className="mt-2.5 h-1.5 bg-slate-100 rounded-full overflow-hidden">
             <View
               className="h-full rounded-full"
@@ -126,7 +126,7 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
 
       {expanded && (
         <View className="px-6 pb-8 border-t border-slate-50 pt-4">
-          <Text className="text-slate-400 text-[9px] font-black uppercase tracking-[2px] mb-4">Score Breakdown</Text>
+          <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Score Breakdown</Text>
           <View className="gap-4">
             {categories.map(([cat, data]: [string, any]) => {
               const catPct = Math.min((data.score / data.maxScore) * 100, 100);
@@ -134,8 +134,8 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
               return (
                 <View key={cat}>
                   <View className="flex-row justify-between mb-1.5 items-center">
-                    <Text className="text-zinc-900 text-[10px] font-black uppercase tracking-tight">{cat}</Text>
-                    <Text className="text-slate-400 font-bold text-[9px] uppercase tracking-widest">{data.score} <Text className="text-slate-300">/</Text> {data.maxScore}</Text>
+                    <Text className="text-slate-900 text-2xs font-black uppercase tracking-tight">{cat}</Text>
+                    <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wide">{data.score} <Text className="text-slate-300">/</Text> {data.maxScore}</Text>
                   </View>
                   <View className="h-1 bg-slate-50 rounded-full overflow-hidden">
                     <View className="h-full rounded-full" style={{ width: `${catPct}%`, backgroundColor: color }} />

@@ -14,11 +14,11 @@ import { cacheMiddleware } from "../middlewares/cache.middleware.js";
 const router = express.Router();
 
 router.post("/add", authMiddleware, addQuestion);
-router.get("/questions", authMiddleware, cacheMiddleware(300), getQuestions);
-router.get("/trending", authMiddleware, cacheMiddleware(600), getTrending);
+router.get("/questions", authMiddleware, cacheMiddleware(300, { tags: ['placement'] }), getQuestions);
+router.get("/trending", authMiddleware, cacheMiddleware(600, { tags: ['placement'] }), getTrending);
 router.post("/upvote/:id", authMiddleware, upvoteQuestion);
 router.post("/comment/:id", authMiddleware, addComment);
-router.get("/comments/:id", authMiddleware, cacheMiddleware(60), getComments);
+router.get("/comments/:id", authMiddleware, cacheMiddleware(60, { tags: (req) => [`placement:${req.params.id}`] }), getComments);
 router.post("/save/:id", authMiddleware, toggleSave);
 
 export default router;

@@ -136,12 +136,12 @@ export default function SignUpScreen() {
           </View>
 
           {/* Signup Sheet */}
-          <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-12 -mt-10">
+          <View className="rounded-t-5xl bg-white px-6 pt-8 pb-12 -mt-10">
               <Image source={require('../assets/Fync.png')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
-              <Text className="text-gray-500 mb-2">Join the exclusive student network</Text>
+              <Text className="text-slate-500 mb-2">Join the exclusive student network</Text>
 
               <TextInput
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black"
+                className="mb-4 rounded-xl border border-slate-300 px-4 py-4 text-black"
                 placeholder="Email"
                 placeholderTextColor="#9CA3AF"
                 value={email}
@@ -151,7 +151,7 @@ export default function SignUpScreen() {
               />
 
               <TextInput
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black"
+                className="mb-4 rounded-xl border border-slate-300 px-4 py-4 text-black"
                 placeholder="Username"
                 placeholderTextColor="#9CA3AF"
                 value={username}
@@ -159,7 +159,7 @@ export default function SignUpScreen() {
               />
 
               <TextInput
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black"
+                className="mb-4 rounded-xl border border-slate-300 px-4 py-4 text-black"
                 placeholder="Phone Number"
                 placeholderTextColor="#9CA3AF"
                 keyboardType="phone-pad"
@@ -167,7 +167,7 @@ export default function SignUpScreen() {
                 onChangeText={setPhoneNumber}
               />
 
-              <View className="mb-4 flex-row items-center rounded-xl border border-gray-300 px-4">
+              <View className="mb-4 flex-row items-center rounded-xl border border-slate-300 px-4">
                 <TextInput
                   className="flex-1 py-4 text-black"
                   placeholder="Password"
@@ -187,7 +187,7 @@ export default function SignUpScreen() {
 
               {otpSent && (
                 <TextInput
-                  className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black"
+                  className="mb-4 rounded-xl border border-slate-300 px-4 py-4 text-black"
                   placeholder="Enter OTP(Check your email)"
                   placeholderTextColor="#9CA3AF"
                   value={otp}
@@ -197,7 +197,7 @@ export default function SignUpScreen() {
 
               <View className="mb-6 flex-row items-center flex-wrap">
                 <Checkbox value={agreeTerms} onValueChange={setAgreeTerms} />
-                <Text className="ml-2 text-gray-600">
+                <Text className="ml-2 text-slate-600">
                   I agree to the{" "}
                 </Text>
                 <Pressable onPress={() => navigation.navigate('TermsAndCondition')}>
@@ -209,7 +209,7 @@ export default function SignUpScreen() {
 
               {!otpSent ? (
                 <Pressable
-                  className={`rounded-full py-4 items-center ${isLoading || !agreeTerms ? 'bg-gray-400' : 'bg-black'}`}
+                  className={`rounded-full py-4 items-center ${isLoading || !agreeTerms ? 'bg-slate-400' : 'bg-black'}`}
                   onPress={sendOtpToEmail}
                   disabled={isLoading || !agreeTerms}
                 >
@@ -223,7 +223,7 @@ export default function SignUpScreen() {
                 </Pressable>
               ) : (
                 <Pressable
-                  className={`rounded-full py-4 items-center ${isLoading ? 'bg-gray-400' : 'bg-black'}`}
+                  className={`rounded-full py-4 items-center ${isLoading ? 'bg-slate-400' : 'bg-black'}`}
                   onPress={verifyOtpAndProceed}
                   disabled={isLoading}
                 >
@@ -238,7 +238,7 @@ export default function SignUpScreen() {
               )}
 
               <View className="mt-3 flex-row justify-center mb-5">
-                <Text className="text-gray-600">Already have an account? </Text>
+                <Text className="text-slate-600">Already have an account? </Text>
                 <Pressable onPress={() => navigation.navigate('Login')}>
                   <Text className="font-semibold text-black">Login</Text>
                 </Pressable>

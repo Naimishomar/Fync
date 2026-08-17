@@ -51,7 +51,7 @@ export default function SplashScreen({ navigation }: any) {
           style={{ transform: [{ translateX: logoX }] }}
         />
         <Animated.Text
-          className="text-lg font-bold text-zinc-900 mt-5 tracking-[2px] uppercase"
+          className="text-lg font-bold text-slate-900 mt-5 tracking-[2px] uppercase"
           style={{ transform: [{ translateX: textX }] }}
         >
           Simplifying Students Life

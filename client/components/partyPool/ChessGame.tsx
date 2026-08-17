@@ -229,8 +229,8 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                             <View className="w-24 h-24 bg-white rounded-3xl items-center justify-center mb-6 shadow-xl shadow-orange-500/20 border-2 border-orange-500/30">
                                 <ActivityIndicator size="large" color="#f97316" />
                             </View>
-                            <Text className="text-zinc-900 text-xl font-black tracking-widest uppercase">Initializing Board</Text>
-                            <Text className="text-slate-500 text-xs font-bold tracking-[2px] mt-2 uppercase">{gameMode === 'bot' ? 'Waking up AI...' : 'Connecting to peer...'}</Text>
+                            <Text className="text-slate-900 text-xl font-black tracking-widest uppercase">Initializing Board</Text>
+                            <Text className="text-slate-500 text-xs font-bold tracking-wide mt-2 uppercase">{gameMode === 'bot' ? 'Waking up AI...' : 'Connecting to peer...'}</Text>
                         </View>
                     ) : (
                         <>
@@ -249,10 +249,10 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                                         )}
                                     </View>
                                     <View className="ml-4">
-                                        <Text className="text-zinc-900 text-base font-black uppercase tracking-wider">{matchDetails.opponent?.name || matchDetails.opponent?.username}</Text>
+                                        <Text className="text-slate-900 text-base font-black uppercase tracking-wider">{matchDetails.opponent?.name || matchDetails.opponent?.username}</Text>
                                         <View className="flex-row items-center mt-1">
                                             <View className="w-2 h-2 rounded-full bg-orange-500 mr-2" />
-                                            <Text className="text-slate-500 font-bold text-[10px] tracking-[2px] uppercase">Playing {matchDetails.color === 'w' ? 'Black' : 'White'}</Text>
+                                            <Text className="text-slate-500 font-bold text-2xs tracking-wide uppercase">Playing {matchDetails.color === 'w' ? 'Black' : 'White'}</Text>
                                         </View>
                                     </View>
                                 </View>
@@ -263,7 +263,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                                 )}
                                 {!botThinking && !isMyTurn && gameMode === 'pvp' && (
                                     <View className="bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
-                                        <Text className="text-zinc-600 font-black text-xs uppercase tracking-widest">{timeLeft}s</Text>
+                                        <Text className="text-slate-600 font-black text-xs uppercase tracking-wide">{timeLeft}s</Text>
                                     </View>
                                 )}
                             </View>
@@ -292,10 +292,10 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                                         )}
                                     </View>
                                     <View className="ml-4">
-                                        <Text className="text-zinc-900 text-base font-black uppercase tracking-wider">You</Text>
+                                        <Text className="text-slate-900 text-base font-black uppercase tracking-wider">You</Text>
                                         <View className="flex-row items-center mt-1">
                                             <View className={`w-2 h-2 rounded-full mr-2 ${isMyTurn ? 'bg-green-500' : 'bg-slate-300'}`} />
-                                            <Text className={`font-bold text-[10px] tracking-[2px] uppercase ${isMyTurn ? 'text-green-500' : 'text-slate-400'}`}>
+                                            <Text className={`font-bold text-2xs tracking-[2px] uppercase ${isMyTurn ? 'text-green-500' : 'text-slate-500'}`}>
                                                 {isMyTurn ? "Your Turn" : "Waiting..."}
                                             </Text>
                                         </View>

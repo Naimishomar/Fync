@@ -230,13 +230,13 @@ const EditSubGroupScreen = () => {
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top']}>
                 {/* Header */}
-                <View className="px-5 py-4 flex-row items-center justify-between border-b border-zinc-100">
+                <View className="px-5 py-4 flex-row items-center justify-between border-b border-slate-100">
                     <TouchableOpacity onPress={() => navigation.goBack()}>
                         <Ionicons name="close" size={28} color="black" />
                     </TouchableOpacity>
                     <View className="items-center">
-                        <Text className="text-zinc-900 text-lg font-black uppercase tracking-widest">Room Control</Text>
-                        <Text className="text-zinc-400 text-[8px] font-bold uppercase tracking-widest mt-0.5">Refining your community</Text>
+                        <Text className="text-slate-900 text-lg font-black uppercase tracking-widest">Room Control</Text>
+                        <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-0.5">Refining your community</Text>
                     </View>
                     <View className="w-8" />
                 </View>
@@ -248,11 +248,11 @@ const EditSubGroupScreen = () => {
                         <View className="items-center mb-8 mt-4">
                             <TouchableOpacity onPress={canEditRoom ? pickLogo : undefined} activeOpacity={0.8} className="relative">
                                 {logo ? (
-                                    <Image source={{ uri: logo.uri }} className="w-24 h-24 rounded-[32px] border-2 border-zinc-100 bg-zinc-50" />
+                                    <Image source={{ uri: logo.uri }} className="w-24 h-24 rounded-4xl border-2 border-slate-100 bg-slate-50" />
                                 ) : (
-                                    <Image source={{ uri: subGroup?.logo || 'https://via.placeholder.com/150' }} className="w-24 h-24 rounded-[32px] border-2 border-zinc-100 bg-zinc-50" />
+                                    <Image source={{ uri: subGroup?.logo || 'https://via.placeholder.com/150' }} className="w-24 h-24 rounded-4xl border-2 border-slate-100 bg-slate-50" />
                                 )}
-                                <View className="absolute -bottom-1 -right-1 bg-zinc-900 w-8 h-8 rounded-full items-center justify-center border-4 border-white">
+                                <View className="absolute -bottom-1 -right-1 bg-slate-900 w-8 h-8 rounded-full items-center justify-center border-4 border-white">
                                     <Feather name="edit-2" size={14} color="white" />
                                 </View>
                             </TouchableOpacity>
@@ -260,34 +260,34 @@ const EditSubGroupScreen = () => {
 
                         {/* Form Fields */}
                         <View className="mt-2">
-                            <Text className="text-zinc-400 font-black text-[10px] uppercase tracking-widest mb-2 ml-1">Room Identity</Text>
+                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-2 ml-1">Room Identity</Text>
                             <TextInput 
                                 placeholder="New Room Name"
-                                className={`bg-zinc-50 p-5 rounded-2xl mb-4 font-bold border border-zinc-100 ${subGroup?.isGeneral ? 'text-zinc-400' : 'text-zinc-900'}`}
+                                className={`bg-slate-50 p-5 rounded-2xl mb-4 font-bold border border-slate-100 ${subGroup?.isGeneral ? 'text-slate-500' : 'text-slate-900'}`}
                                 value={name}
                                 onChangeText={setName}
                                 editable={canEditRoom && !subGroup?.isGeneral}
                             />
                             {subGroup?.isGeneral && (
-                                <Text className="text-emerald-600 font-bold text-[8px] uppercase tracking-widest mb-6 ml-1">
+                                <Text className="text-emerald-600 font-bold text-2xs uppercase tracking-wide mb-6 ml-1">
                                     * The 'General' Room hub name is fixed
                                 </Text>
                             )}
                             
-                            <Text className="text-zinc-400 font-black text-[10px] uppercase tracking-widest mb-2 ml-1">Scope & Mission</Text>
+                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-2 ml-1">Scope & Mission</Text>
                             <TextInput 
                                 placeholder="Refined scope..."
-                                className="bg-zinc-50 p-5 rounded-2xl mb-8 font-semibold border border-zinc-100 text-zinc-900"
+                                className="bg-slate-50 p-5 rounded-2xl mb-8 font-semibold border border-slate-100 text-slate-900"
                                 multiline
                                 numberOfLines={4}
                                 value={description}
                                 onChangeText={setDescription}
                             />
 
-                            <View className="mb-10 bg-zinc-50 p-6 rounded-3xl border border-zinc-100 flex-row items-center justify-between">
+                            <View className="mb-10 bg-slate-50 p-6 rounded-3xl border border-slate-100 flex-row items-center justify-between">
                                 <View className="flex-1 mr-4">
-                                    <Text className="text-zinc-900 font-black text-xs uppercase tracking-widest">Announcement Mode</Text>
-                                    <Text className="text-zinc-400 text-[9px] font-bold uppercase tracking-wider mt-1">
+                                    <Text className="text-slate-900 font-black text-xs uppercase tracking-wide">Announcement Mode</Text>
+                                    <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wider mt-1">
                                         Only admins can send messages
                                     </Text>
                                 </View>
@@ -303,15 +303,15 @@ const EditSubGroupScreen = () => {
                             {/* Pending Approvals Section */}
                             {(isMainAdmin || isRoomLeader) && joinRequests.length > 0 && (
                                 <View className="mb-8">
-                                    <Text className="text-zinc-400 font-black text-[10px] uppercase tracking-widest mb-4 ml-1">Pending Approvals ({joinRequests.length})</Text>
+                                    <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-4 ml-1">Pending Approvals ({joinRequests.length})</Text>
                                     <View className="bg-orange-50/50 rounded-3xl border border-orange-100 overflow-hidden p-2">
                                         {joinRequests.map((req: any) => (
                                             <View key={req._id} className="flex-row items-center justify-between p-3 bg-white rounded-2xl mb-2 border border-orange-50 shadow-sm shadow-orange-100/20">
                                                 <View className="flex-row items-center">
                                                     <Image source={{ uri: req.avatar || 'https://via.placeholder.com/150' }} className="w-10 h-10 rounded-full" />
                                                     <View className="ml-3">
-                                                        <Text className="text-zinc-900 font-bold text-sm">{req.name}</Text>
-                                                        <Text className="text-zinc-400 font-bold text-[9px]">@{req.username}</Text>
+                                                        <Text className="text-slate-900 font-bold text-sm">{req.name}</Text>
+                                                        <Text className="text-slate-500 font-bold text-2xs">@{req.username}</Text>
                                                     </View>
                                                 </View>
                                                 <View className="flex-row items-center gap-2">
@@ -330,23 +330,23 @@ const EditSubGroupScreen = () => {
 
                             {/* Member Management Section */}
                             <View className="mb-10">
-                                <Text className="text-zinc-400 font-black text-[10px] uppercase tracking-widest mb-4 ml-1">Room Members ({members.length})</Text>
+                                <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-4 ml-1">Room Members ({members.length})</Text>
                                 {memberLoading ? (
                                     <ActivityIndicator color="#000" />
                                 ) : (
-                                    <View className="bg-zinc-50 rounded-3xl border border-zinc-100 overflow-hidden">
+                                    <View className="bg-slate-50 rounded-3xl border border-slate-100 overflow-hidden">
                                         {members.map((m: any) => {
                                             const isSubAdmin = subAdmins.includes(m._id);
                                             const isMainClubAdmin = club?.admins?.some((a: any) => (a._id || a) === m._id);
                                             const canPromote = isSuperAdmin || isMainAdmin;
 
                                             return (
-                                                <View key={m._id} className="flex-row items-center justify-between p-4 border-b border-zinc-100">
+                                                <View key={m._id} className="flex-row items-center justify-between p-4 border-b border-slate-100">
                                                     <View className="flex-row items-center">
                                                         <Image source={{ uri: m.avatar || 'https://via.placeholder.com/150' }} className="w-8 h-8 rounded-full" />
                                                         <View className="ml-3">
-                                                            <Text className="text-zinc-900 font-bold text-xs">{m.name}</Text>
-                                                            {isMainClubAdmin && <Text className="text-blue-500 font-bold text-[7px] uppercase tracking-tighter">Main Club Admin</Text>}
+                                                            <Text className="text-slate-900 font-bold text-xs">{m.name}</Text>
+                                                            {isMainClubAdmin && <Text className="text-blue-500 font-bold text-2xs uppercase tracking-tighter">Main Club Admin</Text>}
                                                         </View>
                                                     </View>
                                                     
@@ -355,7 +355,7 @@ const EditSubGroupScreen = () => {
                                                             onPress={() => toggleAdminStatus(m._id)}
                                                             className={`px-4 py-1.5 rounded-full ${isSubAdmin ? 'bg-red-50' : 'bg-blue-50'}`}
                                                         >
-                                                            <Text className={`font-black text-[8px] uppercase ${isSubAdmin ? 'text-red-500' : 'text-blue-600'}`}>
+                                                            <Text className={`font-black text-2xs uppercase ${isSubAdmin ? 'text-red-500' : 'text-blue-600'}`}>
                                                                 {isSubAdmin ? 'Revoke Leader' : 'Make Leader'}
                                                             </Text>
                                                         </TouchableOpacity>
@@ -386,7 +386,7 @@ const EditSubGroupScreen = () => {
                                 {updating ? (
                                     <ActivityIndicator color="white" />
                                 ) : (
-                                    <Text className="text-white font-black uppercase tracking-widest text-xs">Synchronize Room</Text>
+                                    <Text className="text-white font-black uppercase tracking-wide text-xs">Synchronize Room</Text>
                                 )}
                             </TouchableOpacity>
                         )}
@@ -398,7 +398,7 @@ const EditSubGroupScreen = () => {
                                 className="mt-4 border border-red-500/30 py-4 rounded-2xl flex-row items-center justify-center bg-red-50/50"
                             >
                                 <Ionicons name="trash-outline" size={16} color="#ef4444" />
-                                <Text className="text-red-500 font-bold uppercase tracking-widest text-[9px] ml-2">Delete Room Permanently</Text>
+                                <Text className="text-red-500 font-bold uppercase tracking-wide text-2xs ml-2">Delete Room Permanently</Text>
                             </TouchableOpacity>
                         )}
                         

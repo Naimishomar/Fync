@@ -66,22 +66,22 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
       <View className="flex-1 justify-end">
         <BlurView intensity={80} tint="dark" className="absolute inset-0" />
         
-        <View className="bg-[#FDFDFF] rounded-t-[48px] h-[80%] border-t border-slate-100">
+        <View className="bg-[#FDFDFF] rounded-t-5xl h-[80%] border-t border-slate-100">
           {/* Accent Gradient */}
           <LinearGradient
             colors={['rgba(249, 115, 22, 0.05)', 'transparent']}
-            className="absolute top-0 left-0 right-0 h-64 rounded-t-[48px]"
+            className="absolute top-0 left-0 right-0 h-64 rounded-t-5xl"
           />
 
           {/* Header */}
           <View className="px-8 pt-10 pb-6">
             <View className="flex-row items-center justify-between mb-8">
               <View>
-                <Text className="text-zinc-900 text-3xl font-black uppercase tracking-tighter">
+                <Text className="text-slate-900 text-3xl font-black uppercase tracking-tighter">
                   Campus <Text className="text-orange-500">Legends</Text>
                 </Text>
                 <View className="flex-row items-center">
-                  <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[3px]">Daily Contribution Elite</Text>
+                  <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Daily Contribution Elite</Text>
                 </View>
               </View>
               
@@ -110,7 +110,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
 
             {/* Current User Rank Card - High Contrast Orange */}
             <View 
-              className="bg-orange-500 p-6 rounded-[32px]"
+              className="bg-orange-500 p-6 rounded-4xl"
               style={{
                 shadowColor: "#f97316",
                 shadowOffset: { width: 0, height: 10 },
@@ -125,12 +125,12 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                       <Text className="text-white font-black text-xl">#{userRank > 0 ? userRank : '--'}</Text>
                     </View>
                     <View>
-                      <Text className="text-white/70 text-[9px] font-black uppercase tracking-widest mb-0.5">Your Position</Text>
+                      <Text className="text-white/70 text-2xs font-black uppercase tracking-wide mb-0.5">Your Position</Text>
                       <Text className="text-white text-base font-black uppercase tracking-tight">Global Ranking</Text>
                     </View>
                   </View>
                   <View className="items-end">
-                    <Text className="text-white/70 text-[9px] font-black uppercase tracking-widest mb-0.5">Current Streak</Text>
+                    <Text className="text-white/70 text-2xs font-black uppercase tracking-wide mb-0.5">Current Streak</Text>
                     <View className="flex-row items-center">
                       <Text className="text-white text-2xl font-black">{userStreak}</Text>
                       <MaterialCommunityIcons name="fire" size={24} color="white" className="ml-1" />
@@ -140,12 +140,12 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                       {completedToday ? (
                         <View className="flex-row items-center bg-white/20 px-2 py-1 rounded-full">
                           <MaterialCommunityIcons name="check-circle" size={10} color="#fff" />
-                          <Text className="text-white text-[8px] font-black uppercase tracking-widest ml-1">Secured Today</Text>
+                          <Text className="text-white text-2xs font-black uppercase tracking-wide ml-1">Secured Today</Text>
                         </View>
                       ) : (
                         <View className="flex-row items-center bg-red-500/40 px-2 py-1 rounded-full border border-red-400/50">
                           <MaterialCommunityIcons name="clock-alert-outline" size={10} color="#fff" />
-                          <Text className="text-white text-[8px] font-black uppercase tracking-widest ml-1">Post To Secure</Text>
+                          <Text className="text-white text-2xs font-black uppercase tracking-wide ml-1">Post To Secure</Text>
                         </View>
                       )}
                     </View>
@@ -195,7 +195,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                       <Text className="text-slate-800 font-black text-sm uppercase tracking-tight" numberOfLines={1}>
                         {item.name}
                       </Text>
-                      <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+                      <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wider">
                         {item.college || 'Fync Student'}
                       </Text>
                     </View>
@@ -215,7 +215,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                       <MaterialCommunityIcons name="fire-off" size={64} color="#cbd5e1" />
                     </View>
                     <Text className="text-slate-800 font-black text-lg uppercase text-center">Ecosystem Inactive</Text>
-                    <Text className="text-slate-400 text-[10px] font-black text-center mt-2 uppercase tracking-widest leading-4">
+                    <Text className="text-slate-500 text-2xs font-black text-center mt-2 uppercase tracking-wide leading-4">
                       No active streaks detected.{'\n'}Be the first to start the flame!
                     </Text>
                   </View>

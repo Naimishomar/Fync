@@ -76,7 +76,8 @@ import { initFyncMediaCleanup } from './utils/fyncMediaCleanup.js';
 import { initChatMediaCleanup } from './utils/chatMediaCleanup.js';
 import startCleanupCron from './services/cleanup.service.js';
 
-import { rateLimit } from 'express-rate-limit';
+import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 
 import { socketController } from './controllers/socket.controller.js';
 import codingBattleSockets from './controllers/coding/battle.socket.js';
@@ -85,6 +86,7 @@ import helmet from 'helmet';
 import { monitoringMiddleware } from './middlewares/monitoring.middleware.js';
 import { generalLimiter } from './middlewares/rateLimit.middleware.js';
 import { mongoSanitize } from './middlewares/mongoSanitize.js';
+import { validateConfig } from './utils/validateConfig.js';
 
 // CORS: allow configurable origins for production. Wildcard cannot be combined
 // with credentials, so we only enable credentials for explicit origins.
@@ -93,7 +95,10 @@ const corsOrigins = process.env.CORS_ORIGIN
   : '*';
 
 const app = express();
-app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev', { skip: () => process.env.NODE_ENV === 'production' }));
+// Behind ALB/nginx every request otherwise reports the proxy's IP, so the
+// per-IP rate limiter would throttle the entire user base as one client.
+app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS || 1));
+if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
 app.use(generalLimiter);
 
 
@@ -107,11 +112,28 @@ const io = new Server(server, {
     credentials: corsOrigins !== '*',
     allowedHeaders: ["my-custom-header"],
   },
-  transports: ['websocket', 'polling'],
+  // websocket-only: PM2 cluster mode has no sticky sessions, and HTTP long-polling
+  // handshakes would land on a different worker than the one holding the session
+  // ("Session ID unknown"). The Redis adapter fixes broadcasts, not sticky routing.
+  transports: ['websocket'],
   pingTimeout: 60000,
   pingInterval: 25000,
   connectTimeout: 45000,
-  allowEIO3: true
+  maxHttpBufferSize: 1e6,
+});
+
+// Authenticate the socket handshake. Without this any client could emit
+// `register` with someone else's id and join their private `user:<id>` room.
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token || socket.handshake.query?.token;
+  if (!token) return next(new Error('Unauthorized'));
+  try {
+    const { id } = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = String(id);
+    next();
+  } catch {
+    next(new Error('Unauthorized'));
+  }
 });
 
 const pubClient = redisClient.duplicate();
@@ -150,7 +172,10 @@ app.set("io", io);
 app.use(monitoringMiddleware);
 
 app.use(cookieParser());
-app.use("/receipts", express.static("receipts"));
+// Removed: this served ./receipts as a public directory, so anyone could
+// enumerate <host>/receipts/<order_id>.pdf and read another user's name, email,
+// amount and UPI id. Receipts are no longer written to disk at all — they were
+// also lost on every deploy and duplicated per cluster worker.
 
 app.use('/user', authRoute);
 app.use('/post', postRoute);
@@ -220,25 +245,35 @@ const startServer = async (retries = 5) => {
     setChessIo(io);
     codingBattleSockets(io);
 
-    // 3. Initialize Monitors & Cleanups
-    initCollegeChatCleanup();
-    initMentorshipCleanup();
-    initNightClubCleanup();
-    initAlumniChatCleanup();
-    initCommunityCleanup();
-    initFyncMediaCleanup();
-    initChatMediaCleanup();
-    initEventCleanup();
-    startCleanupCron();
+    // 3. Initialize Monitors & Cleanups — only on one worker. In PM2 cluster mode
+    // every worker would otherwise run the same crons, multiplying deletes,
+    // notifications and contest transitions by the number of CPU cores.
+    const isCronWorker = !process.env.NODE_APP_INSTANCE || process.env.NODE_APP_INSTANCE === '0';
+    if (isCronWorker) {
+      initCollegeChatCleanup();
+      initMentorshipCleanup();
+      initNightClubCleanup();
+      initAlumniChatCleanup();
+      initCommunityCleanup();
+      initFyncMediaCleanup();
+      initChatMediaCleanup();
+      initEventCleanup();
+      startCleanupCron();
 
-    // 4. Start Contest Monitor
-    setInterval(() => {
-      ContestManager.monitorContests(io);
-    }, 60000);
+      // 4. Start Contest Monitor
+      setInterval(() => {
+        ContestManager.monitorContests(io).catch((err) =>
+          console.error('Contest monitor error:', err)
+        );
+      }, 60000).unref();
+    }
 
     // 5. Start Listening
     server.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT}`);
+      // Tell PM2 (wait_ready) this worker is accepting traffic, so a reload only
+      // kills the old worker once the new one can actually serve.
+      if (process.send) process.send('ready');
     });
 
   } catch (err) {
@@ -301,13 +336,47 @@ SHARING_PATHS.forEach(path => {
   });
 });
 
+// 404 — must sit after every route, before the error handler.
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` });
+});
+
+// Translates the errors Mongoose throws into the status codes they actually
+// mean. Bad input was surfacing as 500 with the raw driver message attached —
+// wrong for the client and an information leak.
+const classify = (err) => {
+  if (err.name === 'ValidationError') {
+    return { status: 400, message: Object.values(err.errors || {}).map((e) => e.message).join('; ') || 'Invalid input' };
+  }
+  if (err.name === 'CastError') {
+    return { status: 400, message: `Invalid value for ${err.path}` };
+  }
+  if (err.code === 11000) {
+    return { status: 409, message: `${Object.keys(err.keyValue || {}).join(', ') || 'Value'} already exists` };
+  }
+  if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+    return { status: 401, message: 'Invalid or expired token' };
+  }
+  if (err.type === 'entity.too.large') {
+    return { status: 413, message: 'Payload too large' };
+  }
+  return null;
+};
+
 // Global Error Handler
 app.use((err, req, res, next) => {
-  console.error("🔥 GLOBAL ERROR:", err);
-  const status = err.status || 500;
+  const mapped = classify(err);
+  if (mapped) {
+    if (res.headersSent) return next(err);
+    return res.status(mapped.status).json({ success: false, message: mapped.message });
+  }
+  const status = err.status || err.statusCode || 500;
+  if (status >= 500) console.error("🔥 GLOBAL ERROR:", err);
+  if (res.headersSent) return next(err);
   res.status(status).json({
     success: false,
-    message: err.message || "Internal server error",
+    // Never surface raw 5xx messages: they leak driver errors, paths and queries.
+    message: status >= 500 ? "Internal server error" : (err.message || "Request failed"),
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 });
@@ -323,12 +392,44 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('🚫 UNHANDLED REJECTION:', reason);
 });
 
-process.on('SIGTERM', () => {
-  console.info('🔴 SIGTERM signal received. Closing HTTP server...');
-  server.close(() => {
-    console.log('✅ HTTP server closed.');
+// Drain in-flight work before exiting, otherwise a deploy drops every open
+// request and websocket instead of letting them finish.
+let shuttingDown = false;
+const shutdown = async (signal) => {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.info(`🔴 ${signal} received. Draining...`);
+
+  // Hard deadline: never let a stuck socket block the deploy forever.
+  const forceExit = setTimeout(() => {
+    console.error('⏱️ Drain timed out. Forcing exit.');
+    process.exit(1);
+  }, 15000);
+  forceExit.unref();
+
+  try {
+    io.close();
+    await new Promise((resolve) => server.close(resolve));
+    await mongoose.connection.close(false);
+    if (redisClient.isOpen) await redisClient.quit();
+    console.log('✅ Shutdown complete.');
     process.exit(0);
-  });
-});
+  } catch (err) {
+    console.error('Shutdown error:', err);
+    process.exit(1);
+  }
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
+
+// Validate before anything starts. A bad environment is not a transient
+// failure, so this runs outside startServer's retry loop.
+try {
+  validateConfig();
+} catch (err) {
+  console.error(`❌ ${err.message}`);
+  process.exit(1);
+}
 
 startServer();

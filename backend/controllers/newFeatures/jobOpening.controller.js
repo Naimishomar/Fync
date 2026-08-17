@@ -2,6 +2,7 @@ import JobOpening from "../../models/newFeatures/jobOpening.model.js";
 import Comment from "../../models/comment.model.js";
 import Notification from "../../models/notification.model.js";
 import User from "../../models/user.model.js";
+import { getCommentThread } from "../../utils/comments.js";
 
 export const createJobOpening = async (req, res) => {
     try {
@@ -129,21 +130,7 @@ export const addComment = async (req, res) => {
 export const getComments = async (req, res) => {
     try {
         const { id } = req.params;
-        const topLevelComments = await Comment.find({ 
-            post: id, 
-            postType: 'JobOpening', 
-            parentComment: null 
-        })
-        .populate("commentor", "name username avatar")
-        .sort({ createdAt: -1 });
-
-        const commentsWithReplies = await Promise.all(topLevelComments.map(async (comment) => {
-            const replies = await Comment.find({ parentComment: comment._id })
-                .populate("commentor", "name username avatar")
-                .populate("replyToUser", "username")
-                .sort({ createdAt: 1 });
-            return { ...comment._doc, replies };
-        }));
+        const commentsWithReplies = await getCommentThread(id, "JobOpening");
 
         return res.status(200).json({ success: true, comments: commentsWithReplies });
     } catch (error) {

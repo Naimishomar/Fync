@@ -74,12 +74,12 @@ export default function LoginScreen() {
           </View>
 
           {/* Login Sheet */}
-          <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-7 -mt-10">
+          <View className="rounded-t-5xl bg-white px-6 pt-8 pb-7 -mt-10">
               <Image source={require('../assets/Fync.png')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
-              <Text className="text-gray-500 mb-2">Login to the exclusive student network</Text>
+              <Text className="text-slate-500 mb-2">Login to the exclusive student network</Text>
 
               <TextInput
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-base text-black"
+                className="mb-4 rounded-xl border border-slate-300 px-4 py-4 text-base text-black"
                 placeholder="Email or username"
                 placeholderTextColor="#9CA3AF"
                 value={email}
@@ -88,7 +88,7 @@ export default function LoginScreen() {
                 autoCapitalize="none"
               />
 
-              <View className="flex-row items-center rounded-xl border border-gray-300 px-4">
+              <View className="flex-row items-center rounded-xl border border-slate-300 px-4">
                 <TextInput
                   className="flex-1 py-4 text-base text-black"
                   placeholder="Password"
@@ -126,14 +126,14 @@ export default function LoginScreen() {
               }
 
               <View className="mt-5 flex-row justify-center">
-                <Text className="text-gray-600">Don’t have an account? </Text>
+                <Text className="text-slate-600">Don’t have an account? </Text>
                 <Pressable onPress={() => navigation.navigate('Signup')}>
                   <Text className="font-semibold text-black">Signup</Text>
                 </Pressable>
               </View>
 
-              <View className="mt-4 border-t border-gray-50 pt-4 pb-6">
-                 <Text className="text-center text-gray-500 mb-3 text-xs uppercase tracking-widest font-bold">Other ways to join</Text>
+              <View className="mt-4 border-t border-slate-50 pt-4 pb-6">
+                 <Text className="text-center text-slate-500 mb-3 text-xs uppercase tracking-wide font-bold">Other ways to join</Text>
                  <View className="flex-row gap-3">
                     <Pressable 
                       className="flex-1 rounded-xl border border-black py-3 items-center"

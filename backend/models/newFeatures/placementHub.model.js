@@ -69,5 +69,9 @@ const placementQuestionSchema = new mongoose.Schema({
     }]
 }, { timestamps: true });
 
+// getQuestions always sorts by createdAt with skip-paging; without this the
+// listing collection-scans and sorts in memory.
+placementQuestionSchema.index({ createdAt: -1 });
+
 const PlacementQuestion = mongoose.model("PlacementQuestion", placementQuestionSchema);
 export default PlacementQuestion;

@@ -214,8 +214,8 @@ export default function EventCommunityChat({ route }: any) {
             <View>
                 {showDateSeparator && (
                     <View className="items-center my-6">
-                        <View className="bg-gray-100 px-4 py-1.5 rounded-full border border-gray-200 shadow-sm">
-                            <Text className="text-gray-500 text-[10px] font-black uppercase tracking-widest">
+                        <View className="bg-slate-100 px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">
                                 {formatDateHeader(item.createdAt)}
                             </Text>
                         </View>
@@ -249,11 +249,11 @@ export default function EventCommunityChat({ route }: any) {
                     >
                         {/* Reply Preview inside Bubble */}
                         {item.replyTo && (
-                            <View className={`m-2 p-2 rounded-xl border-l-4 ${isMine ? 'bg-black/10 border-indigo-300' : 'bg-gray-100 border-indigo-500'}`}>
-                                <Text className={`text-[9px] font-black uppercase ${isMine ? 'text-indigo-200' : 'text-indigo-600'}`}>
+                            <View className={`m-2 p-2 rounded-xl border-l-4 ${isMine ? 'bg-black/10 border-indigo-300' : 'bg-slate-100 border-indigo-500'}`}>
+                                <Text className={`text-2xs font-black uppercase ${isMine ? 'text-indigo-200' : 'text-indigo-600'}`}>
                                     {item.replyTo.sender?.name || "User"}
                                 </Text>
-                                <Text className={`text-[11px] ${isMine ? 'text-indigo-100' : 'text-gray-500'}`} numberOfLines={1}>
+                                <Text className={`text-2xs ${isMine ? 'text-indigo-100' : 'text-slate-500'}`} numberOfLines={1}>
                                     {item.replyTo.text}
                                 </Text>
                             </View>
@@ -269,17 +269,17 @@ export default function EventCommunityChat({ route }: any) {
 
                         <View className="p-3 px-4">
                             {!isMine && (
-                                <Text className="text-[10px] font-black uppercase text-indigo-400 mb-1 tracking-tighter">
+                                <Text className="text-2xs font-black uppercase text-indigo-400 mb-1 tracking-tighter">
                                     {item.sender.name}
                                 </Text>
                             )}
                             {item.text && item.text.trim() !== '' && (
-                                <Text className={`text-[13px] font-bold leading-5 ${isMine ? 'text-white' : 'text-zinc-800'}`}>
+                                <Text className={`text-xs font-bold leading-5 ${isMine ? 'text-white' : 'text-slate-800'}`}>
                                     {item.text}
                                 </Text>
                             )}
                             <View className="flex-row items-center justify-end mt-1 gap-1">
-                                <Text className={`text-[8px] font-bold ${isMine ? 'text-indigo-200' : 'text-zinc-400'}`}>
+                                <Text className={`text-2xs font-bold ${isMine ? 'text-indigo-200' : 'text-slate-500'}`}>
                                     {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </Text>
                                 {isMine && <Ionicons name="checkmark-done" size={10} color="#c7d2fe" />}
@@ -292,22 +292,22 @@ export default function EventCommunityChat({ route }: any) {
     }, [messages, user, isAdmin]);
 
     return (
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-slate-50">
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
                 {/* Header */}
-                <View className="flex-row items-center p-5 bg-white border-b border-gray-100 shadow-sm shadow-black/5 z-10">
-                    <TouchableOpacity onPress={() => goBack()} className="w-10 h-10 bg-gray-50 rounded-2xl items-center justify-center">
+                <View className="flex-row items-center p-5 bg-white border-b border-slate-100 shadow-sm shadow-black/5 z-10">
+                    <TouchableOpacity onPress={() => goBack()} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center">
                         <Ionicons name="chevron-back" size={20} color="#1e1b4b" />
                     </TouchableOpacity>
 
                     <View className="ml-4 flex-1">
-                        <Text className="text-zinc-900 font-black  uppercase text-base tracking-tighter" numberOfLines={1}>
+                        <Text className="text-slate-900 font-black  uppercase text-base tracking-tighter" numberOfLines={1}>
                             {eventName}
                         </Text>
                         <View className="flex-row items-center">
                             <View className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5" />
-                            <Text className="text-gray-400 text-[9px] font-bold uppercase tracking-widest">Community Hub</Text>
+                            <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide">Community Hub</Text>
                         </View>
                     </View>
                 </View>
@@ -315,7 +315,7 @@ export default function EventCommunityChat({ route }: any) {
                 {loading ? (
                     <View className="flex-1 items-center justify-center">
                         <ActivityIndicator size="large" color="#6366f1" />
-                        <Text className="mt-4 text-gray-400 text-[10px] font-bold uppercase tracking-widest">Encrypting Chat...</Text>
+                        <Text className="mt-4 text-slate-500 text-2xs font-bold uppercase tracking-wide">Encrypting Chat...</Text>
                     </View>
                 ) : (
                     <FlatList
@@ -337,15 +337,15 @@ export default function EventCommunityChat({ route }: any) {
                     enabled={Platform.OS === 'ios'}
                 >
                     {/* Input Area */}
-                    <View className="p-4 bg-white border-t border-gray-100">
+                    <View className="p-4 bg-white border-t border-slate-100">
                         {/* Reply Indicator Preview */}
                         {replyingTo && (
                             <View className="px-5 py-3 bg-white border-t border-indigo-100 flex-row items-center justify-between mb-4 rounded-2xl">
                                 <View className="border-l-4 border-indigo-600 pl-4">
-                                    <Text className="text-indigo-600 text-[10px] font-black uppercase tracking-widest">
+                                    <Text className="text-indigo-600 text-2xs font-black uppercase tracking-wide">
                                         Replying to {replyingTo.sender.name}
                                     </Text>
-                                    <Text className="text-gray-500 text-[11px] mt-0.5" numberOfLines={1}>
+                                    <Text className="text-slate-500 text-2xs mt-0.5" numberOfLines={1}>
                                         {replyingTo.text}
                                     </Text>
                                 </View>
@@ -355,7 +355,7 @@ export default function EventCommunityChat({ route }: any) {
                             </View>
                         )}
 
-                        <View className="flex-row items-center bg-gray-50 rounded-[30px] px-2 py-2 border border-blue-50">
+                        <View className="flex-row items-center bg-slate-50 rounded-3xl px-2 py-2 border border-blue-50">
                             <TouchableOpacity
                                 onPress={pickImage}
                                 className="w-10 h-10 items-center justify-center"
@@ -366,13 +366,13 @@ export default function EventCommunityChat({ route }: any) {
                                 placeholder="Type a message..."
                                 value={inputText}
                                 onChangeText={setInputText}
-                                className="flex-1 h-10 text-zinc-800 font-bold px-2 text-[13px]"
+                                className="flex-1 h-10 text-slate-800 font-bold px-2 text-xs"
                                 placeholderTextColor="#94a3b8"
                             />
                             <TouchableOpacity
                                 onPress={() => handleSend()}
                                 disabled={sending || (!inputText.trim())}
-                                className={`w-10 h-10 rounded-full items-center justify-center ${inputText.trim() ? 'bg-indigo-600 shadow-lg shadow-indigo-300' : 'bg-gray-200'}`}
+                                className={`w-10 h-10 rounded-full items-center justify-center ${inputText.trim() ? 'bg-indigo-600 shadow-lg shadow-indigo-300' : 'bg-slate-200'}`}
                             >
                                 {sending ? (
                                     <ActivityIndicator size="small" color="white" />

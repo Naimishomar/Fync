@@ -11,6 +11,7 @@ import CreateShorts from "./CreateShorts";
 import Profile from "./profile";
 import { useAuth } from "context/auth.context";
 import { useState } from "react";
+import { TAB_BAR_HEIGHT, useTabBarOffset } from "../constants/layout";
 
 const { width } = Dimensions.get('window');
 const Tab = createBottomTabNavigator();
@@ -102,25 +103,25 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
 
       {/* Sub Button 2 (e.g., Create Post) */}
       <Animated.View style={[item1Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => navigation.navigate('CreatePost')}>
-          <Ionicons name="aperture-outline" size={20} color="#dc7100ff" />
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-slate-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => navigation.navigate('CreatePost')}>
+          <Ionicons name="aperture-outline" size={20} color="#f97316" />
         </TouchableOpacity>
-        <Text className="text-white text-[10px] font-bold mt-1 uppercase tracking-tighter shadow-black">Add Post</Text>
+        <Text className="text-white text-2xs font-bold mt-1 uppercase tracking-tighter shadow-black">Add Post</Text>
       </Animated.View>
 
       {/* Sub Button 1 (e.g., Create Video) */}
       <Animated.View style={[item2Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => navigation.navigate('CreateShorts')}>
-          <Ionicons name="videocam" size={20} color="#f07c01ff" />
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-slate-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => navigation.navigate('CreateShorts')}>
+          <Ionicons name="videocam" size={20} color="#f97316" />
         </TouchableOpacity>
-        <Text className="text-white text-[10px] whitespace-nowrap font-bold mt-1 uppercase tracking-tighter shadow-black">Add Shorts</Text>
+        <Text className="text-white text-2xs whitespace-nowrap font-bold mt-1 uppercase tracking-tighter shadow-black">Add Shorts</Text>
       </Animated.View>
 
       <Animated.View style={[item3Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-zinc-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => { toggleMenu(); navigation.navigate('CreateFundingFeed'); }}>
-          <Ionicons name="bulb-outline" size={20} color="#e58c2eff" />
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-slate-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => { toggleMenu(); navigation.navigate('CreateFundingFeed'); }}>
+          <Ionicons name="bulb-outline" size={20} color="#fb923c" />
         </TouchableOpacity>
-        <Text className="text-white text-[10px] font-bold mt-1 uppercase tracking-tighter shadow-black">Add Startup</Text>
+        <Text className="text-white text-2xs font-bold mt-1 uppercase tracking-tighter shadow-black">Add Startup</Text>
       </Animated.View>
 
 
@@ -128,7 +129,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
       {/* Main Center Button */}
       <View
         style={{
-          shadowColor: '#dc7100ff', shadowOffset: { width: 0, height: 5 },
+          shadowColor: '#f97316', shadowOffset: { width: 0, height: 5 },
           shadowOpacity: 0.4, shadowRadius: 10, elevation: 10
         }}
         className="w-[72px] h-[72px] rounded-full bg-black items-center justify-center"
@@ -139,7 +140,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
           className="w-[60px] h-[60px] rounded-full overflow-hidden"
         >
           <LinearGradient
-            colors={['#dc7100ff', '#e58c2eff']}
+            colors={['#f97316', '#fb923c']}
             className="flex-1 items-center justify-center"
           >
             <Animated.View style={{ transform: [{ rotate: rotation }] }}>
@@ -154,21 +155,32 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
 
 export default function TabLayout() {
   const { user } = useAuth();
+  // Sits above the home indicator / gesture bar rather than at a fixed 40px,
+  // which floated too high on devices without one and too low on devices with a
+  // tall one.
+  const bottomOffset = useTabBarOffset();
+
   return (
     <View className="flex-1 bg-white justify-center">
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: false,
-          tabBarActiveTintColor: "#dc7100ff",
+          tabBarActiveTintColor: "#f97316",
           tabBarInactiveTintColor: "#ffffffff",
+          tabBarItemStyle: {
+            // Let each item fill the pill and centre its own icon. Without this
+            // the navigator's default item padding fights the bar's height.
+            height: TAB_BAR_HEIGHT,
+            paddingVertical: 0,
+          },
           tabBarStyle: {
             position: "absolute",
-            bottom: 40,
+            bottom: bottomOffset,
             marginHorizontal: width * 0.05,
             backgroundColor: "rgba(20, 20, 20, 0.86)",
-            borderRadius: 40,
-            height: 60,
+            borderRadius: TAB_BAR_HEIGHT / 2,
+            height: TAB_BAR_HEIGHT,
             borderWidth: 1,
             borderColor: "rgba(255, 255, 255, 0.12)",
             elevation: 10,
@@ -176,8 +188,11 @@ export default function TabLayout() {
             shadowOffset: { width: 0, height: 10 },
             shadowOpacity: 0.3,
             shadowRadius: 15,
-            paddingTop: 10,
-            paddingBottom: 46,
+            // The old bar was 60px tall with 10px top + 46px bottom padding,
+            // leaving 4px of usable space for 24px icons — which is why they
+            // rendered spilling out above the pill.
+            paddingTop: 0,
+            paddingBottom: 0,
           },
         }}
       >

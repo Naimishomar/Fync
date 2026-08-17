@@ -8,9 +8,10 @@ import Report from '../models/report.model.js';
 import { sendPushNotification } from '../utils/notification.js';
 import { deleteFromR2 } from '../utils/r2.js';
 import { getCandidatePool, getUserInterestProfile, rankFeed, invalidatePool } from '../utils/feedEngine.js';
-import { clearCache } from '../middlewares/cache.middleware.js';
+import { clearCacheTags } from '../middlewares/cache.middleware.js';
 
 import { updateStreak } from '../utils/streak.js';
+import { getCommentThread } from "../utils/comments.js";
 
 export const createPost = async (req, res) => {
     try {
@@ -99,8 +100,7 @@ export const createPost = async (req, res) => {
             // Invalidate Cache - Wrap in try-catch
             try {
                 invalidatePool('posts').catch(() => { });
-                clearCache('feed').catch(() => { });
-                clearCache('posts').catch(() => { });
+                clearCacheTags(['posts', `posts:user:${req.user.id}`]).catch(() => { });
             } catch (cacheError) {
                 console.error("❌ Cache Invalidation Error:", cacheError.message);
             }
@@ -189,9 +189,7 @@ export const updatePost = async (req, res) => {
                 { new: true, runValidators: true }
             ).populate("user");
             
-            clearCache('feed').catch(() => { });
-            clearCache('posts').catch(() => { });
-            clearCache(`individual/${req.params.id}`).catch(() => { });
+            clearCacheTags(['posts', `post:${req.params.id}`]).catch(() => { });
             invalidatePool('posts').catch(() => { });
             
             return res.status(200).json({ success: true, message: "Post updated successfully", post: updatedPost });
@@ -226,9 +224,7 @@ export const deletePost = async (req, res) => {
             await Comment.deleteMany({ post: req.params.id, postType: "Post" });
 
             const deletedPost = await Post.findByIdAndDelete(req.params.id);
-            clearCache('feed').catch(() => { });
-            clearCache('posts').catch(() => { });
-            clearCache(`individual/${req.params.id}`).catch(() => { });
+            clearCacheTags(['posts', `post:${req.params.id}`]).catch(() => { });
             return res.status(200).json({ success: true, message: "Post deleted successfully", post: deletedPost });
         }
     } catch (error) {
@@ -240,60 +236,79 @@ export const deletePost = async (req, res) => {
 export const likePost = async (req, res) => {
     try {
         const userId = req.user.id;
-        const post = await Post.findById(req.params.id);
-        if (!post) {
-            return res.status(404).json({ success: false, message: "Post not found" });
-        }
-        const isLiked = post.liked_by.some(uid => String(uid) === String(userId));
-        let updatedPost;
-        if (isLiked) {
-            updatedPost = await Post.findByIdAndUpdate(
-                req.params.id,
-                {
-                    $inc: { likes: -1, score: -1 },
-                    $pull: { liked_by: userId, upvoted_by: userId }
-                },
-                { new: true }
-            );
-            clearCache('posts').catch(() => { });
-            clearCache(`individual/${req.params.id}`).catch(() => { });
-            clearCache(`feed/${post.user}`).catch(() => { });
-            invalidatePool('posts').catch(() => { });
 
-            return res.status(200).json({ success: true, message: "Post unliked successfully", post: updatedPost });
-        } else {
-            updatedPost = await Post.findByIdAndUpdate(
-                req.params.id,
+        // Read-then-write let two taps that arrive together both see "not liked",
+        // both $inc the counter, while $addToSet added the user once — so `likes`
+        // drifted above `liked_by.length` and never came back. Unliking an
+        // already-unliked post also decremented past zero.
+        //
+        // Both operations are now conditional on the array's current state, so
+        // the counter can only move when membership actually changed.
+        const uid = new mongoose.Types.ObjectId(String(userId));
+
+        const liked = await Post.findOneAndUpdate(
+            { _id: req.params.id, liked_by: { $ne: uid } },
+            [
                 {
-                    $inc: { likes: 1, score: 1 },
-                    $addToSet: { liked_by: userId, upvoted_by: userId },
-                    $pull: { downvoted_by: userId }
+                    $set: {
+                        liked_by: { $setUnion: [{ $ifNull: ['$liked_by', []] }, [uid]] },
+                        upvoted_by: { $setUnion: [{ $ifNull: ['$upvoted_by', []] }, [uid]] },
+                        downvoted_by: {
+                            $filter: { input: { $ifNull: ['$downvoted_by', []] }, cond: { $ne: ['$$this', uid] } }
+                        }
+                    }
                 },
-                { new: true }
-            );
-            if (post.user.toString() !== req.user.id.toString()) {
+                // `likes` is derived from the array rather than counted alongside
+                // it, so the two can never disagree — and any row that already
+                // drifted under the old code self-heals the next time it is touched.
+                { $set: { likes: { $size: '$liked_by' }, score: { $add: [{ $ifNull: ['$score', 0] }, 1] } } }
+            ],
+            { new: true }
+        );
+
+        if (liked) {
+            if (liked.user.toString() !== userId.toString()) {
                 const existing = await Notification.findOne({
-                    recipient: post.user,
-                    sender: req.user.id,
-                    type: 'like',
-                    post: post._id
+                    recipient: liked.user, sender: userId, type: 'like', post: liked._id
                 });
                 if (!existing) {
                     await Notification.create({
-                        recipient: post.user,
-                        sender: req.user.id,
-                        type: 'like',
-                        post: post._id
+                        recipient: liked.user, sender: userId, type: 'like', post: liked._id
                     });
                 }
             }
-            clearCache('posts').catch(() => { });
-            clearCache(`individual/${req.params.id}`).catch(() => { });
-            clearCache(`feed/${post.user}`).catch(() => { });
+            clearCacheTags(['posts', `post:${req.params.id}`, `posts:user:${liked.user}`]).catch(() => { });
             invalidatePool('posts').catch(() => { });
-
-            return res.status(200).json({ success: true, message: "Post liked successfully", post: updatedPost });
+            return res.status(200).json({ success: true, message: "Post liked successfully", post: liked });
         }
+
+        const unliked = await Post.findOneAndUpdate(
+            { _id: req.params.id, liked_by: uid },
+            [
+                {
+                    $set: {
+                        liked_by: { $filter: { input: { $ifNull: ['$liked_by', []] }, cond: { $ne: ['$$this', uid] } } },
+                        upvoted_by: { $filter: { input: { $ifNull: ['$upvoted_by', []] }, cond: { $ne: ['$$this', uid] } } }
+                    }
+                },
+                {
+                    $set: {
+                        likes: { $size: '$liked_by' },
+                        score: { $max: [0, { $subtract: [{ $ifNull: ['$score', 0] }, 1] }] }
+                    }
+                }
+            ],
+            { new: true }
+        );
+
+        if (unliked) {
+            clearCacheTags(['posts', `post:${req.params.id}`, `posts:user:${unliked.user}`]).catch(() => { });
+            invalidatePool('posts').catch(() => { });
+            return res.status(200).json({ success: true, message: "Post unliked successfully", post: unliked });
+        }
+
+        // Neither branch matched: the post does not exist.
+        return res.status(404).json({ success: false, message: "Post not found" });
     } catch (error) {
         console.log("Internal server error", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -388,8 +403,7 @@ export const votePost = async (req, res) => {
         ).populate("user", "name username avatar");
 
         // Cache invalidation
-        clearCache('posts').catch(() => {});
-        clearCache(`individual/${id}`).catch(() => {});
+        clearCacheTags(['posts', `post:${id}`]).catch(() => {});
         invalidatePool('posts').catch(() => {});
 
         return res.status(200).json({ 
@@ -454,7 +468,7 @@ export const addComment = async (req, res) => {
             .populate("commentor", "name avatar username")
             .populate("replyToUser", "username");
 
-        clearCache(`comment/${req.params.id}`).catch(() => { });
+        clearCacheTags([`post:${req.params.id}`, 'posts']).catch(() => { });
 
         return res.status(200).json({ success: true, message: 'Comment created successfully', comment: commenterDetails });
     } catch (error) {
@@ -465,18 +479,7 @@ export const addComment = async (req, res) => {
 
 export const getComments = async (req, res) => {
     try {
-        const comments = await Comment.find({ post: req.params.id, postType: "Post", parentComment: null })
-            .populate("commentor", "name avatar username")
-            .sort({ createdAt: -1 });
-
-        // For each comment, fetch its replies
-        const commentsWithReplies = await Promise.all(comments.map(async (comment) => {
-            const replies = await Comment.find({ parentComment: comment._id })
-                .populate("commentor", "name avatar username")
-                .populate("replyToUser", "username")
-                .sort({ createdAt: 1 });
-            return { ...comment._doc, replies };
-        }));
+        const commentsWithReplies = await getCommentThread(req.params.id, "Post");
 
         return res.status(200).json({ 
             success: true, 
@@ -499,9 +502,13 @@ export const deleteComment = async (req, res) => {
         if (comment.commentor.toString() !== req.user.id.toString()) {
             return res.status(403).json({ success: false, message: 'Not authorized' });
         }
+        const replies = await Comment.find({ parentComment: comment._id }).select('_id').lean();
+        const replyIds = replies.map((r) => r._id);
+
         await Post.findByIdAndUpdate(comment.post, {
-            $pull: { comments: comment._id }
+            $pull: { comments: { $in: [comment._id, ...replyIds] } }
         });
+        if (replyIds.length) await Comment.deleteMany({ _id: { $in: replyIds } });
         const deletedComment = await Comment.findByIdAndDelete(req.params.id);
         return res.status(200).json({
             success: true,
@@ -794,7 +801,7 @@ export const adminDeletePost = async (req, res) => {
         }
 
         invalidatePool('posts').catch(() => {});
-        clearCache('feed').catch(() => {});
+        clearCacheTags(['posts']).catch(() => {});
 
         return res.status(200).json({ success: true, message: "Post deleted by admin" });
     } catch (error) {

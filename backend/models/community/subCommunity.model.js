@@ -8,5 +8,8 @@ const subCommunitySchema = new mongoose.Schema({
     type: { type: String, enum: ['chat', 'announcement'], default: 'chat' },
 }, { timestamps: true });
 
+// Every sub-community list is fetched by parent community.
+subCommunitySchema.index({ communityId: 1 });
+
 const SubCommunity = mongoose.model('SubCommunity', subCommunitySchema);
 export default SubCommunity;

@@ -15,7 +15,7 @@ const ClubCard = memo(({ item, isInvitation, onAccept, onPress, userId }: any) =
         <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => !isInvitation && onPress(item._id)}
-            className="bg-white rounded-[32px] mb-6 mx-8 overflow-hidden border border-slate-100 shadow-sm shadow-black/5"
+            className="bg-white rounded-4xl mb-6 mx-8 overflow-hidden border border-slate-100 shadow-sm shadow-black/5"
         >
             <View className="p-6 flex-row items-center">
                 <View className="relative">
@@ -30,15 +30,15 @@ const ClubCard = memo(({ item, isInvitation, onAccept, onPress, userId }: any) =
 
                 <View className="flex-1 ml-6">
                     <View className="flex-row justify-between items-center mb-1">
-                        <Text className="text-zinc-900 text-lg font-black uppercase tracking-tighter leading-tight flex-1 mr-2" numberOfLines={1}>
+                        <Text className="text-slate-900 text-lg font-black uppercase tracking-tighter leading-tight flex-1 mr-2" numberOfLines={1}>
                             {item.name}
                         </Text>
                         <View className="bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-100">
-                            <Text className="text-slate-400 text-[8px] font-black uppercase tracking-widest">Active</Text>
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Active</Text>
                         </View>
                     </View>
 
-                    <Text className="text-slate-500 text-[10px] font-medium leading-4 mb-3" numberOfLines={2}>
+                    <Text className="text-slate-500 text-2xs font-medium leading-4 mb-3" numberOfLines={2}>
                         {isInvitation ? "You've been invited to join this community." : (item.description || "Establish your presence in the conversation...")}
                     </Text>
 
@@ -46,18 +46,18 @@ const ClubCard = memo(({ item, isInvitation, onAccept, onPress, userId }: any) =
                         {isInvitation ? (
                             <TouchableOpacity
                                 onPress={() => onAccept(item._id)}
-                                className="bg-zinc-900 px-6 py-2.5 rounded-2xl shadow-lg shadow-black/20"
+                                className="bg-slate-900 px-6 py-2.5 rounded-2xl shadow-lg shadow-black/20"
                             >
-                                <Text className="text-white text-[8px] font-black uppercase tracking-[2px]">Accept Intel</Text>
+                                <Text className="text-white text-2xs font-black uppercase tracking-wide">Accept Intel</Text>
                             </TouchableOpacity>
                         ) : (
                             <>
                                 <View className="bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-100">
-                                    <Text className="text-orange-600 text-[8px] font-black uppercase tracking-[1.5px]">{item.category || 'HQ'}</Text>
+                                    <Text className="text-orange-600 text-2xs font-black uppercase tracking-wide">{item.category || 'HQ'}</Text>
                                 </View>
                                 {(item.admins?.includes(userId)) && (
-                                    <View className="bg-zinc-900 px-3 py-1.5 rounded-xl">
-                                        <Text className="text-white text-[8px] font-black uppercase tracking-[1.5px]">Admin Access</Text>
+                                    <View className="bg-slate-900 px-3 py-1.5 rounded-xl">
+                                        <Text className="text-white text-2xs font-black uppercase tracking-wide">Admin Access</Text>
                                     </View>
                                 )}
                             </>
@@ -151,14 +151,14 @@ const ClubListScreen = () => {
                 {/* Header */}
                 <View className="px-8 pt-6 pb-2 flex-row justify-between items-center">
                     <View>
-                        <Text className="text-zinc-900 text-3xl font-black uppercase tracking-tighter leading-tight">
+                        <Text className="text-slate-900 text-3xl font-black uppercase tracking-tighter leading-tight">
                             College <Text className="text-orange-500">Clubs</Text>
                         </Text>
-                        <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[2px]">Secure Community Network</Text>
+                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Secure Community Network</Text>
                     </View>
                     <TouchableOpacity 
                         onPress={() => setShowCodeModal(true)}
-                        className="w-14 h-14 bg-white rounded-[24px] items-center justify-center shadow-sm border border-slate-100"
+                        className="w-14 h-14 bg-white rounded-2xl items-center justify-center shadow-sm border border-slate-100"
                     >
                         <Ionicons name="qr-code-outline" size={24} color="#18181b" />
                     </TouchableOpacity>
@@ -168,15 +168,15 @@ const ClubListScreen = () => {
                     ListHeaderComponent={
                         <TouchableOpacity
                             onPress={() => navigation.navigate('CreateClub')}
-                            className="mx-8 my-6 bg-zinc-900 p-5 rounded-2xl flex-row items-center justify-between shadow-2xl shadow-black/30"
+                            className="mx-8 my-6 bg-slate-900 p-5 rounded-2xl flex-row items-center justify-between shadow-2xl shadow-black/30"
                         >
                             <View className="flex-row items-center">
-                                <View className="w-14 h-14 bg-orange-600 rounded-[20px] items-center justify-center">
+                                <View className="w-14 h-14 bg-orange-600 rounded-2xl items-center justify-center">
                                     <Ionicons name="add" size={32} color="white" />
                                 </View>
                                 <View className="ml-6">
-                                    <Text className="text-white font-black uppercase text-[12px] tracking-[2px] mb-1">Establish Hub</Text>
-                                    <Text className="text-white/40 text-[9px] font-bold uppercase tracking-widest italic">New Community Protocol</Text>
+                                    <Text className="text-white font-black uppercase text-xs tracking-wide mb-1">Establish Hub</Text>
+                                    <Text className="text-white/40 text-2xs font-bold uppercase tracking-wide italic">New Community Protocol</Text>
                                 </View>
                             </View>
                             <Ionicons name="chevron-forward" size={24} color="white" opacity={0.3} />
@@ -193,7 +193,7 @@ const ClubListScreen = () => {
                         if (item.type === 'header') {
                             return (
                                 <View className="px-10 py-4 mt-4">
-                                    <Text className="text-slate-400 font-black uppercase text-[9px] tracking-[4px]">{item.title}</Text>
+                                    <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">{item.title}</Text>
                                 </View>
                             );
                         }
@@ -211,11 +211,11 @@ const ClubListScreen = () => {
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />}
                     ListEmptyComponent={!loading ? (
                         <View className="items-center mt-32 px-10">
-                            <View className="w-24 h-24 bg-white rounded-[32px] items-center justify-center mb-6 border border-slate-100 shadow-sm">
+                            <View className="w-24 h-24 bg-white rounded-4xl items-center justify-center mb-6 border border-slate-100 shadow-sm">
                                 <MaterialCommunityIcons name="shield-lock-outline" size={48} color="#cbd5e1" />
                             </View>
-                            <Text className="text-zinc-400 font-black uppercase text-xs tracking-widest text-center">Hub Empty</Text>
-                            <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center leading-5">
+                            <Text className="text-slate-500 font-black uppercase text-xs tracking-wide text-center">Hub Empty</Text>
+                            <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center leading-5">
                                 Your authorization space is empty.{"\n"}Establish a hub or wait for a clearance signal.
                             </Text>
                         </View>
@@ -225,9 +225,9 @@ const ClubListScreen = () => {
                 {/* Join Code Modal */}
                 <Modal visible={showCodeModal} transparent animationType="slide" onRequestClose={() => setShowCodeModal(false)}>
                     <View className="flex-1 bg-black/50 justify-end">
-                        <View className="bg-white rounded-t-[50px] p-10 border border-slate-100">
+                        <View className="bg-white rounded-t-5xl p-10 border border-slate-100">
                             <View className="flex-row justify-between items-center mb-10">
-                                <Text className="text-zinc-900 text-2xl font-black uppercase tracking-tighter">Enter Code</Text>
+                                <Text className="text-slate-900 text-2xl font-black uppercase tracking-tighter">Enter Code</Text>
                                 <TouchableOpacity
                                     onPress={() => setShowCodeModal(false)}
                                     className="w-12 h-12 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100"
@@ -236,18 +236,18 @@ const ClubListScreen = () => {
                                 </TouchableOpacity>
                             </View>
 
-                            <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-8 self-center border border-slate-100">
+                            <View className="w-20 h-20 bg-slate-50 rounded-4xl items-center justify-center mb-8 self-center border border-slate-100">
                                 <Feather name="hash" size={32} color="#18181b" />
                             </View>
 
-                            <Text className="text-zinc-400 text-center mb-10 text-[10px] font-bold uppercase tracking-[2px] leading-5">
+                            <Text className="text-slate-500 text-center mb-10 text-2xs font-bold uppercase tracking-wide leading-5">
                                 Input the 6-digit access code share by HQ{"\n"}to authorize your deployment.
                             </Text>
 
                             <TextInput
                                 placeholder="000000"
                                 placeholderTextColor="#cbd5e1"
-                                className="bg-slate-50 w-full p-8 rounded-[32px] text-center text-4xl font-black tracking-[12px] text-zinc-900 border border-slate-100"
+                                className="bg-slate-50 w-full p-8 rounded-4xl text-center text-4xl font-black tracking-[12px] text-slate-900 border border-slate-100"
                                 keyboardType="number-pad"
                                 maxLength={6}
                                 value={joinCode}

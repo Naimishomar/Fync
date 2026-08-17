@@ -370,10 +370,10 @@ const HackathonCreate = () => {
 
   const renderSectionHeader = (title: string, icon: string) => (
     <View className="flex-row items-center mt-8 mb-4">
-      <View className="w-10 h-10 rounded-2xl bg-slate-50 border border-gray-100 items-center justify-center mr-3 shadow-sm">
+      <View className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-100 items-center justify-center mr-3 shadow-sm">
         <Ionicons name={icon as any} size={18} color="#ec4899" />
       </View>
-      <Text className="text-zinc-900 font-black  text-xl uppercase tracking-tighter">{title}</Text>
+      <Text className="text-slate-900 font-black  text-xl uppercase tracking-tighter">{title}</Text>
     </View>
   );
 
@@ -384,12 +384,12 @@ const HackathonCreate = () => {
 
         {/* Header */}
         <View className="flex-row items-center px-8 py-6 border-b border-slate-50 bg-white">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="w-12 h-12 rounded-2xl bg-zinc-900 items-center justify-center mr-4 shadow-lg shadow-zinc-900/20">
+          <TouchableOpacity onPress={() => navigation.goBack()} className="w-12 h-12 rounded-2xl bg-slate-900 items-center justify-center mr-4 shadow-lg shadow-slate-900/20">
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <View>
-            <Text className="text-zinc-900 text-3xl font-black  uppercase tracking-tighter leading-7">Host</Text>
-            <Text className="text-zinc-900 text-3xl font-black  uppercase tracking-tighter leading-7">Mission</Text>
+            <Text className="text-slate-900 text-3xl font-black  uppercase tracking-tighter leading-7">Host</Text>
+            <Text className="text-slate-900 text-3xl font-black  uppercase tracking-tighter leading-7">Mission</Text>
           </View>
         </View>
 
@@ -398,79 +398,79 @@ const HackathonCreate = () => {
 
             {/* Visual Assets */}
             <View className="flex-row gap-4 mt-8">
-              <TouchableOpacity onPress={() => pickImage('logo')} className="w-28 h-28 rounded-[32px] bg-slate-50 border-2 border-dashed border-gray-200 items-center justify-center overflow-hidden shadow-sm">
-                {logo ? <Image source={{ uri: logo }} className="w-full h-full" /> : <View className="items-center"><Ionicons name="flash-outline" size={28} color="#94a3b8" /><Text className="text-[8px] font-black uppercase tracking-widest text-slate-400 mt-1">Logo</Text></View>}
+              <TouchableOpacity onPress={() => pickImage('logo')} className="w-28 h-28 rounded-4xl bg-slate-50 border-2 border-dashed border-slate-200 items-center justify-center overflow-hidden shadow-sm">
+                {logo ? <Image source={{ uri: logo }} className="w-full h-full" /> : <View className="items-center"><Ionicons name="flash-outline" size={28} color="#94a3b8" /><Text className="text-2xs font-black uppercase tracking-wide text-slate-500 mt-1">Logo</Text></View>}
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => pickImage('banner')} className="flex-1 h-28 rounded-[32px] bg-slate-50 border-2 border-dashed border-gray-200 items-center justify-center overflow-hidden shadow-sm">
-                {bannerImage ? <Image source={{ uri: bannerImage }} className="w-full h-full" resizeMode="cover" /> : <View className="items-center"><Ionicons name="images-outline" size={28} color="#94a3b8" /><Text className="text-[8px] font-black uppercase tracking-widest text-slate-400 mt-1">Banner</Text></View>}
+              <TouchableOpacity onPress={() => pickImage('banner')} className="flex-1 h-28 rounded-4xl bg-slate-50 border-2 border-dashed border-slate-200 items-center justify-center overflow-hidden shadow-sm">
+                {bannerImage ? <Image source={{ uri: bannerImage }} className="w-full h-full" resizeMode="cover" /> : <View className="items-center"><Ionicons name="images-outline" size={28} color="#94a3b8" /><Text className="text-2xs font-black uppercase tracking-wide text-slate-500 mt-1">Banner</Text></View>}
               </TouchableOpacity>
             </View>
 
             {/* Basic Info */}
             {renderSectionHeader('Protocol Essentials', 'rocket')}
-            <View className="bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm">
-              <TextInput value={form.hackathonId} onChangeText={(t) => setForm({ ...form, hackathonId: t })} placeholder="UNIQUE PROTOCOL ID (E.G. HACK-01)" placeholderTextColor="#94a3b8" className="bg-slate-50 rounded-2xl px-6 py-4 mb-4 text-zinc-900 font-black  uppercase text-sm border border-gray-100" />
-              <TextInput value={form.title} onChangeText={(t) => setForm({ ...form, title: t })} placeholder="MISSION TITLE" placeholderTextColor="#94a3b8" className="bg-slate-50 rounded-2xl px-6 py-4 mb-4 text-zinc-900 font-black  uppercase text-sm border border-gray-100" />
-              <TextInput value={form.description} onChangeText={(t) => setForm({ ...form, description: t })} placeholder="MISSION BRIEFING & DESCRIPTION..." multiline numberOfLines={4} placeholderTextColor="#94a3b8" className="bg-slate-50 rounded-[32px] px-6 py-4 mb-4 text-zinc-900 font-black  uppercase text-xs border border-gray-100 h-32" />
-              <TextInput value={form.tags} onChangeText={(t) => setForm({ ...form, tags: t })} placeholder="TAGS (AI, BLOCKCHAIN...)" placeholderTextColor="#94a3b8" className="bg-slate-50 rounded-2xl px-6 py-4 mb-4 text-zinc-900 font-black  uppercase text-sm border border-gray-100" />
+            <View className="bg-white rounded-4xl p-6 border border-slate-100 shadow-sm">
+              <TextInput value={form.hackathonId} onChangeText={(t) => setForm({ ...form, hackathonId: t })} placeholder="UNIQUE PROTOCOL ID (E.G. HACK-01)" placeholderTextColor="#94a3b8" className="bg-slate-50 rounded-2xl px-6 py-4 mb-4 text-slate-900 font-black  uppercase text-sm border border-slate-100" />
+              <TextInput value={form.title} onChangeText={(t) => setForm({ ...form, title: t })} placeholder="MISSION TITLE" placeholderTextColor="#94a3b8" className="bg-slate-50 rounded-2xl px-6 py-4 mb-4 text-slate-900 font-black  uppercase text-sm border border-slate-100" />
+              <TextInput value={form.description} onChangeText={(t) => setForm({ ...form, description: t })} placeholder="MISSION BRIEFING & DESCRIPTION..." multiline numberOfLines={4} placeholderTextColor="#94a3b8" className="bg-slate-50 rounded-4xl px-6 py-4 mb-4 text-slate-900 font-black  uppercase text-xs border border-slate-100 h-32" />
+              <TextInput value={form.tags} onChangeText={(t) => setForm({ ...form, tags: t })} placeholder="TAGS (AI, BLOCKCHAIN...)" placeholderTextColor="#94a3b8" className="bg-slate-50 rounded-2xl px-6 py-4 mb-4 text-slate-900 font-black  uppercase text-sm border border-slate-100" />
               <View className="flex-row gap-4">
-                <TextInput value={form.prizepool} onChangeText={(t) => setForm({ ...form, prizepool: t })} placeholder="BOUNTY POOL" placeholderTextColor="#94a3b8" className="flex-[2] bg-slate-50 rounded-2xl px-6 py-4 text-zinc-900 font-black  uppercase text-sm border border-gray-100" />
-                <TextInput value={form.MaxTeamSize} onChangeText={(t) => setForm({ ...form, MaxTeamSize: t })} placeholder="MAX SQUAD" placeholderTextColor="#94a3b8" keyboardType="numeric" className="flex-1 bg-slate-50 rounded-2xl px-6 py-4 text-zinc-900 font-black  uppercase text-sm border border-gray-100" />
+                <TextInput value={form.prizepool} onChangeText={(t) => setForm({ ...form, prizepool: t })} placeholder="BOUNTY POOL" placeholderTextColor="#94a3b8" className="flex-[2] bg-slate-50 rounded-2xl px-6 py-4 text-slate-900 font-black  uppercase text-sm border border-slate-100" />
+                <TextInput value={form.MaxTeamSize} onChangeText={(t) => setForm({ ...form, MaxTeamSize: t })} placeholder="MAX SQUAD" placeholderTextColor="#94a3b8" keyboardType="numeric" className="flex-1 bg-slate-50 rounded-2xl px-6 py-4 text-slate-900 font-black  uppercase text-sm border border-slate-100" />
               </View>
             </View>
 
             {/* Targeting / Eligibility */}
             {renderSectionHeader('Targeting & Eligibility', 'school')}
-            <View className="bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm">
+            <View className="bg-white rounded-4xl p-6 border border-slate-100 shadow-sm">
               <TextInput
                 value={eligibility.colleges}
                 onChangeText={(t) => setEligibility({ ...eligibility, colleges: t })}
                 placeholder="COLLEGE PROTOCOLS (COMMA SEP)"
                 placeholderTextColor="#94a3b8"
-                className="bg-slate-50 rounded-2xl px-6 py-4 mb-4 text-zinc-900 font-black  uppercase text-sm border border-gray-100"
+                className="bg-slate-50 rounded-2xl px-6 py-4 mb-4 text-slate-900 font-black  uppercase text-sm border border-slate-100"
               />
               <TextInput
                 value={eligibility.Year}
                 onChangeText={(t) => setEligibility({ ...eligibility, Year: t })}
                 placeholder="TARGET YEARS (E.G. 1ST, 2ND)"
                 placeholderTextColor="#94a3b8"
-                className="bg-slate-50 rounded-2xl px-6 py-4 mb-4 text-zinc-900 font-black  uppercase text-sm border border-gray-100"
+                className="bg-slate-50 rounded-2xl px-6 py-4 mb-4 text-slate-900 font-black  uppercase text-sm border border-slate-100"
               />
               <TextInput
                 value={eligibility.branch}
                 onChangeText={(t) => setEligibility({ ...eligibility, branch: t })}
                 placeholder="TARGET BRANCHES (CS, IT...)"
                 placeholderTextColor="#94a3b8"
-                className="bg-slate-50 rounded-2xl px-6 py-4 text-zinc-900 font-black  uppercase text-sm border border-gray-100"
+                className="bg-slate-50 rounded-2xl px-6 py-4 text-slate-900 font-black  uppercase text-sm border border-slate-100"
               />
             </View>
 
             {/* Rules */}
             {renderSectionHeader('Commandments', 'list')}
-            <View className="bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm">
+            <View className="bg-white rounded-4xl p-6 border border-slate-100 shadow-sm">
               {rules.map((rule, i) => (
                 <View key={i} className="flex-row items-center gap-3 mb-3">
-                  <TextInput value={rule} onChangeText={(t) => setRules(rules.map((r, idx) => idx === i ? t : r))} placeholder={`RULE #${i + 1}`} placeholderTextColor="#94a3b8" className="flex-1 bg-slate-50 rounded-2xl px-6 py-4 text-zinc-900 font-black  uppercase text-xs border border-gray-100" />
-                  <TouchableOpacity onPress={() => removeRule(i)} className="bg-slate-50 p-3 rounded-xl border border-gray-100"><Ionicons name="trash" size={16} color="#f43f5e" /></TouchableOpacity>
+                  <TextInput value={rule} onChangeText={(t) => setRules(rules.map((r, idx) => idx === i ? t : r))} placeholder={`RULE #${i + 1}`} placeholderTextColor="#94a3b8" className="flex-1 bg-slate-50 rounded-2xl px-6 py-4 text-slate-900 font-black  uppercase text-xs border border-slate-100" />
+                  <TouchableOpacity onPress={() => removeRule(i)} className="bg-slate-50 p-3 rounded-xl border border-slate-100"><Ionicons name="trash" size={16} color="#f43f5e" /></TouchableOpacity>
                 </View>
               ))}
-              <TouchableOpacity onPress={addRule} className="flex-row items-center justify-center p-4 border-2 border-dashed border-gray-100 rounded-2xl mt-2">
+              <TouchableOpacity onPress={addRule} className="flex-row items-center justify-center p-4 border-2 border-dashed border-slate-100 rounded-2xl mt-2">
                 <Ionicons name="add" size={20} color="#ec4899" />
-                <Text className="text-pink-500 font-black  uppercase tracking-widest ml-2 text-[10px]">Append Commandment</Text>
+                <Text className="text-pink-500 font-black  uppercase tracking-wide ml-2 text-2xs">Append Commandment</Text>
               </TouchableOpacity>
             </View>
 
             {/* Timeline */}
             {renderSectionHeader('Event Roadmap / Timeline', 'time')}
             <View className="mb-8">
-              <Text className="text-slate-400 text-[10px] font-bold mb-4 px-2 uppercase tracking-widest">Construct the journey for your participants (e.g. Kickoff, Workshops, Submission, Results)</Text>
+              <Text className="text-slate-500 text-2xs font-bold mb-4 px-2 uppercase tracking-wide">Construct the journey for your participants (e.g. Kickoff, Workshops, Submission, Results)</Text>
               {timeline.map((item, i) => (
-                <View key={i} className="bg-slate-50 rounded-3xl p-5 mb-4 border border-gray-100 shadow-sm shadow-black/[0.02]">
-                  <TextInput value={item.label} onChangeText={(t) => setTimeline(timeline.map((x, idx) => idx === i ? { ...x, label: t } : x))} placeholder="STAGE NAME (E.G. SEMI-FINALS)" placeholderTextColor="#94a3b8" className="text-zinc-900 font-black  uppercase text-xs mb-3" />
-                  <TouchableOpacity onPress={() => triggerPicker(i)} className="bg-white rounded-xl px-4 py-3 mb-3 border border-gray-100 flex-row justify-between items-center">
-                    <Text className="text-slate-400 font-black uppercase text-[10px]">Date & Time</Text>
-                    <Text className="text-zinc-900 font-black  uppercase text-[10px]">{item.date.toLocaleDateString()} {item.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                <View key={i} className="bg-slate-50 rounded-3xl p-5 mb-4 border border-slate-100 shadow-sm shadow-black/[0.02]">
+                  <TextInput value={item.label} onChangeText={(t) => setTimeline(timeline.map((x, idx) => idx === i ? { ...x, label: t } : x))} placeholder="STAGE NAME (E.G. SEMI-FINALS)" placeholderTextColor="#94a3b8" className="text-slate-900 font-black  uppercase text-xs mb-3" />
+                  <TouchableOpacity onPress={() => triggerPicker(i)} className="bg-white rounded-xl px-4 py-3 mb-3 border border-slate-100 flex-row justify-between items-center">
+                    <Text className="text-slate-500 font-black uppercase text-2xs">Date & Time</Text>
+                    <Text className="text-slate-900 font-black  uppercase text-2xs">{item.date.toLocaleDateString()} {item.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
                   </TouchableOpacity>
                   <TextInput value={item.description} onChangeText={(t) => setTimeline(timeline.map((x, idx) => idx === i ? { ...x, description: t } : x))} placeholder="BRIEF INTEL ABOUT THIS STAGE" placeholderTextColor="#94a3b8" multiline className="text-slate-500 text-xs leading-4" />
                   <TouchableOpacity onPress={() => setTimeline(timeline.filter((_, idx) => idx !== i))} className="mt-4 self-end">
@@ -479,16 +479,16 @@ const HackathonCreate = () => {
                 </View>
               ))}
               <TouchableOpacity onPress={() => setTimeline([...timeline, { label: '', date: new Date(), description: '' }])} className="border-2 border-dashed border-slate-200 rounded-3xl p-5 items-center">
-                <Text className="text-slate-400 font-black  uppercase text-[10px]">Add Milestone Protocol +</Text>
+                <Text className="text-slate-500 font-black  uppercase text-2xs">Add Milestone Protocol +</Text>
               </TouchableOpacity>
             </View>
 
             {/* Dates (Global) */}
             {renderSectionHeader('Base Window', 'calendar')}
-            <View className="bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm mb-8">
+            <View className="bg-white rounded-4xl p-6 border border-slate-100 shadow-sm mb-8">
               {['registrationstart', 'registrationends', 'hackathonstarts', 'hackathonends'].map((field) => (
-                <TouchableOpacity key={field} onPress={() => triggerPicker(field)} className="flex-row items-center justify-between bg-zinc-900 rounded-2xl px-6 py-4 mb-3 border border-zinc-800">
-                  <Text className="text-slate-500 font-black uppercase text-[9px] tracking-widest">{field.replace(/([A-Z])/g, ' $1')}</Text>
+                <TouchableOpacity key={field} onPress={() => triggerPicker(field)} className="flex-row items-center justify-between bg-slate-900 rounded-2xl px-6 py-4 mb-3 border border-slate-800">
+                  <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">{field.replace(/([A-Z])/g, ' $1')}</Text>
                   <Text className="text-white font-black  uppercase tracking-tight text-xs">{(form as any)[field].toLocaleDateString()}</Text>
                 </TouchableOpacity>
               ))}
@@ -496,18 +496,18 @@ const HackathonCreate = () => {
 
             {/* Contact Portal */}
             {renderSectionHeader('Contact & Portal Signals', 'mail')}
-            <View className="bg-slate-50 rounded-[40px] p-8 mb-8 border border-gray-100">
+            <View className="bg-slate-50 rounded-5xl p-8 mb-8 border border-slate-100">
               <View className="mb-6">
-                <Text className="text-slate-400 font-black uppercase text-[9px] mb-3 tracking-widest px-2">Official Contact Email</Text>
-                <TextInput value={form.contactEmail} onChangeText={t => setForm({ ...form, contactEmail: t })} placeholder="SUPPORT@MISSION.COM" placeholderTextColor="#94a3b8" className="bg-white rounded-2xl px-6 py-4 text-zinc-900 font-black  uppercase text-xs border border-gray-100" />
+                <Text className="text-slate-500 font-black uppercase text-2xs mb-3 tracking-wide px-2">Official Contact Email</Text>
+                <TextInput value={form.contactEmail} onChangeText={t => setForm({ ...form, contactEmail: t })} placeholder="SUPPORT@MISSION.COM" placeholderTextColor="#94a3b8" className="bg-white rounded-2xl px-6 py-4 text-slate-900 font-black  uppercase text-xs border border-slate-100" />
               </View>
               <View className="mb-6">
-                <Text className="text-slate-400 font-black uppercase text-[9px] mb-3 tracking-widest px-2">Discord Server Signal</Text>
-                <TextInput value={form.discordLink} onChangeText={t => setForm({ ...form, discordLink: t })} placeholder="DISCORD.GG/INVITE" placeholderTextColor="#94a3b8" className="bg-white rounded-2xl px-6 py-4 text-zinc-900 font-black  uppercase text-xs border border-gray-100" />
+                <Text className="text-slate-500 font-black uppercase text-2xs mb-3 tracking-wide px-2">Discord Server Signal</Text>
+                <TextInput value={form.discordLink} onChangeText={t => setForm({ ...form, discordLink: t })} placeholder="DISCORD.GG/INVITE" placeholderTextColor="#94a3b8" className="bg-white rounded-2xl px-6 py-4 text-slate-900 font-black  uppercase text-xs border border-slate-100" />
               </View>
               <View>
-                <Text className="text-slate-400 font-black uppercase text-[9px] mb-3 tracking-widest px-2">External Protocol Website</Text>
-                <TextInput value={form.websiteLink} onChangeText={t => setForm({ ...form, websiteLink: t })} placeholder="HTTPS://MISSION.FYNC.COM" placeholderTextColor="#94a3b8" className="bg-white rounded-2xl px-6 py-4 text-zinc-900 font-black  uppercase text-xs border border-gray-100" />
+                <Text className="text-slate-500 font-black uppercase text-2xs mb-3 tracking-wide px-2">External Protocol Website</Text>
+                <TextInput value={form.websiteLink} onChangeText={t => setForm({ ...form, websiteLink: t })} placeholder="HTTPS://MISSION.FYNC.COM" placeholderTextColor="#94a3b8" className="bg-white rounded-2xl px-6 py-4 text-slate-900 font-black  uppercase text-xs border border-slate-100" />
               </View>
             </View>
 
@@ -515,17 +515,17 @@ const HackathonCreate = () => {
             {renderSectionHeader('Sponsors / Partners', 'business')}
             <View className="mb-8">
               {sponsors.map((s, i) => (
-                <View key={i} className="bg-slate-50 rounded-3xl p-6 mb-4 border border-gray-100">
+                <View key={i} className="bg-slate-50 rounded-3xl p-6 mb-4 border border-slate-100">
                   <View className="flex-row items-center mb-4">
-                    <TouchableOpacity onPress={() => pickSponsorLogo(i)} className="w-16 h-16 rounded-2xl bg-white border border-gray-100 items-center justify-center mr-4 shadow-sm">
+                    <TouchableOpacity onPress={() => pickSponsorLogo(i)} className="w-16 h-16 rounded-2xl bg-white border border-slate-100 items-center justify-center mr-4 shadow-sm">
                       {s.logo ? <Image source={{ uri: s.logo }} className="w-full h-full rounded-2xl" /> : <Ionicons name="image" size={24} color="#CBD5E1" />}
                     </TouchableOpacity>
                     <View className="flex-1">
-                      <TextInput value={s.name} onChangeText={(t) => updateSponsor(i, 'name', t)} placeholder="SPONSOR NAME" placeholderTextColor="#94a3b8" className="text-zinc-900 font-black  uppercase text-xs mb-2" />
+                      <TextInput value={s.name} onChangeText={(t) => updateSponsor(i, 'name', t)} placeholder="SPONSOR NAME" placeholderTextColor="#94a3b8" className="text-slate-900 font-black  uppercase text-xs mb-2" />
                       <View className="flex-row">
                         {['Title', 'Platinum', 'Gold', 'Silver', 'Bronze', 'Partner'].slice(0, 3).map(lvl => (
-                          <TouchableOpacity key={lvl} onPress={() => updateSponsor(i, 'level', lvl)} className={`px-3 py-1 rounded-lg border mr-2 ${s.level === lvl ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-gray-100'}`}>
-                            <Text className={`text-[8px] font-black uppercase ${s.level === lvl ? 'text-white' : 'text-slate-400'}`}>{lvl}</Text>
+                          <TouchableOpacity key={lvl} onPress={() => updateSponsor(i, 'level', lvl)} className={`px-3 py-1 rounded-lg border mr-2 ${s.level === lvl ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-100'}`}>
+                            <Text className={`text-2xs font-black uppercase ${s.level === lvl ? 'text-white' : 'text-slate-500'}`}>{lvl}</Text>
                           </TouchableOpacity>
                         ))}
                       </View>
@@ -537,16 +537,16 @@ const HackathonCreate = () => {
                 </View>
               ))}
               <TouchableOpacity onPress={addSponsor} className="border-2 border-dashed border-slate-200 rounded-3xl p-5 items-center">
-                <Text className="text-slate-400 font-black  uppercase text-[10px]">Onboard Sponsor +</Text>
+                <Text className="text-slate-500 font-black  uppercase text-2xs">Onboard Sponsor +</Text>
               </TouchableOpacity>
             </View>
 
             {/* Judges & Mentors */}
             {renderSectionHeader('Judges & Mentors', 'people')}
             <View className="mb-8">
-              <View className="bg-zinc-900 rounded-[32px] p-6 mb-2">
-                <Text className="text-pink-500 font-black uppercase text-[10px] mb-4 tracking-widest">Assign Protocol Officials</Text>
-                <View className="flex-row items-center bg-zinc-800 rounded-2xl px-4 py-3 mb-4">
+              <View className="bg-slate-900 rounded-4xl p-6 mb-2">
+                <Text className="text-pink-500 font-black uppercase text-2xs mb-4 tracking-wide">Assign Protocol Officials</Text>
+                <View className="flex-row items-center bg-slate-800 rounded-2xl px-4 py-3 mb-4">
                   <Ionicons name="search" size={16} color="#ec4899" />
                   <TextInput
                     value={userSearch}
@@ -555,23 +555,23 @@ const HackathonCreate = () => {
                     placeholderTextColor="#4b5563"
                     className="flex-1 ml-3 text-white font-black  uppercase text-xs"
                   />
-                  {searching && <ActivityIndicator size="small" color="#ec4899" />}
+                  {searching && <ActivityIndicator size="small" color="#f97316" />}
                 </View>
 
                 {searchResults.length > 0 && (
-                  <View className="bg-zinc-800 rounded-2xl overflow-hidden mb-4 border border-zinc-700">
+                  <View className="bg-slate-800 rounded-2xl overflow-hidden mb-4 border border-slate-700">
                     {searchResults.slice(0, 5).map((u, i) => (
-                      <View key={i} className="flex-row items-center justify-between p-4 border-b border-zinc-700">
+                      <View key={i} className="flex-row items-center justify-between p-4 border-b border-slate-700">
                         <View className="flex-row items-center">
-                          {u.avatar ? <Image source={{ uri: u.avatar }} className="w-8 h-8 rounded-full" /> : <View className="w-8 h-8 rounded-full bg-zinc-700 items-center justify-center"><Ionicons name="person" size={12} color="#4b5563" /></View>}
+                          {u.avatar ? <Image source={{ uri: u.avatar }} className="w-8 h-8 rounded-full" /> : <View className="w-8 h-8 rounded-full bg-slate-700 items-center justify-center"><Ionicons name="person" size={12} color="#4b5563" /></View>}
                           <View className="ml-3">
-                            <Text className="text-white font-black text-[10px]">{u.name}</Text>
-                            <Text className="text-zinc-500 text-[8px]">{u.email}</Text>
+                            <Text className="text-white font-black text-2xs">{u.name}</Text>
+                            <Text className="text-slate-500 text-2xs">{u.email}</Text>
                           </View>
                         </View>
                         <View className="flex-row">
-                          <TouchableOpacity onPress={() => addJudge(u)} className="bg-pink-500 px-3 py-1.5 rounded-lg mr-2"><Text className="text-white font-black text-[8px] uppercase">Judge</Text></TouchableOpacity>
-                          <TouchableOpacity onPress={() => addMentor(u)} className="bg-indigo-500 px-3 py-1.5 rounded-lg"><Text className="text-white font-black text-[8px] uppercase">Mentor</Text></TouchableOpacity>
+                          <TouchableOpacity onPress={() => addJudge(u)} className="bg-pink-500 px-3 py-1.5 rounded-lg mr-2"><Text className="text-white font-black text-2xs uppercase">Judge</Text></TouchableOpacity>
+                          <TouchableOpacity onPress={() => addMentor(u)} className="bg-indigo-500 px-3 py-1.5 rounded-lg"><Text className="text-white font-black text-2xs uppercase">Mentor</Text></TouchableOpacity>
                         </View>
                       </View>
                     ))}
@@ -580,18 +580,18 @@ const HackathonCreate = () => {
 
                 <View className="flex-row flex-wrap gap-2">
                   {judges.map((j, idx) => (
-                    <View key={idx} className="bg-zinc-800 flex-row items-center pl-2 pr-3 py-2 rounded-xl border border-pink-500/30">
-                      <Text className="text-pink-500 font-black text-[9px] uppercase mr-2">Judge:</Text>
-                      <Text className="text-white font-bold text-[9px]">{j.name}</Text>
+                    <View key={idx} className="bg-slate-800 flex-row items-center pl-2 pr-3 py-2 rounded-xl border border-pink-500/30">
+                      <Text className="text-pink-500 font-black text-2xs uppercase mr-2">Judge:</Text>
+                      <Text className="text-white font-bold text-2xs">{j.name}</Text>
                       <TouchableOpacity onPress={() => setJudges(judges.filter((_, i) => i !== idx))} className="ml-2">
                         <Ionicons name="close-circle" size={14} color="#4b5563" />
                       </TouchableOpacity>
                     </View>
                   ))}
                   {mentors.map((m, idx) => (
-                    <View key={idx} className="bg-zinc-800 flex-row items-center pl-2 pr-3 py-2 rounded-xl border border-indigo-500/30">
-                      <Text className="text-indigo-500 font-black text-[9px] uppercase mr-2">Mentor:</Text>
-                      <Text className="text-white font-bold text-[9px]">{m.name}</Text>
+                    <View key={idx} className="bg-slate-800 flex-row items-center pl-2 pr-3 py-2 rounded-xl border border-indigo-500/30">
+                      <Text className="text-indigo-500 font-black text-2xs uppercase mr-2">Mentor:</Text>
+                      <Text className="text-white font-bold text-2xs">{m.name}</Text>
                       <TouchableOpacity onPress={() => setMentors(mentors.filter((_, i) => i !== idx))} className="ml-2">
                         <Ionicons name="close-circle" size={14} color="#4b5563" />
                       </TouchableOpacity>
@@ -603,54 +603,54 @@ const HackathonCreate = () => {
 
             {/* Tracks */}
             {renderSectionHeader('Strategic Tracks', 'layers')}
-            <View className="bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm">
+            <View className="bg-white rounded-4xl p-6 border border-slate-100 shadow-sm">
               {tracks.map((t, i) => (
-                <View key={i} className="bg-slate-50 rounded-3xl p-5 mb-4 border border-gray-100">
-                  <TextInput value={t.title} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, title: val } : x))} placeholder="TRACK TITLE" placeholderTextColor="#94a3b8" className="text-zinc-900 font-black  uppercase text-xs mb-3" />
-                  <TextInput value={t.description} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, description: val } : x))} placeholder="TRACK INTEL..." multiline placeholderTextColor="#94a3b8" className="bg-white rounded-xl px-4 py-3 text-zinc-900 font-black  uppercase text-[10px] border border-gray-100 mb-3 h-20" />
-                  <TextInput value={t.prizes} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, prizes: val } : x))} placeholder="TRACK BOUNTY (E.G. $500)" placeholderTextColor="#94a3b8" className="bg-white rounded-xl px-4 py-3 text-emerald-600 font-black  uppercase text-[10px] border border-emerald-50" />
-                  <TouchableOpacity onPress={() => removeTrack(i)} className="absolute -top-2 -right-2 bg-white w-8 h-8 rounded-full items-center justify-center border border-gray-100 shadow-sm"><Ionicons name="close" size={16} color="#f43f5e" /></TouchableOpacity>
+                <View key={i} className="bg-slate-50 rounded-3xl p-5 mb-4 border border-slate-100">
+                  <TextInput value={t.title} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, title: val } : x))} placeholder="TRACK TITLE" placeholderTextColor="#94a3b8" className="text-slate-900 font-black  uppercase text-xs mb-3" />
+                  <TextInput value={t.description} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, description: val } : x))} placeholder="TRACK INTEL..." multiline placeholderTextColor="#94a3b8" className="bg-white rounded-xl px-4 py-3 text-slate-900 font-black  uppercase text-2xs border border-slate-100 mb-3 h-20" />
+                  <TextInput value={t.prizes} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, prizes: val } : x))} placeholder="TRACK BOUNTY (E.G. $500)" placeholderTextColor="#94a3b8" className="bg-white rounded-xl px-4 py-3 text-emerald-600 font-black  uppercase text-2xs border border-emerald-50" />
+                  <TouchableOpacity onPress={() => removeTrack(i)} className="absolute -top-2 -right-2 bg-white w-8 h-8 rounded-full items-center justify-center border border-slate-100 shadow-sm"><Ionicons name="close" size={16} color="#f43f5e" /></TouchableOpacity>
                 </View>
               ))}
-              <TouchableOpacity onPress={addTrack} className="flex-row items-center justify-center p-4 border-2 border-dashed border-gray-100 rounded-2xl">
+              <TouchableOpacity onPress={addTrack} className="flex-row items-center justify-center p-4 border-2 border-dashed border-slate-100 rounded-2xl">
                 <Ionicons name="add" size={20} color="#ec4899" />
-                <Text className="text-pink-500 font-black  uppercase tracking-widest ml-2 text-[10px]">Append Mission Track</Text>
+                <Text className="text-pink-500 font-black  uppercase tracking-wide ml-2 text-2xs">Append Mission Track</Text>
               </TouchableOpacity>
             </View>
 
             {/* FAQs */}
             {renderSectionHeader('Knowledge Base', 'help-circle')}
-            <View className="bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm">
+            <View className="bg-white rounded-4xl p-6 border border-slate-100 shadow-sm">
               {faqs.map((f, i) => (
-                <View key={i} className="bg-slate-50 rounded-3xl p-5 mb-4 border border-gray-100">
-                  <TextInput value={f.question} onChangeText={(val) => setFaqs(faqs.map((x, idx) => idx === i ? { ...x, question: val } : x))} placeholder="QUERY PROTOCOL" placeholderTextColor="#94a3b8" className="text-zinc-900 font-black  uppercase text-xs mb-3" />
-                  <TextInput value={f.answer} onChangeText={(val) => setFaqs(faqs.map((x, idx) => idx === i ? { ...x, answer: val } : x))} placeholder="AUTHORISED ANSWER..." multiline placeholderTextColor="#94a3b8" className="bg-white rounded-xl px-4 py-3 text-slate-500 font-black uppercase text-[9px] border border-gray-100 h-20" />
-                  <TouchableOpacity onPress={() => removeFaq(i)} className="absolute -top-2 -right-2 bg-white w-8 h-8 rounded-full items-center justify-center border border-gray-100 shadow-sm"><Ionicons name="close" size={16} color="#f43f5e" /></TouchableOpacity>
+                <View key={i} className="bg-slate-50 rounded-3xl p-5 mb-4 border border-slate-100">
+                  <TextInput value={f.question} onChangeText={(val) => setFaqs(faqs.map((x, idx) => idx === i ? { ...x, question: val } : x))} placeholder="QUERY PROTOCOL" placeholderTextColor="#94a3b8" className="text-slate-900 font-black  uppercase text-xs mb-3" />
+                  <TextInput value={f.answer} onChangeText={(val) => setFaqs(faqs.map((x, idx) => idx === i ? { ...x, answer: val } : x))} placeholder="AUTHORISED ANSWER..." multiline placeholderTextColor="#94a3b8" className="bg-white rounded-xl px-4 py-3 text-slate-500 font-black uppercase text-2xs border border-slate-100 h-20" />
+                  <TouchableOpacity onPress={() => removeFaq(i)} className="absolute -top-2 -right-2 bg-white w-8 h-8 rounded-full items-center justify-center border border-slate-100 shadow-sm"><Ionicons name="close" size={16} color="#f43f5e" /></TouchableOpacity>
                 </View>
               ))}
-              <TouchableOpacity onPress={addFaq} className="flex-row items-center justify-center p-4 border-2 border-dashed border-gray-100 rounded-2xl">
+              <TouchableOpacity onPress={addFaq} className="flex-row items-center justify-center p-4 border-2 border-dashed border-slate-100 rounded-2xl">
                 <Ionicons name="add" size={20} color="#ec4899" />
-                <Text className="text-pink-500 font-black  uppercase tracking-widest ml-2 text-[10px]">Add Query Signal</Text>
+                <Text className="text-pink-500 font-black  uppercase tracking-wide ml-2 text-2xs">Add Query Signal</Text>
               </TouchableOpacity>
             </View>
 
             {/* Rewards */}
             {renderSectionHeader('Bounty Tiers', 'medal')}
-            <View className="bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm">
+            <View className="bg-white rounded-4xl p-6 border border-slate-100 shadow-sm">
               {prizes.map((p, i) => (
                 <View key={i} className="flex-row items-center gap-3 mb-4">
-                  <View className="w-10 h-10 rounded-xl bg-zinc-900 items-center justify-center border border-zinc-800 shadow-sm"><Text className="font-black text-white  text-[10px]">#{p.rank}</Text></View>
-                  <TextInput value={p.title} onChangeText={(t) => setPrizes(prizes.map((x, idx) => idx === i ? { ...x, title: t } : x))} placeholder="BOUNTY TITLE" placeholderTextColor="#94a3b8" className="flex-1 bg-slate-50 rounded-2xl px-5 py-3 font-black  uppercase text-xs text-zinc-900 border border-gray-100" />
-                  <TextInput value={p.amount} onChangeText={(t) => setPrizes(prizes.map((x, idx) => idx === i ? { ...x, amount: t } : x))} placeholder="Σ AMT" placeholderTextColor="#94a3b8" className="flex-1 bg-slate-50 rounded-2xl px-5 py-3 font-black  uppercase text-xs text-zinc-900 border border-gray-100" />
+                  <View className="w-10 h-10 rounded-xl bg-slate-900 items-center justify-center border border-slate-800 shadow-sm"><Text className="font-black text-white  text-2xs">#{p.rank}</Text></View>
+                  <TextInput value={p.title} onChangeText={(t) => setPrizes(prizes.map((x, idx) => idx === i ? { ...x, title: t } : x))} placeholder="BOUNTY TITLE" placeholderTextColor="#94a3b8" className="flex-1 bg-slate-50 rounded-2xl px-5 py-3 font-black  uppercase text-xs text-slate-900 border border-slate-100" />
+                  <TextInput value={p.amount} onChangeText={(t) => setPrizes(prizes.map((x, idx) => idx === i ? { ...x, amount: t } : x))} placeholder="Σ AMT" placeholderTextColor="#94a3b8" className="flex-1 bg-slate-50 rounded-2xl px-5 py-3 font-black  uppercase text-xs text-slate-900 border border-slate-100" />
                 </View>
               ))}
-              <TouchableOpacity onPress={addPrize} className="flex-row items-center justify-center p-4 border-2 border-dashed border-gray-100 rounded-2xl mt-2">
+              <TouchableOpacity onPress={addPrize} className="flex-row items-center justify-center p-4 border-2 border-dashed border-slate-100 rounded-2xl mt-2">
                 <Ionicons name="add" size={20} color="#ec4899" />
-                <Text className="text-pink-500 font-black  uppercase tracking-widest ml-2 text-[10px]">Extend Bounty List</Text>
+                <Text className="text-pink-500 font-black  uppercase tracking-wide ml-2 text-2xs">Extend Bounty List</Text>
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity onPress={handleSubmit} disabled={loading} className="mt-12 overflow-hidden rounded-[32px] shadow-2xl shadow-pink-500/20">
+            <TouchableOpacity onPress={handleSubmit} disabled={loading} className="mt-12 overflow-hidden rounded-4xl shadow-2xl shadow-pink-500/20">
               <LinearGradient colors={['#ec4899', '#f43f5e']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} className="py-6 items-center justify-center flex-row">
                 {loading ? <ActivityIndicator size="small" color="white" /> : (
                   <>

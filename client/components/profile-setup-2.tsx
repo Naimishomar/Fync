@@ -144,7 +144,7 @@ export default function ProfileSetup2() {
           </View>
 
           {/* Bottom Sheet */}
-          <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-16">
+          <View className="rounded-t-5xl bg-white px-6 pt-8 pb-16">
             <ScrollView keyboardShouldPersistTaps="handled">
               <Text className="text-3xl font-bold mb-6 text-center">
                 Profile Setup
@@ -154,7 +154,7 @@ export default function ProfileSetup2() {
               <View className="items-center mb-8">
                 <Pressable
                   onPress={handleUploadProfilePic}
-                  className="h-36 w-36 items-center justify-center overflow-hidden rounded-full bg-gray-200"
+                  className="h-36 w-36 items-center justify-center overflow-hidden rounded-full bg-slate-200"
                 >
                   {profileImageUri ? (
                     <Image
@@ -166,7 +166,7 @@ export default function ProfileSetup2() {
                     <Ionicons name="camera" size={36} color="#6B7280" />
                   )}
                 </Pressable>
-                <Text className="mt-3 text-gray-600">Upload Profile Photo</Text>
+                <Text className="mt-3 text-slate-600">Upload Profile Photo</Text>
               </View>
 
               {/* Continue */}
@@ -187,21 +187,21 @@ export default function ProfileSetup2() {
 
               {/* Skip */}
               {isLoading ? (
-                <Pressable className="rounded-full border border-gray-300 py-4 items-center">
+                <Pressable className="rounded-full border border-slate-300 py-4 items-center">
                   <ActivityIndicator size="small" color="#6B7280" />
                 </Pressable>
               ) : (
                 <Pressable
-                  className="rounded-full border border-gray-300 py-4 items-center"
+                  className="rounded-full border border-slate-300 py-4 items-center"
                   onPress={submitRegistration}
                 >
-                  <Text className="text-gray-700 text-lg font-semibold">
+                  <Text className="text-slate-700 text-lg font-semibold">
                     Skip for now
                   </Text>
                 </Pressable>
               )}
 
-              <Text className="mt-5 text-center text-gray-500">
+              <Text className="mt-5 text-center text-slate-500">
                 Step 2 of 2
               </Text>
             </ScrollView>

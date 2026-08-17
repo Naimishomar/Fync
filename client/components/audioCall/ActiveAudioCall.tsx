@@ -53,15 +53,15 @@ export default function ActiveAudioCall({ remoteUser, isCallConnected, onEndCall
             </View>
           )}
           
-          <Text className="text-3xl font-bold text-gray-900 mb-2">{remoteUser.name}</Text>
-          <Text className="text-gray-500 text-xl font-medium">{formatDuration(duration)}</Text>
+          <Text className="text-3xl font-bold text-slate-900 mb-2">{remoteUser.name}</Text>
+          <Text className="text-slate-500 text-xl font-medium">{formatDuration(duration)}</Text>
         </View>
       </View>
 
       <View className="flex-row items-center justify-center w-full space-x-8 px-10 gap-8">
         <TouchableOpacity 
           onPress={handleToggleMute}
-          className={`w-16 h-16 rounded-full items-center justify-center border ${isMuted ? 'bg-orange-50 border-orange-200' : 'bg-gray-100 border-gray-200'}`}
+          className={`w-16 h-16 rounded-full items-center justify-center border ${isMuted ? 'bg-orange-50 border-orange-200' : 'bg-slate-100 border-slate-200'}`}
         >
           {isMuted ? <MicOff size={24} color="#ea580c" /> : <Mic size={24} color="#4b5563" />}
         </TouchableOpacity>

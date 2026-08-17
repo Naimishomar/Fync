@@ -213,19 +213,19 @@ const Notification = () => {
 
         {/* Text Section */}
         <View className="flex-1">
-          <Text className="text-zinc-600 text-[12px] leading-5">
+          <Text className="text-slate-600 text-xs leading-5">
             {item.type === 'opportunity' ? (
               // Opportunity notifications: show full message without username prefix
-              <Text className="text-zinc-800 font-bold text-[12px] uppercase ">{message}</Text>
+              <Text className="text-slate-800 font-bold text-xs uppercase ">{message}</Text>
             ) : (
               <>
-                <Text className="font-black text-zinc-900 text-[13px] uppercase  tracking-tighter">
+                <Text className="font-black text-slate-900 text-xs uppercase  tracking-tighter">
                   {item.sender?.username || item.sender?.name || 'Fync'}
                 </Text>{' '}{message}
               </>
             )}
           </Text>
-          <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest">
+          <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">
             {getTimeAgo(item.createdAt)}
           </Text>
         </View>
@@ -241,8 +241,8 @@ const Notification = () => {
             className="w-12 h-12 rounded-xl border border-slate-100 ml-2"
           />
         ) : item.type === 'follow' ? (
-          <View className="bg-zinc-900 px-4 py-2 rounded-xl ml-2 shadow-sm">
-            <Text className="text-white text-[8px] font-black uppercase tracking-widest">Profile</Text>
+          <View className="bg-slate-900 px-4 py-2 rounded-xl ml-2 shadow-sm">
+            <Text className="text-white text-2xs font-black uppercase tracking-wide">Profile</Text>
           </View>
         ) : null}
       </Pressable>
@@ -267,11 +267,11 @@ const Notification = () => {
           <View className="flex-row items-center justify-between mb-5">
             <View className="flex-1">
               <View className="flex-row items-center">
-                <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
+                <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase leading-tight">
                   Updates <Text className="text-orange-500">Center</Text>
                 </Text>
               </View>
-              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[1px]">System & Social Logs</Text>
+              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">System & Social Logs</Text>
             </View>
           </View>
         </View>
@@ -298,7 +298,7 @@ const Notification = () => {
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.5}
             ListHeaderComponent={() => (
-              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-3">Recent transmissions</Text>
+              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-3">Recent transmissions</Text>
             )}
             ListFooterComponent={() => (
               loadingMore ? (
@@ -309,11 +309,11 @@ const Notification = () => {
             )}
             ListEmptyComponent={
               <View className="items-center justify-center mt-20 px-10">
-                <View className="w-20 h-20 bg-white rounded-[32px] items-center justify-center mb-6 border border-slate-100 shadow-sm">
+                <View className="w-20 h-20 bg-white rounded-4xl items-center justify-center mb-6 border border-slate-100 shadow-sm">
                   <Ionicons name="notifications-off-outline" size={32} color="#CBD5E1" />
                 </View>
-                <Text className="text-zinc-400 font-black  uppercase text-xs tracking-widest text-center">Sync Complete</Text>
-                <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center">No active signals found in the registry.</Text>
+                <Text className="text-slate-500 font-black  uppercase text-xs tracking-wide text-center">Sync Complete</Text>
+                <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center">No active signals found in the registry.</Text>
               </View>
             }
             contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 10 }}

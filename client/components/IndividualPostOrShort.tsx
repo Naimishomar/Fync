@@ -52,24 +52,24 @@ const CommentItem = memo(({
         <View className="flex-row">
             <ExpoImage 
                 source={{ uri: getFullUrl(comment.commentor?.avatar) || 'https://ui-avatars.com/api/?name=User' }} 
-                className={`${isReply ? 'h-7 w-7' : 'h-9 w-9'} rounded-full mr-3 bg-gray-200`} 
+                className={`${isReply ? 'h-7 w-7' : 'h-9 w-9'} rounded-full mr-3 bg-slate-200`} 
                 cachePolicy="disk"
             />
             <View className="flex-1">
                 <View className="flex flex-row items-center gap-1">
-                    <Text className="text-black font-bold text-[13px]">{comment.commentor?.name}</Text>
-                    <Text className="text-gray-500 text-[11px]">@{comment.commentor?.username}</Text>
+                    <Text className="text-black font-bold text-xs">{comment.commentor?.name}</Text>
+                    <Text className="text-slate-500 text-2xs">@{comment.commentor?.username}</Text>
                 </View>
 
                 {editingId === comment._id ? (
                     <TextInput
                         value={editingText}
                         onChangeText={setEditingText}
-                        className="text-black border-b border-gray-300 pb-1 mt-1 text-[13px]"
+                        className="text-black border-b border-slate-300 pb-1 mt-1 text-xs"
                         autoFocus
                     />
                 ) : (
-                    <Text className="text-gray-800 mt-0.5 text-[13px] leading-5">
+                    <Text className="text-slate-800 mt-0.5 text-xs leading-5">
                         {comment.replyToUser && <Text className="text-pink-500">@{comment.replyToUser.username} </Text>}
                         {comment.text}
                     </Text>
@@ -79,7 +79,7 @@ const CommentItem = memo(({
                 <View className="flex-row mt-2 gap-4">
                     {!isReply && (
                         <Pressable onPress={() => onReply(comment)}>
-                            <Text className="text-gray-500 text-[11px] font-bold uppercase tracking-wider">Reply</Text>
+                            <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wider">Reply</Text>
                         </Pressable>
                     )}
                     
@@ -87,15 +87,15 @@ const CommentItem = memo(({
                         <>
                             {editingId === comment._id ? (
                                 <Pressable onPress={() => handleUpdate(comment._id)}>
-                                    {actionLoadingId === comment._id ? <ActivityIndicator size="small" color="#000" /> : <Text className="text-blue-500 text-[11px] font-bold uppercase tracking-wider">Save</Text>}
+                                    {actionLoadingId === comment._id ? <ActivityIndicator size="small" color="#000" /> : <Text className="text-blue-500 text-2xs font-bold uppercase tracking-wider">Save</Text>}
                                 </Pressable>
                             ) : (
                                 <Pressable onPress={() => onEdit(comment)}>
-                                    <Text className="text-gray-500 text-[11px] font-bold uppercase tracking-wider">Edit</Text>
+                                    <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wider">Edit</Text>
                                 </Pressable>
                             )}
                             <Pressable onPress={() => onDelete(comment._id)}>
-                                {actionLoadingId === comment._id ? <ActivityIndicator size="small" color="red" /> : <Text className="text-red-400/80 text-[11px] font-bold uppercase tracking-wider">Delete</Text>}
+                                {actionLoadingId === comment._id ? <ActivityIndicator size="small" color="red" /> : <Text className="text-red-400/80 text-2xs font-bold uppercase tracking-wider">Delete</Text>}
                             </Pressable>
                         </>
                     )}
@@ -214,16 +214,16 @@ const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, on
             >
                 <Pressable className="flex-1" onPress={onClose} />
 
-                <View className="bg-white rounded-t-[30px] h-[75%] pt-4 border-t border-gray-100 shadow-2xl">
+                <View className="bg-white rounded-t-3xl h-[75%] pt-4 border-t border-slate-100 shadow-2xl">
                     {/* Header */}
                     <View className="items-center mb-3">
-                        <View className="h-1.5 w-12 bg-gray-300 rounded-full mb-3" />
+                        <View className="h-1.5 w-12 bg-slate-300 rounded-full mb-3" />
                         <Text className="text-black font-bold text-lg">Comments</Text>
                     </View>
 
                     {/* List */}
                     {loading ? (
-                        <ActivityIndicator size="large" color="#ec4899" className="mt-10" />
+                        <ActivityIndicator size="large" color="#f97316" className="mt-10" />
                     ) : (
                         <FlatList
                             data={comments}
@@ -235,7 +235,7 @@ const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, on
                             windowSize={5}
                             removeClippedSubviews={Platform.OS === 'android'}
                             ListEmptyComponent={
-                                <Text className="text-gray-400 text-center mt-10">No comments yet</Text>
+                                <Text className="text-slate-500 text-center mt-10">No comments yet</Text>
                             }
                             renderItem={({ item }) => (
                                 <CommentItem 
@@ -262,10 +262,10 @@ const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, on
                     )}
 
                     {/* Input */}
-                    <View className="absolute bottom-0 left-0 right-0 border-t border-gray-100 bg-white px-3 py-2 shadow-2xl">
+                    <View className="absolute bottom-0 left-0 right-0 border-t border-slate-100 bg-white px-3 py-2 shadow-2xl">
                         {replyingTo && (
-                            <View className="flex-row items-center justify-between bg-gray-100 px-3 py-2 mb-2 rounded-lg mx-2 border border-gray-200">
-                                <Text className="text-gray-500 text-xs">Replying to <Text className="font-bold text-black">@{replyingTo.commentor?.username}</Text></Text>
+                            <View className="flex-row items-center justify-between bg-slate-100 px-3 py-2 mb-2 rounded-lg mx-2 border border-slate-200">
+                                <Text className="text-slate-500 text-xs">Replying to <Text className="font-bold text-black">@{replyingTo.commentor?.username}</Text></Text>
                                 <Pressable onPress={() => setReplyingTo(null)}>
                                     <Ionicons name="close-circle" size={18} color="#9ca3af" />
                                 </Pressable>
@@ -278,11 +278,11 @@ const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, on
                                 onChangeText={setNewComment}
                                 placeholder={replyingTo ? "Add a reply..." : "Add a comment..."}
                                 placeholderTextColor="#9ca3af"
-                                className="flex-1 text-black bg-gray-100 border border-gray-200 rounded-full px-4 py-3 mr-2 font-medium"
+                                className="flex-1 text-black bg-slate-100 border border-slate-200 rounded-full px-4 py-3 mr-2 font-medium"
                                 multiline
                             />
                             <Pressable onPress={handlePostComment} disabled={posting || !newComment.trim()}>
-                                {posting ? <ActivityIndicator size="small" color="#ec4899" /> : <Text className={`font-bold px-2 ${!newComment.trim() ? 'text-gray-400' : 'text-blue-500'}`}>Post</Text>}
+                                {posting ? <ActivityIndicator size="small" color="#f97316" /> : <Text className={`font-bold px-2 ${!newComment.trim() ? 'text-slate-500' : 'text-blue-500'}`}>Post</Text>}
                             </Pressable>
                         </View>
                     </View>
@@ -555,7 +555,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 <Avatar user={data.user as any} size={40} />
                                 <View className="ml-2">
                                     <Text className="text-white font-bold text-base shadow-md">{data.user?.name || data.user?.username}</Text>
-                                    <Text className="text-gray-300 text-xs shadow-md">@{data.user?.username}</Text>
+                                    <Text className="text-slate-300 text-xs shadow-md">@{data.user?.username}</Text>
                                 </View>
                             </Pressable>
                             {/* Truncated Title & Description */}
@@ -565,7 +565,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                         ? data.title.substring(0, 50) + "..." 
                                         : data.title}
                                 </Text>
-                                <Text className="text-gray-300 text-xs shadow-md mt-1">
+                                <Text className="text-slate-300 text-xs shadow-md mt-1">
                                     {(!showFullText && data.description.length > 50) 
                                         ? data.description.substring(0, 50) + "..." 
                                         : data.description}
@@ -573,13 +573,13 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
 
                                 {(data.title.length > 50 || data.description.length > 50) && (
                                     <Pressable onPress={() => setShowFullText(!showFullText)} className="mt-1">
-                                        <Text className="text-orange-400 font-bold text-[10px]">
+                                        <Text className="text-orange-400 font-bold text-2xs">
                                             {showFullText ? "SHOW LESS" : "SHOW MORE"}
                                         </Text>
                                     </Pressable>
                                 )}
                             </View>
-                            <Text className="text-white/60 text-[10px] mt-2 uppercase tracking-widest font-bold">{formatTime(data.createdAt)}</Text>
+                            <Text className="text-white/60 text-2xs mt-2 uppercase tracking-wide font-bold">{formatTime(data.createdAt)}</Text>
                         </View>
 
                         <View className="items-center gap-4">
@@ -611,7 +611,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 <Avatar user={data.user as any} size={36} />
                                 <View className="ml-3">
                                     <Text className="text-black font-bold text-sm">{data.user?.username}</Text>
-                                    {data.college && <Text className="text-gray-500 text-[10px] uppercase tracking-wide">{data.college}</Text>}
+                                    {data.college && <Text className="text-slate-500 text-2xs uppercase tracking-wide">{data.college}</Text>}
                                 </View>
                             </Pressable>
                         </View>
@@ -659,7 +659,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             />
                             {data.image?.length > 1 && (
                                 <View className="absolute top-3 right-3 bg-black/50 px-2 py-1 rounded-lg">
-                                    <Text className="text-white text-[10px] font-bold">
+                                    <Text className="text-white text-2xs font-bold">
                                         {currentImageIndex + 1}/{data.image.length}
                                     </Text>
                                 </View>
@@ -674,35 +674,35 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                         </View>
 
                         <View className="px-3 pt-3 flex-row items-center gap-3">
-                            <View className="flex-row items-center bg-gray-50 rounded-full px-1 py-0.5">
+                            <View className="flex-row items-center bg-slate-50 rounded-full px-1 py-0.5">
                                 <Pressable onPress={() => handleVote('up')} className="p-1.5">
-                                    <Ionicons name={vote === 'up' ? "arrow-up" : "arrow-up-outline"} size={22} color={vote === 'up' ? "#FF4500" : "#536471"} />
+                                    <Ionicons name={vote === 'up' ? "arrow-up" : "arrow-up-outline"} size={22} color={vote === 'up' ? "#f97316" : "#536471"} />
                                 </Pressable>
-                                <Text className={`font-semibold text-[14px] px-1 min-w-[20px] text-center ${vote === 'up' ? 'text-[#FF4500]' : vote === 'down' ? 'text-[#7193FF]' : 'text-[#536471]'}`}>
+                                <Text className={`font-semibold text-sm px-1 min-w-[20px] text-center ${vote === 'up' ? 'text-[#f97316]' : vote === 'down' ? 'text-[#7193FF]' : 'text-[#536471]'}`}>
                                     {score === 0 ? 'Vote' : score}
                                 </Text>
                                 <Pressable onPress={() => handleVote('down')} className="p-1.5">
                                     <Ionicons name={vote === 'down' ? "arrow-down" : "arrow-down-outline"} size={22} color={vote === 'down' ? "#7193FF" : "#536471"} />
                                 </Pressable>
                             </View>
-                            <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="flex-row items-center bg-gray-50 rounded-full px-3 py-2">
+                            <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="flex-row items-center bg-slate-50 rounded-full px-3 py-2">
                                 <Ionicons name="chatbubble-outline" size={20} color="#536471" />
-                                <Text className="text-[#536471] font-semibold text-[13px] ml-1.5">{commentCount}</Text>
+                                <Text className="text-[#536471] font-semibold text-xs ml-1.5">{commentCount}</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={handleShare} className="flex-row items-center bg-gray-50 rounded-full px-3 py-2">
+                            <TouchableOpacity onPress={handleShare} className="flex-row items-center bg-slate-50 rounded-full px-3 py-2">
                                 <Ionicons name="paper-plane-outline" size={20} color="#536471" />
-                                <Text className="text-[#536471] font-semibold text-[13px] ml-1.5">Share</Text>
+                                <Text className="text-[#536471] font-semibold text-xs ml-1.5">Share</Text>
                             </TouchableOpacity>
                         </View>
 
                         <View className="px-3 pt-2 pb-10">
                             <Text className="text-black text-sm leading-5 mt-2">
-                                <Text className="text-gray-500 font-bold">{data.user?.username} </Text>{data.description}
+                                <Text className="text-slate-500 font-bold">{data.user?.username} </Text>{data.description}
                             </Text>
-                            <Text className="text-gray-500 text-[10px] mt-1 uppercase tracking-widest font-bold mb-4">{formatTime(data.createdAt)}</Text>
+                            <Text className="text-slate-500 text-2xs mt-1 uppercase tracking-wide font-bold mb-4">{formatTime(data.createdAt)}</Text>
                             
                             {/* INLINE COMMENTS FOR POSTS */}
-                            <View className="border-t border-gray-100 pt-4 mt-2">
+                            <View className="border-t border-slate-100 pt-4 mt-2">
                                 <Text className="text-black font-semibold text-sm mb-4">Comments ({commentCount})</Text>
                                 {inlineCommentsLoading ? (
                                     <ActivityIndicator size="small" color="#000" />
@@ -720,11 +720,11 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                         </View>
                                     ))
                                 ) : (
-                                    <Text className="text-gray-500 text-sm">No comments yet. Be the first!</Text>
+                                    <Text className="text-slate-500 text-sm">No comments yet. Be the first!</Text>
                                 )}
                                 
-                                <Pressable onPress={() => setCommentModalVisible(true)} className="mt-4 bg-gray-50 py-3 rounded-xl items-center border border-gray-100">
-                                    <Text className="text-gray-600 font-semibold text-sm">Add a comment...</Text>
+                                <Pressable onPress={() => setCommentModalVisible(true)} className="mt-4 bg-slate-50 py-3 rounded-xl items-center border border-slate-100">
+                                    <Text className="text-slate-600 font-semibold text-sm">Add a comment...</Text>
                                 </Pressable>
                             </View>
                         </View>
@@ -741,7 +741,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 <>
                                     <Pressable 
                                         onPress={() => { setMenuVisible(false); setEditDescription(isShort ? data.title : data.description || ''); setIsEditing(true); }}
-                                        className="py-4 items-center border-b border-gray-200 bg-white active:bg-gray-100 flex-row justify-center gap-3"
+                                        className="py-4 items-center border-b border-slate-200 bg-white active:bg-slate-100 flex-row justify-center gap-3"
                                     >
                                         <Ionicons name="create-outline" size={22} color="black" />
                                         <Text className="text-black font-semibold text-lg">Edit {isShort ? 'Short' : 'Post'}</Text>
@@ -761,7 +761,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                                     }
                                                 } catch (err) { Alert.alert("Error", "Failed to update visibility."); }
                                             }}
-                                            className="py-4 items-center border-b border-gray-200 bg-white active:bg-gray-100 flex-row justify-center gap-3"
+                                            className="py-4 items-center border-b border-slate-200 bg-white active:bg-slate-100 flex-row justify-center gap-3"
                                         >
                                             <Ionicons name={data?.isPrivate ? "lock-open-outline" : "lock-closed-outline"} size={22} color="black" />
                                             <Text className="text-black font-semibold text-lg">Make it {data?.isPrivate ? 'Public' : 'Private'}</Text>
@@ -789,7 +789,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                                 }}
                                             ]);
                                         }}
-                                        className="py-4 items-center bg-white active:bg-gray-100 flex-row justify-center gap-3"
+                                        className="py-4 items-center bg-white active:bg-slate-100 flex-row justify-center gap-3"
                                     >
                                         <Ionicons name="trash-outline" size={22} color="#EF4444" />
                                         <Text className="text-red-500 font-semibold text-lg">Delete {isShort ? 'Short' : 'Post'}</Text>
@@ -798,7 +798,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             ) : (
                                 <Pressable 
                                     onPress={() => { setMenuVisible(false); Toast.show({ type: 'success', text1: 'Content Reported' }); }}
-                                    className="py-4 items-center bg-white active:bg-gray-100 flex-row justify-center gap-3"
+                                    className="py-4 items-center bg-white active:bg-slate-100 flex-row justify-center gap-3"
                                 >
                                     <Ionicons name="flag-outline" size={22} color="#EF4444" />
                                     <Text className="text-red-500 font-semibold text-lg">Report Content</Text>
@@ -807,7 +807,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                         </View>
                         <Pressable 
                             onPress={() => setMenuVisible(false)} 
-                            className="py-4 bg-white rounded-3xl items-center active:bg-gray-100 shadow-sm"
+                            className="py-4 bg-white rounded-3xl items-center active:bg-slate-100 shadow-sm"
                         >
                             <Text className="text-blue-500 font-bold text-lg">Cancel</Text>
                         </Pressable>
@@ -818,7 +818,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             <Modal visible={isEditing} transparent animationType="slide">
                 <KeyboardAvoidingView behavior="padding" className="flex-1 bg-black/60">
                     <View className="flex-1" />
-                    <View className="bg-white rounded-t-[40px] p-6 shadow-2xl">
+                    <View className="bg-white rounded-t-5xl p-6 shadow-2xl">
                             <View className="flex-row justify-between items-center mb-6">
                                 <Text className="text-black text-xl font-bold">Edit Content</Text>
                                 <Pressable onPress={() => { setIsEditing(false); setNewVideo(null); setNewImages([]); }}>
@@ -829,7 +829,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             {/* Media Preview / Picker */}
                             <Pressable 
                                 onPress={pickMedia}
-                                className="mb-4 aspect-video w-full bg-gray-100 rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 justify-center items-center"
+                                className="mb-4 aspect-video w-full bg-slate-100 rounded-2xl overflow-hidden border-2 border-dashed border-slate-300 justify-center items-center"
                             >
                                 {isShort ? (
                                     newVideo ? (
@@ -837,7 +837,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                     ) : (
                                         <View className="items-center">
                                             <Ionicons name="videocam-outline" size={40} color="#6B7280" />
-                                            <Text className="text-gray-500 font-semibold mt-2">Change Video</Text>
+                                            <Text className="text-slate-500 font-semibold mt-2">Change Video</Text>
                                         </View>
                                     )
                                 ) : (
@@ -850,13 +850,13 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                     ) : (
                                         <View className="items-center">
                                             <Ionicons name="images-outline" size={40} color="#6B7280" />
-                                            <Text className="text-gray-500 font-semibold mt-2">Replace Photos</Text>
+                                            <Text className="text-slate-500 font-semibold mt-2">Replace Photos</Text>
                                         </View>
                                     )
                                 )}
                             </Pressable>
 
-                            <TextInput multiline value={editDescription} onChangeText={setEditDescription} placeholder="Write something..." placeholderTextColor="#9CA3AF" className="bg-gray-100 rounded-2xl p-4 text-black text-base min-h-[120px]" autoFocus />
+                            <TextInput multiline value={editDescription} onChangeText={setEditDescription} placeholder="Write something..." placeholderTextColor="#9CA3AF" className="bg-slate-100 rounded-2xl p-4 text-black text-base min-h-[120px]" autoFocus />
                             <Pressable 
                                 onPress={async () => {
                                     setIsUpdating(true);

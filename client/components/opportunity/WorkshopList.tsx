@@ -56,10 +56,10 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
 
         {/* Title & Organisation */}
         <View className="flex-1">
-          <Text className="text-zinc-900 text-[16px] font-black  tracking-tighter uppercase leading-5" numberOfLines={2}>
+          <Text className="text-slate-900 text-base font-black  tracking-tighter uppercase leading-5" numberOfLines={2}>
             {item.title}
           </Text>
-          <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">
+          <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">
             {orgName}
           </Text>
         </View>
@@ -67,7 +67,7 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
 
       {/* Optional Banner */}
       {bannerUrl && (
-        <View className="mt-5 w-full h-32 rounded-[20px] overflow-hidden border border-slate-100">
+        <View className="mt-5 w-full h-32 rounded-2xl overflow-hidden border border-slate-100">
           <Image source={{ uri: bannerUrl }} className="w-full h-full" resizeMode="cover" />
         </View>
       )}
@@ -77,7 +77,7 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
         {/* Start Date */}
         <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
           <Ionicons name="calendar" size={14} color="#94a3b8" />
-          <Text className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2">
+          <Text className="text-2xs font-black uppercase tracking-wide text-slate-500 ml-2">
             {item.start_date ? new Date(item.start_date).toLocaleDateString() : 'Active Session'}
           </Text>
         </View>
@@ -85,13 +85,13 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
         {/* Location */}
         <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
           <Ionicons name="location-sharp" size={14} color="#94a3b8" />
-          <Text className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2">
+          <Text className="text-2xs font-black uppercase tracking-wide text-slate-500 ml-2">
             {item.filters?.location || "Remote Hub"}
           </Text>
         </View>
 
         <View className="flex-row items-center bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-100">
-          <Text className="text-[9px] text-orange-500 font-black uppercase tracking-widest">
+          <Text className="text-2xs text-orange-500 font-black uppercase tracking-wide">
             Workshop
           </Text>
         </View>
@@ -100,8 +100,8 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
       {/* Footer / CTA */}
       <View className="mt-6 flex-row items-center justify-between border-t border-slate-50 pt-5">
         <View>
-          <Text className="text-slate-400 font-black uppercase text-[8px] tracking-widest mb-1">Registration Ends</Text>
-          <Text className="text-zinc-900 text-sm font-black  mt-0.5 tracking-tighter uppercase">
+          <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide mb-1">Registration Ends</Text>
+          <Text className="text-slate-900 text-sm font-black  mt-0.5 tracking-tighter uppercase">
             {item.regn_deadline ? new Date(item.regn_deadline).toLocaleDateString() : "Open Registry"}
           </Text>
         </View>
@@ -109,9 +109,9 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={() => onPress(item.seo_url)}
-          className="bg-zinc-900 px-8 py-3.5 rounded-xl shadow-sm shadow-black/10"
+          className="bg-slate-900 px-8 py-3.5 rounded-xl shadow-sm shadow-black/10"
         >
-          <Text className="text-white font-black  uppercase tracking-widest text-[11px]">Access Portal</Text>
+          <Text className="text-white font-black  uppercase tracking-wide text-2xs">Access Portal</Text>
         </TouchableOpacity>
       </View>
 
@@ -230,11 +230,11 @@ export default function WorkshopList() {
           <View className="flex-row items-center justify-between mb-3">
             <View className="flex-1">
               <View className="flex-row items-center">
-                <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
+                <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase leading-tight">
                   Workshop <Text className="text-orange-500">Hub</Text>
                 </Text>
               </View>
-              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[1px]">Industry Masterclass Archive</Text>
+              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Industry Masterclass Archive</Text>
             </View>
           </View>
         </View>
@@ -248,7 +248,7 @@ export default function WorkshopList() {
               placeholderTextColor="#94a3b8"
               value={searchQuery}
               onChangeText={setSearchQuery}
-              className="flex-1 ml-3 text-zinc-900 text-sm font-black  uppercase tracking-tighter"
+              className="flex-1 ml-3 text-slate-900 text-sm font-black  uppercase tracking-tighter"
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-slate-50 p-1.5 rounded-xl">
@@ -274,11 +274,11 @@ export default function WorkshopList() {
           ListEmptyComponent={
             !loading ? (
               <View className="items-center mt-20 px-10">
-                <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
+                <View className="w-20 h-20 bg-slate-50 rounded-4xl items-center justify-center mb-6">
                   <Ionicons name="construct" size={40} color="#CBD5E1" />
                 </View>
-                <Text className="text-zinc-900 font-black text-xl tracking-tight text-center uppercase">Zero Signals</Text>
-                <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-wide">
+                <Text className="text-slate-900 font-black text-xl tracking-tight text-center uppercase">Zero Signals</Text>
+                <Text className="text-slate-500 text-center font-bold text-xs mt-2 uppercase tracking-wide">
                   {searchQuery ? "No skill modules matched your search protocol." : "The global workshop registry is currently clear."}
                 </Text>
               </View>

@@ -277,13 +277,13 @@ export default function AudioCallLobby({ navigation }: any) {
   return (
     <LinearGradient colors={['#ffffff', '#fff7ed', '#ffedd5']} className="flex-1">
       <View className="px-5 py-4 border-b border-orange-100 flex-row items-center justify-between">
-        <Text className="text-xl font-black text-gray-900 tracking-tight uppercase">Audio Networking</Text>
+        <Text className="text-xl font-black text-slate-900 tracking-tight uppercase">Audio Networking</Text>
         <View className="flex-row items-center gap-2">
           <View 
             className="w-2 h-2 rounded-full" 
             style={{ backgroundColor: callSignaling.isConnected() ? '#10b981' : '#ef4444' }}
           />
-          <Text className="text-[10px] font-bold text-gray-500 uppercase">
+          <Text className="text-2xs font-bold text-slate-500 uppercase">
             {callSignaling.isConnected() ? 'Connected' : 'Connecting...'}
           </Text>
         </View>
@@ -292,15 +292,15 @@ export default function AudioCallLobby({ navigation }: any) {
       {loadingUsers ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#EA580C" />
-          <Text className="text-gray-500 mt-4">Loading users...</Text>
+          <Text className="text-slate-500 mt-4">Loading users...</Text>
         </View>
       ) : onlineUsers.length === 0 ? (
         <View className="flex-1 items-center justify-center px-10">
           <View className="w-24 h-24 rounded-full bg-orange-100 items-center justify-center mb-6">
             <Phone size={40} color="#EA580C" />
           </View>
-          <Text className="text-xl font-bold text-gray-700 text-center mb-2">No one online yet</Text>
-          <Text className="text-gray-500 text-center text-sm">Invite friends to start calling!</Text>
+          <Text className="text-xl font-bold text-slate-700 text-center mb-2">No one online yet</Text>
+          <Text className="text-slate-500 text-center text-sm">Invite friends to start calling!</Text>
         </View>
       ) : (
         <FlatList
@@ -308,19 +308,19 @@ export default function AudioCallLobby({ navigation }: any) {
           keyExtractor={(item) => item._id}
           contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
           renderItem={({ item }) => (
-            <View className="flex-row items-center justify-between mb-4 p-4 bg-white/80 rounded-[24px] border border-orange-50 shadow-sm">
+            <View className="flex-row items-center justify-between mb-4 p-4 bg-white/80 rounded-2xl border border-orange-50 shadow-sm">
               <View className="flex-row items-center flex-1">
                 {item.profilePic ? (
-                  <Image source={{ uri: item.profilePic }} className="w-12 h-12 rounded-full mr-4 bg-gray-200" />
+                  <Image source={{ uri: item.profilePic }} className="w-12 h-12 rounded-full mr-4 bg-slate-200" />
                 ) : (
                   <View className="w-12 h-12 rounded-full mr-4 bg-orange-100 items-center justify-center border-2 border-white">
                     <Text className="text-orange-600 font-bold">{item.name?.charAt(0)}</Text>
                   </View>
                 )}
                 <View className="flex-1 pr-4">
-                  <Text className="font-bold text-gray-900 text-base">{item.name}</Text>
-                  {item.college && <Text className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1" numberOfLines={1}>{item.college}</Text>}
-                  <Text className={`text-[10px] font-black uppercase tracking-wider ${item.status === 'online' ? 'text-green-500' : 'text-orange-500'}`}>
+                  <Text className="font-bold text-slate-900 text-base">{item.name}</Text>
+                  {item.college && <Text className="text-2xs text-slate-500 font-bold uppercase tracking-wider mb-1" numberOfLines={1}>{item.college}</Text>}
+                  <Text className={`text-2xs font-black uppercase tracking-wider ${item.status === 'online' ? 'text-green-500' : 'text-orange-500'}`}>
                     {item.status === 'online' ? '● Online' : '● In a call'}
                   </Text>
                 </View>
@@ -329,7 +329,7 @@ export default function AudioCallLobby({ navigation }: any) {
               <TouchableOpacity 
                 onPress={() => startCall(item)}
                 disabled={item.status === 'busy' || userBusy}
-                className={`p-3 rounded-full ${item.status === 'busy' || userBusy ? 'bg-gray-200' : 'bg-orange-500'}`}
+                className={`p-3 rounded-full ${item.status === 'busy' || userBusy ? 'bg-slate-200' : 'bg-orange-500'}`}
               >
                 <PhoneCall size={20} color={item.status === 'busy' || userBusy ? '#9CA3AF' : '#FFF'} />
               </TouchableOpacity>
@@ -351,7 +351,7 @@ export default function AudioCallLobby({ navigation }: any) {
               <Phone size={40} color="#EA580C" />
             </View>
             <Text className="text-2xl font-bold mb-2">{incomingCall?.callerName}</Text>
-            <Text className="text-gray-500 mb-8">Incoming Audio Call...</Text>
+            <Text className="text-slate-500 mb-8">Incoming Audio Call...</Text>
             
             <View className="flex-row w-full justify-around mb-8">
               <TouchableOpacity 

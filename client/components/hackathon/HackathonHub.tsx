@@ -116,7 +116,7 @@ const HackathonCard = memo(({ item, onPress }: { item: Hackathon; onPress: (id: 
           {item.bannerImage ? (
             <Image source={{ uri: item.bannerImage }} className="w-full h-full" resizeMode="cover" />
           ) : (
-            <View className="w-full h-full bg-zinc-950 items-center justify-center">
+            <View className="w-full h-full bg-slate-950 items-center justify-center">
               <LinearGradient colors={['#f97316', '#000']} className="absolute inset-0 opacity-40" />
               <MaterialCommunityIcons name="xml" size={48} color="rgba(255,255,255,0.05)" />
             </View>
@@ -131,7 +131,7 @@ const HackathonCard = memo(({ item, onPress }: { item: Hackathon; onPress: (id: 
           {/* Status Badge - Floating Style */}
           <View className="absolute top-6 left-8 flex-row items-center px-5 py-2.5 rounded-full bg-white/90 backdrop-blur-md shadow-xl border border-white/20">
             <View className="w-2 h-2 rounded-full mr-2.5" style={{ backgroundColor: status.dot }} />
-            <Text className="text-[10px] font-black uppercase tracking-[2px] text-zinc-900">
+            <Text className="text-2xs font-black uppercase tracking-wide text-slate-900">
               {status.label}
             </Text>
           </View>
@@ -139,10 +139,10 @@ const HackathonCard = memo(({ item, onPress }: { item: Hackathon; onPress: (id: 
           {/* Cinematic Prize Pool Overlay */}
           {item.prizepool && (
             <View className="absolute bottom-6 right-8">
-              <View className="bg-zinc-950/95 px-6 py-4 rounded-[28px] border border-orange-500/30 shadow-2xl shadow-orange-500/20 backdrop-blur-2xl">
+              <View className="bg-slate-950/95 px-6 py-4 rounded-3xl border border-orange-500/30 shadow-2xl shadow-orange-500/20 backdrop-blur-2xl">
                 <View className="flex-row items-center mb-0.5">
                     <View className="w-1 h-1 bg-orange-500 rounded-full mr-2" />
-                    <Text className="text-[9px] text-orange-500 font-black uppercase tracking-[3px]">Protocol Fund</Text>
+                    <Text className="text-2xs text-orange-500 font-black uppercase tracking-wide">Protocol Fund</Text>
                 </View>
                 <Text className="text-white text-lg font-black uppercase tracking-tighter">{item.prizepool}</Text>
               </View>
@@ -154,7 +154,7 @@ const HackathonCard = memo(({ item, onPress }: { item: Hackathon; onPress: (id: 
         <View className="p-10" style={{ padding: contentPadding }}>
           <View className="flex-row items-center justify-between mb-8 flex-wrap">
             <View className="flex-row items-center flex-1 flex-shrink">
-              <View className="w-14 h-14 rounded-[22px] bg-slate-50 border border-slate-100 items-center justify-center p-2.5 mr-5 shadow-inner flex-shrink-0">
+              <View className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 items-center justify-center p-2.5 mr-5 shadow-inner flex-shrink-0">
                 {item.logo ? (
                   <Image source={{ uri: item.logo }} className="w-full h-full rounded-lg" resizeMode="contain" />
                 ) : (
@@ -162,35 +162,35 @@ const HackathonCard = memo(({ item, onPress }: { item: Hackathon; onPress: (id: 
                 )}
               </View>
               <View style={{ minWidth: 0 }}>
-                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mb-0.5">Registry Host</Text>
-                <Text className="text-zinc-900 text-sm font-black uppercase tracking-tight" numberOfLines={1}>
+                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-0.5">Registry Host</Text>
+                <Text className="text-slate-900 text-sm font-black uppercase tracking-tight" numberOfLines={1}>
                   {item.organiser?.name || "Fync Governance"}
                 </Text>
               </View>
             </View>
 
             <View className="bg-orange-50/50 px-5 py-2.5 rounded-2xl border border-orange-100 flex-shrink-0 mt-2" style={{ marginTop: isSmallScreen ? 8 : 0 }}>
-              <Text className="text-orange-600 text-[10px] font-black uppercase tracking-tighter">{start} – {end}</Text>
+              <Text className="text-orange-600 text-2xs font-black uppercase tracking-tighter">{start} – {end}</Text>
             </View>
           </View>
 
-          <Text className="text-zinc-900 font-black tracking-[-1.5px] leading-tight mb-8" numberOfLines={2} style={{ fontSize: titleSize, textTransform: 'uppercase' }}>
+          <Text className="text-slate-900 font-black tracking-[-1.5px] leading-tight mb-8" numberOfLines={2} style={{ fontSize: titleSize, textTransform: 'uppercase' }}>
             {item.title}
           </Text>
 
           {/* Technical Specs Meta */}
           <View className="flex-row items-center gap-8 mb-10 flex-wrap">
             <View className="flex-row items-center flex-shrink">
-              <View className="bg-zinc-50 w-8 h-8 rounded-full items-center justify-center mr-3 flex-shrink-0">
+              <View className="bg-slate-50 w-8 h-8 rounded-full items-center justify-center mr-3 flex-shrink-0">
                 <Feather name="code" size={14} color="#f97316" />
               </View>
-              <Text className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Innovation</Text>
+              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Innovation</Text>
             </View>
             <View className="flex-row items-center flex-shrink">
-              <View className="bg-zinc-50 w-8 h-8 rounded-full items-center justify-center mr-3 flex-shrink-0">
+              <View className="bg-slate-50 w-8 h-8 rounded-full items-center justify-center mr-3 flex-shrink-0">
                 <Feather name="zap" size={14} color="#f97316" />
               </View>
-              <Text className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Fast Track</Text>
+              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Fast Track</Text>
             </View>
           </View>
 
@@ -198,13 +198,13 @@ const HackathonCard = memo(({ item, onPress }: { item: Hackathon; onPress: (id: 
           <View className="flex-row items-center justify-between pt-8 border-t border-slate-100 flex-wrap">
             <View className="flex-row items-center gap-3 flex-wrap flex-1">
               {item.tags?.slice(0, 2).map((tag, i) => (
-                <View key={i} className="bg-zinc-50 px-5 py-3 rounded-2xl border border-slate-100 flex-shrink">
-                  <Text className="text-[10px] text-zinc-400 font-black uppercase tracking-widest">#{tag}</Text>
+                <View key={i} className="bg-slate-50 px-5 py-3 rounded-2xl border border-slate-100 flex-shrink">
+                  <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide">#{tag}</Text>
                 </View>
               ))}
             </View>
 
-            <View className="bg-orange-500 w-16 h-16 rounded-[24px] items-center justify-center shadow-2xl shadow-orange-500/40 flex-shrink-0">
+            <View className="bg-orange-500 w-16 h-16 rounded-2xl items-center justify-center shadow-2xl shadow-orange-500/40 flex-shrink-0">
               <Feather name="arrow-right" size={28} color="white" />
             </View>
           </View>
@@ -319,11 +319,11 @@ const HackathonHub = () => {
               {isOrganiserOf(item) && (
                 <TouchableOpacity
                   onPress={() => navigation.navigate('HackathonDashboard', { hackathonId: item._id, hackathonTitle: item.title })}
-                  className="flex-row items-center justify-center bg-zinc-900 mb-8 py-4 rounded-[20px]"
+                  className="flex-row items-center justify-center bg-slate-900 mb-8 py-4 rounded-2xl"
                   style={{ marginHorizontal: responsive(4, 6, 8) }}
                 >
                   <MaterialCommunityIcons name="view-dashboard-outline" size={18} color="#f97316" />
-                  <Text className="text-white text-[10px] font-black uppercase tracking-[2px] ml-2">
+                  <Text className="text-white text-2xs font-black uppercase tracking-wide ml-2">
                     {view === 'mine' ? `Open Console · ${item.myRole}` : 'Open Organizer Console'}
                   </Text>
                 </TouchableOpacity>
@@ -353,7 +353,7 @@ const HackathonHub = () => {
                 <View style={{ paddingHorizontal: headerPadding, paddingTop: responsive(6, 8, 10), paddingBottom: 4 }}>
                     <View className="flex-row items-center justify-between mb-2 flex-wrap">
                     <View>
-                      <Text className="text-zinc-900 font-black tracking-tighter uppercase leading-tight" style={{ fontSize: titleSize }}>
+                      <Text className="text-slate-900 font-black tracking-tighter uppercase leading-tight" style={{ fontSize: titleSize }}>
                           Hackathon <Text className="text-orange-500">Hub</Text>
                       </Text>
                       <View className="flex-row items-center">
@@ -362,7 +362,7 @@ const HackathonHub = () => {
                     </View>
                     <TouchableOpacity
                       onPress={() => navigation.navigate('HackathonCreate')}
-                      className="flex-row items-center bg-zinc-900 shadow-2xl shadow-black/20"
+                      className="flex-row items-center bg-slate-900 shadow-2xl shadow-black/20"
                       style={{ paddingHorizontal: responsive(5, 6, 8), paddingVertical: buttonPadding, borderRadius: buttonRadius }}
                     >
                       <MaterialCommunityIcons name="rocket-launch" size={18} color="#f97316" />
@@ -373,14 +373,14 @@ const HackathonHub = () => {
 
                 {/* 🔍 Dynamic Search Bar */}
                 <View style={{ paddingHorizontal: headerPadding, marginBottom: 4 }}>
-                  <View className="flex-row items-center bg-white rounded-[28px] border border-slate-100 shadow-sm">
+                  <View className="flex-row items-center bg-white rounded-3xl border border-slate-100 shadow-sm">
                     <Feather name="search" size={20} color="#f97316" />
                     <TextInput
                       placeholder="Search ecosystem, tech, protocols..."
                       placeholderTextColor="#94a3b8"
                       value={search}
                       onChangeText={setSearch}
-                      className="flex-1 ml-4 text-zinc-900 font-black uppercase tracking-widest"
+                      className="flex-1 ml-4 text-slate-900 font-black uppercase tracking-widest"
                       style={{ fontSize: responsive(10, 11, 12), paddingVertical: responsive(2, 3, 4) }}
                     />
                     {search.length > 0 && (
@@ -392,15 +392,15 @@ const HackathonHub = () => {
                 </View>
 
                 {/* Discover / Mine Switcher */}
-                <View className="flex-row mb-4 bg-white rounded-[24px] border border-slate-100 p-1.5" style={{ marginHorizontal: headerPadding }}>
+                <View className="flex-row mb-4 bg-white rounded-2xl border border-slate-100 p-1.5" style={{ marginHorizontal: headerPadding }}>
                   {TABS.map(t => (
                     <TouchableOpacity
                       key={t.value}
                       onPress={() => setView(t.value as 'discover' | 'mine')}
-                      className={`flex-1 flex-row items-center justify-center py-3.5 rounded-[18px] ${view === t.value ? 'bg-zinc-900' : ''}`}
+                      className={`flex-1 flex-row items-center justify-center py-3.5 rounded-xl ${view === t.value ? 'bg-slate-900' : ''}`}
                     >
                       <Ionicons name={t.icon as any} size={16} color={view === t.value ? '#f97316' : '#94a3b8'} />
-                      <Text className={`ml-2 font-black uppercase tracking-widest ${view === t.value ? 'text-white' : 'text-slate-400'}`} style={{ fontSize: responsive(8, 9, 10) }}>
+                      <Text className={`ml-2 font-black uppercase tracking-widest ${view === t.value ? 'text-white' : 'text-slate-500'}`} style={{ fontSize: responsive(8, 9, 10) }}>
                         {t.label}
                       </Text>
                     </TouchableOpacity>
@@ -418,10 +418,10 @@ const HackathonHub = () => {
                       <TouchableOpacity
                         key={f.value}
                         onPress={() => { setActiveFilter(f.value); setPage(1); setHasMore(true); }}
-                        className={`px-8 py-4 rounded-[22px] border ${view === 'mine' ? 'opacity-30' : activeFilter === f.value ? 'bg-zinc-900 border-zinc-900' : 'bg-white border-slate-100'}`}
+                        className={`px-8 py-4 rounded-2xl border ${view === 'mine' ? 'opacity-30' : activeFilter === f.value ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-100'}`}
                         disabled={view === 'mine'}
                       >
-                        <Text className={`font-black uppercase tracking-[2px] ${view === 'mine' ? 'text-slate-300' : activeFilter === f.value ? 'text-white' : 'text-slate-400'}`} style={{ fontSize: responsive(8, 9, 10) }}>
+                        <Text className={`font-black uppercase tracking-[2px] ${view === 'mine' ? 'text-slate-300' : activeFilter === f.value ? 'text-white' : 'text-slate-500'}`} style={{ fontSize: responsive(8, 9, 10) }}>
                           {f.label}
                         </Text>
                       </TouchableOpacity>
@@ -441,11 +441,11 @@ const HackathonHub = () => {
           ListEmptyComponent={() =>
             !loading ? (
               <View className="items-center mt-24 px-10">
-                <View className="w-24 h-24 rounded-[32px] bg-white items-center justify-center mb-6 shadow-sm border border-slate-50">
+                <View className="w-24 h-24 rounded-4xl bg-white items-center justify-center mb-6 shadow-sm border border-slate-50">
                   <MaterialCommunityIcons name="rocket-outline" size={44} color="#CBD5E1" />
                 </View>
-                <Text className="text-zinc-900 font-black text-xl tracking-tighter text-center uppercase mb-1">Ecosystem Void</Text>
-                <Text className="text-slate-400 text-center font-black text-[10px] uppercase tracking-widest">
+                <Text className="text-slate-900 font-black text-xl tracking-tighter text-center uppercase mb-1">Ecosystem Void</Text>
+                <Text className="text-slate-500 text-center font-black text-2xs uppercase tracking-wide">
                   {search ? 'Zero protocols matched your signal.' : 'The registry is currently offline.'}
                 </Text>
               </View>

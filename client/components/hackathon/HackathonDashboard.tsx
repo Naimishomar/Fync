@@ -161,15 +161,15 @@ const HackathonDashboard = () => {
           <View className="px-8 pt-6 pb-4">
             <View className="flex-row items-center justify-between mb-4">
               <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-2xl bg-zinc-900 items-center justify-center">
+                <View className="w-10 h-10 rounded-2xl bg-slate-900 items-center justify-center">
                   <Ionicons name="stats-chart" size={18} color="#f97316" />
                 </View>
-                <Text className="ml-3 text-zinc-900 text-2xl font-black uppercase tracking-tighter">
+                <Text className="ml-3 text-slate-900 text-2xl font-black uppercase tracking-tighter">
                   Organizer Console
                 </Text>
               </View>
             </View>
-            <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[3px]" numberOfLines={1}>
+            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide" numberOfLines={1}>
               {hackathonTitle || 'Mission Control'}
             </Text>
           </View>
@@ -184,12 +184,12 @@ const HackathonDashboard = () => {
               <View className="flex-row flex-wrap px-6">
                 {statCards.map((s) => (
                   <View key={s.label} className="w-1/2 p-2">
-                    <View className="bg-white rounded-[28px] p-6 border border-slate-100 shadow-sm">
+                    <View className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
                       <View className="w-10 h-10 rounded-2xl items-center justify-center mb-4" style={{ backgroundColor: `${s.color}18` }}>
                         <MaterialCommunityIcons name={s.icon as any} size={20} color={s.color} />
                       </View>
-                      <Text className="text-zinc-900 text-3xl font-black tracking-tighter">{s.value}</Text>
-                      <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest mt-1">{s.label}</Text>
+                      <Text className="text-slate-900 text-3xl font-black tracking-tighter">{s.value}</Text>
+                      <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">{s.label}</Text>
                     </View>
                   </View>
                 ))}
@@ -197,11 +197,11 @@ const HackathonDashboard = () => {
 
               {/* Judge Progress */}
               <View className="px-8 mt-4">
-                <Text className="text-zinc-900 text-xs font-black uppercase tracking-widest mb-3">Judge Progress</Text>
-                <View className="bg-white rounded-[28px] p-6 border border-slate-100">
+                <Text className="text-slate-900 text-xs font-black uppercase tracking-wide mb-3">Judge Progress</Text>
+                <View className="bg-white rounded-3xl p-6 border border-slate-100">
                   <View className="flex-row items-center justify-between">
-                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Total Submissions in Queue</Text>
-                    <Text className="text-zinc-900 text-xl font-black">{judgeProgress.totalSubmissions ?? 0}</Text>
+                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Total Submissions in Queue</Text>
+                    <Text className="text-slate-900 text-xl font-black">{judgeProgress.totalSubmissions ?? 0}</Text>
                   </View>
                   <View className="mt-4 h-2 bg-slate-100 rounded-full overflow-hidden">
                     <View
@@ -211,7 +211,7 @@ const HackathonDashboard = () => {
                       }}
                     />
                   </View>
-                  <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest mt-3">
+                  <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-3">
                     {Object.keys(judgeProgress.judged || {}).length} judge(s) actively scoring
                   </Text>
                 </View>
@@ -220,28 +220,28 @@ const HackathonDashboard = () => {
               {/* Winners Assignment */}
               <View className="px-8 mt-6">
                 <View className="flex-row items-center justify-between mb-3">
-                  <Text className="text-zinc-900 text-xs font-black uppercase tracking-widest">Winners / Prizes</Text>
+                  <Text className="text-slate-900 text-xs font-black uppercase tracking-wide">Winners / Prizes</Text>
                 </View>
                 {(prizes.length ? prizes : [{ rank: 1, title: 'Winner', amount: '' }]).map((p: any, idx: number) => {
                   const w = winners.find((x) => x.rank === p.rank);
                   return (
-                    <View key={idx} className="bg-white rounded-[24px] p-5 border border-slate-100 mb-3 flex-row items-center">
+                    <View key={idx} className="bg-white rounded-2xl p-5 border border-slate-100 mb-3 flex-row items-center">
                       <View className="w-12 h-12 rounded-2xl bg-amber-50 items-center justify-center mr-4">
                         <MaterialCommunityIcons name="trophy-outline" size={22} color="#f59e0b" />
                       </View>
                       <View className="flex-1">
-                        <Text className="text-zinc-900 text-sm font-black uppercase tracking-tight">
+                        <Text className="text-slate-900 text-sm font-black uppercase tracking-tight">
                           #{p.rank} {p.title || 'Winner'}
                         </Text>
-                        <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">
+                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">
                           {w ? 'Assigned' : 'Unassigned'}{w?.amount || p.amount ? ` · ${w?.amount || p.amount}` : ''}
                         </Text>
                       </View>
                       <TouchableOpacity
                         onPress={() => openAssign(p)}
-                        className={`px-5 py-3 rounded-2xl ${w ? 'bg-emerald-50' : 'bg-zinc-900'}`}
+                        className={`px-5 py-3 rounded-2xl ${w ? 'bg-emerald-50' : 'bg-slate-900'}`}
                       >
-                        <Text className={`text-[10px] font-black uppercase tracking-widest ${w ? 'text-emerald-600' : 'text-white'}`}>
+                        <Text className={`text-2xs font-black uppercase tracking-widest ${w ? 'text-emerald-600' : 'text-white'}`}>
                           {w ? 'Edit' : 'Assign'}
                         </Text>
                       </TouchableOpacity>
@@ -252,28 +252,28 @@ const HackathonDashboard = () => {
 
               {/* Recent Submissions */}
               <View className="px-8 mt-6">
-                <Text className="text-zinc-900 text-xs font-black uppercase tracking-widest mb-3">
+                <Text className="text-slate-900 text-xs font-black uppercase tracking-wide mb-3">
                   Recent Submissions ({recentSubs.length})
                 </Text>
                 {recentSubs.length === 0 ? (
-                  <View className="bg-white rounded-[28px] p-8 border border-slate-100 items-center">
+                  <View className="bg-white rounded-3xl p-8 border border-slate-100 items-center">
                     <MaterialCommunityIcons name="rocket-outline" size={40} color="#CBD5E1" />
-                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-3">No submissions yet</Text>
+                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-3">No submissions yet</Text>
                   </View>
                 ) : recentSubs.map((s) => {
                   const meta = STATUS_META[s.status] ?? STATUS_META.draft;
                   return (
-                    <View key={s._id} className="bg-white rounded-[24px] p-5 border border-slate-100 mb-3">
+                    <View key={s._id} className="bg-white rounded-2xl p-5 border border-slate-100 mb-3">
                       <View className="flex-row items-center justify-between mb-2">
-                        <Text className="text-zinc-900 text-sm font-black uppercase tracking-tight flex-1 mr-3" numberOfLines={1}>
+                        <Text className="text-slate-900 text-sm font-black uppercase tracking-tight flex-1 mr-3" numberOfLines={1}>
                           {s.ProjectName}
                         </Text>
                         <View className="px-3 py-1.5 rounded-full" style={{ backgroundColor: meta.bg }}>
-                          <Text className="text-[9px] font-black uppercase tracking-widest" style={{ color: meta.color }}>{meta.label}</Text>
+                          <Text className="text-2xs font-black uppercase tracking-wide" style={{ color: meta.color }}>{meta.label}</Text>
                         </View>
                       </View>
                       {s.TagLine ? <Text className="text-slate-500 text-xs mb-2" numberOfLines={2}>{s.TagLine}</Text> : null}
-                      <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest">
+                      <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">
                         {s.team?.name || 'Team'} {s.submittedAt ? ` · ${new Date(s.submittedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : ''}
                       </Text>
                     </View>
@@ -288,18 +288,18 @@ const HackathonDashboard = () => {
       {/* Assign Winner Modal */}
       <Modal visible={winnerModal} transparent animationType="fade" onRequestClose={() => setWinnerModal(false)}>
         <View className="flex-1 bg-black/40 justify-end">
-          <View className="bg-white rounded-t-[40px] p-8 pb-10">
+          <View className="bg-white rounded-t-5xl p-8 pb-10">
             <View className="w-12 h-1.5 bg-slate-200 rounded-full self-center mb-6" />
-            <Text className="text-zinc-900 text-2xl font-black uppercase tracking-tighter mb-1">
+            <Text className="text-slate-900 text-2xl font-black uppercase tracking-tighter mb-1">
               Assign Rank #{assignRank?.rank}
             </Text>
-            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-6">
+            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-6">
               {assignRank?.title || 'Winner'} {assignRank?.amount ? `· ${assignRank.amount}` : ''}
             </Text>
 
             <ScrollView className="max-h-96">
               {assignableSubs.length === 0 ? (
-                <Text className="text-slate-400 text-center text-xs font-black uppercase tracking-widest py-10">
+                <Text className="text-slate-500 text-center text-xs font-black uppercase tracking-wide py-10">
                   No submitted projects to assign yet
                 </Text>
               ) : assignableSubs.map((s) => (
@@ -309,8 +309,8 @@ const HackathonDashboard = () => {
                   className={`flex-row items-center p-4 rounded-2xl border mb-2 ${selectedSub === s._id ? 'bg-orange-50 border-orange-200' : 'bg-slate-50 border-transparent'}`}
                 >
                   <View className="flex-1">
-                    <Text className="text-zinc-900 text-sm font-black uppercase tracking-tight">{s.ProjectName}</Text>
-                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">
+                    <Text className="text-slate-900 text-sm font-black uppercase tracking-tight">{s.ProjectName}</Text>
+                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">
                       {s.team?.name || 'Team'} · {STATUS_META[s.status]?.label || s.status}
                     </Text>
                   </View>
@@ -322,19 +322,19 @@ const HackathonDashboard = () => {
             <TouchableOpacity
               onPress={confirmWinner}
               disabled={assigning}
-              className="mt-6 bg-zinc-900 py-5 rounded-[24px] items-center flex-row justify-center"
+              className="mt-6 bg-slate-900 py-5 rounded-2xl items-center flex-row justify-center"
             >
               {assigning ? (
                 <ActivityIndicator color="white" />
               ) : (
                 <>
                   <Feather name="check" size={18} color="#f97316" />
-                  <Text className="text-white text-[11px] font-black uppercase tracking-[2px] ml-2">Confirm Winner</Text>
+                  <Text className="text-white text-2xs font-black uppercase tracking-wide ml-2">Confirm Winner</Text>
                 </>
               )}
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setWinnerModal(false)} className="mt-4 items-center py-3">
-              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Cancel</Text>
+              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>

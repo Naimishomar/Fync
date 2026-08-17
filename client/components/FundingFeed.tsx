@@ -25,6 +25,7 @@ import { useWindowDimensions } from 'react-native';
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import { ProjectSkeleton } from "./Skeleton";
+import { useTabBarClearance } from '../constants/layout';
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width - 32;
@@ -210,7 +211,7 @@ const YouTubeVideoPlayer = ({
           {seekFeedback && (
             <View className={`absolute top-1/2 -translate-y-12 ${seekFeedback === 'forward' ? 'right-12' : 'left-12'} bg-black/60 w-20 h-20 rounded-full items-center justify-center border border-white/20`}>
               <Ionicons name={seekFeedback === 'forward' ? "play-forward" : "play-back"} size={32} color="white" />
-              <Text className="text-white font-black text-[10px] mt-1 uppercase">10s</Text>
+              <Text className="text-white font-black text-2xs mt-1 uppercase">10s</Text>
             </View>
           )}
         </Animated.View>
@@ -232,7 +233,7 @@ const YouTubeVideoPlayer = ({
 
           <View pointerEvents="box-none" className="absolute bottom-0 inset-x-0 p-4">
             <View pointerEvents="box-none" className="flex-row justify-between mb-2">
-              <Text className="text-white text-[10px] font-bold">
+              <Text className="text-white text-2xs font-bold">
                 {status ? `${Math.floor(status.positionMillis / 60000)}:${String(Math.floor((status.positionMillis % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
                 <Text className="text-white/60"> / {status ? `${Math.floor(status.durationMillis! / 60000)}:${String(Math.floor((status.durationMillis! % 60000) / 1000)).padStart(2, '0')}` : '0:00'}</Text>
               </Text>
@@ -305,8 +306,8 @@ const ProjectCard = memo(({
         >
           <Image source={{ uri: item.user.avatar || 'https://ui-avatars.com/api/?name=User' }} className="h-10 w-10 rounded-full mr-2 border border-slate-100 bg-slate-50" />
           <View>
-            <Text className="font-black text-zinc-900 text-sm uppercase tracking-tighter">{item.user.username || item.user.name}</Text>
-            <Text className="text-[8px] text-slate-400 font-black uppercase tracking-widest">{item.user.college || "PROJECT LEAD"}</Text>
+            <Text className="font-black text-slate-900 text-sm uppercase tracking-tighter">{item.user.username || item.user.name}</Text>
+            <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide">{item.user.college || "PROJECT LEAD"}</Text>
           </View>
         </TouchableOpacity>
 
@@ -358,7 +359,7 @@ const ProjectCard = memo(({
           />
           {mediaData.length > 1 && (
             <View pointerEvents="none" className="absolute top-6 right-6 bg-white/90 px-3 py-1.5 rounded-xl border border-slate-100 shadow-sm z-10">
-              <Text className="text-zinc-900 text-[10px] font-black uppercase tracking-tight">
+              <Text className="text-slate-900 text-2xs font-black uppercase tracking-tight">
                 {currentImageIndex + 1} / {mediaData.length}
               </Text>
             </View>
@@ -368,12 +369,12 @@ const ProjectCard = memo(({
 
       {/* Project Details */}
       <View className="px-6 py-6">
-        <Text className="font-black text-zinc-900 text-2xl uppercase tracking-tighter mb-3 leading-tight">{item.title}</Text>
+        <Text className="font-black text-slate-900 text-2xl uppercase tracking-tighter mb-3 leading-tight">{item.title}</Text>
 
         <Text className="text-slate-600 text-sm leading-6 mb-6 font-medium">
           {displayDescription}
           {isLong && (
-            <Text onPress={() => setIsExpanded(!isExpanded)} className="text-orange-600 font-black uppercase tracking-widest text-[10px]">
+            <Text onPress={() => setIsExpanded(!isExpanded)} className="text-orange-600 font-black uppercase tracking-wide text-2xs">
               {isExpanded ? "  Show Less" : "  Read More"}
             </Text>
           )}
@@ -383,7 +384,7 @@ const ProjectCard = memo(({
           <View className="flex-row items-center gap-6">
             <Pressable onPress={() => toggleLike(item)} className="flex-row items-center">
               <Ionicons name={isLiked ? "heart" : "heart-outline"} size={30} color={isLiked ? "#f97316" : "#1A1A1A"} />
-              <Text className="ml-2 text-zinc-900 font-black text-sm uppercase">{item.likes}</Text>
+              <Text className="ml-2 text-slate-900 font-black text-sm uppercase">{item.likes}</Text>
             </Pressable>
 
             <Pressable onPress={() => openComments(item._id)} className="flex-row items-center">
@@ -393,10 +394,10 @@ const ProjectCard = memo(({
             {!isOwner && (
               <TouchableOpacity
                 onPress={() => navigation.navigate("PublicProfile", { user: item.user })}
-                className="flex-row items-center bg-zinc-900 px-5 py-3 rounded-2xl shadow-lg shadow-black/20"
+                className="flex-row items-center bg-slate-900 px-5 py-3 rounded-2xl shadow-lg shadow-black/20"
               >
                 <Ionicons name="chatbubbles-outline" size={16} color="#fff" />
-                <Text className="text-white text-[10px] font-black uppercase tracking-widest ml-2">Connect</Text>
+                <Text className="text-white text-2xs font-black uppercase tracking-wide ml-2">Connect</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -428,6 +429,7 @@ const ProjectCard = memo(({
 
 /* ---------- MAIN COMPONENT ---------- */
 export default function FundingFeed() {
+  const tabBarClearance = useTabBarClearance();
   const { user } = useAuth();
   const userId = user?.id || user?._id;
   const navigation = useNavigation<any>();
@@ -555,10 +557,10 @@ export default function FundingFeed() {
     <View className={`${isReply ? 'ml-12 mt-4' : 'mb-8 px-2'}`}>
       <View className="flex-row">
         <Image source={{ uri: comment.commentor?.avatar || 'https://ui-avatars.com/api/?name=User' }} className={`${isReply ? 'w-8 h-8' : 'w-12 h-12'} rounded-2xl bg-slate-50 border border-slate-100`} />
-        <View className="ml-4 flex-1 bg-slate-50 p-5 rounded-[28px] rounded-tl-none border border-slate-100">
+        <View className="ml-4 flex-1 bg-slate-50 p-5 rounded-3xl rounded-tl-none border border-slate-100">
           <View className="flex-row items-baseline mb-2">
-            <Text className="font-black text-[10px] text-zinc-900 mr-3 uppercase tracking-tight">{comment.commentor?.username || comment.commentor?.name}</Text>
-            <Text className="text-[8px] text-slate-400 font-black uppercase tracking-widest">{new Date(comment.createdAt).toLocaleDateString()}</Text>
+            <Text className="font-black text-2xs text-slate-900 mr-3 uppercase tracking-tight">{comment.commentor?.username || comment.commentor?.name}</Text>
+            <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide">{new Date(comment.createdAt).toLocaleDateString()}</Text>
           </View>
           <Text className="text-slate-600 text-xs leading-5 font-medium">
             {comment.replyToUser && <Text className="text-orange-500 font-black">@{comment.replyToUser.username} </Text>}
@@ -573,7 +575,7 @@ export default function FundingFeed() {
               }}
               className="mt-4 bg-white self-start px-4 py-1.5 rounded-xl border border-slate-100"
             >
-              <Text className="text-zinc-900 text-[8px] font-black uppercase tracking-widest">Reply</Text>
+              <Text className="text-slate-900 text-2xs font-black uppercase tracking-wide">Reply</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -599,8 +601,8 @@ export default function FundingFeed() {
           <View className="px-8 pt-6 pb-4 flex-row justify-between items-center bg-transparent">
             <View className="flex-row items-center">
               <View>
-                <Text className="text-zinc-900 text-3xl font-black uppercase tracking-tighter leading-tight">Funding <Text className="text-orange-500">Feed</Text></Text>
-                <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[2px]">Innovation Hub</Text>
+                <Text className="text-slate-900 text-3xl font-black uppercase tracking-tighter leading-tight">Funding <Text className="text-orange-500">Feed</Text></Text>
+                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Innovation Hub</Text>
               </View>
             </View>
           </View>
@@ -638,11 +640,11 @@ export default function FundingFeed() {
               contentContainerStyle={{ paddingTop: 20 }}
               ListEmptyComponent={
                 <View className="items-center mt-20 px-10">
-                  <View className="w-24 h-24 bg-white rounded-[32px] items-center justify-center mb-6 border border-slate-100 shadow-sm">
+                  <View className="w-24 h-24 bg-white rounded-4xl items-center justify-center mb-6 border border-slate-100 shadow-sm">
                     <Ionicons name="rocket-outline" size={48} color="#cbd5e1" />
                   </View>
-                  <Text className="text-zinc-400 font-black uppercase text-xs tracking-widest text-center">Archive Empty</Text>
-                  <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center leading-5">Deploy your innovation to the innovation registry and establish your presence.</Text>
+                  <Text className="text-slate-500 font-black uppercase text-xs tracking-wide text-center">Archive Empty</Text>
+                  <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center leading-5">Deploy your innovation to the innovation registry and establish your presence.</Text>
                 </View>
               }
             />
@@ -651,11 +653,11 @@ export default function FundingFeed() {
           <Modal visible={commentModal} transparent={true} animationType="slide" onRequestClose={() => setCommentModal(false)}>
             <View className="flex-1 bg-black/50 justify-end">
               <Pressable className="flex-1" onPress={() => { setCommentModal(false); setReplyingTo(null); }} />
-              <View className="bg-white h-[80%] rounded-t-[50px] border-t border-slate-100 overflow-hidden shadow-2xl">
+              <View className="bg-white h-[80%] rounded-t-5xl border-t border-slate-100 overflow-hidden shadow-2xl">
                 <View className="flex-row justify-between items-center px-10 py-8 border-b border-slate-50 bg-white">
                   <View>
-                    <Text className="text-zinc-900 text-2xl font-black uppercase tracking-tighter leading-tight">Signal <Text className="text-orange-500">Intel</Text></Text>
-                    <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[2px] mt-1">Community Discussion</Text>
+                    <Text className="text-slate-900 text-2xl font-black uppercase tracking-tighter leading-tight">Signal <Text className="text-orange-500">Intel</Text></Text>
+                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">Community Discussion</Text>
                   </View>
                   <TouchableOpacity onPress={() => { setCommentModal(false); setReplyingTo(null); }} className="w-12 h-12 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
                     <Ionicons name="close" size={24} color="#18181b" />
@@ -666,16 +668,16 @@ export default function FundingFeed() {
                   <FlatList
                     data={comments}
                     keyExtractor={c => c._id}
-                    contentContainerStyle={{ paddingVertical: 32, paddingBottom: 150 }}
+                    contentContainerStyle={{ paddingTop: 32, paddingBottom: tabBarClearance }}
                     renderItem={({ item }) => <CommentItem comment={item} />}
                     showsVerticalScrollIndicator={false}
                     ListEmptyComponent={
                       <View className="items-center mt-20 px-10">
-                        <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6 border border-slate-100">
+                        <View className="w-20 h-20 bg-slate-50 rounded-4xl items-center justify-center mb-6 border border-slate-100">
                           <Ionicons name="chatbubbles-outline" size={32} color="#cbd5e1" />
                         </View>
-                        <Text className="text-zinc-400 font-black uppercase text-xs tracking-widest text-center">No Signals Detected</Text>
-                        <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center">Transmit your thoughts to the innovation network.</Text>
+                        <Text className="text-slate-500 font-black uppercase text-xs tracking-wide text-center">No Signals Detected</Text>
+                        <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center">Transmit your thoughts to the innovation network.</Text>
                       </View>
                     }
                   />
@@ -685,7 +687,7 @@ export default function FundingFeed() {
                   <View className="p-8 border-t border-slate-50 bg-white pb-12">
                     {replyingTo && (
                       <View className="flex-row items-center justify-between bg-orange-50 px-5 py-3 mb-4 rounded-2xl border border-orange-100">
-                        <Text className="text-orange-600 font-black uppercase text-[8px] tracking-widest">Replying to @{replyingTo.commentor.username}</Text>
+                        <Text className="text-orange-600 font-black uppercase text-2xs tracking-wide">Replying to @{replyingTo.commentor.username}</Text>
                         <TouchableOpacity onPress={() => setReplyingTo(null)}>
                           <Ionicons name="close-circle" size={18} color="#f97316" />
                         </TouchableOpacity>
@@ -698,10 +700,10 @@ export default function FundingFeed() {
                         onChangeText={setCommentText}
                         placeholder={replyingTo ? "Transmit reply..." : "Transmit intelligence..."}
                         placeholderTextColor="#94a3b8"
-                        className="flex-1 bg-slate-50 text-zinc-900 rounded-[24px] px-6 py-5 mr-4 border border-slate-100 font-black uppercase text-xs"
+                        className="flex-1 bg-slate-50 text-slate-900 rounded-2xl px-6 py-5 mr-4 border border-slate-100 font-black uppercase text-xs"
                         multiline
                       />
-                      <TouchableOpacity onPress={postComment} className="w-14 h-14 bg-zinc-900 rounded-2xl items-center justify-center shadow-lg shadow-black/20">
+                      <TouchableOpacity onPress={postComment} className="w-14 h-14 bg-slate-900 rounded-2xl items-center justify-center shadow-lg shadow-black/20">
                         <Ionicons name="send" size={20} color="white" />
                       </TouchableOpacity>
                     </View>

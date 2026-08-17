@@ -143,10 +143,12 @@ export const voteInPoll = async (req, res) => {
         }
 
         const message = await ClubMessage.findById(messageId).populate('subGroupId');
+        if (!message?.subGroupId) return res.status(404).json({ success: false, message: "Message not found" });
         if (!message || !message.isPoll) return res.status(404).json({ success: false, message: "Poll not found" });
 
         // Member Check
         const subGroup = await SubGroup.findById(message.subGroupId._id).populate('clubId');
+        if (!subGroup?.clubId) return res.status(404).json({ success: false, message: "Room not found" });
         const stringId = String(userId);
         const isMember = (subGroup.members || []).some(id => String(id) === stringId) || (subGroup.clubId.admins || []).some(id => String(id) === stringId);
         if (!isMember) return res.status(403).json({ success: false, message: "Only room members can vote" });
@@ -184,9 +186,11 @@ export const togglePinMessage = async (req, res) => {
         const adminId = req.user?.id || req.user?._id;
         if (!adminId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const message = await ClubMessage.findById(messageId).populate('subGroupId');
-        
+        if (!message?.subGroupId) return res.status(404).json({ success: false, message: "Message not found" });
+
         // Authorization check (Club Admin or Sub-Admin)
         const sub = await SubGroup.findById(message.subGroupId._id).populate('clubId');
+        if (!sub?.clubId) return res.status(404).json({ success: false, message: "Room not found" });
         const stringId = String(adminId);
         const isAuthorized = (sub.admins || []).some(id => String(id) === stringId) || (sub.clubId.admins || []).some(id => String(id) === stringId);
         if (!isAuthorized) return res.status(403).json({ success: false, message: "Unauthorized" });

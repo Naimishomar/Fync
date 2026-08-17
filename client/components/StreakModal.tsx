@@ -66,7 +66,7 @@ const StreakModal: React.FC<StreakModalProps> = ({ visible, streakCount, onClose
     >
       <View className="flex-1 bg-black/70 justify-center items-center">
         <Animated.View 
-          className="w-[80%] rounded-[32px] overflow-hidden border border-orange-500/30"
+          className="w-[80%] rounded-4xl overflow-hidden border border-orange-500/30"
           style={{ 
             transform: [{ scale: scaleAnim }],
             opacity: opacityAnim
@@ -80,7 +80,7 @@ const StreakModal: React.FC<StreakModalProps> = ({ visible, streakCount, onClose
               <View className="mb-5">
                 <View className="w-[110px] h-[110px] rounded-full bg-orange-500/20 justify-center items-center p-[5px]">
                   <LinearGradient
-                    colors={['#FFD700', '#FF8C00', '#FF4500']}
+                    colors={['#FFD700', '#FF8C00', '#f97316']}
                     className="w-[100px] h-[100px] rounded-full justify-center items-center shadow-lg shadow-orange-500 elevation-10"
                   >
                     <Ionicons name="flame" size={60} color="white" />

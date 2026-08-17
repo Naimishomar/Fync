@@ -12,7 +12,7 @@ import Post from '../models/post.model.js';
 import Shorts from '../models/shorts.model.js';
 import Report from '../models/report.model.js';
 import Comment from '../models/comment.model.js';
-import { clearCache } from '../middlewares/cache.middleware.js';
+import { clearCacheTags } from '../middlewares/cache.middleware.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/token.js';
 import { deleteFromR2 } from '../utils/r2.js';
 // import {sendPhoneOTP, verifyPhoneOTP } from '../utils/phoneOtp.js';
@@ -577,17 +577,16 @@ export const updateUser = async (req, res) => {
       { new: true, runValidators: true }
     ).select("-password");
 
-    // Clear cache for current user profile and ANY public profiling of this user
-    try {
-      await Promise.all([
-        clearCache(`profile`), // Clears all profile related keys (private or list)
-        clearCache(`${req.user.id}`), // Clears anything specifically tied to this user ID
-        clearCache(`developers`)
-      ]);
-      console.log(`✅ Cache cleared for user update: ${req.user.id}`);
-    } catch (cacheErr) {
-      console.error("Cache Clear failed on Update:", cacheErr);
-    }
+    // A profile edit changes this user's profile page, their post/short listings
+    // (author name and avatar are embedded there) and the alumni directory.
+    await clearCacheTags([
+      `profile:${req.user.id}`,
+      `posts:user:${req.user.id}`,
+      `shorts:user:${req.user.id}`,
+      'posts',
+      'shorts',
+      'alumni',
+    ]);
 
     return res.status(200).json({ success: true, message: "User updated successfully", user: updatedUser });
   } catch (error) {
@@ -598,6 +597,7 @@ export const updateUser = async (req, res) => {
 
 
 import { checkAndResetStreak } from '../utils/streak.js';
+import { invalidatePresenceAudience } from '../utils/presence.js';
 
 export const getProfile = async (req, res) => {
   try {
@@ -719,11 +719,15 @@ export const followUser = async (req, res) => {
     if (targetUserId.toString() === currentUserId.toString()) {
       return res.status(400).json({ success: false, message: "You cannot follow yourself" });
     }
-    const targetUser = await User.findByIdAndUpdate(
-      targetUserId,
-      { $addToSet: { followers: currentUserId } },
-      { new: true }
+    // Only treat this as a NEW follow when the edge did not already exist —
+    // otherwise every repeat tap sent another notification.
+    const edge = await User.updateOne(
+      { _id: targetUserId, followers: { $ne: currentUserId } },
+      { $addToSet: { followers: currentUserId } }
     );
+    const isNewFollow = edge.modifiedCount > 0;
+
+    const targetUser = await User.findById(targetUserId);
     if (!targetUser) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
@@ -731,7 +735,7 @@ export const followUser = async (req, res) => {
       currentUserId,
       { $addToSet: { following: targetUserId } }
     );
-    if (targetUserId.toString() !== req.user.id.toString()) {
+    if (isNewFollow && targetUserId.toString() !== req.user.id.toString()) {
       await Notification.create({
         recipient: targetUserId,
         sender: req.user.id,
@@ -739,10 +743,13 @@ export const followUser = async (req, res) => {
       });
     }
 
-    clearCache(`profile/${targetUserId}`).catch(() => { });
-    clearCache(`profile/${currentUserId}`).catch(() => { });
-    clearCache(`followers/${targetUserId}`).catch(() => { });
-    clearCache(`following/${currentUserId}`).catch(() => { });
+    clearCacheTags([
+      `profile:${targetUserId}`, `profile:${currentUserId}`,
+      `followers:${targetUserId}`, `following:${currentUserId}`,
+    ]).catch(() => { });
+    // The follow graph decides who sees this user's online status.
+    invalidatePresenceAudience(targetUserId);
+    invalidatePresenceAudience(currentUserId);
 
     return res.status(200).json({
       success: true,
@@ -772,10 +779,13 @@ export const unfollowUser = async (req, res) => {
       { $pull: { following: targetUserId } }
     );
 
-    clearCache(`profile/${targetUserId}`).catch(() => { });
-    clearCache(`profile/${currentUserId}`).catch(() => { });
-    clearCache(`followers/${targetUserId}`).catch(() => { });
-    clearCache(`following/${currentUserId}`).catch(() => { });
+    clearCacheTags([
+      `profile:${targetUserId}`, `profile:${currentUserId}`,
+      `followers:${targetUserId}`, `following:${currentUserId}`,
+    ]).catch(() => { });
+    // The follow graph decides who sees this user's online status.
+    invalidatePresenceAudience(targetUserId);
+    invalidatePresenceAudience(currentUserId);
 
     return res.status(200).json({
       success: true,
@@ -823,8 +833,7 @@ export const logout = async (req, res) => {
     user.deviceId = null;
     user.deviceModel = null;
     await user.save();
-    clearCache(`profile/${user._id}`).catch(() => { });
-    clearCache(`profile`).catch(() => { });
+    clearCacheTags([`profile:${user._id}`]).catch(() => { });
     return res.status(200).json({ success: true, message: "User logged out successfully" });
   } catch (error) {
     console.log("Internal server error", error);

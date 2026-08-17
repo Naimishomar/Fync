@@ -3,7 +3,9 @@ import Comment from '../../models/comment.model.js';
 import Notification from '../../models/notification.model.js';
 
 import User from '../../models/user.model.js';
-import { clearCache } from '../../middlewares/cache.middleware.js';
+import { clearCacheTags } from '../../middlewares/cache.middleware.js';
+import { getCommentThread } from "../../utils/comments.js";
+import { toggleLike } from "../../utils/likeToggle.js";
 
 // Fixed color for all confessions as per requirement
 const FIXED_CONFESSION_COLOR = '#FFFFFF';
@@ -45,7 +47,7 @@ export const createConfession = async (req, res) => {
             canManage: true // Author can always manage their new post
         };
 
-        clearCache('confessions').catch(() => { });
+        clearCacheTags(['confessions']).catch(() => { });
         return res.status(201).json({ success: true, message: 'Confession posted!', confession: confessionWithFlag });
     } catch (error) {
         console.error("Create confession error:", error);
@@ -81,31 +83,10 @@ export const getConfessions = async (req, res) => {
 
 export const likeConfession = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const confession = await Confession.findById(req.params.id);
+        const result = await toggleLike(Confession, req.params.id, req.user.id);
+        if (!result) return res.status(404).json({ success: false, message: "Confession not found" });
 
-        if (!confession) {
-            return res.status(404).json({ success: false, message: "Confession not found" });
-        }
-
-        const isLiked = confession.liked_by.some(id => String(id) === String(userId));
-        let updatedConfession;
-
-        if (isLiked) {
-            updatedConfession = await Confession.findByIdAndUpdate(
-                req.params.id,
-                { $inc: { likes: -1 }, $pull: { liked_by: userId } },
-                { new: true }
-            );
-        } else {
-            updatedConfession = await Confession.findByIdAndUpdate(
-                req.params.id,
-                { $inc: { likes: 1 }, $addToSet: { liked_by: userId } },
-                { new: true }
-            );
-        }
-
-        const populatedConfession = await Confession.findById(updatedConfession._id)
+        const populatedConfession = await Confession.findById(result.doc._id)
             .populate('user', 'name gender')
             .populate('taggedUser', 'name username avatar user_access');
 
@@ -115,6 +96,7 @@ export const likeConfession = async (req, res) => {
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
 
 export const addConfessionComment = async (req, res) => {
     try {
@@ -154,7 +136,7 @@ export const addConfessionComment = async (req, res) => {
             .populate("commentor", "name username avatar")
             .populate("replyToUser", "username");
 
-        clearCache(`confession_comments/${confessionId}`).catch(() => { });
+        clearCacheTags(['confessions', `confession:${confessionId}`]).catch(() => { });
         return res.status(201).json({ success: true, comment: populatedComment });
     } catch (error) {
         console.error("Add confession comment error:", error);
@@ -164,18 +146,7 @@ export const addConfessionComment = async (req, res) => {
 
 export const getConfessionComments = async (req, res) => {
     try {
-        const comments = await Comment.find({ post: req.params.id, postType: "Confession", parentComment: null })
-            .populate("commentor", "name username avatar")
-            .sort({ createdAt: -1 });
-
-        // Replies
-        const commentsWithReplies = await Promise.all(comments.map(async (comment) => {
-            const replies = await Comment.find({ parentComment: comment._id })
-                .populate("commentor", "name username avatar")
-                .populate("replyToUser", "username")
-                .sort({ createdAt: 1 });
-            return { ...comment._doc, replies };
-        }));
+        const commentsWithReplies = await getCommentThread(req.params.id, "Confession");
 
         return res.status(200).json({ success: true, comments: commentsWithReplies });
     } catch (error) {
@@ -216,7 +187,7 @@ export const updateConfession = async (req, res) => {
             canManage: true
         };
 
-        clearCache('confessions').catch(() => { });
+        clearCacheTags(['confessions']).catch(() => { });
         return res.status(200).json({ success: true, message: "Confession updated", confession: updatedWithFlag });
     } catch (error) {
         console.error("Update confession error:", error);
@@ -242,8 +213,7 @@ export const deleteConfession = async (req, res) => {
         await Comment.deleteMany({ post: id, postType: "Confession" });
         await Confession.findByIdAndDelete(id);
 
-        clearCache('confessions').catch(() => { });
-        clearCache(`confession_comments/${id}`).catch(() => { });
+        clearCacheTags(['confessions', `confession:${id}`]).catch(() => { });
         return res.status(200).json({ success: true, message: "Confession deleted" });
     } catch (error) {
         console.error("Delete confession error:", error);

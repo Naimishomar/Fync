@@ -2,7 +2,8 @@ import PlacementQuestion from "../models/newFeatures/placementHub.model.js";
 import User from "../models/user.model.js";
 import Comment from "../models/comment.model.js";
 import Notification from "../models/notification.model.js";
-import { clearCache } from "../middlewares/cache.middleware.js";
+import { clearCacheTags } from "../middlewares/cache.middleware.js";
+import { getCommentThread } from "../utils/comments.js";
 
 export const addQuestion = async (req, res) => {
     try {
@@ -23,7 +24,7 @@ export const addQuestion = async (req, res) => {
         });
 
         const populated = await newQuestion.populate("postedBy", "name avatar username");
-        clearCache("placement-hub").catch(() => { });
+        clearCacheTags(['placement']).catch(() => { });
         res.status(201).json({ success: true, message: "Question shared successfully", data: populated });
     } catch (error) {
         console.error("Error in addQuestion:", error);
@@ -82,8 +83,7 @@ export const upvoteQuestion = async (req, res) => {
         }
 
         await question.save();
-        clearCache(`placement-hub/questions`).catch(() => { });
-        clearCache(`placement-hub/trending`).catch(() => { });
+        clearCacheTags(['placement', `placement:${id}`]).catch(() => { });
         res.status(200).json({ success: true, upvotes: question.upvotes.length, hasUpvoted: !hasUpvoted });
     } catch (error) {
         console.error("Error in upvoteQuestion:", error);
@@ -154,17 +154,7 @@ export const addComment = async (req, res) => {
 export const getComments = async (req, res) => {
     try {
         const { id } = req.params;
-        const comments = await Comment.find({ post: id, postType: "PlacementQuestion", parentComment: null })
-            .populate("commentor", "name avatar username")
-            .sort({ createdAt: -1 });
-
-        const commentsWithReplies = await Promise.all(comments.map(async (comment) => {
-            const replies = await Comment.find({ parentComment: comment._id })
-                .populate("commentor", "name avatar username")
-                .populate("replyToUser", "username")
-                .sort({ createdAt: 1 });
-            return { ...comment._doc, replies };
-        }));
+        const commentsWithReplies = await getCommentThread(id, "PlacementQuestion");
 
         res.status(200).json({ success: true, comments: commentsWithReplies });
     } catch (error) {

@@ -29,9 +29,9 @@ const { width } = Dimensions.get('window');
 // ─── Completeness Bar ─────────────────────────────────────────────────────────
 function CompletenessBar({ pct }: { pct: number }) {
   return (
-    <View className="mx-4 mb-6 bg-white rounded-[28px] p-6 border border-slate-100 shadow-sm shadow-black/5">
+    <View className="mx-4 mb-6 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm shadow-black/5">
       <View className="flex-row justify-between mb-3">
-        <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-widest">Profile Completeness</Text>
+        <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">Profile Completeness</Text>
         <Text className="font-black text-xs text-orange-500">{pct}%</Text>
       </View>
       <View className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -45,7 +45,7 @@ function CompletenessBar({ pct }: { pct: number }) {
         </View>
       </View>
       {pct < 100 && (
-        <Text className="text-slate-400 font-bold text-[9px] uppercase tracking-wider mt-3">
+        <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wider mt-3">
           {pct < 50 ? '🚀 Add projects & work experience to boost your score!'
             : pct < 80 ? '💡 Almost there — connect GitHub & add certificates!'
             : '🌟 You\'re almost a Legend! Complete all sections.'}
@@ -62,16 +62,16 @@ function SectionHeader({ title, icon, onAdd, addLabel }: {
   return (
     <View className="flex-row items-center justify-between px-6 mb-4 mt-8">
       <View className="flex-row items-center gap-3">
-        <View className="w-10 h-10 bg-zinc-900 rounded-2xl items-center justify-center shadow-lg shadow-black/20">
+        <View className="w-10 h-10 bg-slate-900 rounded-2xl items-center justify-center shadow-lg shadow-black/20">
           <Ionicons name={icon as any} size={18} color="#f97316" />
         </View>
-        <Text className="text-zinc-900 font-black uppercase text-sm tracking-tighter">{title}</Text>
+        <Text className="text-slate-900 font-black uppercase text-sm tracking-tighter">{title}</Text>
       </View>
       {onAdd && (
         <Pressable onPress={onAdd}
           className="flex-row items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-100 shadow-sm">
           <Ionicons name="add" size={16} color="#18181b" />
-          <Text className="text-zinc-900 text-[10px] font-black uppercase tracking-widest">{addLabel || 'Add'}</Text>
+          <Text className="text-slate-900 text-2xs font-black uppercase tracking-wide">{addLabel || 'Add'}</Text>
         </Pressable>
       )}
     </View>
@@ -335,43 +335,43 @@ export default function FyncProfileBuilder() {
 
             {/* User Statistics Row */}
             <View className="flex-row mx-4 mb-6 gap-4">
-              <View className="flex-1 bg-white border border-slate-100 rounded-[28px] p-5 shadow-sm shadow-black/5 items-center justify-center">
+              <View className="flex-1 bg-white border border-slate-100 rounded-3xl p-5 shadow-sm shadow-black/5 items-center justify-center">
                 <View className="bg-orange-100 p-3 rounded-2xl mb-3">
                    <Ionicons name="flame" size={24} color="#f97316" />
                 </View>
-                <Text className="text-zinc-900 text-2xl font-black tracking-tighter">{profile?.user?.highestStreak || 0}</Text>
-                <Text className="text-slate-400 text-[8px] font-black uppercase tracking-widest mt-1">Max Streak</Text>
+                <Text className="text-slate-900 text-2xl font-black tracking-tighter">{profile?.user?.highestStreak || 0}</Text>
+                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">Max Streak</Text>
               </View>
               
               <Pressable 
                 onPress={() => setShowCodingModal(true)}
-                className="flex-1 bg-white border border-slate-100 rounded-[28px] p-5 shadow-sm shadow-black/5 items-center justify-center"
+                className="flex-1 bg-white border border-slate-100 rounded-3xl p-5 shadow-sm shadow-black/5 items-center justify-center"
               >
-                <View className="bg-zinc-100 p-3 rounded-2xl mb-3">
+                <View className="bg-slate-100 p-3 rounded-2xl mb-3">
                    <Ionicons name="code-working" size={24} color="#18181b" />
                 </View>
-                <Text className="text-zinc-900 text-[10px] font-black uppercase tracking-widest text-center">Coding Profiles</Text>
-                <Text className="text-slate-400 text-[8px] font-bold uppercase tracking-wider mt-1">Boost Score</Text>
+                <Text className="text-slate-900 text-2xs font-black uppercase tracking-wide text-center">Coding Profiles</Text>
+                <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wider mt-1">Boost Score</Text>
               </Pressable>
             </View>
 
             <FyncScoreCard userId={user?._id!} isOwner onRecalculate={fetchProfile} />
 
             {/* Resume Upload Section (NEW) */}
-            <View className="mx-4 mb-6 bg-white border border-slate-100 rounded-[28px] p-6 shadow-sm shadow-black/5">
+            <View className="mx-4 mb-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm shadow-black/5">
               <View className="flex-row items-center justify-between mb-4">
                 <View className="flex-row items-center gap-3">
                   <View className="w-10 h-10 bg-indigo-100 rounded-2xl items-center justify-center">
                     <Ionicons name="document-text" size={18} color="#4f46e5" />
                   </View>
                   <View>
-                    <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-widest">Career Document</Text>
-                    <Text className="text-slate-400 font-bold text-[8px] uppercase tracking-widest mt-0.5">Resume / CV (PDF)</Text>
+                    <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">Career Document</Text>
+                    <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wide mt-0.5">Resume / CV (PDF)</Text>
                   </View>
                 </View>
                 {profile?.user?.resumeUrl && (
                   <Pressable onPress={downloadResume} className="bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">
-                    <Text className="text-indigo-600 font-black text-[8px] uppercase">Preview</Text>
+                    <Text className="text-indigo-600 font-black text-2xs uppercase">Preview</Text>
                   </Pressable>
                 )}
               </View>
@@ -386,25 +386,25 @@ export default function FyncProfileBuilder() {
                 ) : (
                   <>
                     <Feather name={profile?.user?.resumeUrl ? "check-circle" : "upload-cloud"} size={18} color={profile?.user?.resumeUrl ? "#10b981" : "#94a3b8"} />
-                    <Text className={`font-black uppercase text-[10px] tracking-widest ${profile?.user?.resumeUrl ? 'text-indigo-600' : 'text-slate-400'}`}>
+                    <Text className={`font-black uppercase text-2xs tracking-widest ${profile?.user?.resumeUrl ? 'text-indigo-600' : 'text-slate-500'}`}>
                       {profile?.user?.resumeUrl ? (profile?.user?.resumeName || "Update Resume") : "Upload Resume (PDF)"}
                     </Text>
                   </>
                 )}
               </Pressable>
               {profile?.user?.resumeName && (
-                 <Text className="text-slate-400 text-[8px] font-bold uppercase tracking-widest mt-2 text-center">
+                 <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-2 text-center">
                     Current: {profile.user.resumeName}
                  </Text>
               )}
 
               {/* --- Skills Section --- */}
               <View className="mt-6 border-t border-slate-100 pt-5">
-                <Text className="text-zinc-900 font-black uppercase text-[10px] tracking-widest mb-3">Core Skills & Stack</Text>
+                <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide mb-3">Core Skills & Stack</Text>
                 <View className="bg-slate-50 rounded-2xl p-3 flex-row flex-wrap gap-2 border border-slate-100">
                   {skills.map((skill, index) => (
                     <View key={index} className="bg-indigo-100/50 border border-indigo-100 px-3 py-1.5 rounded-full flex-row items-center">
-                      <Text className="text-indigo-800 font-bold text-[10px] uppercase tracking-wider mr-1">{skill}</Text>
+                      <Text className="text-indigo-800 font-bold text-2xs uppercase tracking-wider mr-1">{skill}</Text>
                       <Pressable onPress={() => removeSkill(index)}>
                         <Ionicons name="close-circle" size={14} color="#6366f1" />
                       </Pressable>
@@ -415,10 +415,10 @@ export default function FyncProfileBuilder() {
                     onChangeText={handleSkillInput}
                     placeholder={skills.length > 0 ? "" : "React, Node.js, Design..."}
                     placeholderTextColor="#94a3b8"
-                    className="text-slate-700 min-w-[120px] flex-1 py-1 text-[10px] font-bold uppercase tracking-wider"
+                    className="text-slate-700 min-w-[120px] flex-1 py-1 text-2xs font-bold uppercase tracking-wider"
                   />
                 </View>
-                <Text className="text-slate-400 text-[8px] font-bold uppercase tracking-widest mt-2 ml-1">
+                <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-2 ml-1">
                    * Type and press comma (,) to add a skill. Auto-saves.
                 </Text>
               </View>
@@ -447,8 +447,8 @@ export default function FyncProfileBuilder() {
                 <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-6">
                   <Feather name="box" size={32} color="#CBD5E1" />
                 </View>
-                <Text className="text-zinc-900 font-black uppercase text-xs tracking-widest text-center">No projects yet</Text>
-                <Text className="text-slate-400 font-bold text-[10px] mt-2 text-center uppercase tracking-wider">
+                <Text className="text-slate-900 font-black uppercase text-xs tracking-wide text-center">No projects yet</Text>
+                <Text className="text-slate-500 font-bold text-2xs mt-2 text-center uppercase tracking-wider">
                   Add your first project to boost your Fync Score!
                 </Text>
               </View>
@@ -473,8 +473,8 @@ export default function FyncProfileBuilder() {
                 <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-6">
                   <Ionicons name="briefcase-outline" size={32} color="#CBD5E1" />
                 </View>
-                <Text className="text-zinc-900 font-black uppercase text-xs tracking-widest text-center">No experience added yet</Text>
-                <Text className="text-slate-400 font-bold text-[10px] mt-2 text-center uppercase tracking-wider">
+                <Text className="text-slate-900 font-black uppercase text-xs tracking-wide text-center">No experience added yet</Text>
+                <Text className="text-slate-500 font-bold text-2xs mt-2 text-center uppercase tracking-wider">
                   Add internships, freelance, or jobs!
                 </Text>
               </View>
@@ -494,8 +494,8 @@ export default function FyncProfileBuilder() {
                 <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-6">
                   <Ionicons name="school-outline" size={32} color="#CBD5E1" />
                 </View>
-                <Text className="text-zinc-900 font-black uppercase text-xs tracking-widest text-center">No education added yet</Text>
-                <Text className="text-slate-400 font-bold text-[10px] mt-2 text-center uppercase tracking-wider">
+                <Text className="text-slate-900 font-black uppercase text-xs tracking-wide text-center">No education added yet</Text>
+                <Text className="text-slate-500 font-bold text-2xs mt-2 text-center uppercase tracking-wider">
                   Add your academic background!
                 </Text>
               </View>
@@ -518,8 +518,8 @@ export default function FyncProfileBuilder() {
                 <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-6">
                   <Ionicons name="ribbon-outline" size={32} color="#CBD5E1" />
                 </View>
-                <Text className="text-zinc-900 font-black uppercase text-xs tracking-widest text-center">No certificates added yet</Text>
-                <Text className="text-slate-400 font-bold text-[10px] mt-2 text-center uppercase tracking-wider">
+                <Text className="text-slate-900 font-black uppercase text-xs tracking-wide text-center">No certificates added yet</Text>
+                <Text className="text-slate-500 font-bold text-2xs mt-2 text-center uppercase tracking-wider">
                   Showcase your learning!
                 </Text>
               </View>
@@ -562,16 +562,16 @@ export default function FyncProfileBuilder() {
           <View className="flex-row items-center justify-between mb-8">
             <View className="flex-row items-center gap-4">
               <View>
-                <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">Fync <Text className="text-orange-500">Portfolio</Text></Text>
+                <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase leading-tight">Fync <Text className="text-orange-500">Portfolio</Text></Text>
                 <View className="flex-row items-center">
-                  <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[2px]">Core Interface</Text>
+                  <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Core Interface</Text>
                 </View>
               </View> 
             </View>
             <Pressable onPress={downloadResume}
-              className="bg-zinc-900 px-4 py-3 rounded-2xl flex-row items-center shadow-xl shadow-black/20">
+              className="bg-slate-900 px-4 py-3 rounded-2xl flex-row items-center shadow-xl shadow-black/20">
               <Feather name="file-text" size={14} color="#f97316" />
-              <Text className="text-white font-black uppercase text-[10px] tracking-widest ml-2">Resume</Text>
+              <Text className="text-white font-black uppercase text-2xs tracking-wide ml-2">Resume</Text>
             </Pressable>
           </View>
         </View>
@@ -586,7 +586,7 @@ export default function FyncProfileBuilder() {
             >
               <Ionicons name={tab.icon as any} size={20}
                 color={activeTab === tab.key ? '#f97316' : '#94A3B8'} />
-              <Text className={`text-[8px] font-black uppercase tracking-widest mt-1.5 ${activeTab === tab.key ? 'text-zinc-900' : 'text-slate-400'}`}>
+              <Text className={`text-2xs font-black uppercase tracking-widest mt-1.5 ${activeTab === tab.key ? 'text-slate-900' : 'text-slate-500'}`}>
                 {tab.label}
               </Text>
               {activeTab === tab.key && (

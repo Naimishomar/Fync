@@ -37,16 +37,16 @@ export default function CertificateCard({ cert, isOwner, onEdit, onDelete }: Pro
   const cat = CAT_CONFIG[cert.category || 'other'] || CAT_CONFIG.other;
 
   return (
-    <View className="bg-white rounded-[24px] border border-slate-100 p-4 flex-row items-center shadow-sm shadow-black/5">
+    <View className="bg-white rounded-2xl border border-slate-100 p-4 flex-row items-center shadow-sm shadow-black/5">
       {/* Image or Icon */}
       {cert.imageUrl ? (
         <Image 
           source={{ uri: cert.imageUrl }} 
-          className="w-16 h-16 rounded-[20px] mr-4 flex-shrink-0 border border-slate-200"
+          className="w-16 h-16 rounded-2xl mr-4 flex-shrink-0 border border-slate-200"
           resizeMode="cover"
         />
       ) : (
-        <View className="w-16 h-16 rounded-[20px] items-center justify-center mr-4 flex-shrink-0"
+        <View className="w-16 h-16 rounded-2xl items-center justify-center mr-4 flex-shrink-0"
           style={{ backgroundColor: cat.bg, borderWidth: 1, borderColor: '#f1f5f9' }}>
           <Ionicons name={cat.icon as any} size={24} color={cat.color} />
         </View>
@@ -54,12 +54,12 @@ export default function CertificateCard({ cert, isOwner, onEdit, onDelete }: Pro
 
       {/* Content */}
       <View className="flex-1">
-        <Text className="text-zinc-900 font-black uppercase text-[12px] tracking-tight leading-tight" numberOfLines={1}>{cert.title}</Text>
-        <Text className="text-slate-400 font-bold text-[10px] uppercase tracking-wider mt-0.5">{cert.issuer}</Text>
+        <Text className="text-slate-900 font-black uppercase text-xs tracking-tight leading-tight" numberOfLines={1}>{cert.title}</Text>
+        <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wider mt-0.5">{cert.issuer}</Text>
         {cert.issueDate && (
           <View className="flex-row items-center gap-1 mt-2">
             <Feather name="calendar" size={10} color="#94A3B8" />
-            <Text className="text-slate-400 font-bold text-[9px] uppercase tracking-wider">{fmtDate(cert.issueDate)}</Text>
+            <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wider">{fmtDate(cert.issueDate)}</Text>
           </View>
         )}
       </View>
@@ -74,7 +74,7 @@ export default function CertificateCard({ cert, isOwner, onEdit, onDelete }: Pro
         )}
         {isOwner && (
           <>
-            <Pressable onPress={() => onEdit?.(cert)} className="w-8 h-8 items-center justify-center bg-zinc-900 rounded-xl">
+            <Pressable onPress={() => onEdit?.(cert)} className="w-8 h-8 items-center justify-center bg-slate-900 rounded-xl">
               <Feather name="edit-3" size={12} color="white" />
             </Pressable>
             <Pressable onPress={() => onDelete?.(cert._id)} className="w-8 h-8 items-center justify-center bg-rose-50 rounded-xl">

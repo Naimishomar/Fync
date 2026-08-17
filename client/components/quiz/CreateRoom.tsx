@@ -154,17 +154,17 @@ const CreateRoom = () => {
             <Ionicons name="arrow-back" size={24} color="#18181b" />
           </TouchableOpacity>
           <View>
-            <Text className="text-zinc-900 text-3xl font-black  tracking-tighter uppercase">
+            <Text className="text-slate-900 text-3xl font-black  tracking-tighter uppercase">
               Room <Text className="text-pink-500">Builder</Text>
             </Text>
-            <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">Initialize Custom Node</Text>
+            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Initialize Custom Node</Text>
           </View>
         </View>
 
         <ScrollView className="px-8 pb-12" showsVerticalScrollIndicator={false}>
 
           {/* DOMAIN SELECTION */}
-          <Text className="text-slate-400 font-black  text-[10px] mb-4 uppercase tracking-[2px]">Select Specialization</Text>
+          <Text className="text-slate-500 font-black  text-2xs mb-4 uppercase tracking-wide">Select Specialization</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-8 p-1">
             {DOMAINS.map((d) => (
               <TouchableOpacity
@@ -176,7 +176,7 @@ const CreateRoom = () => {
                     : "bg-white border-slate-100 shadow-sm"
                   }`}
               >
-                <Text className={`font-black  uppercase text-[12px] tracking-tight ${domain === d ? "text-pink-500" : "text-slate-400"}`}>
+                <Text className={`font-black  uppercase text-xs tracking-tight ${domain === d ? "text-pink-500" : "text-slate-500"}`}>
                   {d}
                 </Text>
               </TouchableOpacity>
@@ -184,40 +184,40 @@ const CreateRoom = () => {
           </ScrollView>
 
           {/* SETTINGS CARD */}
-          <View className="bg-white rounded-[40px] p-8 border border-slate-100 mb-10 shadow-2xl shadow-black/5">
-            <Text className="text-slate-400 font-black  text-[10px] mb-6 uppercase tracking-[2px]">Global Configuration</Text>
+          <View className="bg-white rounded-5xl p-8 border border-slate-100 mb-10 shadow-2xl shadow-black/5">
+            <Text className="text-slate-500 font-black  text-2xs mb-6 uppercase tracking-wide">Global Configuration</Text>
 
             <View className="mb-6">
-              <Text className="text-zinc-900 font-black  text-xs mb-3 uppercase tracking-tight">Capacity (Members)</Text>
+              <Text className="text-slate-900 font-black  text-xs mb-3 uppercase tracking-tight">Capacity (Members)</Text>
               <TextInput
                 value={maxMembers}
                 onChangeText={setMaxMembers}
                 keyboardType="numeric"
                 placeholderTextColor="#94a3b8"
-                className="border border-slate-100 p-5 rounded-3xl bg-slate-50 text-zinc-900 font-black "
+                className="border border-slate-100 p-5 rounded-3xl bg-slate-50 text-slate-900 font-black "
               />
             </View>
 
             <View className="mb-6">
-              <Text className="text-zinc-900 font-black  text-xs mb-3 uppercase tracking-tight">Duration (Minutes)</Text>
+              <Text className="text-slate-900 font-black  text-xs mb-3 uppercase tracking-tight">Duration (Minutes)</Text>
               <TextInput
                 value={duration}
                 onChangeText={setDuration}
                 keyboardType="numeric"
                 placeholderTextColor="#94a3b8"
-                className="border border-slate-100 p-5 rounded-3xl bg-slate-50 text-zinc-900 font-black "
+                className="border border-slate-100 p-5 rounded-3xl bg-slate-50 text-slate-900 font-black "
               />
             </View>
 
             {/* DATE PICKER BUTTON */}
             <View>
-              <Text className="text-zinc-900 font-black  text-xs mb-3 uppercase tracking-tight">Execution Time</Text>
+              <Text className="text-slate-900 font-black  text-xs mb-3 uppercase tracking-tight">Execution Time</Text>
               <TouchableOpacity
                 onPress={handleDatePress}
                 activeOpacity={0.9}
                 className="bg-slate-50 p-5 rounded-3xl border border-slate-100 flex-row items-center justify-between"
               >
-                <Text className="text-zinc-900 font-black  text-base">
+                <Text className="text-slate-900 font-black  text-base">
                   {startTime.toLocaleString([], {
                     month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                   })}
@@ -249,17 +249,17 @@ const CreateRoom = () => {
 
           {/* QUESTIONS EDITOR */}
           <View className="flex-row justify-between items-center mb-6 px-1">
-            <Text className="text-slate-400 font-black  text-[10px] uppercase tracking-[2px]">Core Dataset ({questions.length})</Text>
+            <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide">Core Dataset ({questions.length})</Text>
             <TouchableOpacity onPress={addQuestion} className="bg-pink-50 px-4 py-2 rounded-xl border border-pink-100">
-              <Text className="text-pink-500 font-black  text-[10px] uppercase tracking-tighter">+ Add Question</Text>
+              <Text className="text-pink-500 font-black  text-2xs uppercase tracking-tighter">+ Add Question</Text>
             </TouchableOpacity>
           </View>
 
           {questions.map((q, qIndex) => (
-            <View key={qIndex} className="bg-white border border-slate-100 rounded-[40px] p-8 mb-8 shadow-2xl shadow-black/5">
+            <View key={qIndex} className="bg-white border border-slate-100 rounded-5xl p-8 mb-8 shadow-2xl shadow-black/5">
               <View className="flex-row justify-between items-center mb-6">
                 <View className="bg-slate-50 border border-slate-100 px-4 py-1.5 rounded-full">
-                  <Text className="font-black  text-zinc-900 text-[10px] uppercase tracking-widest">Question {qIndex + 1}</Text>
+                  <Text className="font-black  text-slate-900 text-2xs uppercase tracking-wide">Question {qIndex + 1}</Text>
                 </View>
                 {questions.length > 1 && (
                   <TouchableOpacity
@@ -276,7 +276,7 @@ const CreateRoom = () => {
                 placeholderTextColor="#94a3b8"
                 value={q.question}
                 onChangeText={(t) => updateQuestion(qIndex, "question", t)}
-                className="border border-slate-100 p-6 rounded-3xl mb-6 bg-slate-50 text-zinc-900 font-black  text-base min-h-[100px]"
+                className="border border-slate-100 p-6 rounded-3xl mb-6 bg-slate-50 text-slate-900 font-black  text-base min-h-[100px]"
                 multiline
                 textAlignVertical="top"
               />
@@ -300,7 +300,7 @@ const CreateRoom = () => {
                     placeholder={`Buffer Option ${i + 1}`}
                     placeholderTextColor="#94a3b8"
                     onChangeText={(text) => updateOption(qIndex, i, text)}
-                    className={`border p-5 rounded-2xl flex-1 font-black  uppercase tracking-tight text-sm ${q.correctAnswer === i ? "bg-white border-pink-500 text-zinc-900 shadow-lg shadow-pink-500/5" : "bg-white border-slate-100 text-slate-500"
+                    className={`border p-5 rounded-2xl flex-1 font-black  uppercase tracking-tight text-sm ${q.correctAnswer === i ? "bg-white border-pink-500 text-slate-900 shadow-lg shadow-pink-500/5" : "bg-white border-slate-100 text-slate-500"
                       }`}
                   />
                 </TouchableOpacity>
@@ -313,7 +313,7 @@ const CreateRoom = () => {
             onPress={submitRoom}
             disabled={loading}
             activeOpacity={0.9}
-            className={`py-6 rounded-[32px] mb-16 shadow-2xl flex-row justify-center items-center ${loading ? 'bg-pink-400' : 'bg-pink-500 shadow-pink-500/20'
+            className={`py-6 rounded-4xl mb-16 shadow-2xl flex-row justify-center items-center ${loading ? 'bg-pink-400' : 'bg-pink-500 shadow-pink-500/20'
               }`}
           >
             {loading ? (

@@ -76,12 +76,12 @@ export default function ProfileSetup1() {
           </View>
 
           {/* Bottom Sheet */}
-          <View className="rounded-t-[50px] bg-white px-6 pt-8 pb-16">
+          <View className="rounded-t-5xl bg-white px-6 pt-8 pb-16">
             <ScrollView keyboardShouldPersistTaps="handled">
               <Text className="text-3xl font-bold mb-6">Profile Setup</Text>
 
               <TextInput
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-4 text-black"
+                className="mb-4 rounded-xl border border-slate-300 px-4 py-4 text-black"
                 placeholder="Full Name"
                 placeholderTextColor="#9CA3AF"
                 value={fullName}
@@ -90,10 +90,10 @@ export default function ProfileSetup1() {
               />
 
               <Pressable
-                className="mb-4 flex-row items-center justify-between rounded-xl border border-gray-300 px-4 py-4"
+                className="mb-4 flex-row items-center justify-between rounded-xl border border-slate-300 px-4 py-4"
                 onPress={() => setShowDatePicker(true)}
               >
-                <Text className={birthday ? 'text-black' : 'text-gray-400'}>
+                <Text className={birthday ? 'text-black' : 'text-slate-500'}>
                   {birthday || 'Birthday'}
                 </Text>
                 <Ionicons name="calendar-outline" size={20} color="#9CA3AF" />
@@ -107,10 +107,10 @@ export default function ProfileSetup1() {
               ].map(([label, value]) => (
                 <Pressable
                   key={label}
-                  className="mb-4 flex-row items-center justify-between rounded-xl border border-gray-300 px-4 py-4"
+                  className="mb-4 flex-row items-center justify-between rounded-xl border border-slate-300 px-4 py-4"
                   onPress={() => setDropdownType(label.toLowerCase())}
                 >
-                  <Text className={value ? 'text-black' : 'text-gray-400'}>
+                  <Text className={value ? 'text-black' : 'text-slate-500'}>
                     {value || label}
                   </Text>
                   <Ionicons name="chevron-down" size={20} color="#9CA3AF" />
@@ -137,7 +137,7 @@ export default function ProfileSetup1() {
                 <Text className="text-white text-lg font-semibold">Continue</Text>
               </Pressable>
 
-              <Text className="mt-4 text-center text-gray-500">
+              <Text className="mt-4 text-center text-slate-500">
                 Step 1 of 2
               </Text>
             </ScrollView>
@@ -165,7 +165,7 @@ export default function ProfileSetup1() {
               {dropdownType === 'college name' && (
                 <TextInput
                   placeholder="Search college..."
-                  className="mb-3 rounded-lg border border-gray-300 px-3 py-2 text-black"
+                  className="mb-3 rounded-lg border border-slate-300 px-3 py-2 text-black"
                   value={search}
                   onChangeText={setSearch}
                 />
@@ -182,7 +182,7 @@ export default function ProfileSetup1() {
                 ).map((item) => (
                   <Pressable
                     key={item}
-                    className="border-b border-gray-200 p-3"
+                    className="border-b border-slate-200 p-3"
                     onPress={() => {
                       if (dropdownType === 'gender') setGender(item);
                       if (dropdownType === 'passout year') setYear(item);
@@ -198,7 +198,7 @@ export default function ProfileSetup1() {
               </ScrollView>
 
               <Pressable
-                className="mt-3 rounded bg-gray-200 p-3"
+                className="mt-3 rounded bg-slate-200 p-3"
                 onPress={() => {
                   setSearch('');
                   setDropdownType(null);

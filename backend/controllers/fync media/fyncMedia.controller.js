@@ -2,6 +2,7 @@ import Comment from "../../models/comment.model.js";
 import FyncMedia from "../../models/fync media/fyncMedia.model.js";
 import User from "../../models/user.model.js";
 import { deleteFromR2 } from "../../utils/r2.js";
+import { toggleLike } from "../../utils/likeToggle.js";
 
 
 export const createFyncMedia = async(req,res)=>{
@@ -177,59 +178,58 @@ export const deleteMedia = async (req, res) => {
 
 export const likeAndUnlikeMedia = async (req, res) => {
     try {
-        const userId = req.user.id.toString();
-        const media = await FyncMedia.findById(req.params.id);
-        if (!media) return res.status(404).json({ success: false, message: "Media not found" });
+        // alsoRemove clears the opposing vote in the same atomic write, so a
+        // media item can never be both liked and disliked by one user.
+        const result = await toggleLike(FyncMedia, req.params.id, req.user.id, {
+            arrayField: 'liked_by',
+            countField: 'likes',
+            alsoRemove: ['disliked_by'],
+        });
+        if (!result) return res.status(404).json({ success: false, message: "Media not found" });
 
-        const isLiked = media.liked_by.some(id => id.toString() === userId);
-        const isDisliked = media.disliked_by.some(id => id.toString() === userId);
+        // dislikes is derived from its array for the same reason likes is.
+        const media = await FyncMedia.findByIdAndUpdate(
+            req.params.id,
+            [{ $set: { dislikes: { $size: { $ifNull: ['$disliked_by', []] } } } }],
+            { new: true }
+        );
 
-        let updateQuery = {};
-
-        if (isLiked) {
-            updateQuery = { $pull: { liked_by: userId }, $inc: { likes: -1 } };
-        } else {
-            updateQuery = { $push: { liked_by: userId }, $inc: { likes: 1 } };
-            if (isDisliked) {
-                updateQuery.$pull = { disliked_by: userId };
-                updateQuery.$inc = { ...updateQuery.$inc, dislikes: -1 };
-            }
-        }
-
-        const updatedMedia = await FyncMedia.findByIdAndUpdate(req.params.id, updateQuery, { new: true });
-        return res.status(200).json({ success: true, message: isLiked ? "Unliked successfully" : "Liked successfully", media: updatedMedia });
+        return res.status(200).json({
+            success: true,
+            message: result.liked ? "Liked successfully" : "Unliked successfully",
+            media
+        });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
 
 export const dislikeAndUndislikeMedia = async (req, res) => {
     try {
-        const userId = req.user.id.toString();
-        const media = await FyncMedia.findById(req.params.id);
-        if (!media) return res.status(404).json({ success: false, message: "Media not found" });
+        const result = await toggleLike(FyncMedia, req.params.id, req.user.id, {
+            arrayField: 'disliked_by',
+            countField: 'dislikes',
+            alsoRemove: ['liked_by'],
+        });
+        if (!result) return res.status(404).json({ success: false, message: "Media not found" });
 
-        const isLiked = media.liked_by.some(id => id.toString() === userId);
-        const isDisliked = media.disliked_by.some(id => id.toString() === userId);
+        const media = await FyncMedia.findByIdAndUpdate(
+            req.params.id,
+            [{ $set: { likes: { $size: { $ifNull: ['$liked_by', []] } } } }],
+            { new: true }
+        );
 
-        let updateQuery = {};
-
-        if (isDisliked) {
-            updateQuery = { $pull: { disliked_by: userId }, $inc: { dislikes: -1 } };
-        } else {
-            updateQuery = { $push: { disliked_by: userId }, $inc: { dislikes: 1 } };
-            if (isLiked) {
-                updateQuery.$pull = { liked_by: userId };
-                updateQuery.$inc = { ...updateQuery.$inc, likes: -1 };
-            }
-        }
-
-        const updatedMedia = await FyncMedia.findByIdAndUpdate(req.params.id, updateQuery, { new: true });
-        return res.status(200).json({ success: true, message: isDisliked ? "Undisliked successfully" : "Disliked successfully", media: updatedMedia });
+        return res.status(200).json({
+            success: true,
+            message: result.liked ? "Disliked successfully" : "Undisliked successfully",
+            media
+        });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
 
 export const addMediaComment = async (req, res) => {
     try {

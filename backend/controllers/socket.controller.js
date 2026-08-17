@@ -8,6 +8,8 @@ import NightMessage from "../models/newFeatures/nightChat.model.js";
 import redisClient from "../utils/redis.js";
 import { generateQuestions } from "../utils/gemini.js";
 import { nanoid } from "nanoid";
+import { getSocketAcrossCluster } from "../utils/socketCluster.js";
+import { getPresenceAudience, filterOnline, broadcastStatus } from "../utils/presence.js";
 
 const calculateScore = (userAnswers, correctQuestions) => {
   if (!userAnswers || !correctQuestions) return 0;
@@ -18,26 +20,50 @@ const calculateScore = (userAnswers, correctQuestions) => {
   return score;
 };
 
-let videoUsers = {};
+// Presence keys are refreshed on every (re)connect; anything older than this
+// belongs to a socket whose worker died without cleaning up.
+const PRESENCE_TTL_SECONDS = 24 * 60 * 60;
 
 export const socketController = (io) => {
   io.on("connection", (socket) => {
-    console.log("Socket connected:", socket.id);
+    if (process.env.NODE_ENV !== "production") {
+      console.log("Socket connected:", socket.id);
+    }
 
-    socket.on("register", async (userId) => {
+    // socket.userId is set by the JWT handshake middleware in index.js. Any
+    // userId arriving in an event payload is attacker-controlled, so overwrite
+    // it with the authenticated one before a handler ever sees it. Doing this
+    // once here covers every handler below instead of 20 individual checks.
+    socket.use((packet, next) => {
+      const payload = packet[1];
+      if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+        if ("userId" in payload) payload.userId = socket.userId;
+        // Some handlers (chess/quiz matchmaking) take a whole `user` object.
+        if (payload.user && typeof payload.user === "object") {
+          payload.user._id = socket.userId;
+        }
+      }
+      next();
+    });
+
+    socket.on("register", async () => {
+      const userId = socket.userId;
       if (!userId) return;
-      socket.userId = userId;
       socket.join(`user:${userId}`);
 
       try {
         await redisClient.sAdd(`user_sockets:${userId}`, socket.id);
+        // If a worker dies, its disconnect handlers never run and the socket ids
+        // it added stay in this set forever — the user then shows as permanently
+        // online and never gets a fresh presence entry. A TTL lets it self-heal.
+        await redisClient.expire(`user_sockets:${userId}`, PRESENCE_TTL_SECONDS);
         await redisClient.sAdd("global_online_users", userId);
 
-        // Let the user know who is already online
-        const onlineList = await redisClient.sMembers("global_online_users");
-        socket.emit("initialOnlineList", onlineList);
+        // Only the people this user can actually chat with, not all 10k online.
+        const audience = await getPresenceAudience(userId);
+        socket.emit("initialOnlineList", await filterOnline(audience));
 
-        io.emit("statusUpdate", { userId, status: "online" });
+        await broadcastStatus(io, userId, "online");
       } catch (err) {
         console.error("Redis register error:", err);
       }
@@ -176,15 +202,16 @@ export const socketController = (io) => {
     });
 
     // --- 🚀 HACKATHON ECOSYSTEM ---
-    socket.on("identity", async (userId) => {
+    socket.on("identity", async () => {
+      // Identity comes from the verified handshake token, never from the client.
+      const userId = socket.userId;
       if (!userId) return;
-      socket.userId = userId;
       socket.join(`user:${userId}`);
-      
+
       try {
         await redisClient.sAdd(`user_sockets:${userId}`, socket.id);
+        await redisClient.expire(`user_sockets:${userId}`, PRESENCE_TTL_SECONDS);
         await redisClient.sAdd("global_online_users", userId);
-        console.log(`👤 User identified: ${userId}`);
       } catch (err) {
         console.error("Redis identity error:", err);
       }
@@ -340,7 +367,7 @@ export const socketController = (io) => {
           return;
         }
 
-        const opponentSocket = io.sockets.sockets.get(opponent.socketId);
+        const opponentSocket = await getSocketAcrossCluster(io, opponent.socketId);
 
         if (!opponentSocket) {
           continue;
@@ -595,7 +622,7 @@ export const socketController = (io) => {
         }
 
         // 2. Check if opponent is still online
-        const opponentSocket = io.sockets.sockets.get(opponent.socketId);
+        const opponentSocket = await getSocketAcrossCluster(io, opponent.socketId);
         if (!opponentSocket) {
           continue; // Opponent left, skip to next in queue
         }
@@ -641,52 +668,49 @@ export const socketController = (io) => {
     });
 
     // --- 📞 WEBRTC AUDIO CALL SIGNALING ---
-    socket.on("call:offer", ({ targetUserId, sdp, callerInfo }) => {
-      const targetSocket = io.sockets.sockets.get(targetUserId);
-      if (targetSocket) {
-        targetSocket.emit("call:incoming", { 
-          callerId: socket.userId, 
-          sdp, 
-          callerInfo 
-        });
-      } else {
-        socket.emit("call:failed", { reason: "User not online" });
+    // These handlers looked the target up with io.sockets.sockets.get(targetUserId),
+    // but that map is keyed by socket.id, not user id — so it never matched and
+    // every call answered "User not online". It is also worker-local, which breaks
+    // once PM2 runs more than one instance. Every user joins `user:<id>` on
+    // register/identity, and emitting to that room routes through the Redis
+    // adapter to whichever worker holds the socket.
+    const callRoom = (targetUserId) => `user:${targetUserId}`;
+
+    const isOnline = async (targetUserId) => {
+      if (!targetUserId) return false;
+      const sockets = await io.in(callRoom(targetUserId)).fetchSockets();
+      return sockets.length > 0;
+    };
+
+    socket.on("call:offer", async ({ targetUserId, sdp, callerInfo }) => {
+      if (!(await isOnline(targetUserId))) {
+        return socket.emit("call:failed", { reason: "User not online" });
       }
+      io.to(callRoom(targetUserId)).emit("call:incoming", {
+        callerId: socket.userId,
+        sdp,
+        callerInfo
+      });
     });
 
     socket.on("call:answer", ({ targetUserId, sdp }) => {
-      const targetSocket = io.sockets.sockets.get(targetUserId);
-      if (targetSocket) {
-        targetSocket.emit("call:answered", { sdp });
-      }
+      io.to(callRoom(targetUserId)).emit("call:answered", { sdp });
     });
 
     socket.on("call:ice-candidate", ({ targetUserId, candidate }) => {
-      const targetSocket = io.sockets.sockets.get(targetUserId);
-      if (targetSocket) {
-        targetSocket.emit("call:ice-candidate", { candidate });
-      }
+      io.to(callRoom(targetUserId)).emit("call:ice-candidate", { candidate });
     });
 
     socket.on("call:end", ({ targetUserId, reason }) => {
-      const targetSocket = io.sockets.sockets.get(targetUserId);
-      if (targetSocket) {
-        targetSocket.emit("call:ended", { reason });
-      }
+      io.to(callRoom(targetUserId)).emit("call:ended", { reason });
     });
 
     socket.on("call:reject", ({ targetUserId }) => {
-      const targetSocket = io.sockets.sockets.get(targetUserId);
-      if (targetSocket) {
-        targetSocket.emit("call:rejected", {});
-      }
+      io.to(callRoom(targetUserId)).emit("call:rejected", {});
     });
 
     socket.on("call:busy", ({ targetUserId }) => {
-      const targetSocket = io.sockets.sockets.get(targetUserId);
-      if (targetSocket) {
-        targetSocket.emit("call:busy", {});
-      }
+      io.to(callRoom(targetUserId)).emit("call:busy", {});
     });
 
     // --- 🎨 DRAW & GUESS LOGIC ---
@@ -720,7 +744,7 @@ export const socketController = (io) => {
         const opponent = JSON.parse(opponentStr);
         if (opponent.userId === userId) continue;
 
-        const opponentSocket = io.sockets.sockets.get(opponent.socketId);
+        const opponentSocket = await getSocketAcrossCluster(io, opponent.socketId);
         if (!opponentSocket) continue;
 
         matchFound = true;
@@ -761,7 +785,9 @@ export const socketController = (io) => {
     });
 
     socket.on("disconnect", async () => {
-      console.log("Socket disconnected:", socket.id);
+      if (process.env.NODE_ENV !== "production") {
+        console.log("Socket disconnected:", socket.id);
+      }
 
       if (socket.userId) {
         // Cleanup 1v1 if they were in a match
@@ -784,17 +810,11 @@ export const socketController = (io) => {
           
           if (remaining === 0) {
             await redisClient.sRem("global_online_users", socket.userId);
-            io.emit("statusUpdate", { userId: socket.userId, status: "offline" });
+            await broadcastStatus(io, socket.userId, "offline");
           }
         } catch (err) {
           console.error("Redis disconnect error:", err);
         }
-      }
-
-      const videoId = Object.keys(videoUsers).find(key => videoUsers[key].socketId === socket.id);
-      if (videoId) {
-        delete videoUsers[videoId];
-        io.emit("video_users_update", Object.values(videoUsers));
       }
     });
 

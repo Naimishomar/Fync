@@ -80,12 +80,12 @@ const HackathonList = () => {
   };
 
   const renderItem = ({ item }: { item: any }) => (
-    <View className="bg-white rounded-2xl mb-5 mx-6 p-6 shadow-sm shadow-black/5 border border-gray-300">
+    <View className="bg-white rounded-2xl mb-5 mx-6 p-6 shadow-sm shadow-black/5 border border-slate-300">
 
       {/* Header Row */}
       <View className="flex-row gap-4 items-center">
         {/* Logo */}
-        <View className="w-16 h-16 rounded-2xl border border-gray-200 overflow-hidden bg-slate-50 items-center justify-center p-2">
+        <View className="w-16 h-16 rounded-2xl border border-slate-200 overflow-hidden bg-slate-50 items-center justify-center p-2">
           <Image
             source={{ uri: item.logoUrl2 || item.organisation?.logoUrl || 'https://via.placeholder.com/100' }}
             className="w-12 h-12 rounded-xl"
@@ -95,10 +95,10 @@ const HackathonList = () => {
 
         {/* Title & Company */}
         <View className="flex-1">
-          <Text className="text-zinc-900 text-lg font-black  tracking-tighter uppercase leading-5" numberOfLines={2}>
+          <Text className="text-slate-900 text-lg font-black  tracking-tighter uppercase leading-5" numberOfLines={2}>
             {item.title}
           </Text>
-          <Text className="text-gray-600 text-[10px] font-black uppercase tracking-widest mt-1">
+          <Text className="text-slate-600 text-2xs font-black uppercase tracking-wide mt-1">
             {item.organisation?.name || "Global Organisation"}
           </Text>
         </View>
@@ -107,13 +107,13 @@ const HackathonList = () => {
       {/* Tags Row */}
       <View className="mt-5 flex-row flex-wrap gap-2">
         {/* Location / Mode */}
-        <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-gray-300">
+        <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-300">
           <Ionicons
             name={item.job_location?.toLowerCase().includes('online') ? "globe-outline" : "location-sharp"}
             size={14}
             color="#64748b"
           />
-          <Text className="text-[10px] font-black uppercase tracking-tight text-slate-500 ml-1">
+          <Text className="text-2xs font-black uppercase tracking-tight text-slate-500 ml-1">
             {item.job_location || "Global"}
           </Text>
         </View>
@@ -122,16 +122,16 @@ const HackathonList = () => {
         {item.region && item.region.toLowerCase() !== (item.job_location || '').toLowerCase() && (
           <View className="flex-row items-center bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-100">
             <Ionicons name="earth" size={14} color="#6366f1" />
-            <Text className="text-[10px] font-black uppercase tracking-tight text-indigo-500 ml-1">
+            <Text className="text-2xs font-black uppercase tracking-tight text-indigo-500 ml-1">
               {item.region}
             </Text>
           </View>
         )}
 
         {/* Region/Deadline */}
-        <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-gray-300">
+        <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-300">
           <Ionicons name="calendar" size={14} color="#64748b" />
-          <Text className="text-[10px] font-black uppercase tracking-tight text-slate-500 ml-1">
+          <Text className="text-2xs font-black uppercase tracking-tight text-slate-500 ml-1">
             {item.regnEndDate ? new Date(item.regnEndDate).toLocaleDateString() : "Open"}
           </Text>
         </View>
@@ -140,7 +140,7 @@ const HackathonList = () => {
           if (f.type === 'opportunity_type' || f.name?.toLowerCase().includes('online') || f.name?.toLowerCase().includes('offline')) {
             return (
               <View key={i} className="bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">
-                <Text className="text-[10px] font-black uppercase tracking-tight text-blue-500">{f.name}</Text>
+                <Text className="text-2xs font-black uppercase tracking-tight text-blue-500">{f.name}</Text>
               </View>
             )
           }
@@ -151,8 +151,8 @@ const HackathonList = () => {
       {/* Footer / CTA */}
       <View className="mt-3 flex-row items-center justify-between">
         <View>
-          <Text className="text-gray-600 font-black uppercase text-[8px] tracking-[2px]">Opportunity Worth</Text>
-          <Text className="text-zinc-900 text-lg font-black mt-0.5 tracking-tighter uppercase">
+          <Text className="text-slate-600 font-black uppercase text-2xs tracking-wide">Opportunity Worth</Text>
+          <Text className="text-slate-900 text-lg font-black mt-0.5 tracking-tighter uppercase">
             {item.payment_amount
               ? `₹${item.payment_amount}`
               : "Prizes/Certificates"
@@ -165,7 +165,7 @@ const HackathonList = () => {
           activeOpacity={0.9}
           className="bg-pink-500 px-8 py-3.5 rounded-2xl shadow-lg shadow-black/20 border border-pink-300"
         >
-          <Text className="text-white font-black  uppercase tracking-widest text-[12px]">Participate</Text>
+          <Text className="text-white font-black  uppercase tracking-wide text-xs">Participate</Text>
         </TouchableOpacity>
       </View>
 
@@ -176,7 +176,7 @@ const HackathonList = () => {
     if (!loading) return <View className="h-12" />;
     return (
       <View className="py-6 items-center">
-        <ActivityIndicator size="small" color="#ec4899" />
+        <ActivityIndicator size="small" color="#f97316" />
       </View>
     );
   };
@@ -194,22 +194,22 @@ const HackathonList = () => {
               <Ionicons name="rocket" size={24} color="white" />
             </View>
             <View>
-              <Text className="text-zinc-900 text-3xl font-black  tracking-tighter uppercase">Hackathons</Text>
-              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-0.5">Build The Future Globally</Text>
+              <Text className="text-slate-900 text-3xl font-black  tracking-tighter uppercase">Hackathons</Text>
+              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Build The Future Globally</Text>
             </View>
           </View>
         </View>
 
         {/* 🔍 Search Bar */}
         <View className="px-6 mt-2 mb-4">
-          <View className="flex-row items-center bg-white rounded-3xl px-6 py-2 border border-gray-300 shadow-sm shadow-black/5">
+          <View className="flex-row items-center bg-white rounded-3xl px-6 py-2 border border-slate-300 shadow-sm shadow-black/5">
             <Ionicons name="search" size={20} color="#ec4899" />
             <TextInput
               placeholder="Search hackathons, companies..."
               placeholderTextColor="#94a3b8"
               value={searchQuery}
               onChangeText={setSearchQuery}
-              className="flex-1 ml-3 text-zinc-900 text-base font-black "
+              className="flex-1 ml-3 text-slate-900 text-base font-black "
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-slate-50 p-1 rounded-full">
@@ -232,11 +232,11 @@ const HackathonList = () => {
           ListEmptyComponent={
             !loading ? (
               <View className="items-center mt-20 px-10">
-                <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
+                <View className="w-20 h-20 bg-slate-50 rounded-4xl items-center justify-center mb-6">
                   <Ionicons name="search" size={40} color="#CBD5E1" />
                 </View>
-                <Text className="text-zinc-900 font-black  text-xl tracking-tight text-center uppercase">Zero Hits</Text>
-                <Text className="text-slate-400 text-center font-bold text-xs mt-2 uppercase tracking-wide">
+                <Text className="text-slate-900 font-black  text-xl tracking-tight text-center uppercase">Zero Hits</Text>
+                <Text className="text-slate-500 text-center font-bold text-xs mt-2 uppercase tracking-wide">
                   {searchQuery ? "We couldn't find matches for your search protocol." : "The hackathon vault is currently locked."}
                 </Text>
               </View>

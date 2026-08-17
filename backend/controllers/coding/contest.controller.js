@@ -45,6 +45,13 @@ export const getContestDetails = async (req, res) => {
 export const createContest = async (req, res) => {
   try {
     const { title, description, problemIds, startTime, endTime, prizePool } = req.body;
+    if (!title || !startTime || !endTime) {
+      return res.status(400).json({ success: false, message: "title, startTime and endTime are required" });
+    }
+    if (new Date(endTime) <= new Date(startTime)) {
+      return res.status(400).json({ success: false, message: "endTime must be after startTime" });
+    }
+
     const contest = new Contest({
       title,
       description,

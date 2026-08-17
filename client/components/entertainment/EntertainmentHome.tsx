@@ -136,13 +136,13 @@ const EntertainmentHome = () => {
                 </Text>
                 <View className="flex-row items-center gap-2">
                   <View className="bg-rose-600 px-2 py-0.5 rounded">
-                    <Text className="text-white text-[10px] font-bold">TRENDING</Text>
+                    <Text className="text-white text-2xs font-bold">TRENDING</Text>
                   </View>
                   <View className="flex-row items-center">
                     <Ionicons name="star" size={14} color="#fbbf24" />
                     <Text className="text-white text-xs ml-1 font-bold">{featuredMovie.vote_average.toFixed(1)}</Text>
                   </View>
-                  <Text className="text-gray-400 text-xs">Movie</Text>
+                  <Text className="text-slate-500 text-xs">Movie</Text>
                 </View>
               </View>
 
@@ -170,7 +170,7 @@ const EntertainmentHome = () => {
             <TouchableOpacity
               key={cat}
               onPress={() => navigation.navigate('MovieList', { title: cat, type: 'trending' })}
-              className="bg-zinc-800 px-6 py-2.5 rounded-full border border-zinc-700"
+              className="bg-slate-800 px-6 py-2.5 rounded-full border border-slate-700"
             >
               <Text className="text-white font-medium text-sm">{cat}</Text>
             </TouchableOpacity>

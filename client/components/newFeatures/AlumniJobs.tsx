@@ -15,11 +15,11 @@ import { useNavigation } from '@react-navigation/native';
 
 const JobCard = memo(({ item, onOpenDiscussion, onMessageAlumni, onDeleteJob, isOwner, navigation }: any) => {
     return (
-        <View className="bg-white rounded-[32px] mb-8 mx-8 overflow-hidden border border-slate-100 shadow-sm shadow-black/5">
+        <View className="bg-white rounded-4xl mb-8 mx-8 overflow-hidden border border-slate-100 shadow-sm shadow-black/5">
             <View className="p-8">
                 <View className="flex-row justify-between items-start mb-6">
                     <View className="flex-1 mr-4">
-                        <Text className="text-zinc-900 text-2xl font-black  uppercase tracking-tighter leading-tight mb-2" numberOfLines={2}>
+                        <Text className="text-slate-900 text-2xl font-black  uppercase tracking-tighter leading-tight mb-2" numberOfLines={2}>
                             {item.title}
                         </Text>
                         <TouchableOpacity
@@ -30,14 +30,14 @@ const JobCard = memo(({ item, onOpenDiscussion, onMessageAlumni, onDeleteJob, is
                                 source={{ uri: item.alumni?.avatar || 'https://ui-avatars.com/api/?name=User' }}
                                 className="w-6 h-6 rounded-xl mr-2 bg-slate-100"
                             />
-                            <Text className="text-slate-400 text-[9px] font-black uppercase tracking-widest ">{item.alumni?.name} • {item.alumni?.company}</Text>
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide ">{item.alumni?.name} • {item.alumni?.company}</Text>
                         </TouchableOpacity>
                     </View>
                     <View className="items-end">
                         <View className="bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-100">
-                            <Text className="text-orange-600 font-black  text-[10px] uppercase">{item.salary || 'Competitive'}</Text>
+                            <Text className="text-orange-600 font-black  text-2xs uppercase">{item.salary || 'Competitive'}</Text>
                         </View>
-                        <Text className="text-slate-400 text-[8px] font-black uppercase tracking-widest mt-2">
+                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-2">
                             {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
                         </Text>
                     </View>
@@ -50,16 +50,16 @@ const JobCard = memo(({ item, onOpenDiscussion, onMessageAlumni, onDeleteJob, is
                 <View className="flex-row gap-3">
                     <TouchableOpacity
                         onPress={() => Linking.openURL(item.applyLink)}
-                        className="flex-1 bg-zinc-900 py-4 rounded-2xl items-center shadow-lg shadow-black/20"
+                        className="flex-1 bg-slate-900 py-4 rounded-2xl items-center shadow-lg shadow-black/20"
                     >
-                        <Text className="text-white font-black  text-[10px] uppercase tracking-widest">Apply Protocol</Text>
+                        <Text className="text-white font-black  text-2xs uppercase tracking-wide">Apply Protocol</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => onOpenDiscussion(item)}
                         className="bg-slate-50 px-5 py-4 rounded-2xl items-center flex-row border border-slate-100"
                     >
                         <Ionicons name="chatbubbles-outline" size={18} color="#18181b" />
-                        <Text className="text-zinc-900 ml-2 text-[10px] font-black  uppercase">{item.comments?.length || 0}</Text>
+                        <Text className="text-slate-900 ml-2 text-2xs font-black  uppercase">{item.comments?.length || 0}</Text>
                     </TouchableOpacity>
                     {isOwner && (
                         <TouchableOpacity
@@ -77,7 +77,7 @@ const JobCard = memo(({ item, onOpenDiscussion, onMessageAlumni, onDeleteJob, is
                         className="mt-4 flex-row items-center justify-center py-4 bg-slate-50/50 rounded-2xl border border-slate-100/50"
                     >
                         <Ionicons name="mail-outline" size={14} color="#94a3b8" />
-                        <Text className="text-slate-400 font-black  text-[10px] uppercase tracking-widest ml-2">Message Personnel</Text>
+                        <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide ml-2">Message Personnel</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -233,17 +233,17 @@ export default function AlumniJobs() {
     const renderCommentItem = ({ item, isReply = false }: { item: any, isReply?: boolean }) => {
         return (
             <View className={`mb-6 ${isReply ? 'ml-10' : ''}`}>
-                <View className="bg-slate-50 p-5 rounded-[24px] border border-slate-100">
+                <View className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                     <View className="flex-row items-center justify-between mb-2">
                         <View className="flex-row items-center">
-                            <Text className="text-zinc-900 font-black  uppercase text-[10px] tracking-tight">{item.commentor?.username}</Text>
-                            <Text className="text-slate-400 text-[8px] font-black uppercase tracking-widest ml-3">
+                            <Text className="text-slate-900 font-black  uppercase text-2xs tracking-tight">{item.commentor?.username}</Text>
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide ml-3">
                                 {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
                             </Text>
                         </View>
                         {!isReply && (
                             <TouchableOpacity onPress={() => setReplyingTo(item)} className="bg-white px-3 py-1 rounded-lg border border-slate-100">
-                                <Text className="text-zinc-900 font-black  text-[8px] uppercase">Reply</Text>
+                                <Text className="text-slate-900 font-black  text-2xs uppercase">Reply</Text>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -292,15 +292,15 @@ export default function AlumniJobs() {
                         <View className="px-8 pt-6 mb-10">
                             <View className="flex-row justify-between items-center">
                                 <View>
-                                    <Text className="text-3xl font-black  text-zinc-900 tracking-tighter uppercase leading-tight">
+                                    <Text className="text-3xl font-black  text-slate-900 tracking-tighter uppercase leading-tight">
                                         Alumni <Text className="text-orange-500">Jobs</Text> 
                                     </Text>
-                                    <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[2px]">Exclusive Senior Intel</Text>
+                                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Exclusive Senior Intel</Text>
                                 </View>
                                 {isAlumni && (
                                     <TouchableOpacity
                                         onPress={() => setPostModalVisible(true)}
-                                        className="w-14 h-14 bg-zinc-900 rounded-[20px] items-center justify-center shadow-lg shadow-black/20"
+                                        className="w-14 h-14 bg-slate-900 rounded-2xl items-center justify-center shadow-lg shadow-black/20"
                                     >
                                         <Ionicons name="add" size={28} color="white" />
                                     </TouchableOpacity>
@@ -310,11 +310,11 @@ export default function AlumniJobs() {
                     }
                     ListEmptyComponent={!loading ? (
                         <View className="items-center justify-center mt-20 px-10">
-                            <View className="w-24 h-24 bg-white rounded-[32px] items-center justify-center mb-6 border border-slate-100 shadow-sm">
+                            <View className="w-24 h-24 bg-white rounded-4xl items-center justify-center mb-6 border border-slate-100 shadow-sm">
                                 <Ionicons name="briefcase-outline" size={48} color="#cbd5e1" />
                             </View>
-                            <Text className="text-zinc-400 font-black uppercase text-xs tracking-widest text-center">No Jobs Found</Text>
-                            <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center">Check back later for new opportunities from your alumni network.</Text>
+                            <Text className="text-slate-500 font-black uppercase text-xs tracking-wide text-center">No Jobs Found</Text>
+                            <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center">Check back later for new opportunities from your alumni network.</Text>
                         </View>
                     ) : <ActivityIndicator size="large" color="#f97316" className="mt-20" />}
                 />
@@ -323,9 +323,9 @@ export default function AlumniJobs() {
                 <Modal visible={isPostModalVisible} animationType="slide" transparent onRequestClose={() => setPostModalVisible(false)}>
                     <View className="flex-1 bg-black/50 justify-end">
                         <KeyboardAvoidingView behavior="padding">
-                            <View className="bg-white rounded-t-[50px] p-10">
+                            <View className="bg-white rounded-t-5xl p-10">
                                 <View className="flex-row justify-between items-center mb-10">
-                                    <Text className="text-zinc-900 text-2xl font-black  tracking-tighter uppercase">Initialize Post</Text>
+                                    <Text className="text-slate-900 text-2xl font-black  tracking-tighter uppercase">Initialize Post</Text>
                                     <TouchableOpacity onPress={() => setPostModalVisible(false)} className="w-12 h-12 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
                                         <Ionicons name="close" size={24} color="black" />
                                     </TouchableOpacity>
@@ -334,7 +334,7 @@ export default function AlumniJobs() {
                                 <TextInput
                                     placeholder="Position Intel (e.g. Software Engineer)"
                                     placeholderTextColor="#94a3b8"
-                                    className="bg-slate-50 rounded-2xl px-6 py-5 mb-4 font-black  text-zinc-900 border border-slate-100"
+                                    className="bg-slate-50 rounded-2xl px-6 py-5 mb-4 font-black  text-slate-900 border border-slate-100"
                                     value={form.title}
                                     onChangeText={t => setForm({ ...form, title: t })}
                                 />
@@ -342,7 +342,7 @@ export default function AlumniJobs() {
                                     placeholder="Opportunity Description"
                                     multiline
                                     placeholderTextColor="#94a3b8"
-                                    className="bg-slate-50 rounded-2xl px-6 py-5 mb-4 font-black  text-zinc-900 border border-slate-100 h-32"
+                                    className="bg-slate-50 rounded-2xl px-6 py-5 mb-4 font-black  text-slate-900 border border-slate-100 h-32"
                                     value={form.description}
                                     onChangeText={t => setForm({ ...form, description: t })}
                                     textAlignVertical="top"
@@ -350,21 +350,21 @@ export default function AlumniJobs() {
                                 <TextInput
                                     placeholder="Source / Apply Link"
                                     placeholderTextColor="#94a3b8"
-                                    className="bg-slate-50 rounded-2xl px-6 py-5 mb-4 font-black  text-zinc-900 border border-slate-100"
+                                    className="bg-slate-50 rounded-2xl px-6 py-5 mb-4 font-black  text-slate-900 border border-slate-100"
                                     value={form.applyLink}
                                     onChangeText={t => setForm({ ...form, applyLink: t })}
                                 />
                                 <TextInput
                                     placeholder="Compensation (Optional)"
                                     placeholderTextColor="#94a3b8"
-                                    className="bg-slate-50 rounded-2xl px-6 py-5 mb-10 font-black  text-zinc-900 border border-slate-100"
+                                    className="bg-slate-50 rounded-2xl px-6 py-5 mb-10 font-black  text-slate-900 border border-slate-100"
                                     value={form.salary}
                                     onChangeText={t => setForm({ ...form, salary: t })}
                                 />
                                 <TouchableOpacity
                                     onPress={handleCreateJob}
                                     disabled={posting}
-                                    className="bg-zinc-900 py-6 rounded-[32px] items-center shadow-xl shadow-black/20"
+                                    className="bg-slate-900 py-6 rounded-4xl items-center shadow-xl shadow-black/20"
                                 >
                                     {posting ? <ActivityIndicator color="white" /> : <Text className="text-white font-black  uppercase tracking-widest">Commit Opening</Text>}
                                 </TouchableOpacity>
@@ -377,11 +377,11 @@ export default function AlumniJobs() {
                 {/* --- DISCUSSION MODAL --- */}
                 <Modal visible={isDiscussionVisible} animationType="slide" transparent onRequestClose={() => setDiscussionVisible(false)}>
                     <View className="flex-1 bg-black/50 justify-end">
-                        <View className="bg-white h-[85%] rounded-t-[50px] overflow-hidden">
+                        <View className="bg-white h-[85%] rounded-t-5xl overflow-hidden">
                             <View className="p-10 pb-6 flex-row justify-between items-center border-b border-slate-50">
                                 <View>
-                                    <Text className="text-zinc-900 text-2xl font-black  tracking-tighter uppercase leading-tight">Discussion</Text>
-                                    <Text className="text-slate-400 text-[8px] font-black uppercase tracking-[2px] mt-1">Intelligence Network</Text>
+                                    <Text className="text-slate-900 text-2xl font-black  tracking-tighter uppercase leading-tight">Discussion</Text>
+                                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">Intelligence Network</Text>
                                 </View>
                                 <TouchableOpacity onPress={() => setDiscussionVisible(false)} className="w-12 h-12 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
                                     <Ionicons name="close" size={24} color="black" />
@@ -397,7 +397,7 @@ export default function AlumniJobs() {
                                 ListEmptyComponent={!loadingComments ? (
                                     <View className="items-center mt-20">
                                         <Ionicons name="chatbubble-ellipses-outline" size={48} color="#cbd5e1" />
-                                        <Text className="text-slate-400 font-black  uppercase text-[10px] mt-4 tracking-widest">No active discussion</Text>
+                                        <Text className="text-slate-500 font-black  uppercase text-2xs mt-4 tracking-wide">No active discussion</Text>
                                     </View>
                                 ) : <ActivityIndicator color="#f97316" />}
                             />
@@ -406,7 +406,7 @@ export default function AlumniJobs() {
                                 <View className="p-8 pb-12 border-t border-slate-50 bg-white">
                                     {replyingTo && (
                                         <View className="flex-row items-center justify-between mb-4 bg-orange-50 p-4 rounded-2xl border border-orange-100">
-                                            <Text className="text-orange-600 font-black  uppercase text-[8px]">Replying to @{replyingTo.commentor?.username}</Text>
+                                            <Text className="text-orange-600 font-black  uppercase text-2xs">Replying to @{replyingTo.commentor?.username}</Text>
                                             <TouchableOpacity onPress={() => setReplyingTo(null)}><Ionicons name="close-circle" size={18} color="#f97316" /></TouchableOpacity>
                                         </View>
                                     )}
@@ -414,7 +414,7 @@ export default function AlumniJobs() {
                                         <TextInput
                                             placeholder="Transmit intelligence..."
                                             placeholderTextColor="#94a3b8"
-                                            className="flex-1 bg-slate-50 text-zinc-900 p-5 rounded-[24px] mr-4 font-black  text-xs border border-slate-100"
+                                            className="flex-1 bg-slate-50 text-slate-900 p-5 rounded-2xl mr-4 font-black  text-xs border border-slate-100"
                                             value={newComment}
                                             onChangeText={setNewComment}
                                         />

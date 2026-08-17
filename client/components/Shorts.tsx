@@ -34,6 +34,7 @@ import {
   markShortsAsSeen,
   resetSeenShorts,
 } from "../utils/feedSession";
+import { useTabBarClearance } from '../constants/layout';
 
 
 /* ---------------- CONSTANTS ---------------- */
@@ -182,18 +183,18 @@ const SingleShort = React.memo(({
             />
             <View className="ml-3">
               <Text className="text-white font-semibold">{item.user.name}</Text>
-              <Text className="text-gray-300 text-xs">@{item.user.username}</Text>
+              <Text className="text-slate-300 text-xs">@{item.user.username}</Text>
             </View>
           </Pressable>
 
           {/* Truncated Title & Description */}
           <View>
-            <Text className="text-gray-300 font-bold mb-1">
+            <Text className="text-slate-300 font-bold mb-1">
               {(!showFullText && item.title.length > 50) 
                 ? item.title.substring(0, 50) + "..." 
                 : item.title}
             </Text>
-            <Text className="text-gray-400 text-sm">
+            <Text className="text-slate-500 text-sm">
               {(!showFullText && item.description.length > 50) 
                 ? item.description.substring(0, 50) + "..." 
                 : item.description}
@@ -262,7 +263,7 @@ const SingleShort = React.memo(({
             <View className="bg-green-500/20 p-2 rounded-full border border-green-500/30">
               <Ionicons name="cash-outline" size={26} color="#4ade80" />
             </View>
-            <Text className="text-green-400 text-[10px] mt-1 font-bold">TIP</Text>
+            <Text className="text-green-400 text-2xs mt-1 font-bold">TIP</Text>
           </Pressable>
 
           <Pressable onPress={handleShare} className="mb-4">
@@ -278,6 +279,7 @@ const SingleShort = React.memo(({
 });
 
 export default function Shorts() {
+  const tabBarClearance = useTabBarClearance();
   const { user } = useAuth();
   const currentUserId = user?.id || user?._id;
 
@@ -506,15 +508,15 @@ export default function Shorts() {
       <View className="flex-row">
         <Image
           source={{ uri: getFullUrl(comment.commentor?.avatar) || `https://ui-avatars.com/api/?name=${comment.commentor?.username}` }}
-          className={`${isReply ? 'h-7 w-7' : 'h-9 w-9'} rounded-full mr-3 bg-neutral-800`}
+          className={`${isReply ? 'h-7 w-7' : 'h-9 w-9'} rounded-full mr-3 bg-slate-800`}
         />
         <View className="flex-1">
           <View className="flex flex-row items-center gap-1">
-            <Text className="text-white font-semibold text-[13px]">{comment.commentor?.name}</Text>
-            <Text className="text-gray-400 text-[11px]">@{comment.commentor?.username}</Text>
+            <Text className="text-white font-semibold text-xs">{comment.commentor?.name}</Text>
+            <Text className="text-slate-500 text-2xs">@{comment.commentor?.username}</Text>
           </View>
           
-          <Text className="text-gray-300 text-[13px] mt-0.5">
+          <Text className="text-slate-300 text-xs mt-0.5">
             {comment.replyToUser && <Text className="text-pink-400">@{comment.replyToUser.username} </Text>}
             {comment.text}
           </Text>
@@ -526,12 +528,12 @@ export default function Shorts() {
                  setCommentText(`@${comment.commentor.username} `);
                  commentInputRef.current?.focus();
                }}>
-                 <Text className="text-gray-500 text-[11px] font-bold">Reply</Text>
+                 <Text className="text-slate-500 text-2xs font-bold">Reply</Text>
                </Pressable>
              )}
              {comment.commentor?._id === currentUserId && (
                <Pressable onPress={() => deleteComment(comment._id)}>
-                 <Text className="text-red-500/70 text-[11px] font-bold">Delete</Text>
+                 <Text className="text-red-500/70 text-2xs font-bold">Delete</Text>
                </Pressable>
              )}
           </View>
@@ -591,15 +593,15 @@ export default function Shorts() {
             onPress={() => setCommentModalVisible(false)}
           />
 
-          <View className="bg-neutral-900 rounded-t-2xl h-[75%] px-0 pt-4">
+          <View className="bg-slate-900 rounded-t-2xl h-[75%] px-0 pt-4">
             <View className="items-center mb-3">
-              <View className="h-1 w-10 bg-gray-600 rounded-full mb-2" />
+              <View className="h-1 w-10 bg-slate-600 rounded-full mb-2" />
               <Text className="text-white font-semibold text-base">Comments</Text>
             </View>
 
             <ScrollView
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 150, paddingHorizontal: 16 }}
+              contentContainerStyle={{ paddingBottom: tabBarClearance, paddingHorizontal: 16 }}
             >
               {commentLoading === activeShortId ? (
                 <>
@@ -608,7 +610,7 @@ export default function Shorts() {
                   <CommentSkeleton />
                 </>
               ) : comments.length === 0 ? (
-                <Text className="text-gray-400 text-center mt-10">
+                <Text className="text-slate-500 text-center mt-10">
                   No comments yet
                 </Text>
               ) : (
@@ -618,10 +620,10 @@ export default function Shorts() {
               )}
             </ScrollView>
 
-            <View className="absolute bottom-0 left-0 right-0 border-t border-gray-800 bg-neutral-900 px-3 pt-3 pb-8">
+            <View className="absolute bottom-0 left-0 right-0 border-t border-slate-800 bg-slate-900 px-3 pt-3 pb-8">
               {replyingTo && (
-                <View className="flex-row items-center justify-between bg-neutral-800 px-3 py-2 mb-2 rounded-lg">
-                  <Text className="text-gray-400 text-xs text-zinc-100">Replying to <Text className="font-bold">@{replyingTo.commentor.username}</Text></Text>
+                <View className="flex-row items-center justify-between bg-slate-800 px-3 py-2 mb-2 rounded-lg">
+                  <Text className="text-slate-500 text-xs text-slate-100">Replying to <Text className="font-bold">@{replyingTo.commentor.username}</Text></Text>
                   <Pressable onPress={() => setReplyingTo(null)}>
                     <Ionicons name="close-circle" size={18} color="#9ca3af" />
                   </Pressable>
@@ -634,11 +636,11 @@ export default function Shorts() {
                   onChangeText={setCommentText}
                   placeholder={replyingTo ? "Add a reply..." : "Add a comment..."}
                   placeholderTextColor="#888"
-                  className="flex-1 text-white bg-neutral-800 rounded-full px-4 py-3 mr-2"
+                  className="flex-1 text-white bg-slate-800 rounded-full px-4 py-3 mr-2"
                   multiline
                 />
                 <Pressable onPress={addComment} disabled={!commentText.trim()}>
-                  <Text className={`font-semibold ${!commentText.trim() ? 'text-gray-600' : 'text-pink-300'}`}>Post</Text>
+                  <Text className={`font-semibold ${!commentText.trim() ? 'text-slate-600' : 'text-pink-300'}`}>Post</Text>
                 </Pressable>
               </View>
             </View>

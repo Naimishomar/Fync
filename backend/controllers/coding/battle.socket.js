@@ -3,6 +3,7 @@ import { nanoid } from "nanoid";
 import Problem from "../../models/coding/problem.model.js";
 import Judge0Service from "../../services/judge0.service.js";
 import CodingSubmission from "../../models/coding/codingSubmission.model.js";
+import { getSocketAcrossCluster } from "../../utils/socketCluster.js";
 
 const codingBattleSockets = (io) => {
   io.on("connection", (socket) => {
@@ -29,7 +30,7 @@ const codingBattleSockets = (io) => {
         return;
       }
 
-      const opponentSocket = io.sockets.sockets.get(opponent.socketId);
+      const opponentSocket = await getSocketAcrossCluster(io, opponent.socketId);
       if (!opponentSocket) {
         // Try again
         return socket.emit("find_coding_match", { userId, difficulty });

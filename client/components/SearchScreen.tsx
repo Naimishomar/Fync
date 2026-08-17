@@ -101,10 +101,10 @@ const SearchScreen = () => {
         />
 
         <View className="ml-4">
-          <Text className="text-zinc-900 font-black text-xs tracking-tight">
+          <Text className="text-slate-900 font-black text-xs tracking-tight">
             {item.username}
           </Text>
-          <Text className="text-slate-400 text-[10px] font-bold tracking-widest">
+          <Text className="text-slate-500 text-2xs font-bold tracking-wide">
             {item.name}
           </Text>
         </View>
@@ -141,11 +141,11 @@ const SearchScreen = () => {
           <View className="flex-row items-center justify-between mb-5">
             <View className="flex-1">
               <View className="flex-row items-center">
-                <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase leading-tight">
+                <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase leading-tight">
                   Find <Text className="text-orange-500">Friends</Text>
                 </Text>
               </View>
-              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-[1px]">Global Campus Directory</Text>
+              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Global Campus Directory</Text>
             </View>
           </View>
 
@@ -153,7 +153,7 @@ const SearchScreen = () => {
           <View className="flex-row items-center bg-white px-5 py-1 rounded-2xl border border-slate-100 shadow-xl shadow-black/5 mb-5">
             <Ionicons name="search" size={20} color="#94A3B8" />
             <TextInput
-              className="flex-1 text-zinc-900 font-bold text-sm tracking-tight p-3"
+              className="flex-1 text-slate-900 font-bold text-sm tracking-tight p-3"
               placeholder="Search contacts..."
               placeholderTextColor="#CBD5E1"
               value={query}
@@ -179,18 +179,18 @@ const SearchScreen = () => {
             renderItem={({ item }) => renderUserItem({ item, isRecent: false })}
             contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
             ListHeaderComponent={() => (
-              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-3">Registry results</Text>
+              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-3">Registry results</Text>
             )}
             ListEmptyComponent={
               !loading ? (
                 <View className="items-center mt-12 px-10">
-                  <View className="w-16 h-16 bg-white rounded-full items-center justify-center mb-4 border border-gray-100 shadow-sm">
+                  <View className="w-16 h-16 bg-white rounded-full items-center justify-center mb-4 border border-slate-100 shadow-sm">
                     <Ionicons name="search-outline" size={32} color="#cbd5e1" />
                   </View>
-                  <Text className="text-center text-zinc-900 font-bold text-lg">
+                  <Text className="text-center text-slate-900 font-bold text-lg">
                     No users found
                   </Text>
-                  <Text className="text-center text-gray-500 mt-1">
+                  <Text className="text-center text-slate-500 mt-1">
                     Try searching for a different name or username
                   </Text>
                 </View>
@@ -200,10 +200,10 @@ const SearchScreen = () => {
         ) : (
           <>
             <View className="flex-row justify-between items-center px-8 mt-4 mb-4">
-              <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Recent Registry Lookups</Text>
+              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Recent Registry Lookups</Text>
               {recentSearches.length > 0 && (
                 <TouchableOpacity onPress={clearAll}>
-                  <Text className="text-[10px] font-black text-orange-500 uppercase tracking-widest">Wipe Data</Text>
+                  <Text className="text-2xs font-black text-orange-500 uppercase tracking-wide">Wipe Data</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -216,11 +216,11 @@ const SearchScreen = () => {
               contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
               ListEmptyComponent={
                 <View className="items-center mt-12 px-10">
-                  <View className="w-20 h-20 bg-white rounded-[32px] items-center justify-center mb-6 border border-slate-100 shadow-sm">
+                  <View className="w-20 h-20 bg-white rounded-4xl items-center justify-center mb-6 border border-slate-100 shadow-sm">
                     <Ionicons name="time-outline" size={32} color="#cbd5e1" />
                   </View>
-                  <Text className="text-zinc-400 font-black  uppercase text-xs tracking-widest text-center">History Empty</Text>
-                  <Text className="text-slate-300 text-[10px] font-bold uppercase mt-2 text-center">No previous registry lookups found.</Text>
+                  <Text className="text-slate-500 font-black  uppercase text-xs tracking-wide text-center">History Empty</Text>
+                  <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center">No previous registry lookups found.</Text>
                 </View>
               }
             />

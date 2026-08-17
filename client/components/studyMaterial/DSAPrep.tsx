@@ -79,22 +79,22 @@ const DSAPrep = () => {
             <View className='px-8 pt-8 bg-transparent'>
               <View className="flex-row items-center justify-between mb-8">
                 <View>
-                  <Text className="text-zinc-900 text-3xl font-black tracking-tighter uppercase">DSA <Text className="text-purple-600">Prep</Text></Text>
-                  <Text className="text-slate-500 text-[10px] font-black uppercase tracking-[2px] mt-0.5">Master Placement Hub</Text>
+                  <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase">DSA <Text className="text-purple-600">Prep</Text></Text>
+                  <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Master Placement Hub</Text>
                 </View>
                 <TouchableOpacity onPress={() => navigation.goBack()} className="w-12 h-12 rounded-2xl items-center justify-center border border-slate-100 bg-white shadow-sm">
                   <Ionicons name="arrow-back" size={20} color="#18181b" />
                 </TouchableOpacity>
               </View>
 
-              <View className="flex-row items-center bg-white px-4 py-1 rounded-[20px] border border-slate-100 mb-6">
+              <View className="flex-row items-center bg-white px-4 py-1 rounded-2xl border border-slate-100 mb-6">
                 <Ionicons name="search" size={20} color="#CBD5E1" />
                 <TextInput
                   placeholder="Search DSA topics..."
                   placeholderTextColor="#CBD5E1"
                   value={search}
                   onChangeText={setSearch}
-                  className="flex-1 text-zinc-900 font-black text-sm tracking-tight p-3"
+                  className="flex-1 text-slate-900 font-black text-sm tracking-tight p-3"
                 />
               </View>
 
@@ -107,9 +107,9 @@ const DSAPrep = () => {
                   renderItem={({ item }) => (
                     <TouchableOpacity
                       onPress={() => setActiveFilter(item)}
-                      className={`mr-3 px-6 py-3 rounded-full border border-slate-100 ${activeFilter === item ? 'bg-zinc-900' : 'bg-white'}`}
+                      className={`mr-3 px-6 py-3 rounded-full border border-slate-100 ${activeFilter === item ? 'bg-slate-900' : 'bg-white'}`}
                     >
-                      <Text className={`font-black text-[10px] uppercase tracking-widest ${activeFilter === item ? 'text-white' : 'text-slate-400'}`}>
+                      <Text className={`font-black text-2xs uppercase tracking-widest ${activeFilter === item ? 'text-white' : 'text-slate-500'}`}>
                         {item}
                       </Text>
                     </TouchableOpacity>
@@ -120,16 +120,16 @@ const DSAPrep = () => {
 
               <View className="mb-6 flex-row items-center">
                 <View className="bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20 mr-2">
-                  <Text className="text-purple-600 font-black text-[8px] uppercase tracking-tighter">Resources</Text>
+                  <Text className="text-purple-600 font-black text-2xs uppercase tracking-tighter">Resources</Text>
                 </View>
-                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest flex-1" numberOfLines={1}>/ Placement Protocol / {activeFilter}</Text>
+                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide flex-1" numberOfLines={1}>/ Placement Protocol / {activeFilter}</Text>
               </View>
             </View>
           }
           renderItem={({ item }) => (
             <TouchableOpacity
               activeOpacity={0.7}
-              className="flex-row items-center p-5 mx-6 mb-4 bg-white rounded-[28px] border border-slate-100"
+              className="flex-row items-center p-5 mx-6 mb-4 bg-white rounded-3xl border border-slate-100"
               onPress={() => handlePress(item)}
             >
               <View className="w-14 h-14 bg-slate-50 rounded-2xl items-center justify-center p-2.5">
@@ -141,10 +141,10 @@ const DSAPrep = () => {
               </View>
 
               <View className="ml-4 flex-1">
-                <Text className="text-zinc-900 text-sm font-black uppercase tracking-tight" numberOfLines={1}>
+                <Text className="text-slate-900 text-sm font-black uppercase tracking-tight" numberOfLines={1}>
                   {item.name}
                 </Text>
-                <Text className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">
+                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">
                   {item.category} Note
                 </Text>
               </View>
@@ -156,10 +156,10 @@ const DSAPrep = () => {
           )}
           ListEmptyComponent={
             <View className="items-center mt-20 px-10">
-              <View className="w-20 h-20 bg-slate-50 rounded-[32px] items-center justify-center mb-6">
+              <View className="w-20 h-20 bg-slate-50 rounded-4xl items-center justify-center mb-6">
                 <Ionicons name="search-outline" size={32} color="#CBD5E1" />
               </View>
-              <Text className="text-slate-400 font-black text-xs text-center uppercase tracking-widest">No topics found</Text>
+              <Text className="text-slate-500 font-black text-xs text-center uppercase tracking-wide">No topics found</Text>
             </View>
           }
         />

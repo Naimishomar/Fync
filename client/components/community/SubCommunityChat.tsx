@@ -118,16 +118,16 @@ const SubCommunityChat = ({ navigation, route }: any) => {
             <View className={`mb-8 flex-row gap-4 ${isMine ? 'justify-end' : 'justify-start'}`}>
                 {!isMine && (
                     <View className="shadow-sm shadow-black/5">
-                        <Image source={{ uri: item.sender?.avatar || 'https://via.placeholder.com/150' }} className="w-10 h-10 rounded-[14px] bg-slate-100" />
+                        <Image source={{ uri: item.sender?.avatar || 'https://via.placeholder.com/150' }} className="w-10 h-10 rounded-lg bg-slate-100" />
                     </View>
                 )}
                 <View className="flex-1 max-w-[85%]">
                     {!isMine && (
                         <View className="flex-row items-center gap-2 mb-2 ml-1">
-                            <Text className="text-zinc-900 font-black uppercase text-[9px] tracking-tight">{item.sender?.name}</Text>
+                            <Text className="text-slate-900 font-black uppercase text-2xs tracking-tight">{item.sender?.name}</Text>
                             {isSenderAdmin && (
                                 <View className="bg-orange-500/10 px-2 py-0.5 rounded-lg border border-orange-200">
-                                    <Text className="text-orange-600 font-black uppercase text-[7px] tracking-widest">Guardian</Text>
+                                    <Text className="text-orange-600 font-black uppercase text-2xs tracking-wide">Guardian</Text>
                                 </View>
                             )}
                         </View>
@@ -136,20 +136,20 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                     <TouchableOpacity 
                         activeOpacity={0.9} 
                         onLongPress={() => canDelete && handleDelete(item._id)}
-                        className={`rounded-[28px] px-6 py-5 shadow-sm ${isMine ? 'bg-zinc-900 rounded-tr-none shadow-black/20' : 'bg-white rounded-tl-none border border-slate-100 shadow-black/5'} ${isSenderAdmin && !isMine ? 'border-orange-100 bg-orange-50/20' : ''}`}
+                        className={`rounded-3xl px-6 py-5 shadow-sm ${isMine ? 'bg-slate-900 rounded-tr-none shadow-black/20' : 'bg-white rounded-tl-none border border-slate-100 shadow-black/5'} ${isSenderAdmin && !isMine ? 'border-orange-100 bg-orange-50/20' : ''}`}
                     >
                         {item.repliedTo && (
                             <View className={`mb-4 p-4 rounded-2xl border-l-[4px] ${isMine ? 'bg-white/5 border-white/20' : 'bg-slate-50 border-slate-200'}`}>
-                                <Text className={`text-[8px] font-black uppercase mb-1 tracking-widest ${isMine ? 'text-white/40' : 'text-slate-400'}`}>
+                                <Text className={`text-2xs font-black uppercase mb-1 tracking-widest ${isMine ? 'text-white/40' : 'text-slate-500'}`}>
                                     Responding to {item.repliedTo.sender?.name}
                                 </Text>
-                                <Text className={`text-[11px] font-medium ${isMine ? 'text-white/80' : 'text-zinc-600'}`} numberOfLines={2}>{item.repliedTo.text}</Text>
+                                <Text className={`text-2xs font-medium ${isMine ? 'text-white/80' : 'text-slate-600'}`} numberOfLines={2}>{item.repliedTo.text}</Text>
                             </View>
                         )}
-                        <Text className={`font-medium text-[14px] leading-[24px] ${isMine ? 'text-white' : 'text-zinc-800'}`}>{item.text}</Text>
+                        <Text className={`font-medium text-sm leading-[24px] ${isMine ? 'text-white' : 'text-slate-800'}`}>{item.text}</Text>
                         
                         <View className="flex-row items-center justify-between mt-4">
-                            <Text className={`text-[9px] font-black uppercase tracking-widest ${isMine ? 'text-white/30' : 'text-slate-300'}`}>
+                            <Text className={`text-2xs font-black uppercase tracking-widest ${isMine ? 'text-white/30' : 'text-slate-300'}`}>
                                 {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </Text>
                             
@@ -181,10 +181,10 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                             <Ionicons name="chevron-back" size={22} color="#18181b" />
                         </TouchableOpacity>
                         <View>
-                            <Text className="text-zinc-900 font-black uppercase text-[14px] tracking-tight">#{subName}</Text>
+                            <Text className="text-slate-900 font-black uppercase text-sm tracking-tight">#{subName}</Text>
                             <View className="flex-row items-center gap-2 mt-0.5">
                                 <View className="w-2 h-2 rounded-full bg-orange-500 shadow-sm" />
-                                <Text className="text-slate-400 font-black uppercase text-[8px] tracking-[2px]">Link Established</Text>
+                                <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">Link Established</Text>
                             </View>
                         </View>
                     </View>
@@ -195,7 +195,7 @@ const SubCommunityChat = ({ navigation, route }: any) => {
 
                 {/* Status Bar */}
                 <View className="bg-orange-50 py-2.5 items-center border-b border-orange-100/50">
-                    <Text className="text-orange-600 font-black uppercase text-[8px] tracking-[4px]">Sector Signal Encrypted</Text>
+                    <Text className="text-orange-600 font-black uppercase text-2xs tracking-wide">Sector Signal Encrypted</Text>
                 </View>
 
                 <View className="flex-1">
@@ -219,18 +219,18 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                 <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0} enabled={Platform.OS === 'ios'}>
                     {subType === 'announcement' && !isCreator ? (
                         <View className="p-10 bg-white items-center justify-center border-t border-slate-100">
-                            <View className="bg-slate-50 px-10 py-4 rounded-[28px] border border-slate-100 flex-row items-center gap-3">
+                            <View className="bg-slate-50 px-10 py-4 rounded-3xl border border-slate-100 flex-row items-center gap-3">
                                 <Feather name="lock" size={16} color="#CBD5E1" />
-                                <Text className="text-slate-400 font-black uppercase text-[10px] tracking-widest text-center">Guardian Broadcast Restricted</Text>
+                                <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide text-center">Guardian Broadcast Restricted</Text>
                             </View>
                         </View>
                     ) : (
                         <View className="bg-white px-6 py-6 border-t border-slate-100">
                             {replyingTo && (
-                                <View className="mb-5 p-5 bg-slate-50 rounded-[28px] border-l-[6px] border-orange-500 flex-row justify-between items-center shadow-sm">
+                                <View className="mb-5 p-5 bg-slate-50 rounded-3xl border-l-[6px] border-orange-500 flex-row justify-between items-center shadow-sm">
                                     <View className="flex-1 mr-5">
-                                        <Text className="text-orange-600 font-black uppercase text-[8px] mb-1 tracking-widest">Responding to {replyingTo.sender?.name}</Text>
-                                        <Text className="text-slate-500 text-[11px] font-medium" numberOfLines={1}>{replyingTo.text}</Text>
+                                        <Text className="text-orange-600 font-black uppercase text-2xs mb-1 tracking-wide">Responding to {replyingTo.sender?.name}</Text>
+                                        <Text className="text-slate-500 text-2xs font-medium" numberOfLines={1}>{replyingTo.text}</Text>
                                     </View>
                                     <TouchableOpacity onPress={() => setReplyingTo(null)}>
                                         <Ionicons name="close-circle" size={24} color="#CBD5E1" />
@@ -238,14 +238,14 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                                 </View>
                             )}
                             <View className="flex-row items-end gap-4">
-                                <TouchableOpacity className="w-14 h-14 bg-slate-50 rounded-[22px] items-center justify-center mb-0.5 border border-slate-100 shadow-sm">
+                                <TouchableOpacity className="w-14 h-14 bg-slate-50 rounded-2xl items-center justify-center mb-0.5 border border-slate-100 shadow-sm">
                                     <Feather name="plus" size={28} color="#CBD5E1" />
                                 </TouchableOpacity>
-                                <View className="flex-1 min-h-[56px] max-h-[140px] bg-slate-50 rounded-[28px] px-6 border border-slate-100 justify-center shadow-sm">
+                                <View className="flex-1 min-h-[56px] max-h-[140px] bg-slate-50 rounded-3xl px-6 border border-slate-100 justify-center shadow-sm">
                                     <TextInput 
                                         placeholder={subType === 'announcement' ? "Initiate broadcast..." : "Link message..."} 
                                         placeholderTextColor="#CBD5E1"
-                                        className="font-medium text-[14px] text-zinc-900 leading-[22px]"
+                                        className="font-medium text-sm text-slate-900 leading-[22px]"
                                         value={text}
                                         onChangeText={setText}
                                         multiline
@@ -254,7 +254,7 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                                 <TouchableOpacity 
                                     onPress={handleSend} 
                                     disabled={!text.trim() || sending} 
-                                    className={`w-14 h-14 rounded-[22px] items-center justify-center shadow-xl mb-0.5 ${text.trim() ? 'bg-zinc-900 shadow-black/40' : 'bg-slate-200 shadow-none'}`}
+                                    className={`w-14 h-14 rounded-2xl items-center justify-center shadow-xl mb-0.5 ${text.trim() ? 'bg-slate-900 shadow-black/40' : 'bg-slate-200 shadow-none'}`}
                                 >
                                     {sending ? <ActivityIndicator size="small" color="white" /> : <Feather name="arrow-up" size={28} color="white" />}
                                 </TouchableOpacity>

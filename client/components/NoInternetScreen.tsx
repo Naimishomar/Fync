@@ -21,13 +21,13 @@ const NoInternetScreen = ({ onRetry }: { onRetry: () => void }) => {
       <View className="w-[85%] items-center p-5">
         <View className="mb-10 justify-center items-center">
           <Ionicons name="cloud-offline-outline" size={80} color="#f97316" />
-          <View className="absolute w-[120px] h-[120px] rounded-[60px] bg-orange-500/10 -z-10" />
+          <View className="absolute w-[120px] h-[120px] rounded-5xl bg-orange-500/10 -z-10" />
         </View>
         
-        <Text className="text-[28px] font-black text-gray-800 mb-3 text-center">
+        <Text className="text-2xl font-black text-slate-800 mb-3 text-center">
           No Connection
         </Text>
-        <Text className="text-base text-gray-500 text-center leading-6 mb-10">
+        <Text className="text-base text-slate-500 text-center leading-6 mb-10">
           Your device is currently offline. Please check your internet settings and try again.
         </Text>
 

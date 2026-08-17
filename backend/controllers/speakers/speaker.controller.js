@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 import { deleteFromR2 } from "../../utils/r2.js";
 import Razorpay from "razorpay";
 import dotenv from "dotenv";
+import PaymentOrder from "../../models/paymentOrder.model.js";
 dotenv.config({ quiet: true });
 
 const razorpay = new Razorpay({
@@ -300,6 +301,17 @@ export const registerSpeakerSession = async(req,res)=>{
                 }
             };
             order = await razorpay.orders.create(options);
+
+            // Record it the same way /payment/order does, so the shared verify
+            // endpoint can price-check it, tie it to this user, and refuse a
+            // replay. The amount here is already server-derived from session.fee.
+            await PaymentOrder.create({
+                razorpayOrderId: order.id,
+                user: req.user.id,
+                purpose: 'speaker_session',
+                amount: options.amount,
+                meta: { registrationId: String(registration._id), eventId: String(session.eventId) },
+            });
         }
 
         return res.status(200).json({ 
@@ -611,8 +623,13 @@ export const getEventRegistrations = async (req, res) => {
         if (!eventId) {
             return res.status(400).json({ success: false, message: "Event ID is required" });
         }
+        // CreateSpeakerSession.eventId is a Number, so a non-numeric param used to
+        // reach Mongoose and come back as a 500 with the raw cast error attached.
+        if (!/^\d+$/.test(String(eventId))) {
+            return res.status(400).json({ success: false, message: "Event ID must be numeric" });
+        }
 
-        const session = await CreateSpeakerSession.findOne({ eventId });
+        const session = await CreateSpeakerSession.findOne({ eventId: Number(eventId) });
         if (!session) {
             return res.status(404).json({ success: false, message: "Speaker session not found" });
         }
