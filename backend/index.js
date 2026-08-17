@@ -417,18 +417,30 @@ const shutdown = async (signal) => {
   shuttingDown = true;
   console.info(`🔴 ${signal} received. Draining...`);
 
-  // Hard deadline: never let a stuck socket block the deploy forever.
+  // Hard deadline. Must stay below ecosystem.config.cjs kill_timeout (10s) —
+  // at 15s PM2 sent SIGKILL first and this never got to run, which is exactly
+  // the escape hatch it was supposed to be.
   const forceExit = setTimeout(() => {
     console.error('⏱️ Drain timed out. Forcing exit.');
     process.exit(1);
-  }, 15000);
+  }, 8000);
   forceExit.unref();
 
   try {
     io.close();
     await new Promise((resolve) => server.close(resolve));
     await mongoose.connection.close(false);
-    if (redisClient.isOpen) await redisClient.quit();
+    // quit() flushes pending commands and waits for the server to answer, so
+    // against an unreachable Redis it never returns — that is what hung the
+    // drain until SIGKILL. Only graceful-quit a client that can actually talk.
+    // isOpen on the destroy path too: destroy() throws "The client is closed"
+    // if the socket never opened, and that would turn a clean shutdown into a
+    // non-zero exit.
+    if (redisClient.isReady) {
+      await redisClient.quit();
+    } else if (redisClient.isOpen) {
+      redisClient.destroy();
+    }
     console.log('✅ Shutdown complete.');
     process.exit(0);
   } catch (err) {
