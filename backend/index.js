@@ -142,8 +142,15 @@ const subClient = redisClient.duplicate();
 pubClient.on('error', (err) => console.error("Redis PubClient Error ❌", err));
 subClient.on('error', (err) => console.error("Redis SubClient Error ❌", err));
 
+// Read by /health. In cluster mode a missing adapter means a broadcast from one
+// worker never reaches sockets held by another — chat and notifications reach
+// roughly half the users, with no error anywhere. Reporting it keeps the deploy
+// health check from calling that a success.
+let adapterReady = false;
+
 Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
   io.adapter(createAdapter(pubClient, subClient));
+  adapterReady = true;
   console.log("✅ Socket.IO Redis Adapter Connected");
 }).catch(err => {
   console.error("❌ Redis Adapter Connection Error:", err);
@@ -292,8 +299,12 @@ app.get('/', (req, res) => {
   res.send('Fync never gets down!🚀');
 });
 
-// PM2 Health Check
+// PM2 Health Check — also the deploy gate, so it must fail when Redis is
+// missing rather than reporting UP on a half-working cluster.
 app.get('/health', (req, res) => {
+  if (!adapterReady) {
+    return res.status(503).json({ status: 'DEGRADED', reason: 'socket.io redis adapter not connected', timestamp: new Date() });
+  }
   res.status(200).json({ status: 'UP', timestamp: new Date() });
 });
 
