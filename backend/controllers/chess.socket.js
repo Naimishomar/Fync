@@ -9,7 +9,7 @@ export const setChessIo = (io) => {
 
     // --- MATCHMAKING ---
     socket.on("find_chess_match", async ({ userId, username, name, avatar }) => {
-      if (!redisClient.isOpen) {
+      if (!redisClient.isReady) {
         socket.emit("chess_error", "Matching service unavailable.");
         return;
       }

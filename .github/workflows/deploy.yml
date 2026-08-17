@@ -122,12 +122,18 @@ jobs:
             # previous commit. Without the trap, `set -e` would abort on a pm2
             # error and leave the checkout ahead of the process actually running.
             rollback() {
+              # No `set -e` in here: a failing step must not abort the rollback
+              # before the restart and the logs that explain the failure.
+              set +e
               echo "deploy failed — rolling back to $PREVIOUS"
               git reset --hard "$PREVIOUS"
               npm ci --omit=dev
-              pm2 startOrReload ecosystem.config.cjs --env production --update-env
+              # By process name, not by config file: the old commit may predate
+              # ecosystem.config.cjs, and `pm2 ... ecosystem.config.cjs` then dies
+              # with "File not found" without ever restarting anything.
+              pm2 reload fync-backend --update-env
               pm2 save
-              pm2 logs fync-backend --lines 40 --nostream || true
+              pm2 logs fync-backend --lines 40 --nostream
               exit 1
             }
             trap rollback ERR

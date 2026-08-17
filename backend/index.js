@@ -302,10 +302,16 @@ app.get('/', (req, res) => {
 // PM2 Health Check — also the deploy gate, so it must fail when Redis is
 // missing rather than reporting UP on a half-working cluster.
 app.get('/health', (req, res) => {
-  if (!adapterReady) {
+  // Only fatal in cluster mode: with one worker every socket shares a process,
+  // so a missing adapter costs nothing. With several, a broadcast reaches only
+  // the workers holding the sender — that must fail the deploy, not pass it.
+  // In fork mode Redis being down is degraded-but-serving, and blocking there
+  // would also block the deploy that fixes Redis.
+  const clustered = process.env.pm_exec_mode === 'cluster_mode';
+  if (!adapterReady && clustered) {
     return res.status(503).json({ status: 'DEGRADED', reason: 'socket.io redis adapter not connected', timestamp: new Date() });
   }
-  res.status(200).json({ status: 'UP', timestamp: new Date() });
+  res.status(200).json({ status: 'UP', redis: adapterReady, timestamp: new Date() });
 });
 
 // Deep Linking Verification Routes

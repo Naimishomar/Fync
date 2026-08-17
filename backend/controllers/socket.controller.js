@@ -336,7 +336,7 @@ export const socketController = (io) => {
     });
 
     socket.on("find_1v1_match", async ({ user, domain }) => {
-      if (!redisClient.isOpen) {
+      if (!redisClient.isReady) {
         socket.emit("error", "Matching service is temporarily unavailable. Please try again later.");
         return;
       }
@@ -588,7 +588,7 @@ export const socketController = (io) => {
       const { isOpen } = checkClubStatus();
       if (!isOpen) return socket.emit("night_club_error", { message: "Club closed" });
 
-      if (!redisClient.isOpen) {
+      if (!redisClient.isReady) {
         socket.emit("night_club_error", { message: "Night Matching service is temporarily unavailable." });
         return;
       }
@@ -716,7 +716,7 @@ export const socketController = (io) => {
     // --- 🎨 DRAW & GUESS LOGIC ---
 
     socket.on("find_draw_match", async ({ userId, username }) => {
-      if (!redisClient.isOpen) {
+      if (!redisClient.isReady) {
         return socket.emit("draw_error", "Matchmaking unavailable");
       }
       

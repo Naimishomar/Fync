@@ -25,8 +25,11 @@ const userOrIpKey = (req, res) => {
 
 const createRedisStore = (prefix) => new RedisStore({
   sendCommand: async (...args) => {
-    if (!redisClient.isOpen) {
-      // If it's not even open (or trying to connect), bypass
+    // isReady, not isOpen: isOpen stays true for the whole reconnect loop, so a
+    // dead Redis fell through to the 3s race below on every single request
+    // instead of bypassing instantly. isReady is false until the connection can
+    // actually accept commands.
+    if (!redisClient.isReady) {
       throw new Error("Redis is offline, bypassing rate limit to prevent hang.");
     }
     // Allow up to 3 seconds for commands (handles initial connection/script loading latency).
