@@ -1,4 +1,5 @@
-// PM2 runs this as CommonJS regardless of package.json "type": "module".
+// .cjs extension is required: package.json sets "type": "module", so a .js
+// file here is parsed as ESM and `module.exports` throws when PM2 loads it.
 module.exports = {
   apps: [
     {

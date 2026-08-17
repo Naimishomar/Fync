@@ -118,6 +118,20 @@ jobs:
             PREVIOUS=$(git rev-parse HEAD)
             echo "current: $PREVIOUS"
 
+            # Any failure after this point (npm ci, pm2, health) restores the
+            # previous commit. Without the trap, `set -e` would abort on a pm2
+            # error and leave the checkout ahead of the process actually running.
+            rollback() {
+              echo "deploy failed — rolling back to $PREVIOUS"
+              git reset --hard "$PREVIOUS"
+              npm ci --omit=dev
+              pm2 startOrReload ecosystem.config.cjs --env production --update-env
+              pm2 save
+              pm2 logs fync-backend --lines 40 --nostream || true
+              exit 1
+            }
+            trap rollback ERR
+
             git fetch origin --prune
             git reset --hard "origin/${TARGET_REF}"
             echo "deploying: $(git rev-parse --short HEAD) — $(git log -1 --pretty=%s)"
@@ -133,7 +147,7 @@ jobs:
             # requests and websockets drain instead of being cut — this is what
             # the wait_ready / process.send('ready') handshake exists for.
             # --update-env is required for NODE_ENV=production to actually apply.
-            pm2 startOrReload ecosystem.config.js --env production --update-env
+            pm2 startOrReload ecosystem.config.cjs --env production --update-env
             pm2 save
 
             echo "waiting for health..."
@@ -150,14 +164,10 @@ jobs:
             done
 
             if [ "$HEALTHY" != "1" ]; then
-              echo "health check failed — rolling back to $PREVIOUS"
-              git reset --hard "$PREVIOUS"
-              npm ci --omit=dev
-              pm2 startOrReload ecosystem.config.js --env production --update-env
-              pm2 save
-              pm2 logs fync-backend --lines 40 --nostream || true
-              exit 1
+              echo "health check failed"
+              rollback
             fi
 
+            trap - ERR
             echo "healthy on port ${PORT}"
             pm2 status
