@@ -75,6 +75,7 @@ import { initCommunityCleanup } from './utils/communityCleanup.js';
 import { initFyncMediaCleanup } from './utils/fyncMediaCleanup.js';
 import { initChatMediaCleanup } from './utils/chatMediaCleanup.js';
 import startCleanupCron from './services/cleanup.service.js';
+import { initShortViewsFlush, flushShortViews } from './utils/shortViews.js';
 
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
@@ -139,13 +140,13 @@ io.use((socket, next) => {
 const pubClient = redisClient.duplicate();
 const subClient = redisClient.duplicate();
 
-pubClient.on('error', (err) => console.error("Redis PubClient Error ❌", err));
-subClient.on('error', (err) => console.error("Redis SubClient Error ❌", err));
+pubClient.on('error', (err) => console.error("Redis PubClient Error ❌", err.message));
+subClient.on('error', (err) => console.error("Redis SubClient Error ❌", err.message));
 
-// Read by /health. In cluster mode a missing adapter means a broadcast from one
-// worker never reaches sockets held by another — chat and notifications reach
-// roughly half the users, with no error anywhere. Reporting it keeps the deploy
-// health check from calling that a success.
+// Reported by /health. In cluster mode a missing adapter means a broadcast from
+// one worker never reaches sockets held by another — chat and notifications
+// reach roughly half the users, with no error anywhere. Surfaced, not enforced:
+// see the note on /health.
 let adapterReady = false;
 
 Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
@@ -266,6 +267,7 @@ const startServer = async (retries = 5) => {
       initChatMediaCleanup();
       initEventCleanup();
       startCleanupCron();
+      initShortViewsFlush();
 
       // 4. Start Contest Monitor
       setInterval(() => {
@@ -302,16 +304,18 @@ app.get('/', (req, res) => {
 // PM2 Health Check — also the deploy gate, so it must fail when Redis is
 // missing rather than reporting UP on a half-working cluster.
 app.get('/health', (req, res) => {
-  // Only fatal in cluster mode: with one worker every socket shares a process,
-  // so a missing adapter costs nothing. With several, a broadcast reaches only
-  // the workers holding the sender — that must fail the deploy, not pass it.
-  // In fork mode Redis being down is degraded-but-serving, and blocking there
-  // would also block the deploy that fixes Redis.
-  const clustered = process.env.pm_exec_mode === 'cluster_mode';
-  if (!adapterReady && clustered) {
-    return res.status(503).json({ status: 'DEGRADED', reason: 'socket.io redis adapter not connected', timestamp: new Date() });
-  }
-  res.status(200).json({ status: 'UP', redis: adapterReady, timestamp: new Date() });
+  // Never 503 on a missing adapter. It gated the deploy, and when Redis itself
+  // is what died the gate rolled back every deploy — including the one that
+  // would have fixed Redis — leaving the whole API unreachable over a
+  // socket-broadcast problem. HTTP serving is the thing this endpoint answers
+  // for; Redis is reported, not enforced.
+  // ponytail: cluster broadcasts still split across workers while redis is
+  // false — watch the field, or run one worker until Redis is back.
+  res.status(200).json({
+    status: adapterReady ? 'UP' : 'DEGRADED',
+    redis: adapterReady,
+    timestamp: new Date(),
+  });
 });
 
 // Deep Linking Verification Routes
@@ -429,6 +433,10 @@ const shutdown = async (signal) => {
   try {
     io.close();
     await new Promise((resolve) => server.close(resolve));
+    // Buffered view counts live only in Redis until a flush folds them into
+    // Mongo. Without this a deploy drops up to one interval's worth on the
+    // worker that owns the flusher.
+    await flushShortViews().catch((err) => console.error('Final view flush failed:', err.message));
     await mongoose.connection.close(false);
     // quit() flushes pending commands and waits for the server to answer, so
     // against an unreachable Redis it never returns — that is what hung the

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, memo } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,6 @@ import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import socket from '../../utils/socket';
 
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface LeaderboardEntry {
   rank: number;
@@ -30,80 +29,108 @@ interface LeaderboardEntry {
   status: string;
 }
 
-// ─── Rank podium colors ───────────────────────────────────────────────────────
-const RANK_CONFIG: Record<number, { gradient: string[]; medal: string; glow: string; text: string }> = {
-  1: { gradient: ['#f59e0b', '#d97706'], medal: '🥇', glow: '#fffbeb', text: '#d97706' },
-  2: { gradient: ['#94a3b8', '#64748b'], medal: '🥈', glow: '#f8fafc', text: '#64748b' },
-  3: { gradient: ['#c2945a', '#a16207'], medal: '🥉', glow: '#fffbeb', text: '#a16207' },
+// ─── Rank podium ──────────────────────────────────────────────────────────────
+// Medal metals are the one place a non-brand hue is meaningful: gold, silver and
+// bronze are the content, not decoration.
+const RANK_META: Record<number, { medal: string; ring: string }> = {
+  1: { medal: '🥇', ring: '#f59e0b' },
+  2: { medal: '🥈', ring: '#94a3b8' },
+  3: { medal: '🥉', ring: '#b45309' },
 };
 
 // ─── Podium Card (top 3) ──────────────────────────────────────────────────────
-const PodiumCard = ({ entry }: { entry: LeaderboardEntry }) => {
-  const cfg = RANK_CONFIG[entry.rank];
-  const scale = useRef(new Animated.Value(0.8)).current;
+const PodiumCard = memo(({ entry }: { entry: LeaderboardEntry }) => {
+  const meta = RANK_META[entry.rank] ?? RANK_META[3];
+  const first = entry.rank === 1;
+  const scale = useRef(new Animated.Value(0.94)).current;
 
   useEffect(() => {
     Animated.spring(scale, {
       toValue: 1,
       useNativeDriver: true,
-      delay: entry.rank * 120,
-      tension: 60,
-      friction: 8,
+      delay: entry.rank * 80,
+      tension: 70,
+      friction: 9,
     }).start();
-  }, []);
+  }, [entry.rank, scale]);
 
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
       <View
-        className="rounded-4xl mb-6 overflow-hidden border border-slate-100"
+        className="rounded-card mb-3 overflow-hidden border border-slate-100"
         style={{
-          backgroundColor: 'white',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 12 },
-          shadowOpacity: 0.1,
-          shadowRadius: 20,
-          elevation: 10,
+          shadowColor: '#0f172a',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.06,
+          shadowRadius: 12,
+          elevation: 2,
         }}
       >
         <LinearGradient
-          colors={entry.rank === 1 ? ['#000', '#111'] : ['#f8fafc', '#f1f5f9']}
+          colors={first ? ['#1e293b', '#0f172a'] : ['#ffffff', '#f8fafc']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          className="px-6 py-6"
+          className="px-4 py-4"
         >
-          <View className="flex-row items-center justify-between">
-            <View className="w-14 h-14 bg-white/10 rounded-2xl items-center justify-center border border-white/5">
-              <Text className="text-4xl">{cfg.medal}</Text>
+          <View className="flex-row items-center justify-between mb-3">
+            <View
+              className="w-10 h-10 rounded-xl items-center justify-center border"
+              style={{
+                backgroundColor: first ? 'rgba(255,255,255,0.08)' : '#ffffff',
+                borderColor: meta.ring,
+              }}
+            >
+              <Text className="text-xl">{meta.medal}</Text>
             </View>
             <View className="items-end">
-              <Text className="text-pink-500 text-2xs font-black uppercase tracking-wide">Protocol Score</Text>
-              <Text className={`${entry.rank === 1 ? 'text-white' : 'text-slate-900'} text-4xl font-black  tracking-tighter`}>
+              <Text className={`text-2xs font-semibold ${first ? 'text-white/60' : 'text-slate-500'}`}>
+                Score
+              </Text>
+              <Text className={`text-2xl font-extrabold ${first ? 'text-white' : 'text-slate-900'}`}>
                 {entry.score.toFixed(1)}
               </Text>
             </View>
           </View>
 
-          <View className="mt-6">
-            <Text className={`${entry.rank === 1 ? 'text-white' : 'text-slate-900'} text-2xl font-black  uppercase tracking-tighter leading-7`} numberOfLines={1}>
-              {entry.projectName}
+          <Text
+            className={`text-base font-extrabold leading-5 ${first ? 'text-white' : 'text-slate-900'}`}
+            numberOfLines={1}
+          >
+            {entry.projectName}
+          </Text>
+          {entry.tagline ? (
+            <Text
+              className={`text-2xs font-semibold mt-0.5 ${first ? 'text-white/60' : 'text-slate-500'}`}
+              numberOfLines={1}
+            >
+              {entry.tagline}
             </Text>
-            {entry.tagline ? (
-              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1" numberOfLines={1}>{entry.tagline}</Text>
-            ) : null}
-          </View>
+          ) : null}
 
-          <View className="flex-row items-center justify-between mt-6">
-            <View className="flex-row items-center bg-slate-900/10 px-3 py-1.5 rounded-xl">
-              <View className="w-5 h-5 rounded-full bg-pink-500 items-center justify-center mr-2">
-                <Ionicons name="people" size={10} color="white" />
-              </View>
-              <Text className={`${entry.rank === 1 ? 'text-white/80' : 'text-slate-700'} text-2xs font-black uppercase tracking-widest`}>{entry.teamName}</Text>
+          <View className="flex-row items-center justify-between mt-3">
+            <View
+              className="flex-row items-center px-2 py-1 rounded-md"
+              style={{ backgroundColor: first ? 'rgba(255,255,255,0.08)' : '#f1f5f9' }}
+            >
+              <Ionicons name="people" size={11} color={first ? '#fdba74' : '#f97316'} />
+              <Text
+                className={`text-2xs font-semibold ml-1.5 ${first ? 'text-white/80' : 'text-slate-600'}`}
+                numberOfLines={1}
+              >
+                {entry.teamName}
+              </Text>
             </View>
 
-            <View className="flex-row gap-1.5">
+            <View className="flex-row" style={{ gap: 6 }}>
               {entry.techStack?.slice(0, 2).map((t, i) => (
-                <View key={i} className="bg-slate-500/10 px-2.5 py-1 rounded-lg border border-white/5">
-                  <Text className="text-2xs font-black text-slate-500 uppercase tracking-wide">{t}</Text>
+                <View
+                  key={`${t}-${i}`}
+                  className="px-2 py-1 rounded-md"
+                  style={{ backgroundColor: first ? 'rgba(255,255,255,0.08)' : '#f1f5f9' }}
+                >
+                  <Text className={`text-2xs font-semibold ${first ? 'text-white/70' : 'text-slate-500'}`}>
+                    {t}
+                  </Text>
                 </View>
               ))}
             </View>
@@ -112,50 +139,66 @@ const PodiumCard = ({ entry }: { entry: LeaderboardEntry }) => {
       </View>
     </Animated.View>
   );
-};
+});
+PodiumCard.displayName = 'PodiumCard';
 
 // ─── Regular Row ──────────────────────────────────────────────────────────────
-const LeaderboardRow = ({ entry, index }: { entry: LeaderboardEntry; index: number }) => {
-  const translateX = useRef(new Animated.Value(60)).current;
+const LeaderboardRow = memo(({ entry, index }: { entry: LeaderboardEntry; index: number }) => {
+  const translateX = useRef(new Animated.Value(24)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.spring(translateX, { toValue: 0, useNativeDriver: true, delay: index * 60, tension: 60, friction: 8 }),
-      Animated.timing(opacity, { toValue: 1, duration: 300, delay: index * 60, useNativeDriver: true }),
+      Animated.spring(translateX, { toValue: 0, useNativeDriver: true, delay: index * 40, tension: 70, friction: 9 }),
+      Animated.timing(opacity, { toValue: 1, duration: 220, delay: index * 40, useNativeDriver: true }),
     ]).start();
-  }, []);
+  }, [index, translateX, opacity]);
 
   return (
     <Animated.View style={{ transform: [{ translateX }], opacity }}>
-      <View
-        className="bg-white rounded-2xl px-5 py-4 mb-3 flex-row items-center border border-slate-100"
-        style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 10, elevation: 2 }}
-      >
-        {/* Rank */}
-        <View className="w-12 h-12 rounded-2xl bg-slate-900 items-center justify-center mr-4 border border-slate-800 shadow-lg shadow-slate-900/20">
-          <Text className="text-white font-black  text-lg leading-tight uppercase">#{entry.rank}</Text>
+      <View className="bg-white rounded-xl px-3.5 py-3 mb-2 flex-row items-center border border-slate-100">
+        <View className="w-9 h-9 rounded-lg bg-slate-900 items-center justify-center mr-3">
+          <Text className="text-white font-extrabold text-2xs">#{entry.rank}</Text>
         </View>
 
-        {/* Project info */}
-        <View className="flex-1 mr-4">
-          <Text className="text-slate-900 font-black text-base  uppercase tracking-tighter leading-5" numberOfLines={1}>
+        <View className="flex-1 mr-3">
+          <Text className="text-slate-900 font-bold text-sm leading-5" numberOfLines={1}>
             {entry.projectName}
           </Text>
-          <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5" numberOfLines={1}>
+          <Text className="text-slate-500 text-2xs font-semibold mt-0.5" numberOfLines={1}>
             {entry.teamName}
           </Text>
         </View>
 
-        {/* Score */}
-        <View className="items-end bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100">
-          <Text className="text-pink-500 font-black  text-xl tracking-tighter">{entry.score.toFixed(1)}</Text>
-          <Text className="text-slate-300 text-2xs font-black uppercase tracking-wide -mt-1">PTS</Text>
+        <View className="items-end">
+          <Text className="text-slate-900 font-extrabold text-base">{entry.score.toFixed(1)}</Text>
+          <Text className="text-slate-400 text-2xs font-semibold">pts</Text>
         </View>
       </View>
     </Animated.View>
   );
-};
+});
+LeaderboardRow.displayName = 'LeaderboardRow';
+
+// ─── List header ──────────────────────────────────────────────────────────────
+// Module scope, not an inline arrow. As an inline arrow React remounted the
+// whole podium on every render, so the entry animations replayed on each pull
+// to refresh and on every socket tick during judging.
+const PodiumHeader = memo(({ podium, hasRest }: { podium: LeaderboardEntry[]; hasRest: boolean }) => (
+  <View className="mb-3">
+    {podium.map((e) => (
+      <PodiumCard key={e.submissionId} entry={e} />
+    ))}
+    {hasRest ? (
+      <View className="flex-row items-center mt-4 mb-2">
+        <View className="flex-1 h-px bg-slate-200" />
+        <Text className="text-slate-400 text-2xs font-bold mx-3">All rankings</Text>
+        <View className="flex-1 h-px bg-slate-200" />
+      </View>
+    ) : null}
+  </View>
+));
+PodiumHeader.displayName = 'PodiumHeader';
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 const HackathonLeaderboard = () => {
@@ -167,25 +210,7 @@ const HackathonLeaderboard = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    load();
-
-    // Subscribe to real-time updates
-    socket.emit('subscribe:leaderboard', { hackathonId });
-
-    const onUpdate = () => {
-      load(); // Reload data when notified
-      Toast.show({ type: 'info', text1: 'Leaderboard updated! 🏆' });
-    };
-
-    socket.on('leaderboard:updated', onUpdate);
-
-    return () => {
-      socket.off('leaderboard:updated', onUpdate);
-    };
-  }, []);
-
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const res = await axios.get(`/hackathon-leaderboard/${hackathonId}`);
       setLeaderboard(res.data.leaderboard ?? []);
@@ -195,115 +220,106 @@ const HackathonLeaderboard = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [hackathonId]);
+
+  useEffect(() => {
+    load();
+    socket.emit('subscribe:leaderboard', { hackathonId });
+
+    const onUpdate = () => {
+      load();
+      Toast.show({ type: 'info', text1: 'Leaderboard updated' });
+    };
+    socket.on('leaderboard:updated', onUpdate);
+    return () => {
+      socket.off('leaderboard:updated', onUpdate);
+    };
+  }, [hackathonId, load]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     load();
-  }, []);
+  }, [load]);
 
-  const podium = leaderboard.filter(e => e.rank <= 3);
-  const rest = leaderboard.filter(e => e.rank > 3);
-
-  if (loading) {
-    return (
-      <View className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color="#f97316" />
-      </View>
-    );
-  }
+  const podium = leaderboard.filter((e) => e.rank <= 3);
+  const rest = leaderboard.filter((e) => e.rank > 3);
 
   return (
-    <View className="flex-1 bg-white">
-      <StatusBar barStyle="dark-content" />
-
-      {/* Hero Header */}
-      <View className="px-8 pt-10 pb-6 bg-white border-b border-slate-50">
-        <View className="flex-row items-center justify-between mb-8">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="w-12 h-12 rounded-2xl bg-slate-900 items-center justify-center shadow-lg shadow-slate-900/20"
-          >
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onRefresh} className="w-12 h-12 rounded-2xl bg-slate-50 items-center justify-center border border-slate-100">
-            <Ionicons name="refresh" size={20} color="#ec4899" />
-          </TouchableOpacity>
-        </View>
-
-        <View>
-          <Text className="text-slate-900 text-5xl font-black  uppercase tracking-tighter leading-[44px]">Leader</Text>
-          <Text className="text-slate-900 text-5xl font-black  uppercase tracking-tighter leading-[44px]">Board</Text>
-          <Text className="text-pink-500 text-2xs font-black uppercase tracking-wide mt-4" numberOfLines={1}>
-            {hackathonTitle ?? 'Fync Protocol Registry'}
-          </Text>
-        </View>
-
-        {/* Stats row */}
-        <View className="flex-row gap-4 mt-8">
-          {[
-            { label: 'Signals', val: leaderboard.length, icon: 'people' },
-            { label: 'Peak Score', val: leaderboard[0]?.score?.toFixed(1) ?? '—', icon: 'flash' },
-          ].map((s, i) => (
-            <View key={i} className="flex-1 bg-slate-50 rounded-2xl px-6 py-4 border border-slate-100">
-              <Ionicons name={s.icon as any} size={14} color="#ec4899" />
-              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-2">{s.label}</Text>
-              <Text className="text-slate-900 font-black  text-2xl tracking-tighter mt-1">{s.val}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      {leaderboard.length === 0 ? (
-        <View className="flex-1 items-center justify-center px-10">
-          <View className="w-24 h-24 rounded-4xl bg-slate-50 items-center justify-center mb-6">
-            <Ionicons name="trophy-outline" size={44} color="#CBD5E1" />
+    <View className="flex-1 bg-slate-50">
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <SafeAreaView className="flex-1" edges={['top']}>
+        {/* Header */}
+        <View className="bg-white border-b border-slate-100 px-4 pt-2 pb-4">
+          <View className="flex-row items-center justify-between mb-3">
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              className="w-9 h-9 rounded-lg bg-slate-100 items-center justify-center"
+              hitSlop={8}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="arrow-back" size={18} color="#0f172a" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={onRefresh}
+              className="w-9 h-9 rounded-lg bg-slate-100 items-center justify-center"
+              hitSlop={8}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="refresh" size={16} color="#f97316" />
+            </TouchableOpacity>
           </View>
-          <Text className="text-slate-900 font-black  text-xl tracking-tighter text-center uppercase mb-1">
-            Registry Dark
+
+          <Text className="text-slate-900 text-2xl font-extrabold">Leaderboard</Text>
+          <Text className="text-slate-500 text-2xs font-semibold mt-0.5" numberOfLines={1}>
+            {hackathonTitle ?? 'Live rankings'}
           </Text>
-          <Text className="text-slate-500 text-center font-black text-2xs uppercase tracking-wide">
-            No active signals recorded in the ledger yet.
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={rest}
-          keyExtractor={item => item.submissionId}
-          contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
-          showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#f97316']} tintColor="#f97316" />}
-          ListHeaderComponent={() => (
-            <View className="mb-8">
-              {/* Trophy banner */}
-              <View className="flex-row items-center mb-8">
-                <View className="flex-1 h-[2px] bg-slate-50" />
-                <View className="mx-4 flex-row items-center bg-slate-900 rounded-2xl px-5 py-2">
-                  <Ionicons name="trophy" size={14} color="#ec4899" />
-                  <Text className="text-white font-black  text-2xs uppercase tracking-wide ml-2">Elite Protocols</Text>
+
+          <View className="flex-row mt-3" style={{ gap: 10 }}>
+            {[
+              { label: 'Projects', val: String(leaderboard.length), icon: 'people-outline' },
+              { label: 'Top score', val: leaderboard[0]?.score?.toFixed(1) ?? '—', icon: 'flash-outline' },
+            ].map((s) => (
+              <View key={s.label} className="flex-1 bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-100">
+                <View className="flex-row items-center">
+                  <Ionicons name={s.icon as any} size={12} color="#f97316" />
+                  <Text className="text-slate-500 text-2xs font-semibold ml-1.5">{s.label}</Text>
                 </View>
-                <View className="flex-1 h-[2px] bg-slate-50" />
+                <Text className="text-slate-900 font-extrabold text-lg mt-0.5">{s.val}</Text>
               </View>
+            ))}
+          </View>
+        </View>
 
-              {podium.map(e => <PodiumCard key={e.submissionId} entry={e} />)}
-
-              {rest.length > 0 && (
-                <View className="flex-row items-center my-8">
-                  <View className="flex-1 h-[2px] bg-slate-50" />
-                  <View className="mx-4 bg-slate-50 px-5 py-2 rounded-2xl border border-slate-100">
-                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Ranking Fleet</Text>
-                  </View>
-                  <View className="flex-1 h-[2px] bg-slate-50" />
-                </View>
-              )}
+        {loading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#f97316" />
+          </View>
+        ) : leaderboard.length === 0 ? (
+          <View className="flex-1 items-center justify-center px-8">
+            <View className="w-16 h-16 rounded-2xl bg-white border border-slate-100 items-center justify-center mb-4">
+              <Ionicons name="trophy-outline" size={28} color="#cbd5e1" />
             </View>
-          )}
-          renderItem={({ item, index }) => <LeaderboardRow entry={item} index={index} />}
-        />
-      )}
+            <Text className="text-slate-900 text-base font-bold text-center mb-1">No scores yet</Text>
+            <Text className="text-slate-500 text-2xs font-semibold text-center leading-4">
+              Rankings appear once judges start scoring submissions.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={rest}
+            keyExtractor={(item) => item.submissionId}
+            contentContainerStyle={{ padding: 16, paddingBottom: 96 }}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#f97316']} tintColor="#f97316" />
+            }
+            ListHeaderComponent={<PodiumHeader podium={podium} hasRest={rest.length > 0} />}
+            renderItem={({ item, index }) => <LeaderboardRow entry={item} index={index} />}
+          />
+        )}
+      </SafeAreaView>
     </View>
   );
 };
-
 
 export default HackathonLeaderboard;

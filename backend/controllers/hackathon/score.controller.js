@@ -11,9 +11,15 @@ const recalcAndUpdateBoard = async (hackId, subId, io) => {
   const avg = allScores.reduce((s, sc) => s + (sc.totalScore || 0), 0) / allScores.length;
   const rounded = parseFloat(avg.toFixed(4));
 
-  // Update Redis sorted set
+  // Update Redis sorted set. Best-effort only: the scores live in Mongo and
+  // getLeaderboard rebuilds from there, so a dead cache must never be able to
+  // reject a judge's score — that used to 500 the entire judging flow.
   const boardKey = `hack:${hackId}:leaderboard`;
-  await redisClient.zAdd(boardKey, { score: rounded, value: subId.toString() });
+  try {
+    await redisClient.zAdd(boardKey, { score: rounded, value: subId.toString() });
+  } catch (err) {
+    console.error("Leaderboard cache write failed (scores still saved):", err.message);
+  }
 
   // Broadcast to all clients watching this hackathon (both main + leaderboard rooms)
   if (io) {
@@ -101,7 +107,8 @@ export const submitScore = async (req, res, next) => {
 export const getScores = async (req, res, next) => {
   try {
     const scores = await Score.find({ submission: req.params.submissionId })
-      .populate("judge", "name avatar");
+      .populate("judge", "name avatar")
+      .lean();
 
     const avg = scores.length
       ? scores.reduce((s, sc) => s + (sc.totalScore || 0), 0) / scores.length
@@ -142,13 +149,13 @@ export const getPendingForJudge = async (req, res, next) => {
     const allSubs = await Submission.find({
       hackathon: hackId,
       status:    { $in: ["submitted", "underReview"] },
-    }).select("_id ProjectName team");
+    }).select("_id ProjectName team").lean();
 
     // Submissions this judge already scored
     const scored = await Score.find({
       hackathon: hackId,
       judge:     req.user.id,
-    }).select("submission");
+    }).select("submission").lean();
 
     const scoredIds = new Set(scored.map((s) => s.submission.toString()));
 
@@ -162,17 +169,24 @@ export const getScoredByJudge = async (req, res, next) => {
   try {
     const hackId = req.params.hackathonId;
 
-    const scores = await Score.find({
-      hackathon: hackId,
-      judge:     req.user.id,
-    })
-    .populate({
-      path: "submission",
-      select: "_id ProjectName team status",
-      populate: { path: "team", select: "name members" }
-    })
-    .sort({ updatedAt: -1 });
+    // A nested populate (score -> submission -> team) is three dependent waits.
+    // Fetching the submissions and their teams as two flat, parallel queries and
+    // stitching them in memory costs two.
+    const scores = await Score.find({ hackathon: hackId, judge: req.user.id })
+      .sort({ updatedAt: -1 })
+      .lean();
 
-    res.status(200).json({ success: true, scored: scores, scoredCount: scores.length });
+    if (!scores.length)
+      return res.status(200).json({ success: true, scored: [], scoredCount: 0 });
+
+    const subs = await Submission.find({ _id: { $in: scores.map((s) => s.submission) } })
+      .select("_id ProjectName team status")
+      .populate("team", "name members")
+      .lean();
+
+    const subById = new Map(subs.map((s) => [s._id.toString(), s]));
+    const scored = scores.map((s) => ({ ...s, submission: subById.get(s.submission.toString()) ?? null }));
+
+    res.status(200).json({ success: true, scored, scoredCount: scored.length });
   } catch (err) { next(err); }
 };

@@ -11,6 +11,7 @@ import { clearCacheTags } from '../middlewares/cache.middleware.js';
 import { updateStreak } from '../utils/streak.js';
 import { getCommentThread } from "../utils/comments.js";
 import { toggleLike } from "../utils/likeToggle.js";
+import { recordViews, MAX_VIEW_BATCH } from "../utils/shortViews.js";
 
 export const createShorts = async (req, res) => {
     try {
@@ -340,16 +341,37 @@ export const deleteComment = async (req, res) => {
 };
 
 
+// A scrolling session generates one view per short. Sent one at a time that is
+// one HTTP request, one JWT verify, one auth lookup and one Mongo write each —
+// so a user watching 100 shorts costs 100 of everything. The client batches
+// them, and `recordViews` buffers the batch in Redis so many views of the same
+// short collapse into a single periodic Mongo update. See utils/shortViews.js.
+
+// POST /shorts/views  — body: { ids: [...] }
+export const batchViewsInShorts = async (req, res) => {
+    const ids = Array.isArray(req.body?.ids) ? req.body.ids : [];
+    if (!ids.length)
+        return res.status(400).json({ success: false, message: "ids must be a non-empty array" });
+
+    // Answer before recording: the client does not wait on a view counter, and
+    // holding the response open is what makes these pile up under load.
+    res.status(200).json({ success: true, accepted: Math.min(ids.length, MAX_VIEW_BATCH) });
+
+    try {
+        await recordViews(ids);
+    } catch (error) {
+        console.error("Batch view increment error:", error.message);
+    }
+};
+
+// POST /shorts/views/:id — kept for clients already shipped against it.
 export const viewsInShort = async (req, res) => {
-    // 🚀 Elite Performance: Respond immediately and update in background
     res.status(200).json({ success: true, message: "View recorded" });
 
     try {
-        const { id } = req.params;
-        // Atomic background update
-        await Shorts.updateOne({ _id: id }, { $inc: { views: 1 } });
+        await recordViews([req.params.id]);
     } catch (error) {
-        console.error("Background View Increment Error:", error);
+        console.error("Background View Increment Error:", error.message);
     }
 }
 

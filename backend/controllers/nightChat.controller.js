@@ -1,5 +1,3 @@
-import NightMessage from "../models/newFeatures/nightChat.model.js";
-
 export const uploadNightImage = async (req, res) => {
     try {
         if (!req.file) {

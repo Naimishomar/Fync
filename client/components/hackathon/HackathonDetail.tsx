@@ -58,16 +58,16 @@ interface Hackathon {
 // ─── Status config ─────────────────────────────────────────────────────────
 const STATUS_META: Record<string, { label: string; colors: string[] }> = {
   active: { label: 'Live Now 🔥', colors: ['#10b981', '#059669'] },
-  upcoming: { label: 'Upcoming', colors: ['#6366f1', '#8b5cf6'] },
+  upcoming: { label: 'Upcoming', colors: ['#f97316', '#ea580c'] },
   judging: { label: 'In Judging', colors: ['#f59e0b', '#d97706'] },
   completed: { label: 'Completed', colors: ['#64748b', '#475569'] },
-  draft: { label: 'Draft', colors: ['#ec4899', '#be185d'] },
+  draft: { label: 'Draft', colors: ['#f97316', '#c2410c'] },
 };
 
 // ─── Announcement type config ──────────────────────────────────────────────────
 const ANN_TYPES: { value: string; label: string; icon: string; color: string; bg: string }[] = [
-  { value: 'general', label: 'General', icon: 'megaphone', color: '#ec4899', bg: '#fdf2f8' },
-  { value: 'important', label: 'Important', icon: 'alert-circle', color: '#f43f5e', bg: '#fff1f2' },
+  { value: 'general', label: 'General', icon: 'megaphone', color: '#f97316', bg: '#fff7ed' },
+  { value: 'important', label: 'Important', icon: 'alert-circle', color: '#ef4444', bg: '#fef2f2' },
   { value: 'schedule_change', label: 'Schedule', icon: 'calendar', color: '#f59e0b', bg: '#fffbeb' },
   { value: 'result', label: 'Result', icon: 'trophy', color: '#10b981', bg: '#ecfdf5' },
 ];
@@ -83,8 +83,8 @@ const FAQItem = ({ faq }: { faq: { question: string; answer: string } }) => {
       className="bg-slate-50 rounded-2xl p-5 mb-3 border border-slate-100"
     >
       <View className="flex-row justify-between items-center">
-        <Text className="text-slate-900 font-black  uppercase text-xs tracking-tight flex-1">{faq.question}</Text>
-        <Ionicons name={expanded ? "chevron-up" : "chevron-down"} size={16} color="#ec4899" />
+        <Text className="text-slate-900 font-bold text-xs flex-1">{faq.question}</Text>
+        <Ionicons name={expanded ? "chevron-up" : "chevron-down"} size={16} color="#f97316" />
       </View>
       {expanded && <Text className="text-slate-500 text-xs leading-5 mt-3">{faq.answer}</Text>}
     </TouchableOpacity>
@@ -285,7 +285,7 @@ const HackathonDetail = () => {
       >
         <SafeAreaView>
           <View className="flex-row items-center px-6 py-3">
-            <Text className="text-slate-900 font-black  text-lg uppercase tracking-tight flex-1" numberOfLines={1}>{hackathon.title}</Text>
+            <Text className="text-slate-900 font-extrabold text-lg flex-1" numberOfLines={1}>{hackathon.title}</Text>
           </View>
         </SafeAreaView>
       </Animated.View>
@@ -305,7 +305,7 @@ const HackathonDetail = () => {
                 onPress={() => navigation.navigate('HackathonTeamScreen', { hackathonId: hackathon._id })}
                 className="bg-white/90 rounded-2xl px-5 py-2.5 shadow-sm border border-white"
               >
-                <Text className="text-slate-900 font-black  text-2xs uppercase tracking-wide">My Team</Text>
+                <Text className="text-slate-900 font-bold text-2xs">My Team</Text>
               </TouchableOpacity>
             )}
             {isOfficial() && (
@@ -313,14 +313,14 @@ const HackathonDetail = () => {
                 onPress={() => navigation.navigate('HackathonDashboard', { hackathonId: hackathon._id, hackathonTitle: hackathon.title })}
                 className="bg-amber-400/90 rounded-2xl px-5 py-2.5 shadow-sm border border-amber-300"
               >
-                <Text className="text-amber-900 font-black  text-2xs uppercase tracking-wide">🛠️ Console</Text>
+                <Text className="text-amber-900 font-bold text-2xs">🛠️ Console</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
               onPress={() => navigation.navigate('HackathonLeaderboard', { hackathonId: hackathon._id, hackathonTitle: hackathon.title })}
               className="bg-slate-900/90 rounded-2xl px-5 py-2.5 shadow-sm border border-slate-700"
             >
-              <Text className="text-white font-black  text-2xs uppercase tracking-wide">🏆 Leaderboard</Text>
+              <Text className="text-white font-bold text-2xs">🏆 Leaderboard</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -338,7 +338,7 @@ const HackathonDetail = () => {
             <Image source={{ uri: hackathon.bannerImage }} className="w-full h-full" resizeMode="cover" />
           ) : (
             <View className="w-full h-full bg-slate-950 items-center justify-center">
-              <LinearGradient colors={['#312e81', '#1e1b4b']} className="absolute inset-0" />
+              <LinearGradient colors={['#1e293b', '#0f172a']} className="absolute inset-0" />
               <Ionicons name="rocket" size={64} color="white" className="opacity-10" />
             </View>
           )}
@@ -347,10 +347,10 @@ const HackathonDetail = () => {
           <View className="absolute bottom-16 px-8">
             <View className="flex-row items-center mb-3">
               <LinearGradient colors={statusMeta.colors as any} className="px-4 py-1.5 rounded-xl border border-white/20">
-                <Text className="text-white font-black  text-2xs uppercase tracking-wide">{statusMeta.label}</Text>
+                <Text className="text-white font-bold text-2xs">{statusMeta.label}</Text>
               </LinearGradient>
             </View>
-            <Text className="text-white text-4xl font-black  tracking-tighter uppercase leading-[40px] drop-shadow-xl">
+            <Text className="text-white text-4xl font-extrabold leading-[40px] drop-shadow-xl">
               {hackathon.title}
             </Text>
           </View>
@@ -360,16 +360,16 @@ const HackathonDetail = () => {
         <View className="bg-white -mt-10 mx-6 rounded-4xl p-6 shadow-2xl shadow-black/10 border border-slate-50 flex-row items-center justify-between">
           <View className="flex-row items-center">
             <View className="w-12 h-12 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100 overflow-hidden">
-              {hackathon.logo ? <Image source={{ uri: hackathon.logo }} className="w-full h-full" /> : <Ionicons name="flash" size={24} color="#ec4899" />}
+              {hackathon.logo ? <Image source={{ uri: hackathon.logo }} className="w-full h-full" /> : <Ionicons name="flash" size={24} color="#f97316" />}
             </View>
             <View className="ml-4">
-              <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide">Organiser</Text>
-              <Text className="text-slate-900 text-sm font-black  uppercase">{hackathon.organiser?.name}</Text>
+              <Text className="text-2xs text-slate-500 font-bold">Organiser</Text>
+              <Text className="text-slate-900 text-sm font-bold">{hackathon.organiser?.name}</Text>
             </View>
           </View>
           <View className="bg-slate-900 px-5 py-3 rounded-2xl border border-slate-800">
-            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide text-center">Prize Pool</Text>
-            <Text className="text-white font-black  uppercase text-sm">{hackathon.prizepool || 'TBA'}</Text>
+            <Text className="text-slate-500 text-2xs font-bold text-center">Prize Pool</Text>
+            <Text className="text-white font-bold text-sm">{hackathon.prizepool || 'TBA'}</Text>
           </View>
         </View>
 
@@ -382,7 +382,7 @@ const HackathonDetail = () => {
                 onPress={() => setActiveTab(i)}
                 className={`px-6 py-3.5 rounded-2xl border ${activeTab === i ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}
               >
-                <Text className={`font-black  text-2xs uppercase tracking-widest ${activeTab === i ? 'text-white' : 'text-slate-500'}`}>{tab}</Text>
+                <Text className={`font-bold text-2xs ${activeTab === i ? 'text-white' : 'text-slate-500'}`}>{tab}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -395,17 +395,17 @@ const HackathonDetail = () => {
             <View>
               {/* Description */}
               <View className="bg-white rounded-4xl p-8 mb-6 border border-slate-50 shadow-sm">
-                <Text className="text-slate-900 font-black  text-xl uppercase tracking-tighter mb-4">📖 Mission Protocol</Text>
+                <Text className="text-slate-900 font-extrabold text-xl mb-4">📖 About</Text>
                 <Text className="text-slate-500 text-sm leading-6 mb-6">
                   {hackathon.description || "Welcome to the hackathon. Deep dive into the mission details and build something extraordinary."}
                 </Text>
 
                 {hackathon.rules && hackathon.rules.length > 0 && (
                   <View>
-                    <Text className="text-slate-900 font-black  text-base uppercase tracking-widest mb-4">Commandments</Text>
+                    <Text className="text-slate-900 font-extrabold text-base mb-4">Rules</Text>
                     {hackathon.rules.map((rule: string, i: number) => (
                       <View key={i} className="flex-row items-start mb-3">
-                        <View className="w-5 h-5 bg-pink-500 rounded-lg items-center justify-center mr-3 mt-0.5"><Text className="text-white text-2xs font-black">{i + 1}</Text></View>
+                        <View className="w-5 h-5 bg-brand-500 rounded-lg items-center justify-center mr-3 mt-0.5"><Text className="text-white text-2xs font-bold">{i + 1}</Text></View>
                         <Text className="text-slate-600 text-xs leading-5 flex-1">{rule}</Text>
                       </View>
                     ))}
@@ -415,39 +415,39 @@ const HackathonDetail = () => {
 
               {/* Eligibility Grid */}
               <View className="flex-row flex-wrap gap-4 mb-6">
-                <View className="flex-1 min-w-[45%] bg-indigo-50/50 rounded-3xl p-6 border border-indigo-100">
-                  <Ionicons name="school" size={20} color="#6366f1" />
-                  <Text className="text-indigo-400 font-black uppercase text-2xs tracking-wide mt-4">College Protocols</Text>
-                  <Text className="text-indigo-900 font-black  text-sm uppercase mt-1">
+                <View className="flex-1 min-w-[45%] bg-brand-50 rounded-3xl p-6 border border-brand-100">
+                  <Ionicons name="school" size={20} color="#f97316" />
+                  <Text className="text-slate-500 font-bold text-2xs mt-4">Colleges</Text>
+                  <Text className="text-slate-900 font-bold text-sm mt-1">
                     {hackathon.eligibility?.colleges?.length > 0 ? hackathon.eligibility.colleges.join(', ') : 'All Institutions'}
                   </Text>
                 </View>
                 <View className="flex-1 min-w-[45%] bg-amber-50/50 rounded-3xl p-6 border border-amber-100">
                   <Ionicons name="people" size={20} color="#f59e0b" />
-                  <Text className="text-amber-400 font-black uppercase text-2xs tracking-wide mt-4">Registry Size</Text>
-                  <Text className="text-amber-900 font-black  text-sm uppercase mt-1">Up to {hackathon.MaxTeamSize ?? 4} Agents</Text>
+                  <Text className="text-amber-400 font-bold text-2xs mt-4">Team size</Text>
+                  <Text className="text-amber-900 font-bold text-sm mt-1">Up to {hackathon.MaxTeamSize ?? 4} Agents</Text>
                 </View>
               </View>
 
               {/* Official Seals (Judges & Mentors) */}
               {(hackathon.judges?.length > 0 || hackathon.mentors?.length > 0) && (
                 <View className="bg-slate-900 rounded-5xl p-8 mb-6 border border-slate-800 shadow-xl">
-                  <Text className="text-white font-black  text-base uppercase tracking-widest mb-6">Verified Officials</Text>
+                  <Text className="text-white font-extrabold text-base mb-6">Judges</Text>
                   <View className="flex-row flex-wrap gap-4">
                     {hackathon.judges?.map((j: any, idx: number) => (
                       <View key={`j-${idx}`} className="flex-row items-center bg-slate-800 rounded-2xl p-2 pr-4 border border-slate-700">
-                        {j.avatar ? <Image source={{ uri: j.avatar }} className="w-8 h-8 rounded-xl" /> : <View className="w-8 h-8 rounded-xl bg-slate-700 items-center justify-center"><Ionicons name="shield" size={12} color="#ec4899" /></View>}
+                        {j.avatar ? <Image source={{ uri: j.avatar }} className="w-8 h-8 rounded-xl" /> : <View className="w-8 h-8 rounded-xl bg-slate-700 items-center justify-center"><Ionicons name="shield" size={12} color="#f97316" /></View>}
                         <View className="ml-3">
-                          <Text className="text-pink-500 font-black text-2xs uppercase">Judge</Text>
+                          <Text className="text-brand-600 font-bold text-2xs">Judge</Text>
                           <Text className="text-white font-bold text-2xs">{j.name}</Text>
                         </View>
                       </View>
                     ))}
                     {hackathon.mentors?.map((m: any, idx: number) => (
                       <View key={`m-${idx}`} className="flex-row items-center bg-slate-800 rounded-2xl p-2 pr-4 border border-slate-700">
-                        {m.avatar ? <Image source={{ uri: m.avatar }} className="w-8 h-8 rounded-xl" /> : <View className="w-8 h-8 rounded-xl bg-slate-700 items-center justify-center"><Ionicons name="school" size={12} color="#6366f1" /></View>}
+                        {m.avatar ? <Image source={{ uri: m.avatar }} className="w-8 h-8 rounded-xl" /> : <View className="w-8 h-8 rounded-xl bg-slate-700 items-center justify-center"><Ionicons name="school" size={12} color="#f97316" /></View>}
                         <View className="ml-3">
-                          <Text className="text-indigo-500 font-black text-2xs uppercase">Mentor</Text>
+                          <Text className="text-brand-600 font-bold text-2xs">Mentor</Text>
                           <Text className="text-white font-bold text-2xs">{m.name}</Text>
                         </View>
                       </View>
@@ -459,14 +459,14 @@ const HackathonDetail = () => {
               {/* Strategic Partners (Sponsors) */}
               {hackathon.sponsors?.length > 0 && (
                 <View className="bg-white rounded-5xl p-8 mb-6 border border-slate-50 shadow-sm">
-                  <Text className="text-slate-900 font-black  text-base uppercase tracking-widest mb-6">Strategic Partners</Text>
+                  <Text className="text-slate-900 font-extrabold text-base mb-6">Strategic Partners</Text>
                   <View className="flex-row flex-wrap gap-6">
                     {hackathon.sponsors.map((s: any, idx: number) => (
                       <View key={idx} className="items-center">
                         <View className="w-20 h-20 bg-slate-50 rounded-3xl items-center justify-center border border-slate-100 p-3 shadow-sm">
                           {s.logo ? <Image source={{ uri: s.logo }} className="w-full h-full" resizeMode="contain" /> : <Ionicons name="business" size={24} color="#CBD5E1" />}
                         </View>
-                        <Text className="text-2xs font-black uppercase text-slate-500 mt-2 tracking-wide">{s.level}</Text>
+                        <Text className="text-2xs font-bold text-slate-500 mt-2">{s.level}</Text>
                         <Text className="text-2xs font-bold text-slate-900 text-center mt-0.5">{s.name}</Text>
                       </View>
                     ))}
@@ -474,26 +474,26 @@ const HackathonDetail = () => {
                 </View>
               )}
 
-              {/* Official Signals (Contact Links) */}
+              {/* Announcements (Contact Links) */}
               <View className="bg-slate-50 rounded-5xl p-8 border border-slate-100 shadow-inner">
-                <Text className="text-slate-900 font-black  text-base uppercase tracking-widest mb-6">Official Signals</Text>
+                <Text className="text-slate-900 font-extrabold text-base mb-6">Announcements</Text>
                 <View className="gap-3">
                   {hackathon.contactEmail && (
                     <TouchableOpacity className="flex-row items-center bg-white p-4 rounded-2xl shadow-sm">
-                      <Ionicons name="mail" size={18} color="#ec4899" />
-                      <Text className="text-slate-600 font-black text-2xs uppercase tracking-wide ml-4">{hackathon.contactEmail}</Text>
+                      <Ionicons name="mail" size={18} color="#f97316" />
+                      <Text className="text-slate-600 font-bold text-2xs ml-4">{hackathon.contactEmail}</Text>
                     </TouchableOpacity>
                   )}
                   {hackathon.discordLink && (
                     <TouchableOpacity className="flex-row items-center bg-white p-4 rounded-2xl shadow-sm">
                       <Ionicons name="logo-discord" size={18} color="#5865F2" />
-                      <Text className="text-slate-600 font-black text-2xs uppercase tracking-wide ml-4">Discord Registry</Text>
+                      <Text className="text-slate-600 font-bold text-2xs ml-4">Discord</Text>
                     </TouchableOpacity>
                   )}
                   {hackathon.websiteLink && (
                     <TouchableOpacity className="flex-row items-center bg-white p-4 rounded-2xl shadow-sm">
                       <Ionicons name="globe" size={18} color="#10b981" />
-                      <Text className="text-slate-600 font-black text-2xs uppercase tracking-wide ml-4">External Portal</Text>
+                      <Text className="text-slate-600 font-bold text-2xs ml-4">External Portal</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -504,21 +504,21 @@ const HackathonDetail = () => {
           {/* Tab 1: Timeline */}
           {activeTab === 1 && (
             <View className="bg-white rounded-5xl p-8 border border-slate-50 shadow-sm">
-              <Text className="text-slate-900 font-black  text-xl uppercase tracking-tighter mb-8">🕒 Operation Timeline</Text>
+              <Text className="text-slate-900 font-extrabold text-xl mb-8">🕒 Operation Timeline</Text>
               {hackathon.timeline && hackathon.timeline.length > 0 ? (
                 hackathon.timeline.map((event: any, i: number) => (
                   <View key={i} className="flex-row gap-6 mb-8 overflow-visible">
                     <View className="items-center">
                       <View className="w-10 h-10 rounded-2xl bg-slate-900 items-center justify-center z-10 border-4 border-white shadow-md">
-                        <Text className="text-white font-black text-xs">{(i + 1).toString().padStart(2, '0')}</Text>
+                        <Text className="text-white font-bold text-xs">{(i + 1).toString().padStart(2, '0')}</Text>
                       </View>
                       {i < hackathon.timeline.length - 1 && <View className="w-[2px] bg-slate-100 flex-1 -mt-2 mb-2" />}
                     </View>
                     <View className="flex-1 pt-1 pb-4">
-                      <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">
+                      <Text className="text-slate-500 font-bold text-2xs">
                         {new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}
                       </Text>
-                      <Text className="text-slate-900 font-black  text-base uppercase tracking-tight mt-1">{event.label}</Text>
+                      <Text className="text-slate-900 font-extrabold text-base mt-1">{event.label}</Text>
                       {event.description && <Text className="text-slate-500 text-xs leading-5 mt-2">{event.description}</Text>}
                     </View>
                   </View>
@@ -528,7 +528,7 @@ const HackathonDetail = () => {
                   <View className="w-16 h-16 bg-slate-50 rounded-3xl items-center justify-center mb-4">
                     <Ionicons name="calendar-outline" size={32} color="#CBD5E1" />
                   </View>
-                  <Text className="text-slate-500 font-black uppercase text-xs">Standard schedule in execution</Text>
+                  <Text className="text-slate-500 font-bold text-xs">Standard schedule in execution</Text>
                 </View>
               )}
             </View>
@@ -537,7 +537,7 @@ const HackathonDetail = () => {
           {/* Tab 2: Tracks */}
           {activeTab === 2 && (
             <View>
-              <Text className="text-slate-900 font-black  text-xl uppercase tracking-tighter mb-6 mx-2">📡 Strategic Tracks</Text>
+              <Text className="text-slate-900 font-extrabold text-xl mb-6 mx-2">📡 Strategic Tracks</Text>
               {hackathon.tracks && hackathon.tracks.length > 0 ? (
                 hackathon.tracks.map((track: any, i: number) => (
                   <LinearGradient
@@ -546,20 +546,20 @@ const HackathonDetail = () => {
                     className="rounded-4xl p-8 mb-4 border border-slate-100 shadow-sm"
                   >
                     <View className="flex-row items-center justify-between mb-4">
-                      <View className="bg-slate-900 px-4 py-2 rounded-xl"><Text className="text-white font-black  uppercase text-2xs">Track {i + 1}</Text></View>
+                      <View className="bg-slate-900 px-4 py-2 rounded-xl"><Text className="text-white font-bold text-2xs">Track {i + 1}</Text></View>
                       <View className="flex-row items-center bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100">
                         <Ionicons name="trophy" size={14} color="#10b981" />
-                        <Text className="text-emerald-600 font-black  uppercase text-2xs ml-2">{track.prizes || 'Standard Bounty'}</Text>
+                        <Text className="text-emerald-600 font-bold text-2xs ml-2">{track.prizes || 'Standard Bounty'}</Text>
                       </View>
                     </View>
-                    <Text className="text-slate-900 font-black  text-2xl uppercase tracking-tighter mb-3">{track.title}</Text>
+                    <Text className="text-slate-900 font-extrabold text-2xl mb-3">{track.title}</Text>
                     <Text className="text-slate-500 text-sm leading-6">{track.description}</Text>
                   </LinearGradient>
                 ))
               ) : (
                 <View className="items-center py-20 bg-white rounded-5xl border border-slate-50">
                   <Ionicons name="layers-outline" size={48} color="#CBD5E1" />
-                  <Text className="text-slate-500 font-black uppercase text-xs mt-4">Open Innovation Track</Text>
+                  <Text className="text-slate-500 font-bold text-xs mt-4">Open Innovation Track</Text>
                 </View>
               )}
             </View>
@@ -568,7 +568,7 @@ const HackathonDetail = () => {
           {/* Tab 3: Mentors */}
           {activeTab === 3 && (
             <View className="bg-white rounded-5xl p-8 border border-slate-50 shadow-sm">
-              <Text className="text-slate-900 font-black  text-xl uppercase tracking-tighter mb-8">💡 Mission Advisors</Text>
+              <Text className="text-slate-900 font-extrabold text-xl mb-8">💡 Mentors</Text>
               {hackathon.mentors && hackathon.mentors.length > 0 ? (
                 <View className="flex-row flex-wrap gap-6">
                   {hackathon.mentors.map((mentor: any, i: number) => (
@@ -576,14 +576,14 @@ const HackathonDetail = () => {
                       <View className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-slate-100 shadow-sm mb-3">
                         {mentor.avatar ? <Image source={{ uri: mentor.avatar }} className="w-full h-full" /> : <View className="w-full h-full bg-slate-50 items-center justify-center"><Ionicons name="person" size={24} color="#94a3b8" /></View>}
                       </View>
-                      <Text className="text-slate-900 font-black  text-center uppercase text-2xs tracking-tight">{mentor.name}</Text>
-                      <Text className="text-slate-500 text-2xs font-black uppercase text-center mt-1">{mentor.role || 'Expert'}</Text>
+                      <Text className="text-slate-900 font-bold text-center text-2xs">{mentor.name}</Text>
+                      <Text className="text-slate-500 text-2xs font-bold text-center mt-1">{mentor.role || 'Expert'}</Text>
                     </View>
                   ))}
                 </View>
               ) : (
                 <View className="items-center py-12">
-                  <Text className="text-slate-500 font-black uppercase text-xs">Official mentors pending signal</Text>
+                  <Text className="text-slate-500 font-bold text-xs">Official mentors pending signal</Text>
                 </View>
               )}
             </View>
@@ -592,12 +592,12 @@ const HackathonDetail = () => {
           {/* Tab 4: FAQs */}
           {activeTab === 4 && (
             <View className="bg-white rounded-5xl p-8 border border-slate-50 shadow-sm">
-              <Text className="text-slate-900 font-black  text-xl uppercase tracking-tighter mb-8">💬 Protocol FAQ</Text>
+              <Text className="text-slate-900 font-extrabold text-xl mb-8">💬 FAQ</Text>
               {hackathon.faqs && hackathon.faqs.length > 0 ? (
                 hackathon.faqs.map((faq: any, i: number) => <FAQItem key={i} faq={faq} />)
               ) : (
                 <View className="items-center py-12">
-                  <Text className="text-slate-500 font-black uppercase text-xs">Knowledge base expanding...</Text>
+                  <Text className="text-slate-500 font-bold text-xs">Knowledge base expanding...</Text>
                 </View>
               )}
             </View>
@@ -607,8 +607,8 @@ const HackathonDetail = () => {
           {activeTab === 5 && (
             <View>
               {isOfficial() && (
-                <View className="bg-white rounded-5xl p-8 mb-6 border border-pink-100 shadow-xl shadow-pink-500/5">
-                  <Text className="text-slate-900 font-black  text-xl uppercase tracking-tighter mb-6">📢 Broadcast Signal</Text>
+                <View className="bg-white rounded-5xl p-8 mb-6 border border-brand-100 shadow-xl shadow-slate-900/5">
+                  <Text className="text-slate-900 font-extrabold text-xl mb-6">📢 Post announcement</Text>
 
                   {/* Type Selector */}
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
@@ -619,7 +619,7 @@ const HackathonDetail = () => {
                         className={`flex-row items-center px-5 py-3 rounded-2xl border mr-3 ${annForm.type === t.value ? 'bg-slate-900 border-slate-800' : 'bg-slate-50 border-slate-100'}`}
                       >
                         <Ionicons name={t.icon as any} size={14} color={annForm.type === t.value ? 'white' : t.color} />
-                        <Text className={`font-black  uppercase text-2xs tracking-widest ml-2 ${annForm.type === t.value ? 'text-white' : 'text-slate-500'}`}>{t.label}</Text>
+                        <Text className={`font-bold text-2xs ml-2 ${annForm.type === t.value ? 'text-white' : 'text-slate-500'}`}>{t.label}</Text>
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
@@ -627,38 +627,38 @@ const HackathonDetail = () => {
                   <TextInput
                     value={annForm.title}
                     onChangeText={t => setAnnForm({ ...annForm, title: t })}
-                    placeholder="HEADLINE PROTOCOL"
+                    placeholder="Headline"
                     placeholderTextColor="#94a3b8"
-                    className="bg-slate-50 rounded-2xl px-6 py-4 mb-4 text-slate-900 font-black  uppercase text-xs border border-slate-100"
+                    className="bg-slate-50 rounded-2xl px-6 py-4 mb-4 text-slate-900 font-bold text-xs border border-slate-100"
                   />
                   <TextInput
                     value={annForm.body}
                     onChangeText={t => setAnnForm({ ...annForm, body: t })}
-                    placeholder="DETAILED INTEL..."
+                    placeholder="Write the announcement…"
                     multiline
                     numberOfLines={3}
                     placeholderTextColor="#94a3b8"
-                    className="bg-slate-50 rounded-4xl px-6 py-4 mb-6 text-slate-900 font-black  uppercase text-xs border border-slate-100 h-24"
+                    className="bg-slate-50 rounded-4xl px-6 py-4 mb-6 text-slate-900 font-bold text-xs border border-slate-100 h-24"
                   />
 
                   <View className="flex-row items-center justify-between mb-8 px-2">
                     <View className="flex-row items-center">
-                      <Ionicons name="pin" size={16} color={annForm.isPinned ? '#ec4899' : '#94a3b8'} />
-                      <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide ml-2">Pin to Priority</Text>
+                      <Ionicons name="pin" size={16} color={annForm.isPinned ? '#f97316' : '#94a3b8'} />
+                      <Text className="text-slate-500 font-bold text-2xs ml-2">Pin to Priority</Text>
                     </View>
                     <TouchableOpacity
                       onPress={() => setAnnForm({ ...annForm, isPinned: !annForm.isPinned })}
-                      className={`w-14 h-8 rounded-full border-2 items-center justify-center ${annForm.isPinned ? 'bg-pink-500 border-pink-400' : 'bg-slate-100 border-slate-200'}`}
+                      className={`w-14 h-8 rounded-full border-2 items-center justify-center ${annForm.isPinned ? 'bg-brand-500 border-brand-400' : 'bg-slate-100 border-slate-200'}`}
                     >
                       <View className={`w-4 h-4 rounded-full bg-white shadow-sm ${annForm.isPinned ? 'translate-x-3' : '-translate-x-3'}`} />
                     </TouchableOpacity>
                   </View>
 
-                  <TouchableOpacity onPress={postAnnouncement} disabled={postingAnn} className="rounded-3xl overflow-hidden shadow-lg shadow-pink-500/20">
-                    <LinearGradient colors={['#ec4899', '#f43f5e']} className="py-5 items-center justify-center flex-row">
+                  <TouchableOpacity onPress={postAnnouncement} disabled={postingAnn} className="rounded-3xl overflow-hidden shadow-lg shadow-slate-900/10">
+                    <LinearGradient colors={['#f97316', '#ea580c']} className="py-5 items-center justify-center flex-row">
                       {postingAnn ? <ActivityIndicator size="small" color="white" /> : (
                         <>
-                          <Text className="text-white font-black  uppercase text-xs tracking-wide mr-3">Send Broadcast</Text>
+                          <Text className="text-white font-bold text-xs mr-3">Send Broadcast</Text>
                           <Ionicons name="send" size={16} color="white" />
                         </>
                       )}
@@ -670,9 +670,9 @@ const HackathonDetail = () => {
               {/* Announcement Feed */}
               <View className="bg-white rounded-5xl p-8 border border-slate-50 shadow-sm min-h-[300px]">
                 <View className="flex-row items-center justify-between mb-8">
-                  <Text className="text-slate-900 font-black  text-xl uppercase tracking-tighter">📡 Live Protocol</Text>
+                  <Text className="text-slate-900 font-extrabold text-xl">📡 Live now</Text>
                   <TouchableOpacity onPress={() => navigation.navigate('HackathonChannel', { hackathonId, hackathonTitle: hackathon.title })}>
-                    <Text className="text-pink-500 font-black uppercase text-2xs tracking-wide">Full History →</Text>
+                    <Text className="text-brand-600 font-bold text-2xs">Full History →</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -680,19 +680,19 @@ const HackathonDetail = () => {
                   announcements.slice(0, 10).map((ann, i) => {
                     const type = ANN_TYPES.find(t => t.value === ann.type) || ANN_TYPES[0];
                     return (
-                      <View key={i} className={`mb-6 p-6 rounded-3xl border ${ann.isPinned ? 'bg-indigo-50/20 border-indigo-100' : 'bg-slate-50/50 border-slate-100'}`}>
+                      <View key={i} className={`mb-6 p-6 rounded-3xl border ${ann.isPinned ? 'bg-brand-50 border-brand-100' : 'bg-slate-50/50 border-slate-100'}`}>
                         <View className="flex-row items-center justify-between mb-3">
                           <View className={`px-3 py-1 rounded-xl border flex-row items-center`} style={{ backgroundColor: type.bg, borderColor: type.color + '20' }}>
                             <Ionicons name={type.icon as any} size={10} color={type.color} />
-                            <Text className="text-2xs font-black uppercase ml-1.5" style={{ color: type.color }}>{type.label}</Text>
+                            <Text className="text-2xs font-bold ml-1.5" style={{ color: type.color }}>{type.label}</Text>
                           </View>
-                          {ann.isPinned && <Ionicons name="pin" size={14} color="#6366f1" />}
+                          {ann.isPinned && <Ionicons name="pin" size={14} color="#f97316" />}
                         </View>
-                        <Text className="text-slate-900 font-black  text-sm uppercase mb-1 leading-5">{ann.Title}</Text>
+                        <Text className="text-slate-900 font-bold text-sm mb-1 leading-5">{ann.Title}</Text>
                         <Text className="text-slate-500 text-xs leading-5 mb-4">{ann.body}</Text>
                         <View className="flex-row items-center">
                           {ann.author?.avatar ? <Image source={{ uri: ann.author.avatar }} className="w-5 h-5 rounded-full" /> : <View className="w-5 h-5 rounded-full bg-slate-200 items-center justify-center"><Ionicons name="person" size={10} color="#94a3b8" /></View>}
-                          <Text className="text-slate-500 text-2xs font-black uppercase ml-2">{ann.author?.name} • {new Date(ann.createdAt).toLocaleDateString()}</Text>
+                          <Text className="text-slate-500 text-2xs font-bold ml-2">{ann.author?.name} • {new Date(ann.createdAt).toLocaleDateString()}</Text>
                         </View>
                       </View>
                     );
@@ -700,7 +700,7 @@ const HackathonDetail = () => {
                 ) : (
                   <View className="items-center py-20">
                     <Ionicons name="cloud-offline-outline" size={48} color="#CBD5E1" />
-                    <Text className="text-slate-500 font-black uppercase text-xs mt-4">No signals received</Text>
+                    <Text className="text-slate-500 font-bold text-xs mt-4">No signals received</Text>
                   </View>
                 )}
               </View>
@@ -713,27 +713,27 @@ const HackathonDetail = () => {
               <View className="flex-row gap-4 mb-6">
                 <TouchableOpacity
                   onPress={() => navigation.navigate('HackathonTeamScreen', { hackathonId: hackathon._id, mode: 'create' })}
-                  className="flex-1 rounded-3xl overflow-hidden shadow-lg shadow-indigo-500/20"
+                  className="flex-1 rounded-3xl overflow-hidden shadow-lg shadow-slate-900/10"
                 >
-                  <LinearGradient colors={['#6366f1', '#4338ca']} className="py-6 items-center">
+                  <LinearGradient colors={['#f97316', '#c2410c']} className="py-6 items-center">
                     <Ionicons name="add-circle" size={24} color="white" />
-                    <Text className="text-white font-black  text-xs uppercase tracking-wide mt-2">Initialise Team</Text>
+                    <Text className="text-white font-bold text-xs mt-2">Initialise Team</Text>
                   </LinearGradient>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => navigation.navigate('HackathonTeamScreen', { hackathonId: hackathon._id, mode: 'browse' })}
                   className="flex-1 rounded-3xl bg-white border border-slate-100 py-6 items-center shadow-sm"
                 >
-                  <Ionicons name="search" size={24} color="#6366f1" />
-                  <Text className="text-indigo-600 font-black  text-xs uppercase tracking-wide mt-2">Search Registry</Text>
+                  <Ionicons name="search" size={24} color="#f97316" />
+                  <Text className="text-brand-600 font-bold text-xs mt-2">Search</Text>
                 </TouchableOpacity>
               </View>
-              <View className="bg-indigo-900 rounded-4xl p-8 border border-indigo-800 shadow-xl shadow-indigo-500/10">
+              <View className="bg-slate-900 rounded-4xl p-8 border border-slate-800 shadow-xl shadow-slate-900/10">
                 <View className="flex-row items-center mb-4">
-                  <Ionicons name="flash" size={20} color="#818cf8" />
-                  <Text className="text-white font-black  text-base uppercase ml-2">Fync Engine v.2.0</Text>
+                  <Ionicons name="flash" size={20} color="#f97316" />
+                  <Text className="text-white font-extrabold text-base ml-2">Fync Engine v.2.0</Text>
                 </View>
-                <Text className="text-indigo-200 text-xs leading-6">
+                <Text className="text-slate-300 text-xs leading-6">
                   Our proprietary Jaccard coefficient scoring analyzes your skill vectors to find the most compatible agents for your protocol. Build your squad now.
                 </Text>
               </View>
@@ -743,12 +743,12 @@ const HackathonDetail = () => {
           {/* Tab 7: Prizes */}
           {activeTab === 7 && (
             <View>
-              <Text className="text-slate-900 font-black  text-xl uppercase tracking-tighter mb-6 mx-2">🏆 Bounty Distribution</Text>
+              <Text className="text-slate-900 font-extrabold text-xl mb-6 mx-2">🏆 Prizes</Text>
 
               {/* Assigned Winners */}
               {hackathon.winners && hackathon.winners.length > 0 && (
                 <View className="bg-emerald-50/60 border border-emerald-100 rounded-4xl p-6 mb-6">
-                  <Text className="text-emerald-700 font-black uppercase text-2xs tracking-wide mb-4 flex-row items-center">
+                  <Text className="text-emerald-700 font-bold text-2xs mb-4 flex-row items-center">
                     ✅ Winners Announced
                   </Text>
                   {hackathon.winners
@@ -757,13 +757,13 @@ const HackathonDetail = () => {
                     .map((w: any, i: number) => (
                       <View key={i} className="flex-row items-center py-3 border-b border-emerald-100 last:border-b-0">
                         <View className="w-12 h-12 rounded-2xl bg-white items-center justify-center mr-4">
-                          <Text className="text-xl font-black">{['🥇','🥈','🥉'][(w.rank||1)-1] || `#${w.rank}`}</Text>
+                          <Text className="text-xl font-extrabold">{['🥇','🥈','🥉'][(w.rank||1)-1] || `#${w.rank}`}</Text>
                         </View>
                         <View className="flex-1">
-                          <Text className="text-slate-900 font-black text-sm uppercase tracking-tight">
+                          <Text className="text-slate-900 font-bold text-sm">
                             {w.submission?.ProjectName || `Rank ${w.rank}`}
                           </Text>
-                          <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">
+                          <Text className="text-slate-500 text-2xs font-bold mt-0.5">
                             {w.team?.name || 'Team'} {w.title ? `· ${w.title}` : ''} {w.amount ? `· ${w.amount}` : ''}
                           </Text>
                         </View>
@@ -783,8 +783,8 @@ const HackathonDetail = () => {
                         <Text className="text-4xl">{medals[i] ?? `#${prize.rank}`}</Text>
                       </View>
                       <View className="flex-1">
-                        <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">{prize.title}</Text>
-                        <Text className="text-slate-900 font-black  text-2xl uppercase tracking-tighter mt-1" style={{ color: tint }}>{prize.amount}</Text>
+                        <Text className="text-slate-500 font-bold text-2xs">{prize.title}</Text>
+                        <Text className="text-slate-900 font-extrabold text-2xl mt-1" style={{ color: tint }}>{prize.amount}</Text>
                       </View>
                     </View>
                   );
@@ -792,7 +792,7 @@ const HackathonDetail = () => {
               ) : (
                 <View className="items-center py-20 bg-white rounded-5xl border border-slate-50">
                   <Ionicons name="trophy-outline" size={48} color="#CBD5E1" />
-                  <Text className="text-slate-500 font-black uppercase text-xs mt-4">Prizes in allocation phase</Text>
+                  <Text className="text-slate-500 font-bold text-xs mt-4">Prizes in allocation phase</Text>
                 </View>
               )}
             </View>
@@ -805,9 +805,9 @@ const HackathonDetail = () => {
         {!isParticipant ? (
           <TouchableOpacity onPress={isRegOpen ? handleJoin : undefined} disabled={joining || !isRegOpen} activeOpacity={0.9}>
             <LinearGradient
-              colors={isRegOpen ? ['#ec4899', '#f43f5e'] : ['#cbd5e1', '#94a3b8']}
+              colors={isRegOpen ? ['#f97316', '#ea580c'] : ['#cbd5e1', '#94a3b8']}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-              className="rounded-2xl shadow-xl shadow-pink-500/20"
+              className="rounded-2xl shadow-xl shadow-slate-900/10"
             >
               <View className="py-5 flex-row items-center justify-center">
                 {joining ? (
@@ -815,7 +815,7 @@ const HackathonDetail = () => {
                 ) : (
                   <>
                     <Ionicons name={isRegOpen ? "planet" : "lock-closed"} size={20} color="white" />
-                    <Text className="text-white font-black  text-base uppercase tracking-widest ml-3">
+                    <Text className="text-white font-extrabold text-base ml-3">
                       {isRegOpen ? 'Join Ecosystem Registry' : regStatusLabel.toUpperCase()}
                     </Text>
                   </>
@@ -827,30 +827,30 @@ const HackathonDetail = () => {
           <View className="flex-row gap-4">
             <TouchableOpacity
               onPress={() => navigation.navigate('HackathonTeamScreen', { hackathonId: hackathon._id })}
-              className="flex-[1.5] rounded-24px bg-slate-900 py-5 items-center justify-center shadow-lg shadow-black/10 flex-row"
+              className="flex-[1.5] rounded-2xl bg-slate-900 py-5 items-center justify-center shadow-lg shadow-black/10 flex-row"
               style={{ borderRadius: 24 }}
             >
               <Ionicons name="people" size={18} color="white" />
-              <Text className="text-white font-black  text-2xs uppercase tracking-wide ml-2">My SQUAD</Text>
+              <Text className="text-white font-bold text-2xs ml-2">My SQUAD</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => navigation.navigate('HackathonSubmission', { hackathonId: hackathon._id })}
-              className="flex-[2] rounded-24px bg-pink-500 py-5 items-center justify-center shadow-lg shadow-pink-500/20 flex-row"
+              className="flex-[2] rounded-2xl bg-brand-500 py-5 items-center justify-center shadow-lg shadow-slate-900/10 flex-row"
               style={{ borderRadius: 24 }}
             >
               <Ionicons name="cloud-upload" size={18} color="white" />
-              <Text className="text-white font-black  text-2xs uppercase tracking-wide ml-2">DEPLOY PROJECT</Text>
+              <Text className="text-white font-bold text-2xs ml-2">DEPLOY PROJECT</Text>
             </TouchableOpacity>
 
             {isOfficial() && (
               <>
                 <TouchableOpacity
                   onPress={() => navigation.navigate('HackathonCreate', { hackathonId: hackathon._id })}
-                  className="w-16 rounded-24px bg-slate-900 items-center justify-center shadow-lg border border-slate-800"
+                  className="w-16 rounded-2xl bg-slate-900 items-center justify-center shadow-lg border border-slate-800"
                   style={{ borderRadius: 24 }}
                 >
-                  <Ionicons name="create-outline" size={24} color="#ec4899" />
+                  <Ionicons name="create-outline" size={24} color="#f97316" />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -875,7 +875,7 @@ const HackathonDetail = () => {
                       ]
                     );
                   }}
-                  className={`w-14 rounded-24px items-center justify-center shadow-lg ${hackathon.status === 'draft' ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                  className={`w-14 rounded-2xl items-center justify-center shadow-lg ${hackathon.status === 'draft' ? 'bg-emerald-500' : 'bg-slate-200'}`}
                   style={{ borderRadius: 24 }}
                 >
                   <Ionicons name={hackathon.status === 'draft' ? "play" : "pause"} size={20} color={hackathon.status === 'draft' ? "white" : "#475569"} />
@@ -883,7 +883,7 @@ const HackathonDetail = () => {
 
                 <TouchableOpacity
                   onPress={() => navigation.navigate('HackathonJudgePanel', { hackathonId: hackathon._id, judgingCriteria: hackathon.judgingcriteria })}
-                  className="w-16 rounded-24px bg-amber-400 items-center justify-center shadow-lg shadow-amber-400/20"
+                  className="w-16 rounded-2xl bg-amber-400 items-center justify-center shadow-lg shadow-amber-400/20"
                   style={{ borderRadius: 24 }}
                 >
                   <Ionicons name="shield-checkmark" size={24} color="#78350f" />

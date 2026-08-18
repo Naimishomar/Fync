@@ -39,7 +39,7 @@ interface Announcement {
 }
 
 const ANN_TYPES: { value: string; label: string; icon: string; color: string; bg: string }[] = [
-  { value: 'general', label: 'General', icon: 'megaphone', color: '#6366f1', bg: '#ede9fe' },
+  { value: 'general', label: 'General', icon: 'megaphone', color: '#f97316', bg: '#ffedd5' },
   { value: 'important', label: 'Important', icon: 'alert-circle', color: '#ef4444', bg: '#fee2e2' },
   { value: 'schedule_change', label: 'Schedule', icon: 'calendar', color: '#f59e0b', bg: '#fef3c7' },
   { value: 'result', label: 'Result', icon: 'trophy', color: '#10b981', bg: '#d1fae5' },
@@ -164,19 +164,19 @@ const HackathonChannel = () => {
         <View className="flex-row items-center justify-between mb-3">
           <View className="flex-row items-center bg-white px-2.5 py-1 rounded-xl border border-slate-100">
             <Ionicons name={typeMeta.icon as any} size={11} color={typeMeta.color} />
-            <Text className="text-2xs font-black uppercase tracking-wide ml-1.5" style={{ color: typeMeta.color }}>
+            <Text className="text-2xs font-bold ml-1.5" style={{ color: typeMeta.color }}>
               {typeMeta.label}
             </Text>
           </View>
           {item.isPinned && (
             <View className="flex-row items-center bg-amber-100 px-2.5 py-1 rounded-xl">
               <Ionicons name="pin" size={10} color="#d97706" />
-              <Text className="text-amber-700 text-2xs font-black uppercase ml-1">Pinned</Text>
+              <Text className="text-amber-700 text-2xs font-bold ml-1">Pinned</Text>
             </View>
           )}
         </View>
 
-        <Text className="text-slate-900 font-black  text-base mb-1.5 leading-5">{item.Title}</Text>
+        <Text className="text-slate-900 font-extrabold text-base mb-1.5 leading-5">{item.Title}</Text>
         <Text className="text-slate-500 text-xs leading-5 mb-4">{item.body}</Text>
 
         {/* Footer */}
@@ -185,13 +185,13 @@ const HackathonChannel = () => {
             {item.author?.avatar ? (
               <Image source={{ uri: item.author.avatar }} className="w-6 h-6 rounded-full mr-2" />
             ) : (
-              <View className="w-6 h-6 rounded-full bg-indigo-100 items-center justify-center mr-2">
-                <Ionicons name="person" size={12} color="#6366f1" />
+              <View className="w-6 h-6 rounded-full bg-brand-100 items-center justify-center mr-2">
+                <Ionicons name="person" size={12} color="#f97316" />
               </View>
             )}
             <View>
-              <Text className="text-slate-800 font-black text-2xs">{item.author?.name}</Text>
-              <Text className="text-slate-500 text-2xs uppercase font-black">{new Date(item.createdAt).toLocaleDateString()}</Text>
+              <Text className="text-slate-800 font-bold text-2xs">{item.author?.name}</Text>
+              <Text className="text-slate-500 text-2xs font-bold">{new Date(item.createdAt).toLocaleDateString()}</Text>
             </View>
           </View>
 
@@ -201,7 +201,7 @@ const HackathonChannel = () => {
               <TouchableOpacity
                 key={emoji}
                 onPress={() => handleReact(item._id, emoji)}
-                className={`w-8 h-8 rounded-xl items-center justify-center border ${myReaction === emoji ? 'bg-indigo-600 border-indigo-600' : 'bg-slate-50 border-slate-100'}`}
+                className={`w-8 h-8 rounded-xl items-center justify-center border ${myReaction === emoji ? 'bg-slate-900 border-slate-900' : 'bg-slate-50 border-slate-100'}`}
               >
                 <Text className="text-xs">{emoji}</Text>
               </TouchableOpacity>
@@ -231,15 +231,15 @@ const HackathonChannel = () => {
             <Ionicons name="arrow-back" size={20} color="#1e293b" />
           </TouchableOpacity>
           <View className="flex-1">
-            <Text className="text-slate-900 text-xl font-black  uppercase tracking-tight">Channel</Text>
-            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide" numberOfLines={1}>{hackathonTitle}</Text>
+            <Text className="text-slate-900 text-xl font-extrabold">Channel</Text>
+            <Text className="text-slate-500 text-2xs font-bold" numberOfLines={1}>{hackathonTitle}</Text>
           </View>
           {isOfficial && (
             <TouchableOpacity
               onPress={() => setShowCompose(!showCompose)}
-              className={`w-10 h-10 rounded-2xl items-center justify-center ${showCompose ? 'bg-rose-100' : 'bg-indigo-600'}`}
+              className={`w-10 h-10 rounded-2xl items-center justify-center ${showCompose ? 'bg-slate-100' : 'bg-slate-900'}`}
             >
-              <Ionicons name={showCompose ? 'close' : 'add'} size={24} color={showCompose ? '#e11d48' : 'white'} />
+              <Ionicons name={showCompose ? 'close' : 'add'} size={24} color={showCompose ? '#ef4444' : 'white'} />
             </TouchableOpacity>
           )}
         </View>
@@ -247,16 +247,16 @@ const HackathonChannel = () => {
         {/* Compose Section */}
         {showCompose && (
           <View className="bg-white px-5 py-4 border-b border-slate-100">
-            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-3">Broadcast New Message</Text>
+            <Text className="text-slate-500 text-2xs font-bold mb-3">Broadcast New Message</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
               {ANN_TYPES.map(t => (
                 <TouchableOpacity
                   key={t.value}
                   onPress={() => setDraft({ ...draft, type: t.value })}
-                  className={`flex-row items-center px-3 py-2 rounded-xl border mr-2 ${draft.type === t.value ? 'bg-indigo-600 border-indigo-600' : 'bg-slate-50 border-slate-200'}`}
+                  className={`flex-row items-center px-3 py-2 rounded-xl border mr-2 ${draft.type === t.value ? 'bg-slate-900 border-slate-900' : 'bg-slate-50 border-slate-200'}`}
                 >
                   <Ionicons name={t.icon as any} size={11} color={draft.type === t.value ? 'white' : '#64748b'} />
-                  <Text className={`text-2xs font-black uppercase ml-1.5 ${draft.type === t.value ? 'text-white' : 'text-slate-500'}`}>{t.label}</Text>
+                  <Text className={`text-2xs font-bold ml-1.5 ${draft.type === t.value ? 'text-white' : 'text-slate-500'}`}>{t.label}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -278,18 +278,18 @@ const HackathonChannel = () => {
             <View className="flex-row items-center justify-between mb-3">
               <View className="flex-row items-center">
                 <Ionicons name="pin" size={14} color={draft.isPinned ? '#d97706' : '#94a3b8'} />
-                <Text className="text-2xs font-black text-slate-500 uppercase ml-2">Pin to top</Text>
+                <Text className="text-2xs font-bold text-slate-500 ml-2">Pin to top</Text>
               </View>
               <Switch
                 value={draft.isPinned}
                 onValueChange={v => setDraft({ ...draft, isPinned: v })}
-                trackColor={{ false: '#e2e8f0', true: '#c7d2fe' }}
-                thumbColor={draft.isPinned ? '#6366f1' : '#f4f4f5'}
+                trackColor={{ false: '#e2e8f0', true: '#ffedd5' }}
+                thumbColor={draft.isPinned ? '#f97316' : '#f1f5f9'}
               />
             </View>
             <TouchableOpacity onPress={handlePost} disabled={posting} className="rounded-2xl overflow-hidden">
-              <LinearGradient colors={['#6366f1', '#ec4899']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} className="py-3.5 items-center">
-                {posting ? <ActivityIndicator size="small" color="white" /> : <Text className="text-white font-black uppercase tracking-wide text-xs">Send Announcement 📣</Text>}
+              <LinearGradient colors={['#f97316', '#f97316']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} className="py-3.5 items-center">
+                {posting ? <ActivityIndicator size="small" color="white" /> : <Text className="text-white font-bold text-xs">Send Announcement 📣</Text>}
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -298,7 +298,7 @@ const HackathonChannel = () => {
         {/* Announcements List */}
         {loading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#6366f1" />
+            <ActivityIndicator size="large" color="#f97316" />
           </View>
         ) : (
           <FlatList
@@ -309,10 +309,10 @@ const HackathonChannel = () => {
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadAnnouncements(); }} />}
             ListEmptyComponent={() => (
               <View className="items-center py-20">
-                <LinearGradient colors={['#ede9fe', '#fce7f3']} className="w-20 h-20 rounded-3xl items-center justify-center mb-5">
-                  <Ionicons name="megaphone-outline" size={36} color="#6366f1" />
+                <LinearGradient colors={['#ffedd5', '#ffedd5']} className="w-20 h-20 rounded-3xl items-center justify-center mb-5">
+                  <Ionicons name="megaphone-outline" size={36} color="#f97316" />
                 </LinearGradient>
-                <Text className="text-slate-700 font-black  text-lg uppercase mb-1">Silence is Golden</Text>
+                <Text className="text-slate-700 font-extrabold text-lg mb-1">Silence is Golden</Text>
                 <Text className="text-slate-500 text-xs font-semibold">No announcements yet. Check back soon!</Text>
               </View>
             )}

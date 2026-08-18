@@ -42,11 +42,15 @@ const SchemaSubmission = new mongoose.Schema({
      presentationUrl:{
         type:String
      },
+    // `type:String` as a bare key makes Mongoose read this whole object as a
+    // SchemaType definition, so `files` silently became [String] and every
+    // addFile/uploadSubmissionFile push threw "Cast to string failed".
+    // Nesting it as `{ type: String }` keeps it a real subdocument array.
     files:[
         {
             name:String,
             Url:String,
-            type:String,
+            type:{ type:String },
             size:String,
         }
     ],

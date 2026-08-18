@@ -5,10 +5,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useNavigation } from '@react-navigation/native';
-import { differenceInSeconds, addDays, startOfDay } from 'date-fns';
 import * as ImagePicker from 'expo-image-picker'; 
 import { useAuth } from '../../context/auth.context';
-import socket from '../../utils/socket'; 
+import socket from '../../utils/socket';
+import { checkClubStatus } from '../../utils/nightClub'; 
 import axios from '../../context/axiosConfig';
 
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
@@ -16,10 +16,12 @@ const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q
 const ADJECTIVES = ["Neon", "Silent", "Hollow", "Cyber", "Mist", "Void", "Lunar", "Solar", "Glitch", "Shadow", "Retro", "Lost", "Vivid", "Dark", "Pale"];
 const NOUNS = ["Walker", "Ghost", "Echo", "Mind", "Rider", "Surfer", "Drifter", "Phantom", "Signal", "Soul", "Viper", "Nomad", "Wolf", "Owl", "Rebel"];
 
-const getNightIdentity = (userId: string | undefined) => {
-    if (!userId) return { username: "Unknown Soul", avatar: "https://api.dicebear.com/9.x/glass/png?seed=unknown" };
-    const today = new Date().toDateString(); 
-    const seed = userId + today;
+// Seeded from the server's per-night pseudonym, never a real user id. The
+// pseudonym already rotates each night, so this needs no date of its own — and
+// there is no longer an account id on the client to leak or correlate.
+const getNightIdentity = (nightId: string | undefined) => {
+    if (!nightId) return { username: "Unknown Soul", avatar: "https://api.dicebear.com/9.x/glass/png?seed=unknown" };
+    const seed = nightId;
     let hash = 0;
     for (let i = 0; i < seed.length; i++) hash = seed.charCodeAt(i) + ((hash << 5) - hash);
     const adjIndex = Math.abs(hash) % ADJECTIVES.length;
@@ -40,26 +42,25 @@ export default function TwelveAMClub() {
   const [replyingTo, setReplyingTo] = useState<any>(null);
   const [isSearching, setIsSearching] = useState(false); // Matchmaking state
   const [matchRoomId, setMatchRoomId] = useState<string | null>(null);
+  // Our own alias for tonight, issued by the server on join.
+  const [myNightId, setMyNightId] = useState<string | null>(null);
 
   const { user } = useAuth();
   const navigation = useNavigation();
   const CURRENT_USER_ID = user?._id || user?.id; 
-  const myIdentity = getNightIdentity(CURRENT_USER_ID);
+  const myIdentity = getNightIdentity(myNightId ?? undefined);
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
     const checkTime = () => {
-      const now = new Date();
-      const hour = now.getHours();
-      const open = hour >= 0 && hour < 6;
+      // IST, matching the server's gate. `date-fns` startOfDay/addDays worked on
+      // the device's calendar day, which is a different midnight abroad.
+      const { isOpen: open, secondsUntilOpen } = checkClubStatus();
       setIsOpen(open);
       if (!open) {
-        const nextMidnight = startOfDay(addDays(now, 1));
-        const seconds = differenceInSeconds(nextMidnight, now);
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        const s = seconds % 60;
-        setTimeLeft(`${h}h ${m}m ${s}s`);
+        const h = Math.floor(secondsUntilOpen / 3600);
+        const m = Math.floor((secondsUntilOpen % 3600) / 60);
+        setTimeLeft(`${h}h ${m}m ${secondsUntilOpen % 60}s`);
       }
     };
     checkTime(); 
@@ -76,6 +77,7 @@ export default function TwelveAMClub() {
     socket.emit("join_night_club");
 
     const handleJoined = (data: any) => {
+      setMyNightId(data.youAre ?? null);
       setMessages([...data.history].reverse());
     };
 
@@ -135,7 +137,7 @@ export default function TwelveAMClub() {
       
       // Notify partner if exiting while in a match
       if (matchRoomIdRef.current && CURRENT_USER_ID) {
-        socket.emit("leave_night_1v1", { userId: CURRENT_USER_ID, roomId: matchRoomIdRef.current });
+        socket.emit("leave_night_1v1", { roomId: matchRoomIdRef.current });
       }
     };
   }, [isOpen]);
@@ -152,12 +154,12 @@ export default function TwelveAMClub() {
       setIsSearching(true);
       setMatchRoomId(null);
       setPrivateMessages([]);
-      socket.emit("find_night_1v1", { userId: CURRENT_USER_ID });
+      socket.emit("find_night_1v1");
   };
 
   const skipMatch = () => {
       if (!CURRENT_USER_ID || !matchRoomId) return;
-      socket.emit("skip_night_1v1", { userId: CURRENT_USER_ID, roomId: matchRoomId });
+      socket.emit("skip_night_1v1", { roomId: matchRoomId });
       
       // Clear current match and immediately requeue by invoking findMatch
       setMatchRoomId(null);
@@ -172,12 +174,12 @@ export default function TwelveAMClub() {
       
       const optimisticMsg = {
           _id: tempId, tempId, message: "", messageType: 'image', fileUrl: uri,
-          sender: { _id: CURRENT_USER_ID, username: user?.username || "Me", avatar: user?.avatar },
+          sender: { id: myNightId },
           createdAt: new Date().toISOString(), pending: true,
           replyTo: replyingTo ? {
               messageId: replyingTo._id,
               text: replyingTo.messageType === 'image' ? 'Image' : replyingTo.message,
-              senderName: getNightIdentity(replyingTo.sender._id).username
+              senderName: getNightIdentity(replyingTo.sender?.id ?? replyingTo.sender?._id).username
           } : null
       };
 
@@ -200,12 +202,12 @@ export default function TwelveAMClub() {
           if (res.data.success) {
               if (mode === 'global') {
                   socket.emit("send_night_message", {
-                      senderId: CURRENT_USER_ID, text: "", tempId, type: 'image', mediaUrl: res.data.fileUrl,
+                      text: "", tempId, type: 'image', mediaUrl: res.data.fileUrl,
                       replyTo: optimisticMsg.replyTo
                   });
               } else {
                   socket.emit("send_night_1v1_message", {
-                      roomId: matchRoomId, senderId: CURRENT_USER_ID, text: "", type: 'image', mediaUrl: res.data.fileUrl
+                      roomId: matchRoomId, text: "", type: 'image', mediaUrl: res.data.fileUrl
                   });
               }
           }
@@ -243,28 +245,28 @@ export default function TwelveAMClub() {
     if (mode === 'global') {
         const optimisticMsg = {
             _id: tempId, tempId, message: textToSend, type: 'text',
-            sender: { _id: CURRENT_USER_ID, username: user?.username || "Me", avatar: user?.avatar },
+            sender: { id: myNightId },
             createdAt: new Date().toISOString(), pending: true,
             replyTo: replyingTo ? {
                 messageId: replyingTo._id,
                 text: replyingTo.messageType === 'image' ? 'Image' : replyingTo.message,
-                senderName: getNightIdentity(replyingTo.sender._id).username
+                senderName: getNightIdentity(replyingTo.sender?.id ?? replyingTo.sender?._id).username
             } : null
         };
         setMessages(prev => [optimisticMsg, ...prev]);
         socket.emit("send_night_message", {
-          senderId: CURRENT_USER_ID, text: textToSend, tempId, type: 'text',
+          text: textToSend, tempId, type: 'text',
           replyTo: optimisticMsg.replyTo
         });
     } else {
         if (!matchRoomId) return findMatch();
         const optimisticMsg = {
-            _id: tempId, message: textToSend, senderId: CURRENT_USER_ID,
+            _id: tempId, message: textToSend, senderId: myNightId,
             createdAt: new Date().toISOString()
         };
         setPrivateMessages(prev => [optimisticMsg, ...prev]);
         socket.emit("send_night_1v1_message", {
-            roomId: matchRoomId, senderId: CURRENT_USER_ID, text: textToSend, type: 'text'
+            roomId: matchRoomId, text: textToSend, type: 'text'
         });
     }
 
@@ -273,8 +275,13 @@ export default function TwelveAMClub() {
   };
 
   const renderMessage = useCallback(({ item }: { item: any }) => {
-    const isMe = (mode === 'global' ? item.sender._id : item.senderId) === CURRENT_USER_ID;
-    const identity = mode === 'global' ? getNightIdentity(item.sender._id) : { username: "Stranger", avatar: "https://api.dicebear.com/9.x/fun-emoji/png?seed=stranger" };
+    const senderKey = mode === 'global'
+      ? (item.sender?.id ?? item.sender?._id)   // sender._id: pre-pseudonym backlog
+      : item.senderId;
+    const isMe = !!senderKey && senderKey === myNightId;
+    const identity = mode === 'global'
+      ? getNightIdentity(senderKey)
+      : { username: "Stranger", avatar: "https://api.dicebear.com/9.x/fun-emoji/png?seed=stranger" };
 
     return (
         <View className={`mb-4 flex-row ${isMe ? 'justify-end' : 'justify-start'}`}>
@@ -328,7 +335,7 @@ export default function TwelveAMClub() {
             </View>
         </View>
     );
-  }, [mode, CURRENT_USER_ID, setReplyingTo]);
+  }, [mode, myNightId, setReplyingTo]);
 
   if (!isOpen) {
     return (
@@ -430,7 +437,7 @@ export default function TwelveAMClub() {
                   <BlurView intensity={80} tint="dark" className="px-5 py-3 border-t border-white/5 flex-row items-center justify-between">
                     <View className="border-l-2 border-indigo-500 pl-3 flex-1">
                       <Text className="text-indigo-400 text-2xs font-black uppercase tracking-wide">
-                        Replying to {getNightIdentity(replyingTo.sender._id).username}
+                        Replying to {getNightIdentity(replyingTo.sender?.id ?? replyingTo.sender?._id).username}
                       </Text>
                       <Text className="text-white/60 text-xs" numberOfLines={1}>
                         {replyingTo.messageType === 'image' ? 'Shared an image' : replyingTo.message}

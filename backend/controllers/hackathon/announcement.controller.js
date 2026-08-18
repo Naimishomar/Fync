@@ -16,7 +16,8 @@ export const getannouncements = async (req, res, next) => {
             .populate("author", "name avatar role")
             .sort({ isPinned: -1, createdAt: -1 })
             .skip(skip)
-            .limit(Number(limit));
+            .limit(Number(limit))
+            .lean();
 
         res.status(200).json({ success: true, announcements });
     } catch (error) {

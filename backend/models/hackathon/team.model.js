@@ -47,6 +47,10 @@ const teamSchema = new mongoose.Schema({
 //  - createTeam/requesttoJoin/RespondtoInvite: one team per user per hackathon
 //  - matchTeams: open teams for skill matching
 teamSchema.index({ hackathon: 1, "members.user": 1 });
+// getMyHackathons asks "every team this user is in", with no hackathon to scope
+// it. The compound index above is led by `hackathon`, so that query could not
+// use it and scanned the collection.
+teamSchema.index({ "members.user": 1 });
 teamSchema.index({ hackathon: 1, lookingForMembers: 1, isLocked: 1 });
 
 const HackathonTeam = mongoose.model("HackathonTeam", teamSchema);

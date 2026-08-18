@@ -4,13 +4,15 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "node middlewares/mongoSanitize.test.js && node middlewares/auth.middleware.test.js && node middlewares/cache.middleware.test.js && node utils/pricing.test.js",
+    "test": "node middlewares/mongoSanitize.test.js && node middlewares/auth.middleware.test.js && node middlewares/cache.middleware.test.js && node utils/pricing.test.js && node models/hackathon/score.model.test.js && TZ=UTC node utils/nightClub.test.js",
     "start": "node index.js",
     "dev": "nodemon index.js",
     "sync-indexes": "node scripts/syncIndexes.js",
     "smoke": "node scripts/smokeControllers.js",
+    "test:hackathon": "node scripts/hackathonRoutes.test.js",
+    "test:shorts": "node scripts/shortsViews.test.js",
     "test:logic": "node scripts/businessLogic.test.js",
-    "verify": "npm test && npm run smoke && npm run test:logic"
+    "verify": "npm test && npm run smoke && npm run test:logic && npm run test:hackathon && npm run test:shorts"
   },
   "keywords": [],
   "author": "",

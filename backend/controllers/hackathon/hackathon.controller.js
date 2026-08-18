@@ -3,6 +3,7 @@ import HackathonChannel from "../../models/hackathon/Hackathonchannel.model.js";
 import Announcement from "../../models/hackathon/announcements.model.js";
 import HackathonTeam from "../../models/hackathon/team.model.js";
 import Submission from "../../models/hackathon/submission.model.js";
+import Score from "../../models/hackathon/score.model.js";
 import { nanoid } from "nanoid";
 
 // Normalize stringified judging criteria weightage → Number
@@ -19,12 +20,10 @@ const normalizeCriteria = (criteria) => {
 const getJudgeProgress = async (hackId) => {
   const [activeSubs, judgedRows] = await Promise.all([
     Submission.countDocuments({ hackathon: hackId, status: { $in: ["submitted", "underReview"] } }),
-    import("../../models/hackathon/score.model.js").then(({ default: Score }) =>
-      Score.aggregate([
-        { $match: { hackathon: hackId } },
-        { $group: { _id: "$judge", count: { $sum: 1 } } },
-      ])
-    ),
+    Score.aggregate([
+      { $match: { hackathon: hackId } },
+      { $group: { _id: "$judge", count: { $sum: 1 } } },
+    ]),
   ]);
 
   const perJudge = {};
@@ -107,7 +106,8 @@ export const gethackathon = async (req, res, next) => {
             .populate({
                 path: "winners.team",
                 select: "name",
-            });
+            })
+            .lean();
 
         if (!hack) {
             return res.status(404).json({ success: false, message: "Hackathon not found" });
@@ -133,7 +133,8 @@ export const gethackathons = async (req, res, next) => {
                 .populate("organiser", "name avatar")
                 .sort({ createdAt: -1 })
                 .skip(skip)
-                .limit(Number(limit)),
+                .limit(Number(limit))
+                .lean(),
             Hackathon.countDocuments(filter),
         ]);
         res.status(200).json({ success: true, total, page: Number(page), hackathons });
@@ -149,35 +150,39 @@ export const getMyHackathons = async (req, res, next) => {
     try {
         const userId = req.user.id;
 
-        const [myTeams, organised, participated] = await Promise.all([
-            HackathonTeam.distinct("hackathon", { "members.user": userId }),
+        // The team documents are fetched up front rather than after the id set is
+        // known: "teams this user is in" needs no hackathon filter, and it yields
+        // the same hackathon ids the old `distinct` call went and asked for. That
+        // removes a whole dependent wait from the chain.
+        const [teams, organised, participated] = await Promise.all([
+            HackathonTeam.find({ "members.user": userId }).select("hackathon name _id").lean(),
             Hackathon.find({ organiser: userId }).distinct("_id"),
             Hackathon.find({ participants: userId }).distinct("_id"),
         ]);
 
-        const idSet = new Set([...myTeams.map(String), ...organised.map(String), ...participated.map(String)]);
+        const idSet = new Set([
+            ...teams.map((t) => t.hackathon.toString()),
+            ...organised.map(String),
+            ...participated.map(String),
+        ]);
         const ids = [...idSet];
         if (!ids.length) return res.status(200).json({ success: true, hackathons: [], total: 0 });
 
-        const [hackathons, teams] = await Promise.all([
+        const teamIds = teams.map((t) => t._id);
+
+        const [hackathons, submissions] = await Promise.all([
             Hackathon.find({ _id: { $in: ids } })
                 .populate("organiser", "name avatar")
                 .select("title status hackathonstarts hackathonends registrationstart registrationends prizepool prizes tags MaxTeamSize participants bannerImage logo organiser")
-                .sort({ createdAt: -1 }),
-            // All teams the user belongs to across these hackathons (1 query)
-            HackathonTeam.find({ hackathon: { $in: ids }, "members.user": userId })
-                .select("hackathon name _id"),
+                .sort({ createdAt: -1 })
+                .lean(),
+            teamIds.length
+                ? Submission.find({ team: { $in: teamIds } }).select("hackathon team status ProjectName").lean()
+                : [],
         ]);
 
         const teamByHack = new Map();
         teams.forEach((t) => teamByHack.set(t.hackathon.toString(), t));
-
-        // Only the user's team submissions (scoped to their teams, not all submissions)
-        const teamIds = teams.map((t) => t._id);
-        const submissions = teamIds.length
-            ? await Submission.find({ team: { $in: teamIds } })
-                .select("hackathon team status ProjectName")
-            : [];
 
         const subByTeam = new Map();
         submissions.forEach((s) => subByTeam.set(s.team.toString(), s));
@@ -187,7 +192,7 @@ export const getMyHackathons = async (req, res, next) => {
             const team = teamByHack.get(h._id.toString());
             const submission = team ? subByTeam.get(team._id.toString()) : null;
             return {
-                ...h.toObject(),
+                ...h,
                 myRole: isOrganiser ? "organiser" : team ? "team-member" : "participant",
                 myTeam: team ? { _id: team._id, name: team.name } : null,
                 mySubmission: submission ? { _id: submission._id, status: submission.status, ProjectName: submission.ProjectName } : null,
@@ -203,26 +208,49 @@ export const getMyHackathons = async (req, res, next) => {
 // GET /hackathons/:hackathonId/dashboard — organiser analytics + moderation queue
 export const getDashboard = async (req, res, next) => {
     try {
-        const hack = await Hackathon.findById(req.params.hackathonId);
+        const hack = await Hackathon.findById(req.params.hackathonId).lean();
         if (!hack) return res.status(404).json({ success: false, message: "Hackathon not found" });
         if (hack.organiser.toString() !== req.user.id.toString())
             return res.status(403).json({ success: false, message: "Not authorised" });
 
-        const [participantCount, teamCount, submissionCount, scoredCount, pendingCount, recentSubmissions, judgeProgress] =
-            await Promise.all([
-                hack.participants?.length || 0,
-                HackathonTeam.countDocuments({ hackathon: hack._id }),
-                Submission.countDocuments({ hackathon: hack._id }),
-                Submission.countDocuments({ hackathon: hack._id, status: "scored" }),
-                Submission.countDocuments({ hackathon: hack._id, status: { $in: ["submitted", "underReview"] } }),
-                // Lean list for the moderation queue — only what the console renders
-                Submission.find({ hackathon: hack._id })
-                    .select("ProjectName TagLine status team submittedAt updatedAt")
-                    .populate("team", "name")
-                    .sort({ updatedAt: -1 })
-                    .limit(10),
-                getJudgeProgress(hack._id),
-            ]);
+        // One $facet instead of four counts plus a find: same answers, one query.
+        // More importantly the moderation queue no longer populates `team`,
+        // which was a second dependent wait. The hackathon's teams are a small,
+        // bounded set, so they are fetched alongside everything else and the
+        // names are stitched in memory — parallel work instead of serial.
+        const [teams, subStats, judgeProgress] = await Promise.all([
+            HackathonTeam.find({ hackathon: hack._id }).select("_id name").lean(),
+            Submission.aggregate([
+                { $match: { hackathon: hack._id } },
+                {
+                    $facet: {
+                        total:   [{ $count: "n" }],
+                        scored:  [{ $match: { status: "scored" } }, { $count: "n" }],
+                        pending: [{ $match: { status: { $in: ["submitted", "underReview"] } } }, { $count: "n" }],
+                        recent: [
+                            { $sort: { updatedAt: -1 } },
+                            { $limit: 10 },
+                            { $project: { ProjectName: 1, TagLine: 1, status: 1, team: 1, submittedAt: 1, updatedAt: 1 } },
+                        ],
+                    },
+                },
+            ]),
+            getJudgeProgress(hack._id),
+        ]);
+
+        const facet = subStats[0] ?? {};
+        const count = (bucket) => facet[bucket]?.[0]?.n ?? 0;
+        const teamById = new Map(teams.map((t) => [t._id.toString(), { _id: t._id, name: t.name }]));
+
+        const participantCount = hack.participants?.length || 0;
+        const teamCount        = teams.length;
+        const submissionCount  = count("total");
+        const scoredCount      = count("scored");
+        const pendingCount     = count("pending");
+        const recentSubmissions = (facet.recent ?? []).map((sub) => ({
+            ...sub,
+            team: sub.team ? teamById.get(sub.team.toString()) ?? null : null,
+        }));
 
         const judgeProgressCount = Object.keys(judgeProgress.judged || {}).length;
 
@@ -493,7 +521,8 @@ export const gethackchannels = async (req, res, next) => {
         const { hackathonId } = req.params;
         // FIX: was calling `hackathonchannel` (lowercase, undefined) instead of HackathonChannel
         const channel = await HackathonChannel.findOne({ Hackathon: hackathonId })
-            .populate("members.user", "avatar name college skills");
+            .populate("members.user", "avatar name college skills")
+            .lean();
         if (!channel)
             return res.status(404).json({ success: false, message: "Channel not found" });
 

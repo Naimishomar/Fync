@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { checkClubStatus, formatCountdown } from '../../utils/nightClub';
 
 const { width } = Dimensions.get('window');
 
@@ -15,38 +16,12 @@ export default function TwelveAMLockScreen() {
 
   useEffect(() => {
     const updateTimer = () => {
-      const now = new Date();
-      const hour = now.getHours();
-      
-      // Club Logic: Open 00:00 - 06:00
-      const open = hour >= 0 && hour < 6;
+      // IST, not the device clock — the server gates on IST, so reading the
+      // phone's hour here made the button lie on any non-IST device.
+      const { isOpen: open, secondsUntilOpen, secondsUntilClose } = checkClubStatus();
       setIsOpen(open);
-
-      if (open) {
-        // Count down to CLOSE (06:00)
-        const closingTime = new Date(now);
-        closingTime.setHours(6, 0, 0, 0);
-        
-        let diff = Math.floor((closingTime.getTime() - now.getTime()) / 1000);
-        const h = Math.floor(diff / 3600);
-        const m = Math.floor((diff % 3600) / 60);
-        const s = diff % 60;
-
-        setStatusText("CLUB IS LIVE");
-        setTimerString(`${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
-      } else {
-        // Count down to OPEN (24:00 / Midnight)
-        const midnight = new Date(now);
-        midnight.setHours(24, 0, 0, 0);
-
-        let diff = Math.floor((midnight.getTime() - now.getTime()) / 1000);
-        const h = Math.floor(diff / 3600);
-        const m = Math.floor((diff % 3600) / 60);
-        const s = diff % 60;
-
-        setStatusText("OPENS IN");
-        setTimerString(`${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
-      }
+      setStatusText(open ? "CLUB IS LIVE" : "OPENS IN");
+      setTimerString(formatCountdown(open ? secondsUntilClose : secondsUntilOpen));
     };
 
     updateTimer();

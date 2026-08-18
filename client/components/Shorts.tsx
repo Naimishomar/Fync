@@ -28,6 +28,7 @@ import axios from "../context/axiosConfig";
 import Avatar from "./Avatar";
 import { ShortsSkeleton, CommentSkeleton } from "./Skeleton";
 import { getFullUrl } from "../utils/imageUtils";
+import { queueShortView, flushShortViews } from "../utils/shortViews";
 import {
   checkAndStartSession,
   getSeenShortIds,
@@ -103,7 +104,7 @@ const SingleShort = React.memo(({
   useEffect(() => {
     if (isActive && isFocused) {
       videoRef.current?.playAsync();
-      axios.post(`/shorts/views/${item._id}`).catch(() => { });
+      queueShortView(item._id);
     } else if (isPreBuffer) {
       // 🚀 Pre-buffer but don't play
       videoRef.current?.setStatusAsync({ shouldPlay: false, positionMillis: 0 });
@@ -364,6 +365,14 @@ export default function Shorts() {
       checkAndStartSession().then(() => fetchShorts(0, true));
     }
   }, []);
+
+  // Navigating away ends a viewing session, so send whatever is still queued
+  // rather than waiting out the timer on a screen nobody is looking at.
+  useFocusEffect(
+    useCallback(() => {
+      return () => { void flushShortViews(); };
+    }, [])
+  );
 
   const loadMore = () => {
     if (!loadingMore && globalHasMore) {

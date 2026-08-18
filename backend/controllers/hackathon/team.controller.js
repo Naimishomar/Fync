@@ -1,6 +1,6 @@
 import HackathonTeam from "../../models/hackathon/team.model.js";
 import Hackathon from "../../models/hackathon/hackathons.model.js";
-import redisClient from "../../utils/redis.js";
+import { cacheGet, cacheSet } from "../../utils/redis.js";
 import HackathonChannel from "../../models/hackathon/Hackathonchannel.model.js";
 
 // Post api/teams/
@@ -47,7 +47,7 @@ export const getTeams = async (req, res, next) => {
       if (hackathon) filter.hackathon = hackathon;
       if (lookingforMembers) filter.lookingForMembers = lookingforMembers === "true";
       // FIX: typo 'avtar' -> 'avatar'
-      const teams = await HackathonTeam.find(filter).populate("leader", "name avatar skills").populate("members.user", "avatar skills name");
+      const teams = await HackathonTeam.find(filter).populate("leader", "name avatar skills").populate("members.user", "avatar skills name").lean();
       res.status(200).json({ success: true, teams });
    } catch (error) {
       next(error);
@@ -63,7 +63,7 @@ export const getTeam = async (req, res, next) => {
          populate("members.user", "name avatar skills").
          populate("invites.to", "name avatar skills").
          populate("joinRequests.from", "name avatar skills").
-         populate("hackathon", "MaxTeamSize title status");
+         populate("hackathon", "MaxTeamSize title status").lean();
 
       if (!team) {
          return res.status(404).json({ success: false, message: "team doesn't exist" });
@@ -352,7 +352,9 @@ export const respondToJoinRequest = async (req, res, next) => {
 export const matchTeams = async (req, res, next) => {
    try {
       const cacheKey = `match:${req.params.hackathonId}:${req.user.id}`;
-      const cached = await redisClient.get(cacheKey);
+      // Skill matching is the team screen's default tab. A dead Redis used to
+      // throw straight out of here and 500 the whole tab.
+      const cached = await cacheGet(cacheKey);
       if (cached)
          return res.status(200).json({ success: true, fromCache: true, teams: JSON.parse(cached) });
 
@@ -365,7 +367,8 @@ export const matchTeams = async (req, res, next) => {
          isLocked: false,
       })
          .populate("leader", "name avatar skills")
-         .populate("members.user", "name avatar");
+         .populate("members.user", "name avatar")
+         .lean();
 
       const scored = openTeams
          // exclude teams the user is already in
@@ -385,7 +388,7 @@ export const matchTeams = async (req, res, next) => {
          .slice(0, 10); // top 10 matches
 
       // Cache for 5 minutes
-      await redisClient.setEx(cacheKey, 300, JSON.stringify(scored));
+      await cacheSet(cacheKey, 300, JSON.stringify(scored));
 
       res.status(200).json({ success: true, fromCache: false, teams: scored });
    } catch (err) { next(err); }

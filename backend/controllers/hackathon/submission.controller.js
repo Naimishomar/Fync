@@ -26,17 +26,18 @@ export const getSubmissions = async (req, res, next) => {
         if (status) filter.status = status;
         if (team) filter.team = team;
 
-        // Authorization gate: only organiser, judges, or team members may list
+        // Authorization gate: only organiser, judges, or team members may list.
+        // The hackathon lookup and the team lookup do not depend on each other,
+        // so they cost one wait instead of two.
         if (hackathon) {
-            const hack = await Hackathon.findById(hackathon).select("organiser judges status");
+            const [hack, myTeam] = await Promise.all([
+                Hackathon.findById(hackathon).select("organiser judges status").lean(),
+                HackathonTeam.findOne({ hackathon, "members.user": req.user.id }).select("_id").lean(),
+            ]);
             if (!hack) return res.status(404).json({ success: false, message: "Hackathon not found" });
 
             const isOrganiser = hack.organiser.toString() === req.user.id.toString();
             const isJudge = hack.judges.map(String).includes(req.user.id.toString());
-            const myTeam = await HackathonTeam.findOne({
-                hackathon,
-                "members.user": req.user.id,
-            }).select("_id");
 
             if (!isOrganiser && !isJudge && !myTeam) {
                 return res.status(403).json({ success: false, message: "You are not authorised to view submissions" });
@@ -45,11 +46,12 @@ export const getSubmissions = async (req, res, next) => {
             if (!isOrganiser && !isJudge) filter.team = myTeam._id;
         }
 
+        // No `.populate("hackathon")`: the caller filtered by hackathon, so it
+        // already has that document — it was a round trip to re-send known data.
         const submissions = await SubmissionModel.find(filter)
             .populate("team", "name")
             .populate("submittedBy", "name email avatar")
-            .populate("hackathon", "title hackathonends");
-        // FIX: was .populate("") — empty string populate causes errors
+            .lean();
 
         res.status(200).json({ success: true, count: submissions.length, submissions });
 
@@ -64,19 +66,22 @@ export const getMySubmission = async (req, res, next) => {
         const team = await HackathonTeam.findOne({
             hackathon: req.params.hackathonId,
             "members.user": req.user.id,
-        });
+        }).select("_id name members").lean();
         if (!team) {
             return res.status(404).json({ success: false, message: "You are not in a team for this hackathon" });
         }
 
         // FIX: was .populate("status") — status is not a ref and cannot be populated
+        // No `.populate("team")` either: the team document was just fetched above,
+        // so populating it was a second round trip for data already in hand.
         const sub = await SubmissionModel.findOne({ hackathon: req.params.hackathonId, team: team._id })
-            .populate("team", "name members")
-            .populate("submittedBy", "name avatar");
+            .populate("submittedBy", "name avatar")
+            .lean();
 
         if (!sub) {
             return res.status(404).json({ success: false, message: "submission doesn't exist" });
         }
+        sub.team = team;
         res.status(200).json({ success: true, data: sub });
     } catch (error) {
         next(error);

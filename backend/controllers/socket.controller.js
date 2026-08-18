@@ -10,6 +10,10 @@ import { generateQuestions } from "../utils/gemini.js";
 import { nanoid } from "nanoid";
 import { getSocketAcrossCluster } from "../utils/socketCluster.js";
 import { getPresenceAudience, filterOnline, broadcastStatus } from "../utils/presence.js";
+import { checkClubStatus, nightPseudonym } from "../utils/nightClub.js";
+
+// 12 AM Club data must not outlive one night even if the sunrise sweep misses.
+const NIGHT_KEY_TTL_SECONDS = 8 * 60 * 60;
 
 const calculateScore = (userAnswers, correctQuestions) => {
   if (!userAnswers || !correctQuestions) return 0;
@@ -479,34 +483,16 @@ export const socketController = (io) => {
 
     // --- 🌙 THE 12 AM CLUB LOGIC ---
 
-    const checkClubStatus = () => {
-      try {
-        const now = new Date();
-        const dateStr = now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hourCycle: 'h23' });
-        const hourMatch = dateStr.match(/,\s*(\d+):/);
-        let hour = hourMatch ? parseInt(hourMatch[1], 10) : now.getHours();
-        const isOpen = hour >= 0 && hour < 6; // 00:00 to 05:59
-
-        return { isOpen, hour };
-      } catch (e) {
-        const hour = new Date().getHours();
-        return { isOpen: hour >= 0 && hour < 6, hour };
-      }
-    };
+    // Hours, timezone and countdowns all live in utils/nightClub.js now — see
+    // the note there on why local-time arithmetic was wrong on a UTC box.
 
     socket.on("join_night_club", async () => {
-      const { isOpen, hour } = checkClubStatus();
+      const { isOpen, msUntilOpen } = checkClubStatus();
 
       if (!isOpen) {
-        // Calculate time until next 12 AM
-        const now = new Date();
-        const nextMidnight = new Date(now);
-        nextMidnight.setHours(24, 0, 0, 0);
-        const msUntilOpen = nextMidnight - now;
-
         socket.emit("night_club_error", {
           message: "The Club is closed. The bouncer will not let you in.",
-          opensIn: msUntilOpen, // Send milliseconds so frontend can show countdown
+          opensIn: msUntilOpen, // milliseconds until 00:00 IST, for the countdown
           status: "LOCKED"
         });
         return;
@@ -527,12 +513,19 @@ export const socketController = (io) => {
 
       socket.emit("night_club_joined", {
         history,
+        // The caller's own pseudonym. Nothing else identifies a sender now, so
+        // without this the client could not tell its own messages apart.
+        youAre: socket.userId ? nightPseudonym(socket.userId) : null,
         message: "Welcome to the 12 AM Club. What happens here, stays here.",
         closesAt: "06:00 AM"
       });
     });
 
-    socket.on("send_night_message", async ({ senderId, text, tempId, type, mediaUrl, replyTo }) => {
+    socket.on("send_night_message", async ({ text, tempId, type, mediaUrl, replyTo }) => {
+      // senderId used to come from the payload, so a client could post under
+      // another user's alias just by changing it. The socket's authenticated
+      // identity is the only trustworthy source.
+      const senderId = socket.userId;
       const { isOpen } = checkClubStatus();
 
       if (!isOpen) {
@@ -542,23 +535,15 @@ export const socketController = (io) => {
       }
 
       try {
-        // 1. Highly Optimized User Caching (Bypass MongoDB)
-        let senderStr = await redisClient.get(`user_cache:${senderId}`);
-        let sender;
-        if (!senderStr) {
-          sender = await User.findById(senderId).select("name username avatar").lean();
-          if (sender) await redisClient.set(`user_cache:${senderId}`, JSON.stringify(sender), { EX: 3600 });
-        } else {
-          sender = JSON.parse(senderStr);
-        }
+        // A per-night pseudonym, never the account id. The client derives the
+        // alias and avatar from this; it is unlinkable to the user without the
+        // server's key, and it changes every night.
+        if (!senderId) return;
 
-        if (!sender) return;
-
-        // 2. Build Message Object
         const msgObj = {
           _id: nanoid(10), // Unique ID without MongoDB
           tempId: tempId || null,
-          sender: { _id: sender._id, name: sender.name, username: sender.username, avatar: sender.avatar },
+          sender: { id: nightPseudonym(senderId) },
           message: text?.trim() || "",
           messageType: type || 'text',
           fileUrl: mediaUrl || "",
@@ -566,27 +551,42 @@ export const socketController = (io) => {
           createdAt: new Date().toISOString()
         };
 
-        // 3. Push to Redis & Cap at 100
-        await redisClient.lPush("night_club:history", JSON.stringify(msgObj));
-        await redisClient.lTrim("night_club:history", 0, 99);
-
-        // 4. Track images for the 6AM deletion sweep
-        if (mediaUrl) {
-          await redisClient.lPush("night_club:images", mediaUrl);
-        }
-
+        // Deliver first. Persistence is only for late joiners' scrollback, so a
+        // Redis hiccup should not silently swallow a live message — which is
+        // what happened when the lPush threw before the emit.
         io.to("night_club_global").emit("new_night_message", msgObj);
 
+        try {
+          await redisClient.lPush("night_club:history", JSON.stringify(msgObj));
+          await redisClient.lTrim("night_club:history", 0, 99);
+          // Backstop TTL. If the 06:00 sweep does not run — cron worker down,
+          // deploy in progress — "what happens here stays here" must still be
+          // true rather than silently keeping the night forever.
+          await redisClient.expire("night_club:history", NIGHT_KEY_TTL_SECONDS);
+
+          if (mediaUrl) {
+            await redisClient.lPush("night_club:images", mediaUrl);
+            await redisClient.expire("night_club:images", NIGHT_KEY_TTL_SECONDS);
+          }
+        } catch (err) {
+          console.error("Night chat redis storage error (message was still delivered):", err.message);
+        }
+
       } catch (err) {
-        console.error("Night chat redis storage error:", err);
+        console.error("Night chat send error:", err);
       }
     });
 
     // --- 🤫 ANONYMOUS 1-ON-1 CHAT LOGIC ---
 
-    socket.on("find_night_1v1", async ({ userId }) => {
+    socket.on("find_night_1v1", async () => {
       const { isOpen } = checkClubStatus();
       if (!isOpen) return socket.emit("night_club_error", { message: "Club closed" });
+
+      // Authenticated identity, not a payload field — otherwise one client could
+      // queue, skip or disconnect another user's match by passing their id.
+      const userId = socket.userId;
+      if (!userId) return;
 
       if (!redisClient.isReady) {
         socket.emit("night_club_error", { message: "Night Matching service is temporarily unavailable." });
@@ -640,14 +640,16 @@ export const socketController = (io) => {
       }
     });
 
-    socket.on("send_night_1v1_message", async ({ roomId, senderId, text, type, mediaUrl }) => {
+    socket.on("send_night_1v1_message", async ({ roomId, text, type, mediaUrl }) => {
       const { isOpen } = checkClubStatus();
       if (!isOpen) return;
+      if (!socket.userId) return;
 
       // Broadcast to partner in the private room with a unique ID for flatlist performance
       socket.to(roomId).emit("new_night_1v1_message", {
         _id: nanoid(10), // Required for heavily optimized FlatList rendering on frontend
-        senderId,
+        // Pseudonym, not the account id — this is the "Secret 1v1" mode.
+        senderId: nightPseudonym(socket.userId),
         message: text,
         messageType: type || 'text',
         fileUrl: mediaUrl || "",
@@ -655,13 +657,15 @@ export const socketController = (io) => {
       });
     });
 
-    socket.on("skip_night_1v1", async ({ userId, roomId }) => {
+    socket.on("skip_night_1v1", async ({ roomId }) => {
+      const userId = socket.userId;
       socket.leave(roomId);
       socket.to(roomId).emit("night_1v1_partner_left");
       await redisClient.del(`user:night_1v1:${userId}`);
     });
 
-    socket.on("leave_night_1v1", async ({ userId, roomId }) => {
+    socket.on("leave_night_1v1", async ({ roomId }) => {
+      const userId = socket.userId;
       socket.leave(roomId);
       socket.to(roomId).emit("night_1v1_partner_left");
       await redisClient.del(`user:night_1v1:${userId}`);

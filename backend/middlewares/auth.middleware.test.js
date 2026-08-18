@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import User from '../models/user.model.js';
-import redisClient from '../utils/redis.js';
+import redisClient, { redisReady } from '../utils/redis.js';
 import { authMiddleware, authCacheKey } from './auth.middleware.js';
 
 const USER_ID = new mongoose.Types.ObjectId();
@@ -43,6 +43,8 @@ const run = async (token) => {
   return { req, statusCode, body, nexted, nextErr };
 };
 
+// Wait for the handshake: offline commands now reject rather than queue.
+await redisReady;
 await redisClient.del(authCacheKey(String(USER_ID)));
 
 // ── happy path, twice: second call must be a cache hit ──────────────────────

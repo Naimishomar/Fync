@@ -12,7 +12,7 @@ process.env.REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import express from 'express';
-import redisClient from '../utils/redis.js';
+import redisClient, { redisReady } from '../utils/redis.js';
 import { cacheMiddleware, clearCacheTags } from './cache.middleware.js';
 
 let handlerCalls = 0;
@@ -36,6 +36,8 @@ const get = async (path) => (await fetch(`${base}${path}`)).json();
 
 // Start from a clean slate so a previous run cannot mask a failure.
 // node-redis v5's scanIterator yields *batches* of keys, not single keys.
+// Wait for the handshake: offline commands now reject rather than queue.
+await redisReady;
 for await (const batch of redisClient.scanIterator({ MATCH: 'fync_*', COUNT: 500 })) {
   if (batch.length) await redisClient.del(batch);
 }

@@ -1,7 +1,23 @@
+import mongoose from "mongoose";
 import redisClient from "../../utils/redis.js";
 import Submission from "../../models/hackathon/submission.model.js";
 import Score from "../../models/hackathon/score.model.js";
 import Hackathon from "../../models/hackathon/hackathons.model.js";
+
+// Average score per submission, straight from Mongo. Source of truth — Redis is
+// only a cache of this, and it is empty on a cold/flushed/unreachable Redis.
+const rankFromMongo = async (hackId) => {
+  const rows = await Score.aggregate([
+    { $match: { hackathon: new mongoose.Types.ObjectId(String(hackId)) } },
+    { $group: { _id: "$submission", avg: { $avg: "$totalScore" } } },
+    { $sort: { avg: -1 } },
+  ]);
+  return rows.map((r, i) => ({
+    rank:         i + 1,
+    submissionId: r._id.toString(),
+    score:        parseFloat((r.avg || 0).toFixed(2)),
+  }));
+};
 
 // GET /api/leaderboard/:hackathonId  — live ranked list from Redis
 export const getLeaderboard = async (req, res, next) => {
@@ -9,24 +25,42 @@ export const getLeaderboard = async (req, res, next) => {
     const hackId   = req.params.hackathonId;
     const boardKey = `hack:${hackId}:leaderboard`;
 
-    // ZREVRANGEBYSCORE — highest score first, with scores
-    const raw = await redisClient.zRangeWithScores(boardKey, "-inf", "+inf", { BY: 'SCORE', REV: true });
+    // ZRANGE ... BYSCORE REV takes (max, min), NOT (min, max). Passing
+    // ("-inf", "+inf") with REV asks for scores <= -inf, which is always the
+    // empty set — the board rendered "Registry Dark" no matter how many judges
+    // had scored.
+    let ranked = [];
+    try {
+      const raw = await redisClient.zRangeWithScores(boardKey, "+inf", "-inf", { BY: 'SCORE', REV: true });
+      ranked = (raw || []).map((entry, index) => ({
+        rank:         index + 1,
+        submissionId: entry.value,
+        score:        parseFloat(parseFloat(entry.score).toFixed(2)),
+      }));
+    } catch (err) {
+      console.error("Leaderboard Redis read failed, falling back to Mongo:", err.message);
+    }
 
-    if (!raw || !raw.length)
+    // Redis down, cold, or flushed — rebuild the ranking from Score and warm
+    // the cache so the next read is the fast path again.
+    if (!ranked.length) {
+      ranked = await rankFromMongo(hackId);
+      if (ranked.length) {
+        redisClient
+          .zAdd(boardKey, ranked.map((r) => ({ score: r.score, value: r.submissionId })))
+          .catch(() => {});
+      }
+    }
+
+    if (!ranked.length)
       return res.status(200).json({ success: true, leaderboard: [], message: "No scores yet" });
-
-    // Parse array of { value, score } into ranked list
-    const ranked = raw.map((entry, index) => ({
-      rank:         index + 1,
-      submissionId: entry.value,
-      score:        parseFloat(parseFloat(entry.score).toFixed(2)),
-    }));
 
     // Hydrate with project + team info from MongoDB
     const subIds = ranked.map((r) => r.submissionId);
     const subs   = await Submission.find({ _id: { $in: subIds } })
       .populate("team", "name")
-      .select("ProjectName TagLine techStack team status");
+      .select("ProjectName TagLine techStack team status")
+      .lean();
 
     const subMap = {};
     subs.forEach((s) => { subMap[s._id.toString()] = s; });
@@ -52,22 +86,36 @@ export const getLeaderboard = async (req, res, next) => {
 // GET /api/leaderboard/:hackathonId/top/:n  — top N teams
 export const getTopN = async (req, res, next) => {
   try {
-    const { hackathonId, n } = req.params;
+    const { hackathonId } = req.params;
+    // `:n` is user input. Unvalidated, `Number(n) - 1` becomes NaN and Redis
+    // answers "ERR value is not an integer or out of range"; the Mongo fallback
+    // then silently returns nothing, because slice(0, NaN) is empty.
+    const n = Number.parseInt(req.params.n, 10);
+    if (!Number.isFinite(n) || n < 1)
+      return res.status(400).json({ success: false, message: "`n` must be a positive integer" });
+    const top = Math.min(n, 100);
+
     const boardKey = `hack:${hackathonId}:leaderboard`;
 
     // ZREVRANGE with scores — top N
-    const raw = await redisClient.zRangeWithScores(boardKey, 0, Number(n) - 1, { REV: true });
-
-    const ranked = raw.map((entry, index) => ({
-      rank:         index + 1,
-      submissionId: entry.value,
-      score:        parseFloat(parseFloat(entry.score).toFixed(2)),
-    }));
+    let ranked = [];
+    try {
+      const raw = await redisClient.zRangeWithScores(boardKey, 0, top - 1, { REV: true });
+      ranked = (raw || []).map((entry, index) => ({
+        rank:         index + 1,
+        submissionId: entry.value,
+        score:        parseFloat(parseFloat(entry.score).toFixed(2)),
+      }));
+    } catch (err) {
+      console.error("Top-N Redis read failed, falling back to Mongo:", err.message);
+    }
+    if (!ranked.length) ranked = (await rankFromMongo(hackathonId)).slice(0, top);
 
     const subIds = ranked.map((r) => r.submissionId);
     const subs   = await Submission.find({ _id: { $in: subIds } })
       .populate("team", "name")
-      .select("ProjectName TagLine team");
+      .select("ProjectName TagLine team")
+      .lean();
 
     const subMap = {};
     subs.forEach((s) => { subMap[s._id.toString()] = s; });
@@ -79,7 +127,7 @@ export const getTopN = async (req, res, next) => {
       teamName:    subMap[r.submissionId]?.team?.name  || "—",
     }));
 
-    res.status(200).json({ success: true, top: Number(n), leaderboard: enriched });
+    res.status(200).json({ success: true, top, leaderboard: enriched });
   } catch (err) { next(err); }
 };
 
@@ -89,11 +137,26 @@ export const getSubmissionRank = async (req, res, next) => {
     const boardKey = `hack:${req.params.hackathonId}:leaderboard`;
 
     // ZREVRANK returns 0-based rank from top
-    const rank  = await redisClient.zRevRank(boardKey, req.params.submissionId);
-    const score = await redisClient.zScore(boardKey, req.params.submissionId);
+    let rank = null, score = null;
+    try {
+      rank  = await redisClient.zRevRank(boardKey, req.params.submissionId);
+      score = await redisClient.zScore(boardKey, req.params.submissionId);
+    } catch (err) {
+      console.error("Rank Redis read failed, falling back to Mongo:", err.message);
+    }
 
-    if (rank === null)
-      return res.status(404).json({ success: false, message: "Submission not on leaderboard yet" });
+    if (rank === null || rank === undefined) {
+      const entry = (await rankFromMongo(req.params.hackathonId))
+        .find((r) => r.submissionId === String(req.params.submissionId));
+      if (!entry)
+        return res.status(404).json({ success: false, message: "Submission not on leaderboard yet" });
+      return res.status(200).json({
+        success: true,
+        submissionId: req.params.submissionId,
+        rank:  entry.rank,
+        score: entry.score,
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -125,6 +188,11 @@ export const rebuildLeaderboard = async (req, res, next) => {
       map[sid].total += sc.totalScore || 0;
       map[sid].count += 1;
     });
+
+    // This route's whole job is repopulating the Redis cache — there is nothing
+    // to fall back to, so say so plainly instead of surfacing a raw 500.
+    if (!redisClient.isReady)
+      return res.status(503).json({ success: false, message: "Redis is unavailable — leaderboard is already serving from MongoDB, no rebuild needed" });
 
     const boardKey = `hack:${hackId}:leaderboard`;
     await redisClient.del(boardKey);

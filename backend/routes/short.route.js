@@ -1,5 +1,5 @@
 import express from 'express';
-import { addComment, createShorts, deleteComment, deleteShort, fetchShorts, getAllComments, getShortByShortId, getShortsByUserId, getSmartShorts, getYourShorts, likeAndUnlikeShort, updateComment, updateShort, viewsInShort } from '../controllers/shorts.controller.js';
+import { addComment, batchViewsInShorts, createShorts, deleteComment, deleteShort, fetchShorts, getAllComments, getShortByShortId, getShortsByUserId, getSmartShorts, getYourShorts, likeAndUnlikeShort, updateComment, updateShort, viewsInShort } from '../controllers/shorts.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { cacheMiddleware } from '../middlewares/cache.middleware.js';
 import { createLimiter, feedLimiter } from '../middlewares/rateLimit.middleware.js';
@@ -36,6 +36,8 @@ router.post('/comment/update/:id', authMiddleware, updateComment);
 router.post('/comment/delete/:id', authMiddleware, deleteComment);
 router.delete('/comment/:id', authMiddleware, deleteComment);
 
-router.post('/views/:id', authMiddleware, viewsInShort);
+// Batch endpoint first — one request for a whole scrolling session.
+router.post('/views', authMiddleware, batchViewsInShorts);
+router.post('/views/:id', authMiddleware, viewsInShort);   // legacy single-id
 
 export default router;

@@ -55,20 +55,20 @@ const ScoreSlider = ({
     <View className="mb-6">
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-1 mr-3">
-          <Text className="text-slate-800 font-black text-sm">{criterion.name}</Text>
+          <Text className="text-slate-800 font-bold text-sm">{criterion.name}</Text>
           {criterion.description && (
             <Text className="text-slate-500 text-xs mt-0.5">{criterion.description}</Text>
           )}
         </View>
-        <View className="bg-indigo-600 rounded-xl px-3 py-1.5 min-w-[44px] items-center">
-          <Text className="text-white font-black text-base">{value}</Text>
+        <View className="bg-slate-900 rounded-xl px-3 py-1.5 min-w-[44px] items-center">
+          <Text className="text-white font-extrabold text-base">{value}</Text>
         </View>
       </View>
 
       {/* Weight badge */}
       <View className="flex-row items-center mb-3">
         <View className="bg-amber-100 rounded-lg px-2.5 py-1">
-          <Text className="text-amber-700 font-black text-2xs uppercase tracking-wide">
+          <Text className="text-amber-700 font-bold text-2xs">
             Weight: {criterion.weightage}%
           </Text>
         </View>
@@ -81,23 +81,23 @@ const ScoreSlider = ({
             key={s}
             onPress={() => onChange(s)}
             className={`w-9 h-9 rounded-xl items-center justify-center border ${value === s
-                ? 'bg-indigo-600 border-indigo-600'
-                : s <= 3
-                  ? 'bg-red-50 border-red-100'
-                  : s <= 6
-                    ? 'bg-amber-50 border-amber-100'
-                    : 'bg-green-50 border-green-100'
-              }`}
+ ? 'bg-slate-900 border-slate-900'
+ : s <= 3
+ ? 'bg-red-50 border-red-100'
+ : s <= 6
+ ? 'bg-amber-50 border-amber-100'
+ : 'bg-green-50 border-green-100'
+ }`}
           >
             <Text
-              className={`font-black text-xs ${value === s
-                  ? 'text-white'
-                  : s <= 3
-                    ? 'text-red-500'
-                    : s <= 6
-                      ? 'text-amber-600'
-                      : 'text-green-600'
-                }`}
+              className={`font-bold text-xs ${value === s
+ ? 'text-white'
+ : s <= 3
+ ? 'text-red-500'
+ : s <= 6
+ ? 'text-amber-600'
+ : 'text-green-600'
+ }`}
             >
               {s}
             </Text>
@@ -133,11 +133,11 @@ const PendingCard = ({
   >
     <View className="flex-row items-start justify-between mb-2">
       <View className="flex-1 mr-3">
-        <Text className="text-slate-900 font-black  text-base leading-5">{sub.ProjectName}</Text>
+        <Text className="text-slate-900 font-extrabold text-base leading-5">{sub.ProjectName}</Text>
         {sub.tagline && <Text className="text-slate-500 text-xs mt-0.5" numberOfLines={1}>{sub.tagline}</Text>}
       </View>
       <View className="bg-amber-100 rounded-xl px-2.5 py-1">
-        <Text className="text-amber-700 font-black text-2xs uppercase">Pending</Text>
+        <Text className="text-amber-700 font-bold text-2xs">Pending</Text>
       </View>
     </View>
 
@@ -150,14 +150,14 @@ const PendingCard = ({
 
     <TouchableOpacity onPress={() => onScore(sub)} activeOpacity={0.88}>
       <LinearGradient
-        colors={['#6366f1', '#8b5cf6']}
+        colors={['#f97316', '#ea580c']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         className="rounded-xl"
       >
         <View className="py-3 flex-row items-center justify-center">
           <Ionicons name="star" size={14} color="white" />
-          <Text className="text-white font-black uppercase tracking-wide text-xs ml-2">Score This</Text>
+          <Text className="text-white font-bold text-xs ml-2">Score This</Text>
         </View>
       </LinearGradient>
     </TouchableOpacity>
@@ -293,7 +293,7 @@ const HackathonJudgePanel = () => {
 
       {/* Header */}
       <LinearGradient
-        colors={['#1e1b4b', '#312e81', '#4338ca']}
+        colors={['#0f172a', '#1e293b', '#334155']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="pb-6 pt-2"
@@ -307,8 +307,8 @@ const HackathonJudgePanel = () => {
               <Ionicons name="arrow-back" size={20} color="white" />
             </TouchableOpacity>
             <View className="flex-1">
-              <Text className="text-white text-xl font-black  tracking-tight">Judge Panel</Text>
-              <Text className="text-indigo-300 text-2xs font-black uppercase tracking-wide">
+              <Text className="text-white text-xl font-extrabold">Judge Panel</Text>
+              <Text className="text-slate-300 text-2xs font-bold">
                 Review & Score Submissions
               </Text>
             </View>
@@ -323,7 +323,7 @@ const HackathonJudgePanel = () => {
               onPress={() => setActiveTab('pending')}
               className={`flex-1 rounded-2xl px-4 py-3 border ${activeTab === 'pending' ? 'bg-white border-white' : 'bg-white/10 border-white/10'}`}
             >
-              <Text className={`text-center font-black uppercase tracking-widest text-2xs ${activeTab === 'pending' ? 'text-indigo-900' : 'text-white/60'}`}>
+              <Text className={`text-center font-bold text-2xs ${activeTab === 'pending' ? 'text-slate-900' : 'text-white/60'}`}>
                 To Score ({pending.length})
               </Text>
             </TouchableOpacity>
@@ -331,7 +331,7 @@ const HackathonJudgePanel = () => {
               onPress={() => setActiveTab('scored')}
               className={`flex-1 rounded-2xl px-4 py-3 border ${activeTab === 'scored' ? 'bg-white border-white' : 'bg-white/10 border-white/10'}`}
             >
-              <Text className={`text-center font-black uppercase tracking-widest text-2xs ${activeTab === 'scored' ? 'text-indigo-900' : 'text-white/60'}`}>
+              <Text className={`text-center font-bold text-2xs ${activeTab === 'scored' ? 'text-slate-900' : 'text-white/60'}`}>
                 Scored ({scoredSubmissions.length})
               </Text>
             </TouchableOpacity>
@@ -342,7 +342,7 @@ const HackathonJudgePanel = () => {
       {/* Content */}
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#6366f1" />
+          <ActivityIndicator size="large" color="#f97316" />
         </View>
       ) : activeTab === 'pending' ? (
         pending.length === 0 ? (
@@ -350,10 +350,10 @@ const HackathonJudgePanel = () => {
             <LinearGradient colors={['#d1fae5', '#a7f3d0']} className="w-24 h-24 rounded-4xl items-center justify-center mb-5">
               <Ionicons name="checkmark-circle" size={44} color="#10b981" />
             </LinearGradient>
-            <Text className="text-slate-900 font-black  text-xl tracking-tight text-center uppercase mb-2">
+            <Text className="text-slate-900 font-extrabold text-xl text-center mb-2">
               All Scored!
             </Text>
-            <Text className="text-slate-500 text-center font-semibold text-xs uppercase tracking-wide">
+            <Text className="text-slate-500 text-center font-semibold text-xs">
               You have scored all submissions for this hackathon.
             </Text>
           </View>
@@ -376,19 +376,19 @@ const HackathonJudgePanel = () => {
             <View className="bg-white rounded-2xl p-4 mb-3 border border-slate-100 opacity-80">
               <View className="flex-row items-center justify-between mb-2">
                 <Text className="text-slate-900 font-bold flex-1 mr-2">{item.submission?.ProjectName || 'Unknown Project'}</Text>
-                <View className="bg-indigo-50 px-2 py-1 rounded-lg">
-                  <Text className="text-indigo-600 font-black text-xs">{item.totalScore}/10</Text>
+                <View className="bg-brand-50 px-2 py-1 rounded-lg">
+                  <Text className="text-brand-600 font-bold text-xs">{item.totalScore}/10</Text>
                 </View>
               </View>
               <TouchableOpacity onPress={() => openScoring(item)}>
-                <Text className="text-indigo-500 font-black text-2xs uppercase tracking-wide text-right">Edit Score →</Text>
+                <Text className="text-brand-600 font-bold text-2xs text-right">Edit Score →</Text>
               </TouchableOpacity>
             </View>
           )}
           ListEmptyComponent={() => (
             <View className="flex-1 items-center justify-center mt-20">
               <Ionicons name="star-outline" size={48} color="#cbd5e1" />
-              <Text className="text-slate-500 font-black  mt-4">No scored items yet</Text>
+              <Text className="text-slate-500 font-bold mt-4">No scored items yet</Text>
             </View>
           )}
         />
@@ -401,10 +401,10 @@ const HackathonJudgePanel = () => {
             {/* Modal Header */}
             <View className="flex-row items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 bg-white">
               <View className="flex-1 mr-4">
-                <Text className="text-slate-900 font-black  text-lg" numberOfLines={1}>
+                <Text className="text-slate-900 font-extrabold text-lg" numberOfLines={1}>
                   {selectedSub?.ProjectName}
                 </Text>
-                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Score Submission</Text>
+                <Text className="text-slate-500 text-2xs font-bold">Score Submission</Text>
               </View>
               <TouchableOpacity onPress={() => setScoringModal(false)}>
                 <Ionicons name="close" size={24} color="#64748b" />
@@ -418,14 +418,14 @@ const HackathonJudgePanel = () => {
             >
               {/* Total score preview */}
               <LinearGradient
-                colors={['#ede9fe', '#ddd6fe']}
+                colors={['#ffedd5', '#ffedd5']}
                 className="rounded-2xl px-5 py-4 mb-6 flex-row items-center justify-between"
               >
                 <View>
-                  <Text className="text-indigo-500 text-2xs font-black uppercase tracking-wide">Weighted Total</Text>
-                  <Text className="text-indigo-900 font-black text-3xl">{computeTotalScore()}<Text className="text-indigo-400 text-lg">/10</Text></Text>
+                  <Text className="text-brand-600 text-2xs font-bold">Weighted Total</Text>
+                  <Text className="text-slate-900 font-extrabold text-3xl">{computeTotalScore()}<Text className="text-slate-500 text-lg">/10</Text></Text>
                 </View>
-                <Ionicons name="star" size={32} color="#6366f1" />
+                <Ionicons name="star" size={32} color="#f97316" />
               </LinearGradient>
 
               {/* Per-criteria scoring */}
@@ -453,7 +453,7 @@ const HackathonJudgePanel = () => {
 
               {/* Feedback */}
               <View className="mb-6">
-                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-2">
+                <Text className="text-slate-500 text-2xs font-bold mb-2">
                   Feedback <Text className="text-slate-300">(optional)</Text>
                 </Text>
                 <TextInput
@@ -474,14 +474,14 @@ const HackathonJudgePanel = () => {
             {/* Submit */}
             <View className="px-5 pb-8 pt-4 bg-white border-t border-slate-100">
               <TouchableOpacity onPress={submitScore} disabled={submitting} activeOpacity={0.88}>
-                <LinearGradient colors={['#6366f1', '#8b5cf6']} className="rounded-2xl">
+                <LinearGradient colors={['#f97316', '#ea580c']} className="rounded-2xl">
                   <View className="py-4 flex-row items-center justify-center">
                     {submitting ? (
                       <ActivityIndicator size="small" color="white" />
                     ) : (
                       <>
                         <Ionicons name="star" size={16} color="white" />
-                        <Text className="text-white font-black  text-sm uppercase tracking-widest ml-2">
+                        <Text className="text-white font-bold text-sm ml-2">
                           Submit Score — {computeTotalScore()}/10
                         </Text>
                       </>
