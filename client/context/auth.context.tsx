@@ -6,6 +6,7 @@ import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync, savePushTokenToBackend } from "../utils/notificationHelper";
 import { syncFcmToken } from "../services/NotificationService";
 import { trackUser, untrackUser } from "../utils/socket";
+import { prefetchFeed } from "../utils/feedPrefetch";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -42,7 +43,7 @@ export const AuthProvider = ({ children }: any) => {
     } catch (e) {
       console.log("Logout backend error:", e);
     }
-    await AsyncStorage.multiRemove(["accessToken", "refreshToken"]);
+    await AsyncStorage.multiRemove(["accessToken", "refreshToken", "cachedUser"]);
     // Drop the authenticated socket too, otherwise the previous user stays in
     // their private rooms and keeps receiving messages after logout.
     untrackUser();
@@ -73,6 +74,7 @@ export const AuthProvider = ({ children }: any) => {
         ["refreshToken", refreshToken],
       ]);
       setUser(user);
+      AsyncStorage.setItem("cachedUser", JSON.stringify(user));
       registerToken();
     } catch (err: any) {
       console.log("LOGIN ERROR:", err?.response?.data || err.message);
@@ -83,21 +85,40 @@ export const AuthProvider = ({ children }: any) => {
   // Restore session on app start
   useEffect(() => {
     const bootstrap = async () => {
-      try {
-        const token = await AsyncStorage.getItem("accessToken");
+      const [[, token], [, cachedUser]] = await AsyncStorage.multiGet([
+        "accessToken",
+        "cachedUser",
+      ]);
 
-        if (!token) {
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      // Boot from the last known user so the app renders in a few ms, and start
+      // pulling the feed while the profile check runs behind the UI.
+      let booted = false;
+      if (cachedUser) {
+        try {
+          setUser(JSON.parse(cachedUser));
           setLoading(false);
-          return;
+          booted = true;
+          prefetchFeed();
+        } catch (e) {
+          await AsyncStorage.removeItem("cachedUser");
         }
+      }
 
-        // This request will AUTO refresh token if expired
+      try {
         const res = await axios.get("/user/profile");
         setUser(res.data.user);
+        AsyncStorage.setItem("cachedUser", JSON.stringify(res.data.user));
+        if (!booted) prefetchFeed();
         registerToken();
-      } catch (error) {
-        console.log(error);
-        await logout();
+      } catch (error: any) {
+        // Only a rejected session logs out. Offline / server hiccup keeps the
+        // cached session, otherwise a flaky network signs the user out.
+        if (error?.response?.status === 401) await logout();
       } finally {
         setLoading(false);
       }

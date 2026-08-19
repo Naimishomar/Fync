@@ -34,6 +34,7 @@ import { useAuth } from '../context/auth.context';
 import CreatePost from './create-post';
 import Avatar from './Avatar';
 import axios from '../context/axiosConfig';
+import { takePrefetchedFeed } from '../utils/feedPrefetch';
 // @ts-ignore
 import no_post from '../assets/no_post.png';
 import AdCarousel from './AdCarousel';
@@ -563,7 +564,7 @@ export default function HomeScreen() {
 
     if (pageNum === 1) {
       // 1. Try to load from cache first for instant UI
-      const cacheKey = `cache_feed_${activeTab}`;
+      const cacheKey = `fync_feed_${activeTab}`;
       const cached = await AsyncStorage.getItem(cacheKey);
       if (cached && pageNum === 1 && !shouldRefresh) {
         const parsed = JSON.parse(cached);
@@ -591,10 +592,14 @@ export default function HomeScreen() {
           followingCursorRef.current = res.data.nextCursor ?? null;
         }
       } else {
-        const seenIds = await getSeenPostIds();
-        const res = await axios.post(`/post/smart-feed?page=${pageNum}&limit=10`, {
-          seenIds,
-        });
+        // Auth bootstrap already fired this request; reuse it instead of
+        // making the user wait for a second round-trip.
+        const prefetched = pageNum === 1 && !shouldRefresh ? await takePrefetchedFeed() : null;
+        const res =
+          prefetched ||
+          (await axios.post(`/post/smart-feed?page=${pageNum}&limit=10`, {
+            seenIds: await getSeenPostIds(),
+          }));
 
         if (res.data.success) {
           newPosts = res.data.posts;
@@ -614,7 +619,7 @@ export default function HomeScreen() {
         setHasMore(serverHasMore);
         setPage(pageNum);
         // Cache the first page
-        if (pageNum === 1) AsyncStorage.setItem(`cache_feed_forYou`, JSON.stringify(updatedForYou));
+        if (pageNum === 1) AsyncStorage.setItem(`fync_feed_forYou`, JSON.stringify(updatedForYou));
       } else {
         const updatedFollowing = (shouldRefresh || pageNum === 1) ? newPosts : [...followingFeed, ...newPosts.filter(p => !followingFeed.find(fp => fp._id === p._id))];
         setFollowingFeed(updatedFollowing);
@@ -625,7 +630,7 @@ export default function HomeScreen() {
         setHasMore(serverHasMore);
         setPage(pageNum);
         // Cache the first page
-        if (pageNum === 1) AsyncStorage.setItem(`cache_feed_following`, JSON.stringify(updatedFollowing));
+        if (pageNum === 1) AsyncStorage.setItem(`fync_feed_following`, JSON.stringify(updatedFollowing));
       }
     } catch (error) {
       console.log('Failed to load feed', error);
@@ -657,9 +662,9 @@ export default function HomeScreen() {
         setHasMore(forYouHasMore);
         setPage(forYouPage);
       } else {
-        // Initial Load or For You load
-        setRefreshing(true);
-        fetchFeed(1, true);
+        // Initial Load or For You load — no forced refresh so the cached page
+        // paints immediately and the network result swaps in behind it.
+        fetchFeed(1);
       }
     }
   }, [user, activeTab]);

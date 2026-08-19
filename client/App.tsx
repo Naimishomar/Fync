@@ -557,17 +557,8 @@ function AppStack() {
 
 function RootNavigator() {
   const { isLoggedIn, loading } = useAuth();
-  const [isSplashDone, setIsSplashDone] = React.useState(false);
 
-  React.useEffect(() => {
-    // Ensure splash screen runs for at least 3 seconds (full animation)
-    const timer = setTimeout(() => {
-      setIsSplashDone(true);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (loading || !isSplashDone) {
+  if (loading) {
     return <SplashScreen />;
   }
 
