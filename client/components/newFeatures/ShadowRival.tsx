@@ -1,16 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-    View, Text, ScrollView, ActivityIndicator, RefreshControl, StatusBar, Image,
-    TouchableOpacity, Alert, Switch, Dimensions,
-} from 'react-native';
+import {View, Text, ScrollView, ActivityIndicator, RefreshControl, StatusBar, Image, TouchableOpacity, Switch, Dimensions} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from '@react-navigation/native';
 import Svg, { Polyline, Circle } from 'react-native-svg';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from '../../context/axiosConfig';
+import { Alert } from '../ui/AlertModal';
 
 type Metrics = { solved: number; commits: number; streak: number; total: number };
 type HistoryPoint = { d: string; me: number; rival: number };

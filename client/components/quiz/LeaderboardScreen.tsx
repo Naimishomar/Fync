@@ -1,8 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import {
-  View, Text, FlatList, Image, Pressable, ActivityIndicator, Alert,
-  TouchableOpacity, Animated, Easing, StatusBar
-} from 'react-native';
+import {View, Text, FlatList, Image, Pressable, ActivityIndicator, TouchableOpacity, Animated, Easing, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -12,6 +9,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Print from 'expo-print';
 import { shareAsync } from 'expo-sharing';
 import socket from '../../utils/socket';
+import { Alert } from '../ui/AlertModal';
 
 type ScreenRouteProp = RouteProp<RootStackParamList, 'LeaderboardScreen'>;
 

@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Dimensions, PanResponder, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import {View, Text, TouchableOpacity, TextInput, Dimensions, PanResponder, KeyboardAvoidingView, Platform} from 'react-native'
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Polyline } from 'react-native-svg';
 import socket from '../../utils/socket';
 import { useAuth } from '../../context/auth.context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from '../../context/axiosConfig';
+import { Alert } from '../ui/AlertModal';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 

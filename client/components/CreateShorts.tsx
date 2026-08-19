@@ -1,15 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  View, Text, Pressable, TextInput, FlatList, Image,
-  Dimensions, ActivityIndicator, KeyboardAvoidingView, Platform,
-  TouchableOpacity, Alert, StatusBar, Modal
-} from "react-native";
+import {View, Text, Pressable, TextInput, FlatList, Image, Dimensions, ActivityIndicator, KeyboardAvoidingView, Platform, TouchableOpacity, StatusBar, Modal} from 'react-native'
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Video, ResizeMode } from "expo-av";
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import axios from "../context/axiosConfig";
@@ -17,6 +13,8 @@ import Toast from "react-native-toast-message";
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import StreakModal from './StreakModal';
 import { useAuth } from "../context/auth.context";
+import { compressVideo } from "../utils/mediaUpload";
+import { Alert } from './ui/AlertModal';
 
 const { width, height } = Dimensions.get("window");
 const COLUMN_COUNT = 3;
@@ -103,6 +101,7 @@ const CreateShorts = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [compressProgress, setCompressProgress] = useState(0);
   const [isSuccess, setIsSuccess] = useState(false);
 
   // Streak States
@@ -151,7 +150,7 @@ const CreateShorts = () => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Videos,
         allowsEditing: true,
-        quality: 1,
+        quality: 0.9,
       });
 
       if (!result.canceled) {
@@ -171,23 +170,30 @@ const CreateShorts = () => {
 
     try {
       const uri = selectedAsset.uri;
-      const fileInfo = await FileSystem.getInfoAsync(uri);
-
-      if (fileInfo.exists) {
-        const MAX_SIZE = 20 * 1024 * 1024;
-        if (fileInfo.size > MAX_SIZE) {
-          Toast.show({ type: 'error', text1: 'Video Too Large', text2: 'Max limit is 20MB.' });
-          return;
-        }
-      }
 
       setLoading(true);
+      setCompressProgress(0);
+
+      // Transcoded on-device first. A phone-camera clip is many times larger
+      // than it needs to be, and every one of those megabytes was upload time
+      // the user sat through.
+      const uploadUri = await compressVideo(uri, setCompressProgress);
+      setCompressProgress(1);
+
+      // Server multer limit. Checked on the compressed file, not the original.
+      const MAX_SIZE = 20 * 1024 * 1024;
+      const info = await FileSystem.getInfoAsync(uploadUri);
+      if (info.exists && (info as any).size > MAX_SIZE) {
+        Toast.show({ type: 'error', text1: 'Video Too Large', text2: 'Still over 20MB after compression. Try a shorter clip.' });
+        setLoading(false);
+        return;
+      }
 
       const formData = new FormData();
       formData.append("title", title.trim());
       formData.append("description", description.trim());
       formData.append("video", {
-        uri,
+        uri: uploadUri,
         name: `short_${Date.now()}.mp4`,
         type: "video/mp4",
       } as any);
@@ -402,7 +408,14 @@ const CreateShorts = () => {
                     className="h-16 rounded-full items-center justify-center flex-row"
                   >
                     {loading ? (
-                      <ActivityIndicator color="white" size="small" />
+                      <>
+                        <ActivityIndicator color="white" size="small" />
+                        {compressProgress > 0 && compressProgress < 1 && (
+                          <Text className="text-white font-black uppercase tracking-[2px] ml-3 text-xs">
+                            Optimising {Math.round(compressProgress * 100)}%
+                          </Text>
+                        )}
+                      </>
                     ) : (
                       <>
                         <Text className="text-white font-black uppercase tracking-[3px] mr-3 text-base">Post to Fync</Text>

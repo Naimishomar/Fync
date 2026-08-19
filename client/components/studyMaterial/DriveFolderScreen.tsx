@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Image, Animated, StatusBar, TextInput } from 'react-native';
 import { fetchDriveData } from '../../utils/handleDrive';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const FOLDER_IMG = 'https://cdn-icons-png.flaticon.com/512/716/716784.png';

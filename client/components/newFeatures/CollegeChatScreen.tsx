@@ -1,9 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import {
-    View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView,
-    Keyboard, Platform, Image, ActivityIndicator, Alert, Linking, TouchableOpacity,
-    Modal
-} from "react-native";
+import {View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Keyboard, Platform, Image, ActivityIndicator, Linking, TouchableOpacity, Modal} from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
@@ -14,6 +10,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import axios from "../../context/axiosConfig";
 import socket from "../../utils/socket";
 import { useAuth } from "../../context/auth.context";
+import { Alert } from '../ui/AlertModal';
 
 const CollegeChatScreen = ({ navigation }: any) => {
     const { user } = useAuth();

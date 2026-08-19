@@ -7,7 +7,7 @@ import Notification from '../models/notification.model.js';
 import Report from '../models/report.model.js';
 import { sendPushNotification } from '../utils/notification.js';
 import { deleteFromR2 } from '../utils/r2.js';
-import { getCandidatePool, getUserInterestProfile, rankFeed, invalidatePool } from '../utils/feedEngine.js';
+import { getCandidatePool, getUserInterestProfile, rankFeed, invalidatePool, getPoolVersion } from '../utils/feedEngine.js';
 import { clearCacheTags } from '../middlewares/cache.middleware.js';
 
 import { updateStreak } from '../utils/streak.js';
@@ -63,55 +63,72 @@ export const createPost = async (req, res) => {
                 comments: []
             })
             
-            // Update Daily Streak
+            // The feed pool must be dropped before we reply, or the client can
+            // refresh faster than the invalidation and not see its own post.
+            await invalidatePool('posts').catch(() => { });
+
+            // Streak is part of the response (the client shows the streak modal),
+            // so it stays on the request path -- but nothing else does.
             const streakResult = await updateStreak(req.user.id).catch(err => {
                 console.error("Streak error:", err);
                 return { streakCount: null, isCompletedToday: false };
             });
 
-            // Notify mentioned users - Wrap in try-catch so it doesn't crash the whole request
-            try {
-                if (parsedMentions && parsedMentions.length > 0) {
-                    for (const mentionedUserId of parsedMentions) {
-                        if (mentionedUserId.toString() !== req.user.id.toString()) {
-                            await Notification.create({
-                                recipient: mentionedUserId,
-                                sender: req.user.id,
-                                type: 'mention',
-                                post: post._id,
-                            });
-                            
-                            const mentionedUser = await User.findById(mentionedUserId);
-                            if (mentionedUser && mentionedUser.expoPushToken) {
-                                await sendPushNotification(
-                                    mentionedUser.expoPushToken,
-                                    "You were mentioned! 📣",
-                                    `${user.username} tagged you in a new post.`,
-                                    { url: `fync://view?postId=${post._id}` }
-                                ).catch(err => console.error("Push Notification Error:", err));
-                            }
-                        }
-                    }
-                }
-            } catch (notifyError) {
-                console.error("❌ Notification Side-effect Error:", notifyError.message);
-            }
-
-            // Invalidate Cache - Wrap in try-catch
-            try {
-                invalidatePool('posts').catch(() => { });
-                clearCacheTags(['posts', `posts:user:${req.user.id}`]).catch(() => { });
-            } catch (cacheError) {
-                console.error("❌ Cache Invalidation Error:", cacheError.message);
-            }
-
-            return res.status(200).json({ 
+            const response = res.status(200).json({ 
                 success: true, 
                 message: 'Post created successfully', 
                 post, 
                 streakCount: streakResult.streakCount,
                 isCompletedToday: streakResult.isCompletedToday
             });
+
+            // ── After the response ──────────────────────────────────────────
+            // Mention fan-out used to run inline and sequentially: per mention,
+            // a Notification.create, then a User lookup, then an awaited push.
+            // A post tagging five people paid fifteen serial round trips before
+            // the uploader's screen could close.
+            (async () => {
+                try {
+                    clearCacheTags(['posts', `posts:user:${req.user.id}`]).catch(() => { });
+
+                    const others = parsedMentions.filter(
+                        id => id.toString() !== req.user.id.toString()
+                    );
+                    if (others.length === 0) return;
+
+                    const mentionedUsers = await User.find({ _id: { $in: others } })
+                        .select('expoPushToken')
+                        .lean();
+
+                    // 'mention' is not in the notification schema's type enum --
+                    // every one of these throws validation and was swallowed by
+                    // the old catch, so mention notifications never existed.
+                    // The enum's name for this is 'tag'.
+                    await Notification.insertMany(
+                        others.map(id => ({
+                            recipient: id,
+                            sender: req.user.id,
+                            type: 'tag',
+                            post: post._id,
+                        })),
+                        { ordered: false }
+                    );
+
+                    for (const mentionedUser of mentionedUsers) {
+                        if (!mentionedUser.expoPushToken) continue;
+                        sendPushNotification(
+                            mentionedUser.expoPushToken,
+                            "You were mentioned! 📣",
+                            `${user.username} tagged you in a new post.`,
+                            { url: `fync://view?postId=${post._id}` }
+                        ).catch(err => console.error("Push Notification Error:", err));
+                    }
+                } catch (notifyError) {
+                    console.error("❌ Notification Side-effect Error:", notifyError.message);
+                }
+            })();
+
+            return response;
         }
     } catch (error) {
         console.error("❌ CREATE POST ERROR:", error);
@@ -703,7 +720,7 @@ export const getSmartFeed = async (req, res) => {
     try {
         const seenIds = Array.isArray(req.body?.seenIds) ? req.body.seenIds : [];
 
-        const [candidates, interestProfile] = await Promise.all([
+        const [candidates, interestProfile, poolVersion] = await Promise.all([
             getCandidatePool(Post, 150),
             User.findById(req.user.id)
                 .select('interest hobbies skills major about')
@@ -712,13 +729,20 @@ export const getSmartFeed = async (req, res) => {
                     ...(userDoc || {}),
                     id: req.user.id,
                     _id: req.user.id
-                }))
+                })),
+            getPoolVersion('posts')
         ]);
 
         // STEP 3 — In-memory rank + paginate
         let ranked;
         try {
-            ranked = rankFeed({ candidates, seenIds, interestProfile, page, limit });
+            // Seed makes the ordering stable across pages for this user and
+            // this pool generation, which is what makes page 2 actually continue
+            // page 1 instead of re-cutting a freshly shuffled list.
+            ranked = rankFeed({
+                candidates, seenIds, interestProfile, page, limit,
+                seed: `${req.user.id}:${poolVersion}`
+            });
         } catch (e) {
             console.error('[SmartFeed] Step3 rankFeed failed:', e.message);
             return simpleFallback();

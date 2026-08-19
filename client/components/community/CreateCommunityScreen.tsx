@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  View, Text, TextInput, TouchableOpacity, ScrollView, 
-  Image, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Dimensions,
-  StatusBar, Modal
-} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, KeyboardAvoidingView, Platform, Dimensions, StatusBar, Modal} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, FontAwesome5, SimpleLineIcons, Feather } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
+import Feather from '@expo/vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
@@ -14,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import RazorpayCheckout from 'react-native-razorpay';
 import { RAZORPAY_KEY_ID } from '../../constants/keys';
 import { WebView } from 'react-native-webview';
+import { Alert } from '../ui/AlertModal';
 
 const { width } = Dimensions.get('window');
 

@@ -1,18 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-    View, Text, FlatList, Image, TouchableOpacity,
-    Modal, TextInput, ActivityIndicator, Alert, Pressable, Animated, StatusBar,
-    RefreshControl,
-    ScrollView
-} from 'react-native';
+import {View, Text, FlatList, Image, TouchableOpacity, Modal, TextInput, ActivityIndicator, Pressable, Animated, StatusBar, RefreshControl, ScrollView} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import socket from '../utils/socket';
+import { Alert } from './ui/AlertModal';
 
 // --- TYPES ---
 interface LostAndFoundItem {

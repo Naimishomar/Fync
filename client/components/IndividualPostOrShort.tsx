@@ -1,12 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import {
-    View, Text, ActivityIndicator, TouchableOpacity,
-    Modal, TextInput, KeyboardAvoidingView, Platform, FlatList, Alert,
-    Pressable, Dimensions, ScrollView, Share,
-    Image as RNImage
-} from 'react-native';
+import {View, Text, ActivityIndicator, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform, FlatList, Pressable, Dimensions, ScrollView, Share, Image as RNImage} from 'react-native'
 import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Video, ResizeMode } from 'expo-av';
 import axios from "../context/axiosConfig";
@@ -18,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { memo } from 'react';
 import Avatar from './Avatar';
 import { getFullUrl } from '../utils/imageUtils';
+import { Alert } from './ui/AlertModal';
 
 const { width, height } = Dimensions.get('window');
 const SCREEN_WIDTH = Dimensions.get('screen').width;

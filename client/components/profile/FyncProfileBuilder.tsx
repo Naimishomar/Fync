@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View, Text, ScrollView, Pressable, RefreshControl,
-  ActivityIndicator, Alert, Linking, Dimensions, Platform, StatusBar, TextInput
-} from 'react-native';
+import { readCache, writeCache, userKey } from '../../utils/screenCache';
+import {View, Text, ScrollView, Pressable, RefreshControl, ActivityIndicator, Linking, Dimensions, Platform, StatusBar, TextInput} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
-import { Ionicons, Feather, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import Feather from '@expo/vector-icons/Feather';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../context/auth.context';
 import axios from '../../context/axiosConfig';
@@ -23,6 +24,7 @@ import AddCertificateModal from './AddCertificateModal';
 import CodingProfilesModal from './CodingProfilesModal';
 import EducationCard, { EducationEntry } from './EducationCard';
 import AddEducationModal from './AddEducationModal';
+import { Alert } from '../ui/AlertModal';
 
 const { width } = Dimensions.get('window');
 
@@ -145,9 +147,16 @@ export default function FyncProfileBuilder() {
   const [uploadingResume, setUploadingResume] = useState(false);
 
   const fetchProfile = async () => {
+    // The mount effect had an empty dependency array, so on a cold start where
+    // auth had not resolved yet this requested /profile/full/undefined and the
+    // screen stayed on its spinner until the user pulled to refresh.
+    if (!user?._id) return;
     try {
-      const res = await axios.get(`/profile/full/${user?._id}`);
-      if (res.data.success) setProfile(res.data.profile);
+      const res = await axios.get(`/profile/full/${user._id}`);
+      if (res.data.success) {
+        setProfile(res.data.profile);
+        writeCache(userKey(user._id, 'portfolio'), res.data.profile);
+      }
     } catch (e) {
       console.log('FyncProfileBuilder fetch error', e);
     } finally {
@@ -155,7 +164,18 @@ export default function FyncProfileBuilder() {
     }
   };
 
-  useEffect(() => { fetchProfile(); }, []);
+  useEffect(() => {
+    if (!user?._id) return;
+    let cancelled = false;
+    // Paint the portfolio we rendered last time while the fresh copy loads.
+    readCache<any>(userKey(user._id, 'portfolio')).then((cached) => {
+      if (cancelled || !cached) return;
+      setProfile((prev: any) => prev ?? cached);
+      setLoading(false);
+    });
+    fetchProfile();
+    return () => { cancelled = true; };
+  }, [user?._id]);
 
   useEffect(() => {
     if (route.params?.username) {

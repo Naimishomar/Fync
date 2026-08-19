@@ -1,21 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    Dimensions,
-    Vibration,
-    BackHandler,
-    AppState,
-    AppStateStatus,
-    Alert,
-    StatusBar,
-    Animated,
-    ScrollView
-} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, Dimensions, Vibration, BackHandler, AppState, AppStateStatus, StatusBar, Animated, ScrollView} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 //@ts-ignore
@@ -28,6 +14,7 @@ const safeDeactivate = () => { try { KeepAwake?.deactivate?.(); } catch (e) { } 
 import Toast from 'react-native-toast-message';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from '../ui/AlertModal';
 
 const { width, height } = Dimensions.get('window');
 

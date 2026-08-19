@@ -1,20 +1,10 @@
 import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    Alert,
-    Keyboard,
-    Image,
-    ScrollView,
-    KeyboardAvoidingView,
-    Platform,
-    StatusBar
-} from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import {View, Text, TextInput, TouchableOpacity, Keyboard, Image, ScrollView, KeyboardAvoidingView, Platform, StatusBar} from 'react-native'
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Alert } from '../ui/AlertModal';
 
 // --- 🌌 BACKGROUND IMAGE ---
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";

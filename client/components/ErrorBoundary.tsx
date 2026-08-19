@@ -1,6 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, Text, TouchableOpacity, StatusBar, DevSettings } from 'react-native';
-import { RefreshCcw, AlertTriangle } from 'lucide-react-native';
+import { RefreshCcw, AlertTriangle } from './ui/icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Props {

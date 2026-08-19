@@ -399,6 +399,16 @@ userSchema.index({ fyncScore: -1 });                 // Leaderboard speed
 userSchema.index({ codingRating: -1 });              // Arena Leaderboard
 userSchema.index({ college: 1, user_access: 1 });    // Campus filtering
 userSchema.index({ createdAt: -1 });                 // New user sorting
+// Campus Legends. Without this the leaderboard sorted the entire users
+// collection in memory, which past ~32MB of matching documents does not just
+// get slow -- Mongo aborts the query outright.
+userSchema.index({ streakCount: -1, updatedAt: 1 });
+// 1v1 quiz leaderboard, same shape.
+userSchema.index({ oneVsOnePoints: -1 });
+// Campus Alumni: filter by college + role, newest first. The existing
+// { college, user_access } index stopped short of the sort key, so every page
+// still sorted in memory.
+userSchema.index({ college: 1, user_access: 1, createdAt: -1 });
 
 // The auth middleware caches a projection of this document in Redis. Invalidate
 // here rather than at each of the ~30 call sites that mutate a user, so a ban or

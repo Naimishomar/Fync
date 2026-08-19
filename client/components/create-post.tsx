@@ -12,9 +12,10 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
+import { compressImages } from '../utils/mediaUpload';
 import axios from '../context/axiosConfig';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -104,7 +105,7 @@ function CreatePost() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true,
-      quality: 1,
+      quality: 0.9,
     });
     if (!result.canceled) {
       const uris = result.assets.map((asset) => asset.uri);
@@ -130,7 +131,9 @@ function CreatePost() {
         if (uri.endsWith(".jpg") || uri.endsWith(".jpeg")) return "image/jpeg";
         return "image/jpeg";
       };
-      images.forEach((uri, index) => {
+      // Compressed on-device, in parallel, before anything is sent.
+      const compressed = await compressImages(images);
+      compressed.forEach((uri, index) => {
         const filename = uri.split("/").pop() || `image_${index}.jpg`;
         formData.append("image", {
           uri,

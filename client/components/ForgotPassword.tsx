@@ -1,22 +1,11 @@
-import {
-  ActivityIndicator,
-  Image,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  Text,
-  TextInput,
-  TouchableWithoutFeedback,
-  View,
-  Alert
-} from 'react-native';
+import {ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, TouchableWithoutFeedback, View} from 'react-native'
 import React, { useCallback, useState } from 'react';
 import { ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../context/axiosConfig';
 //@ts-ignore
 import loginImage from '../assets/loginImage.png';
+import { Alert } from './ui/AlertModal';
 
 const ForgotPassword = ({ route, navigation }: any) => {
   const [email, setEmail] = useState(route.params?.email || '');

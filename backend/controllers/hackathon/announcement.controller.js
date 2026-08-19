@@ -64,22 +64,27 @@ export const postAnnouncements = async (req, res, next) => {
             // Process notifications in background
             (async () => {
                 try {
-                    const participantDocs = await User.find({ _id: { $in: participants } }).select("expoPushToken");
-                    
+                    const participantDocs = await User.find({
+                        _id: { $in: participants, $ne: req.user.id }
+                    }).select("expoPushToken").lean();
+
+                    // One insertMany instead of a sequential Notification.create
+                    // per participant -- a 500-person hackathon was 500 round
+                    // trips, each awaited before the next push even went out.
+                    if (participantDocs.length > 0) {
+                        await Notification.insertMany(
+                            participantDocs.map(p => ({
+                                recipient: p._id,
+                                sender: req.user.id,
+                                type: 'hackathon_announcement',
+                                message: `New Signal: ${title || "Important update from organiser"}`,
+                                hackathon: hack._id
+                            })),
+                            { ordered: false }
+                        );
+                    }
+
                     for (const participant of participantDocs) {
-                        // Skip if author
-                        if (participant._id.toString() === req.user.id.toString()) continue;
-
-                        // Create in-app notification
-                        await Notification.create({
-                            recipient: participant._id,
-                            sender: req.user.id,
-                            type: 'hackathon_announcement',
-                            message: `New Signal: ${title || "Important update from organiser"}`,
-                            hackathon: hack._id
-                        });
-
-                        // Send push notification
                         if (participant.expoPushToken) {
                             sendPushNotification(
                                 participant.expoPushToken,

@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Alert, Animated, TouchableOpacity, StatusBar } from 'react-native';
+import {View, Text, Animated, TouchableOpacity, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import socket from '../../utils/socket';
 import { useAuth } from '../../context/auth.context';
+import { Alert } from '../ui/AlertModal';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WaitingRoom'>;
 

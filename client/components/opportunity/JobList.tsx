@@ -1,24 +1,12 @@
 import React, { useEffect, useState, useCallback, memo } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  Image,
-  ActivityIndicator,
-  Pressable,
-  Linking,
-  TextInput,
-  TouchableOpacity,
-  StatusBar,
-  Alert,
-  Modal
-} from 'react-native';
+import {View, Text, FlatList, Image, ActivityIndicator, Pressable, Linking, TextInput, TouchableOpacity, StatusBar, Modal} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Alert } from '../ui/AlertModal';
 
 // --- 🌌 BACKGROUND IMAGE ---
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";

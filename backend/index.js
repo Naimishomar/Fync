@@ -58,6 +58,7 @@ import arenaAdminRoute from './routes/coding/arenaAdmin.route.js';
 import entertainmentRoute from './routes/entertainment.routes.js';
 import webrtcRoute from './routes/webrtc.route.js';
 import gameRoute from './routes/game.route.js';
+import batchRoute from './routes/batch.route.js';
 import ContestManager from './services/contestManager.js';
 
 import { setCollegeChatIo } from './controllers/collegeChat.controller.js';
@@ -121,10 +122,32 @@ const io = new Server(server, {
   // handshakes would land on a different worker than the one holding the session
   // ("Session ID unknown"). The Redis adapter fixes broadcasts, not sticky routing.
   transports: ['websocket'],
-  pingTimeout: 60000,
-  pingInterval: 25000,
-  connectTimeout: 45000,
-  maxHttpBufferSize: 1e6,
+
+  // ── Tuned for a small instance holding thousands of mostly-idle sockets ──
+  //
+  // A heartbeat every 25s across 2000 connections is 80 timer wakeups a second
+  // that do nothing but confirm silence. At 40s/90s the same dead-connection
+  // detection costs less than half as much CPU, which matters on a burstable
+  // instance where the sustained budget is a fraction of one core.
+  pingInterval: 40000,
+  pingTimeout: 90000,
+
+  // Half-open handshakes hold a socket and its buffers. Fail them fast.
+  connectTimeout: 20000,
+
+  // Signalling payloads (SDP offers) are the largest thing sent over this
+  // socket and are tens of KB. 1 MB per frame was headroom nothing needed, and
+  // it is the ceiling on how much a single hostile client can make the server
+  // buffer at once.
+  maxHttpBufferSize: 256 * 1024,
+
+  // Explicit, not inherited: permessage-deflate allocates a zlib context per
+  // connection (~300 KB with default windowBits). At 2000 sockets that is
+  // hundreds of megabytes of compression state for chat messages measured in
+  // bytes. Socket.IO defaults this off; pinning it means an upgrade cannot
+  // quietly turn it back on.
+  perMessageDeflate: false,
+  httpCompression: false,
 });
 
 // Authenticate the socket handshake. Without this any client could emit
@@ -241,6 +264,9 @@ app.use('/arena/admin', arenaAdminRoute);
 app.use('/entertainment', entertainmentRoute);
 app.use('/games', gameRoute);
 app.use('/webrtc', webrtcRoute);
+// Mounted last: it dispatches back into this same router, so every route it can
+// reach must already be registered above it.
+app.use('/batch', batchRoute);
 
 const startServer = async (retries = 5) => {
   try {

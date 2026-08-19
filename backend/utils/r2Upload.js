@@ -23,24 +23,32 @@ export const r2UploadMiddleware = (folderMap) => async (req, _res, next) => {
       req.file.path = url;
       return next();
     }
+    // Files go up concurrently. They used to be awaited one at a time, so a
+    // four-image post paid (sharp encode + R2 round trip) four times in series
+    // -- seconds of latency for work that has no ordering requirement at all.
     if (req.files && !Array.isArray(req.files)) {
+      const jobs = [];
       for (const fieldname of Object.keys(req.files)) {
         const folder = folderMap[fieldname] || "uploads";
         const files = req.files[fieldname];
-
         if (Array.isArray(files)) {
           for (const file of files) {
-            file.path = await uploadToR2(file.buffer, folder, file.originalname, file.mimetype);
+            jobs.push(
+              uploadToR2(file.buffer, folder, file.originalname, file.mimetype)
+                .then(url => { file.path = url; })
+            );
           }
         }
       }
+      await Promise.all(jobs);
       return next();
     }
     if (req.files && Array.isArray(req.files)) {
-      for (const file of req.files) {
+      await Promise.all(req.files.map(file => {
         const folder = folderMap[file.fieldname] || folderMap["__single__"] || "uploads";
-        file.path = await uploadToR2(file.buffer, folder, file.originalname, file.mimetype);
-      }
+        return uploadToR2(file.buffer, folder, file.originalname, file.mimetype)
+          .then(url => { file.path = url; });
+      }));
       return next();
     }
     return next();

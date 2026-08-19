@@ -1,16 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
-import {
-    View, Text, FlatList, Image, TouchableOpacity,
-    ActivityIndicator, RefreshControl, Modal, TextInput,
-    Alert, Dimensions, ScrollView, Pressable, StatusBar, Animated
-} from 'react-native';
+import {View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, TextInput, Dimensions, ScrollView, Pressable, StatusBar, Animated} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import { Alert } from '../ui/AlertModal';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = width / 2 - 28;

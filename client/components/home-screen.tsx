@@ -1,31 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  Image,
-  Dimensions,
-  FlatList,
-  Modal,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-  RefreshControl,
-  Alert,
-  ViewToken,
-  TouchableOpacity,
-  Share,
-  DeviceEventEmitter,
-  ScrollView,
-  Animated,
-  Easing,
-  useWindowDimensions,
-  StatusBar,
-} from 'react-native';
+import {View, Text, Pressable, Image, Dimensions, FlatList, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, RefreshControl, ViewToken, TouchableOpacity, Share, DeviceEventEmitter, ScrollView, Animated, Easing, useWindowDimensions, StatusBar} from 'react-native'
 import { PostSkeleton } from "./Skeleton";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Sparkles, Mic, Briefcase, Trophy, Rocket, Crown, MessageCircle, Megaphone, Users, Code, Wrench } from 'lucide-react-native';
+import { Sparkles, Mic, Briefcase, Trophy, Rocket, Crown, MessageCircle, Megaphone, Users, Code, Wrench } from './ui/icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Reanimated, { Layout, FadeIn, FadeOut } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -41,7 +18,7 @@ import AdCarousel from './AdCarousel';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image as ExpoImage } from 'expo-image';
 import { memo } from 'react';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   checkAndStartSession,
   getSeenPostIds,
@@ -50,9 +27,14 @@ import {
 } from '../utils/feedSession';
 import { BlurView } from 'expo-blur';
 import StreakLeaderboardModal from './StreakLeaderboardModal';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { getFullUrl } from '../utils/imageUtils';
+import { prefetchPostImages, POST_PLACEHOLDER } from '../utils/imageWarm';
 import { useTabBarClearance, useBottomInset } from '../constants/layout';
+import { fetchUnreadCounts } from '../utils/supabase';
+import { dedupedGet } from '../utils/batchRequest';
+import socket from '../utils/socket';
+import { Alert } from './ui/AlertModal';
 
 const { width } = Dimensions.get('window');
 
@@ -455,8 +437,13 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
                   source={{ uri: getFullUrl(imageUrl) || '' }}
                   style={{ width: width - 24, height: width - 24, borderRadius: 12 }}
                   contentFit={resizeMode ? "contain" : "cover"}
-                  cachePolicy="disk"
-                  transition={200}
+                  cachePolicy="memory-disk"
+                  // Tied to the URL so a recycled row never shows the previous
+                  // post's photo for a frame while the new one decodes.
+                  recyclingKey={imageUrl}
+                  placeholder={{ blurhash: POST_PLACEHOLDER }}
+                  placeholderContentFit="cover"
+                  transition={120}
                   priority={index === 0 ? "high" : "normal"}
                 />
               </Pressable>
@@ -568,6 +555,7 @@ export default function HomeScreen() {
       const cached = await AsyncStorage.getItem(cacheKey);
       if (cached && pageNum === 1 && !shouldRefresh) {
         const parsed = JSON.parse(cached);
+        prefetchPostImages(parsed);
         if (activeTab === 'forYou') setForYouFeed(parsed);
         else setFollowingFeed(parsed);
         setFeed(parsed);
@@ -608,6 +596,8 @@ export default function HomeScreen() {
           if (res.data.mode === 'recycled') resetSeenPosts();
         }
       }
+
+      prefetchPostImages(newPosts);
 
       // Update the specific tab state and the active feed
       if (activeTab === 'forYou') {
@@ -688,26 +678,39 @@ export default function HomeScreen() {
   }, [loadingMore, hasMore, loading, page, fetchFeed]);
 
   const fetchBadges = useCallback(async () => {
+    if (!user?._id) return;
     try {
-      const [notifRes, chatRes] = await Promise.all([
-        axios.get('/notifications/count'),
-        axios.get('/chat/unread-count')
+      // dedupedGet, not axios.get: returning to the feed can trigger this from
+      // more than one place in the same tick, and the badge count only needs
+      // fetching once.
+      const [notifRes, chatCounts] = await Promise.all([
+        dedupedGet<any>('/notifications/count'),
+        fetchUnreadCounts(user._id)
       ]);
       if (notifRes.data.success) {
         setUnreadCount(notifRes.data.count);
       }
-      if (chatRes.data.success) {
-        setChatUnreadCount(chatRes.data.count);
-      }
+      setChatUnreadCount(
+        Object.values(chatCounts).reduce((a, b) => a + b, 0)
+      );
     } catch (error) {
       console.log("Badge Error:", error);
     }
+  }, [user?._id]);
+
+  // Focus alone left the badge stale while sitting on the feed. The server
+  // already knows who to notify (it sends the push), so it nudges the open app
+  // on the same event instead of the client polling for it.
+  useEffect(() => {
+    const bump = () => setChatUnreadCount((c) => c + 1);
+    socket.on("chat_badge", bump);
+    return () => { socket.off("chat_badge", bump); };
   }, []);
 
   useFocusEffect(
     useCallback(() => {
       fetchBadges();
-    }, [])
+    }, [fetchBadges])
   );
 
   useEffect(() => {

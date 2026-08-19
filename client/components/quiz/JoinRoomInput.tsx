@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, Alert, TouchableOpacity, ActivityIndicator, StatusBar } from 'react-native';
+import {View, TextInput, Text, TouchableOpacity, ActivityIndicator, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import axios from '../../context/axiosConfig';
+import { Alert } from '../ui/AlertModal';
 
 const JoinRoomInput = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();

@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Text, Image, View, Pressable, FlatList,
-  Dimensions, RefreshControl, Linking, Alert,
-  ActivityIndicator, ScrollView, Modal, TextInput,
-  Switch, KeyboardAvoidingView, Platform
-} from 'react-native';
+import {Text, Image, View, Pressable, FlatList, Dimensions, RefreshControl, Linking, ActivityIndicator, ScrollView, Modal, TextInput, Switch, KeyboardAvoidingView, Platform} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Video, ResizeMode } from 'expo-av';
 import { useAuth } from '../context/auth.context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { readCache, writeCache, userKey } from '../utils/screenCache';
+import { batchGet, bodyOf } from '../utils/batchRequest';
+import { prefetchPostImages } from '../utils/imageWarm';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import Avatar from './Avatar';
@@ -20,6 +19,7 @@ import { getFullUrl } from '../utils/imageUtils';
 import { StatusBar } from 'expo-status-bar';
 import EducationCard, { EducationEntry } from './profile/EducationCard';
 import { useTabBarClearance } from '../constants/layout';
+import { Alert } from './ui/AlertModal';
 
 const { width } = Dimensions.get('window');
 
@@ -399,6 +399,10 @@ function Profile() {
       if (res.data.success) {
         setPosts(prev => isInitial ? res.data.posts : [...prev, ...res.data.posts.filter((p: any) => !prev.some(e => e._id === p._id))]);
         setHasMorePosts(res.data.hasMore); setPostsPage(page);
+        if (isInitial) {
+          prefetchPostImages(res.data.posts);
+          writeCache(userKey(user?._id, 'profile_posts'), res.data.posts);
+        }
       }
     } catch { } finally { setIsLoadingMore(false); }
   };
@@ -410,6 +414,7 @@ function Profile() {
       if (res.data.success) {
         setShorts(prev => isInitial ? res.data.shorts : [...prev, ...res.data.shorts.filter((s: any) => !prev.some(e => e._id === s._id))]);
         setHasMoreShorts(res.data.hasMore === true); setShortsPage(page);
+        if (isInitial) writeCache(userKey(user?._id, 'profile_shorts'), res.data.shorts);
       } else setHasMoreShorts(false);
     } catch { } finally { setIsLoadingMore(false); }
   };
@@ -421,18 +426,76 @@ function Profile() {
     } catch { }
   };
 
+  // The grid used to be empty until the network answered, on every single
+  // visit. Paint the last-known posts first; the refresh below replaces them.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const [cachedPosts, cachedShorts] = await Promise.all([
+        readCache<any[]>(userKey(user?._id, 'profile_posts')),
+        readCache<any[]>(userKey(user?._id, 'profile_shorts')),
+      ]);
+      if (cancelled) return;
+      // Only fill gaps -- a response that already landed must not be undone.
+      if (cachedPosts?.length) {
+        setPosts(prev => (prev.length ? prev : cachedPosts));
+        prefetchPostImages(cachedPosts);
+      }
+      if (cachedShorts?.length) setShorts(prev => (prev.length ? prev : cachedShorts));
+    })();
+    return () => { cancelled = true; };
+  }, [user?._id]);
+
+  /**
+   * One request instead of four.
+   *
+   * These are all small, fast reads the screen needs before it can paint, which
+   * is exactly the shape batching suits: the server pays one middleware pass
+   * rather than four, and the device opens one connection rather than four.
+   */
+  const loadProfileScreen = useCallback(async () => {
+    const results = await batchGet({
+      posts: '/post/posts?page=1&limit=12',
+      shorts: '/shorts/your?page=1&limit=12',
+      subscription: '/subscription/status',
+      me: '/user/profile',
+    });
+
+    const postsBody = bodyOf<any>(results.posts);
+    if (postsBody?.success) {
+      setPosts(postsBody.posts || []);
+      setHasMorePosts(postsBody.hasMore);
+      setPostsPage(1);
+      prefetchPostImages(postsBody.posts || []);
+      writeCache(userKey(user?._id, 'profile_posts'), postsBody.posts || []);
+    }
+
+    const shortsBody = bodyOf<any>(results.shorts);
+    if (shortsBody?.success) {
+      setShorts(shortsBody.shorts || []);
+      setHasMoreShorts(shortsBody.hasMore === true);
+      setShortsPage(1);
+      writeCache(userKey(user?._id, 'profile_shorts'), shortsBody.shorts || []);
+    } else {
+      setHasMoreShorts(false);
+    }
+
+    const subBody = bodyOf<any>(results.subscription);
+    if (subBody?.success) setSubscription(subBody);
+
+    const meBody = bodyOf<any>(results.me);
+    if (meBody?.user && setUser) setUser(meBody.user);
+  }, [user?._id, setUser]);
+
   useFocusEffect(
     useCallback(() => {
-      getPosts(1, true);
-      getShorts(1, true);
-      fetchSubscription();
-      refreshUser();
-    }, [])
+      loadProfileScreen().catch(() => {});
+    }, [loadProfileScreen])
   );
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([getPosts(1, true), getShorts(1, true), refreshUser(), fetchSubscription()]);
+    await loadProfileScreen().catch(() => {});
     setRefreshing(false);
   };
 

@@ -4,7 +4,8 @@ import {
     TextInput, TouchableOpacity, Dimensions, RefreshControl, StatusBar, Modal, ScrollView
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import Avatar from "./Avatar";

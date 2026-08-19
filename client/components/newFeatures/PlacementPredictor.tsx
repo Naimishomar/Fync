@@ -1,20 +1,13 @@
 import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    TouchableOpacity,
-    ScrollView,
-    TextInput,
-    ActivityIndicator,
-    Alert,
-    StatusBar,
-} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as DocumentPicker from 'expo-document-picker';
 import axios from '../../context/axiosConfig';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import { Alert } from '../ui/AlertModal';
 
 const PlacementPredictor = () => {
     const navigation = useNavigation<any>();

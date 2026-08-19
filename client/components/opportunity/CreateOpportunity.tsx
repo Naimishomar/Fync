@@ -1,23 +1,12 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-  Switch,
-  Image
-} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, Switch, Image} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import * as ImagePicker from 'expo-image-picker';
+import { Alert } from '../ui/AlertModal';
 
 const CreateOpportunity = () => {
   const navigation = useNavigation<any>();

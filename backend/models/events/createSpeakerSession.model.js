@@ -84,5 +84,13 @@ const CreateSpeakerSessionSchema = new mongoose.Schema({
     }]
 })
 
+// The browse list is "upcoming, open, for my college" sorted by date, and the
+// organiser view is "sessions I run". Without these the list handler had to
+// scan -- which is what the removed delete-on-read loop was doing by hand.
+CreateSpeakerSessionSchema.index({ status: 1, date: 1 });
+CreateSpeakerSessionSchema.index({ college: 1, status: 1, date: 1 });
+CreateSpeakerSessionSchema.index({ admin_email: 1 });
+CreateSpeakerSessionSchema.index({ secondaryAdmins: 1 });
+
 const CreateSpeakerSession = mongoose.model('SpeakerSession', CreateSpeakerSessionSchema);
 export default CreateSpeakerSession;

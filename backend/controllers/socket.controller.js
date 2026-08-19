@@ -11,6 +11,7 @@ import { nanoid } from "nanoid";
 import { getSocketAcrossCluster } from "../utils/socketCluster.js";
 import { getPresenceAudience, filterOnline, broadcastStatus } from "../utils/presence.js";
 import { checkClubStatus, nightPseudonym } from "../utils/nightClub.js";
+import { claimCall, confirmCall, endCall as endCallState, releaseIfPeer, getPeer } from "../utils/callState.js";
 
 // 12 AM Club data must not outlive one night even if the sunrise sweep misses.
 const NIGHT_KEY_TTL_SECONDS = 8 * 60 * 60;
@@ -161,6 +162,9 @@ export const socketController = (io) => {
             data: { type: "chat" }
           });
         }
+        // Nudge any of the receiver's foregrounded sessions so the header badge
+        // moves without waiting for them to navigate back to the feed.
+        io.to(`user:${receiverId}`).emit("chat_badge");
       } catch (err) {
         console.error("Chat notify error", err);
       }
@@ -686,35 +690,106 @@ export const socketController = (io) => {
       return sockets.length > 0;
     };
 
+    // Presence for the call lobby is its own channel: a user going busy is not
+    // the same event as going offline, and the chat screens listen to
+    // `statusUpdate` for the latter.
+    const announceCallStatus = async (userId, status) => {
+      try {
+        const audience = await getPresenceAudience(userId);
+        const rooms = [callRoom(userId), ...audience.map((id) => `user:${id}`)];
+        io.to(rooms).emit("call:status", { userId: String(userId), status });
+      } catch (err) {
+        console.error("announceCallStatus error:", err.message);
+      }
+    };
+
     socket.on("call:offer", async ({ targetUserId, sdp, callerInfo }) => {
+      const callerId = socket.userId;
+      if (!callerId || !targetUserId) return;
+
       if (!(await isOnline(targetUserId))) {
         return socket.emit("call:failed", { reason: "User not online" });
       }
+
+      // The busy check used to live only in the callee's client, so two callers
+      // could ring the same person at once and a client that missed the event
+      // rang anyway. One atomic claim decides it.
+      const claim = await claimCall(callerId, targetUserId);
+      if (!claim.ok) {
+        return socket.emit("call:busy", {
+          reason: claim.busy === "caller"
+            ? "You are already on a call"
+            : "User is on another call",
+        });
+      }
+
+      await Promise.all([
+        announceCallStatus(callerId, "busy"),
+        announceCallStatus(targetUserId, "busy"),
+      ]);
+
+      // Identity is read from the database, never from the caller-supplied
+      // payload -- otherwise anyone could ring as anyone. One lookup per call
+      // is nothing; calls are rare and the ring screen is the whole point.
+      const profile = await User.findById(callerId)
+        .select("name username avatar college")
+        .lean();
+
       io.to(callRoom(targetUserId)).emit("call:incoming", {
-        callerId: socket.userId,
+        callerId,
         sdp,
-        callerInfo
+        callerInfo: {
+          _id: callerId,
+          name: profile?.name || "Fync user",
+          username: profile?.username || "",
+          avatar: profile?.avatar || "",
+          college: profile?.college || "",
+        },
       });
     });
 
-    socket.on("call:answer", ({ targetUserId, sdp }) => {
+    socket.on("call:answer", async ({ targetUserId, sdp }) => {
+      if (!socket.userId || !targetUserId) return;
+      // Ringing keys expire in a minute; a live call needs the long lease.
+      await confirmCall(socket.userId, targetUserId);
       io.to(callRoom(targetUserId)).emit("call:answered", { sdp });
     });
 
     socket.on("call:ice-candidate", ({ targetUserId, candidate }) => {
+      if (!targetUserId) return;
       io.to(callRoom(targetUserId)).emit("call:ice-candidate", { candidate });
     });
 
-    socket.on("call:end", ({ targetUserId, reason }) => {
-      io.to(callRoom(targetUserId)).emit("call:ended", { reason });
+    const releaseBothSides = async (userId, peerId) => {
+      await Promise.all([
+        releaseIfPeer(userId, peerId),
+        releaseIfPeer(peerId, userId),
+      ]);
+      await Promise.all([
+        announceCallStatus(userId, "online"),
+        announceCallStatus(peerId, "online"),
+      ]);
+    };
+
+    socket.on("call:end", async ({ targetUserId, reason }) => {
+      if (!socket.userId) return;
+      const peer = targetUserId || (await getPeer(socket.userId));
+      if (!peer) return;
+      io.to(callRoom(peer)).emit("call:ended", { reason: reason || "ended" });
+      await releaseBothSides(socket.userId, peer);
     });
 
-    socket.on("call:reject", ({ targetUserId }) => {
-      io.to(callRoom(targetUserId)).emit("call:rejected", {});
+    socket.on("call:reject", async ({ targetUserId }) => {
+      if (!socket.userId) return;
+      const peer = targetUserId || (await getPeer(socket.userId));
+      if (!peer) return;
+      io.to(callRoom(peer)).emit("call:rejected", {});
+      await releaseBothSides(socket.userId, peer);
     });
 
-    socket.on("call:busy", ({ targetUserId }) => {
-      io.to(callRoom(targetUserId)).emit("call:busy", {});
+    socket.on("call:busy", async ({ targetUserId }) => {
+      if (!targetUserId) return;
+      io.to(callRoom(targetUserId)).emit("call:busy", { reason: "User is on another call" });
     });
 
     // --- 🎨 DRAW & GUESS LOGIC ---
@@ -794,6 +869,18 @@ export const socketController = (io) => {
       }
 
       if (socket.userId) {
+        // A dropped socket must not leave the other side of a call stuck
+        // waiting, nor leave this user permanently marked busy.
+        try {
+          const callPeer = await endCallState(socket.userId);
+          if (callPeer) {
+            io.to(`user:${callPeer}`).emit("call:ended", { reason: "Connection lost" });
+            io.to(`user:${callPeer}`).emit("call:status", { userId: String(callPeer), status: "online" });
+          }
+        } catch (err) {
+          console.error("Call cleanup error:", err.message);
+        }
+
         // Cleanup 1v1 if they were in a match
         const roomId = await redisClient.get(`user:night_1v1:${socket.userId}`);
         if (roomId) {

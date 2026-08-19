@@ -1,28 +1,9 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  Dimensions,
-  Pressable,
-  Image,
-  ViewToken,
-  ActivityIndicator,
-  Alert,
-  Share,
-  TouchableOpacity,
-  StatusBar,
-  Modal,
-  TextInput,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  useWindowDimensions
-} from "react-native";
+import {View, Text, FlatList, Dimensions, Pressable, Image, ViewToken, ActivityIndicator, Share, TouchableOpacity, StatusBar, Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform, useWindowDimensions} from 'react-native'
 import { getFullUrl } from "../utils/imageUtils";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Video, ResizeMode, AVPlaybackStatus, AVPlaybackStatusSuccess, Audio, InterruptionModeIOS, InterruptionModeAndroid } from "expo-av";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -44,6 +25,7 @@ import Animated, {
 //@ts-ignore
 import FyncLogo from "../assets/Fync.png"
 import { LinearGradient } from 'expo-linear-gradient';
+import { Alert } from './ui/AlertModal';
 
 interface FyncMediaItem {
   _id: string;

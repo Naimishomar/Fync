@@ -7,11 +7,13 @@ import NoInternetScreen from "./components/NoInternetScreen";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import { DefaultTheme } from '@react-navigation/native';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import Toast from "react-native-toast-message";
 
 import './context/axiosConfig';
 import ErrorBoundary from './components/ErrorBoundary';
+import { AlertHost } from './components/ui/AlertModal';
 //@ts-ignore
 import "./global.css";
 import { StatusBar } from 'expo-status-bar';
@@ -123,6 +125,7 @@ import NoticeBoard from './components/NoticeBoard';
 import PaidGigs from './components/PaidGigs';
 import CreateShorts from 'components/CreateShorts';
 import CreateFundingFeed from './components/CreateFundingFeed';
+import FundingFeed from './components/FundingFeed';
 import SpeakerSessionScreen from './components/events/SpeakerSessionScreen';
 import BootcampScreen from './components/events/BootcampScreen';
 import EventCommunityChat from './components/events/EventCommunityChat';
@@ -330,6 +333,7 @@ export type RootStackParamList = {
   ClubAdminPanel: { clubId: string };
   FyncMediaFeed: undefined;
   CreateFundingFeed: { project?: any } | undefined;
+  FundingFeed: undefined;
   AdminPortal: undefined;
   DSAAndDevelopmentContest: undefined;
   ContactUs: undefined;
@@ -518,6 +522,7 @@ function AppStack() {
       <Stack.Screen name="TermsAndCondition" component={TermsAndCondition} />
       <Stack.Screen name="FyncMediaFeed" component={FyncMediaFeed} />
       <Stack.Screen name="CreateFundingFeed" component={CreateFundingFeed} />
+      <Stack.Screen name="FundingFeed" component={FundingFeed} />
       <Stack.Screen name="AdminPortal" component={AdminPortal} />
       <Stack.Screen name="DSAAndDevelopmentContest" component={DSAAndDevelopmentContest} />
       <Stack.Screen name="ContactUs" component={ContactUs} />
@@ -575,6 +580,11 @@ function RootNavigator() {
   );
 }
 
+
+const navTheme = {
+  ...DefaultTheme,
+  colors: { ...DefaultTheme.colors, background: '#F8FAFC' },
+};
 
 const linking = {
   prefixes: ['fync://', 'https://fync-api.duckdns.org'],
@@ -651,9 +661,10 @@ export default function App() {
     <ErrorBoundary>
       <AuthProvider>
         <SafeAreaProvider>
-          <NavigationContainer ref={navigationRef} linking={linking}>
+          <NavigationContainer ref={navigationRef} linking={linking} theme={navTheme}>
             <StatusBar style="dark" backgroundColor="transparent" translucent={true} />
             <RootNavigator />
+            <AlertHost />
             <Toast config={toastConfig} position="top" visibilityTime={4000} topOffset={60} />
           </NavigationContainer>
         </SafeAreaProvider>

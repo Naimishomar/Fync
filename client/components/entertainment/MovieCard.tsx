@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Image, View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { getImageUrl } from '../../utils/tmdb';
 
 interface MovieCardProps {

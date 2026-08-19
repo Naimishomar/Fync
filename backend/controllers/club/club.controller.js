@@ -368,7 +368,7 @@ export const getAllClubs = async (req, res) => {
                 { admins: userId },
                 { invitations: userId }
             ]
-        }).populate('creator', 'name username avatar');
+        }).populate('creator', 'name username avatar').lean();
 
         return res.status(200).json({ success: true, clubs });
     } catch (error) {

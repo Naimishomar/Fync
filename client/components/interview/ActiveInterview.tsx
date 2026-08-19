@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Image, Alert, ScrollView } from 'react-native';
+import {View, Text, TouchableOpacity, ActivityIndicator, Image, ScrollView} from 'react-native'
 import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { Alert } from '../ui/AlertModal';
 
 export default function ActiveInterview() {
   const route = useRoute<any>();

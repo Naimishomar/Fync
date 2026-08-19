@@ -131,6 +131,16 @@ export const deleteFromR2 = async (url) => {
   }
 };
 
+// Every upload is buffered in RAM before it reaches R2. On a 1 GiB box that
+// makes the per-file limit a hard memory budget, not just a policy: two
+// concurrent 100 MB uploads were enough to OOM the process on their own.
+//
+// The client now compresses images and transcodes video before sending
+// (client/utils/mediaUpload.ts), so these ceilings are far above what a normal
+// upload actually weighs -- they exist to stop one request eating the heap.
+//
+// ponytail: streaming straight to R2 would remove the ceiling entirely; that
+// means multer-s3 or a presigned direct-to-R2 upload from the device.
 const memoryStorage = multer.memoryStorage();
 
 /** General images + PDFs — 10 MB */
@@ -177,7 +187,7 @@ export const mentorshipUpload = multer({
 /** Resume PDF — 50 MB */
 export const resumeUpload = multer({
   storage: memoryStorage,
-  limits: { fileSize: 1024 * 1024 * 50 },
+  limits: { fileSize: 1024 * 1024 * 10 },
   fileFilter: (_req, file, cb) => {
     cb(null, file.mimetype === "application/pdf");
   },
@@ -186,7 +196,7 @@ export const resumeUpload = multer({
 /** Fync Media combined — thumbnail (image) + video — 100 MB */
 export const fyncMediaCombinedUpload = multer({
   storage: memoryStorage,
-  limits: { fileSize: 1024 * 1024 * 100 },
+  limits: { fileSize: 1024 * 1024 * 25 },
   fileFilter: (_req, file, cb) => {
     if (file.fieldname === "video") {
       cb(null, file.mimetype === "video/mp4");
@@ -200,7 +210,7 @@ export const fyncMediaCombinedUpload = multer({
 /** Funding multi-upload — images + video */
 export const fundingUpload = multer({
   storage: memoryStorage,
-  limits: { fileSize: 1024 * 1024 * 100 },
+  limits: { fileSize: 1024 * 1024 * 25 },
   fileFilter: (_req, file, cb) => {
     const allowed = ["image/jpeg", "image/png", "image/jpg", "video/mp4"];
     cb(null, allowed.includes(file.mimetype));

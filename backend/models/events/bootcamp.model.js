@@ -43,6 +43,11 @@ const BootcampSchema = new mongoose.Schema({
     logo: { type: String },
     banner: { type: String },
     status: { type: String, enum: ['open', 'closed'], default: 'open' },
+    // Reservation counter for the capacity check. Registration documents remain
+    // the record of who is actually in; this exists only so a seat can be
+    // claimed atomically instead of counting-then-inserting, which overbooked
+    // whenever two people registered at the same moment.
+    seatsTaken: { type: Number, default: 0 },
     instructors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Speaker' }],
     curriculum: [{ type: String }],
     secondaryAdmins: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
@@ -53,5 +58,11 @@ const BootcampSchema = new mongoose.Schema({
         email: String
     }],
 }, { timestamps: true });
+
+// Mirrors the getAllBootcamps filter: open bootcamps by start date, plus the
+// two organiser lookups.
+BootcampSchema.index({ status: 1, startDate: 1 });
+BootcampSchema.index({ admin_email: 1 });
+BootcampSchema.index({ secondaryAdmins: 1 });
 
 export default mongoose.model("Bootcamp", BootcampSchema);

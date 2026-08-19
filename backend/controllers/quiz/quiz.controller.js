@@ -80,7 +80,8 @@ export const getLeaderboard = async (req, res) => {
     const leaderboard = await Submission.find({ roomId })
       .populate("user", "username name profileImage")
       .sort({ score: -1, submittedAt: 1 })
-      .limit(50);
+      .limit(50)
+      .lean();
 
     res.status(200).json(leaderboard);
   } catch (error) {
@@ -93,7 +94,8 @@ export const getTopGladiators = async (req, res) => {
     const topUsers = await User.find({ oneVsOnePoints: { $gt: 0 } })
       .select("name username avatar oneVsOnePoints")
       .sort({ oneVsOnePoints: -1 })
-      .limit(10);
+      .limit(10)
+      .lean();
     res.status(200).json(topUsers);
   } catch (error) {
     res.status(500).json({ message: error.message });

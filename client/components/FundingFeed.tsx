@@ -1,11 +1,8 @@
 import React, { useEffect, useState, useRef, memo } from "react";
-import {
-  View, Text, FlatList, Image, Pressable, TextInput, Modal,
-  Dimensions, Alert, ScrollView, ActivityIndicator,
-  KeyboardAvoidingView, Platform, TouchableOpacity, Linking, RefreshControl, StatusBar
-} from "react-native";
+import { readCache, writeCache } from "../utils/screenCache";
+import {View, Text, FlatList, Image, Pressable, TextInput, Modal, Dimensions, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, TouchableOpacity, Linking, RefreshControl, StatusBar} from 'react-native'
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Video, ResizeMode, AVPlaybackStatus, AVPlaybackStatusSuccess, Audio, InterruptionModeIOS, InterruptionModeAndroid } from "expo-av";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
@@ -26,6 +23,7 @@ import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import { ProjectSkeleton } from "./Skeleton";
 import { useTabBarClearance } from '../constants/layout';
+import { Alert } from './ui/AlertModal';
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width - 32;
@@ -451,18 +449,22 @@ export default function FundingFeed() {
       if (res.data.success) {
         const newProjects = res.data.projects || [];
         if (shouldAppend) {
-          setProjects(prev => [...prev, ...newProjects]);
+          // Guard against a duplicate id crashing the list if a project is
+          // created between two page requests and shifts the offset.
+          setProjects(prev => {
+            const seen = new Set(prev.map(p => p._id));
+            return [...prev, ...newProjects.filter((p: Project) => !seen.has(p._id))];
+          });
         } else {
           setProjects(newProjects);
+          writeCache('funding_feed', newProjects);
         }
 
-        const pagination = res.data.pagination;
-        if (pagination) {
-          setHasMore(pagination.page < pagination.pages);
-          setPage(pagination.page);
-        } else {
-          setHasMore(false);
-        }
+        // The server reports hasMore directly now. It used to send a page count
+        // derived from a full countDocuments, and returned 404 for any page past
+        // the last one -- so reaching the end of the feed looked like a failure.
+        setHasMore(Boolean(res.data.hasMore));
+        setPage(pageNum);
       }
     } catch (error) {
       console.error("Error fetching projects", error);
@@ -474,7 +476,14 @@ export default function FundingFeed() {
   };
 
   useEffect(() => {
+    let cancelled = false;
+    readCache<Project[]>('funding_feed').then(cached => {
+      if (cancelled || !cached?.length) return;
+      setProjects(prev => (prev.length ? prev : cached));
+      setLoading(false);
+    });
     fetchProjects(1, false);
+    return () => { cancelled = true; };
   }, []);
 
   const onRefresh = () => {

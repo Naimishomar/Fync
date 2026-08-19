@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   StatusBar
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
@@ -33,8 +33,13 @@ interface NotificationItem {
     _id: string;
     image?: string[];
   };
+  shorts?: {
+    _id: string;
+  };
   message?: string;
   commentText?: string;
+  hackathon?: string;
+  imageUrl?: string;
   isRead: boolean;
   createdAt: string;
 }
@@ -45,77 +50,101 @@ const Notification = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
+  // Cursor paging: onEndReached fires repeatedly while the list settles, and
+  // state updates land a render too late to stop the second call. A ref does.
+  const cursorRef = useRef<string | null>(null);
+  const inFlightRef = useRef(false);
 
   // --- FETCH NOTIFICATIONS ---
-  const fetchNotifications = async (pageNum: number = 1, shouldAppend: boolean = false) => {
-    if (pageNum > 1) setLoadingMore(true);
-    else if (!refreshing) setLoading(true);
+  const fetchNotifications = useCallback(async (append: boolean) => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
+    if (append) setLoadingMore(true);
 
     try {
-      const response = await axios.get(`/notifications?page=${pageNum}&limit=20`);
-      if (response.data.success) {
-        const newNotifications = response.data.notifications;
-        if (shouldAppend) {
-          setNotifications(prev => [...prev, ...newNotifications]);
-        } else {
-          setNotifications(newNotifications);
-          markAsRead();
-        }
+      const cursor = append ? cursorRef.current : null;
+      const response = await axios.get('/notifications', {
+        params: { limit: 20, ...(cursor ? { cursor } : {}) },
+      });
 
-        const pagination = response.data.pagination;
-        if (pagination) {
-          setHasMore(pagination.page < pagination.pages);
-          setPage(pagination.page);
+      if (response.data.success) {
+        const incoming: NotificationItem[] = response.data.notifications || [];
+        cursorRef.current = response.data.nextCursor ?? null;
+        setHasMore(Boolean(response.data.hasMore));
+
+        if (append) {
+          // The server pages on (createdAt, _id) so overlap is not expected,
+          // but a duplicate key would crash the FlatList rather than fail quietly.
+          setNotifications(prev => {
+            const seen = new Set(prev.map(x => x._id));
+            return [...prev, ...incoming.filter(x => !seen.has(x._id))];
+          });
         } else {
-          setHasMore(false);
+          setNotifications(incoming);
+          markAsRead(incoming);
         }
       }
     } catch (error) {
       console.error("Error fetching notifications:", error);
     } finally {
+      inFlightRef.current = false;
       setLoading(false);
       setRefreshing(false);
       setLoadingMore(false);
     }
-  };
+  }, []);
 
-
-  const markAsRead = async () => {
+  // Mark read only as far back as the user actually received, and reflect it
+  // locally -- the old version fired and forgot, so every row kept its unread
+  // dot until the screen was reopened.
+  const markAsRead = async (loaded: NotificationItem[]) => {
+    const oldest = loaded[loaded.length - 1];
+    if (!oldest) return;
     try {
-      await axios.put('/notifications/read');
+      await axios.put('/notifications/read', { upTo: oldest._id });
+      setNotifications(prev => prev.map(x => ({ ...x, isRead: true })));
     } catch (error) {
       console.error("Error marking read:", error);
     }
   };
 
   useEffect(() => {
-    fetchNotifications(1, false);
-  }, []);
+    fetchNotifications(false);
+  }, [fetchNotifications]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    setPage(1);
+    cursorRef.current = null;
     setHasMore(true);
-    fetchNotifications(1, false);
+    fetchNotifications(false);
   };
 
   const handleLoadMore = () => {
-    if (!loading && !loadingMore && hasMore) {
-      fetchNotifications(page + 1, true);
-    }
+    if (!loading && hasMore) fetchNotifications(true);
   };
 
 
   // --- HANDLERS ---
   const handlePress = (item: NotificationItem) => {
     if (item.type === 'follow') {
-      navigation.navigate('PublicProfile', { user: item.sender });
-    } else if (item.post) {
-      navigation.navigate('Profile');
+      navigation.navigate('PublicProfile', { userId: item.sender?._id, user: item.sender });
+      return;
+    }
+    if (item.type === 'broadcast') return;
+    if (item.hackathon) {
+      navigation.navigate('HackathonDetail', { hackathonId: item.hackathon });
+      return;
+    }
+    const contentId = item.post?._id || item.shorts?._id;
+    if (contentId) {
+      navigation.navigate('IndividualPostOrShort', { postId: contentId });
+      return;
+    }
+    if (item.sender?._id) {
+      navigation.navigate('PublicProfile', { userId: item.sender._id, user: item.sender });
     }
   };
 
@@ -175,6 +204,25 @@ const Notification = () => {
         iconColor = '#34d399'; // emerald-400
         iconBg = 'rgba(52, 211, 153, 0.2)';
         break;
+      case 'broadcast':
+        message = item.message || 'sent an announcement.';
+        iconName = 'megaphone';
+        iconColor = '#f97316';
+        iconBg = 'rgba(249, 115, 22, 0.15)';
+        break;
+      case 'hackathon_announcement':
+        message = item.message || 'posted a hackathon announcement.';
+        iconName = 'megaphone';
+        iconColor = '#f97316';
+        iconBg = 'rgba(249, 115, 22, 0.15)';
+        break;
+      case 'reply':
+      case 'college_reply':
+        message = item.commentText ? `replied: "${item.commentText}"` : 'replied to you.';
+        iconName = 'return-down-forward';
+        iconColor = '#38bdf8';
+        iconBg = 'rgba(56, 189, 248, 0.2)';
+        break;
       case 'opportunity':
         message = item.message || 'sent you an opportunity update.';
         iconName = 'briefcase';
@@ -214,7 +262,7 @@ const Notification = () => {
         {/* Text Section */}
         <View className="flex-1">
           <Text className="text-slate-600 text-xs leading-5">
-            {item.type === 'opportunity' ? (
+            {item.type === 'opportunity' || item.type === 'hackathon_announcement' || item.type === 'broadcast' ? (
               // Opportunity notifications: show full message without username prefix
               <Text className="text-slate-800 font-bold text-xs uppercase ">{message}</Text>
             ) : (
@@ -231,9 +279,11 @@ const Notification = () => {
         </View>
 
         {/* Right Side: Post Image / Follow Button / Opportunity Icon */}
-        {item.type === 'opportunity' ? (
+        {item.type === 'broadcast' && item.imageUrl ? (
+          <Image source={{ uri: item.imageUrl }} className="w-12 h-12 rounded-xl border border-slate-100 ml-2" />
+        ) : item.type === 'opportunity' || item.type === 'hackathon_announcement' || item.type === 'broadcast' ? (
           <View style={{ backgroundColor: 'rgba(249,115,22,0.12)', borderRadius: 12, padding: 8 }}>
-            <Ionicons name="briefcase" size={18} color="#f97316" />
+            <Ionicons name={item.type === 'broadcast' ? 'megaphone' : 'briefcase'} size={18} color="#f97316" />
           </View>
         ) : item.type !== 'follow' && item.post?.image && item.post.image.length > 0 ? (
           <Image

@@ -3,7 +3,8 @@ import {
   View, Text, TextInput, Pressable, Modal, 
   ActivityIndicator, ScrollView, Image, KeyboardAvoidingView, Platform, Dimensions
 } from 'react-native';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import Feather from '@expo/vector-icons/Feather';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 

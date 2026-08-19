@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, Linking, Image } from 'react-native';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import Feather from '@expo/vector-icons/Feather';
 
 const CAT_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
   coding:        { color: '#18181b', bg: '#f8fafc', icon: 'code-slash' },

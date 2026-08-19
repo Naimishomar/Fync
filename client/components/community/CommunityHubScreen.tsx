@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  View, Text, TouchableOpacity, ScrollView, Image, 
-  ActivityIndicator, Dimensions, Alert, Modal, TextInput, Linking, Share,
-  StatusBar, Platform, Animated,
-  KeyboardAvoidingView
-} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, Dimensions, Modal, TextInput, Linking, Share, StatusBar, Platform, Animated, KeyboardAvoidingView} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialIcons, MaterialCommunityIcons, FontAwesome5, SimpleLineIcons, Feather } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
+import Feather from '@expo/vector-icons/Feather';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import RazorpayCheckout from 'react-native-razorpay';
 import { RAZORPAY_KEY_ID } from '../../constants/keys';
 import { WebView } from 'react-native-webview';
+import { Alert } from '../ui/AlertModal';
 
 const { width, height: screenHeight } = Dimensions.get('window');
 

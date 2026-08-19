@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert, Dimensions, Image } from 'react-native';
-import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import {View, Text, TouchableOpacity, ActivityIndicator, Dimensions, Image} from 'react-native'
+import Ionicons from '@expo/vector-icons/Ionicons';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../context/auth.context';
 import socket from '../../utils/socket';
 import ChessGame from './ChessGame';
+import { Alert } from '../ui/AlertModal';
 
 const { width } = Dimensions.get('window');
 

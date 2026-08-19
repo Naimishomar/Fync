@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Dimensions, ScrollView, Alert, StatusBar } from 'react-native';
+import {View, Text, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Dimensions, ScrollView, StatusBar} from 'react-native'
 import { Image as ExpoImage } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../context/auth.context';
@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import Skeleton, { ConfessionSkeleton } from '../Skeleton';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Alert } from '../ui/AlertModal';
 
 const { width } = Dimensions.get('window');
 const ANONYMOUS_AVATAR = 'https://ui-avatars.com/api/?name=?&background=f1f5f9&color=64748b&bold=true';

@@ -83,5 +83,9 @@ const fyncScoreSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+
+// getFullProfile does a findOne on this for every profile render.
+fyncScoreSchema.index({ user: 1 }, { unique: true });
+
 const FyncScore = mongoose.model("FyncScore", fyncScoreSchema);
 export default FyncScore;

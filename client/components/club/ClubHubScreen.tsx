@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, 
-  Dimensions, RefreshControl, StatusBar, Share, Alert
-} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, Dimensions, RefreshControl, StatusBar, Share} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import Feather from '@expo/vector-icons/Feather';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Alert } from '../ui/AlertModal';
 
 const { width } = Dimensions.get('window');
 

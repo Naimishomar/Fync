@@ -1,26 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-    View,
-    Text,
-    ActivityIndicator,
-    Alert,
-    TouchableOpacity,
-    ScrollView,
-    StatusBar,
-    Image,
-    Dimensions,
-    Animated,
-    Vibration
-} from 'react-native';
+import {View, Text, ActivityIndicator, TouchableOpacity, ScrollView, StatusBar, Image, Dimensions, Animated, Vibration} from 'react-native'
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { navigationRef } from '../../utils/navigation';
 import socket from '../../utils/socket';
 import { useAuth } from '../../context/auth.context';
 import axios from '../../context/axiosConfig';
 import Avatar from '../Avatar';
+import { Alert } from '../ui/AlertModal';
 
 const { width } = Dimensions.get('window');
 

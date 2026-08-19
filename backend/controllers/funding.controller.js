@@ -52,30 +52,33 @@ export const createFundingPost = async (req, res) => {
 
 export const getAllProjects = async (req, res) => {
     try {
-        const { page = 1, limit = 10 } = req.query;
+        const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+        const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 10));
         const skip = (page - 1) * limit;
 
-        const projects = await FundingProject.find()
+        // An extra row instead of a full countDocuments on every page.
+        const rows = await FundingProject.find()
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(Number(limit))
-            .populate("user", "name username avatar");
+            .limit(limit + 1)
+            .populate("user", "name username avatar")
+            .lean();
 
-        const total = await FundingProject.countDocuments();
+        const hasMore = rows.length > limit;
+        const projects = hasMore ? rows.slice(0, limit) : rows;
 
-        if (!projects || projects.length === 0) {
-            return res.status(404).json({ success: false, message: 'Projects not found' });
-        }
-
+        // An empty page is not an error. This used to 404 whenever the feed had
+        // no projects AND on every scroll past the last page, so infinite scroll
+        // reported a failure at the end of every session.
         return res.status(200).json({
             success: true,
             message: 'Projects fetched successfully',
             projects,
+            hasMore,
             pagination: {
-                total,
-                page: Number(page),
-                limit: Number(limit),
-                pages: Math.ceil(total / limit)
+                page,
+                limit,
+                hasMore
             }
         });
     } catch (error) {
@@ -86,10 +89,10 @@ export const getAllProjects = async (req, res) => {
 
 export const getYourProjects = async (req, res) => {
     try {
-        const projects = await FundingProject.find({ user: req.user.id });
-        if (!projects) {
-            return res.status(404).json({ success: false, message: "Projects not found" });
-        }
+        const projects = await FundingProject.find({ user: req.user.id })
+            .sort({ createdAt: -1 })
+            .limit(100)
+            .lean();
         return res.status(200).json({ success: true, message: "Projects fetched successfully", projects });
     } catch (error) {
         console.log("Internal server error", error);

@@ -1,19 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { 
-    View, 
-    StyleSheet, 
-    TouchableOpacity, 
-    Text, 
-    ActivityIndicator,
-    SafeAreaView,
-    Platform,
-    Share,
-    Alert
-} from 'react-native';
+import {View, StyleSheet, TouchableOpacity, Text, ActivityIndicator, SafeAreaView, Platform, Share} from 'react-native'
 import { WebView } from 'react-native-webview';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
+import { Alert } from '../ui/AlertModal';
 
 const AffiliateWebView = () => {
     const route = useRoute<any>();

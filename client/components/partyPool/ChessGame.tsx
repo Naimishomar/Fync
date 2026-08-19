@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Image, Modal, Dimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import {View, Text, TouchableOpacity, ActivityIndicator, Image, Modal, Dimensions} from 'react-native'
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../../context/auth.context';
 import { Chess } from 'chess.js';
 import Chessboard, { ChessboardRef } from 'react-native-chessboard';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Alert } from '../ui/AlertModal';
 
 interface ChessGameProps {
     socket: any;

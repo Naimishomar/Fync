@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import {
-    View, Text, ScrollView, TouchableOpacity, TextInput,
-    FlatList, Modal, ActivityIndicator, Alert, RefreshControl,
-    KeyboardAvoidingView, Platform, Image, Animated, StatusBar
-} from 'react-native';
+import {View, Text, ScrollView, TouchableOpacity, TextInput, FlatList, Modal, ActivityIndicator, RefreshControl, KeyboardAvoidingView, Platform, Image, Animated, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { formatDistanceToNow } from 'date-fns';
+import { Alert } from '../ui/AlertModal';
 
 const COMPANIES = [
     { name: 'Google', icon: 'google', color: '#4285F4' },

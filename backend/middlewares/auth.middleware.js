@@ -65,7 +65,11 @@ export const authMiddleware = async (req, res, next) => {
 
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
+      // The global rate limiter already verified this exact token a moment ago
+      // and left the payload behind. Reusing it skips a redundant HMAC on every
+      // authenticated request; if it is absent (limiter bypassed, Redis down,
+      // route mounted before it) we verify here as before.
+      decoded = req.verifiedJwt || jwt.verify(token, process.env.JWT_SECRET);
     } catch (err) {
       // Let the client tell "refresh me" apart from "log in again".
       const expired = err.name === "TokenExpiredError";
@@ -76,13 +80,23 @@ export const authMiddleware = async (req, res, next) => {
       });
     }
 
-    const user = await loadUser(decoded.id);
+    // Sub-requests inside a /batch inherit this from the parent request via the
+    // prototype chain, so a six-endpoint batch does one auth cache lookup
+    // instead of six. Guarded on the id: an inherited entry for a different
+    // user must never be reused.
+    const user =
+      req.authUser && String(req.authUser._id) === String(decoded.id)
+        ? req.authUser
+        : await loadUser(decoded.id);
+
     if (!user) {
       return res.status(401).json({
         success: false,
         message: "User not found",
       });
     }
+
+    req.authUser = user;
 
     if (user.isBanned) {
       return res.status(403).json({

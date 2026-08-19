@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView, ActivityIndicator, Modal, Alert, Image, StatusBar, TouchableOpacity } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import {View, Text, Pressable, ScrollView, ActivityIndicator, Modal, Image, StatusBar, TouchableOpacity} from 'react-native'
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from "react-native-webview";
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,6 +9,7 @@ import axios from '../../context/axiosConfig';
 import { RAZORPAY_KEY_ID } from '../../constants/keys';
 import { useAuth } from '../../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
+import { Alert } from '../ui/AlertModal';
 
 const SubscriptionScreen = ({ onSuccess }: any) => {
     const { user, logout } = useAuth();

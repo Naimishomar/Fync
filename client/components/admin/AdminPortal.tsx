@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-    View, Text, FlatList, TouchableOpacity, Modal, TextInput,
-    ActivityIndicator, Image, Alert, ScrollView, Switch, Platform,
-    KeyboardAvoidingView, Linking, BackHandler,
-    StatusBar
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import {View, Text, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Image, ScrollView, Switch, Platform, KeyboardAvoidingView, Linking, BackHandler, StatusBar} from 'react-native'
+import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +8,7 @@ import { useAuth } from '../../context/auth.context';
 import Toast from 'react-native-toast-message';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AdItem, RedemptionItem, MarketPlaceItem, ReportItem, ContactMessageItem, UserItem, MediaItem } from './AdminComponents';
+import { Alert } from '../ui/AlertModal';
 
 // Using a stable key for navigation to ensure it survives re-renders
 const PUBLIC_PROFILE_SCREEN = 'PublicProfile';
@@ -105,6 +101,7 @@ const AdminPortal = ({ navigation }: any) => {
     const [userSearch, setUserSearch] = useState('');
     const [broadcastTitle, setBroadcastTitle] = useState('');
     const [broadcastBody, setBroadcastBody] = useState('');
+    const [broadcastImage, setBroadcastImage] = useState('');
     const [sendingBroadcast, setSendingBroadcast] = useState(false);
 
     const fetchAds = async () => {
@@ -263,20 +260,19 @@ const AdminPortal = ({ navigation }: any) => {
         }
     };
 
-    const handleBroadcast = async () => {
-        if (!broadcastTitle.trim() || !broadcastBody.trim()) {
-            return Alert.alert("Required", "Please fill in both title and message.");
-        }
+    const sendBroadcast = async () => {
         setSendingBroadcast(true);
         try {
             const res = await axios.post('/notifications/broadcast', {
-                title: broadcastTitle,
-                body: broadcastBody
+                title: broadcastTitle.trim(),
+                body: broadcastBody.trim(),
+                imageUrl: broadcastImage.trim() || undefined,
             });
             if (res.data.success) {
                 Toast.show({ type: 'success', text1: 'Broadcast Sent!', text2: res.data.message });
                 setBroadcastTitle('');
                 setBroadcastBody('');
+                setBroadcastImage('');
             }
         } catch (error: any) {
             console.error(error);
@@ -284,6 +280,21 @@ const AdminPortal = ({ navigation }: any) => {
         } finally {
             setSendingBroadcast(false);
         }
+    };
+
+    const handleBroadcast = () => {
+        if (!broadcastTitle.trim() || !broadcastBody.trim()) {
+            return Alert.alert("Required", "Please fill in both title and message.");
+        }
+        // This reaches every phone with the app installed and cannot be recalled.
+        Alert.alert(
+            "Send to everyone?",
+            `"${broadcastTitle.trim()}" will be pushed to every Fync user's phone and added to their Updates Center. This cannot be undone.`,
+            [
+                { text: "Cancel", style: "cancel" },
+                { text: "Send Now", style: "destructive", onPress: sendBroadcast },
+            ]
+        );
     };
 
     const handleToggleStatus = async (userId: string, redemptionId: string) => {
@@ -955,6 +966,43 @@ const AdminPortal = ({ navigation }: any) => {
                             multiline
                             textAlignVertical="top"
                         />
+                    </View>
+
+                    <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6">
+                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-2">Image URL (optional)</Text>
+                        <TextInput
+                            className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-bold"
+                            value={broadcastImage}
+                            onChangeText={setBroadcastImage}
+                            placeholder="https://..."
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                            keyboardType="url"
+                        />
+                        <Text className="text-slate-400 text-2xs font-bold mt-2">Shown as the expandable picture in the phone notification.</Text>
+                    </View>
+
+                    {/* What the notification will actually look like on a phone. */}
+                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-2">Preview</Text>
+                    <View className="bg-white rounded-2xl border border-slate-200 p-3 mb-6 shadow-sm">
+                        <View className="flex-row items-center mb-2">
+                            <Image source={require('../../assets/Fync.png')} className="w-5 h-5 rounded" />
+                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide ml-2">Fync</Text>
+                            <Text className="text-slate-300 text-2xs font-bold ml-2">now</Text>
+                        </View>
+                        <Text className="text-slate-900 font-black text-sm" numberOfLines={1}>
+                            {broadcastTitle.trim() || 'Notification title'}
+                        </Text>
+                        <Text className="text-slate-600 text-xs font-semibold mt-0.5" numberOfLines={3}>
+                            {broadcastBody.trim() || 'Your message will appear here.'}
+                        </Text>
+                        {!!broadcastImage.trim() && (
+                            <Image
+                                source={{ uri: broadcastImage.trim() }}
+                                className="w-full h-32 rounded-xl mt-2 bg-slate-100"
+                                resizeMode="cover"
+                            />
+                        )}
                     </View>
 
                     <TouchableOpacity 

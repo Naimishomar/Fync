@@ -10,7 +10,6 @@ import {
   TouchableOpacity,
   Platform,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
@@ -18,11 +17,10 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import socket from "../utils/socket";
-import { supabase } from "../utils/supabase";
+import { supabase, fetchUnreadCounts } from "../utils/supabase";
+import { readCache, writeCache, userKey } from "../utils/screenCache";
 import Avatar from "./Avatar";
 import { ChatListSkeleton } from "./Skeleton";
-
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 const ChatList = () => {
   const navigation = useNavigation<any>();
@@ -31,9 +29,18 @@ const ChatList = () => {
   const [conversations, setConversations] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<any[]>([]);
+  // Starts false: the cached list paints on mount, so the skeleton is only for
+  // a genuinely first-ever open.
   const [loading, setLoading] = useState(true);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [typingStates, setTypingStates] = useState<{ [key: string]: boolean }>({});
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+
+  // `conversations` read from inside socket callbacks has to come from a ref:
+  // the useFocusEffect closure only depends on user._id, so the reconnect
+  // handler captured the initial empty array and silently rejoined no rooms.
+  const conversationsRef = useRef<any[]>([]);
+  const reloadTimer = useRef<NodeJS.Timeout | null>(null);
 
 
   // 1. Create a Ref to store the timer ID
@@ -41,6 +48,7 @@ const ChatList = () => {
 
   useFocusEffect(
     useCallback(() => {
+      paintFromCache();
       loadChats();
       socket.emit("register", user._id);
 
@@ -68,7 +76,7 @@ const ChatList = () => {
       const handleConnect = () => {
         socket.emit("register", user._id);
         // Rejoin rooms if socket reconnects
-        conversations.forEach((c: any) => {
+        conversationsRef.current.forEach((c: any) => {
           socket.emit("join", { conversationId: c._id });
         });
       };
@@ -79,14 +87,41 @@ const ChatList = () => {
       socket.on("user_stop_typing", handleStopTyping);
       socket.on("connect", handleConnect);
 
-      // ✅ SUPABASE REALTIME LISTENER FOR CONVERSATIONS
+      // Supabase cannot filter postgres_changes on a jsonb participants array,
+      // so every conversation change in the product reaches every client. It
+      // used to trigger an unconditional full reload — N users chatting meant
+      // N x M refetches a second. Ignore rows this user is not in, and coalesce
+      // the rest, so a burst of messages costs one reload instead of one each.
+      const isMine = (row: any) =>
+        Array.isArray(row?.participants) &&
+        row.participants.some((p: any) => p?._id === user._id);
+
       const channel = supabase
-        .channel('conversations')
+        .channel(`conversations_${user._id}`)
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'conversations' },
           (payload) => {
-            loadChats(); // Reload when any conversation updates
+            if (!isMine(payload.new) && !isMine(payload.old)) return;
+            if (reloadTimer.current) clearTimeout(reloadTimer.current);
+            reloadTimer.current = setTimeout(loadChats, 300);
+          }
+        )
+        .subscribe();
+
+      // Read receipts live on `messages`, not `conversations`, so the badge
+      // needs its own trigger — otherwise it only refreshed when a new message
+      // happened to bump the conversation row.
+      const msgChannel = supabase
+        .channel(`unread_${user._id}`)
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'messages' },
+          (payload) => {
+            const convoId = (payload.new as any)?.conversationId;
+            if (!conversationsRef.current.some((c: any) => c._id === convoId)) return;
+            if (reloadTimer.current) clearTimeout(reloadTimer.current);
+            reloadTimer.current = setTimeout(loadChats, 300);
           }
         )
         .subscribe();
@@ -97,12 +132,28 @@ const ChatList = () => {
         socket.off("user_typing", handleTyping);
         socket.off("user_stop_typing", handleStopTyping);
         socket.off("connect", handleConnect);
+        if (reloadTimer.current) clearTimeout(reloadTimer.current);
         supabase.removeChannel(channel);
+        supabase.removeChannel(msgChannel);
       };
 
     }, [user._id])
   );
 
+
+  const cacheKey = userKey(user?._id, 'chatlist');
+
+  // Paint whatever we showed last time, immediately, then refresh underneath.
+  const paintFromCache = async () => {
+    const cached = await readCache<{ conversations: any[]; unread: Record<string, number> }>(cacheKey);
+    if (!cached?.conversations?.length) return;
+    // A newer network result may already have arrived; never overwrite it.
+    if (conversationsRef.current.length > 0) return;
+    setConversations(cached.conversations);
+    conversationsRef.current = cached.conversations;
+    setUnreadCounts(cached.unread || {});
+    setLoading(false);
+  };
 
   const loadChats = async () => {
     try {
@@ -113,14 +164,23 @@ const ChatList = () => {
         .order('updatedAt', { ascending: false });
 
       if (error) throw error;
-      
-      if (data) {
-        setConversations(data);
-        // Join all conversation rooms to listen for typing events
-        data.forEach((c: any) => {
-          socket.emit("join", { conversationId: c._id });
-        });
-      }
+      if (!data) return;
+
+      setConversations(data);
+      conversationsRef.current = data;
+      // Join all conversation rooms to listen for typing events
+      data.forEach((c: any) => {
+        socket.emit("join", { conversationId: c._id });
+      });
+
+      // Unread used to be awaited before the list was allowed to render, so
+      // opening chat cost two serial round trips instead of one. The rows and
+      // their badges are independent; show the rows, fill the badges in.
+      setLoading(false);
+
+      const unread = await fetchUnreadCounts(user._id, data.map((c: any) => c._id));
+      setUnreadCounts(unread);
+      writeCache(cacheKey, { conversations: data, unread });
     } catch (e) {
       console.log("Error loading chats from Supabase", e);
     } finally {
@@ -197,7 +257,7 @@ const ChatList = () => {
     const otherUser = item.participants.find(
       (p: any) => p._id !== user._id
     );
-    const unread = item.unreadCount?.[user._id] || 0;
+    const unread = unreadCounts[item._id] || 0;
     const isLastMsgMine = item.lastMessageSender === user._id;
 
     return (
@@ -254,7 +314,7 @@ const ChatList = () => {
         </View>
       </TouchableOpacity>
     );
-  }, [user._id, onlineUsers, navigation, typingStates]);
+  }, [user._id, onlineUsers, navigation, typingStates, unreadCounts]);
 
   const renderUserItem = useCallback(({ item }: any) => (
     <TouchableOpacity

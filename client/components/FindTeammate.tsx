@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-    View, Text, TouchableOpacity, FlatList, Image,
-    ActivityIndicator, RefreshControl, Linking, Alert, TextInput, Animated, StatusBar
-} from 'react-native';
+import {View, Text, TouchableOpacity, FlatList, Image, ActivityIndicator, RefreshControl, Linking, TextInput, Animated, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/auth.context';
 import axios from '../context/axiosConfig';
 import socket from '../utils/socket';
 import { TeammateSkeleton } from './Skeleton';
+import { Alert } from './ui/AlertModal';
 
 const BG_IMAGE = "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000&auto=format&fit=crop";
 

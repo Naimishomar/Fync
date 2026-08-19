@@ -13,4 +13,8 @@ const RegisterBootcampSchema = new mongoose.Schema({
 
 RegisterBootcampSchema.index({ eventId: 1, userId: 1 }, { unique: true });
 
+// "my registrations" listing, and the per-event aggregate that replaced the
+// per-row countDocuments.
+RegisterBootcampSchema.index({ userId: 1, isPaid: 1 });
+
 export default mongoose.model("RegisterBootcamp", RegisterBootcampSchema);

@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { 
-  View, Text, TouchableOpacity, FlatList, TextInput, 
-  KeyboardAvoidingView, Platform, ActivityIndicator, Image, Alert,
-  StatusBar, Modal
-} from 'react-native';
+import {View, Text, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Image, StatusBar, Modal} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import Feather from '@expo/vector-icons/Feather';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as DocumentPicker from 'expo-document-picker';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import socket from '../../utils/socket';
+import { Alert } from '../ui/AlertModal';
 
 const SubGroupChat = ({ navigation, route }: any) => {
     const { subGroupId, subGroupName, clubId } = route.params;

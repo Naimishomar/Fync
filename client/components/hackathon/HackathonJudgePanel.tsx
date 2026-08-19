@@ -1,22 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  StatusBar,
-  TextInput,
-  Alert,
-  Modal,
-} from 'react-native';
+import {View, Text, FlatList, ScrollView, TouchableOpacity, ActivityIndicator, StatusBar, TextInput, Modal} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
+import { Alert } from '../ui/AlertModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface JudgingCriteria {

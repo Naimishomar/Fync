@@ -41,7 +41,13 @@ const LostAndFoundSchema = new mongoose.Schema({
         type: Date,
         index: { expires: '24h' }
     }
-})
+// The schema had no timestamps at all, so items had no creation time to sort or
+// paginate by -- the list endpoints returned them in natural storage order.
+}, { timestamps: true })
+
+
+// Both list endpoints filter on { college, lostOrFound } and want newest first.
+LostAndFoundSchema.index({ college: 1, lostOrFound: 1, createdAt: -1 });
 
 const LostAndFound = mongoose.model('LostAndFound', LostAndFoundSchema);
 export default LostAndFound;

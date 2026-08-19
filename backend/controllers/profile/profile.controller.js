@@ -12,34 +12,43 @@ export const getFullProfile = async (req, res) => {
         const requesterId = req.user?._id?.toString();
         const isOwner = requesterId === targetUserId;
 
-        const user = await User.findById(targetUserId)
-            .select("-password -refreshToken -githubAccessToken -deviceId -deviceModel -location -redeemedItems -otp -otpExpires -otpAttempts")
-            .lean();
-        if (!user) return res.status(404).json({ success: false, message: "User not found" });
-
-        // Visibility gate
-        if (!isOwner) {
-            if (user.portfolioVisibility === "private") {
-                return res.status(403).json({ success: false, message: "This portfolio is private" });
-            }
-        }
-
-        const visibilityFilter = isOwner ? {} : { isPublic: true };
-
-        const [projects, internships, certs, scoreDoc] = await Promise.all([
-            UserProject.find({ user: targetUserId, ...visibilityFilter })
+        // The user document was awaited on its own before the other four
+        // queries could start, purely because the visibility filter was derived
+        // from it -- so every portfolio render paid two serial round trips
+        // instead of one. The filter only decides what is *returned*, so fetch
+        // everything concurrently and apply visibility afterwards, in memory.
+        //
+        // A viewer's own id is known from the token, so `isOwner` never depends
+        // on the fetched document; nothing private can leak by starting early.
+        const [user, allProjects, allInternships, allCerts, scoreDoc] = await Promise.all([
+            User.findById(targetUserId)
+                .select("-password -refreshToken -githubAccessToken -deviceId -deviceModel -location -redeemedItems -otp -otpExpires -otpAttempts")
+                .lean(),
+            UserProject.find({ user: targetUserId })
                 .populate("collaborators.user", "name username avatar")
                 .sort({ isFeatured: -1, createdAt: -1 })
                 .lean(),
-            Internship.find({ user: targetUserId, ...visibilityFilter })
+            Internship.find({ user: targetUserId })
                 .sort({ startDate: -1 })
                 .lean(),
-            Certificate.find({ user: targetUserId, ...visibilityFilter })
+            Certificate.find({ user: targetUserId })
                 .sort({ issueDate: -1 })
                 .lean(),
             FyncScore.findOne({ user: targetUserId })
                 .lean()
         ]);
+
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+        // Visibility gate — unchanged in effect, just applied after the fetch.
+        if (!isOwner && user.portfolioVisibility === "private") {
+            return res.status(403).json({ success: false, message: "This portfolio is private" });
+        }
+
+        const visible = (rows) => (isOwner ? rows : rows.filter((r) => r.isPublic));
+        const projects = visible(allProjects);
+        const internships = visible(allInternships);
+        const certs = visible(allCerts);
 
         // Profile completeness calculation
         const completeness = calcCompleteness(user, projects, internships, certs);

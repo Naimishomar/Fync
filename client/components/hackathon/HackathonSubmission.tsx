@@ -1,16 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  Platform,
-  Alert,
-  KeyboardAvoidingView,
-  Keyboard,
-} from 'react-native';
+import {View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard} from 'react-native'
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -20,6 +9,7 @@ import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAuth } from '../../context/auth.context';
+import { Alert } from '../ui/AlertModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Submission {

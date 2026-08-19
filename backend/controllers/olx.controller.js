@@ -39,13 +39,14 @@ export const sellProduct = async (req, res) => {
 
 export const listedProductsByUser = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);
-        if (!user) {
-            return res.status(404).json({ success: false, message: "User not found, please login" });
-        }
+        // The User lookup only proved the token's user exists, which authMiddleware
+        // has already done -- it was an extra round trip per request.
         const products = await OLX.find({ seller: req.user.id })
+            .sort({ createdAt: -1 })
+            .limit(100)
             .populate("seller", "name avatar username")
-            .populate("buyer", "name avatar username");
+            .populate("buyer", "name avatar username")
+            .lean();
         return res.status(200).json({ success: true, message: "Products fetched successfully", products });
     } catch (error) {
         console.log("Internal server error", error);
@@ -120,12 +121,14 @@ export const deleteProduct = async (req, res) => {
 
 export const getAllProducts = async (req, res) => {
     try {
+        // Was unbounded and unindexed: the whole college's marketplace, sorted
+        // in memory, on every open.
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 50));
         const products = await OLX.find({ college: req.user.college })
             .populate("seller", "name avatar username")
             .sort({ createdAt: -1 })
-        if (!products) {
-            return res.status(404).json({ success: false, message: 'Products not found' });
-        }
+            .limit(limit)
+            .lean();
         return res.status(200).json({ success: true, message: 'Products fetched successfully', products });
     } catch (error) {
         console.log("Internal server error", error);

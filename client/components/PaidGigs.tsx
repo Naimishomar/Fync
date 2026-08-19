@@ -1,16 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-    View, Text, FlatList, TouchableOpacity, ActivityIndicator,
-    Alert, RefreshControl, Image, Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform, Pressable, Animated,
-    StatusBar
-} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform, Pressable, Animated, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
 import socket from '../utils/socket';
-import moment from 'moment';
+import { formatDistanceToNow } from 'date-fns';
+import { Alert } from './ui/AlertModal';
 
 // --- TYPES ---
 interface Gig {
@@ -48,7 +45,7 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                             {item.title}
                         </Text>
                         <Text className="text-slate-500 text-2xs mt-1 uppercase tracking-wide font-black ">
-                            {moment(item.createdAt).fromNow()}
+                            {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
                         </Text>
                     </View>
                     {isOwner && (

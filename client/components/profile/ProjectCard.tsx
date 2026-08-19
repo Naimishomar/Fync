@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, Pressable, Linking, Image, ScrollView } from 'react-native';
-import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import Feather from '@expo/vector-icons/Feather';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   completed:    { label: 'Completed',    color: '#18181b', bg: '#f8fafc' },

@@ -41,5 +41,10 @@ const olxSchema = new mongoose.Schema({
     }
 },{timestamps:true});
 
+
+// Campus marketplace listing, and a seller's own listings.
+olxSchema.index({ college: 1, createdAt: -1 });
+olxSchema.index({ seller: 1, createdAt: -1 });
+
 const OLX = mongoose.model('OLX', olxSchema);
 export default OLX;

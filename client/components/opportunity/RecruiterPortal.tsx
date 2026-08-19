@@ -1,23 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-    View,
-    Text,
-    FlatList,
-    TouchableOpacity,
-    Image,
-    ActivityIndicator,
-    ScrollView,
-    RefreshControl,
-    Alert,
-    Linking,
-    TextInput,
-} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator, ScrollView, RefreshControl, Linking, TextInput} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import * as Clipboard from 'expo-clipboard';
+import { Alert } from '../ui/AlertModal';
 
 /**
  * view: 'posts'        → My Posts list (default)

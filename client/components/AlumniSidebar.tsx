@@ -9,7 +9,7 @@ import {
     UIManager
 } from 'react-native';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../context/auth.context';
 
 // Enable LayoutAnimation for Android

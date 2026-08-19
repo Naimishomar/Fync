@@ -1,4 +1,19 @@
 import User from '../models/user.model.js';
+import { istDayDiff, istDateKey } from './eventTime.js';
+
+/*
+ * Streak days are IST calendar days.
+ *
+ * This file used to build day boundaries with `new Date(y, m, d)` — the SERVER's
+ * local midnight. On a UTC host that puts the boundary at 05:30 IST, so a post
+ * made between midnight and 05:30 IST counted toward the previous day. Users
+ * posting late at night got no credit for it and could watch a streak they had
+ * genuinely kept reset to 1.
+ */
+
+/** Did this user already post today, in IST? */
+export const postedToday = (lastPostDate) =>
+    Boolean(lastPostDate) && istDateKey(new Date(lastPostDate)) === istDateKey();
 
 /**
  * Updates the user's daily post streak.
@@ -14,15 +29,10 @@ export const updateStreak = async (userId) => {
         if (!user) return { streakCount: 0, isCompletedToday: false };
 
         const now = new Date();
-        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         let isCompletedToday = false;
-        
+
         if (user.lastPostDate) {
-            const lastPost = new Date(user.lastPostDate);
-            const lastPostStart = new Date(lastPost.getFullYear(), lastPost.getMonth(), lastPost.getDate());
-            
-            const diffTime = todayStart.getTime() - lastPostStart.getTime();
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const diffDays = istDayDiff(user.lastPostDate, now);
 
             if (diffDays === 1) {
                 // Posted yesterday, increment streak
@@ -62,13 +72,7 @@ export const updateStreak = async (userId) => {
 export const checkAndResetStreak = async (user) => {
     if (!user || !user.lastPostDate) return user;
 
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const lastPost = new Date(user.lastPostDate);
-    const lastPostStart = new Date(lastPost.getFullYear(), lastPost.getMonth(), lastPost.getDate());
-
-    const diffTime = todayStart.getTime() - lastPostStart.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = istDayDiff(user.lastPostDate, new Date());
 
     if (diffDays > 1) {
         // Missed yesterday, reset streak to 0

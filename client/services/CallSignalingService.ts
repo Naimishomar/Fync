@@ -1,32 +1,56 @@
-// Socket.io based WebRTC signaling service
-// Replaces Supabase Realtime for audio/video call signaling
+// Socket.io based WebRTC signaling.
 
 import type { Socket } from 'socket.io-client';
 import axios from '../context/axiosConfig';
 import sharedSocket from '../utils/socket';
 
-interface OnlineUser {
+export interface CallUser {
   _id: string;
   name: string;
-  profilePic?: string;
+  username?: string;
+  /** The user schema's field is `avatar`; there is no `profilePic`. */
+  avatar?: string;
   college?: string;
   status: 'online' | 'busy';
 }
 
+export interface CallerInfo {
+  _id: string;
+  name: string;
+  username?: string;
+  avatar?: string;
+  college?: string;
+}
+
+type Handler = (...args: any[]) => void;
+
 class CallSignalingService {
   private socket: Socket | null = null;
   private userId: string | null = null;
-  
+
+  /**
+   * Handlers are kept so they can be removed individually.
+   *
+   * `disconnect()` used to call `socket.off(event)` with no handler, which
+   * removes EVERY listener for that event. The socket is shared app-wide, so
+   * leaving the call lobby also tore out the presence and typing listeners that
+   * ChatList and Chat had registered — online dots simply stopped updating
+   * until the app restarted.
+   */
+  private handlers = new Map<string, Handler>();
+
   // Event callbacks
-  onIncomingCall: ((data: { callerId: string; sdp: any; callerInfo: any }) => void) | null = null;
+  onIncomingCall: ((data: { callerId: string; sdp: any; callerInfo: CallerInfo }) => void) | null = null;
   onCallAnswered: ((data: { sdp: any }) => void) | null = null;
   onIceCandidate: ((data: { candidate: any }) => void) | null = null;
   onCallEnded: ((data: { reason: string }) => void) | null = null;
   onCallRejected: (() => void) | null = null;
-  onCallBusy: (() => void) | null = null;
+  onCallBusy: ((data?: { reason?: string }) => void) | null = null;
   onCallFailed: ((data: { reason: string }) => void) | null = null;
-  onOnlineUsers: ((users: OnlineUser[]) => void) | null = null;
-  onUserStatus: ((data: { userId: string; status: string }) => void) | null = null;
+  /** Busy/free/offline transitions for the lobby list. */
+  onCallStatus: ((data: { userId: string; status: 'online' | 'busy' | 'offline' }) => void) | null = null;
+  /** Plain online/offline presence, for greying out a row. */
+  onPresence: ((data: { userId: string; status: string }) => void) | null = null;
 
   connect(userId: string) {
     // Reuse the app-wide authenticated socket instead of opening a second
@@ -37,67 +61,48 @@ class CallSignalingService {
     this.userId = userId;
     this.socket = sharedSocket;
 
-    // Call signaling events
-    this.socket.on('call:incoming', (data) => {
-      console.log('📞 Incoming call from:', data.callerInfo?.name || data.callerId);
-      this.onIncomingCall?.(data);
-    });
+    const on = (event: string, handler: Handler) => {
+      this.handlers.set(event, handler);
+      this.socket?.on(event, handler);
+    };
 
-    this.socket.on('call:answered', (data) => {
-      console.log('📞 Call answered');
-      this.onCallAnswered?.(data);
-    });
+    on('call:incoming', (data) => this.onIncomingCall?.(data));
+    on('call:answered', (data) => this.onCallAnswered?.(data));
+    on('call:ice-candidate', (data) => this.onIceCandidate?.(data));
+    on('call:ended', (data) => this.onCallEnded?.(data));
+    on('call:rejected', () => this.onCallRejected?.());
+    on('call:busy', (data) => this.onCallBusy?.(data));
+    on('call:failed', (data) => this.onCallFailed?.(data));
 
-    this.socket.on('call:ice-candidate', (data) => {
-      this.onIceCandidate?.(data);
-    });
-
-    this.socket.on('call:ended', (data) => {
-      console.log('📞 Call ended:', data.reason);
-      this.onCallEnded?.(data);
-    });
-
-    this.socket.on('call:rejected', () => {
-      console.log('📞 Call rejected');
-      this.onCallRejected?.();
-    });
-
-    this.socket.on('call:busy', () => {
-      console.log('📞 User is busy');
-      this.onCallBusy?.();
-    });
-
-    this.socket.on('call:failed', (data) => {
-      console.log('📞 Call failed:', data.reason);
-      this.onCallFailed?.(data);
-    });
-
-    // Presence events
-    this.socket.on('initialOnlineList', (users) => {
-      this.onOnlineUsers?.(users);
-    });
-
-    this.socket.on('statusUpdate', (data) => {
-      this.onUserStatus?.(data);
-    });
+    // Distinct from `statusUpdate`. The lobby needs busy-vs-free, which the
+    // presence system does not model; conflating them made a user who went
+    // OFFLINE render as "In a call".
+    on('call:status', (data) => this.onCallStatus?.(data));
+    on('statusUpdate', (data) => this.onPresence?.(data));
   }
 
   disconnect() {
     if (!this.socket) return;
-    // Detach this service's listeners only; the socket is shared app-wide and
-    // logout is what actually tears it down.
-    for (const event of [
-      'call:incoming', 'call:answered', 'call:ice-candidate', 'call:ended',
-      'call:rejected', 'call:busy', 'call:failed', 'initialOnlineList', 'statusUpdate',
-    ]) {
-      this.socket.off(event);
+    for (const [event, handler] of this.handlers) {
+      this.socket.off(event, handler);
     }
+    this.handlers.clear();
     this.socket = null;
     this.userId = null;
+
+    this.onIncomingCall = null;
+    this.onCallAnswered = null;
+    this.onIceCandidate = null;
+    this.onCallEnded = null;
+    this.onCallRejected = null;
+    this.onCallBusy = null;
+    this.onCallFailed = null;
+    this.onCallStatus = null;
+    this.onPresence = null;
   }
 
   // Call methods
-  sendOffer(targetUserId: string, sdp: any, callerInfo: any) {
+  sendOffer(targetUserId: string, sdp: any, callerInfo?: Partial<CallerInfo>) {
     this.socket?.emit('call:offer', { targetUserId, sdp, callerInfo });
   }
 
@@ -121,21 +126,11 @@ class CallSignalingService {
     this.socket?.emit('call:busy', { targetUserId });
   }
 
-  // Check if user is online via REST API
-  async checkUserOnline(targetUserId: string): Promise<boolean> {
-    try {
-      const res = await axios.get(`/user/status/${targetUserId}`);
-      return res.data?.online === true;
-    } catch {
-      return false;
-    }
-  }
-
-  // Get online users list
-  async getOnlineUsers(): Promise<string[]> {
+  /** Online users with their real busy state, resolved server-side. */
+  async getOnlineUsers(): Promise<CallUser[]> {
     try {
       const res = await axios.get('/user/online');
-      return res.data?.users || [];
+      return Array.isArray(res.data?.users) ? res.data.users : [];
     } catch {
       return [];
     }

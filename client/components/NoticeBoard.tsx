@@ -1,20 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  View, Text, FlatList, Image, TouchableOpacity,
-  Modal, TextInput, ActivityIndicator, Alert, Pressable, Linking, ScrollView, RefreshControl,
-  Platform, KeyboardAvoidingView, StyleSheet, Dimensions, Animated, StatusBar
-} from 'react-native';
+import {View, Text, FlatList, Image, TouchableOpacity, Modal, TextInput, ActivityIndicator, Pressable, Linking, ScrollView, RefreshControl, Platform, KeyboardAvoidingView, StyleSheet, Dimensions, Animated, StatusBar} from 'react-native'
 import { Image as ExpoImage } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
-import moment from 'moment';
+import { format } from 'date-fns';
 import { RAZORPAY_KEY_ID } from '../constants/keys';
+import { Alert } from './ui/AlertModal';
 
 const { width } = Dimensions.get('window');
 const ADMIN_EMAIL = "dev.fync@fync.com";
@@ -98,13 +96,10 @@ const NoticeBoard = () => {
           setNotices(fetchedNotices);
         }
 
-        const pagination = res.data.pagination;
-        if (pagination) {
-          setHasMore(pagination.page < pagination.pages);
-          setPage(pagination.page);
-        } else {
-          setHasMore(false);
-        }
+        // The server reports hasMore directly now; it used to derive a page
+        // count from a full countDocuments on every request.
+        setHasMore(Boolean(res.data.hasMore));
+        setPage(pageNum);
       } else {
         if (!shouldAppend) setNotices([]);
         setHasMore(false);
@@ -333,7 +328,7 @@ const NoticeBoard = () => {
             <View className="flex-1 mr-4">
               <Text className="text-slate-900 font-black  text-lg uppercase tracking-tight leading-tight">{item.title}</Text>
               <Text className="text-slate-500 text-2xs mt-1 uppercase tracking-wide font-black ">
-                {moment(item.createdAt).format('DD MMM, YYYY • hh:mm A')}
+                {format(new Date(item.createdAt), "dd MMM, yyyy • hh:mm a")}
               </Text>
             </View>
             {activeTab === 'global' && (

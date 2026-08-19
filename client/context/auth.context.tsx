@@ -6,6 +6,7 @@ import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync, savePushTokenToBackend } from "../utils/notificationHelper";
 import { syncFcmToken } from "../services/NotificationService";
 import { trackUser, untrackUser } from "../utils/socket";
+import { clearSupabaseAuth } from "../utils/supabase";
 import { prefetchFeed } from "../utils/feedPrefetch";
 
 Notifications.setNotificationHandler({
@@ -47,6 +48,9 @@ export const AuthProvider = ({ children }: any) => {
     // Drop the authenticated socket too, otherwise the previous user stays in
     // their private rooms and keeps receiving messages after logout.
     untrackUser();
+    // Drop the cached Supabase identity too, or the next account signed in on
+    // this device would keep querying as the previous user.
+    clearSupabaseAuth();
     setUser(null);
   };
 

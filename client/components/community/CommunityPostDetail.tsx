@@ -1,13 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import {
-    View, Text, ScrollView, TextInput, TouchableOpacity, Image, ActivityIndicator,
-    RefreshControl, StatusBar, Alert, KeyboardAvoidingView, Platform,
-} from 'react-native';
+import {View, Text, ScrollView, TextInput, TouchableOpacity, Image, ActivityIndicator, RefreshControl, StatusBar, KeyboardAvoidingView, Platform} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import Feather from '@expo/vector-icons/Feather';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
+import { Alert } from '../ui/AlertModal';
 
 type Author = { _id: string; name: string; username: string; avatar: string };
 type CommentNode = {

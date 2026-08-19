@@ -1,27 +1,16 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  Modal
-} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform, Pressable, Modal} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { WebView } from 'react-native-webview';
 import * as DocumentPicker from 'expo-document-picker';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { RAZORPAY_KEY_ID } from '../../constants/keys';
 import { useAuth } from '../../context/auth.context';
+import { Alert } from '../ui/AlertModal';
 
 export default function InterviewSetup() {
   const navigation = useNavigation<any>();

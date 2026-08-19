@@ -1,65 +1,36 @@
-import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    Image,
-    Pressable,
-    LayoutAnimation,
-    Platform,
-    UIManager,
-    ScrollView
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { View, Text, Image, Pressable, ScrollView } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../context/auth.context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { visibleFeatures } from '../constants/features';
 
-// Enable LayoutAnimation for Android (only if not on the New Architecture)
-const isFabric = !!(global as any)._IS_FABRIC_;
-
-if (
-    Platform.OS === 'android' &&
-    !isFabric &&
-    UIManager.setLayoutAnimationEnabledExperimental
-) {
-    try {
-        UIManager.setLayoutAnimationEnabledExperimental(true);
-    } catch (e) { }
-}
-
+/**
+ * The drawer used to be the app's only feature menu: ~35 rows across seven
+ * collapsible sections, which is what made Fync read as "too many features".
+ * Those now live in the Explore tab, where they are searchable and grouped.
+ * What is left here is identity and account — the things that genuinely belong
+ * behind a menu rather than in the main navigation.
+ */
 export default function CustomSidebar(props: any) {
     const { user } = useAuth();
 
-    // State for dropdowns
-    const [showOpportunities, setShowOpportunities] = useState(false);
-    const [showQuizzes, setShowQuizzes] = useState(false);
-    const [showHackathons, setShowHackathons] = useState(false);
+    // Sourced from the same registry Explore uses, so an access-gated item such
+    // as Admin Portal cannot fall out of sync between the two surfaces.
+    const accountItems = visibleFeatures(user).filter((f) => f.category === 'account');
 
-    const toggleOpportunities = () => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setShowOpportunities(!showOpportunities);
-    };
-
-    const toggleQuizzes = () => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setShowQuizzes(!showQuizzes);
-    };
-
-    const toggleHackathons = () => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setShowHackathons(!showHackathons);
+    const go = (route: string, params?: object) => {
+        props.navigation.closeDrawer();
+        props.navigation.navigate(route, params);
     };
 
     return (
         <View className="flex-1 bg-[#F8FAFC]">
-            <ScrollView contentContainerStyle={{ paddingBottom: 10 }} showsVerticalScrollIndicator={false} bounces={false}>
-                {/* Header Profile Section with Gradient */}
-                <LinearGradient 
-                    colors={['#f97316', 'transparent']} 
-                    className="pt-16 pb-6 px-6 w-full"
-                >
+            <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false} bounces={false}>
+                <LinearGradient colors={['#f97316', 'transparent']} className="pt-16 pb-6 px-6 w-full">
                     <View className="flex-row justify-between items-start mb-5">
-                        <Pressable 
-                            onPress={() => props.navigation.navigate('Profile')}
+                        <Pressable
+                            onPress={() => go('Profile')}
                             className="flex-row items-center gap-4 flex-1 mr-4"
                         >
                             <Image
@@ -75,8 +46,8 @@ export default function CustomSidebar(props: any) {
                                 </Text>
                             </View>
                         </Pressable>
-                        
-                        <Pressable 
+
+                        <Pressable
                             onPress={() => props.navigation.closeDrawer()}
                             className="w-9 h-9 bg-white rounded-full items-center justify-center border border-white/20 active:bg-black/20"
                         >
@@ -84,9 +55,8 @@ export default function CustomSidebar(props: any) {
                         </Pressable>
                     </View>
 
-                    {/* Score + Build Portfolio CTA */}
                     <Pressable
-                        onPress={() => props.navigation.navigate('FyncProfileBuilder')}
+                        onPress={() => go('FyncProfileBuilder')}
                         className="flex-row items-center justify-between bg-white/10 border border-orange-300 px-4 py-3 rounded-3xl active:bg-white/20"
                     >
                         <View className="flex-row items-center gap-3">
@@ -108,250 +78,62 @@ export default function CustomSidebar(props: any) {
                     </Pressable>
                 </LinearGradient>
 
-                {/* Menu Items */}
-                <View className="pb-12 pt-2">
-
-                    {/* ========================================= */}
-                    {/*             ACADEMIC & STUDY              */}
-                    {/* ========================================= */}
-                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-1 px-6 mt-3">Academic & Study</Text>
-                    
-                    <Pressable onPress={() => props.navigation.navigate('StudyAssistant')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="book-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Study Assistant</Text>
-                    </Pressable>
-                    
-                    <Pressable onPress={() => props.navigation.navigate('DriveFolderScreen', { folderId: '1idOWdlHnISpZVvvY0Ett8O_uJALAf_Qv', title: 'B.Tech' })} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="folder-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Study Material</Text>
-                    </Pressable>
-                    
-                    <Pressable onPress={() => props.navigation.navigate('FocusProductivity')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="timer-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Focus Mode</Text>
-                    </Pressable>
-                    
-                    <Pressable onPress={() => props.navigation.navigate('BunkOMeter')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="flashlight-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">BunkOMeter</Text>
-                    </Pressable>
-
-                    <Pressable onPress={() => props.navigation.navigate('UtilityHubScreen')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="construct-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Utility Hub</Text>
-                    </Pressable>
-
-                    {/* ========================================= */}
-                    {/*             CAREER & GROWTH               */}
-                    {/* ========================================= */}
-                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-1 px-6 mt-4">Career & Growth</Text>
-                    
-                    <Pressable onPress={toggleOpportunities} className="flex-row items-center justify-between px-6 py-3 active:bg-slate-100">
-                        <View className="flex-row items-center">
-                            <Ionicons name="briefcase-outline" size={22} color="#f97316" />
-                            <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Opportunities</Text>
+                <View className="px-4 pt-4">
+                    {/* The one pointer to where the features went. Without it the
+                        drawer looks like features were removed, not moved. */}
+                    <Pressable
+                        onPress={() => go('TabNavigator', { screen: 'Explore' })}
+                        className="flex-row items-center bg-white rounded-2xl p-4 border border-orange-100 shadow-sm mb-6 active:opacity-70"
+                    >
+                        <View className="w-11 h-11 rounded-2xl bg-orange-50 items-center justify-center border border-orange-100 mr-4">
+                            <Ionicons name="compass" size={22} color="#f97316" />
                         </View>
-                        <Ionicons name={showOpportunities ? "chevron-up" : "chevron-down"} size={16} color="#f97316" />
-                    </Pressable>
-
-                    {showOpportunities && (
-                        <View className="ml-10 pl-4 border-l-2 border-slate-200 mb-1">
-                            <Pressable onPress={() => props.navigation.navigate('InternshipList')} className="flex-row items-center py-2.5 active:opacity-50">
-                                <Ionicons name="school-outline" size={16} color="#f97316" />
-                                <Text className="text-slate-600 text-xs ml-3 font-bold uppercase tracking-wide">Internships</Text>
-                            </Pressable>
-                            <Pressable onPress={() => props.navigation.navigate('JobList')} className="flex-row items-center py-2.5 active:opacity-50">
-                                <Ionicons name="business-outline" size={16} color="#f97316" />
-                                <Text className="text-slate-600 text-xs ml-3 font-bold uppercase tracking-wide">Jobs</Text>
-                            </Pressable>
-                            <Pressable onPress={() => props.navigation.navigate('WorkshopList')} className="flex-row items-center py-2.5 active:opacity-50">
-                                <Ionicons name="book-outline" size={16} color="#f97316" />
-                                <Text className="text-slate-600 text-xs ml-3 font-bold uppercase tracking-wide">Workshops</Text>
-                            </Pressable>
+                        <View className="flex-1">
+                            <Text className="text-slate-900 font-black uppercase text-xs tracking-tight">Explore Fync</Text>
+                            <Text className="text-slate-500 text-2xs font-bold tracking-wide mt-0.5">All features, searchable</Text>
                         </View>
-                    )}
-
-                    <Pressable onPress={() => props.navigation.navigate('PlacementHub')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="business-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Placement Hub</Text>
+                        <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
                     </Pressable>
 
-                    <Pressable onPress={() => props.navigation.navigate('PaidGigs')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="cash-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Paid Gigs</Text>
+                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-3 ml-2">Your account</Text>
+
+                    <Pressable onPress={() => go('Profile')} className="flex-row items-center px-4 py-3.5 rounded-2xl active:bg-slate-100">
+                        <Ionicons name="person-outline" size={20} color="#f97316" />
+                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Profile</Text>
                     </Pressable>
 
-
-                    {/* ========================================= */}
-                    {/*          EVENTS & COMPETITIONS            */}
-                    {/* ========================================= */}
-                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-1 px-6 mt-4">Events & Competitions</Text>
-
-                    <Pressable onPress={toggleHackathons} className="flex-row items-center justify-between px-6 py-3 active:bg-slate-100">
-                        <View className="flex-row items-center">
-                            <Ionicons name="rocket-outline" size={22} color="#f97316" />
-                            <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Hackathon Hub</Text>
-                        </View>
-                        <Ionicons name={showHackathons ? "chevron-up" : "chevron-down"} size={16} color="#f97316" />
+                    <Pressable onPress={() => go('EditProfile')} className="flex-row items-center px-4 py-3.5 rounded-2xl active:bg-slate-100">
+                        <Ionicons name="create-outline" size={20} color="#f97316" />
+                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Edit Profile</Text>
                     </Pressable>
 
-                    {showHackathons && (
-                        <View className="ml-10 pl-4 border-l-2 border-slate-200 mb-1">
-                            <Pressable onPress={() => props.navigation.navigate('HackathonHub')} className="flex-row items-center py-2.5 active:opacity-50">
-                                <Ionicons name="search-outline" size={16} color="#f97316" />
-                                <Text className="text-slate-600 text-xs ml-3 font-bold uppercase tracking-wide">Browse</Text>
-                            </Pressable>
-                        </View>
-                    )}
-
-                    <Pressable onPress={toggleQuizzes} className="flex-row items-center justify-between px-6 py-3 active:bg-slate-100">
-                        <View className="flex-row items-center">
-                            <Ionicons name="game-controller-outline" size={22} color="#f97316" />
-                            <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Quizzes</Text>
-                        </View>
-                        <Ionicons name={showQuizzes ? "chevron-up" : "chevron-down"} size={16} color="#f97316" />
+                    <Pressable onPress={() => go('SubscriptionScreen')} className="flex-row items-center px-4 py-3.5 rounded-2xl active:bg-slate-100">
+                        <Ionicons name="diamond-outline" size={20} color="#f97316" />
+                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Subscription</Text>
                     </Pressable>
 
-                    {showQuizzes && (
-                        <View className="ml-10 pl-4 border-l-2 border-slate-200 mb-1">
-                            <Pressable onPress={() => props.navigation.navigate('OneVsOneSetup')} className="flex-row items-center py-2.5 active:opacity-50">
-                                <Ionicons name="people-outline" size={16} color="#f97316" />
-                                <Text className="text-slate-600 text-xs ml-3 font-bold uppercase tracking-wide">1v1 Battle</Text>
-                            </Pressable>
-                            <Pressable onPress={() => props.navigation.navigate('CreateRoom')} className="flex-row items-center py-2.5 active:opacity-50">
-                                <Ionicons name="add-circle-outline" size={16} color="#f97316" />
-                                <Text className="text-slate-600 text-xs ml-3 font-bold uppercase tracking-wide">Create Room</Text>
-                            </Pressable>
-                            <Pressable onPress={() => props.navigation.navigate('JoinRoomInput')} className="flex-row items-center py-2.5 active:opacity-50">
-                                <Ionicons name="enter-outline" size={16} color="#f97316" />
-                                <Text className="text-slate-600 text-xs ml-3 font-bold uppercase tracking-wide">Join Room</Text>
-                            </Pressable>
-                        </View>
-                    )}
+                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-3 mt-5 ml-2">Support</Text>
 
-                    <Pressable onPress={() => props.navigation.navigate('CodingLeaderboard')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="code-slash-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Coding Leaderboard</Text>
-                    </Pressable>
-
-                    <Pressable onPress={() => props.navigation.navigate('ShadowRival')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="eye-off-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Shadow Rival</Text>
-                    </Pressable>
-
-
-                    {/* ========================================= */}
-                    {/*           SOCIAL & NETWORKING             */}
-                    {/* ========================================= */}
-                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-1 px-6 mt-4">Social & Networking</Text>
-
-                    <Pressable onPress={() => props.navigation.navigate('FindAlumni')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="school-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Campus Alumni</Text>
-                    </Pressable>
-
-                    {user?.user_access === 'alumni' && (
-                        <Pressable onPress={() => props.navigation.navigate('AlumniConnect')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                            <Ionicons name="chatbubbles-outline" size={22} color="#f97316" />
-                            <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Alumni Connect</Text>
-                            <View className="ml-auto bg-orange-100 px-2.5 py-1 rounded-full border border-orange-200">
-                                <Text className="text-2xs text-orange-600 font-black uppercase tracking-wide">Exclusive</Text>
-                            </View>
+                    {accountItems.map((item) => (
+                        <Pressable
+                            key={item.id}
+                            onPress={() => go(item.route, item.params)}
+                            className="flex-row items-center px-4 py-3.5 rounded-2xl active:bg-slate-100"
+                        >
+                            <Ionicons name={item.icon} size={20} color={item.tint} />
+                            <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight flex-1">{item.label}</Text>
+                            {item.id === 'admin' && (
+                                <View className="bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/30">
+                                    <Text className="text-2xs text-rose-600 font-bold">ADMIN</Text>
+                                </View>
+                            )}
                         </Pressable>
-                    )}
+                    ))}
 
-                    <Pressable onPress={() => props.navigation.navigate('FindTeammate')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="people-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Find Teammate</Text>
+                    <Pressable onPress={() => go('TermsAndCondition')} className="flex-row items-center px-4 py-3.5 rounded-2xl active:bg-slate-100">
+                        <Ionicons name="document-text-outline" size={20} color="#64748b" />
+                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Terms & Privacy</Text>
                     </Pressable>
-
-                    <Pressable onPress={() => props.navigation.navigate('CommunityList')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="megaphone-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Community Hubs</Text>
-                    </Pressable>
-
-                    <Pressable onPress={() => props.navigation.navigate('ClubList')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="people-circle-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">College Clubs</Text>
-                    </Pressable>
-
-
-                    {/* ========================================= */}
-                    {/*         CAMPUS LIFE & MARKETPLACE         */}
-                    {/* ========================================= */}
-                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-1 px-6 mt-4">Campus & Marketplace</Text>
-
-                    <Pressable onPress={() => props.navigation.navigate('NoticeBoard')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="notifications-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Notice Board</Text>
-                    </Pressable>
-
-                    <Pressable onPress={() => props.navigation.navigate('OLXMarketplace')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="cart-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Campus OLX</Text>
-                    </Pressable>
-
-                    <Pressable onPress={() => props.navigation.navigate('LostAndFound')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="search-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Lost & Found</Text>
-                    </Pressable>
-
-                    <Pressable onPress={() => props.navigation.navigate('RewardsMarketplace')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="gift-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight flex-1">Rewards Store</Text>
-                    </Pressable>
-
-
-                    {/* ========================================= */}
-                    {/*            FUN & ENTERTAINMENT            */}
-                    {/* ========================================= */}
-                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-1 px-6 mt-4">Fun & Entertainment</Text>
-
-                    <Pressable onPress={() => props.navigation.navigate('AudioCallLobby')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="call-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight flex-1">Live Audio Calling</Text>
-                    </Pressable>
-
-                    <Pressable onPress={() => props.navigation.navigate('VideoCallLobby')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="videocam-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight flex-1">Live Video Calling</Text>
-                    </Pressable>
-
-                    <Pressable onPress={() => props.navigation.navigate('ConfessionFeed')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="chatbubble-ellipses-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight flex-1">Confession Feed</Text>
-                    </Pressable>
-
-                    <Pressable onPress={() => props.navigation.navigate('TwelveAMHomeCard')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="moon-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">12 AM Night Club</Text>
-                    </Pressable>
-
-                    <Pressable onPress={() => props.navigation.navigate('EntertainmentHome')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="film-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight flex-1">Entertainment</Text>
-                    </Pressable>
-
-
-                    {/* ========================================= */}
-                    {/*             SUPPORT & ADMIN               */}
-                    {/* ========================================= */}
-                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-1 px-6 mt-4">Support</Text>
-
-                    <Pressable onPress={() => props.navigation.navigate('ContactUs')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
-                        <Ionicons name="headset-outline" size={22} color="#f97316" />
-                        <Text className="text-slate-700 text-sm ml-4 font-black uppercase tracking-tight">Contact Us</Text>
-                    </Pressable>
-
-                    {user?.user_access === 'admin' && (
-                        <Pressable onPress={() => props.navigation.navigate('AdminPortal')} className="flex-row items-center px-6 py-3 bg-rose-50 border-y border-rose-100 active:bg-rose-100 mt-2 rounded-2xl mx-4">
-                            <Ionicons name="shield-checkmark-outline" size={22} color="#f97316" />
-                            <Text className="text-rose-600 text-sm ml-4 font-black uppercase tracking-tight flex-1">Admin Portal</Text>
-                            <View className="bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/30">
-                                <Text className="text-2xs text-rose-600 font-bold">ADMIN</Text>
-                            </View>
-                        </Pressable>
-                    )}
                 </View>
             </ScrollView>
         </View>

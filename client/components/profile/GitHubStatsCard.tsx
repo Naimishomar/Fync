@@ -1,7 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, Pressable, Linking, ActivityIndicator, Dimensions, Animated, Easing } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
-import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');

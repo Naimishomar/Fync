@@ -1,23 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-    View,
-    Text,
-    TouchableOpacity,
-    ScrollView,
-    RefreshControl,
-    Alert,
-    Linking,
-    Dimensions,
-    ActivityIndicator
-} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView, RefreshControl, Linking, Dimensions, ActivityIndicator} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { Image as ExpoImage } from 'expo-image';
 import { StatusBar } from 'expo-status-bar';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
 import Avatar from './Avatar';
+import { Alert } from './ui/AlertModal';
 
 const { width } = Dimensions.get('window');
 

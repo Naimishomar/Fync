@@ -3,7 +3,8 @@ import { View, Text, TouchableOpacity, Image, StatusBar, Dimensions, Pressable }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { checkClubStatus, formatCountdown } from '../../utils/nightClub';
 
 const { width } = Dimensions.get('window');

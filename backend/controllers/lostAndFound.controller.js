@@ -53,10 +53,13 @@ export const createLostItem = async (req, res) => {
 
 export const getFoundItems = async (req, res) => {
     try {
-        const items = await LostAndFound.find({ college: req.user.college, lostOrFound: "found" }).populate("found_or_lost_by", "name username avatar");
-        if (!items) {
-            return res.status(404).json({ success: false, message: "No items found" });
-        }
+        // Was unbounded: every found item ever posted for the college, no sort, no
+        // lean, on a collection with no index. Newest 100 is what the screen shows.
+        const items = await LostAndFound.find({ college: req.user.college, lostOrFound: "found" })
+            .sort({ createdAt: -1 })
+            .limit(100)
+            .populate("found_or_lost_by", "name username avatar")
+            .lean();
         return res.status(200).json({ success: true, message: "Items fetched successfully", items });
     } catch (error) {
         console.log("Internal server error", error);
@@ -66,10 +69,13 @@ export const getFoundItems = async (req, res) => {
 
 export const getLostItems = async (req, res) => {
     try {
-        const items = await LostAndFound.find({ college: req.user.college, lostOrFound: "lost" }).populate("found_or_lost_by", "name username avatar");
-        if (!items) {
-            return res.status(404).json({ success: false, message: "No items found" });
-        }
+        // Was unbounded: every lost item ever posted for the college, no sort, no
+        // lean, on a collection with no index. Newest 100 is what the screen shows.
+        const items = await LostAndFound.find({ college: req.user.college, lostOrFound: "lost" })
+            .sort({ createdAt: -1 })
+            .limit(100)
+            .populate("found_or_lost_by", "name username avatar")
+            .lean();
         return res.status(200).json({ success: true, message: "Items fetched successfully", items });
     } catch (error) {
         console.log("Internal server error", error);

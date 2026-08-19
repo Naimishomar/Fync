@@ -7,6 +7,7 @@ import { deleteFromR2 } from "../../utils/r2.js";
 import Razorpay from "razorpay";
 import dotenv from "dotenv";
 import PaymentOrder from "../../models/paymentOrder.model.js";
+import { istDateKey, istInstant, toDateKey } from "../../utils/eventTime.js";
 dotenv.config({ quiet: true });
 
 const razorpay = new Razorpay({
@@ -15,7 +16,19 @@ const razorpay = new Razorpay({
 });
 
 // --- HELPER ---
-const formatDate = (date) => new Date(date).toISOString().split('T')[0];
+// IST calendar day, not UTC. See utils/eventTime.js for why this matters.
+const formatDate = (date) => toDateKey(date);
+
+// Registration counts for a page of bootcamps in one query instead of a
+// countDocuments per row.
+const registrationCounts = async (bootcampIds) => {
+    if (bootcampIds.length === 0) return {};
+    const rows = await RegisterBootcamp.aggregate([
+        { $match: { eventId: { $in: bootcampIds } } },
+        { $group: { _id: "$eventId", count: { $sum: 1 } } },
+    ]);
+    return Object.fromEntries(rows.map(r => [String(r._id), r.count]));
+};
 
 export const createBootcamp = async(req,res)=>{
     try {
@@ -107,12 +120,12 @@ export const getAllBootcamps = async (req, res) => {
             .populate('instructors')
             .populate('secondaryAdmins', 'name username avatar email');
 
-        const bootcampsWithCount = await Promise.all(bootcamps.map(async (b) => {
-            const count = await RegisterBootcamp.countDocuments({ eventId: b._id });
+        const counts = await registrationCounts(bootcamps.map(b => b._id));
+        const bootcampsWithCount = bootcamps.map((b) => {
             const obj = b.toObject();
-            obj.registrationsCount = count;
+            obj.registrationsCount = counts[String(b._id)] || 0;
             return obj;
-        }));
+        });
 
         return res.status(200).json({ success: true, sessions: bootcampsWithCount, hasMore: bootcamps.length === limit });
     } catch (error) {
@@ -132,11 +145,6 @@ export const registerBootcamp = async(req,res)=>{
              return res.status(400).json({ success: false, message: "Organizers have full access and do not need to register." });
         }
 
-        const count = await RegisterBootcamp.countDocuments({ eventId: session._id });
-        if (session.userLimit && count >= session.userLimit) {
-            return res.status(400).json({ success: false, message: "Bootcamp is at full capacity" });
-        }
-
         if (session.isCollegeSpecific && session.college !== req.user.college) {
             return res.status(403).json({ success: false, message: `This event is restricted to ${session.college} students` });
         }
@@ -148,6 +156,10 @@ export const registerBootcamp = async(req,res)=>{
             }
             // Payment was never completed. Delete and start fresh so the user can re-register.
             await RegisterBootcamp.deleteOne({ _id: existing._id });
+            await Bootcamp.updateOne(
+                { _id: session._id, seatsTaken: { $gt: 0 } },
+                { $inc: { seatsTaken: -1 } }
+            ).catch(() => {});
         }
 
         // Build base attendance array
@@ -158,12 +170,52 @@ export const registerBootcamp = async(req,res)=>{
             attendance.push({ date: formatDate(d), isPresent: false });
         }
 
-        let registration = await RegisterBootcamp.create({
-            eventId: session._id,
-            userId: req.user.id,
-            isPaid: session.fee === 0,
-            attendance
-        })
+        if (session.seatsTaken === undefined || session.seatsTaken === null) {
+            const existingCount = await RegisterBootcamp.countDocuments({ eventId: session._id });
+            await Bootcamp.updateOne(
+                { _id: session._id, seatsTaken: { $exists: false } },
+                { $set: { seatsTaken: existingCount } }
+            );
+        }
+
+        // Capacity is claimed with a conditional update on the bootcamp itself,
+        // not a count-then-insert. The old check read the count and inserted a
+        // moment later, so simultaneous registrations all saw a seat free and
+        // the event overbooked. $expr compares against the row's own userLimit
+        // inside a single atomic update, so exactly one request wins the last
+        // seat. seatsTaken is only a reservation counter -- the registration
+        // documents remain the record of who is in.
+        const claimed = await Bootcamp.findOneAndUpdate(
+            {
+                _id: session._id,
+                $expr: {
+                    $lt: [
+                        { $ifNull: ["$seatsTaken", 0] },
+                        { $ifNull: ["$userLimit", Number.MAX_SAFE_INTEGER] }
+                    ]
+                }
+            },
+            { $inc: { seatsTaken: 1 } },
+            { new: true }
+        );
+
+        if (!claimed) {
+            return res.status(409).json({ success: false, message: "Bootcamp is at full capacity" });
+        }
+
+        let registration;
+        try {
+            registration = await RegisterBootcamp.create({
+                eventId: session._id,
+                userId: req.user.id,
+                isPaid: session.fee === 0,
+                attendance
+            });
+        } catch (err) {
+            // Give the seat back rather than leaking it on a failed insert.
+            await Bootcamp.updateOne({ _id: session._id }, { $inc: { seatsTaken: -1 } }).catch(() => {});
+            throw err;
+        }
 
         const qrCode = await QRCode.toDataURL(JSON.stringify({
             registrationId: registration._id,
@@ -197,6 +249,12 @@ export const registerBootcamp = async(req,res)=>{
 
         return res.status(200).json({ success: true, registration, order });
     } catch (error) {
+        // Two taps race the findOne-then-create above; the unique
+        // {eventId, userId} index rejects the second with E11000, which used to
+        // reach the user as a raw Mongo error string in a 500.
+        if (error?.code === 11000) {
+            return res.status(409).json({ success: false, message: "Already registered" });
+        }
         return res.status(500).json({ success: false, message: error.message })
     }
 }
@@ -210,7 +268,7 @@ export const markBootcampAttendance = async (req, res) => {
         if (date !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(String(date))) {
             return res.status(400).json({ success: false, message: "date must be in YYYY-MM-DD format" });
         }
-        const realToday = formatDate(new Date());
+        const realToday = istDateKey();
         const today = date || realToday;
 
         if (today > realToday) {
@@ -248,24 +306,18 @@ export const markBootcampAttendance = async (req, res) => {
         }
 
         // --- Daily Time Window Validation ---
-        const parseTimeStr = (dateStr, timeStr) => {
-            const d = new Date(dateStr);
-            const [timePart, modifier] = timeStr.split(' ');
-            let [hours, minutes] = timePart.split(':').map(Number);
-            if (modifier === 'PM' && hours !== 12) hours += 12;
-            if (modifier === 'AM' && hours === 12) hours = 0;
-            d.setHours(hours, minutes, 0, 0);
-            return d;
-        };
-
+        // Times are IST wall-clock. The old helper called setHours() on a Date
+        // parsed from "YYYY-MM-DD" (which is UTC midnight), so on a UTC server
+        // the window sat 5.5 hours off and organisers were locked out of their
+        // own scans.
         const now = new Date();
-        const startWindow = parseTimeStr(today, session.startTime);
-        const endWindow = parseTimeStr(today, session.endTime);
+        const startWindow = istInstant(today, session.startTime);
+        const endWindow = istInstant(today, session.endTime);
 
-        if (now < startWindow) {
+        if (startWindow && now < startWindow) {
             return res.status(403).json({ success: false, message: `Attendance window for ${today} opens at ${session.startTime}` });
         }
-        if (now > endWindow) {
+        if (endWindow && now > endWindow) {
              return res.status(403).json({ success: false, message: `Attendance cannot be marked after ${session.endTime} for ${today}` });
         }
 
@@ -325,41 +377,48 @@ export const getMyBootcampRegistrations = async (req, res) => {
             ]
         }).populate('secondaryAdmins', 'name username avatar email');
 
-        // Automatically create permanent RegisterBootcamp records for admins who are missing them
-        const adminAsRegistrations = await Promise.all(adminSessions.map(async s => {
-            // Because adminSessions might already have a corresponding entry in 'registrations', 
-            // we first check if one exists to avoid redundant checks, 
-            // but the filter at line 340 will handle duplicates anyway.
+        // Backfill the organiser's own pass if it is missing.
+        //
+        // This runs inside a GET, so two overlapping loads of the screen both
+        // reached the create and the second hit the unique {eventId, userId}
+        // index -- surfacing as a 500 and an empty bootcamp list. upsert makes
+        // it idempotent, and E11000 is treated as "someone else just made it".
+        const adminAsRegistrations = (await Promise.all(adminSessions.map(async s => {
             const existing = await RegisterBootcamp.findOne({ eventId: s._id, userId: req.user.id });
             if (existing) return existing.populate('eventId');
 
-            // Create new registration if missing
             const start = new Date(s.startDate);
             const end = new Date(s.endDate);
             const attendance = [];
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                attendance.push({ date: d.toISOString().split('T')[0], isPresent: true }); // Admin always present
+                attendance.push({ date: formatDate(d), isPresent: true }); // Admin always present
             }
 
-            let registration = await RegisterBootcamp.create({
-                eventId: s._id,
-                userId: req.user.id,
-                isPaid: true,
-                attendance,
-                qrCode: "pending"
-            });
+            let registration;
+            try {
+                registration = await RegisterBootcamp.findOneAndUpdate(
+                    { eventId: s._id, userId: req.user.id },
+                    { $setOnInsert: { isPaid: true, attendance, qrCode: "pending" } },
+                    { upsert: true, new: true }
+                );
+            } catch (err) {
+                if (err?.code !== 11000) throw err;
+                registration = await RegisterBootcamp.findOne({ eventId: s._id, userId: req.user.id });
+            }
+            if (!registration) return null;
 
-            const qrCode = await QRCode.toDataURL(JSON.stringify({
-                registrationId: registration._id,
-                type: 'bootcamp',
-                eventId: s.eventId,
-                email: req.user.email,
-                role: 'administrator'
-            }));
-            registration.qrCode = qrCode;
-            await registration.save();
+            if (!registration.qrCode || registration.qrCode === "pending") {
+                registration.qrCode = await QRCode.toDataURL(JSON.stringify({
+                    registrationId: registration._id,
+                    type: 'bootcamp',
+                    eventId: s.eventId,
+                    email: req.user.email,
+                    role: 'administrator'
+                }));
+                await registration.save();
+            }
             return registration.populate('eventId');
-        }));
+        }))).filter(Boolean);
 
         // Merge and avoid duplicates by checking eventId
         let combined = [...registrations];
@@ -390,6 +449,11 @@ export const cancelBootcampRegistration = async (req, res) => {
             return res.status(400).json({ success: false, message: "Paid registrations cannot be cancelled this way" });
         }
         await RegisterBootcamp.deleteOne({ _id: id });
+        // Return the seat to the pool.
+        await Bootcamp.updateOne(
+            { _id: reg.eventId, seatsTaken: { $gt: 0 } },
+            { $inc: { seatsTaken: -1 } }
+        ).catch(() => {});
         return res.status(200).json({ success: true, message: "Registration cancelled" });
     } catch (e) {
         return res.status(500).json({ success: false, message: e.message });

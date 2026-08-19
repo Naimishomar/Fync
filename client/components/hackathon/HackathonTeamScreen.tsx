@@ -1,17 +1,5 @@
 import React, { useEffect, useState, useCallback, memo } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  StatusBar,
-  Alert,
-  Image,
-  ScrollView,
-  Modal,
-} from 'react-native';
+import {View, Text, FlatList, TextInput, TouchableOpacity, ActivityIndicator, StatusBar, Image, ScrollView, Modal} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,6 +7,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import Toast from 'react-native-toast-message';
+import { Alert } from '../ui/AlertModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface TeamMember {

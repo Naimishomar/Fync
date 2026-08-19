@@ -7,7 +7,23 @@ import { deleteFromR2 } from "../../utils/r2.js";
 import Razorpay from "razorpay";
 import dotenv from "dotenv";
 import PaymentOrder from "../../models/paymentOrder.model.js";
+import { istDayStart } from "../../utils/eventTime.js";
 dotenv.config({ quiet: true });
+
+/**
+ * Registration counts for a page of sessions in one query.
+ *
+ * Each list handler used to run a countDocuments per session inside a
+ * Promise.all -- ten sessions meant eleven database round trips per page load.
+ */
+const registrationCounts = async (sessionIds) => {
+    if (sessionIds.length === 0) return {};
+    const rows = await RegisterSpeakerSession.aggregate([
+        { $match: { eventId: { $in: sessionIds } } },
+        { $group: { _id: "$eventId", count: { $sum: 1 } } },
+    ]);
+    return Object.fromEntries(rows.map(r => [String(r._id), r.count]));
+};
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -99,43 +115,28 @@ export const getAllSpeakerSession = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
-        // Auto-delete expired sessions
-        const now = new Date();
-        const allSessions = await CreateSpeakerSession.find();
-        const expiredIds = [];
+        // Past sessions are hidden, not deleted. This handler used to load
+        // EVERY session in the collection on every list request, parse each end
+        // time in JavaScript, and hard-delete the expired ones -- destroying the
+        // attendee registrations and QR passes attached to them, from inside a
+        // GET. An indexed range on `date` does the same job without a scan and
+        // without losing anyone's history.
+        const todayStart = istDayStart();
 
-        allSessions.forEach(session => {
-            try {
-                const eventDate = new Date(session.date);
-                const [timePart, modifier] = session.endTime.split(' ');
-                let [hours, minutes] = timePart.split(':').map(Number);
-                if (modifier === 'PM' && hours !== 12) hours += 12;
-                if (modifier === 'AM' && hours === 12) hours = 0;
-                eventDate.setHours(hours, minutes, 0, 0);
-                
-                if (eventDate < now) {
-                    expiredIds.push(session.eventId);
-                }
-            } catch (e) {
-                console.error("Time parsing error for session:", session.eventId);
-            }
-        });
-
-        if (expiredIds.length > 0) {
-            await CreateSpeakerSession.deleteMany({ eventId: { $in: expiredIds } });
-        }
-
-        // Return open sessions OR any sessions where the user is the admin
-        const sessions = await CreateSpeakerSession.find({ 
+        // Organisers still see their own past sessions so they can pull the
+        // attendance record afterwards.
+        const sessions = await CreateSpeakerSession.find({
             $or: [
-                { 
+                {
                     status: 'open',
+                    date: { $gte: todayStart },
                     $or: [
                         { isCollegeSpecific: false },
                         { isCollegeSpecific: true, college: req.user.college }
                     ]
                 },
-                { admin_email: req.user.id }
+                { admin_email: req.user.id },
+                { secondaryAdmins: req.user.id }
             ]
         })
             .sort({ date: 1 })
@@ -148,13 +149,12 @@ export const getAllSpeakerSession = async (req, res) => {
             return res.status(404).json({success: false, message: "Speaker session not found"});
         }
 
-        // Add registrationsCount to each session
-        const sessionsWithCount = await Promise.all(sessions.map(async (s) => {
-            const count = await RegisterSpeakerSession.countDocuments({ eventId: s._id });
+        const counts = await registrationCounts(sessions.map(s => s._id));
+        const sessionsWithCount = sessions.map((s) => {
             const sessionObj = s.toObject ? s.toObject() : s;
-            sessionObj.registrationsCount = count;
+            sessionObj.registrationsCount = counts[String(s._id)] || 0;
             return sessionObj;
-        }));
+        });
 
         return res.status(200).json({ 
             success: true, 
@@ -173,33 +173,14 @@ export const getCollegeSpeakerSession = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
-        // Auto-delete expired sessions (already handled in general call but safe to keep here)
-        const now = new Date();
-        const allSessions = await CreateSpeakerSession.find({ college: req.user.college });
-        const expiredIds = [];
+        const todayStart = istDayStart();
 
-        allSessions.forEach(session => {
-            try {
-                const eventDate = new Date(session.date);
-                const [timePart, modifier] = session.endTime.split(' ');
-                let [hours, minutes] = timePart.split(':').map(Number);
-                if (modifier === 'PM' && hours !== 12) hours += 12;
-                if (modifier === 'AM' && hours === 12) hours = 0;
-                eventDate.setHours(hours, minutes, 0, 0);
-
-                if (eventDate < now) expiredIds.push(session.eventId);
-            } catch (e) {}
-        });
-
-        if (expiredIds.length > 0) {
-            await CreateSpeakerSession.deleteMany({ eventId: { $in: expiredIds } });
-        }
-
-        const sessions = await CreateSpeakerSession.find({ 
+        const sessions = await CreateSpeakerSession.find({
             college: req.user.college,
             $or: [
-                { status: 'open' },
-                { admin_email: req.user.id }
+                { status: 'open', date: { $gte: todayStart } },
+                { admin_email: req.user.id },
+                { secondaryAdmins: req.user.id }
             ]
         })
             .sort({ date: 1 })
@@ -212,12 +193,12 @@ export const getCollegeSpeakerSession = async (req, res) => {
             return res.status(404).json({success: false, message: "Speaker session not found"});
         }
 
-        const sessionsWithCount = await Promise.all(sessions.map(async (s) => {
-            const count = await RegisterSpeakerSession.countDocuments({ eventId: s._id });
+        const counts = await registrationCounts(sessions.map(s => s._id));
+        const sessionsWithCount = sessions.map((s) => {
             const sessionObj = s.toObject ? s.toObject() : s;
-            sessionObj.registrationsCount = count;
+            sessionObj.registrationsCount = counts[String(s._id)] || 0;
             return sessionObj;
-        }));
+        });
 
         return res.status(200).json({ 
             success: true, 
@@ -242,7 +223,8 @@ export const registerSpeakerSession = async(req,res)=>{
             return res.status(404).json({ success: false, message: "Speaker session not found" });
         }
 
-        const isAdmin = session.admin_email.toString() === req.user.id || session.secondaryAdmins.includes(req.user.id);
+        const isAdmin = String(session.admin_email) === String(req.user.id) ||
+                        (session.secondaryAdmins || []).some(a => String(a) === String(req.user.id));
         if (isAdmin) {
             return res.status(400).json({ success: false, message: "Organizers have full access and do not need to register." });
         }
@@ -323,6 +305,12 @@ export const registerSpeakerSession = async(req,res)=>{
             fee: session.fee 
         });
     } catch (error) {
+        // The findOne-then-create above can be raced by two taps; the unique
+        // {eventId, userId} index is what actually stops the duplicate. Without
+        // this branch the user saw a raw "E11000 duplicate key error" 500.
+        if (error?.code === 11000) {
+            return res.status(409).json({ success: false, message: "You are already registered for this session" });
+        }
         return res.status(500).json({ success: false, message: error.message || "Internal server error" })
     }
 }

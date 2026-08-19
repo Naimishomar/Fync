@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import Avatar from '../Avatar';
+import type { CallUser } from '../../services/CallSignalingService';
 import { RTCView } from 'react-native-webrtc';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Mic, MicOff, PhoneOff, Camera, CameraOff, RefreshCw } from 'lucide-react-native';
+import { Mic, MicOff, PhoneOff, Camera, CameraOff, RefreshCw } from '../ui/icons';
 import { webRTCManager } from '../../services/WebRTCService';
 
-export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall }: { remoteUser: any, isCallConnected: boolean, onEndCall: () => void }) {
+export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall }: { remoteUser: CallUser, isCallConnected: boolean, onEndCall: () => void }) {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [duration, setDuration] = useState(0);
@@ -64,19 +66,18 @@ export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall
             zOrder={0}
           />
         ) : (
-          <LinearGradient colors={['#1e1b4b', '#312e81', '#4c1d95']} style={styles.remoteFallback}>
-            {remoteUser.profilePic ? (
-              <Image source={{ uri: remoteUser.profilePic }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarFallback}>
-                <Text style={styles.avatarText}>{remoteUser.name?.charAt(0)}</Text>
-              </View>
+          <View style={styles.remoteFallback}>
+            {/* Same orange wash as every other screen, over the app's dark slate. */}
+            <LinearGradient colors={['#f97316', 'transparent']} style={styles.wash} />
+            <Avatar user={remoteUser as any} size={140} showBadge={false} />
+            <Text style={styles.remoteName} numberOfLines={1}>{remoteUser.name}</Text>
+            {!!remoteUser.college && (
+              <Text style={styles.remoteCollege} numberOfLines={1}>{remoteUser.college}</Text>
             )}
-            <Text style={styles.remoteName}>{remoteUser.name}</Text>
             <Text style={styles.callingText}>
-              {isCallConnected ? formatDuration(duration) : 'Ringing...'}
+              {isCallConnected ? formatDuration(duration) : 'Connecting…'}
             </Text>
-          </LinearGradient>
+          </View>
         )}
         {isCallConnected && (
           <Text style={styles.durationBadge}>{formatDuration(duration)}</Text>
@@ -99,15 +100,15 @@ export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall
       {/* CONTROLS */}
       <View style={styles.controls}>
         <TouchableOpacity onPress={handleToggleMute} style={[styles.controlBtn, isMuted && styles.controlBtnActive]}>
-          {isMuted ? <MicOff size={24} color="#a78bfa" /> : <Mic size={24} color="#fff" />}
+          {isMuted ? <MicOff size={22} color="#0f172a" /> : <Mic size={22} color="#fff" />}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleToggleVideo} style={[styles.controlBtn, !isVideoOn && styles.controlBtnActive]}>
-          {isVideoOn ? <Camera size={24} color="#fff" /> : <CameraOff size={24} color="#a78bfa" />}
+          {isVideoOn ? <Camera size={22} color="#fff" /> : <CameraOff size={22} color="#0f172a" />}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleSwitchCamera} style={styles.controlBtn}>
-          <RefreshCw size={24} color="#fff" />
+          <RefreshCw size={22} color="#fff" />
         </TouchableOpacity>
 
         <TouchableOpacity onPress={onEndCall} style={styles.endBtn}>
@@ -134,38 +135,43 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#0f172a',
   },
-  avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 4,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
-  avatarFallback: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    color: '#fff',
-    fontSize: 52,
-    fontWeight: '900',
+  wash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 380,
+    opacity: 0.3,
   },
   remoteName: {
     color: '#fff',
-    fontSize: 24,
-    fontWeight: '800',
-    marginTop: 16,
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    textTransform: 'uppercase',
+    marginTop: 28,
+    paddingHorizontal: 32,
+    textAlign: 'center',
+  },
+  remoteCollege: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginTop: 4,
+    paddingHorizontal: 32,
+    textAlign: 'center',
   },
   callingText: {
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 16,
-    fontWeight: '600',
-    marginTop: 8,
+    color: '#fb923c',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 3,
+    textTransform: 'uppercase',
+    marginTop: 20,
   },
   durationBadge: {
     position: 'absolute',
@@ -204,15 +210,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)',
   },
   controlBtn: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    width: 56,
+    height: 56,
+    // Rounded-square, matching the 2xl radius the rest of the app uses for
+    // icon buttons rather than the pill shape this screen had on its own.
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   controlBtnActive: {
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: '#ffffff',
+    borderColor: '#ffffff',
   },
   endBtn: {
     width: 72,

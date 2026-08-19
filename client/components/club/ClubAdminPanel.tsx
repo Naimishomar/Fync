@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, 
-  FlatList, Alert, TextInput, StatusBar, Platform, Switch, Share
-} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, FlatList, TextInput, StatusBar, Platform, Switch, Share} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import Feather from '@expo/vector-icons/Feather';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
+import { Alert } from '../ui/AlertModal';
 
 const ClubAdminPanel = () => {
     const navigation = useNavigation<any>();

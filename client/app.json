@@ -10,7 +10,7 @@
     },
     "notification": {
       "icon": "./assets/Fync.png",
-      "color": "#ffffff"
+      "color": "#f97316"
     },
     "plugins": [
       [
@@ -46,14 +46,15 @@
             "usesCleartextTraffic": false,
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
-            "minSdkVersion": 24
+            "minSdkVersion": 24,
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
           },
           "ios": {
             "deploymentTarget": "15.1"
           }
         }
       ],
-      "expo-video",
       "@react-native-community/datetimepicker",
       [
         "@config-plugins/react-native-webrtc",
@@ -74,11 +75,12 @@
       "barStyle": "dark-content"
     },
     "splash": {
+      "image": "./assets/Fync.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#F8FAFC"
     },
     "assetBundlePatterns": [
-      "**/*"
+      "assets/**/*"
     ],
     "ios": {
       "supportsTablet": true,
@@ -86,7 +88,8 @@
       "googleServicesFile": "./GoogleService-Info.plist",
       "associatedDomains": [
         "applinks:fync-api.duckdns.org"
-      ]
+      ],
+      "backgroundColor": "#F8FAFC"
     },
     "android": {
       "intentFilters": [
@@ -123,7 +126,8 @@
       "package": "com.naimishomar.fync",
       "googleServicesFile": "./google-services.json",
       "softwareKeyboardLayoutMode": "resize",
-      "versionCode": 1
+      "versionCode": 1,
+      "backgroundColor": "#F8FAFC"
     },
     "extra": {
       "eas": {
@@ -131,6 +135,7 @@
       }
     },
     "owner": "naimishomar",
-    "newArchEnabled": true
+    "newArchEnabled": true,
+    "backgroundColor": "#F8FAFC"
   }
 }

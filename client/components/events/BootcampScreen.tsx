@@ -1,27 +1,11 @@
 import React, { useState, useEffect, useCallback, memo, useMemo } from 'react';
-import {
-    View,
-    Text,
-    FlatList,
-    Image,
-    TouchableOpacity,
-    ActivityIndicator,
-    RefreshControl,
-    TextInput,
-    Dimensions,
-    StatusBar,
-    Modal,
-    ScrollView,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    Linking,
-    Pressable
-} from 'react-native';
+import {View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, RefreshControl, TextInput, Dimensions, StatusBar, Modal, ScrollView, KeyboardAvoidingView, Platform, Linking, Pressable} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from '../../context/axiosConfig';
 import { navigate, goBack } from '../../utils/navigation';
-import { Ionicons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../context/auth.context';
 import * as ImagePicker from 'expo-image-picker';
@@ -33,6 +17,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Alert } from '../ui/AlertModal';
 
 const { width } = Dimensions.get('window');
 

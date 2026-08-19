@@ -45,6 +45,9 @@ function getGenAI() {
 const CANDIDATE_POOL_TTL = 5 * 60;        // 5 minutes — post/shorts pool per college
 const USER_INTEREST_PROFILE_TTL = 24 * 60 * 60; // 24 hours — AI interest profile per user
 const FEED_POOL_KEY = (type) => `fync:pool:${type}:global`;
+// Bumped whenever the pool is invalidated, so a client paging through an old
+// pool is told to restart rather than silently interleaving two orderings.
+const FEED_POOL_VERSION_KEY = (type) => `fync:pool:${type}:version`;
 const USER_PROFILE_KEY = (userId) => `fync:profile:${userId}`;
 
 // ─── Safe Redis wrapper (never crashes the app if Redis is down) ──
@@ -91,7 +94,7 @@ export async function getCandidatePool(PostModel, poolSize = 150) {
  * DB is hit at most once every 5 minutes.
  */
 export async function getShortsPool(ShortsModel, poolSize = 80) {
-    const cacheKey = FEED_POOL_KEY('global', 'shorts');
+    const cacheKey = FEED_POOL_KEY('shorts');
 
     const cached = await rGet(cacheKey);
     if (cached) {
@@ -247,25 +250,28 @@ function scoreItem(item, interestKeywords, authorSeenCounts) {
 }
 
 /**
- * Fisher-Yates shuffle — randomizes items within same score tier
- * so feed looks different every session.
+ * Deterministic per-(user, pool) jitter, replacing a Math.random() shuffle.
+ *
+ * The old version re-shuffled the whole ranked list on EVERY request and then
+ * sliced page N out of it. Page 1 and page 2 were therefore cut from two
+ * different orderings, so scrolling showed some posts twice and skipped others
+ * entirely -- the feed's most visible bug. Deriving the jitter from a hash of
+ * (itemId, seed) keeps the ordering stable for a whole session while still
+ * giving every user a different feed and reshuffling when the pool changes.
  */
-function shuffleWithinTiers(scoredItems) {
-    // Bin into 3 tiers: high (≥0.6), medium (0.3–0.6), low (<0.3)
-    const high = scoredItems.filter(x => x.score >= 0.6);
-    const mid = scoredItems.filter(x => x.score >= 0.3 && x.score < 0.6);
-    const low = scoredItems.filter(x => x.score < 0.3);
-
-    const shuffle = (arr) => {
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-    };
-
-    return [...shuffle(high), ...shuffle(mid), ...shuffle(low)];
+function hashToUnit(str) {
+    // FNV-1a, 32-bit. Cheap, no dependency, well-distributed enough for jitter.
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return h / 0x100000000;
 }
+
+// Tier width. Items land in the same tier when their scores are close, and
+// within a tier the stable hash decides the order.
+const TIER_SIZE = 0.05;
 
 // ─────────────────────────────────────────────────────────────
 //  MAIN EXPORT — rankFeed
@@ -283,7 +289,7 @@ function shuffleWithinTiers(scoredItems) {
  *
  * @returns {{ items: Array, hasMore: boolean, mode: string }}
  */
-export function rankFeed({ candidates, seenIds = [], interestProfile, page = 1, limit = 10 }) {
+export function rankFeed({ candidates, seenIds = [], interestProfile, page = 1, limit = 10, seed = '' }) {
     const seenSet = new Set(seenIds.map(String));
     const keywords = interestProfile?.keywords || [];
 
@@ -298,23 +304,34 @@ export function rankFeed({ candidates, seenIds = [], interestProfile, page = 1, 
     }
 
     // ── Score all items ───────────────────────────────────────
+    // Diversity is computed against the pool in a fixed order (newest first, as
+    // the pool arrives) rather than iteration order, so the penalty a post gets
+    // does not depend on which page happens to be requested.
     const authorSeenCounts = {};
     const scored = pool.map(item => {
         const score = scoreItem(item, keywords, authorSeenCounts);
-        // Track author for diversity scoring of next items
         const authorId = item.user?._id?.toString() || item.user?.toString();
         authorSeenCounts[authorId] = (authorSeenCounts[authorId] || 0) + 1;
         return { item, score };
     });
 
-    // ── Sort & shuffle within tiers ───────────────────────────
-    scored.sort((a, b) => b.score - a.score);
-    const shuffled = shuffleWithinTiers(scored);
+    // ── Sort: tier by score, then stable per-user jitter inside the tier ──
+    for (const entry of scored) {
+        entry.tier = Math.floor(entry.score / TIER_SIZE);
+        entry.jitter = hashToUnit(`${seed}:${entry.item._id}`);
+    }
+    scored.sort((a, b) =>
+        b.tier - a.tier ||
+        b.jitter - a.jitter ||
+        // Final tie-break on id so the order is fully determined even when two
+        // items hash identically; without it Array.sort is free to differ.
+        String(a.item._id).localeCompare(String(b.item._id))
+    );
 
     // ── Paginate ──────────────────────────────────────────────
     const skip = (page - 1) * limit;
-    const page_items = shuffled.slice(skip, skip + limit).map(x => x.item);
-    const hasMore = shuffled.length > skip + limit;
+    const page_items = scored.slice(skip, skip + limit).map(x => x.item);
+    const hasMore = scored.length > skip + limit;
 
     return { items: page_items, hasMore, mode };
 }
@@ -326,8 +343,19 @@ export function rankFeed({ candidates, seenIds = [], interestProfile, page = 1, 
 export async function invalidatePool(type = 'posts') {
     try {
         await redisClient.del(FEED_POOL_KEY(type));
-        if (type === 'shorts') await redisClient.del(FEED_POOL_KEY('shorts'));
+        // Advancing the version reshuffles the ordering for everyone, which is
+        // what makes a brand-new post able to reach the top of page 1.
+        await redisClient.incr(FEED_POOL_VERSION_KEY(type));
     } catch { /* silent */ }
+}
+
+/** Current pool generation; part of the ranking seed. */
+export async function getPoolVersion(type = 'posts') {
+    try {
+        return (await redisClient.get(FEED_POOL_VERSION_KEY(type))) || '0';
+    } catch {
+        return '0';
+    }
 }
 
 /**

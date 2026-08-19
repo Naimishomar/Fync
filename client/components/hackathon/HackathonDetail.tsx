@@ -1,16 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  ActivityIndicator,
-  Animated,
-  Alert,
-  RefreshControl,
-  TextInput,
-} from 'react-native';
+import {View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, Animated, RefreshControl, TextInput} from 'react-native'
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -20,6 +9,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import Toast from 'react-native-toast-message';
 import socket from '../../utils/socket';
+import { Alert } from '../ui/AlertModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Announcement {

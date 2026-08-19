@@ -1,13 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import {
-    View, Text, FlatList, TouchableOpacity, TextInput, Modal, Image,
-    ActivityIndicator, RefreshControl, StatusBar, Alert, KeyboardAvoidingView, Platform,
-} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity, TextInput, Modal, Image, ActivityIndicator, RefreshControl, StatusBar, KeyboardAvoidingView, Platform} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import Feather from '@expo/vector-icons/Feather';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
+import { Alert } from '../ui/AlertModal';
 
 type Post = {
     _id: string;

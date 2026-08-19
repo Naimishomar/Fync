@@ -1,21 +1,5 @@
-import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  FlatList,
-  Pressable,
-  KeyboardAvoidingView,
-  Platform,
-  Image,
-  Alert,
-  TouchableOpacity,
-  Dimensions,
-  Linking,
-  Keyboard,
-  UIManager,
-  LayoutAnimation,
-} from "react-native";
+import React, { useEffect, useState, useRef, useLayoutEffect, useMemo, useCallback } from "react";
+import {View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Platform, Image, TouchableOpacity, Dimensions, Linking, Keyboard, UIManager, LayoutAnimation} from 'react-native'
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { supabase } from "../utils/supabase";
 import axios from "../context/axiosConfig";
@@ -28,6 +12,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { Video, ResizeMode } from "expo-av";
 import { ActivityIndicator, Modal } from "react-native";
+import { Alert } from './ui/AlertModal';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -48,24 +33,25 @@ const Chat = ({ route, navigation }: any) => {
 
   const [messages, setMessages] = useState<any[]>([]);
   const [text, setText] = useState("");
-  const [page, setPage] = useState(1);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [otherUser, setOtherUser] = useState<any>(route?.params?.otherUser || null);
 
   // ✅ NEW STATES
   const [isTyping, setIsTyping] = useState(false);
-  const [seen, setSeen] = useState(false);
   const [replyingTo, setReplyingTo] = useState<any>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
 
   const insets = useSafeAreaInsets();
   const typingTimeout = useRef<any>(null);
   const lastTypingSent = useRef<number>(0);
   const flatListRef = useRef<FlatList>(null);
+  // Refs, not state: onEndReached can fire twice before React re-renders, and
+  // two calls reading the same stale `page` both fetched the first page.
+  const pageRef = useRef(1);
+  const loadingRef = useRef(false);
+  const hasMoreRef = useRef(true);
 
   /* ---------- FETCH USER ---------- */
   const fetchConversationUser = async () => {
@@ -86,35 +72,56 @@ const Chat = ({ route, navigation }: any) => {
     }
   };
 
-  const sortedMessages = [...messages].sort(
-    (a, b) =>
-      new Date(b.createdAt).getTime() -
-      new Date(a.createdAt).getTime()
+  const sortedMessages = useMemo(
+    () =>
+      [...messages].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ),
+    [messages]
   );
 
   /* ---------- SUPABASE INIT ---------- */
   useEffect(() => {
     if (!conversationId) return;
 
+    // React Navigation reuses this screen when navigating Chat -> Chat, so the
+    // pagination cursor and the previous thread's messages have to be cleared
+    // or the second conversation opens mid-history with the first one's tail.
+    pageRef.current = 1;
+    hasMoreRef.current = true;
+    loadingRef.current = false;
+    setMessages([]);
+    setLoading(true);
+
     fetchConversationUser();
 
-    // Reset unread count when opening chat
-    supabase.from('conversations').select('unreadCount').eq('_id', conversationId).single().then(({ data }) => {
-       if (data && data.unreadCount && data.unreadCount[user._id] > 0) {
-          supabase.from('conversations').update({
-             unreadCount: { ...data.unreadCount, [user._id]: 0 }
-          }).eq('_id', conversationId).then();
-       }
-    });
+    // Opening the chat marks the whole backlog read in one write. The old code
+    // kept a separate `conversations.unreadCount` counter that both clients
+    // read-modify-wrote concurrently, so increments were lost and the badge
+    // drifted. `messages.seen` is the only source of truth now.
+    supabase
+      .from('messages')
+      .update({ seen: true })
+      .eq('conversationId', conversationId)
+      .eq('seen', false)
+      .filter('sender->>_id', 'neq', user._id)
+      .then();
 
     // Join Socket Room for transient events
     socket.emit("join", { conversationId });
     socket.emit("register", user._id); // ensure registered for online status
 
+    // The peer's stopTyping can be lost (backgrounded app, dropped socket),
+    // which used to leave "typing…" on screen forever. Expire it locally.
+    let typingClear: any = null;
     const handleTyping = ({ username }: any) => {
       setIsTyping(true);
+      if (typingClear) clearTimeout(typingClear);
+      typingClear = setTimeout(() => setIsTyping(false), 4000);
     };
     const handleStopTyping = () => {
+      if (typingClear) clearTimeout(typingClear);
       setIsTyping(false);
     };
     const handleStatusUpdate = ({ userId, status }: { userId: string, status: string }) => {
@@ -170,17 +177,8 @@ const Chat = ({ route, navigation }: any) => {
             return [newMsg, ...prev];
           });
           
-          // Mark as seen in Supabase (simulate read receipt)
+          // Chat is open, so it is read the moment it lands.
           supabase.from('messages').update({ seen: true }).eq('_id', newMsg._id).then();
-          
-          // Also clear unread count for this user when receiving a message while open
-          supabase.from('conversations').select('unreadCount').eq('_id', conversationId).single().then(({ data }) => {
-             if (data && data.unreadCount) {
-                supabase.from('conversations').update({
-                   unreadCount: { ...data.unreadCount, [user._id]: 0 }
-                }).eq('_id', conversationId).then();
-             }
-          });
         }
       )
       .on(
@@ -223,6 +221,7 @@ const Chat = ({ route, navigation }: any) => {
     return () => {
       kbs.remove();
       kbh.remove();
+      if (typingClear) clearTimeout(typingClear);
       supabase.removeChannel(channel);
       socket.emit("stopTyping", { conversationId, username: user.username });
       socket.off("user_typing", handleTyping);
@@ -254,9 +253,11 @@ const Chat = ({ route, navigation }: any) => {
   }, [conversationId, navigation]);
 
   /* ---------- LOAD ---------- */
-  const loadMessages = async () => {
-    if (loadingMore || !hasMore) return;
-    setLoadingMore(true);
+  const loadMessages = useCallback(async () => {
+    if (loadingRef.current || !hasMoreRef.current) return;
+    loadingRef.current = true;
+
+    const from = (pageRef.current - 1) * 20;
 
     try {
       const { data, error } = await supabase
@@ -264,31 +265,44 @@ const Chat = ({ route, navigation }: any) => {
         .select('*')
         .eq('conversationId', conversationId)
         .order('createdAt', { ascending: false })
-        .range((page - 1) * 20, page * 20 - 1);
+        .range(from, from + 19);
 
       if (error) throw error;
 
       if (data) {
-        if (data.length < 20) setHasMore(false);
+        if (data.length < 20) hasMoreRef.current = false;
+        pageRef.current += 1;
         setMessages((prev) => {
           const prevIds = new Set(prev.map(m => m._id));
           const newUnique = data.filter((m: any) => !prevIds.has(m._id));
           return [...prev, ...newUnique];
         });
-        setPage((prev) => prev + 1);
-
-        // Mark as seen
-        const unseenIds = data.filter((m: any) => m.sender?._id !== user._id && !m.seen).map((m: any) => m._id);
-        if (unseenIds.length > 0) {
-          supabase.from('messages').update({ seen: true }).in('_id', unseenIds).then();
-        }
+        // No per-page "mark seen" here — opening the chat already marked the
+        // whole conversation read in a single write.
       }
     } catch (error) {
       console.log("Error loading messages", error);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
-      setLoadingMore(false);
     }
+  }, [conversationId]);
+
+  /* ---------- INBOX METADATA ----------
+     Preview line + sort order for ChatList. Deliberately fire-and-forget and
+     deliberately free of any unread counter — unread is derived from
+     `messages.seen`, which cannot drift. */
+  const touchConversation = (preview: string, at: string) => {
+    if (!otherUser) return;
+    supabase.from('conversations').upsert({
+      _id: conversationId,
+      participants: [user, otherUser],
+      lastMessage: preview,
+      lastMessageSender: user._id,
+      updatedAt: at,
+    }).then(({ error }) => {
+      if (error) console.log("touchConversation error", error);
+    });
   };
 
   /* ---------- SEND ---------- */
@@ -318,23 +332,8 @@ const Chat = ({ route, navigation }: any) => {
 
     // Save to Supabase
     try {
-      // 1. Ensure conversation exists in Supabase (Upsert) and increment unreadCount
-      const { data: convData } = await supabase.from('conversations').select('unreadCount').eq('_id', conversationId).single();
-      const currentUnread = convData?.unreadCount?.[otherUser?._id] || 0;
-
-      await supabase.from('conversations').upsert({
-        _id: conversationId,
-        participants: [user, otherUser],
-        lastMessage: tempMessage.message,
-        lastMessageSender: user._id,
-        updatedAt: tempMessage.createdAt,
-        unreadCount: {
-           ...(convData?.unreadCount || {}),
-           [otherUser._id]: currentUnread + 1
-        }
-      });
-
-      // 2. Insert message
+      // The message goes in first and alone. It is what the receiver's realtime
+      // subscription is waiting on, so nothing else belongs ahead of it.
       const { data, error } = await supabase.from('messages').insert([{
         _id: tempId,
         conversationId,
@@ -344,16 +343,18 @@ const Chat = ({ route, navigation }: any) => {
         replyTo: tempMessage.replyTo,
       }]).select().single();
 
+      if (error) throw error;
+
       if (data) {
         setMessages((prev) => prev.map(m => m._id === tempId ? data : m));
-        // Send Push Notification via existing socket event
         socket.emit("chat_notify", {
           receiverId: otherUser._id,
           title: user.name,
           body: tempMessage.message,
         });
-      } else if (error) {
-        throw error;
+        // Inbox-list metadata only. Not awaited — a slow write here must not
+        // delay delivery, and a failed one costs a stale preview, not a message.
+        touchConversation(tempMessage.message, tempMessage.createdAt);
       }
     } catch (e) {
       console.log("Failed to send", e);
@@ -389,38 +390,13 @@ const Chat = ({ route, navigation }: any) => {
     setMessages(prev => [tempMsg, ...prev]);
 
     try {
-      // Send Push Notification via backend socket
-      if (otherUser) {
-        socket.emit("chat_notify", { 
-          receiverId: otherUser._id, 
-          title: user.name, 
-          body: `Sent a ${type}` 
-        });
-      }
-
       const res = await axios.post("/chat/send", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       if (res.data.success) {
         const mediaUrl = res.data.message.mediaUrl;
 
-        // Save to Supabase just like text message
-        const { data: convData } = await supabase.from('conversations').select('unreadCount').eq('_id', conversationId).single();
-        const currentUnread = convData?.unreadCount?.[otherUser?._id] || 0;
-
-        await supabase.from('conversations').upsert({
-          _id: conversationId,
-          participants: [user, otherUser],
-          lastMessage: type === 'image' ? 'Sent an image' : (type === 'video' ? 'Sent a video' : 'Sent a file'),
-          lastMessageSender: user._id,
-          updatedAt: new Date().toISOString(),
-          unreadCount: {
-             ...(convData?.unreadCount || {}),
-             [otherUser._id]: currentUnread + 1
-          }
-        });
-
-        const { data } = await supabase.from('messages').insert([{
+        const { data, error } = await supabase.from('messages').insert([{
           _id: tempId,
           conversationId,
           sender: user,
@@ -430,8 +406,18 @@ const Chat = ({ route, navigation }: any) => {
           replyTo: replyingTo ? replyingTo : null,
         }]).select().single();
 
+        if (error) throw error;
+
         if (data) {
           setMessages(prev => prev.map(m => m._id === tempId ? data : m));
+          // Notify only once the media actually landed.
+          socket.emit("chat_notify", {
+            receiverId: otherUser._id,
+            title: user.name,
+            body: `Sent a ${type}`
+          });
+          const preview = type === 'image' ? 'Sent an image' : (type === 'video' ? 'Sent a video' : 'Sent a file');
+          touchConversation(preview, data.createdAt || new Date().toISOString());
         }
       }
     } catch (e) {
@@ -542,7 +528,7 @@ const Chat = ({ route, navigation }: any) => {
   };
 
   /* ---------- MESSAGE UI ---------- */
-  const renderItem = ({ item, index }: any) => {
+  const renderItem = useCallback(({ item, index }: any) => {
     const isMe =
       item.sender === user._id ||
       item.sender?._id === user._id;
@@ -695,7 +681,7 @@ const Chat = ({ route, navigation }: any) => {
         </View>
       </View>
     );
-  };
+  }, [user]);
 
   if (!conversationId) {
     return (

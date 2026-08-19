@@ -60,6 +60,10 @@ const fundingProjectSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+// The feed is "everything, newest first"; "your projects" filters by owner.
+// Neither had an index, so both scanned the collection and sorted in memory.
+fundingProjectSchema.index({ createdAt: -1 });
+fundingProjectSchema.index({ user: 1, createdAt: -1 });
 const FundingProject = mongoose.model('FundingProject', fundingProjectSchema);
 export default FundingProject;
 

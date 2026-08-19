@@ -24,5 +24,13 @@ const clubSchema = new mongoose.Schema({
     isJoinCodeEnabled: { type: Boolean, default: true }
 }, { timestamps: true });
 
+
+// "My clubs" is an $or over three membership arrays. Mongo can use a separate
+// index per $or branch, so each array gets its own; there is no `college` field
+// on a club, the scoping is by membership.
+clubSchema.index({ members: 1 });
+clubSchema.index({ admins: 1 });
+clubSchema.index({ invitations: 1 });
+
 const Club = mongoose.model('Club', clubSchema);
 export default Club;

@@ -5,7 +5,7 @@ import Comment from '../models/comment.model.js';
 import Notification from '../models/notification.model.js';
 import User from '../models/user.model.js';
 import { deleteFromR2 } from '../utils/r2.js';
-import { getShortsPool, getUserInterestProfile, rankFeed, invalidatePool } from '../utils/feedEngine.js';
+import { getShortsPool, getUserInterestProfile, rankFeed, invalidatePool, getPoolVersion } from '../utils/feedEngine.js';
 import { clearCacheTags } from '../middlewares/cache.middleware.js';
 
 import { updateStreak } from '../utils/streak.js';
@@ -37,7 +37,7 @@ export const createShorts = async (req, res) => {
         });
 
         // Invalidate Redis shorts pool so next fetch picks this up
-        invalidatePool('global', 'shorts').catch(() => { });
+        await invalidatePool('shorts').catch(() => { });
         clearCacheTags(['shorts', `shorts:user:${req.user.id}`]).catch(() => { });
         return res.status(200).json({ 
             success: true, 
@@ -203,7 +203,7 @@ export const likeAndUnlikeShort = async (req, res) => {
         }
 
         clearCacheTags(['shorts', `short:${req.params.id}`, `shorts:user:${updatedShort.user}`]).catch(() => { });
-        invalidatePool('global', 'shorts').catch(() => { });
+        await invalidatePool('shorts').catch(() => { });
 
         return res.status(200).json({
             success: true,
@@ -453,7 +453,7 @@ export const getSmartShorts = async (req, res) => {
     try {
         const seenIds = Array.isArray(req.body?.seenIds) ? req.body.seenIds : [];
 
-        const [candidates, interestProfile] = await Promise.all([
+        const [candidates, interestProfile, poolVersion] = await Promise.all([
             getShortsPool(Shorts, 100),
             User.findById(req.user.id)
                 .select('interest hobbies skills major about')
@@ -462,13 +462,17 @@ export const getSmartShorts = async (req, res) => {
                     ...(userDoc || {}),
                     id: req.user.id,
                     _id: req.user.id
-                }))
+                })),
+            getPoolVersion('shorts')
         ]);
 
         // STEP 3 — Rank + paginate
         let ranked;
         try {
-            ranked = rankFeed({ candidates, seenIds, interestProfile, page, limit });
+            ranked = rankFeed({
+                candidates, seenIds, interestProfile, page, limit,
+                seed: `${req.user.id}:${poolVersion}`
+            });
         } catch (e) {
             console.error('[SmartShorts] Step3 rankFeed failed:', e.message);
             return simpleFallback();

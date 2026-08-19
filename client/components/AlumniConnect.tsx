@@ -1,9 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import {
-    View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView,
-    Platform, Image, ActivityIndicator, Alert, Linking, TouchableOpacity,
-    Dimensions, Modal, ScrollView
-} from "react-native";
+import {View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Platform, Image, ActivityIndicator, Linking, TouchableOpacity, Dimensions, Modal, ScrollView} from 'react-native'
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
@@ -14,6 +10,7 @@ import axios from "../context/axiosConfig";
 import socket from "../utils/socket";
 import { useAuth } from "../context/auth.context";
 import Avatar from "./Avatar";
+import { Alert } from './ui/AlertModal';
 
 const { width, height } = Dimensions.get("window");
 

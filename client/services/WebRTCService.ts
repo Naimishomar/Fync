@@ -6,6 +6,7 @@ import {
   MediaStream,
 } from 'react-native-webrtc';
 import axios from '../context/axiosConfig';
+import InCallManager from 'react-native-incall-manager';
 
 const GOOGLE_STUN_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
@@ -24,9 +25,62 @@ export class WebRTCManager {
   onRemoteStream: ((stream: MediaStream) => void) | null = null;
   onConnectionStateChange: ((state: string) => void) | null = null;
 
+  /**
+   * Audio routing. react-native-webrtc has no concept of it, so without
+   * InCallManager both platforms route call audio to the earpiece -- quiet
+   * enough at arm's length that users report calls as broken rather than quiet.
+   *
+   * Video calls default to speaker (the phone is not at your ear); audio calls
+   * default to earpiece, which is what a phone call should do.
+   */
+  private audioSessionActive = false;
+  isSpeakerOn = false;
+
+  private startAudioSession(video: boolean) {
+    if (this.audioSessionActive) return;
+    try {
+      InCallManager.start({ media: video ? 'video' : 'audio', auto: true });
+      this.audioSessionActive = true;
+      this.setSpeakerphone(video);
+      if (video) InCallManager.setKeepScreenOn(true);
+    } catch (err) {
+      console.warn('InCallManager start failed:', err);
+    }
+  }
+
+  private stopAudioSession() {
+    if (!this.audioSessionActive) return;
+    try {
+      InCallManager.setKeepScreenOn(false);
+      InCallManager.stop();
+    } catch (err) {
+      console.warn('InCallManager stop failed:', err);
+    } finally {
+      this.audioSessionActive = false;
+      this.isSpeakerOn = false;
+    }
+  }
+
+  setSpeakerphone(enabled: boolean) {
+    try {
+      // setForceSpeakerphoneOn is the one that survives a route change on
+      // Android; setSpeakerphoneOn alone gets undone when the audio focus
+      // shifts (a notification sound, a headset event).
+      InCallManager.setForceSpeakerphoneOn(enabled);
+      InCallManager.setSpeakerphoneOn(enabled);
+      this.isSpeakerOn = enabled;
+    } catch (err) {
+      console.warn('Speakerphone toggle failed:', err);
+    }
+    return this.isSpeakerOn;
+  }
+
   async setupLocalStream(options?: { video?: boolean; facingMode?: 'user' | 'environment' }): Promise<MediaStream> {
     try {
       const video = options?.video ?? false;
+      // Claim the audio session before opening the mic, so the OS routes the
+      // capture and playback the same way from the first frame.
+      this.startAudioSession(video);
       const constraints: any = {
         audio: true,
         video: video
@@ -167,6 +221,11 @@ export class WebRTCManager {
   }
 
   cleanup() {
+    // Release the audio session first: leaving it held keeps the device in
+    // call mode, so media volume stays ducked and the proximity sensor keeps
+    // blanking the screen after the call has ended.
+    this.stopAudioSession();
+
     if (this.localStream) {
       this.localStream.getTracks().forEach((track) => track.stop());
     }

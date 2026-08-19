@@ -1,17 +1,15 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
-import {
-    View, Text, ScrollView, TouchableOpacity, TextInput,
-    FlatList, Modal, ActivityIndicator, RefreshControl,
-    KeyboardAvoidingView, Platform, Image, Linking, StatusBar,
-    Alert
-} from 'react-native';
+import {View, Text, ScrollView, TouchableOpacity, TextInput, FlatList, Modal, ActivityIndicator, RefreshControl, KeyboardAvoidingView, Platform, Image, Linking, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigation } from '@react-navigation/native';
+import { Alert } from '../ui/AlertModal';
 
 const JobCard = memo(({ item, onOpenDiscussion, onMessageAlumni, onDeleteJob, isOwner, navigation }: any) => {
     return (

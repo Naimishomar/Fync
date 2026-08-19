@@ -1,16 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  Alert,
-  TouchableOpacity,
-  ActivityIndicator,
-  StatusBar,
-  Clipboard,
-  Platform
-} from "react-native";
+import {View, Text, TextInput, ScrollView, TouchableOpacity, ActivityIndicator, StatusBar, Clipboard, Platform} from 'react-native'
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient"; // Added LinearGradient
 import DateTimePicker, { DateTimePickerAndroid, DateTimePickerEvent } from "@react-native-community/datetimepicker";
@@ -19,6 +8,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, Question } from "../../App";
 import axios from "../../context/axiosConfig";
+import { Alert } from '../ui/AlertModal';
 
 const DOMAINS = ["DSA", "Frontend", "Backend", "Full Stack", "AI", "ML", "DBMS", "OS", "Custom"];
 

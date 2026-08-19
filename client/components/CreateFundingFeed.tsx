@@ -1,17 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  Image,
-  ScrollView,
-  ActivityIndicator,
-  Modal,
-  Alert,
-  TouchableOpacity
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import {View, Text, TextInput, Pressable, Image, ScrollView, ActivityIndicator, Modal, TouchableOpacity} from 'react-native'
+import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
 import axios from '../context/axiosConfig';
@@ -21,6 +10,7 @@ import { RAZORPAY_KEY_ID } from '../constants/keys';
 import { WebView } from "react-native-webview";
 import { useAuth } from '../context/auth.context';
 import { Video, ResizeMode } from "expo-av";
+import { Alert } from './ui/AlertModal';
 
 export default function CreateFundingFeed() {
   const { user } = useAuth();

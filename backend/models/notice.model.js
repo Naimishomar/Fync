@@ -53,5 +53,9 @@ const noticeSchema = new mongoose.Schema({
     }
 });
 
+
+// Notice board: per-college, newest first.
+noticeSchema.index({ college: 1, createdAt: -1 });
+
 const Notice = mongoose.model('Notice', noticeSchema);
 export default Notice;

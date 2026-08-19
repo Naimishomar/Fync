@@ -5,7 +5,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import Shorts from "./Shorts";
-import FundingFeed from "./FundingFeed";
+import ExploreHub from "./ExploreHub";
 import HomeScreen from "./home-screen";
 import CreateShorts from "./CreateShorts";
 import Profile from "./profile";
@@ -209,7 +209,7 @@ export default function TabLayout() {
           }}
         />
 
-        <Tab.Screen name="Funding" component={FundingFeed} options={{ tabBarIcon: ({ color }) => <Ionicons name="bulb-outline" size={24} color={color} /> }} />
+        <Tab.Screen name="Explore" component={ExploreHub} options={{ tabBarIcon: ({ color }) => <Ionicons name="compass-outline" size={24} color={color} /> }} />
         
         <Tab.Screen 
           name="Profile" 

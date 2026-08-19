@@ -77,33 +77,32 @@ export const createGlobalNotice = async (req, res) => {
 
 export const getGlobalNotices = async (req, res) => {
     try {
-        const adminUsers = await User.find({ user_access: 'admin' }).select('_id');
+        const adminUsers = await User.find({ user_access: 'admin' }).select('_id').lean();
         const adminIds = adminUsers.map(u => u._id);
         const query = { $or: [{ isGlobal: true }, { user: { $in: adminIds } }] };
 
         const { page = 1, limit = 10 } = req.query;
         const skip = (page - 1) * limit;
 
-        const notices = await Notice.find(query)
+        // One extra row decides hasMore, instead of counting the whole
+        // collection on every page just to derive a page total.
+        const rows = await Notice.find(query)
             .select("-liked_by")
             .sort({ createdAt: -1 })
             .populate("user", "name avatar username")
             .skip(skip)
-            .limit(Number(limit))
+            .limit(Number(limit) + 1)
             .lean();
 
-        const total = await Notice.countDocuments(query);
+        const hasMore = rows.length > Number(limit);
+        const notices = hasMore ? rows.slice(0, Number(limit)) : rows;
 
         return res.status(200).json({
             success: true,
             message: "Notices fetched successfully",
             notices,
-            pagination: {
-                total,
-                page: Number(page),
-                limit: Number(limit),
-                pages: Math.ceil(total / limit)
-            }
+            hasMore,
+            pagination: { page: Number(page), limit: Number(limit), hasMore }
         });
     } catch (error) {
         console.log("Internal server error", error);
@@ -116,26 +115,23 @@ export const getCollegeNotices = async (req, res) => {
         const { page = 1, limit = 10 } = req.query;
         const skip = (page - 1) * limit;
 
-        const notices = await Notice.find({ college: req.user.college })
+        const rows = await Notice.find({ college: req.user.college })
             .select("-liked_by")
             .sort({ createdAt: -1 })
             .populate("user", "name avatar username")
             .skip(skip)
-            .limit(Number(limit))
+            .limit(Number(limit) + 1)
             .lean();
 
-        const total = await Notice.countDocuments({ college: req.user.college });
+        const hasMore = rows.length > Number(limit);
+        const notices = hasMore ? rows.slice(0, Number(limit)) : rows;
 
         return res.status(200).json({
             success: true,
             message: "Notices fetched successfully",
             notices,
-            pagination: {
-                total,
-                page: Number(page),
-                limit: Number(limit),
-                pages: Math.ceil(total / limit)
-            }
+            hasMore,
+            pagination: { page: Number(page), limit: Number(limit), hasMore }
         });
     } catch (error) {
         console.log("Internal server error", error);

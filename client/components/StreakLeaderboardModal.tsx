@@ -1,19 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  Modal,
-  TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
-  Image,
-  Dimensions,
-  Alert,
-} from 'react-native';
+import {View, Text, Modal, TouchableOpacity, FlatList, ActivityIndicator, Image, Dimensions} from 'react-native'
 import { BlurView } from 'expo-blur';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import axios from '../context/axiosConfig';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Alert } from './ui/AlertModal';
 
 const { width, height } = Dimensions.get('window');
 

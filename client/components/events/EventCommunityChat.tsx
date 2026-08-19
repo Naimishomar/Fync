@@ -1,26 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-    View,
-    Text,
-    FlatList,
-    Image,
-    TouchableOpacity,
-    TextInput,
-    KeyboardAvoidingView,
-    Platform,
-    ActivityIndicator,
-    Alert,
-    StatusBar,
-    Dimensions
-} from 'react-native';
+import {View, Text, FlatList, Image, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar, Dimensions} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import socket from '../../utils/socket';
 import { goBack, navigate } from '../../utils/navigation';
+import { Alert } from '../ui/AlertModal';
 
 const { width } = Dimensions.get('window');
 

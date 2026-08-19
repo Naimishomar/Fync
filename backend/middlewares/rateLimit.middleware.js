@@ -14,8 +14,16 @@ const userOrIpKey = (req, res) => {
   const header = req.headers.authorization;
   if (header?.startsWith('Bearer ')) {
     try {
-      const { id } = jwt.verify(header.slice(7), process.env.JWT_SECRET);
-      if (id) return `u:${id}`;
+      const payload = jwt.verify(header.slice(7), process.env.JWT_SECRET);
+      if (payload?.id) {
+        // Hand the verified payload forward. authMiddleware runs later in the
+        // same request and was verifying the identical token a second time --
+        // two HMACs per authenticated request instead of one. Only a payload
+        // this function actually verified is ever attached, so trusting it
+        // downstream is the same trust boundary, not a weaker one.
+        req.verifiedJwt = payload;
+        return `u:${payload.id}`;
+      }
     } catch {
       // Fall through to IP for expired/invalid tokens.
     }

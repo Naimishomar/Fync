@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-    View, Text, FlatList, Image, TextInput, TouchableOpacity,
-    ActivityIndicator, RefreshControl, Modal, ScrollView, Alert, Linking, Animated, StatusBar
-} from 'react-native';
+import {View, Text, FlatList, Image, TextInput, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, ScrollView, Linking, Animated, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons, MaterialCommunityIcons, FontAwesome5, Octicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import Octicons from '@expo/vector-icons/Octicons';
 import { BlurView } from 'expo-blur';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
+import { Alert } from '../ui/AlertModal';
 
 // Mirrors LEETCODE_COOLDOWN_SECONDS on the server.
 const COOLDOWN_MS = 15 * 60 * 1000;

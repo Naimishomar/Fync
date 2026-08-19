@@ -15,5 +15,9 @@ const subGroupSchema = new mongoose.Schema({
     onlyAdminsCanMessage: { type: Boolean, default: false },
 }, { timestamps: true });
 
+
+// Rooms are always looked up by their parent club.
+subGroupSchema.index({ clubId: 1 });
+
 const SubGroup = mongoose.model('SubGroup', subGroupSchema);
 export default SubGroup;

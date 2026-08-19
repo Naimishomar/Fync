@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import User from '../models/user.model.js';
+import redisClient from '../utils/redis.js';
+import { filterBusy } from '../utils/callState.js';
 import jwt from 'jsonwebtoken';
 import { customAlphabet } from 'nanoid';
 import sendMail from '../utils/emailOtp.js';
@@ -619,15 +621,38 @@ export const getProfile = async (req, res) => {
 
 export const getUserProfileByName = async (req, res) => {
   try {
-    const name = req.query.q || req.body.name || req.query.name;
+    const raw = req.query.q || req.body.name || req.query.name;
+    const name = String(raw || "").trim();
     if (!name) {
       return res.status(200).json({ success: true, users: [] });
-    };
-    const searchRegex = new RegExp(escapeRegExp(name), "i");
-    const users = await User.find({ $or: [{ username: { $regex: searchRegex } }, { name: { $regex: searchRegex } }] })
+    }
+    // A one-character query matches most of the collection and returns an
+    // arbitrary ten of them, which reads as "search is broken".
+    if (name.length < 2) {
+      return res.status(200).json({ success: true, users: [] });
+    }
+
+    const escaped = escapeRegExp(name);
+    // ponytail: unanchored regex, so this is a collection scan. Fine at current
+    // size; if it shows up in profiling, switch to a text index on
+    // {username, name} or an anchored ^prefix match, both of which are indexable.
+    const searchRegex = new RegExp(escaped, "i");
+    const users = await User.find({
+      _id: { $ne: req.user.id },
+      $or: [{ username: { $regex: searchRegex } }, { name: { $regex: searchRegex } }]
+    })
       .select('_id name username avatar college year user_access')
-      .limit(10);
-    return res.status(200).json({ success: true, users: users });
+      .limit(20)
+      .lean();
+
+    // Prefix matches first: typing "sam" should surface @sam before @rosamund.
+    const prefix = new RegExp("^" + escaped, "i");
+    users.sort((a, b) => {
+      const rank = (u) => (prefix.test(u.username || "") ? 0 : prefix.test(u.name || "") ? 1 : 2);
+      return rank(a) - rank(b);
+    });
+
+    return res.status(200).json({ success: true, users: users.slice(0, 10) });
   } catch (error) {
     console.log("Search error:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
@@ -664,13 +689,17 @@ export const getAlumniByCollege = async (req, res) => {
       ];
     }
 
-    const alumni = await User.find(query)
-      .select('name username avatar college graduationYear company role')
-      .skip(skip)
-      .limit(parseInt(limit))
-      .sort({ createdAt: -1 });
-
-    const totalAlumni = await User.countDocuments(query);
+    // These two do not depend on each other; they were awaited in sequence, so
+    // every page of the alumni directory cost two serial round trips.
+    const [alumni, totalAlumni] = await Promise.all([
+      User.find(query)
+        .select('name username avatar college graduationYear company role')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .lean(),
+      User.countDocuments(query)
+    ]);
 
     return res.status(200).json({
       success: true,
@@ -1084,27 +1113,39 @@ export const getUserStatus = async (req, res) => {
 
 export const getOnlineUsers = async (req, res) => {
   try {
-    const redisClient = (await import('../utils/redis.js')).default;
-    const onlineUserIds = await redisClient.sMembers('global_online_users');
-    
-    // Optionally filter out current user
-    const currentUserId = req.user?.id;
-    const filteredIds = currentUserId 
-      ? onlineUserIds.filter(id => id !== currentUserId)
-      : onlineUserIds;
-    
-    // Fetch user details for online users
-    const User = (await import('../models/user.model.js')).default;
-    const users = await User.find({ _id: { $in: filteredIds } })
-      .select('_id name profilePic college')
-      .lean();
-    
-    // Add online status
-    const usersWithStatus = users.map(user => ({
-      ...user,
-      status: 'online',
+    const currentUserId = String(req.user?.id || "");
+    const onlineUserIds = (await redisClient.sMembers('global_online_users'))
+      .filter(id => id !== currentUserId);
+
+    if (onlineUserIds.length === 0) {
+      return res.json({ success: true, users: [] });
+    }
+
+    // `profilePic` is not a field on the user schema -- it is `avatar`. The
+    // select silently returned nothing for it, which is why every row in the
+    // call lobby rendered a placeholder initial instead of a photo.
+    const [users, busy] = await Promise.all([
+      User.find({ _id: { $in: onlineUserIds } })
+        .select('_id name username avatar college')
+        .limit(200)
+        .lean(),
+      // Real busy state, not a hardcoded 'online'. Without this the lobby
+      // showed everyone as free and let you ring someone mid-conversation.
+      filterBusy(onlineUserIds),
+    ]);
+
+    const usersWithStatus = users.map(u => ({
+      ...u,
+      status: busy.has(String(u._id)) ? 'busy' : 'online',
     }));
-    
+
+    // Free users first, then alphabetical -- the list is for picking someone
+    // to call, so the callable ones belong at the top.
+    usersWithStatus.sort((a, b) =>
+      (a.status === b.status ? 0 : a.status === 'online' ? -1 : 1) ||
+      String(a.name || '').localeCompare(String(b.name || ''))
+    );
+
     res.json({ success: true, users: usersWithStatus });
   } catch (error) {
     console.error("Get Online Users Error:", error);

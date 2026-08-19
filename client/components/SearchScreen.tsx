@@ -1,5 +1,5 @@
 import { View, Text, TextInput, FlatList, Image, ActivityIndicator, TouchableOpacity, StatusBar } from "react-native";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -23,33 +23,42 @@ const SearchScreen = () => {
   const [recentSearches, setRecentSearches] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
+  // Responses can land out of order -- typing "an" then "ann" and having "an"
+  // reply last used to overwrite the newer results with stale ones. Only the
+  // most recently issued request is allowed to write state.
+  const requestIdRef = useRef(0);
+
   useEffect(() => {
     const normalized = query.trim();
     if (!normalized) {
+      requestIdRef.current += 1; // cancels any reply still in flight
       setSearchResults([]);
+      setLoading(false);
       return;
     }
+    // A full second of dead air after the last keystroke read as "search is
+    // broken". 300ms is past the typing burst without feeling stalled.
+    setLoading(true);
     const timer = setTimeout(() => {
       fetchUsers(normalized);
-    }, 1000);
+    }, 300);
     return () => clearTimeout(timer);
   }, [query]);
 
   const fetchUsers = async (searchText: string) => {
+    const requestId = ++requestIdRef.current;
     try {
-      setLoading(true);
-      const normalized = searchText.trim();
-      const res = await axios.post("/user/search", {
-        name: normalized,
-      });
-
+      const res = await axios.get("/user/search", { params: { q: searchText } });
+      if (requestId !== requestIdRef.current) return;
       if (res.data.success) {
         setSearchResults(res.data.users || []);
       }
     } catch (error) {
+      if (requestId !== requestIdRef.current) return;
       console.log("Search Error:", error);
+      setSearchResults([]);
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) setLoading(false);
     }
   };
 
@@ -57,7 +66,7 @@ const SearchScreen = () => {
     const updated = [user, ...recentSearches.filter((item) => item._id !== user._id)].slice(0, 10);
     setRecentSearches(updated);
     await AsyncStorage.setItem("recentSearches", JSON.stringify(updated));
-    navigation.navigate("PublicProfile", { user: user });
+    navigation.navigate("PublicProfile", { userId: user._id, user });
   };
 
   const removeItem = async (userId: string) => {
@@ -182,7 +191,7 @@ const SearchScreen = () => {
               <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-3">Registry results</Text>
             )}
             ListEmptyComponent={
-              !loading ? (
+              !loading && searchResults.length === 0 ? (
                 <View className="items-center mt-12 px-10">
                   <View className="w-16 h-16 bg-white rounded-full items-center justify-center mb-4 border border-slate-100 shadow-sm">
                     <Ionicons name="search-outline" size={32} color="#cbd5e1" />

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import Feather from '@expo/vector-icons/Feather';
 
 const TYPE_CONFIG: Record<string, { icon: string; color: string; bg: string }> = {
   internship:   { icon: 'school-outline',    color: '#18181b', bg: '#f8fafc' },

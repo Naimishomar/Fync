@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Checkbox from 'expo-checkbox';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';

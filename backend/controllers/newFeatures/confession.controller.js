@@ -67,7 +67,8 @@ export const getConfessions = async (req, res) => {
             .populate('taggedUser', 'name username avatar user_access')
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .lean();
 
         const confessionsWithFlags = confessions.map(c => ({
             ...c._doc,

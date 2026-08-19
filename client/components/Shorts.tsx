@@ -1,24 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  Dimensions,
-  Pressable,
-  Image,
-  ViewToken,
-  Modal,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-  ScrollView,
-  Alert,
-  ToastAndroid,
-  Share,
-} from "react-native";
+import {View, Text, FlatList, Dimensions, Pressable, Image, ViewToken, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, ToastAndroid, Share} from 'react-native'
 import { Video, ResizeMode } from "expo-av";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useNavigation, useIsFocused } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -36,6 +19,7 @@ import {
   resetSeenShorts,
 } from "../utils/feedSession";
 import { useTabBarClearance } from '../constants/layout';
+import { Alert } from './ui/AlertModal';
 
 
 /* ---------------- CONSTANTS ---------------- */

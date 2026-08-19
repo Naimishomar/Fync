@@ -2,6 +2,27 @@ import Message from "../models/chat.model.js";
 import User from "../models/user.model.js";
 import Conversation from "../models/conversation.model.js";
 import { uploadToR2 } from "../utils/r2.js";
+import { mintSupabaseToken, isSupabaseAuthConfigured, supabaseTokenTtlSeconds } from "../utils/supabaseToken.js";
+
+/**
+ * Hands the client a Supabase-signed JWT carrying its Fync user id, so
+ * row-level-security policies can identify the caller. See
+ * utils/supabaseToken.js and docs/supabase-rls.sql.
+ */
+export const getRealtimeToken = async (req, res) => {
+    if (!isSupabaseAuthConfigured()) {
+        // Not configured yet: say so plainly rather than 500ing. The client
+        // falls back to the anon key, which is exactly today's behaviour.
+        return res.status(200).json({ success: false, configured: false, token: null });
+    }
+    const token = mintSupabaseToken(req.user.id);
+    return res.status(200).json({
+        success: true,
+        configured: true,
+        token,
+        expiresIn: supabaseTokenTtlSeconds,
+    });
+};
 
 let io; // To be set from index.js
 export const setChatIo = (socketIo) => {
@@ -25,43 +46,24 @@ export const sendMedia = async (req, res) => {
       return res.status(403).json({ success: false, message: "Not a participant" });
     }
 
-    // 1. Upload to R2
+    // Upload to R2 and hand the URL back. Since the chat moved to Supabase the
+    // client writes the message row itself, so the Mongo Message/Conversation
+    // writes that used to happen here were never read by anything — they only
+    // added two round trips to every media send. The socket "newMessage" emit
+    // went the same way: the client listens to Supabase realtime now.
     const folder = `chats/${conversationId}`;
     const mediaUrl = await uploadToR2(req.file.buffer, folder, req.file.originalname, req.file.mimetype);
 
-    // 2. Save Message
-    let newMessage = await Message.create({
-      conversationId,
-      sender: senderId,
-      message: message || "", // Optional text with media
-      messageType: type || "image",
-      mediaUrl
+    res.json({
+      success: true,
+      message: {
+        conversationId,
+        sender: senderId,
+        message: message || "",
+        messageType: type || "image",
+        mediaUrl
+      }
     });
-
-    // 3. Update Conversation — only allow incrementing a participant's counter
-    const receiverId = String(req.body.receiverId || "");
-    if (receiverId && conversation.participants.some(p => String(p) === receiverId) && String(receiverId) !== String(senderId)) {
-      await Conversation.findByIdAndUpdate(conversationId, {
-        lastMessage: newMessage._id,
-        $inc: { [`unreadCount.${receiverId}`]: 1 }
-      });
-    } else {
-      await Conversation.findByIdAndUpdate(conversationId, { lastMessage: newMessage._id });
-    }
-
-    newMessage = await Message.findById(newMessage._id)
-      .populate("sender", "name username avatar")
-      .populate({
-        path: "replyTo",
-        populate: { path: "sender", select: "name username" }
-      });
-
-    // 4. Emit via Socket
-    if (io) {
-      io.to(conversationId).emit("newMessage", newMessage);
-    }
-
-    res.json({ success: true, message: newMessage });
   } catch (error) {
     console.error("sendMedia error:", error);
     res.status(500).json({ success: false, message: "Failed to send media" });

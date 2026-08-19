@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  View, Text, TouchableOpacity, FlatList, TextInput, 
-  KeyboardAvoidingView, Platform, ActivityIndicator, Image, Alert,
-  StatusBar
-} from 'react-native';
+import {View, Text, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Image, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import Feather from '@expo/vector-icons/Feather';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import socket from '../../utils/socket';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Alert } from '../ui/AlertModal';
 
 const SubCommunityChat = ({ navigation, route }: any) => {
     if (!navigation) return null;
