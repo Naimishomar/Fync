@@ -5,7 +5,9 @@ const subCommunitySchema = new mongoose.Schema({
     name: { type: String, required: true },
     logo: { type: String },
     description: { type: String },
-    type: { type: String, enum: ['chat', 'announcement'], default: 'chat' },
+    // 'feed' is a subreddit: titled posts, votes, threaded comments. 'chat' and
+    // 'announcement' are the original live-message rooms and are unchanged.
+    type: { type: String, enum: ['chat', 'announcement', 'feed'], default: 'chat' },
 }, { timestamps: true });
 
 // Every sub-community list is fetched by parent community.

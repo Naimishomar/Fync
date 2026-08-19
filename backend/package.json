@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "node middlewares/mongoSanitize.test.js && node middlewares/auth.middleware.test.js && node middlewares/cache.middleware.test.js && node utils/pricing.test.js && node models/hackathon/score.model.test.js && TZ=UTC node utils/nightClub.test.js",
+    "test": "node middlewares/mongoSanitize.test.js && node middlewares/auth.middleware.test.js && node middlewares/cache.middleware.test.js && node utils/pricing.test.js && node models/hackathon/score.model.test.js && TZ=UTC node utils/nightClub.test.js && TZ=UTC node utils/shadowRival.test.js && node utils/leetcodeSync.test.js && node models/community/communityPost.model.test.js",
     "start": "node index.js",
     "dev": "nodemon index.js",
     "sync-indexes": "node scripts/syncIndexes.js",

@@ -1,6 +1,7 @@
 import User from "../../models/user.model.js";
 import { fetchLeetCodeStats, fetchFullLeetCodeProfile } from "./coding.controller.js";
 import redisClient from "../../utils/redis.js";
+import { syncUser, runSyncTick, COOLDOWN_SECONDS } from "../../utils/leetcodeSync.js";
 
 // 1. UPDATE PROFILE
 export const updateCodingProfiles = async (req, res) => {
@@ -22,18 +23,28 @@ export const updateCodingProfiles = async (req, res) => {
             });
         }
 
+        // Only the LeetCode fields are written. Replacing the whole `codingStats`
+        // object here reset gfg/codechef/codeforces to 0 every time a user
+        // re-linked their profile.
         const user = await User.findByIdAndUpdate(
             req.user.id,
-            { 
-                $set: { "codingProfiles.leetcode": username },
-                codingStats: {
-                    totalSolved: stats.totalSolved,
-                    leetcodeSolved: stats.totalSolved,
-                    gfgSolved: 0,
-                    lastUpdated: new Date()
-                },
-                "weeklyStats.questionsThisWeek": stats.sevenDayCount || 0
-            },
+            [{
+                $set: {
+                    "codingProfiles.leetcode": username,
+                    "codingStats.leetcodeSolved": stats.totalSolved,
+                    "codingStats.lastUpdated": new Date(),
+                    "codingStats.totalSolved": {
+                        $add: [
+                            stats.totalSolved,
+                            { $ifNull: ["$codingStats.gfgSolved", 0] },
+                            { $ifNull: ["$codingStats.codechefSolved", 0] },
+                            { $ifNull: ["$codingStats.codeforcesSolved", 0] },
+                            { $ifNull: ["$codingStats.hackerrankSolved", 0] },
+                        ]
+                    },
+                    "weeklyStats.questionsThisWeek": stats.sevenDayCount || 0,
+                }
+            }],
             { new: true }
         );
 
@@ -45,30 +56,12 @@ export const updateCodingProfiles = async (req, res) => {
 };
 
 // 2. REFRESH STATS HELPER
+// Thin wrapper so callers that only hold an id still go through the same
+// per-username cooldown as the cron.
 export const refreshUserStats = async (userId) => {
-    const user = await User.findById(userId);
-    if (!user || !user.codingProfiles.leetcode) return;
-
-    try {
-        const stats = await fetchLeetCodeStats(user.codingProfiles.leetcode);
-        
-        if (stats) {
-            const total = stats.totalSolved;
-            
-            user.codingStats = {
-                totalSolved: total,
-                leetcodeSolved: total,
-                gfgSolved: 0,
-                lastUpdated: new Date()
-            };
-            
-            // Now using rolling 7-day count from fetchLeetCodeStats
-            user.weeklyStats.questionsThisWeek = stats.sevenDayCount || 0;
-            await user.save();
-        }
-    } catch (err) {
-        console.error("Refresh Error:", err);
-    }
+    const user = await User.findById(userId).select("codingProfiles.leetcode codingStats.lastUpdated").lean();
+    if (!user) return 'unlinked';
+    return syncUser(user);
 };
 
 // 3. GET LEADERBOARD (Strict Filter)
@@ -167,30 +160,44 @@ export const getCoderProfile = async (req, res) => {
 };
 
 // 5. FORCE REFRESH SINGLE
+// Not actually a force: the client shows every user the same countdown, so a
+// college's worth of taps used to land on LeetCode within the same second. The
+// cooldown is shared with the cron, and a user inside the window is told when
+// their next sync is due rather than being sent upstream.
 export const forceRefreshStats = async (req, res) => {
     try {
-        await refreshUserStats(req.user.id);
+        const result = await refreshUserStats(req.user.id);
         const updatedUser = await User.findById(req.user.id);
-        return res.status(200).json({ success: true, user: updatedUser });
+
+        if (result === 'unlinked') {
+            return res.status(400).json({ success: false, message: "No LeetCode username linked." });
+        }
+        if (result === 'failed') {
+            return res.status(502).json({ success: false, message: "LeetCode did not respond. Try again shortly." });
+        }
+
+        const lastUpdated = updatedUser?.codingStats?.lastUpdated;
+        const nextRefreshAt = lastUpdated
+            ? new Date(new Date(lastUpdated).getTime() + COOLDOWN_SECONDS * 1000)
+            : new Date();
+
+        return res.status(200).json({
+            success: true,
+            synced: result === 'synced',
+            message: result === 'synced' ? "Stats updated." : "Already up to date.",
+            nextRefreshAt,
+            user: updatedUser,
+        });
     } catch (error) {
+        console.error("Force refresh error:", error);
         return res.status(500).json({ message: "Refresh failed" });
     }
 };
 
-// 6. REFRESH ALL USERS
+// 6. REFRESH ALL USERS (admin)
+// Kicks the same tick the cron runs, so it obeys the same batch size, the same
+// concurrency and the same lock. Two admin taps can no longer start two sweeps.
 export const refreshAllStats = async (req, res) => {
-    try {
-        const users = await User.find({ "codingProfiles.leetcode": { $exists: true, $ne: "" } });
-        
-        // Return immediately to not block UI
-        res.status(200).json({ success: true, message: `Syncing ${users.length} users in background` });
-
-        // Process in background with slight delays to prevent rate limiting
-        for (const user of users) {
-            await refreshUserStats(user._id);
-            await new Promise(resolve => setTimeout(resolve, 300));
-        }
-    } catch (error) {
-        console.error("Global Refresh Error:", error);
-    }
+    res.status(200).json({ success: true, message: "Sync tick queued." });
+    runSyncTick().catch((err) => console.error("Global Refresh Error:", err.message));
 };

@@ -374,6 +374,19 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: null
     },
+    // Shadow Rival lives on the user rather than the pair document because it has
+    // to survive the pair being dissolved — that is the whole point of an opt-out
+    // and of a per-season rematch budget.
+    shadowRival: {
+        optOut: { type: Boolean, default: false },
+        // Which season `rematchesUsed` and `avoid` belong to. A different value
+        // means both are stale and reset on read.
+        season: { type: String, default: "" },
+        rematchesUsed: { type: Number, default: 0 },
+        // Rivals already had this season. Prevents a rematch from handing back
+        // the same person, and stops the nightly pairing undoing it.
+        avoid: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], default: [] },
+    },
     isBanned: {
         type: Boolean,
         default: false

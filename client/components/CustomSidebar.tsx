@@ -234,6 +234,11 @@ export default function CustomSidebar(props: any) {
                         <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Coding Leaderboard</Text>
                     </Pressable>
 
+                    <Pressable onPress={() => props.navigation.navigate('ShadowRival')} className="flex-row items-center px-6 py-3 active:bg-slate-100">
+                        <Ionicons name="eye-off-outline" size={22} color="#f97316" />
+                        <Text className="text-slate-900 text-sm ml-4 font-black uppercase tracking-tight">Shadow Rival</Text>
+                    </Pressable>
+
 
                     {/* ========================================= */}
                     {/*           SOCIAL & NETWORKING             */}

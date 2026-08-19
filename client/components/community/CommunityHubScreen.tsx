@@ -30,6 +30,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
     const [subModalVisible, setSubModalVisible] = useState(false);
     const [subName, setSubName] = useState('');
     const [subDesc, setSubDesc] = useState('');
+    const [subType, setSubType] = useState<'chat' | 'announcement' | 'feed'>('chat');
     const [subLogo, setSubLogo] = useState<string | null>(null);
     const [creatingSub, setCreatingSub] = useState(false);
     const [editHubModal, setEditHubModal] = useState(false);
@@ -154,6 +155,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
             formData.append('communityId', communityId);
             formData.append('name', subName);
             formData.append('description', subDesc);
+            formData.append('type', subType);
             if (subLogo && !subLogo.startsWith('http')) {
                 const filename = subLogo.split('/').pop();
                 const match = /\.(\w+)$/.exec(filename || '');
@@ -167,6 +169,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                 setSubModalVisible(false);
                 setSubName('');
                 setSubDesc('');
+                setSubType('chat');
                 setSubLogo(null);
                 fetchDetails();
                 Alert.alert("Success", "Ecosystem room expanded.");
@@ -198,6 +201,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                 setEditSubModal(false);
                 setSubName('');
                 setSubDesc('');
+                setSubType('chat');
                 setSubLogo(null);
                 fetchDetails();
                 Alert.alert("Updated", "Ecosystem room re-synchronized.");
@@ -568,16 +572,25 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                 key={sub._id} 
                                 onPress={() => {
                                     if (isSuspended) { Alert.alert("Sector Offline", "Activation required."); return; }
-                                    navigation.navigate('SubCommunityChat', { subId: sub._id, subName: sub.name, communityId: community._id });
+                                    // A 'feed' room is a subreddit, not a chat channel.
+                                    if (sub.type === 'feed') {
+                                        navigation.navigate('CommunityFeed', { subId: sub._id, subName: sub.name, communityId: community._id });
+                                    } else {
+                                        navigation.navigate('SubCommunityChat', { subId: sub._id, subName: sub.name, communityId: community._id });
+                                    }
                                 }}
                                 className={`bg-white p-5 rounded-3xl border border-slate-100 flex-row items-center gap-5 mb-3 shadow-sm shadow-black/5 ${isSuspended ? 'opacity-30' : ''}`}
                             >
                                 <View className="w-12 h-12 bg-slate-50 rounded-2xl items-center justify-center overflow-hidden border border-slate-100">
-                                    {sub.logo ? <Image source={{ uri: sub.logo }} className="w-full h-full" /> : <Feather name="hash" size={20} color="#CBD5E1" />}
+                                    {sub.logo
+                                        ? <Image source={{ uri: sub.logo }} className="w-full h-full" />
+                                        : <Feather name={sub.type === 'feed' ? 'trending-up' : 'hash'} size={20} color="#CBD5E1" />}
                                 </View>
                                 <View className="flex-1">
                                     <Text className="text-slate-900 font-black uppercase text-2xs tracking-tight">{sub.name}</Text>
-                                    <Text className="text-slate-500 font-bold text-2xs uppercase mt-0.5 tracking-wide">Active Link</Text>
+                                    <Text className="text-slate-500 font-bold text-2xs uppercase mt-0.5 tracking-wide">
+                                        {sub.type === 'feed' ? 'Post Feed' : sub.type === 'announcement' ? 'Announcements' : 'Active Link'}
+                                    </Text>
                                 </View>
                                 {isCreator && (
                                     <View className="flex-row gap-2">
@@ -688,7 +701,27 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                 </TouchableOpacity>
 
                                 <TextInput placeholder="Channel Label (e.g. Protocol)" placeholderTextColor="#CBD5E1" value={subName} onChangeText={setSubName} className="bg-slate-50 p-5 rounded-3xl mb-4 border border-slate-100 font-black uppercase text-xs text-slate-900" />
-                                <TextInput placeholder="Directive parameters..." placeholderTextColor="#252d36ff" value={subDesc} onChangeText={setSubDesc} multiline className="bg-slate-50 p-5 rounded-3xl mb-8 border border-slate-100 font-medium h-24 text-xs text-slate-600" textAlignVertical="top" />
+                                <TextInput placeholder="Directive parameters..." placeholderTextColor="#252d36ff" value={subDesc} onChangeText={setSubDesc} multiline className="bg-slate-50 p-5 rounded-3xl mb-4 border border-slate-100 font-medium h-24 text-xs text-slate-600" textAlignVertical="top" />
+
+                                <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide mb-3 ml-1">Room Type</Text>
+                                <View className="flex-row gap-2 mb-8">
+                                    {([
+                                        { key: 'chat', label: 'Chat', icon: 'hash' },
+                                        { key: 'feed', label: 'Feed', icon: 'trending-up' },
+                                        { key: 'announcement', label: 'Announce', icon: 'volume-2' },
+                                    ] as const).map((option) => (
+                                        <TouchableOpacity
+                                            key={option.key}
+                                            onPress={() => setSubType(option.key)}
+                                            className={`flex-1 h-14 rounded-3xl items-center justify-center border ${subType === option.key ? 'bg-slate-900 border-slate-900' : 'bg-slate-50 border-slate-100'}`}
+                                        >
+                                            <Feather name={option.icon} size={15} color={subType === option.key ? '#fff' : '#94a3b8'} />
+                                            <Text className={`font-black uppercase text-2xs tracking-wide mt-1 ${subType === option.key ? 'text-white' : 'text-slate-500'}`}>
+                                                {option.label}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
 
                                 <TouchableOpacity 
                                     onPress={handleCreateSubCommunity} 

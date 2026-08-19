@@ -11,6 +11,9 @@ import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 
+// Mirrors LEETCODE_COOLDOWN_SECONDS on the server.
+const COOLDOWN_MS = 15 * 60 * 1000;
+
 const LC_LOGO = "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png";
 
 export default function CodingLeaderboard() {
@@ -28,6 +31,7 @@ export default function CodingLeaderboard() {
     // Global Timer State
     const [syncCountdown, setSyncCountdown] = useState<string>("");
     const [canRefresh, setCanRefresh] = useState(false);
+    const [nextRefreshAt, setNextRefreshAt] = useState<Date | null>(null);
 
     // Profile Connection State
     const [lcUsername, setLcUsername] = useState("");
@@ -106,12 +110,17 @@ export default function CodingLeaderboard() {
         try {
             const res = await axios.post('/leaderboard/refresh');
             if (res.data.success) {
+                setUser(res.data.user);
+                if (res.data.nextRefreshAt) setNextRefreshAt(new Date(res.data.nextRefreshAt));
                 const total = res.data.user.codingStats.totalSolved;
-                Alert.alert("Synced! ⚡", `You have solved ${total} problems on LeetCode.`);
+                Alert.alert(
+                    res.data.synced ? "Synced! ⚡" : "Already Up To Date",
+                    `You have solved ${total} problems on LeetCode.`
+                );
                 fetchLeaderboard();
             }
-        } catch (err) {
-            Alert.alert("Error", "Check your LeetCode username in settings.");
+        } catch (err: any) {
+            Alert.alert("Error", err.response?.data?.message || "Check your LeetCode username in settings.");
         } finally {
             setRefreshingStats(false);
         }
@@ -148,43 +157,36 @@ export default function CodingLeaderboard() {
     useEffect(() => { const t = setTimeout(fetchLeaderboard, 500); return () => clearTimeout(t); }, [search]);
     const onRefresh = () => { setRefreshing(true); fetchLeaderboard(); };
 
-    // --- GLOBALLY SYNCED 15-MINUTE TIMER ---
+    // --- PER-USER COOLDOWN TIMER ---
+    // This used to count down to the next :00/:15/:30/:45 wall-clock boundary and
+    // open the refresh button for everyone in the same 30-second window — every
+    // linked user in the college hit LeetCode at once. The window now starts from
+    // *this* user's last sync, so taps are naturally spread out. The server
+    // enforces the same cooldown regardless.
     useEffect(() => {
         if (!hasLinkedProfile) return;
 
-        const updateTimer = () => {
-            const now = new Date();
-            const minutes = now.getMinutes();
-            const seconds = now.getSeconds();
+        const tick = () => {
+            const last = nextRefreshAt
+                ? nextRefreshAt.getTime()
+                : new Date(user?.codingStats?.lastUpdated || 0).getTime() + COOLDOWN_MS;
+            const msLeft = last - Date.now();
 
-            // Find next 15-minute boundary (0, 15, 30, 45)
-            const current15MinBlock = Math.floor(minutes / 15) * 15;
-            const next15MinBlock = current15MinBlock + 15;
-            
-            let minutesLeft = next15MinBlock - minutes - 1;
-            let secondsLeft = 60 - seconds;
-
-            if (secondsLeft === 60) {
-                minutesLeft += 1;
-                secondsLeft = 0;
-            }
-
-            // We give them a 30-second window to click refresh after the cron job triggers
-            if (minutesLeft === 14 && secondsLeft > 30) {
+            if (msLeft <= 0) {
                 setCanRefresh(true);
                 setSyncCountdown("00:00");
-            } else {
-                setCanRefresh(false);
-                setSyncCountdown(
-                    `${minutesLeft.toString().padStart(2, '0')}:${secondsLeft.toString().padStart(2, '0')}`
-                );
+                return;
             }
+            setCanRefresh(false);
+            const mins = Math.floor(msLeft / 60000);
+            const secs = Math.floor((msLeft % 60000) / 1000);
+            setSyncCountdown(`${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`);
         };
 
-        updateTimer();
-        const interval = setInterval(updateTimer, 1000);
+        tick();
+        const interval = setInterval(tick, 1000);
         return () => clearInterval(interval);
-    }, [hasLinkedProfile]);
+    }, [hasLinkedProfile, user?.codingStats?.lastUpdated, nextRefreshAt]);
 
     const renderItem = ({ item, index }: { item: any, index: number }) => (
         <TouchableOpacity onPress={() => openUserProfile(item)} className="flex-row items-center bg-white p-5 mb-4 mx-5 rounded-3xl border border-slate-100 shadow-sm shadow-black/5">

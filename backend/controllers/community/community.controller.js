@@ -1,6 +1,8 @@
 import Community from '../../models/community/community.model.js';
 import SubCommunity from '../../models/community/subCommunity.model.js';
 import CommunityMessage from '../../models/community/communityMessage.model.js';
+import CommunityPost from '../../models/community/communityPost.model.js';
+import Comment from '../../models/comment.model.js';
 import { deleteFromR2 } from '../../utils/r2.js';
 import redis from '../../utils/redis.js';
 
@@ -144,6 +146,16 @@ export const deleteCommunity = async (req, res) => {
             }
             await CommunityMessage.deleteMany({ subCommunityId: sub._id });
         }
+
+        // Feed rooms hold posts and comment threads. Without this they outlive the
+        // hub: CommunityPost has no TTL, and Comment is a shared collection that
+        // nothing else reaps.
+        const postIds = (await CommunityPost.find({ communityId }).select('_id image').lean());
+        for (const post of postIds) {
+            for (const url of post.image || []) await deleteFromR2(url);
+        }
+        await Comment.deleteMany({ post: { $in: postIds.map((p) => p._id) }, postType: 'CommunityPost' });
+        await CommunityPost.deleteMany({ communityId });
 
         await SubCommunity.deleteMany({ communityId });
         await community.deleteOne();
@@ -328,6 +340,14 @@ export const deleteSubCommunity = async (req, res) => {
         }
 
         await CommunityMessage.deleteMany({ subCommunityId: subId });
+
+        const posts = await CommunityPost.find({ subCommunityId: subId }).select('_id image').lean();
+        for (const post of posts) {
+            for (const url of post.image || []) await deleteFromR2(url);
+        }
+        await Comment.deleteMany({ post: { $in: posts.map((p) => p._id) }, postType: 'CommunityPost' });
+        await CommunityPost.deleteMany({ subCommunityId: subId });
+
         await sub.deleteOne();
 
         // Clear Redis cache

@@ -1,38 +1,30 @@
 import cron from "node-cron";
 import User from "../models/user.model.js";
-import { refreshUserStats } from "../controllers/newFeatures/codingLeaderboard.controller.js";
-import redisClient from "./redis.js";
+import { runSyncTick } from "./leetcodeSync.js";
 
 const startCronJobs = () => {
-    cron.schedule('*/15 * * * *', async () => {
-        console.log("🔄 Updating Coding Stats...");
-        const users = await User.find({ 
-            $or: [{ "codingProfiles.leetcode": { $ne: null } }, { "codingProfiles.gfg": { $ne: null } }] 
-        });
-         
-        for (const user of users) {
-            await refreshUserStats(user._id);
-            await new Promise(r => setTimeout(r, 5000));
-        }
-        console.log("✅ Stats Updated");
-        
-        try {
-            const keys = await redisClient.keys('coding_leaderboard:*');
-            if (keys.length > 0) {
-                await redisClient.del(keys);
-                console.log("🧹 Cleared coding leaderboard cache.");
-            }
-        } catch (err) {
-            console.error("Error clearing leaderboard cache:", err);
-        }
+    // Every 5 minutes, not 15: each tick refreshes a fixed slice of the
+    // most-stale users, so the queue drains steadily instead of trying to walk
+    // every user inside one window. The per-username cooldown in leetcodeSync
+    // still caps any single profile at one fetch per 15 minutes.
+    cron.schedule('*/5 * * * *', () => {
+        runSyncTick().catch((err) => console.error("LeetCode sync tick error:", err.message));
     });
+
+    // Weekly leaderboard reset. Was a find-all loop with one save() per user —
+    // a full serial write per account every Sunday. One pipeline update does it
+    // server-side.
     cron.schedule('0 0 * * 0', async () => {
-        console.log("📅 Resetting Weekly Leaderboard...");
-        const users = await User.find({});
-        for (const user of users) {
-            user.weeklyStats.startOfWeekScore = user.codingStats.totalSolved;
-            user.weeklyStats.questionsThisWeek = 0;
-            await user.save();
+        try {
+            const res = await User.updateMany({}, [{
+                $set: {
+                    "weeklyStats.startOfWeekScore": { $ifNull: ["$codingStats.totalSolved", 0] },
+                    "weeklyStats.questionsThisWeek": 0,
+                }
+            }]);
+            console.log(`📅 Weekly leaderboard reset: ${res.modifiedCount} users`);
+        } catch (err) {
+            console.error("Weekly reset error:", err.message);
         }
     });
 };

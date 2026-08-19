@@ -90,6 +90,7 @@ import ConfessionFeed from "./components/newFeatures/ConfessionFeed";
 import TwelveAMHomeCard from "./components/newFeatures/TwelveAMHomeCard";
 import TwelveAMClub from "./components/newFeatures/TwelveAMClub";
 import CodingLeaderboard from './components/newFeatures/CodingLeaderboard';
+import ShadowRival from './components/newFeatures/ShadowRival';
 import StudyAssistant from './components/newFeatures/StudyAssistant';
 import CollegeChatScreen from './components/newFeatures/CollegeChatScreen';
 import AlumniConnect from './components/AlumniConnect';
@@ -132,6 +133,8 @@ import FlappyBird from './components/games/FlappyBird';
 import DrawAndGuess from './components/games/DrawAndGuess';
 import GameLeaderboard from './components/games/GameLeaderboard';
 import SubCommunityChat from './components/community/SubCommunityChat';
+import CommunityFeed from './components/community/CommunityFeed';
+import CommunityPostDetail from './components/community/CommunityPostDetail';
 import ClubListScreen from './components/club/ClubListScreen';
 import ClubHubScreen from './components/club/ClubHubScreen';
 import CreateClubScreen from './components/club/CreateClubScreen'; 
@@ -282,6 +285,7 @@ export type RootStackParamList = {
   FindTeammate: undefined;
   Notification: undefined;
   CodingLeaderboard: undefined;
+  ShadowRival: undefined;
   DriveFolderScreen: { folderId: string; title: string };
   PDFViewerScreen: { title: string; fileId?: string; url?: string };
   DSAPrep: undefined;
@@ -312,6 +316,8 @@ export type RootStackParamList = {
   CreateCommunity: undefined;
   CommunityHub: { communityId: string };
   SubCommunityChat: { subId: string; subName: string; communityId: string };
+  CommunityFeed: { subId: string; subName: string; communityId: string };
+  CommunityPostDetail: { postId: string; subName: string };
   FlappyBird: undefined;
   DrawAndGuess: undefined;
   GameLeaderboard: undefined;
@@ -461,6 +467,7 @@ function AppStack() {
       <Stack.Screen name="FindTeammate" component={FindTeammate} />
       <Stack.Screen name="Notification" component={Notification} />
       <Stack.Screen name="CodingLeaderboard" component={CodingLeaderboard} />
+      <Stack.Screen name="ShadowRival" component={ShadowRival} />
       <Stack.Screen name="DriveFolderScreen" component={DriveFolderScreen} />
       <Stack.Screen name="PDFViewerScreen" component={PDFViewerScreen} />
       <Stack.Screen name="DSAPrep" component={DSAPrep} />
@@ -498,6 +505,8 @@ function AppStack() {
       <Stack.Screen name="CreateCommunity" component={CreateCommunityScreen} options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }} />
       <Stack.Screen name="CommunityHub" component={CommunityHubScreen} />
       <Stack.Screen name="SubCommunityChat" component={SubCommunityChat} />
+      <Stack.Screen name="CommunityFeed" component={CommunityFeed} />
+      <Stack.Screen name="CommunityPostDetail" component={CommunityPostDetail} />
       <Stack.Screen name="ClubList" component={ClubListScreen} />
       <Stack.Screen name="ClubHub" component={ClubHubScreen} />
       <Stack.Screen name="CreateClub" component={CreateClubScreen} options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }} />

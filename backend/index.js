@@ -35,9 +35,11 @@ import nightChatRoute from './routes/nightChat.route.js';
 import jobOpeningRoute from './routes/jobOpening.route.js';
 import placementPredictorRoute from './routes/placementPredictor.route.js';
 import confessionRoute from './routes/newFeatures/confession.route.js';
+import shadowRivalRoute from './routes/newFeatures/shadowRival.route.js';
 import speakerRoute from './routes/events/speakers.route.js';
 import bootcampRoute from './routes/events/bootcamp.route.js';
 import communityRoute from './routes/community/community.routes.js';
+import communityPostRoute from './routes/community/communityPost.routes.js';
 import fyncMediaRoute from './routes/fyncMedia.route.js';
 import clubRoute from './routes/club/club.routes.js';
 import marketplaceRoute from './routes/marketplace/marketplace.route.js';
@@ -76,6 +78,8 @@ import { initFyncMediaCleanup } from './utils/fyncMediaCleanup.js';
 import { initChatMediaCleanup } from './utils/chatMediaCleanup.js';
 import startCleanupCron from './services/cleanup.service.js';
 import { initShortViewsFlush, flushShortViews } from './utils/shortViews.js';
+import initShadowRival from './utils/shadowRival.js';
+import startCodingCron from './utils/codingCron.js';
 
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
@@ -193,6 +197,8 @@ app.use('/payment', paymentRoute);
 app.use('/api/payment', paymentRoute);
 app.use('/communities', communityRoute);
 app.use('/api/communities', communityRoute);
+app.use('/communities', communityPostRoute);
+app.use('/api/communities', communityPostRoute);
 app.use('/subscription', subscriptionRoute);
 app.use('/api/subscription', subscriptionRoute);
 app.use('/shorts', shortRoute);
@@ -215,6 +221,7 @@ app.use('/night-chat', nightChatRoute);
 app.use('/job-openings', jobOpeningRoute);
 app.use('/placement-predictor', placementPredictorRoute);
 app.use('/confessions', confessionRoute);
+app.use('/shadow-rival', shadowRivalRoute);
 app.use('/speakers', speakerRoute);
 app.use('/bootcamp', bootcampRoute);
 app.use('/fync-media', fyncMediaRoute);
@@ -268,6 +275,8 @@ const startServer = async (retries = 5) => {
       initEventCleanup();
       startCleanupCron();
       initShortViewsFlush();
+      initShadowRival();
+      startCodingCron();
 
       // 4. Start Contest Monitor
       setInterval(() => {
