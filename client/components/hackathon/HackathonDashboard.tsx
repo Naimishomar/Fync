@@ -305,7 +305,7 @@ const HackathonDashboard = () => {
                 <TouchableOpacity
                   key={s._id}
                   onPress={() => setSelectedSub(s._id)}
-                  className={`flex-row items-center p-4 rounded-card border mb-2 ${selectedSub === s._id ? 'bg-brand-50 border-brand-200' : 'bg-paper-2 border-transparent'}`}
+                  className={`flex-row items-center p-4 rounded-card border mb-2 ${selectedSub === s._id ? 'bg-brand-50 border-ink' : 'bg-paper-2 border-transparent'}`}
                 >
                   <View className="flex-1">
                     <Text className="text-ink text-sm font-semibold">{s.ProjectName}</Text>

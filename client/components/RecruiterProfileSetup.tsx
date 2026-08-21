@@ -161,7 +161,7 @@ export default function RecruiterProfileSetup() {
               {avatarUri ? (
                 <Image source={{ uri: avatarUri }} className="h-24 w-24 rounded-full" />
               ) : (
-                <View className="h-24 w-24 rounded-full bg-paper-2 items-center justify-center border-4 border-paper shadow-hair">
+                <View className="h-24 w-24 rounded-full bg-paper-2 items-center justify-center border-4 border-line shadow-hair">
                   <Ionicons name="business" size={40} color="#C4BEB6" />
                 </View>
               )}

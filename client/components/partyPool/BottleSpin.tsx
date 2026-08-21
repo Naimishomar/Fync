@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, Animated, TouchableOpacity, TextInput, Dimensions, Image, Platform } from 'react-native';
+import { View, Text, Animated, TouchableOpacity, TextInput, Dimensions, Image } from 'react-native';
 import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 
@@ -98,7 +98,7 @@ const BottleSpin = () => {
   const people = Array.from({ length: peopleCount });
 
   return (
-    <View className="p-6 bg-card rounded-sheet border border-paper-2 shadow-hair items-center" style={{ width: width - 40 }}>
+    <View className="p-6 bg-card rounded-sheet border border-line shadow-hair items-center" style={{ width: width - 40 }}>
       {/* Header UI */}
       <View className="items-center mb-[30px]">
         <Text className="text-2xl font-display text-ink uppercase">BOTTLE <Text className="text-brand-500">SPIN</Text></Text>

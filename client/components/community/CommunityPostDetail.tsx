@@ -18,6 +18,36 @@ type CommentNode = {
     replies?: CommentNode[];
 };
 
+const CommentRow = ({ comment, depth, rootId, setReplyTo, removeComment, canDelete }: { comment: CommentNode; depth: number; rootId: string; setReplyTo: (v: any) => void; removeComment: (c: any) => void; canDelete: (c: any) => boolean }) => (
+    <View style={{ marginLeft: depth * 16 }} className={depth > 0 ? 'border-l-2 border-line pl-3' : ''}>
+        <View className="py-3">
+            <View className="flex-row items-center mb-1">
+                <Text className="text-ink font-display text-label uppercase">
+                    {comment.commentor?.username || 'unknown'}
+                </Text>
+                <Text className="text-ink-3 font-semibold text-label ml-2">· {ago(comment.createdAt)}</Text>
+            </View>
+            {!!comment.replyToUser?.username && depth > 0 && (
+                <Text className="text-accent-text font-display text-label mb-1">@{comment.replyToUser.username}</Text>
+            )}
+            <Text className="text-ink-2 text-sm leading-snug">{comment.text}</Text>
+            <View className="flex-row items-center mt-2 gap-4">
+                <TouchableOpacity onPress={() => setReplyTo({ comment, rootId })}>
+                    <Text className="text-ink-3 font-display text-label uppercase">Reply</Text>
+                </TouchableOpacity>
+                {canDelete(comment) && (
+                    <TouchableOpacity onPress={() => removeComment(comment)}>
+                        <Text className="text-ink-3 font-display text-label uppercase">Delete</Text>
+                    </TouchableOpacity>
+                )}
+            </View>
+        </View>
+        {comment.replies?.map((reply) => (
+            <CommentRow key={reply._id} comment={reply} depth={depth + 1} rootId={rootId} setReplyTo={setReplyTo} removeComment={removeComment} canDelete={canDelete} />
+        ))}
+    </View>
+);
+
 const ago = (iso: string) => {
     const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
     if (mins < 1) return 'now';
@@ -95,6 +125,11 @@ export default function CommunityPostDetail() {
         }
     };
 
+    // hoisted CommentRow cannot see `user`, so ownership is passed in
+
+    const canDelete = (c: any) => String(c.commentor?._id) === String(user?._id);
+
+
     const removeComment = (comment: CommentNode) => {
         Alert.alert("Delete Comment", "This also removes its replies.", [
             { text: "Cancel", style: "cancel" },
@@ -111,35 +146,6 @@ export default function CommunityPostDetail() {
         ]);
     };
 
-    const CommentRow = ({ comment, depth, rootId }: { comment: CommentNode; depth: number; rootId: string }) => (
-        <View style={{ marginLeft: depth * 16 }} className={depth > 0 ? 'border-l-2 border-line pl-3' : ''}>
-            <View className="py-3">
-                <View className="flex-row items-center mb-1">
-                    <Text className="text-ink font-display text-label uppercase">
-                        {comment.commentor?.username || 'unknown'}
-                    </Text>
-                    <Text className="text-ink-3 font-semibold text-label ml-2">· {ago(comment.createdAt)}</Text>
-                </View>
-                {!!comment.replyToUser?.username && depth > 0 && (
-                    <Text className="text-accent-text font-display text-label mb-1">@{comment.replyToUser.username}</Text>
-                )}
-                <Text className="text-ink-2 text-sm leading-snug">{comment.text}</Text>
-                <View className="flex-row items-center mt-2 gap-4">
-                    <TouchableOpacity onPress={() => setReplyTo({ comment, rootId })}>
-                        <Text className="text-ink-3 font-display text-label uppercase">Reply</Text>
-                    </TouchableOpacity>
-                    {String(comment.commentor?._id) === String(user?._id) && (
-                        <TouchableOpacity onPress={() => removeComment(comment)}>
-                            <Text className="text-ink-3 font-display text-label uppercase">Delete</Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
-            </View>
-            {comment.replies?.map((reply) => (
-                <CommentRow key={reply._id} comment={reply} depth={depth + 1} rootId={rootId} />
-            ))}
-        </View>
-    );
 
     if (loading) {
         return (
@@ -202,7 +208,7 @@ export default function CommunityPostDetail() {
                                 <Text className="font-sans text-sm text-ink-3 text-center py-8">
                                     No comments yet
                                 </Text>
-                            ) : comments.map((c) => <CommentRow key={c._id} comment={c} depth={0} rootId={c._id} />)}
+                            ) : comments.map((c) => <CommentRow key={c._id} comment={c} depth={0} rootId={c._id} setReplyTo={setReplyTo} removeComment={removeComment} canDelete={canDelete} />)}
                         </View>
                     </ScrollView>
 

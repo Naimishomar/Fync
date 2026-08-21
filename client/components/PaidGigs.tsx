@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform, Pressable, Animated, StatusBar} from 'react-native'
+import {View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, TextInput, ScrollView, KeyboardAvoidingView, Pressable, Animated, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../context/axiosConfig';
@@ -122,11 +122,11 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                             className="py-5 flex-row items-center justify-center"
                          style={{ backgroundColor: '#F97316' }}>
                             {connectingId === item._id ? (
-                                <ActivityIndicator size="small" color="white" />
+                                <ActivityIndicator size="small" color="#12100E" />
                             ) : (
                                 <>
-                                    <Ionicons name="chatbubble-ellipses" size={18} color="white" />
-                                    <Text className="text-white font-display text-label uppercase ml-2">Initiate Contact</Text>
+                                    <Ionicons name="chatbubble-ellipses" size={18} color="#12100E" />
+                                    <Text className="text-ink font-display text-label uppercase ml-2">Initiate Contact</Text>
                                 </>
                             )}
                         </View>

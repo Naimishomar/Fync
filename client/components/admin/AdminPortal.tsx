@@ -10,6 +10,27 @@ import { AdItem, RedemptionItem, MarketPlaceItem, ReportItem, ContactMessageItem
 import { Alert } from '../ui/AlertModal';
 
 // Using a stable key for navigation to ensure it survives re-renders
+const HubButton = ({ title, tab, icon, color, description, onOpen }: { title: string, tab: any, icon: any, color: string, description: string, onOpen: (tab: any) => void }) => (
+    <TouchableOpacity
+        onPress={() => onOpen(tab)}
+        className="mb-4 rounded-sheet overflow-hidden border border-line shadow-hair bg-card"
+        activeOpacity={0.9}
+    >
+        <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: `${color}10` }}>
+            <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: `${color}20` }}>
+                <Ionicons name={icon} size={24} color={color} />
+            </View>
+            <View className="flex-1">
+                <Text className="text-sm font-display text-ink uppercase mb-1">{title}</Text>
+                <Text className="text-label text-ink-3 leading-[14px] font-medium">{description}</Text>
+            </View>
+            <View className="w-8 h-8 rounded-xl bg-paper justify-center items-center ml-2 border border-line">
+                <Ionicons name="chevron-forward" size={16} color="#8B857E" />
+            </View>
+        </View>
+    </TouchableOpacity>
+);
+
 const PUBLIC_PROFILE_SCREEN = 'PublicProfile';
 
 
@@ -630,26 +651,10 @@ const AdminPortal = ({ navigation }: any) => {
         return null;
     }
 
-    const HubButton = ({ title, tab, icon, color, description }: { title: string, tab: any, icon: any, color: string, description: string }) => (
-        <TouchableOpacity
-            onPress={() => { setActiveTab(tab); setView('feature'); }}
-            className="mb-4 rounded-sheet overflow-hidden border border-paper-2 shadow-hair bg-card"
-            activeOpacity={0.9}
-        >
-            <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: '`${color}10`' }}>
-                <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: `${color}20` }}>
-                    <Ionicons name={icon} size={24} color={color} />
-                </View>
-                <View className="flex-1">
-                    <Text className="text-sm font-display text-ink uppercase mb-1">{title}</Text>
-                    <Text className="text-label text-ink-3 leading-[14px] font-medium">{description}</Text>
-                </View>
-                <View className="w-8 h-8 rounded-xl bg-paper justify-center items-center ml-2 border border-paper-2">
-                    <Ionicons name="chevron-forward" size={16} color="#8B857E" />
-                </View>
-            </View>
-        </TouchableOpacity>
-    );
+
+    const openHub = (tab: any) => { setActiveTab(tab); setView('feature'); };
+
+
 
     const HubView = () => (
         <ScrollView 
@@ -662,69 +667,78 @@ const AdminPortal = ({ navigation }: any) => {
               <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
             </View>
             
+            <TouchableOpacity
+                onPress={() => navigation.navigate('AffiliateAdminScreen')}
+                className="mb-4 rounded-sheet overflow-hidden border border-line shadow-hair bg-card"
+                activeOpacity={0.9}
+            >
+                <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: '#EA580C10' }}>
+                    <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: '#EA580C20' }}>
+                        <Ionicons name="pricetags" size={24} color="#EA580C" />
+                    </View>
+                    <View className="flex-1">
+                        <Text className="text-sm font-display text-ink uppercase mb-1">Fync Store</Text>
+                        <Text className="text-label text-ink-3 leading-[14px] font-medium">List affiliate products and track the commission each one earns.</Text>
+                    </View>
+                    <View className="w-8 h-8 rounded-xl bg-paper justify-center items-center ml-2 border border-line">
+                        <Ionicons name="chevron-forward" size={16} color="#57534E" />
+                    </View>
+                </View>
+            </TouchableOpacity>
             <HubButton 
                 title="Banner Ads" 
                 tab="ads" 
                 icon="megaphone" 
                 color="#F97316" 
-                description="Manage campus-wide banner advertisements and promotion campaigns." 
-            />
+                description="Manage campus-wide banner advertisements and promotion campaigns." onOpen={openHub} />
             <HubButton 
                 title="User Management" 
                 tab="users"  
                 icon="people" 
                 color="#047857" 
-                description="Oversee student profiles, moderation status, and account access." 
-            />
+                description="Oversee student profiles, moderation status, and account access." onOpen={openHub} />
             <HubButton 
                 title="Fync Media" 
                 tab="media" 
                 icon="play-circle" 
                 color="#0891B2" 
-                description="Manage educational content, campus videos, and digital media." 
-            />
+                description="Manage educational content, campus videos, and digital media." onOpen={openHub} />
             <HubButton 
                 title="Reported Content" 
                 tab="reports" 
                 icon="flag" 
                 color="#DC2626" 
-                description="Review flagged posts and enforce community safety protocols." 
-            />
+                description="Review flagged posts and enforce community safety protocols." onOpen={openHub} />
             <HubButton 
                 title="Reward Items" 
                 tab="marketplace" 
                 icon="cart" 
                 color="#4F46E5" 
-                description="Update the Fync store inventory and redemption items." 
-            />
+                description="Update the Fync store inventory and redemption items." onOpen={openHub} />
             <HubButton 
                 title="Redemptions" 
                 tab="rewards" 
                 icon="gift" 
                 color="#7C3AED" 
-                description="Process student reward claims and inventory payouts." 
-            />
+                description="Process student reward claims and inventory payouts." onOpen={openHub} />
             <HubButton 
                 title="Contact Messages" 
                 tab="messages" 
                 icon="mail" 
                 color="#8B857E" 
-                description="Review and respond to official support and inquiry messages." 
-            />
+                description="Review and respond to official support and inquiry messages." onOpen={openHub} />
             <HubButton 
                 title="Global Broadcast" 
                 tab="broadcast" 
                 icon="notifications" 
                 color="#0891B2" 
-                description="Send an instant push notification to all users." 
-            />
+                description="Send an instant push notification to all users." onOpen={openHub} />
             <HubButton 
                 title="Subscription Pricing" 
                 tab="subscription" 
                 icon="pricetag" 
                 color="#B45309" 
-                description="Dynamically adjust the platform's premium subscription fee." 
-            />
+                description="Dynamically adjust the platform's premium subscription fee." onOpen={openHub} />
 
             <View className="mt-8 p-6 bg-ink rounded-sheet shadow-hair">
                 <View className="flex-row items-center mb-4">

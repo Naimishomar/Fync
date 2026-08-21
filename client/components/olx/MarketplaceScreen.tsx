@@ -228,8 +228,8 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                                         }
                                     }}
                                 >
-                                    <Ionicons name="chatbubbles" size={20} color="white" />
-                                    <Text className="text-white font-display uppercase text-xs">Chat with Seller</Text>
+                                    <Ionicons name="chatbubbles" size={20} color="#12100E" />
+                                    <Text className="text-ink font-display uppercase text-xs">Chat with Seller</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -306,12 +306,21 @@ const MarketplaceScreen = () => {
     const COLUMN_WIDTH = (width - 48 - 12) / 2; // 48 is horizontal padding, 12 is gap between cards
 
     const renderProductItem = ({ item, index }: { item: Product; index: number }) => (
+        // The first listing is the screen's one stamped card. The offset is painted
+        // as a real layer rather than a shadow: Android ignores shadowOffset and
+        // shadowRadius on a View, and elevation cannot express a hard zero-blur
+        // offset, so the shadow form of this simply did not render on Android.
+        <View style={{ position: 'relative', width: COLUMN_WIDTH, marginBottom: 16 }}>
+            {index === 0 && (
+                <View
+                    pointerEvents="none"
+                    style={{ position: 'absolute', left: 4, top: 4, right: -4, bottom: -4, backgroundColor: '#12100E', borderRadius: 20 }}
+                />
+            )}
         <Pressable
             onPress={() => setSelectedProduct(item)}
-            className={`bg-card rounded-card overflow-hidden mb-4 ${index === 0 ? 'border-2 border-ink' : 'border border-line'}`}
-            style={index === 0
-              ? { width: COLUMN_WIDTH, shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 }
-              : { width: COLUMN_WIDTH }}
+            className={`bg-card rounded-card overflow-hidden ${index === 0 ? 'border-2 border-ink' : 'border border-line'}`}
+            style={{ width: COLUMN_WIDTH }}
         >
             <View className="relative bg-paper-2">
                 <Image
@@ -350,6 +359,7 @@ const MarketplaceScreen = () => {
                 </View>
             </View>
         </Pressable>
+        </View>
     );
 
     return (

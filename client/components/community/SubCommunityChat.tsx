@@ -124,7 +124,7 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                         <View className="flex-row items-center gap-2 mb-2 ml-1">
                             <Text className="text-ink font-display uppercase text-label">{item.sender?.name}</Text>
                             {isSenderAdmin && (
-                                <View className="bg-brand-500/10 border border-brand-200 px-2.5 py-1 rounded-full">
+                                <View className="bg-brand-500/10 border border-ink px-2.5 py-1 rounded-full">
                                     <Text className="text-accent-text font-display uppercase text-label">Guardian</Text>
                                 </View>
                             )}

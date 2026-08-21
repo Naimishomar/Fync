@@ -250,7 +250,7 @@ export const ContactMessageItem = ({ item, onDelete, onToggleRead }: any) => (
 );
 
 export const UserItem = ({ item, onToggleBan }: any) => (
-    <View className="bg-card rounded-sheet mb-4 p-5 border border-paper-2 shadow-hair">
+    <View className="bg-card rounded-sheet mb-4 p-5 border border-line shadow-hair">
         <View className="flex-row items-center justify-between">
             <View className="flex-row items-center gap-3">
                 <View className="w-14 h-14 rounded-card bg-paper-2 overflow-hidden">

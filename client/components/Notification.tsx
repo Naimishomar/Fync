@@ -239,7 +239,7 @@ const Notification = () => {
 
     return (
       <Pressable
-        className={`flex-row items-center p-3 mb-2 rounded-xl border ${!item.isRead ? 'bg-card border-brand-100 shadow-hair' : 'bg-card/80 border-line' }`}
+        className={`flex-row items-center p-3 mb-2 rounded-xl border ${!item.isRead ? 'bg-card border-line shadow-hair' : 'bg-card/80 border-line' }`}
         onPress={() => handlePress(item)}
       >
         {/* Avatar Section */}

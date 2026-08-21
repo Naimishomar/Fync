@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import {View, Text, Pressable, Image, Dimensions, FlatList, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, RefreshControl, ViewToken, TouchableOpacity, Share, DeviceEventEmitter, ScrollView, Animated, Easing, useWindowDimensions, StatusBar} from 'react-native'
 import { PostSkeleton } from "./Skeleton";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Sparkles, Mic, Briefcase, Trophy, Rocket, Crown, MessageCircle, Megaphone, Users, Code, Wrench } from './ui/icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Reanimated, { Layout, FadeIn, FadeOut } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -31,6 +30,18 @@ import { getFullUrl } from '../utils/imageUtils';
 import { prefetchPostImages, POST_PLACEHOLDER } from '../utils/imageWarm';
 import { useTabBarClearance, useBottomInset } from '../constants/layout';
 import { fetchUnreadCounts } from '../utils/supabase';
+import { readRecentFeatureIds, recordFeatureUse } from '../utils/recentFeatures';
+import { visibleFeatures, artUrl, type Feature } from '../constants/features';
+
+// One colour per family rather than forty, matching ExploreHub.
+const FAMILY: Record<string, string> = {
+  study: '#7C3AED', career: '#2563EB', events: '#EA580C',
+  social: '#0891B2', campus: '#57534E', fun: '#DB2777', account: '#57534E',
+};
+
+/** Shown until this user has opened anything; a first-run grid, not a fixed one. */
+const DEFAULT_QUICK = ['academy', 'jobs', 'utilities', 'techPulse'];
+
 import { dedupedGet } from '../utils/batchRequest';
 import socket from '../utils/socket';
 import { Alert } from './ui/AlertModal';
@@ -263,7 +274,7 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
   const [resizeMode, setResizeMode] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
-  const MAX_CHAR_LIMIT = 150;
+const MAX_CHAR_LIMIT = 150;
 
   const springValue = useRef(new Animated.Value(1)).current;
   const navigation = useNavigation<any>();
@@ -515,7 +526,6 @@ export default function HomeScreen() {
   const [profileImage, setProfileImage] = useState<string | undefined>('');
   const [activeTab, setActiveTab] = useState<'forYou' | 'following'>('forYou');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [isFeaturesExpanded, setIsFeaturesExpanded] = useState(false);
 
   const [forYouFeed, setForYouFeed] = useState<Post[]>([]);
   const [followingFeed, setFollowingFeed] = useState<Post[]>([]);
@@ -774,13 +784,17 @@ export default function HomeScreen() {
       className="flex-row items-center justify-between px-4 bg-transparent z-10 mt-2 pb-2"
     >
       <View className="flex-row items-center py-2 gap-2">
-        <Pressable onPress={() => navigation.openDrawer()}>
-          <ExpoImage
-            source={{ uri: getFullUrl(profileImage) || `https://ui-avatars.com/api/?name=${user?.username}&background=random&color=fff` }}
-            style={{ width: 32, height: 32, borderRadius: 999 }}
-            className="mr-3 rounded-full border border-line"
-            cachePolicy="disk"
-          />
+        <Pressable onPress={() => navigation.openDrawer()} accessibilityRole="button" accessibilityLabel="Open menu">
+          {/* mockup .av.ring-student: box-shadow 0 0 0 2px card, 0 0 0 4px student.
+              RN has no spread shadow, so the two rings are a 2px card-coloured
+              pad inside a 2px brand border. */}
+          <View className="mr-3 rounded-full border-2 border-brand-500 bg-card" style={{ padding: 2 }}>
+            <ExpoImage
+              source={{ uri: getFullUrl(profileImage) || `https://ui-avatars.com/api/?name=${user?.username}&background=random&color=fff` }}
+              style={{ width: 34, height: 34, borderRadius: 999 }}
+              cachePolicy="disk"
+            />
+          </View>
         </Pressable>
         <Text className="font-display text-h2 text-ink" numberOfLines={1}>{`Hi, ${user?.name?.split(" ")[0]}`}</Text>
       </View>
@@ -789,7 +803,7 @@ export default function HomeScreen() {
         {/* Streak Display */}
         <TouchableOpacity 
           onPress={() => setShowLeaderboard(true)}
-          className="flex-row items-center bg-brand-100 px-3 py-1.5 rounded-full border border-brand-200"
+          className="flex-row items-center bg-brand-100 px-3 py-1.5 rounded-full border border-ink"
         >
           <MaterialCommunityIcons 
             name="fire" 
@@ -865,39 +879,47 @@ export default function HomeScreen() {
       </View>
     );
   };
-  const features: any[] = useMemo(() => [
-    { id: 'fyncAcademy', name: 'Academy', imageUrl: 'https://i.pinimg.com/736x/5e/4e/cb/5e4ecb34c19b87cfed2053ee96bbf08f.jpg', colorHex: '#7C3AED', bgClass: 'bg-fam-study/10', sparkle: true, onPress: () => navigation.navigate('MasterStudyHub') },
-    // { id: 'internship', name: 'Internship', imageUrl: 'https://i.pinimg.com/736x/21/64/40/2164400be5fa3f7c681354a2df865bc8.jpg', colorHex: '#2563EB', bgClass: 'bg-fam-career/10', sparkle: false, onPress: () => navigation.navigate('InternshipList') },
-    { id: 'jobs', name: 'Jobs', imageUrl: 'https://i.pinimg.com/736x/f1/97/94/f19794f0bc2872555bcf0a1424a3f090.jpg', colorHex: '#2563EB', bgClass: 'bg-fam-career/10', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
-    { id: 'contest', name: 'Contests', imageUrl: 'https://i.pinimg.com/736x/62/f3/e9/62f3e929d234353e0cf48216012f1331.jpg', colorHex: '#EA580C', bgClass: 'bg-fam-events/10', sparkle: true, onPress: () => navigation.navigate('DSAAndDevelopmentContest') },
-    { id: 'utilityHub', name: 'Utilities', imageUrl: 'https://i.pinimg.com/736x/14/e6/a5/14e6a51f3f18dc0034fee8181e3d285d.jpg', colorHex: '#7C3AED', bgClass: 'bg-fam-study/10', sparkle: true, onPress: () => navigation.navigate('UtilityHubScreen') },
-    { id: 'partyPool', name: 'Party Pool', imageUrl: 'https://i.pinimg.com/736x/e7/8b/09/e78b09f6adfd51c96062659dff826d03.jpg', colorHex: '#DB2777', bgClass: 'bg-fam-fun/10', sparkle: true, onPress: () => navigation.navigate('PartyPool') },
-    { id: 'entertainment', name: 'Movies', imageUrl: 'https://i.pinimg.com/736x/30/9f/86/309f86d79b2ca442fa81202ea7c879aa.jpg', colorHex: '#DB2777', bgClass: 'bg-fam-fun/10', sparkle: true, onPress: () => navigation.navigate('EntertainmentHome') },
-    { id: 'fyncMedia', name: 'Fync Media', imageUrl: 'https://i.pinimg.com/736x/60/10/f3/6010f333db6714ec3861ec908973d6b1.jpg', colorHex: '#0891B2', bgClass: 'bg-fam-social/10', sparkle: false, onPress: () => navigation.navigate('FyncMediaFeed') },
-    { id: 'competitions', name: 'Reward', imageUrl: 'https://i.pinimg.com/736x/8b/b1/a4/8bb1a490de08b581618ce6a0e0990122.jpg', colorHex: '#57534E', bgClass: 'bg-fam-campus/10', sparkle: false, onPress: () => navigation.navigate('RewardsMarketplace') },
-    { id: 'bootcamps', name: 'Bootcamps', imageUrl: 'https://i.pinimg.com/736x/29/c1/be/29c1bea31c35e94c773a7b8f7b599ec0.jpg', colorHex: '#EA580C', bgClass: 'bg-fam-events/10', sparkle: true, onPress: () => navigation.navigate('BootcampScreen') },
-    // { id: 'codingLeaderboard', name: 'Leaderboard', imageUrl: 'https://i.pinimg.com/736x/3b/26/26/3b2626a5c5153ac9d0d45673a36ad39a.jpg', colorHex: '#EA580C', bgClass: 'bg-fam-events/10', sparkle: false, onPress: () => navigation.navigate('CodingLeaderboard') },
-    { id: 'confessions', name: 'Confessions', imageUrl: 'https://i.pinimg.com/736x/71/29/ca/7129ca1ff74ba44b9dda205b7425cb76.jpg', colorHex: '#DB2777', bgClass: 'bg-fam-fun/10', sparkle: false, onPress: () => navigation.navigate('ConfessionFeed') },
-    { id: 'speakers', name: 'Speakers', imageUrl: 'https://i.pinimg.com/736x/c2/c6/d3/c2c6d3c80febbfabe4b8e263806501d3.jpg', colorHex: '#EA580C', bgClass: 'bg-fam-events/10', sparkle: false, onPress: () => navigation.navigate('SpeakerSessionScreen') },
-    { id: 'college_clubs', name: 'Clubs', imageUrl: 'https://i.pinimg.com/736x/ed/a3/5a/eda35ac4a08a5c5d6ffade9a94380d78.jpg', colorHex: '#0891B2', bgClass: 'bg-fam-social/10', sparkle: false, onPress: () => navigation.navigate('ClubList') },
-  ], [navigation]);
-  const displayedFeatures = useMemo(() => features.slice(0, 6), [features]);
+  // The home grid is sourced from constants/features.ts now, so there is one
+  // registry instead of a second hand-maintained copy that drifted from it.
+  // The four features this user actually opens, newest first. Shared with
+  // Explore, so using something in either place reorders both. Until there is
+  // any history, fall back to a sensible starting set rather than an empty row.
+  const [recentIds, setRecentIds] = useState<string[]>([]);
+  useFocusEffect(
+    useCallback(() => {
+      readRecentFeatureIds().then(setRecentIds).catch(() => setRecentIds([]));
+    }, [])
+  );
+
+  const quickFeatures = useMemo(() => {
+    const registry: Feature[] = visibleFeatures(user);
+    const byId = new Map(registry.map((f: Feature) => [f.id, f]));
+    const ordered = recentIds.map((id) => byId.get(id)).filter(Boolean) as Feature[];
+    const fallback = registry.filter((f: Feature) => DEFAULT_QUICK.includes(f.id));
+    const seen = new Set(ordered.map((f: Feature) => f.id));
+    return [...ordered, ...fallback.filter((f: Feature) => !seen.has(f.id))].slice(0, 4);
+  }, [recentIds, user]);
+
+  const openQuick = useCallback((f: any) => {
+    navigation.navigate(f.route, f.params);
+    recordFeatureUse(f.id).then(setRecentIds).catch(() => {});
+  }, [navigation]);
   
   const renderFeatureStories = () => {
-  const visibleFeatures = isFeaturesExpanded ? features : features.slice(0, 3);
-
   return (
     <View className="bg-transparent py-2 px-2 w-full">
       {/* Grid Container */}
       <View className="flex-row flex-wrap">
-        {visibleFeatures.map((item, index) => (
+        {quickFeatures.map((item: any, index: number) => (
           <Reanimated.View
             key={item.id}
             entering={FadeIn.delay(index * 50).duration(500)}
             className="w-1/4 p-1.5"
           >
             <Pressable
-              onPress={item.onPress}
+              onPress={() => openQuick(item)}
+              accessibilityRole="button"
+              accessibilityLabel={`${item.label}. ${item.hint}`}
               className="w-full bg-card p-1.5 flex flex-col items-center justify-between border-[1.5px] border-line rounded-md"
               style={{
                 shadowColor: "#12100E",
@@ -908,80 +930,23 @@ export default function HomeScreen() {
                 aspectRatio: 1
               }}
             >
-              {/* Image Container */}
-              <View className="w-full flex-1 rounded-xl overflow-hidden mb-1">
-                {item.imageUrl ? (
-                  <ExpoImage source={{ uri: item.imageUrl }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+              {/* One colour per family, the same mapping Explore uses */}
+              <View className="w-full flex-1 rounded-xl overflow-hidden mb-1 justify-center items-center"
+                style={{ backgroundColor: (FAMILY[item.category] ?? item.tint) + '1A' }}>
+                {artUrl(item.art) ? (
+                  <ExpoImage source={{ uri: artUrl(item.art) }} style={{ width: 34, height: 34 }} contentFit="contain" cachePolicy="disk" transition={120} />
                 ) : (
-                  <View className="w-full h-full justify-center items-center" style={{ backgroundColor: item.colorHex + '20' }}>
-                    {item.Icon && <item.Icon size={24} color={item.colorHex} strokeWidth={1.5} />}
-                  </View>
+                  <Ionicons name={item.icon} size={24} color={FAMILY[item.category] ?? item.tint} />
                 )}
               </View>
 
-              {/* Title below image */}
+              {/* Title below icon */}
               <Text className="font-display text-ink text-label text-center px-0.5 leading-tight" numberOfLines={2}>
-                {item.name}
+                {item.label}
               </Text>
             </Pressable>
           </Reanimated.View>
         ))}
-
-        {!isFeaturesExpanded && (
-          <Reanimated.View
-            key="view-more"
-            entering={FadeIn.delay(3 * 50).duration(500)}
-            className="w-1/4 p-1.5"
-          >
-            <Pressable
-              onPress={() => setIsFeaturesExpanded(true)}
-              className="w-full bg-card p-1.5 flex flex-col items-center justify-between border-[1.5px] border-line rounded-md"
-              style={{
-                shadowColor: "#12100E",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.05,
-                shadowRadius: 2,
-                elevation: 2,
-                aspectRatio: 1
-              }}
-            >
-              <View className="w-full flex-1 rounded-xl overflow-hidden mb-1 justify-center items-center bg-card">
-                 <Ionicons name="grid-outline" size={24} color="#8B857E" />
-              </View>
-              <Text className="font-display text-ink text-label text-center px-0.5 leading-tight" numberOfLines={2}>
-                View More
-              </Text>
-            </Pressable>
-          </Reanimated.View>
-        )}
-
-        {isFeaturesExpanded && (
-          <Reanimated.View
-            key="view-less"
-            entering={FadeIn.delay(features.length * 50).duration(500)}
-            className="w-1/4 p-1.5"
-          >
-            <Pressable
-              onPress={() => setIsFeaturesExpanded(false)}
-              className="w-full bg-card p-1.5 flex flex-col items-center justify-between border-[1.5px] border-line rounded-md"
-              style={{
-                shadowColor: "#12100E",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.05,
-                shadowRadius: 2,
-                elevation: 2,
-                aspectRatio: 1
-              }}
-            >
-              <View className="w-full flex-1 rounded-xl overflow-hidden mb-1 justify-center items-center bg-paper-2">
-                 <Ionicons name="chevron-up" size={24} color="#8B857E" />
-              </View>
-              <Text className="font-display text-ink text-label text-center px-0.5 leading-tight" numberOfLines={2}>
-                Show Less
-              </Text>
-            </Pressable>
-          </Reanimated.View>
-        )}
       </View>
     </View>
   );

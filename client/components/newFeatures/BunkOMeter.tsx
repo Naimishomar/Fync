@@ -187,7 +187,7 @@ export default function BunkOMeter() {
                                     <Text className="font-display text-label text-ink-3 uppercase mb-3" style={{ letterSpacing: 1.4 }}>Attendance Score</Text>
 
                                     {/* Circular Percentage */}
-                                    <View className="mb-8 w-40 h-40 rounded-full items-center justify-center border-[2px] border-brand-100 bg-card shadow-hair">
+                                    <View className="mb-8 w-40 h-40 rounded-full items-center justify-center border-[2px] border-line bg-card shadow-hair">
                                         <View className="w-32 h-32 rounded-full bg-card items-center justify-center border border-line">
                                             <Text className="text-ink text-3xl font-display">{result.percentage}%</Text>
                                             <View className="h-[2px] w-8 rounded-full bg-brand-500 my-1" />
@@ -197,7 +197,7 @@ export default function BunkOMeter() {
 
                                     {/* Status Body */}
                                     <View className="items-center w-full">
-                                        <View className="flex-row items-center gap-3 mb-6 bg-card px-6 py-3 rounded-card border border-brand-100 shadow-hair">
+                                        <View className="flex-row items-center gap-3 mb-6 bg-card px-6 py-3 rounded-card border border-line shadow-hair">
                                             <Ionicons name={result.icon} size={20} color={result.color} />
                                             <Text className="font-semibold text-base text-ink">
                                                 {result.status === 'SAFE' ? 'The Great Escape' : 'System Critical'}
@@ -216,7 +216,7 @@ export default function BunkOMeter() {
 
                                         {/* Technical Advisory Box */}
                                         <View className="bg-brand-500/10 p-5 rounded-card w-full flex-row items-center border border-brand-500/20">
-                                            <View className="bg-card p-2.5 rounded-xl border border-brand-100">
+                                            <View className="bg-card p-2.5 rounded-xl border border-line">
                                                 <Ionicons
                                                     name="flash"
                                                     size={18}

@@ -25,6 +25,16 @@ interface Props {
   onDisconnect?: () => void;
 }
 
+const StatItem = ({ label, value, icon, color }: any) => (
+  <View className="flex-1 bg-paper p-4 border border-line items-center rounded-md">
+    <View className="bg-card p-2 rounded-xl mb-2 shadow-hair">
+      <Ionicons name={icon} size={16} color={color} />
+    </View>
+    <Text className="text-ink font-display text-lg">{value}</Text>
+    <Text className="text-ink-3 text-label font-display uppercase mt-0.5">{label}</Text>
+  </View>
+);
+
 export default function GitHubStatsCard({
   username, stats, isOwner, onConnect, onSync, onDisconnect
 }: Props) {
@@ -94,15 +104,6 @@ export default function GitHubStatsCard({
     );
   }
 
-  const StatItem = ({ label, value, icon, color }: any) => (
-    <View className="flex-1 bg-paper p-4 border border-line items-center rounded-md">
-      <View className="bg-card p-2 rounded-xl mb-2 shadow-hair">
-        <Ionicons name={icon} size={16} color={color} />
-      </View>
-      <Text className="text-ink font-display text-lg">{value}</Text>
-      <Text className="text-ink-3 text-label font-display uppercase mt-0.5">{label}</Text>
-    </View>
-  );
 
   return (
     <View className="mx-4 mb-6 bg-card rounded-sheet overflow-hidden shadow-hair border border-line">

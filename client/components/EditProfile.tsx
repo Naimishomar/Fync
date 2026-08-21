@@ -192,7 +192,7 @@ export default function EditProfile() {
           <Pressable onPress={() => pickImage('avatar')}>
             <Image
               source={{ uri: avatar || `https://ui-avatars.com/api/?name=${username}` }}
-              className="h-24 w-24 rounded-full border-4 border-paper bg-paper-2"
+              className="h-24 w-24 rounded-full border-4 border-line bg-paper-2"
             />
             <View className="absolute bottom-0 right-0 bg-brand-500 p-1.5 rounded-full border-2 border-paper">
               <Ionicons name="pencil" size={14} color="#12100E" />

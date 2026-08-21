@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import {View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard} from 'react-native'
+import {View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Keyboard} from 'react-native'
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -428,7 +428,7 @@ const HackathonSubmission = () => {
                           <TouchableOpacity
                             key={i}
                             onPress={() => setTechStack(p => p.filter(x => x !== t))}
-                            className="flex-row items-center bg-brand-100 border border-brand-200 rounded-xl px-3 py-1.5"
+                            className="flex-row items-center bg-brand-100 border border-ink rounded-xl px-3 py-1.5"
                           >
                             <Text className="text-brand-700 font-semibold text-xs mr-1">{t}</Text>
                             <Ionicons name="close" size={10} color="#EA580C" />
@@ -474,7 +474,7 @@ const HackathonSubmission = () => {
                       <TouchableOpacity
                         onPress={pickAndUploadFile}
                         disabled={uploading}
-                        className="flex-row items-center justify-center border-2 border-dashed border-brand-200 rounded-card py-4"
+                        className="flex-row items-center justify-center border-2 border-dashed border-ink-4 rounded-card py-4"
                       >
                         {uploading
                           ? <ActivityIndicator size="small" color="#F97316" />
@@ -524,7 +524,7 @@ const HackathonSubmission = () => {
                       <TouchableOpacity
                         onPress={saveDraft}
                         disabled={saving}
-                        className="flex-1 border border-brand-200 rounded-card py-4 items-center"
+                        className="flex-1 border border-line rounded-card py-4 items-center"
                       >
                         {saving
                           ? <ActivityIndicator size="small" color="#F97316" />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, Dimensions, Modal, TextInput, Linking, Share, StatusBar, Platform, Animated, KeyboardAvoidingView} from 'react-native'
+import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, Dimensions, Modal, TextInput, Linking, Share, StatusBar, Animated, KeyboardAvoidingView} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';

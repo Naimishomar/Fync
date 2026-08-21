@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, FlatList, TextInput, StatusBar, Platform, Switch, Share} from 'react-native'
+import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, FlatList, TextInput, StatusBar, Switch, Share} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';

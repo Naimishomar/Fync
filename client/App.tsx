@@ -202,6 +202,24 @@ import UtilityHubScreen from './components/utility/UtilityHubScreen';
 import ImageToPdfScreen from './components/utility/ImageToPdfScreen';
 import ImageCompressorScreen from './components/utility/ImageCompressorScreen';
 import QRCodeToolScreen from './components/utility/QRCodeToolScreen';
+import AffiliateStore from './components/affiliate/AffiliateStore';
+import AffiliateProductDetail from './components/affiliate/AffiliateProductDetail';
+import AffiliateWebView from './components/affiliate/AffiliateWebView';
+import AffiliateAdminScreen from './components/affiliate/AffiliateAdminScreen';
+import TechPulseScreen from './components/news/TechPulseScreen';
+import MergePdfScreen from './components/utility/pdf/MergePdfScreen';
+import SplitPdfScreen from './components/utility/pdf/SplitPdfScreen';
+import ExtractPagesScreen from './components/utility/pdf/ExtractPagesScreen';
+import RemovePagesScreen from './components/utility/pdf/RemovePagesScreen';
+import OrganizePagesScreen from './components/utility/pdf/OrganizePagesScreen';
+import RotatePdfScreen from './components/utility/pdf/RotatePdfScreen';
+import PageNumbersScreen from './components/utility/pdf/PageNumbersScreen';
+import WatermarkPdfScreen from './components/utility/pdf/WatermarkPdfScreen';
+import CropPdfScreen from './components/utility/pdf/CropPdfScreen';
+import ScanToPdfScreen from './components/utility/pdf/ScanToPdfScreen';
+import UrlToPdfScreen from './components/utility/pdf/UrlToPdfScreen';
+import PdfToImagesScreen from './components/utility/pdf/PdfToImagesScreen';
+import PdfToTextScreen from './components/utility/pdf/PdfToTextScreen';
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -378,6 +396,24 @@ export type RootStackParamList = {
   ImageToPdfScreen: undefined;
   ImageCompressorScreen: undefined;
   QRCodeToolScreen: undefined;
+  AffiliateStore: undefined;
+  AffiliateProductDetail: { productId: string };
+  AffiliateWebView: { url: string; productId: string; saleId?: string };
+  AffiliateAdminScreen: undefined;
+  TechPulseScreen: undefined;
+  MergePdfScreen: undefined;
+  SplitPdfScreen: undefined;
+  ExtractPagesScreen: undefined;
+  RemovePagesScreen: undefined;
+  OrganizePagesScreen: undefined;
+  RotatePdfScreen: undefined;
+  PageNumbersScreen: undefined;
+  WatermarkPdfScreen: undefined;
+  CropPdfScreen: undefined;
+  ScanToPdfScreen: undefined;
+  UrlToPdfScreen: undefined;
+  PdfToImagesScreen: undefined;
+  PdfToTextScreen: undefined;
 };
 function HomeDrawer() {
   const { user } = useAuth();
@@ -517,6 +553,24 @@ function AppStack() {
       <Stack.Screen name="ImageToPdfScreen" component={ImageToPdfScreen} />
       <Stack.Screen name="ImageCompressorScreen" component={ImageCompressorScreen} />
       <Stack.Screen name="QRCodeToolScreen" component={QRCodeToolScreen} />
+      <Stack.Screen name="AffiliateStore" component={AffiliateStore} />
+      <Stack.Screen name="AffiliateProductDetail" component={AffiliateProductDetail} />
+      <Stack.Screen name="AffiliateWebView" component={AffiliateWebView} />
+      <Stack.Screen name="AffiliateAdminScreen" component={AffiliateAdminScreen} />
+      <Stack.Screen name="TechPulseScreen" component={TechPulseScreen} />
+      <Stack.Screen name="MergePdfScreen" component={MergePdfScreen} />
+      <Stack.Screen name="SplitPdfScreen" component={SplitPdfScreen} />
+      <Stack.Screen name="ExtractPagesScreen" component={ExtractPagesScreen} />
+      <Stack.Screen name="RemovePagesScreen" component={RemovePagesScreen} />
+      <Stack.Screen name="OrganizePagesScreen" component={OrganizePagesScreen} />
+      <Stack.Screen name="RotatePdfScreen" component={RotatePdfScreen} />
+      <Stack.Screen name="PageNumbersScreen" component={PageNumbersScreen} />
+      <Stack.Screen name="WatermarkPdfScreen" component={WatermarkPdfScreen} />
+      <Stack.Screen name="CropPdfScreen" component={CropPdfScreen} />
+      <Stack.Screen name="ScanToPdfScreen" component={ScanToPdfScreen} />
+      <Stack.Screen name="UrlToPdfScreen" component={UrlToPdfScreen} />
+      <Stack.Screen name="PdfToImagesScreen" component={PdfToImagesScreen} />
+      <Stack.Screen name="PdfToTextScreen" component={PdfToTextScreen} />
 
       <Stack.Screen name="EventCommunityChat" component={EventCommunityChat} />
       <Stack.Screen name="CommunityList" component={CommunityListScreen} />

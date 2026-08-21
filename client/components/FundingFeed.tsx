@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, memo } from "react";
 import { readCache, writeCache } from "../utils/screenCache";
-import {View, Text, FlatList, Image, Pressable, TextInput, Modal, Dimensions, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, TouchableOpacity, Linking, RefreshControl, StatusBar} from 'react-native'
+import {View, Text, FlatList, Image, Pressable, TextInput, Modal, Dimensions, ScrollView, ActivityIndicator, KeyboardAvoidingView, TouchableOpacity, Linking, RefreshControl, StatusBar} from 'react-native'
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Video, ResizeMode, AVPlaybackStatus, AVPlaybackStatusSuccess, Audio, InterruptionModeIOS, InterruptionModeAndroid } from "expo-av";

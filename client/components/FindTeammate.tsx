@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {View, Text, TouchableOpacity, FlatList, Image, ActivityIndicator, RefreshControl, Linking, TextInput, Animated, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -42,35 +42,59 @@ export default function FindTeammate() {
 
     // Track which specific user is being connected to (for the loading spinner)
     const [connectingId, setConnectingId] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
 
     // --- FETCH DEVELOPERS ---
-    const fetchDevelopers = async () => {
+    // Ten at a time, appending as the list is scrolled. Page 1 replaces the list
+    // so a tab switch or pull-to-refresh does not stack duplicates on top of it.
+    const PAGE_SIZE = 10;
+
+    const fetchDevelopers = useCallback(async (pageNum = 1) => {
         try {
-            setLoading(true);
+            if (pageNum === 1) setLoading(true); else setLoadingMore(true);
             const response = await axios.get('/user/find-team', {
-                params: { type: activeTab }
+                params: { type: activeTab, page: pageNum, limit: PAGE_SIZE }
             });
 
             if (response.data.success) {
-                setDevelopers(response.data.developers);
+                const batch = response.data.developers ?? [];
+                setDevelopers((prev) => (pageNum === 1 ? batch : [...prev, ...batch]));
+                const pg = response.data.pagination;
+                // fall back to a short-batch check if an older server sends no
+                // pagination block, so this cannot loop for ever
+                setHasMore(pg ? pg.page < pg.pages : batch.length === PAGE_SIZE);
+                setPage(pageNum);
             }
         } catch (error: any) {
             console.error("Fetch error:", error);
-            const msg = error.response?.data?.message || "Check your internet connection.";
-            Alert.alert("Error", msg);
+            if (pageNum === 1) {
+                const msg = error.response?.data?.message || "Check your internet connection.";
+                Alert.alert("Error", msg);
+            }
         } finally {
             setLoading(false);
+            setLoadingMore(false);
             setRefreshing(false);
         }
-    };
+    }, [activeTab]);
+
+    const loadMore = useCallback(() => {
+        if (loadingMore || loading || !hasMore) return;
+        fetchDevelopers(page + 1);
+    }, [loadingMore, loading, hasMore, page, fetchDevelopers]);
 
     useEffect(() => {
-        fetchDevelopers();
-    }, [activeTab]);
+        setPage(1);
+        setHasMore(true);
+        fetchDevelopers(1);
+    }, [activeTab, fetchDevelopers]);
 
     const onRefresh = () => {
         setRefreshing(true);
-        fetchDevelopers();
+        setHasMore(true);
+        fetchDevelopers(1);
     };
 
     // --- 🔍 FILTER LOGIC ---
@@ -167,7 +191,7 @@ export default function FindTeammate() {
             {/* Skills */}
             <View className="flex-row flex-wrap gap-2 mb-5">
                 {item.skills?.slice(0, 4).map((skill, index) => (
-                    <View key={index} className="bg-card border border-brand-100 px-2.5 py-1 rounded-full">
+                    <View key={index} className="bg-card border border-line px-2.5 py-1 rounded-full">
                         <Text className="text-accent-text text-label font-display uppercase">{skill}</Text>
                     </View>
                 ))}
@@ -335,7 +359,14 @@ export default function FindTeammate() {
                         contentContainerStyle={{ paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
                         refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" colors={['#F97316']} />
+                        }
+                        // A local search filters what is already loaded, so paging
+                        // while filtering would append rows the filter then hides.
+                        onEndReached={searchQuery.length > 0 ? undefined : loadMore}
+                        onEndReachedThreshold={0.5}
+                        ListFooterComponent={
+                            loadingMore ? <ActivityIndicator size="small" color="#F97316" style={{ paddingVertical: 24 }} /> : null
                         }
                         ListEmptyComponent={
                             <View className="items-center mt-20 px-gutter">

@@ -59,7 +59,7 @@ const ReactionMaster = () => {
   };
 
   return (
-    <View className="p-6 bg-card rounded-sheet border border-paper-2 shadow-hair items-center" style={{ width: width - 40 }}>
+    <View className="p-6 bg-card rounded-sheet border border-line shadow-hair items-center" style={{ width: width - 40 }}>
       <View className="items-center mb-[30px]">
         <Text className="text-2xl font-display text-ink uppercase">REACTION <Text className="text-fam-fun">MASTER</Text></Text>
         <Text className="text-label text-ink-3 font-display uppercase mt-1">Neural Sync Protocol v1.0</Text>
@@ -68,7 +68,7 @@ const ReactionMaster = () => {
       <TouchableOpacity 
         activeOpacity={1}
         onPress={handleTap}
-        className="w-full rounded-sheet overflow-hidden bg-paper border border-paper-2"
+        className="w-full rounded-sheet overflow-hidden bg-paper border border-line"
       >
         <Animated.View className="flex-1" style={{ transform: [{ scale: scaleAnim }] }}>
             {gameState === 'idle' && (
@@ -102,7 +102,7 @@ const ReactionMaster = () => {
 
             {gameState === 'result' && reactionTime && (
                 <View className="flex-1 justify-center items-center p-6">
-                    <View className="bg-card px-gutter py-10 rounded-sheet border border-paper-2 shadow-hair items-center w-full">
+                    <View className="bg-card px-gutter py-10 rounded-sheet border border-line shadow-hair items-center w-full">
                         <Text className="font-display text-label text-ink-3 uppercase mb-2">Result logged</Text>
                         <View className="flex-row items-baseline">
                             <Text className="text-4xl font-display text-ink">{reactionTime}</Text>
@@ -110,7 +110,7 @@ const ReactionMaster = () => {
                         </View>
                         <Text className="text-sm font-display text-fam-fun mt-2 mb-6 text-center">{getPerformanceMessage(reactionTime)}</Text>
                         
-                        <View className="flex-row bg-paper p-4 rounded-card border border-paper-2 w-full justify-around">
+                        <View className="flex-row bg-paper p-4 rounded-card border border-line w-full justify-around">
                             <View className="items-center">
                                 <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
                                   <Text className="text-label text-ink-3 font-display uppercase">PERSONAL BEST</Text>

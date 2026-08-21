@@ -102,6 +102,10 @@ export const getConversations = async (req, res) => {
   try {
     const userId = req.user.id;
 
+    // Unbounded before: every conversation the user had ever opened was loaded,
+    // populated twice and sorted, on every visit to the list.
+    const limit = Math.min(parseInt(req.query.limit ?? '40', 10) || 40, 100);
+
     const conversations = await Conversation.find({
       participants: userId,
       lastMessage: { $exists: true, $ne: null }
@@ -109,6 +113,7 @@ export const getConversations = async (req, res) => {
       .populate("participants", "name username avatar")
       .populate("lastMessage")
       .sort({ updatedAt: -1 })
+      .limit(limit)
       .lean();
 
     res.json({ success: true, conversations });

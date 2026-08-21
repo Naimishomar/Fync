@@ -1,4 +1,4 @@
-import { TouchableOpacity, View, Dimensions, Animated, Pressable, Text, Platform, Image } from "react-native";
+import { TouchableOpacity, View, Dimensions, Animated, Pressable, Text, Image } from "react-native";
 import { Image as ExpoImage } from 'expo-image';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -128,23 +128,22 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
       {/* Main Center Button */}
       <View
         style={{
-          shadowColor: '#F97316', shadowOffset: { width: 0, height: 5 },
-          shadowOpacity: 0.4, shadowRadius: 10, elevation: 10
+          shadowColor: '#F97316', shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.5, shadowRadius: 16, elevation: 10
         }}
-        className="w-[72px] h-[72px] rounded-full bg-ink items-center justify-center"
+        className="rounded-full"
       >
         <TouchableOpacity
           onPress={toggleMenu}
           activeOpacity={0.9}
-          className="w-[60px] h-[60px] rounded-full overflow-hidden"
+          className="w-14 h-14 rounded-full items-center justify-center border-2 border-ink"
+          style={{ backgroundColor: '#F97316' }}
+          accessibilityRole="button"
+          accessibilityLabel="Create"
         >
-          <View
-            className="flex-1 items-center justify-center"
-           style={{ backgroundColor: '#F97316' }}>
-            <Animated.View style={{ transform: [{ rotate: rotation }] }}>
-              <Ionicons name="add" size={32} color="#12100E" />
-            </Animated.View>
-          </View>
+          <Animated.View style={{ transform: [{ rotate: rotation }] }}>
+            <Ionicons name="add" size={28} color="#12100E" />
+          </Animated.View>
         </TouchableOpacity>
       </View>
     </View>
@@ -166,11 +165,23 @@ export default function TabLayout() {
           tabBarShowLabel: false,
           tabBarActiveTintColor: "#F97316",
           tabBarInactiveTintColor: "rgba(245,242,236,0.55)",
+          tabBarIconStyle: {
+            // tabBarItemStyle lands on the OUTER wrapper View, not the Pressable
+            // that actually holds the icon — that one is styles.tabVerticalUiKit
+            // (justifyContent 'flex-start', padding 5) and is not overridable.
+            // So the icon wrapper, normally a fixed 28px box, is grown to fill the
+            // 54px content area instead; TabBarIcon's inner layer is absolutely
+            // positioned at 100% and self-centring, so the glyph lands dead centre.
+            flex: 1,
+            height: undefined,
+          },
           tabBarItemStyle: {
-            // Let each item fill the pill and centre its own icon. Without this
-            // the navigator's default item padding fights the bar's height.
+            // RN v7's tab item is justifyContent:'flex-start' with padding 5 (10 on
+            // Android). Zeroing the padding alone leaves the icon pinned to the top of
+            // the 64px item with every spare pixel below it, so centring is explicit.
             height: TAB_BAR_HEIGHT,
             paddingVertical: 0,
+            justifyContent: 'center',
           },
           tabBarStyle: {
             position: "absolute",
@@ -195,9 +206,9 @@ export default function TabLayout() {
         }}
       >
         {/* Screens stay the same */}
-        <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={24} color={color} /> }} />
+        <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarAccessibilityLabel: "Home tab", tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={24} color={color} /> }} />
 
-        <Tab.Screen name="Shorts" component={Shorts} options={{ tabBarIcon: ({ color }) => <Ionicons name="play-outline" size={24} color={color} /> }} />
+        <Tab.Screen name="Shorts" component={Shorts} options={{ tabBarAccessibilityLabel: "Shorts tab", tabBarIcon: ({ color }) => <Ionicons name="play-outline" size={24} color={color} /> }} />
 
         <Tab.Screen
           name="Create"
@@ -207,12 +218,13 @@ export default function TabLayout() {
           }}
         />
 
-        <Tab.Screen name="Explore" component={ExploreHub} options={{ tabBarIcon: ({ color }) => <Ionicons name="compass-outline" size={24} color={color} /> }} />
+        <Tab.Screen name="Explore" component={ExploreHub} options={{ tabBarAccessibilityLabel: "Explore tab", tabBarIcon: ({ color }) => <Ionicons name="compass-outline" size={24} color={color} /> }} />
         
         <Tab.Screen 
           name="Profile" 
           component={Profile} 
           options={{ 
+            tabBarAccessibilityLabel: 'You, profile tab',
             tabBarIcon: ({ color, focused }) => (
               user?.avatar ? (
                 <View style={{ 

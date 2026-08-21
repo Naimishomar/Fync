@@ -222,7 +222,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
             <GestureHandlerRootView style={{ flex: 1 }}>
                 <View 
                     className="flex-1 px-4 py-12"
-                 style={{ backgroundColor: '#ffffff' }}>
+                 style={{ backgroundColor: '#F5F2EC' }}>
                     {isInitializing ? (
                         <View className="flex-1 items-center justify-center">
                             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">

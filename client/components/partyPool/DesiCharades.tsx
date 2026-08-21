@@ -39,7 +39,7 @@ const DesiCharades = () => {
   const toggleTimer = () => setIsTimerRunning(!isTimerRunning);
 
   return (
-    <View className="p-6 bg-card rounded-sheet border border-paper-2 shadow-hair items-center" style={{ width: width - 40 }}>
+    <View className="p-6 bg-card rounded-sheet border border-line shadow-hair items-center" style={{ width: width - 40 }}>
       <View className="items-center mb-6">
         <Text className="text-2xl font-display text-ink uppercase">DESI <Text className="text-fam-fun">CHARADES</Text></Text>
         <Text className="text-label text-ink-3 font-display uppercase mt-1">Cultural Expression Engine v2.0</Text>
@@ -91,7 +91,7 @@ const DesiCharades = () => {
 
       {/* Timer Display */}
       {timer !== null && (
-          <View className="flex-row items-center mb-8 bg-paper px-6 py-3 rounded-card border border-paper-2">
+          <View className="flex-row items-center mb-8 bg-paper px-6 py-3 rounded-card border border-line">
               <Ionicons name="timer-outline" size={20} color={timer < 10 ? '#db2777' : '#8B857E'} />
               <Text className={`text-xl font-display ml-2 ${timer < 10 ? 'text-fam-fun' : 'text-ink'}`}>
                 00:{timer < 10 ? `0${timer}` : timer}

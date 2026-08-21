@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import {View, Text, TouchableOpacity, ScrollView, Platform, TextInput} from 'react-native'
+import {View, Text, TouchableOpacity, ScrollView, TextInput} from 'react-native'
 // SafeAreaView from 'react-native' is iOS-only — on Android it renders as a
 // plain View and applies no insets, so content collides with the status bar
 // and the gesture bar. The safe-area-context version works on both.
@@ -52,10 +52,10 @@ export default function QRCodeToolScreen() {
   };
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#ffffff' }}>
-      <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS === 'android' ? 25 : 0 }}>
+    <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
+      <SafeAreaView style={{ flex: 1 }}>
         {/* Header */}
-        <View className="px-5 py-4 flex-row items-center border-b border-brand-100 bg-transparent">
+        <View className="px-5 py-4 flex-row items-center border-b border-line bg-transparent">
           <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
             accessibilityRole="button"
             accessibilityLabel="Go back"

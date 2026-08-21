@@ -203,7 +203,7 @@ export default function CreateFundingFeed() {
 
 
   return (
-    <SafeAreaView className='flex-1 bg-paper-2'>
+    <SafeAreaView className='flex-1 bg-paper'>
       <View className='flex-row items-center px-5 py-3'>
         <Pressable onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
             accessibilityRole="button"

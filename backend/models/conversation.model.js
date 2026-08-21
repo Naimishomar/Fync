@@ -17,7 +17,10 @@ const conversationSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-conversationSchema.index({ participants: 1 });
+// The list query filters on participants and sorts by updatedAt. A single-field
+// index on participants serves the filter but leaves the sort to be done in
+// memory over every matching document; the compound index covers both.
+conversationSchema.index({ participants: 1, updatedAt: -1 });
 
 
 export default mongoose.model("Conversation", conversationSchema);

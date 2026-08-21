@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform, Pressable, Modal} from 'react-native'
+import {View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Pressable, Modal} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import * as DocumentPicker from 'expo-document-picker';
@@ -261,7 +261,7 @@ export default function InterviewSetup() {
                   >
                     {resume ? (
                       <View className="items-center">
-                        <View className="bg-brand-100 p-3 rounded-full mb-3 border border-brand-200">
+                        <View className="bg-brand-100 p-3 rounded-full mb-3 border border-ink">
                           <Ionicons name="document-text" size={32} color="#F97316" />
                         </View>
                         <Text className="text-ink font-semibold text-center" numberOfLines={1}>

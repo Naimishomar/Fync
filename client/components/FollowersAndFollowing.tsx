@@ -24,6 +24,17 @@ type User = {
   followers: string[];
 };
 
+const ItemSkeleton = () => (
+  <View className="mx-gutter mb-6 bg-card rounded-sheet overflow-hidden border border-line shadow-hair p-6 flex-row items-center">
+      <View className="w-16 h-16 bg-paper-2 rounded-card mr-5" />
+      <View className="flex-1 justify-center">
+          <View className="h-4 bg-paper-2 rounded w-3/4 mb-3" />
+          <View className="h-3 bg-paper-2 rounded w-1/2 mb-2" />
+      </View>
+      <View className="w-20 h-10 bg-paper-2 rounded-lg ml-2" />
+  </View>
+);
+
 const FollowersAndFollowing = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
@@ -122,16 +133,6 @@ const FollowersAndFollowing = () => {
     );
   };
 
-  const ItemSkeleton = () => (
-    <View className="mx-gutter mb-6 bg-card rounded-sheet overflow-hidden border border-line shadow-hair p-6 flex-row items-center">
-        <View className="w-16 h-16 bg-paper-2 rounded-card mr-5" />
-        <View className="flex-1 justify-center">
-            <View className="h-4 bg-paper-2 rounded w-3/4 mb-3" />
-            <View className="h-3 bg-paper-2 rounded w-1/2 mb-2" />
-        </View>
-        <View className="w-20 h-10 bg-paper-2 rounded-lg ml-2" />
-    </View>
-  );
 
   return (
     <View className="flex-1 bg-paper">

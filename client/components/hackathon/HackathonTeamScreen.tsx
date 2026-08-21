@@ -266,7 +266,7 @@ const CreateTeamModal = ({
                 <TouchableOpacity
                   key={i}
                   onPress={() => setSkills(p => p.filter(x => x !== s))}
-                  className="flex-row items-center bg-brand-100 border border-brand-200 rounded-xl px-3 py-1.5"
+                  className="flex-row items-center bg-brand-100 border border-ink rounded-xl px-3 py-1.5"
                 >
                   <Text className="text-brand-700 font-semibold text-xs mr-1">{s}</Text>
                   <Ionicons name="close" size={10} color="#EA580C" />
@@ -547,14 +547,14 @@ const HackathonTeamScreen = () => {
                   <View>
                     {/* Team header */}
                     <View className="rounded-card p-5 mb-4" style={{ backgroundColor: '#F97316' }}>
-                      <Text className="text-white text-xs font-semibold mb-1">Your Team</Text>
-                      <Text className="text-white text-2xl font-display">{myTeam.name}</Text>
+                      <Text className="text-ink text-xs font-semibold mb-1">Your Team</Text>
+                      <Text className="text-ink text-2xl font-display">{myTeam.name}</Text>
                       {myTeam.description && (
                         <Text className="text-ink-4 text-xs mt-2 leading-4">{myTeam.description}</Text>
                       )}
                       <View className="flex-row items-center mt-3">
                         <View className={`px-3 py-1 rounded-full ${myTeam.lookingForMembers ? 'bg-success' : 'bg-card/20'}`}>
-                          <Text className="font-display text-label text-white uppercase">
+                          <Text className="font-display text-label text-ink uppercase">
                             {myTeam.lookingForMembers ? 'Open' : 'Closed'}
                           </Text>
                         </View>

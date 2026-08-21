@@ -91,17 +91,19 @@ const AffiliateStore = () => {
             <View style={styles.header}>
                 <View style={styles.headerTop}>
                     <TouchableOpacity onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
+                        className="w-11 h-11 items-center justify-center rounded-xl"
+                        accessibilityRole="button"
+                        accessibilityLabel="Go back"
+                        style={{ marginLeft: -11 }}>
                         <Ionicons name="arrow-back" size={24} color="#12100E" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Fync Store</Text>
-                    <TouchableOpacity>
-                        <Ionicons name="cart-outline" size={24} color="#12100E" />
-                    </TouchableOpacity>
                 </View>
+
+                {/* Two-line display headline on the left, matching Explore,
+                    Meet the Team and Fync Market. */}
+                <Text style={styles.display}>Fync</Text>
+                <Text style={[styles.display, styles.displayAccent]}>Store</Text>
+                <Text style={styles.displaySub}>Deals worth a student&apos;s money</Text>
 
                 <View style={styles.searchContainer}>
                     <Ionicons name="search" size={20} color="#8B857E" style={styles.searchIcon} />
@@ -173,23 +175,33 @@ const styles = StyleSheet.create({
     header: {
         paddingTop: 50,
         paddingHorizontal: 20,
-        paddingBottom: 20,
+        paddingBottom: 16,
         backgroundColor: '#F5F2EC',
-        borderBottomWidth: 2,
-        borderBottomColor: '#12100E',
     },
     headerTop: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 20,
+        marginBottom: 6,
     },
-    headerTitle: {
-        fontSize: 22,
+    display: {
+        fontSize: 38,
+        lineHeight: 39,
+        letterSpacing: -1.4,
         fontFamily: 'SpaceGrotesk_700Bold',
         textTransform: 'uppercase',
-        letterSpacing: -0.5,
         color: '#12100E',
+    },
+    displayAccent: {
+        color: '#EA580C',
+    },
+    displaySub: {
+        marginTop: 12,
+        marginBottom: 18,
+        fontSize: 11,
+        letterSpacing: 1.4,
+        fontFamily: 'SpaceGrotesk_700Bold',
+        textTransform: 'uppercase',
+        color: '#8B857E',
     },
     searchContainer: {
         flexDirection: 'row',

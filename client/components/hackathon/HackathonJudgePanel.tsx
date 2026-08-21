@@ -448,11 +448,11 @@ const HackathonJudgePanel = () => {
                 <View className="rounded-card" style={{ backgroundColor: '#F97316' }}>
                   <View className="py-4 flex-row items-center justify-center">
                     {submitting ? (
-                      <ActivityIndicator size="small" color="white" />
+                      <ActivityIndicator size="small" color="#12100E" />
                     ) : (
                       <>
-                        <Ionicons name="star" size={16} color="white" />
-                        <Text className="text-white font-semibold text-sm ml-2">
+                        <Ionicons name="star" size={16} color="#12100E" />
+                        <Text className="text-ink font-semibold text-sm ml-2">
                           Submit Score — {computeTotalScore()}/10
                         </Text>
                       </>

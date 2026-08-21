@@ -40,6 +40,7 @@ const ChatList = () => {
   // handler captured the initial empty array and silently rejoined no rooms.
   const conversationsRef = useRef<any[]>([]);
   const reloadTimer = useRef<NodeJS.Timeout | null>(null);
+  const unreadCountsRef = useRef<Record<string, number>>({});
 
 
   // 1. Create a Ref to store the timer ID
@@ -160,13 +161,22 @@ const ChatList = () => {
         .from('conversations')
         .select('*')
         .contains('participants', `[{"_id": "${user._id}"}]`)
-        .order('updatedAt', { ascending: false });
+        .order('updatedAt', { ascending: false })
+        // Nobody scrolls past the most recent few dozen threads, and an
+        // unbounded select was returning every conversation ever opened.
+        .limit(40);
 
       if (error) throw error;
       if (!data) return;
 
       setConversations(data);
       conversationsRef.current = data;
+
+      // Cache the rows the moment they land, before the unread query. It used
+      // to be written only after unread resolved, so leaving the screen during
+      // that slow second trip meant nothing was ever cached — and the next open
+      // was cold again, every time.
+      writeCache(cacheKey, { conversations: data, unread: unreadCountsRef.current });
       // Join all conversation rooms to listen for typing events
       data.forEach((c: any) => {
         socket.emit("join", { conversationId: c._id });
@@ -179,6 +189,7 @@ const ChatList = () => {
 
       const unread = await fetchUnreadCounts(user._id, data.map((c: any) => c._id));
       setUnreadCounts(unread);
+      unreadCountsRef.current = unread;
       writeCache(cacheKey, { conversations: data, unread });
     } catch (e) {
       console.log("Error loading chats from Supabase", e);

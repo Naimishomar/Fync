@@ -31,7 +31,7 @@ const CoinToss = () => {
   });
 
   return (
-    <View className="p-card-pad bg-card rounded-sheet border border-paper-2 shadow-hair items-center" style={{ width: width - 40 }}>
+    <View className="p-card-pad bg-card rounded-sheet border border-line shadow-hair items-center" style={{ width: width - 40 }}>
       {/* Header */}
       <View className="items-center mb-[50px]">
         <Text className="text-2xl font-display text-ink uppercase">COIN <Text className="text-brand-500">TOSS</Text></Text>
@@ -59,7 +59,7 @@ const CoinToss = () => {
       
       <View className="h-20 justify-center mb-10">
         {result ? (
-          <View className="items-center bg-paper px-6 py-3 rounded-card border border-paper-2">
+          <View className="items-center bg-paper px-6 py-3 rounded-card border border-line">
             <Text className="text-label font-display text-ink-3 mb-1">OUTCOME DETECTED</Text>
             <Text className="text-2xl font-display text-brand-500">{result.toUpperCase()}</Text>
           </View>

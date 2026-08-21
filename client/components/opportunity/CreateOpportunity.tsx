@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, Switch, Image} from 'react-native'
+import {View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, KeyboardAvoidingView, Switch, Image} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -7,6 +7,23 @@ import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from '../ui/AlertModal';
+
+const SelectionGroup = ({ label, options, field, formData, setFormData }: { label: string, options: string[], field: string, formData: any, setFormData: (v: any) => void }) => (
+  <View className="mb-5">
+    <Text className="text-ink-3 font-display uppercase text-label mb-3 ml-1">{label}</Text>
+    <View className="flex-row flex-wrap gap-2">
+      {options.map((opt) => (
+        <TouchableOpacity
+          key={opt}
+          onPress={() => setFormData({ ...formData, [field]: opt })}
+          className={`px-6 py-3 rounded-card border ${formData[field as keyof typeof formData] === opt ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
+        >
+          <Text className={`font-display uppercase text-label ${formData[field as keyof typeof formData] === opt ? 'text-white' : 'text-ink-3'}`}>{opt}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  </View>
+);
 
 const CreateOpportunity = () => {
   const navigation = useNavigation<any>();
@@ -117,22 +134,6 @@ const CreateOpportunity = () => {
     }
   };
 
-  const SelectionGroup = ({ label, options, field }: { label: string, options: string[], field: string }) => (
-    <View className="mb-5">
-      <Text className="text-ink-3 font-display uppercase text-label mb-3 ml-1">{label}</Text>
-      <View className="flex-row flex-wrap gap-2">
-        {options.map((opt) => (
-          <TouchableOpacity
-            key={opt}
-            onPress={() => setFormData({ ...formData, [field]: opt })}
-            className={`px-6 py-3 rounded-card border ${formData[field as keyof typeof formData] === opt ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
-          >
-            <Text className={`font-display uppercase text-label ${formData[field as keyof typeof formData] === opt ? 'text-white' : 'text-ink-3'}`}>{opt}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
 
   return (
     <SafeAreaView className="flex-1 bg-paper">
@@ -216,19 +217,19 @@ const CreateOpportunity = () => {
               label="Location Mode *"
               options={["Remote", "Onsite", "Hybrid"]}
               field="location"
-            />
+            formData={formData} setFormData={setFormData} />
 
             <SelectionGroup
               label="Work Schedule *"
               options={["Full-Time", "Part-Time"]}
               field="opportunityType"
-            />
+            formData={formData} setFormData={setFormData} />
 
             <SelectionGroup
               label="Experience Required *"
               options={["Fresher", "Entry Level", "1-2 Years", "3-5 Years", "5+ Years"]}
               field="experience"
-            />
+            formData={formData} setFormData={setFormData} />
 
             <View className="flex-row gap-4">
               <View className="flex-1">

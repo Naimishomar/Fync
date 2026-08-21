@@ -152,7 +152,7 @@ const PartyPoolHub = () => {
                 activeOpacity={0.9}
               >
                 <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#F5F2EC' }}>
-                    <View className="w-[60px] h-[60px] rounded-card bg-line justify-center items-center mr-4">
+                    <View className="w-[60px] h-[60px] rounded-card bg-paper-2 justify-center items-center mr-4">
                         <MaterialCommunityIcons name="currency-usd" size={28} color="#57534E" />
                     </View>
                     <View className="flex-1">
@@ -162,7 +162,7 @@ const PartyPoolHub = () => {
                         </View>
                         <Text className="text-label text-ink-3 leading-[14px] font-medium">Execute quick decisions with our probability engine.</Text>
                     </View>
-                    <View className="w-8 h-8 rounded-xl bg-line justify-center items-center ml-2">
+                    <View className="w-8 h-8 rounded-xl bg-paper-2 justify-center items-center ml-2">
                         <Ionicons name="arrow-forward" size={16} color="#57534E" />
                     </View>
                 </View>
@@ -235,7 +235,7 @@ const PartyPoolHub = () => {
               </TouchableOpacity>
 
               {/* Tip Box */}
-              <View className="flex-row items-center justify-center mt-6 bg-card p-3 rounded-card border border-paper-2">
+              <View className="flex-row items-center justify-center mt-6 bg-card p-3 rounded-card border border-line">
                 <Ionicons name="bulb-outline" size={16} color="#8B857E" />
                 <Text className="text-label text-ink-3 font-display ml-2 uppercase">PRO TIP: Best played in your college common room or canteen!</Text>
               </View>
@@ -244,7 +244,7 @@ const PartyPoolHub = () => {
             <View className="items-center">
               <TouchableOpacity 
                 onPress={() => setActiveGame('none')}
-                className="flex-row items-center self-start mb-6 py-[10px] px-4 bg-card rounded-card border border-paper-2 shadow-hair"
+                className="flex-row items-center self-start mb-6 py-[10px] px-4 bg-card rounded-card border border-line shadow-hair"
               >
                 <Ionicons name="chevron-back" size={20} color="#12100E" />
                 <Text className="text-label font-display text-ink ml-1">BACK TO HQ</Text>

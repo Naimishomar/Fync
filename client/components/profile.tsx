@@ -692,7 +692,7 @@ function Profile() {
             {!subscription.isLifetime && (
               <Pressable 
                 onPress={() => navigation.navigate('SubscriptionScreen')}
-                className="bg-card border border-brand-200 px-2.5 py-1 rounded-full"
+                className="bg-card border border-line px-2.5 py-1 rounded-full"
               >
                 <Text className="text-accent-text font-display text-label uppercase">Extend</Text>
               </Pressable>

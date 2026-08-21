@@ -259,7 +259,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
                    </View>
                    <Pressable onPress={() => pickDocument('offer')} 
-                     className="bg-card border border-brand-100 p-5 rounded-card flex-row items-center justify-between shadow-hair">
+                     className="bg-card border border-line p-5 rounded-card flex-row items-center justify-between shadow-hair">
                       <View className="flex-row items-center flex-1 pr-4">
                         <Feather name="file-text" size={18} color="#F97316" />
                         <Text className="text-ink text-label ml-3 font-display uppercase" numberOfLines={1}>
@@ -276,7 +276,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
                    </View>
                    <Pressable onPress={() => pickDocument('cert')} 
-                     className="bg-card border border-brand-100 p-5 rounded-card flex-row items-center justify-between shadow-hair">
+                     className="bg-card border border-line p-5 rounded-card flex-row items-center justify-between shadow-hair">
                       <View className="flex-row items-center flex-1 pr-4">
                         <Feather name="award" size={18} color="#F97316" />
                         <Text className="text-ink text-label ml-3 font-display uppercase" numberOfLines={1}>

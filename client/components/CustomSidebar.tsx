@@ -94,7 +94,7 @@ export default function CustomSidebar(props: any) {
                         drawer looks like features were removed, not moved. */}
                     <Pressable
                         onPress={() => go('TabNavigator', { screen: 'Explore' })}
-                        className="flex-row items-center bg-card rounded-card p-4 border border-brand-100 shadow-hair mb-6 active:opacity-70"
+                        className="flex-row items-center bg-card rounded-card p-4 border border-line shadow-hair mb-6 active:opacity-70"
                     >
                         <View className="w-11 h-11 rounded-card bg-paper-2 items-center justify-center border border-line mr-4">
                             <Ionicons name="compass" size={22} color="#F97316" />

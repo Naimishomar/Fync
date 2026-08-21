@@ -123,10 +123,10 @@ export default function ImageToPdfScreen() {
   };
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#ffffff' }}>
-      <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS === 'android' ? 25 : 0 }}>
+    <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
+      <SafeAreaView style={{ flex: 1 }}>
         {/* Header */}
-        <View className="px-5 py-4 flex-row items-center border-b border-brand-100 bg-transparent">
+        <View className="px-5 py-4 flex-row items-center border-b border-line bg-transparent">
         <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
             accessibilityRole="button"
             accessibilityLabel="Go back"
@@ -142,7 +142,7 @@ export default function ImageToPdfScreen() {
       <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
         <TouchableOpacity
           onPress={pickImages}
-          className="w-full bg-card border-2 border-dashed border-brand-200 rounded-card p-card-pad items-center justify-center mb-6 shadow-hair"
+          className="w-full bg-card border-2 border-dashed border-ink-4 rounded-card p-card-pad items-center justify-center mb-6 shadow-hair"
         >
           <View className="w-16 h-16 bg-brand-50 rounded-full items-center justify-center mb-3">
             <Ionicons name="images-outline" size={32} color="#F97316" />

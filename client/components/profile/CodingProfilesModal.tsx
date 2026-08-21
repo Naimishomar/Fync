@@ -17,6 +17,31 @@ interface CodingProfilesModalProps {
   initialData: any;
 }
 
+const ProfileInput = ({ label, value, onChange, icon, logo }: any) => (
+  <View className="mb-6">
+    <View className="flex-row items-center mb-2 ml-1">
+      <View className="w-6 h-6 items-center justify-center mr-2">
+          {logo ? (
+          <Image source={{ uri: logo }} className="w-5 h-5" resizeMode="contain" />
+          ) : (
+          <Feather name={icon} size={14} color="#F97316" />
+          )}
+      </View>
+      <Text className="text-ink-3 font-display uppercase text-label">{label}</Text>
+    </View>
+    <View className="flex-row items-center bg-paper-2 px-5 border-2 border-ink shadow-hair rounded-md">
+      <TextInput
+        value={value}
+        onChangeText={onChange}
+        placeholder={`${label} identifier`}
+        placeholderTextColor="#8B857E"
+        className="flex-1 text-ink py-4 text-sm font-semibold"
+        autoCapitalize="none"
+      />
+    </View>
+  </View>
+);
+
 const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: CodingProfilesModalProps) => {
   const [loading, setLoading] = useState(false);
   const [leetcode, setLeetcode] = useState(initialData?.leetcode || '');
@@ -61,30 +86,6 @@ const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: Codin
     }
   };
 
-  const ProfileInput = ({ label, value, onChange, icon, logo }: any) => (
-    <View className="mb-6">
-      <View className="flex-row items-center mb-2 ml-1">
-        <View className="w-6 h-6 items-center justify-center mr-2">
-            {logo ? (
-            <Image source={{ uri: logo }} className="w-5 h-5" resizeMode="contain" />
-            ) : (
-            <Feather name={icon} size={14} color="#F97316" />
-            )}
-        </View>
-        <Text className="text-ink-3 font-display uppercase text-label">{label}</Text>
-      </View>
-      <View className="flex-row items-center bg-paper-2 px-5 border-2 border-ink shadow-hair rounded-md">
-        <TextInput
-          value={value}
-          onChangeText={onChange}
-          placeholder={`${label} identifier`}
-          placeholderTextColor="#8B857E"
-          className="flex-1 text-ink py-4 text-sm font-semibold"
-          autoCapitalize="none"
-        />
-      </View>
-    </View>
-  );
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>

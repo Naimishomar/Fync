@@ -210,7 +210,7 @@ const PlacementPredictor = () => {
                     <TouchableOpacity
                         onPress={pickDocument}
                         activeOpacity={0.8}
-                        className={`p-card-pad rounded-sheet border-2 border-dashed items-center justify-center ${resume ? 'bg-brand-50 border-brand-200' : 'bg-paper-2 border-line'}`}
+                        className={`p-card-pad rounded-sheet border-2 border-dashed items-center justify-center ${resume ? 'bg-brand-50 border-ink' : 'bg-paper-2 border-line'}`}
                     >
                         <View className={`w-16 h-16 rounded-card items-center justify-center mb-4 ${resume ? 'bg-brand-500' : 'bg-paper-2'}`}>
                             <Ionicons name={resume ? "document-text" : "cloud-upload"} size={32} color="#12100E" />

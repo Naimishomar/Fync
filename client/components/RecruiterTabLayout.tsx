@@ -23,21 +23,20 @@ const PostOpportunityButton = ({ children, onPress }: any) => {
     <View className="flex-1 items-center justify-center">
       <View
         style={{
-          shadowColor: '#F97316', shadowOffset: { width: 0, height: 5 },
-          shadowOpacity: 0.4, shadowRadius: 10, elevation: 10
+          shadowColor: '#F97316', shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.5, shadowRadius: 16, elevation: 10
         }}
-        className="w-[72px] h-[72px] rounded-full bg-ink items-center justify-center"
+        className="rounded-full"
       >
         <TouchableOpacity
           onPress={() => navigation.navigate('CreateOpportunity', { type: 'internship' })}
           activeOpacity={0.9}
-          className="w-[60px] h-[60px] rounded-full overflow-hidden"
+          className="w-14 h-14 rounded-full items-center justify-center border-2 border-ink"
+          style={{ backgroundColor: '#F97316' }}
+          accessibilityRole="button"
+          accessibilityLabel="Post opportunity"
         >
-          <View
-            className="flex-1 items-center justify-center"
-           style={{ backgroundColor: '#F97316' }}>
-            <Ionicons name="add" size={32} color="#12100E" />
-          </View>
+          <Ionicons name="add" size={28} color="#12100E" />
         </TouchableOpacity>
       </View>
     </View>
@@ -55,6 +54,21 @@ export default function RecruiterTabLayout() {
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: false,
+          tabBarIconStyle: {
+            // tabBarItemStyle lands on the OUTER wrapper View, not the Pressable
+            // that actually holds the icon — that one is styles.tabVerticalUiKit
+            // (justifyContent 'flex-start', padding 5) and is not overridable.
+            // So the icon wrapper, normally a fixed 28px box, is grown to fill the
+            // 54px content area instead; TabBarIcon's inner layer is absolutely
+            // positioned at 100% and self-centring, so the glyph lands dead centre.
+            flex: 1,
+            height: undefined,
+          },
+          tabBarItemStyle: {
+            height: TAB_BAR_HEIGHT,
+            paddingVertical: 0,
+            justifyContent: 'center',
+          },
           tabBarActiveTintColor: "#F97316",
           tabBarInactiveTintColor: "rgba(245,242,236,0.55)",
           tabBarStyle: {

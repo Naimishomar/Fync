@@ -599,7 +599,7 @@ const HackathonDetail = () => {
           {activeTab === 5 && (
             <View>
               {isOfficial() && (
-                <View className="bg-card rounded-sheet p-card-pad mb-6 border border-brand-100 shadow-hair">
+                <View className="bg-card rounded-sheet p-card-pad mb-6 border border-line shadow-hair">
                   <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}><Text className="font-display text-label text-ink uppercase">Post announcement</Text><View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} /></View>
 
                   {/* Type Selector */}

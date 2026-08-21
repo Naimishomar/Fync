@@ -44,6 +44,7 @@ const ionicon = (name: React.ComponentProps<typeof Ionicons>['name']) => {
 // Direct Feather equivalents (same glyph, same name upstream).
 export const AlertTriangle = feather('alert-triangle');
 export const Briefcase = feather('briefcase');
+export const Tag = feather('tag');
 export const Camera = feather('camera');
 export const CameraOff = feather('camera-off');
 export const Code = feather('code');

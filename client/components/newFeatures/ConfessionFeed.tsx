@@ -562,7 +562,7 @@ const ConfessionFeed = () => {
                                 className={`h-16 rounded-card items-center justify-center shadow-hair ${submitting ? 'bg-paper-2' : 'bg-brand-500 '}`}
                             >
                                 {submitting ? (
-                                    <ActivityIndicator color="#fff" />
+                                    <ActivityIndicator color="#12100E" />
                                 ) : (
                                     <Text className="text-ink font-display uppercase text-sm">
                                         {editingConfession ? 'Execute Update' : 'Secure Broadcast'}

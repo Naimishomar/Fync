@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import {View, Text, Pressable, TextInput, FlatList, Image, Dimensions, ActivityIndicator, KeyboardAvoidingView, Platform, TouchableOpacity, StatusBar, Modal} from 'react-native'
+import {View, Text, Pressable, TextInput, FlatList, Image, Dimensions, ActivityIndicator, KeyboardAvoidingView, TouchableOpacity, StatusBar, Modal} from 'react-native'
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Video, ResizeMode } from "expo-av";
 import * as MediaLibrary from 'expo-media-library';
@@ -407,17 +407,17 @@ const CreateShorts = () => {
                    style={{ backgroundColor: '#F97316' }}>
                     {loading ? (
                       <>
-                        <ActivityIndicator color="white" size="small" />
+                        <ActivityIndicator color="#12100E" size="small" />
                         {compressProgress > 0 && compressProgress < 1 && (
-                          <Text className="text-white font-display uppercase ml-3 text-xs">
+                          <Text className="text-ink font-display uppercase ml-3 text-xs">
                             Optimising {Math.round(compressProgress * 100)}%
                           </Text>
                         )}
                       </>
                     ) : (
                       <>
-                        <Text className="text-white font-display uppercase mr-3 text-base">Post to Fync</Text>
-                        <Ionicons name="rocket-outline" size={20} color="white" />
+                        <Text className="text-ink font-display uppercase mr-3 text-base">Post to Fync</Text>
+                        <Ionicons name="rocket-outline" size={20} color="#12100E" />
                       </>
                     )}
                   </View>
