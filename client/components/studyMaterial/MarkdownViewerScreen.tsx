@@ -21,27 +21,27 @@ const MarkdownViewerScreen = ({ route, navigation } : any) => {
           body {
             font-family: 'Inter', -apple-system, sans-serif;
             padding: 24px;
-            color: #1f2937;
+            color: #57534E;
             line-height: 1.6;
             background-color: #ffffff;
           }
           h1, h2, h3 {
-            color: #111827;
+            color: #12100E;
             margin-top: 1.5em;
             margin-bottom: 0.5em;
             font-weight: 700;
           }
-          h1 { font-size: 1.875rem; border-bottom: 2px solid #f3f4f6; padding-bottom: 0.5em; }
+          h1 { font-size: 1.875rem; border-bottom: 2px solid #F5F2EC; padding-bottom: 0.5em; }
           h2 { font-size: 1.5rem; }
           code {
-            background-color: #f3f4f6;
+            background-color: #F5F2EC;
             padding: 2px 4px;
             border-radius: 4px;
             font-family: monospace;
             font-size: 0.875em;
           }
           pre {
-            background-color: #f3f4f6;
+            background-color: #F5F2EC;
             padding: 16px;
             border-radius: 12px;
             overflow-x: auto;
@@ -52,9 +52,9 @@ const MarkdownViewerScreen = ({ route, navigation } : any) => {
             padding: 0;
           }
           blockquote {
-            border-left: 4px solid #3b82f6;
+            border-left: 4px solid #2563EB;
             padding-left: 16px;
-            color: #4b5563;
+            color: #57534E;
             margin: 1em 0;
             font-style: italic;
           }
@@ -72,7 +72,7 @@ const MarkdownViewerScreen = ({ route, navigation } : any) => {
           }
           hr {
             border: 0;
-            border-top: 1px solid #e5e7eb;
+            border-top: 1px solid #E3DDD3;
             margin: 2em 0;
           }
           table {
@@ -81,12 +81,12 @@ const MarkdownViewerScreen = ({ route, navigation } : any) => {
             margin: 1em 0;
           }
           th, td {
-            border: 1px solid #e5e7eb;
+            border: 1px solid #E3DDD3;
             padding: 8px 12px;
             text-align: left;
           }
           th {
-            background-color: #f9fafb;
+            background-color: #EDE8E0;
             font-weight: 600;
           }
         </style>
@@ -108,15 +108,15 @@ const MarkdownViewerScreen = ({ route, navigation } : any) => {
   `;
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
       <WebView 
         source={{ html: htmlContent }} 
         style={{ flex: 1 }}
         startInLoadingState={true}
         renderLoading={() => (
-          <View className="absolute inset-0 items-center justify-center bg-white">
-            <ActivityIndicator size="large" color="#3b82f6" />
+          <View className="absolute inset-0 items-center justify-center bg-card">
+            <ActivityIndicator size="large" color="#2563EB" />
           </View>
         )}
       />

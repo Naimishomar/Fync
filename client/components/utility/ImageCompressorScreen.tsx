@@ -9,7 +9,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import { Image as ImageCompressor } from 'react-native-compressor';
 import * as Sharing from 'expo-sharing';
-import { LinearGradient } from 'expo-linear-gradient';
 // expo-file-system 19 moved documentDirectory / EncodingType /
 // StorageAccessFramework behind the legacy entry point; importing from the
 // package root leaves them undefined at runtime.
@@ -104,30 +103,33 @@ export default function ImageCompressorScreen() {
   };
 
   return (
-    <LinearGradient colors={['#ffffff', '#fff7ed', '#ffedd5']} className="flex-1">
+    <View className="flex-1" style={{ backgroundColor: '#ffffff' }}>
       <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS === 'android' ? 25 : 0 }}>
-        <View className="px-5 py-4 flex-row items-center border-b border-orange-100 bg-transparent">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
-            <Ionicons name="arrow-back" size={24} color="#0f172a" />
+        <View className="px-5 py-4 flex-row items-center border-b border-brand-100 bg-transparent">
+          <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+            <Ionicons name="arrow-back" size={24} color="#12100E" />
           </TouchableOpacity>
-          <Text className="text-xl font-black text-slate-900 tracking-tight flex-1">Compress Image</Text>
+          <Text className="text-xl font-display text-ink flex-1">Compress Image</Text>
         </View>
 
         <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
           {!originalUri ? (
             <TouchableOpacity
               onPress={pickImage}
-              className="w-full bg-white border-2 border-dashed border-sky-200 rounded-3xl p-8 items-center justify-center mb-6 shadow-sm"
+              className="w-full bg-card border-2 border-dashed border-fam-career/25 rounded-card p-card-pad items-center justify-center mb-6 shadow-hair"
             >
-              <View className="w-16 h-16 bg-sky-50 rounded-full items-center justify-center mb-3">
-                <Ionicons name="image-outline" size={32} color="#0ea5e9" />
+              <View className="w-16 h-16 bg-fam-career/10 rounded-full items-center justify-center mb-3">
+                <Ionicons name="image-outline" size={32} color="#0891B2" />
               </View>
-              <Text className="text-lg font-bold text-slate-800 mb-1">Select Image</Text>
-              <Text className="text-xs font-medium text-slate-500 text-center">Tap to choose a large image</Text>
+              <Text className="text-lg font-display text-ink mb-1">Select Image</Text>
+              <Text className="text-xs font-medium text-ink-3 text-center">Tap to choose a large image</Text>
             </TouchableOpacity>
           ) : (
             <View className="mb-6">
-              <View className="w-full aspect-[4/3] bg-slate-100 rounded-2xl overflow-hidden mb-4 border border-slate-200">
+              <View className="w-full aspect-[4/3] bg-paper-2 rounded-card overflow-hidden mb-4 border border-line">
                 <Image source={{ uri: compressedUri || originalUri }} className="w-full h-full" resizeMode="contain" />
                 <TouchableOpacity 
                   onPress={() => { setOriginalUri(null); setCompressedUri(null); }}
@@ -137,31 +139,31 @@ export default function ImageCompressorScreen() {
                 </TouchableOpacity>
               </View>
 
-              <View className="flex-row items-center justify-between bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-6">
+              <View className="flex-row items-center justify-between bg-card p-4 rounded-card border border-line shadow-hair mb-6">
                 <View>
-                  <Text className="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider">Original Size</Text>
-                  <Text className="text-base font-black text-slate-800">{formatSize(originalSize)}</Text>
+                  <Text className="text-xs text-ink-3 font-semibold mb-1 uppercase">Original Size</Text>
+                  <Text className="text-base font-display text-ink">{formatSize(originalSize)}</Text>
                 </View>
-                <Ionicons name="arrow-forward" size={20} color="#cbd5e1" />
+                <Ionicons name="arrow-forward" size={20} color="#C4BEB6" />
                 <View className="items-end">
-                  <Text className="text-xs text-sky-500 font-bold mb-1 uppercase tracking-wider">Compressed Size</Text>
-                  <Text className={`text-base font-black ${compressedUri ? 'text-sky-600' : 'text-slate-300'}`}>
+                  <Text className="text-xs text-fam-career font-semibold mb-1 uppercase">Compressed Size</Text>
+                  <Text className={`text-base font-display ${compressedUri ? 'text-fam-career' : 'text-ink-4'}`}>
                     {compressedUri ? formatSize(compressedSize) : '---'}
                   </Text>
                 </View>
               </View>
 
               {!compressedUri ? (
-                <View className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm mb-6">
-                  <Text className="text-sm font-bold text-slate-800 mb-4">Compression Quality</Text>
+                <View className="bg-card p-5 rounded-card border border-line shadow-hair mb-6">
+                  <Text className="text-sm font-semibold text-ink mb-4">Compression Quality</Text>
                   <View className="flex-row justify-between mb-6">
                     {['high', 'medium', 'low'].map((q) => (
                       <TouchableOpacity
                         key={q}
                         onPress={() => setQuality(q as any)}
-                        className={`flex-1 mx-1 py-2 rounded-xl items-center justify-center border ${quality === q ? 'bg-sky-50 border-sky-500' : 'bg-white border-slate-200'}`}
+                        className={`flex-1 mx-1 py-2 rounded-xl items-center justify-center border ${quality === q ? 'bg-fam-career/10 border-fam-career' : 'bg-card border-line'}`}
                       >
-                        <Text className={`text-xs font-bold capitalize ${quality === q ? 'text-sky-600' : 'text-slate-500'}`}>{q}</Text>
+                        <Text className={`text-xs font-semibold capitalize ${quality === q ? 'text-fam-career' : 'text-ink-3'}`}>{q}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -169,14 +171,14 @@ export default function ImageCompressorScreen() {
                   <TouchableOpacity
                     onPress={compressImage}
                     disabled={isProcessing}
-                    className={`w-full py-4 rounded-xl items-center justify-center flex-row ${isProcessing ? 'bg-sky-400' : 'bg-sky-500'}`}
+                    className={`w-full py-4 rounded-xl items-center justify-center flex-row ${isProcessing ? 'bg-fam-career' : 'bg-fam-career'}`}
                   >
                     {isProcessing ? (
                       <ActivityIndicator color="white" />
                     ) : (
                       <>
                         <Ionicons name="contract" size={20} color="white" className="mr-2" />
-                        <Text className="text-white font-bold text-base ml-2">Compress Now</Text>
+                        <Text className="text-white font-semibold text-base ml-2">Compress Now</Text>
                       </>
                     )}
                   </TouchableOpacity>
@@ -184,16 +186,16 @@ export default function ImageCompressorScreen() {
               ) : (
                 <TouchableOpacity
                   onPress={shareCompressed}
-                  className="w-full py-4 rounded-2xl items-center justify-center flex-row bg-slate-900 shadow-sm"
+                  className="w-full py-4 items-center justify-center flex-row bg-ink border-2 border-ink rounded-md"
                 >
                   <Ionicons name="share-outline" size={20} color="white" className="mr-2" />
-                  <Text className="text-white font-bold text-base ml-2">Save / Share Image</Text>
+                  <Text className="text-white font-semibold text-base ml-2">Save / Share Image</Text>
                 </TouchableOpacity>
               )}
             </View>
           )}
         </ScrollView>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }

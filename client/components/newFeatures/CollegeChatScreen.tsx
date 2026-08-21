@@ -254,7 +254,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
             <View className={`w-full ${isMe ? "items-end" : "items-start"} mb-2`}>
                 <View className={`flex-row items-end ${isMe ? "flex-row-reverse" : "flex-row"} max-w-[85%]`}>
                     <View className={`${isMe ? "ml-2 mb-5" : "mr-2 mb-5"}`}>
-                        <View className="w-8 h-8 rounded-full border-2 border-white shadow-sm overflow-hidden bg-slate-200">
+                        <View className="w-8 h-8 rounded-full border-2 border-white shadow-hair overflow-hidden bg-paper-2">
                             <Image
                                 source={{ uri: item.senderId?.avatar || `https://ui-avatars.com/api/?name=${item.senderId?.username}&background=f97316&color=fff` }}
                                 className="w-full h-full"
@@ -264,15 +264,15 @@ const CollegeChatScreen = ({ navigation }: any) => {
 
                     <View className={`${isMe ? "items-end" : "items-start"} flex-1`}>
                         {!isMe && (
-                            <Text className="text-2xs text-orange-500 font-black mb-1 ml-1 uppercase tracking-wide">
+                            <Text className="text-label text-accent-text font-display mb-1 ml-1 uppercase">
                                 @{item.senderId?.username}
                             </Text>
                         )}
 
                         {item.replyTo && (
-                            <View className={`px-3 py-2 bg-orange-50/50 rounded-t-xl border-l-2 border-orange-500 mb-[-8px] z-0 opacity-80 ${isMe ? "items-end" : "items-start"}`}>
-                                <Text className="text-2xs text-orange-600 font-black uppercase tracking-tighter">REF: @{item.replyTo.senderId?.username || 'user'}</Text>
-                                <Text className="text-2xs text-slate-500 font-medium" numberOfLines={1}>{item.replyTo.content || '[Media]'}</Text>
+                            <View className={`px-3 py-2 bg-brand-50/50 rounded-t-sheet border-l-2 border-brand-500 mb-[-8px] z-0 opacity-80 ${isMe ? "items-end" : "items-start"}`}>
+                                <Text className="text-label text-accent-text font-display uppercase">REF: @{item.replyTo.senderId?.username || 'user'}</Text>
+                                <Text className="text-label text-ink-3 font-medium" numberOfLines={1}>{item.replyTo.content || '[Media]'}</Text>
                             </View>
                         )}
 
@@ -296,10 +296,10 @@ const CollegeChatScreen = ({ navigation }: any) => {
                                 borderTopRightRadius: isMe ? 6 : 16,
                                 borderBottomRightRadius: isMe ? 6 : 16,
                             }}
-                            className={`px-4 py-2.5 ${isMe ? "bg-slate-900 shadow-md shadow-black/20" : "bg-white border border-slate-100 shadow-sm"} ${item.pending ? 'opacity-70' : ''}`}
+                            className={`px-4 py-2.5 ${isMe ? "bg-ink shadow-hair " : "bg-card border border-line shadow-hair"} ${item.pending ? 'opacity-70' : ''}`}
                         >
                             {item.messageType === "text" && (
-                                <Text className={`text-sm leading-5 font-bold tracking-tight ${isMe ? "text-white" : "text-slate-900"}`}>{item.content}</Text>
+                                <Text className={`text-sm leading-5 font-semibold ${isMe ? "text-white" : "text-ink"}`}>{item.content}</Text>
                             )}
                             {item.messageType === "image" && (
                                 <TouchableOpacity onPress={() => setSelectedImage(item.mediaUrl)}>
@@ -310,7 +310,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                                 <Pressable 
                                     onPress={(e) => e.stopPropagation()} 
                                     onLongPress={(e) => e.stopPropagation()} 
-                                    className="w-64 h-40 bg-slate-900 rounded-xl overflow-hidden shadow-lg"
+                                    className="w-64 h-40 bg-ink rounded-xl overflow-hidden shadow-hair"
                                 >
                                     <Video
                                         source={{ uri: item.mediaUrl }}
@@ -337,24 +337,24 @@ const CollegeChatScreen = ({ navigation }: any) => {
                                         Linking.openURL(item.mediaUrl);
                                     }}
                                     onLongPress={(e) => e.stopPropagation()}
-                                    className={`flex-row items-center p-3 rounded-xl ${isMe ? 'bg-white/10' : 'bg-black/5'}`}
+                                    className={`flex-row items-center p-3 rounded-xl ${isMe ? 'bg-card/10' : 'bg-black/5'}`}
                                 >
-                                    <View className={`w-10 h-10 rounded-lg items-center justify-center ${isMe ? 'bg-slate-800' : 'bg-orange-100'}`}>
-                                        <Ionicons name="document-text" size={24} color={isMe ? "white" : "#f97316"} />
+                                    <View className={`w-10 h-10 rounded-lg items-center justify-center ${isMe ? 'bg-ink' : 'bg-brand-100'}`}>
+                                        <Ionicons name="document-text" size={24} color={isMe ? "white" : "#F97316"} />
                                     </View>
                                     <View className="ml-3 flex-1">
-                                        <Text className={`text-sm font-bold ${isMe ? "text-white" : "text-slate-900"}`} numberOfLines={1}>
+                                        <Text className={`text-sm font-semibold ${isMe ? "text-white" : "text-ink"}`} numberOfLines={1}>
                                             {item.content || 'Shared Document'}
                                         </Text>
-                                        <Text className={`${isMe ? "text-slate-500" : "text-slate-500"} text-2xs uppercase font-bold`}>Tap to view file</Text>
+                                        <Text className={`${isMe ? "text-ink-3" : "text-ink-3"} text-label uppercase font-semibold`}>Tap to view file</Text>
                                     </View>
-                                    <Ionicons name="chevron-forward" size={18} color={isMe ? "white" : "#cbd5e1"} />
+                                    <Ionicons name="chevron-forward" size={18} color={isMe ? "white" : "#C4BEB6"} />
                                 </Pressable>
                             )}
                         </TouchableOpacity>
 
                         <View className={`flex-row items-center mt-1.5 ${isMe ? "justify-end" : "justify-start"}`}>
-                            <Text className="text-2xs text-slate-500 font-black uppercase tracking-tighter">
+                            <Text className="text-label text-ink-3 font-display uppercase">
                                 {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </Text>
                         </View>
@@ -365,28 +365,38 @@ const CollegeChatScreen = ({ navigation }: any) => {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+        <View style={{ flex: 1, backgroundColor: '#F5F2EC' }}>
             {/* SOLAR GLOW */}
             <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 350, zIndex: -1 }} pointerEvents="none">
-                <LinearGradient colors={['#fff7ed', 'rgba(255, 247, 237, 0)']} style={{ flex: 1 }} />
+                <LinearGradient colors={['#EDE8E0', 'rgba(255, 247, 237, 0)']} style={{ flex: 1 }} />
             </View>
 
             {/* HEADER */}
             <SafeAreaView edges={['top']} style={{ backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: 'rgba(249, 115, 22, 0.1)' }}>
-                <View className="flex-row items-center justify-between px-6 py-4">
-                    <View className="flex-row items-center">
-                        <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 items-center justify-center rounded-2xl bg-white shadow-sm border border-orange-50 mr-3">
-                            <Ionicons name="chevron-back" size={20} color="#f97316" />
-                        </TouchableOpacity>
-                        <View>
-                            <Text className="font-black text-slate-900 text-base tracking-tight">{user?.college} Hub</Text>
-                            <Text className="text-2xs text-orange-500 font-black uppercase tracking-wide mt-0.5">Vanish every 24h • Keep it real</Text>
-                        </View>
+                {/* Standard app bar: the back chevron sits in a 44px touch box that
+                    overhangs by 11px, so the GLYPH lands on the 20px gutter rather
+                    than the box edge. */}
+                <View className="flex-row items-center px-gutter pt-2 pb-3" style={{ gap: 12 }}>
+                    <TouchableOpacity
+                        onPress={() => navigation.goBack()}
+                        accessibilityRole="button"
+                        accessibilityLabel="Go back"
+                        className="w-11 h-11 items-center justify-center rounded-xl"
+                        style={{ marginLeft: -11 }}
+                    >
+                        <Ionicons name="chevron-back" size={22} color="#12100E" />
+                    </TouchableOpacity>
+                    <View className="flex-1 min-w-0">
+                        <Text className="font-display text-h2 text-ink" numberOfLines={1}>{user?.college} Hub</Text>
+                        <Text className="font-sans text-sm text-ink-3" numberOfLines={1}>Vanish every 24h · Keep it real</Text>
                     </View>
-                    <View className="bg-orange-600 px-3 py-1.5 rounded-2xl shadow-md shadow-orange-500/30 items-center">
-                        <Text className="text-2xs text-orange-100 font-black uppercase tracking-wide mb-0.5">Expires In</Text>
-                        <Text className="text-white font-black text-xs tracking-tighter">{timeLeft}</Text>
-                    </View>
+                </View>
+
+                {/* The countdown is the point of this room, so it gets a strip of
+                    its own rather than a chip fighting the title for width. */}
+                <View className="flex-row items-center justify-center bg-brand-50 py-2.5" style={{ gap: 8 }}>
+                    <Ionicons name="timer-outline" size={15} color="#EA580C" />
+                    <Text className="font-display text-label text-brand-700 uppercase">Expires in {timeLeft}</Text>
                 </View>
             </SafeAreaView>
 
@@ -399,9 +409,9 @@ const CollegeChatScreen = ({ navigation }: any) => {
 
 
                     {/* MESSAGES */}
-                    <View className="flex-1 bg-white shadow-sm overflow-hidden border-t border-slate-100">
+                    <View className="flex-1 bg-paper shadow-hair overflow-hidden border-t border-line">
                         {loading ? (
-                            <View className="flex-1 justify-center items-center"><ActivityIndicator size="large" color="#f97316" /></View>
+                            <View className="flex-1 justify-center items-center"><ActivityIndicator size="large" color="#F97316" /></View>
                         ) : (
                             <FlatList
                                 ref={flatListRef}
@@ -419,14 +429,14 @@ const CollegeChatScreen = ({ navigation }: any) => {
                     </View>
 
                     {/* INPUT AREA */}
-                    <View className="bg-white">
+                    <View className="bg-card">
                         {replyTo && (
-                            <View className="flex-row items-center justify-between bg-orange-50 px-6 py-2 border-l-4 border-orange-500">
+                            <View className="flex-row items-center justify-between bg-brand-50 px-6 py-2 border-l-4 border-brand-500">
                                 <View className="flex-1">
-                                    <Text className="text-2xs text-orange-600 font-bold uppercase">Replying to @{replyTo.senderId?.username}</Text>
-                                    <Text className="text-xs text-slate-500" numberOfLines={1}>{replyTo.content || '[Media]'}</Text>
+                                    <Text className="text-label text-accent-text font-semibold uppercase">Replying to @{replyTo.senderId?.username}</Text>
+                                    <Text className="text-xs text-ink-3" numberOfLines={1}>{replyTo.content || '[Media]'}</Text>
                                 </View>
-                                <TouchableOpacity onPress={() => setReplyTo(null)}><Ionicons name="close-circle" size={20} color="#f97316" /></TouchableOpacity>
+                                <TouchableOpacity onPress={() => setReplyTo(null)}><Ionicons name="close-circle" size={20} color="#F97316" /></TouchableOpacity>
                             </View>
                         )}
                         <View
@@ -435,12 +445,12 @@ const CollegeChatScreen = ({ navigation }: any) => {
                             }}
                             className="px-6 pt-2 flex-row items-center"
                         >
-                            <View className="flex-row items-center bg-slate-100 flex-1 p-1 rounded-3xl border border-slate-100">
-                                <TouchableOpacity onPress={handlePickImage} className="w-9 h-9 items-center justify-center rounded-full bg-orange-50/50 ml-1">
-                                    <Ionicons name="image" size={18} color="#f97316" />
+                            <View className="flex-row items-center bg-paper-2 flex-1 p-1 border border-line rounded-md">
+                                <TouchableOpacity onPress={handlePickImage} className="w-9 h-9 items-center justify-center rounded-full bg-brand-50/50 ml-1" hitSlop={4}>
+                                    <Ionicons name="image" size={18} color="#F97316" />
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={handlePickDocument} className="w-9 h-9 items-center justify-center rounded-full bg-orange-50/50 ml-1">
-                                    <Ionicons name="document-attach" size={18} color="#f97316" />
+                                <TouchableOpacity onPress={handlePickDocument} className="w-9 h-9 items-center justify-center rounded-full bg-brand-50/50 ml-1" hitSlop={4}>
+                                    <Ionicons name="document-attach" size={18} color="#F97316" />
                                 </TouchableOpacity>
                                 <TextInput
                                     value={text}
@@ -448,14 +458,14 @@ const CollegeChatScreen = ({ navigation }: any) => {
                                     onFocus={() => setIsKeyboardVisible(true)}
                                     onBlur={() => setIsKeyboardVisible(false)}
                                     placeholder="Broadcast to campus..."
-                                    placeholderTextColor="#94a3b8"
-                                    className="flex-1 px-3 text-slate-900 font-bold text-sm tracking-tight py-2"
+                                    placeholderTextColor="#8B857E"
+                                    className="flex-1 px-3 text-ink font-semibold text-sm py-2"
                                     multiline
                                 />
                             </View>
                              <View className="ml-2">
                                 {text.trim().length > 0 && (
-                                    <TouchableOpacity onPress={handleSendText} className="w-12 h-12 bg-orange-600 items-center justify-center rounded-full shadow-lg shadow-orange-500/50">
+                                    <TouchableOpacity onPress={handleSendText} className="w-12 h-12 bg-brand-600 items-center justify-center rounded-full shadow-hair">
                                         <Ionicons name="send" size={20} color="white" />
                                     </TouchableOpacity>
                                 )}
@@ -469,7 +479,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                 <View className="flex-1 bg-black/95 justify-center items-center">
                     <TouchableOpacity
                         onPress={() => setSelectedImage(null)}
-                        className="absolute top-12 right-6 w-10 h-10 bg-white/10 rounded-full items-center justify-center z-50"
+                        className="absolute top-12 right-6 w-10 h-10 bg-card/10 rounded-full items-center justify-center z-50"
                     >
                         <Ionicons name="close" size={24} color="white" />
                     </TouchableOpacity>

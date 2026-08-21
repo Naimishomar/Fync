@@ -17,7 +17,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import * as ImagePicker from 'expo-image-picker';
@@ -129,24 +128,24 @@ const ContactUs = () => {
 
     if (isSubmitted) {
         return (
-            <View className="flex-1 bg-white items-center justify-center">
+            <View className="flex-1 bg-paper items-center justify-center">
                 <StatusBar barStyle="dark-content" />
-                <LinearGradient colors={['#FFF7ED', '#FFFFFF']} className="absolute inset-0" />
+                <View className="absolute inset-0"  style={{ backgroundColor: '#EDE8E0' }} />
                 
-                <View className="items-center px-10">
-                    <View className="w-24 h-24 bg-orange-500 rounded-full items-center justify-center mb-10 shadow-2xl shadow-orange-500/40">
-                        <Ionicons name="checkmark-done" size={48} color="white" />
+                <View className="items-center px-gutter">
+                    <View className="w-24 h-24 bg-brand-500 rounded-full items-center justify-center mb-10 shadow-hair">
+                        <Ionicons name="checkmark-done" size={48} color="#12100E" />
                     </View>
                     
-                    <Text className="text-slate-900 text-4xl font-[900] text-center leading-[45px] mb-8 tracking-[-1px]">
+                    <Text className="text-ink text-4xl font-[900] text-center leading-[45px] mb-8">
                         Nice to meet you, we will chat soon.
                     </Text>
 
                     <TouchableOpacity
-                        className="bg-black w-full py-6 rounded-4xl items-center shadow-2xl shadow-black/20"
+                        className="bg-ink w-full py-6 items-center border-2 border-ink rounded-md"
                         onPress={() => navigation.navigate('Tabs')}
                     >
-                        <Text className="text-white text-base font-bold">Take me back home</Text>
+                        <Text className="text-white text-base font-semibold">Take me back home</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -154,13 +153,10 @@ const ContactUs = () => {
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-[#F8FAFC]">
+        <SafeAreaView className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
             
             {/* Background Aesthetic */}
-            <View className="absolute top-0 w-full h-96 opacity-20">
-                <LinearGradient colors={['#f97316', 'transparent']} className="w-full h-full" />
-            </View>
 
             <KeyboardAvoidingView
                 behavior="padding"
@@ -170,47 +166,50 @@ const ContactUs = () => {
                     showsVerticalScrollIndicator={false} 
                     contentContainerStyle={{ paddingBottom: 100 }}
                 >
-                    <View className="px-8 mt-5">
+                    <View className="px-gutter mt-5">
                         <View className="mb-10">
-                            <Text className="text-slate-900 text-4xl font-black uppercase tracking-tighter">
-                                Support <Text className="text-orange-500">Team</Text>
+                            <Text className="text-ink text-4xl font-display uppercase">
+                                Support <Text className="text-accent-text">Team</Text>
                             </Text>
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Feel Free To Contact Us</Text>
+                            <Text className="text-ink-3 text-label font-display uppercase">Feel Free To Contact Us</Text>
                         </View>
 
-                        <View className="bg-white p-6 rounded-4xl border border-slate-100 shadow-2xl shadow-black/5 flex-row items-center mb-10">
-                            <View className="w-12 h-12 bg-orange-50 rounded-2xl items-center justify-center">
-                                <Ionicons name="business" size={20} color="#f97316" />
+                        <View
+                            className="bg-card p-card-pad border-2 border-ink flex-row items-center mb-10 rounded-md"
+                            style={{ shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 }}
+                        >
+                            <View className="w-12 h-12 bg-brand-50 rounded-card items-center justify-center">
+                                <Ionicons name="business" size={20} color="#F97316" />
                             </View>
                             <View className="ml-4 flex-1">
-                                <Text className="text-slate-900 font-black uppercase text-2xs tracking-tight">Main HQ</Text>
-                                <Text className="text-slate-500 font-bold text-2xs uppercase mt-0.5">KIET Deemed University, UP</Text>
+                                <Text className="text-ink font-display uppercase text-label">Main HQ</Text>
+                                <Text className="font-sans text-sm text-ink-2 mt-0.5">KIET Deemed University, UP</Text>
                             </View>
                             <View className="items-end">
-                                <Text className="text-orange-500 font-black text-2xs uppercase">Active Now</Text>
-                                <View className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1 shadow-sm shadow-emerald-500/50" />
+                                <Text className="font-display text-label text-success uppercase">Active Now</Text>
+                                <View className="w-1.5 h-1.5 bg-success rounded-full mt-1" />
                             </View>
                         </View>
 
                         {/* Form Card */}
-                        <View className="bg-white rounded-5xl p-8 shadow-2xl shadow-black/10 border border-slate-50">
+                        <View className="bg-card rounded-sheet p-card-pad shadow-hair border border-line">
                             <View className="mb-8">
-                                <Text className="text-2xs font-black text-slate-500 uppercase tracking-wide mb-3 ml-2">Operator Identity</Text>
+                                <Text className="text-label font-display text-ink-3 uppercase mb-3 ml-2">Operator Identity</Text>
                                 <TextInput
-                                    className="bg-slate-50 p-5 rounded-3xl text-xs text-slate-900 font-black uppercase tracking-tight border border-slate-100"
+                                    className="font-semibold text-base text-ink bg-card p-5 border-[1.5px] border-ink rounded-md"
                                     placeholder="e.g. Naimish Omar"
-                                    placeholderTextColor="#CBD5E1"
+                                    placeholderTextColor="#C4BEB6"
                                     value={formData.name}
                                     onChangeText={(text) => setFormData({ ...formData, name: text })}
                                 />
                             </View>
 
                             <View className="mb-8">
-                                <Text className="text-2xs font-black text-slate-500 uppercase tracking-wide mb-3 ml-2">Signal Frequency (Phone)</Text>
+                                <Text className="text-label font-display text-ink-3 uppercase mb-3 ml-2">Signal Frequency (Phone)</Text>
                                 <TextInput
-                                    className="bg-slate-50 p-5 rounded-3xl text-xs text-slate-900 font-black uppercase tracking-tight border border-slate-100"
+                                    className="font-semibold text-base text-ink bg-card p-5 border-[1.5px] border-ink rounded-md"
                                     placeholder="+91 1234567890"
-                                    placeholderTextColor="#CBD5E1"
+                                    placeholderTextColor="#C4BEB6"
                                     keyboardType="phone-pad"
                                     value={formData.phone}
                                     onChangeText={(text) => setFormData({ ...formData, phone: text })}
@@ -218,11 +217,11 @@ const ContactUs = () => {
                             </View>
 
                             <View className="mb-8">
-                                <Text className="text-2xs font-black text-slate-500 uppercase tracking-wide mb-3 ml-2">Digital Ledger (Email)</Text>
+                                <Text className="text-label font-display text-ink-3 uppercase mb-3 ml-2">Digital Ledger (Email)</Text>
                                 <TextInput
-                                    className="bg-slate-50 p-5 rounded-3xl text-xs text-slate-900 font-black uppercase tracking-tight border border-slate-100"
+                                    className="font-semibold text-base text-ink bg-card p-5 border-[1.5px] border-ink rounded-md"
                                     placeholder="dev.fync@email.com"
-                                    placeholderTextColor="#CBD5E1"
+                                    placeholderTextColor="#C4BEB6"
                                     keyboardType="email-address"
                                     autoCapitalize="none"
                                     value={formData.email}
@@ -231,11 +230,11 @@ const ContactUs = () => {
                             </View>
 
                             <View className="mb-10">
-                                <Text className="text-2xs font-black text-slate-500 uppercase tracking-wide mb-3 ml-2">Transmission Content</Text>
+                                <Text className="text-label font-display text-ink-3 uppercase mb-3 ml-2">Transmission Content</Text>
                                 <TextInput
-                                    className="bg-slate-50 p-6 rounded-4xl text-xs text-slate-700 font-medium min-h-[160px] border border-slate-100"
+                                    className="bg-card p-6 text-xs text-ink-2 font-medium min-h-[160px] border-[1.5px] border-ink rounded-md"
                                     placeholder='Define the requirements / issues...'
-                                    placeholderTextColor="#CBD5E1"
+                                    placeholderTextColor="#C4BEB6"
                                     multiline
                                     numberOfLines={4}
                                     value={formData.message}
@@ -247,15 +246,15 @@ const ContactUs = () => {
                             {/* Evidence */}
                             <View className="mb-12">
                                 <View className="flex-row justify-between items-center mb-4 px-2">
-                                    <Text className="text-2xs font-black text-slate-500 uppercase tracking-wide">Visual Evidence (Max 3)</Text>
-                                    <View className="bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
-                                        <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide">{selectedImages.length}/3</Text>
+                                    <Text className="text-label font-display text-ink-3 uppercase">Visual Evidence (Max 3)</Text>
+                                    <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
+                                        <Text className="text-label text-ink-3 font-display uppercase">{selectedImages.length}/3</Text>
                                     </View>
                                 </View>
 
                                 <View className="flex-row gap-4">
                                     {selectedImages.map((uri, index) => (
-                                        <View key={index} className="relative w-20 h-20 rounded-2xl overflow-hidden bg-slate-50 border border-slate-200">
+                                        <View key={index} className="relative w-20 h-20 rounded-card overflow-hidden bg-paper-2 border border-line">
                                             <Image source={{ uri }} className="w-full h-full" />
                                             <TouchableOpacity
                                                 onPress={() => removeImage(index)}
@@ -269,10 +268,10 @@ const ContactUs = () => {
                                     {selectedImages.length < 3 && (
                                         <TouchableOpacity
                                             onPress={pickImages}
-                                            className="w-20 h-20 rounded-2xl border border-dashed border-slate-300 justify-center items-center bg-white"
+                                            className="w-20 h-20 rounded-card border border-dashed border-line justify-center items-center bg-card"
                                         >
-                                            <MaterialCommunityIcons name="camera-plus-outline" size={24} color="#CBD5E1" />
-                                            <Text className="text-2xs font-black text-slate-300 mt-1 uppercase">Attach</Text>
+                                            <MaterialCommunityIcons name="camera-plus-outline" size={24} color="#C4BEB6" />
+                                            <Text className="text-label font-display text-ink-4 mt-1 uppercase">Attach</Text>
                                         </TouchableOpacity>
                                     )}
                                 </View>
@@ -280,14 +279,14 @@ const ContactUs = () => {
 
                             <TouchableOpacity
                                 activeOpacity={0.9}
-                                className={`bg-slate-900 py-6 items-center rounded-4xl shadow-2xl shadow-black/30 ${isLoading ? 'opacity-70' : ''}`}
+                                className={`bg-ink py-6 items-center rounded-sheet shadow-hair ${isLoading ? 'opacity-70' : ''}`}
                                 onPress={handleSubmit}
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
                                     <ActivityIndicator color="white" />
                                 ) : (
-                                    <Text className="text-white text-xs font-black uppercase tracking-wide">Deploy Transmission</Text>
+                                    <Text className="font-display text-paper uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Deploy Transmission</Text>
                                 )}
                             </TouchableOpacity>
 
@@ -295,8 +294,8 @@ const ContactUs = () => {
                                 onPress={() => navigation.navigate('MeetOurTeam')}
                                 className="mt-8 items-center"
                             >
-                                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Meet <Text className="text-orange-500">Team HQ</Text></Text>
-                                <View className="w-12 h-0.5 bg-orange-500/20 mt-1 rounded-full" />
+                                <Text className="text-ink-3 text-label font-display uppercase">Meet <Text className="text-accent-text">Team HQ</Text></Text>
+                                <View className="w-12 h-0.5 bg-brand-500/20 mt-1 rounded-full" />
                             </Pressable>
                         </View>
                     </View>

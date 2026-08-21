@@ -73,17 +73,21 @@ const CreateSubGroupScreen = () => {
     };
 
     return (
-        <View className="flex-1 bg-white">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top']}>
                 {/* Header */}
-                <View className="px-5 py-4 flex-row items-center justify-between border-b border-slate-100">
-                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                <View className="px-5 py-4 flex-row items-center justify-between border-b border-line">
+                    <TouchableOpacity onPress={() => navigation.goBack()}
+            className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
                         <Ionicons name="close" size={28} color="black" />
                     </TouchableOpacity>
                     <View className="items-center">
-                        <Text className="text-slate-900 text-lg font-black uppercase tracking-widest">Generate Room</Text>
-                        <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-0.5">Expanding your Hub</Text>
+                        <Text className="text-ink text-lg font-display uppercase">Generate Room</Text>
+                        <Text className="text-ink-3 text-label font-semibold uppercase mt-0.5">Expanding your Hub</Text>
                     </View>
                     <View className="w-8" />
                 </View>
@@ -95,14 +99,14 @@ const CreateSubGroupScreen = () => {
                         <View className="items-center mb-8 mt-4">
                             <TouchableOpacity onPress={pickLogo} activeOpacity={0.8} className="relative">
                                 {logo ? (
-                                    <Image source={{ uri: logo.uri }} className="w-24 h-24 rounded-4xl border-2 border-slate-100 bg-slate-50" />
+                                    <Image source={{ uri: logo.uri }} className="w-24 h-24 rounded-sheet border-2 border-line bg-paper-2" />
                                 ) : (
-                                    <View className="w-24 h-24 bg-slate-50 rounded-4xl items-center justify-center border-2 border-dashed border-slate-200">
-                                        <Feather name="image" size={24} color="#a1a1aa" />
-                                        <Text className="text-2xs font-black uppercase text-slate-500 mt-2">Add Logo</Text>
+                                    <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center">
+                                        <Feather name="image" size={24} color="#8B857E" />
+                                        <Text className="text-label font-display uppercase text-ink-3 mt-2">Add Logo</Text>
                                     </View>
                                 )}
-                                <View className="absolute -bottom-1 -right-1 bg-black w-8 h-8 rounded-full items-center justify-center border-4 border-white">
+                                <View className="absolute -bottom-1 -right-1 bg-ink w-8 h-8 rounded-full items-center justify-center border-4 border-white">
                                     <Feather name="plus" size={14} color="white" />
                                 </View>
                             </TouchableOpacity>
@@ -110,18 +114,18 @@ const CreateSubGroupScreen = () => {
 
                         {/* Form Fields */}
                         <View className="mt-2">
-                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-2 ml-1">Room Identity</Text>
+                            <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Room Identity</Text>
                             <TextInput 
                                 placeholder="e.g. Web Development, AI, Sports Talk"
-                                className="bg-slate-50 p-5 rounded-2xl mb-4 font-bold border border-slate-100 text-slate-900"
+                                className="bg-card p-5 mb-4 font-semibold border-[1.5px] border-ink text-ink rounded-md"
                                 value={name}
                                 onChangeText={setName}
                             />
                             
-                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-2 ml-1">Scope & Mission</Text>
+                            <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Scope & Mission</Text>
                             <TextInput 
                                 placeholder="Briefly describe what happens in this room..."
-                                className="bg-slate-50 p-5 rounded-2xl mb-10 font-semibold border border-slate-100 text-slate-900"
+                                className="bg-card p-5 mb-10 font-semibold border-[1.5px] border-ink text-ink rounded-md"
                                 multiline
                                 numberOfLines={4}
                                 value={description}
@@ -132,12 +136,12 @@ const CreateSubGroupScreen = () => {
                         <TouchableOpacity 
                             onPress={handleCreate}
                             disabled={loading}
-                            className="bg-black py-5 rounded-3xl items-center shadow-xl shadow-black/20"
+                            className="bg-ink py-5 items-center border-2 border-ink rounded-md"
                         >
                             {loading ? (
                                 <ActivityIndicator color="white" />
                             ) : (
-                                <Text className="text-white font-black uppercase tracking-widest">Launch Room</Text>
+                                <Text className="text-white font-display uppercase">Launch Room</Text>
                             )}
                         </TouchableOpacity>
                         

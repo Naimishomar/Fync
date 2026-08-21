@@ -4,7 +4,6 @@ import { BlurView } from 'expo-blur';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import axios from '../context/axiosConfig';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Alert } from './ui/AlertModal';
 
 const { width, height } = Dimensions.get('window');
@@ -58,22 +57,17 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
       <View className="flex-1 justify-end">
         <BlurView intensity={80} tint="dark" className="absolute inset-0" />
         
-        <View className="bg-[#FDFDFF] rounded-t-5xl h-[80%] border-t border-slate-100">
-          {/* Accent Gradient */}
-          <LinearGradient
-            colors={['rgba(249, 115, 22, 0.05)', 'transparent']}
-            className="absolute top-0 left-0 right-0 h-64 rounded-t-5xl"
-          />
+        <View className="bg-paper rounded-t-sheet h-[80%] border-t border-line">
 
           {/* Header */}
-          <View className="px-8 pt-10 pb-6">
+          <View className="px-gutter pt-10 pb-6">
             <View className="flex-row items-center justify-between mb-8">
               <View>
-                <Text className="text-slate-900 text-3xl font-black uppercase tracking-tighter">
-                  Campus <Text className="text-orange-500">Legends</Text>
+                <Text className="text-ink font-display uppercase text-h1">
+                  Campus <Text className="text-accent-text">Legends</Text>
                 </Text>
                 <View className="flex-row items-center">
-                  <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Daily Contribution Elite</Text>
+                  <Text className="text-ink-3 text-label font-display uppercase">Daily Contribution Elite</Text>
                 </View>
               </View>
               
@@ -81,63 +75,69 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                 <TouchableOpacity 
                   onPress={() => {
                     Alert.alert(
-                      "🔥 Streak Rules",
+                      "Streak Rules",
                       "Keep the flame alive and climb the ranks!\n\n1. Post a Daily Post or Short to increase your streak.\n2. Consistency is key: You must post every single day.\n3. If you miss a day, your streak resets to 0 by the end of the day.\n\nTop 10 users with the highest streaks get featured as Campus Legends!",
                       [{ text: "Got it!" }]
                     );
                   }}
-                  className="w-11 h-11 bg-slate-200 rounded-2xl items-center justify-center border border-slate-100"
+                  className="w-11 h-11 bg-paper-2 rounded-card items-center justify-center border border-line"
                 >
-                  <Ionicons name="information-circle-outline" size={22} color="#475569" />
+                  <Ionicons name="information-circle-outline" size={22} color="#57534E" />
                 </TouchableOpacity>
 
                 <TouchableOpacity 
                   onPress={onClose}
-                  className="w-11 h-11 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100"
+                  className="w-11 h-11 bg-paper-2 rounded-card items-center justify-center border border-line"
                 >
-                  <Ionicons name="close" size={22} color="#1e293b" />
+                  <Ionicons name="close" size={22} color="#12100E" />
                 </TouchableOpacity>
               </View>
             </View>
 
             {/* Current User Rank Card - High Contrast Orange */}
             <View 
-              className="bg-orange-500 p-6 rounded-4xl"
+              className="bg-brand-500 p-6 rounded-sheet border-2 border-ink"
               style={{
-                shadowColor: "#f97316",
-                shadowOffset: { width: 0, height: 10 },
-                shadowOpacity: 0.25,
-                shadowRadius: 15,
-                elevation: 10
+                shadowColor: "#12100E",
+                shadowOffset: { width: 4, height: 4 },
+                shadowOpacity: 1,
+                shadowRadius: 0,
+                elevation: 6
               }}
             >
                <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center">
-                    <View className="bg-white/20 w-12 h-12 rounded-2xl items-center justify-center mr-4">
-                      <Text className="text-white font-black text-xl">#{userRank > 0 ? userRank : '--'}</Text>
+                    <View className="bg-card/20 w-12 h-12 rounded-card items-center justify-center mr-4">
+                      <Text className="text-ink font-display text-xl">#{userRank > 0 ? userRank : '--'}</Text>
                     </View>
                     <View>
-                      <Text className="text-white/70 text-2xs font-black uppercase tracking-wide mb-0.5">Your Position</Text>
-                      <Text className="text-white text-base font-black uppercase tracking-tight">Global Ranking</Text>
+                      <View className="flex-row items-center mt-6 mb-0.5" style={{ gap: 12 }}>
+                        <Text className="text-white/70 text-label font-display uppercase">Your Position</Text>
+                        <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                      </View>
+                      <Text className="text-white text-base font-display uppercase">Global Ranking</Text>
                     </View>
                   </View>
                   <View className="items-end">
-                    <Text className="text-white/70 text-2xs font-black uppercase tracking-wide mb-0.5">Current Streak</Text>
+                    <View className="flex-row items-center mt-6 mb-0.5" style={{ gap: 12 }}>
+                      <Text className="text-white/70 text-label font-display uppercase">Current Streak</Text>
+                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                    </View>
                     <View className="flex-row items-center">
-                      <Text className="text-white text-2xl font-black">{userStreak}</Text>
+                      <Text className="text-white text-2xl font-display">{userStreak}</Text>
                       <MaterialCommunityIcons name="fire" size={24} color="white" className="ml-1" />
                     </View>
                     
                     <View className="mt-1">
                       {completedToday ? (
-                        <View className="flex-row items-center bg-white/20 px-2 py-1 rounded-full">
+                        <View className="flex-row items-center bg-card/20 px-2 py-1 rounded-full">
                           <MaterialCommunityIcons name="check-circle" size={10} color="#fff" />
-                          <Text className="text-white text-2xs font-black uppercase tracking-wide ml-1">Secured Today</Text>
+                          <Text className="text-white text-label font-display uppercase ml-1">Secured Today</Text>
                         </View>
                       ) : (
-                        <View className="flex-row items-center bg-red-500/40 px-2 py-1 rounded-full border border-red-400/50">
+                        <View className="flex-row items-center bg-danger/40 px-2 py-1 rounded-full border border-danger/50">
                           <MaterialCommunityIcons name="clock-alert-outline" size={10} color="#fff" />
-                          <Text className="text-white text-2xs font-black uppercase tracking-wide ml-1">Post To Secure</Text>
+                          <Text className="text-white text-label font-display uppercase ml-1">Post To Secure</Text>
                         </View>
                       )}
                     </View>
@@ -150,14 +150,14 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
           <View className="flex-1 px-5">
             {loading ? (
               <View className="flex-1 items-center justify-center">
-                <ActivityIndicator size="large" color="#f97316" />
+                <ActivityIndicator size="large" color="#F97316" />
               </View>
             ) : (
               <FlatList
                 data={data}
                 renderItem={({ item, index }) => (
                   <View 
-                    className="flex-row items-center px-4 py-4 mb-4 bg-white rounded-3xl border border-slate-100"
+                    className="flex-row items-center px-4 py-4 mb-4 bg-card rounded-card border border-line"
                     style={{
                       shadowColor: "#000",
                       shadowOffset: { width: 0, height: 2 },
@@ -171,30 +171,30 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                         <MaterialCommunityIcons 
                           name="crown" 
                           size={22} 
-                          color={index === 0 ? "#FFD700" : index === 1 ? "#94a3b8" : "#d97706"} 
+                          color={index === 0 ? "#F5B700" : index === 1 ? "#8B857E" : "#B45309"} 
                         />
                       ) : (
-                        <Text className="text-slate-300 font-black text-sm">#{index + 1}</Text>
+                        <Text className="text-ink-4 font-display text-sm">#{index + 1}</Text>
                       )}
                     </View>
                     
                     <Image 
                       source={{ uri: item.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }} 
-                      className="w-11 h-11 rounded-2xl mr-4 border border-slate-50"
+                      className="w-11 h-11 rounded-card mr-4 border border-line"
                     />
                     
                     <View className="flex-1">
-                      <Text className="text-slate-800 font-black text-sm uppercase tracking-tight" numberOfLines={1}>
+                      <Text className="text-ink font-display text-sm uppercase" numberOfLines={1}>
                         {item.name}
                       </Text>
-                      <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wider">
+                      <Text className="text-ink-3 text-label font-semibold uppercase">
                         {item.college || 'Fync Student'}
                       </Text>
                     </View>
 
-                    <View className="flex-row items-center bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-100">
-                      <Text className="text-orange-600 font-black text-xs mr-1">{item.streakCount}</Text>
-                      <MaterialCommunityIcons name="fire" size={16} color="#f97316" />
+                    <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
+                      <Text className="text-accent-text font-display text-xs mr-1">{item.streakCount}</Text>
+                      <MaterialCommunityIcons name="fire" size={16} color="#F97316" />
                     </View>
                   </View>
                 )}
@@ -202,12 +202,12 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 60, paddingTop: 10 }}
                 ListEmptyComponent={() => (
-                  <View className="items-center mt-20 px-10">
-                    <View className="bg-slate-50 p-8 rounded-full mb-6">
-                      <MaterialCommunityIcons name="fire-off" size={64} color="#cbd5e1" />
+                  <View className="items-center mt-20 px-gutter">
+                    <View className="bg-paper-2 p-card-pad rounded-full mb-6">
+                      <MaterialCommunityIcons name="fire-off" size={64} color="#C4BEB6" />
                     </View>
-                    <Text className="text-slate-800 font-black text-lg uppercase text-center">Ecosystem Inactive</Text>
-                    <Text className="text-slate-500 text-2xs font-black text-center mt-2 uppercase tracking-wide leading-4">
+                    <Text className="text-ink font-display text-lg uppercase text-center">Ecosystem Inactive</Text>
+                    <Text className="font-sans text-sm text-ink-3 text-center mt-2">
                       No active streaks detected.{'\n'}Be the first to start the flame!
                     </Text>
                   </View>

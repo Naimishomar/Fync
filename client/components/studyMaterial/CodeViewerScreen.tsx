@@ -21,7 +21,7 @@ const CodeViewerScreen = ({ route, navigation } : any) => {
           body {
             margin: 0;
             padding: 0;
-            background-color: #1d1f21;
+            background-color: #12100E;
             font-family: 'Fira Code', monospace;
           }
           pre {
@@ -67,15 +67,15 @@ const CodeViewerScreen = ({ route, navigation } : any) => {
   `;
 
   return (
-    <View className="flex-1 bg-[#1d1f21]">
+    <View className="flex-1 bg-ink">
       <StatusBar barStyle="light-content" />
       <WebView 
         source={{ html: htmlContent }} 
-        style={{ flex: 1, backgroundColor: '#1d1f21' }}
+        style={{ flex: 1, backgroundColor: '#12100E' }}
         startInLoadingState={true}
         renderLoading={() => (
-          <View className="absolute inset-0 items-center justify-center bg-[#1d1f21]">
-            <ActivityIndicator size="large" color="#f97316" />
+          <View className="absolute inset-0 items-center justify-center bg-ink">
+            <ActivityIndicator size="large" color="#F97316" />
           </View>
         )}
       />

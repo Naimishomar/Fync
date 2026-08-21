@@ -26,7 +26,7 @@ type IconProps = {
 };
 
 const feather = (name: React.ComponentProps<typeof Feather>['name']) => {
-  const Component = ({ size = 24, color = '#000', style }: IconProps) => (
+  const Component = ({ size = 24, color = '#12100E', style }: IconProps) => (
     <Feather name={name} size={size} color={color} style={style} />
   );
   Component.displayName = `Feather(${name})`;
@@ -34,7 +34,7 @@ const feather = (name: React.ComponentProps<typeof Feather>['name']) => {
 };
 
 const ionicon = (name: React.ComponentProps<typeof Ionicons>['name']) => {
-  const Component = ({ size = 24, color = '#000', style }: IconProps) => (
+  const Component = ({ size = 24, color = '#12100E', style }: IconProps) => (
     <Ionicons name={name} size={size} color={color} style={style} />
   );
   Component.displayName = `Ionicons(${name})`;

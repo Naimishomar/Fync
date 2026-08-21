@@ -14,7 +14,6 @@ import { StatusBar } from 'expo-status-bar';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
@@ -30,10 +29,10 @@ interface Submission {
 }
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
-  draft: { label: 'Draft', color: '#f97316', bg: '#fff7ed' },
-  submitted: { label: 'Submitted', color: '#3b82f6', bg: '#eff6ff' },
-  underReview: { label: 'Under Review', color: '#f59e0b', bg: '#fffbeb' },
-  scored: { label: 'Scored', color: '#10b981', bg: '#ecfdf5' },
+  draft: { label: 'Draft', color: '#F97316', bg: '#EDE8E0' },
+  submitted: { label: 'Submitted', color: '#2563EB', bg: '#EDE8E0' },
+  underReview: { label: 'Under Review', color: '#B45309', bg: '#EDE8E0' },
+  scored: { label: 'Scored', color: '#047857', bg: '#EDE8E0' },
 };
 
 const HackathonDashboard = () => {
@@ -139,45 +138,44 @@ const HackathonDashboard = () => {
   };
 
   const statCards = [
-    { label: 'Participants', value: stats.participants ?? 0, icon: 'people', color: '#f97316' },
-    { label: 'Teams', value: stats.teams ?? 0, icon: 'groups', color: '#f97316' },
-    { label: 'Submissions', value: stats.submissions ?? 0, icon: 'rocket', color: '#f97316' },
-    { label: 'Scored', value: stats.scored ?? 0, icon: 'trophy', color: '#10b981' },
+    { label: 'Participants', value: stats.participants ?? 0, icon: 'people', color: '#F97316' },
+    { label: 'Teams', value: stats.teams ?? 0, icon: 'groups', color: '#F97316' },
+    { label: 'Submissions', value: stats.submissions ?? 0, icon: 'rocket', color: '#F97316' },
+    { label: 'Scored', value: stats.scored ?? 0, icon: 'trophy', color: '#047857' },
   ];
 
   const scoredSubs = recentSubs.filter((s) => s.status === 'scored');
   const assignableSubs = recentSubs.filter((s) => s.status !== 'draft');
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-paper">
       <StatusBar style="dark" />
-      <LinearGradient colors={['#f97316', '#F8FAFC']} className="absolute top-0 w-full h-64 opacity-20" />
       <SafeAreaView className="flex-1" edges={['top']}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 120 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />}
         >
           {/* Header */}
-          <View className="px-8 pt-6 pb-4">
+          <View className="px-gutter pt-6 pb-4">
             <View className="flex-row items-center justify-between mb-4">
               <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-2xl bg-slate-900 items-center justify-center">
-                  <Ionicons name="stats-chart" size={18} color="#f97316" />
+                <View className="w-10 h-10 rounded-card bg-ink items-center justify-center">
+                  <Ionicons name="stats-chart" size={18} color="#F97316" />
                 </View>
-                <Text className="ml-3 text-slate-900 text-2xl font-extrabold">
+                <Text className="ml-3 text-ink text-2xl font-display">
                   Organizer Console
                 </Text>
               </View>
             </View>
-            <Text className="text-slate-500 text-2xs font-bold" numberOfLines={1}>
+            <Text className="text-ink-3 text-label font-semibold" numberOfLines={1}>
               {hackathonTitle || 'Mission Control'}
             </Text>
           </View>
 
           {loading ? (
             <View className="items-center py-20">
-              <ActivityIndicator size="large" color="#f97316" />
+              <ActivityIndicator size="large" color="#F97316" />
             </View>
           ) : (
             <>
@@ -185,26 +183,26 @@ const HackathonDashboard = () => {
               <View className="flex-row flex-wrap px-6">
                 {statCards.map((s) => (
                   <View key={s.label} className="w-1/2 p-2">
-                    <View className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-                      <View className="w-10 h-10 rounded-2xl items-center justify-center mb-4" style={{ backgroundColor: `${s.color}18` }}>
+                    <View className="bg-card rounded-card p-6 border border-line shadow-hair">
+                      <View className="w-10 h-10 rounded-card items-center justify-center mb-4" style={{ backgroundColor: `${s.color}18` }}>
                         <MaterialCommunityIcons name={s.icon as any} size={20} color={s.color} />
                       </View>
-                      <Text className="text-slate-900 text-3xl font-extrabold">{s.value}</Text>
-                      <Text className="text-slate-500 text-2xs font-bold mt-1">{s.label}</Text>
+                      <Text className="text-ink text-3xl font-display">{s.value}</Text>
+                      <Text className="text-ink-3 text-label font-semibold mt-1">{s.label}</Text>
                     </View>
                   </View>
                 ))}
               </View>
 
               {/* Judge Progress */}
-              <View className="px-8 mt-4">
-                <Text className="text-slate-900 text-xs font-bold mb-3">Judge Progress</Text>
-                <View className="bg-white rounded-3xl p-6 border border-slate-100">
+              <View className="px-gutter mt-4">
+                <Text className="text-ink text-xs font-semibold mb-3">Judge Progress</Text>
+                <View className="bg-card rounded-card p-6 border border-line">
                   <View className="flex-row items-center justify-between">
-                    <Text className="text-slate-500 text-2xs font-bold">Total Submissions in Queue</Text>
-                    <Text className="text-slate-900 text-xl font-extrabold">{judgeProgress.totalSubmissions ?? 0}</Text>
+                    <Text className="text-ink-3 text-label font-semibold">Total Submissions in Queue</Text>
+                    <Text className="text-ink text-xl font-display">{judgeProgress.totalSubmissions ?? 0}</Text>
                   </View>
-                  <View className="mt-4 h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <View className="mt-4 h-2 bg-paper-2 rounded-full overflow-hidden">
                     <View
                       className="h-full bg-brand-500 rounded-full"
                       style={{
@@ -212,37 +210,37 @@ const HackathonDashboard = () => {
                       }}
                     />
                   </View>
-                  <Text className="text-slate-500 text-2xs font-bold mt-3">
+                  <Text className="text-ink-3 text-label font-semibold mt-3">
                     {Object.keys(judgeProgress.judged || {}).length} judge(s) actively scoring
                   </Text>
                 </View>
               </View>
 
               {/* Winners Assignment */}
-              <View className="px-8 mt-6">
+              <View className="px-gutter mt-6">
                 <View className="flex-row items-center justify-between mb-3">
-                  <Text className="text-slate-900 text-xs font-bold">Winners / Prizes</Text>
+                  <Text className="text-ink text-xs font-semibold">Winners / Prizes</Text>
                 </View>
                 {(prizes.length ? prizes : [{ rank: 1, title: 'Winner', amount: '' }]).map((p: any, idx: number) => {
                   const w = winners.find((x) => x.rank === p.rank);
                   return (
-                    <View key={idx} className="bg-white rounded-2xl p-5 border border-slate-100 mb-3 flex-row items-center">
-                      <View className="w-12 h-12 rounded-2xl bg-amber-50 items-center justify-center mr-4">
-                        <MaterialCommunityIcons name="trophy-outline" size={22} color="#f59e0b" />
+                    <View key={idx} className="bg-card rounded-card p-5 border border-line mb-3 flex-row items-center">
+                      <View className="w-12 h-12 rounded-card bg-warning/10 items-center justify-center mr-4">
+                        <MaterialCommunityIcons name="trophy-outline" size={22} color="#B45309" />
                       </View>
                       <View className="flex-1">
-                        <Text className="text-slate-900 text-sm font-bold">
+                        <Text className="text-ink text-sm font-semibold">
                           #{p.rank} {p.title || 'Winner'}
                         </Text>
-                        <Text className="text-slate-500 text-2xs font-bold mt-1">
+                        <Text className="text-ink-3 text-label font-semibold mt-1">
                           {w ? 'Assigned' : 'Unassigned'}{w?.amount || p.amount ? ` · ${w?.amount || p.amount}` : ''}
                         </Text>
                       </View>
                       <TouchableOpacity
                         onPress={() => openAssign(p)}
-                        className={`px-5 py-3 rounded-2xl ${w ? 'bg-emerald-50' : 'bg-slate-900'}`}
+                        className={`px-5 py-3 rounded-card ${w ? 'bg-success/10' : 'bg-ink'}`}
                       >
-                        <Text className={`text-2xs font-bold ${w ? 'text-emerald-600' : 'text-white'}`}>
+                        <Text className={`text-label font-semibold ${w ? 'text-success' : 'text-white'}`}>
                           {w ? 'Edit' : 'Assign'}
                         </Text>
                       </TouchableOpacity>
@@ -252,29 +250,29 @@ const HackathonDashboard = () => {
               </View>
 
               {/* Recent Submissions */}
-              <View className="px-8 mt-6">
-                <Text className="text-slate-900 text-xs font-bold mb-3">
+              <View className="px-gutter mt-6">
+                <Text className="text-ink text-xs font-semibold mb-3">
                   Recent Submissions ({recentSubs.length})
                 </Text>
                 {recentSubs.length === 0 ? (
-                  <View className="bg-white rounded-3xl p-8 border border-slate-100 items-center">
-                    <MaterialCommunityIcons name="rocket-outline" size={40} color="#CBD5E1" />
-                    <Text className="text-slate-500 text-2xs font-bold mt-3">No submissions yet</Text>
+                  <View className="bg-card rounded-card p-card-pad border border-line items-center">
+                    <MaterialCommunityIcons name="rocket-outline" size={40} color="#C4BEB6" />
+                    <Text className="text-ink-3 text-label font-semibold mt-3">No submissions yet</Text>
                   </View>
                 ) : recentSubs.map((s) => {
                   const meta = STATUS_META[s.status] ?? STATUS_META.draft;
                   return (
-                    <View key={s._id} className="bg-white rounded-2xl p-5 border border-slate-100 mb-3">
+                    <View key={s._id} className="bg-card rounded-card p-5 border border-line mb-3">
                       <View className="flex-row items-center justify-between mb-2">
-                        <Text className="text-slate-900 text-sm font-bold flex-1 mr-3" numberOfLines={1}>
+                        <Text className="text-ink text-sm font-semibold flex-1 mr-3" numberOfLines={1}>
                           {s.ProjectName}
                         </Text>
-                        <View className="px-3 py-1.5 rounded-full" style={{ backgroundColor: meta.bg }}>
-                          <Text className="text-2xs font-bold" style={{ color: meta.color }}>{meta.label}</Text>
+                        <View className="px-2.5 py-1 rounded-full" style={{ backgroundColor: meta.bg }}>
+                          <Text className="text-label font-semibold" style={{ color: meta.color }}>{meta.label}</Text>
                         </View>
                       </View>
-                      {s.TagLine ? <Text className="text-slate-500 text-xs mb-2" numberOfLines={2}>{s.TagLine}</Text> : null}
-                      <Text className="text-slate-500 text-2xs font-bold">
+                      {s.TagLine ? <Text className="text-ink-3 text-xs mb-2" numberOfLines={2}>{s.TagLine}</Text> : null}
+                      <Text className="text-ink-3 text-label font-semibold">
                         {s.team?.name || 'Team'} {s.submittedAt ? ` · ${new Date(s.submittedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : ''}
                       </Text>
                     </View>
@@ -289,33 +287,33 @@ const HackathonDashboard = () => {
       {/* Assign Winner Modal */}
       <Modal visible={winnerModal} transparent animationType="fade" onRequestClose={() => setWinnerModal(false)}>
         <View className="flex-1 bg-black/40 justify-end">
-          <View className="bg-white rounded-t-5xl p-8 pb-10">
-            <View className="w-12 h-1.5 bg-slate-200 rounded-full self-center mb-6" />
-            <Text className="text-slate-900 text-2xl font-extrabold mb-1">
+          <View className="bg-paper rounded-t-sheet p-card-pad pb-10">
+            <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mb-6" />
+            <Text className="text-ink font-display mb-1 text-h1">
               Assign Rank #{assignRank?.rank}
             </Text>
-            <Text className="text-slate-500 text-2xs font-bold mb-6">
+            <Text className="text-ink-3 text-label font-semibold mb-6">
               {assignRank?.title || 'Winner'} {assignRank?.amount ? `· ${assignRank.amount}` : ''}
             </Text>
 
             <ScrollView className="max-h-96">
               {assignableSubs.length === 0 ? (
-                <Text className="text-slate-500 text-center text-xs font-bold py-10">
+                <Text className="text-ink-3 text-center text-xs font-semibold py-10">
                   No submitted projects to assign yet
                 </Text>
               ) : assignableSubs.map((s) => (
                 <TouchableOpacity
                   key={s._id}
                   onPress={() => setSelectedSub(s._id)}
-                  className={`flex-row items-center p-4 rounded-2xl border mb-2 ${selectedSub === s._id ? 'bg-brand-50 border-brand-200' : 'bg-slate-50 border-transparent'}`}
+                  className={`flex-row items-center p-4 rounded-card border mb-2 ${selectedSub === s._id ? 'bg-brand-50 border-brand-200' : 'bg-paper-2 border-transparent'}`}
                 >
                   <View className="flex-1">
-                    <Text className="text-slate-900 text-sm font-bold">{s.ProjectName}</Text>
-                    <Text className="text-slate-500 text-2xs font-bold mt-0.5">
+                    <Text className="text-ink text-sm font-semibold">{s.ProjectName}</Text>
+                    <Text className="text-ink-3 text-label font-semibold mt-0.5">
                       {s.team?.name || 'Team'} · {STATUS_META[s.status]?.label || s.status}
                     </Text>
                   </View>
-                  {selectedSub === s._id && <Ionicons name="checkmark-circle" size={22} color="#f97316" />}
+                  {selectedSub === s._id && <Ionicons name="checkmark-circle" size={22} color="#F97316" />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -323,19 +321,19 @@ const HackathonDashboard = () => {
             <TouchableOpacity
               onPress={confirmWinner}
               disabled={assigning}
-              className="mt-6 bg-slate-900 py-5 rounded-2xl items-center flex-row justify-center"
+              className="mt-6 bg-ink py-5 items-center flex-row justify-center border-2 border-ink rounded-md"
             >
               {assigning ? (
                 <ActivityIndicator color="white" />
               ) : (
                 <>
-                  <Feather name="check" size={18} color="#f97316" />
-                  <Text className="text-white text-2xs font-bold ml-2">Confirm Winner</Text>
+                  <Feather name="check" size={18} color="#F97316" />
+                  <Text className="text-white text-label font-semibold ml-2">Confirm Winner</Text>
                 </>
               )}
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setWinnerModal(false)} className="mt-4 items-center py-3">
-              <Text className="text-slate-500 text-2xs font-bold">Cancel</Text>
+              <Text className="text-ink-3 text-label font-semibold">Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>

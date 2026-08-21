@@ -4,7 +4,6 @@ import {View, Text, FlatList, Image, Pressable, TextInput, Modal, Dimensions, Sc
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Video, ResizeMode, AVPlaybackStatus, AVPlaybackStatusSuccess, Audio, InterruptionModeIOS, InterruptionModeAndroid } from "expo-av";
-import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import {
   GestureHandlerRootView,
@@ -25,6 +24,7 @@ import { ProjectSkeleton } from "./Skeleton";
 import { useTabBarClearance } from '../constants/layout';
 import { Alert } from './ui/AlertModal';
 
+import { RoleSticker } from './ui/kit';
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width - 32;
 
@@ -181,7 +181,7 @@ const YouTubeVideoPlayer = ({
   };
 
   return (
-    <View className="bg-black relative overflow-hidden w-full h-[300px]">
+    <View className="bg-ink relative overflow-hidden w-full h-[300px]">
       <GestureDetector gesture={videoGesture}>
         <Animated.View style={[{ width: '100%', height: '100%' }, animatedStyle]}>
           <Video
@@ -203,13 +203,13 @@ const YouTubeVideoPlayer = ({
           )}
           {playbackRate > 1 && (
             <View className="absolute top-10 self-center bg-black/40 px-3 py-1 rounded-full border border-white/20">
-              <Text className="text-white font-black text-xs">2x Speed</Text>
+              <Text className="text-white font-display text-xs">2x Speed</Text>
             </View>
           )}
           {seekFeedback && (
             <View className={`absolute top-1/2 -translate-y-12 ${seekFeedback === 'forward' ? 'right-12' : 'left-12'} bg-black/60 w-20 h-20 rounded-full items-center justify-center border border-white/20`}>
               <Ionicons name={seekFeedback === 'forward' ? "play-forward" : "play-back"} size={32} color="white" />
-              <Text className="text-white font-black text-2xs mt-1 uppercase">10s</Text>
+              <Text className="text-white font-display text-label mt-1 uppercase">10s</Text>
             </View>
           )}
         </Animated.View>
@@ -231,14 +231,14 @@ const YouTubeVideoPlayer = ({
 
           <View pointerEvents="box-none" className="absolute bottom-0 inset-x-0 p-4">
             <View pointerEvents="box-none" className="flex-row justify-between mb-2">
-              <Text className="text-white text-2xs font-bold">
+              <Text className="text-white text-label font-semibold">
                 {status ? `${Math.floor(status.positionMillis / 60000)}:${String(Math.floor((status.positionMillis % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
                 <Text className="text-white/60"> / {status ? `${Math.floor(status.durationMillis! / 60000)}:${String(Math.floor((status.durationMillis! % 60000) / 1000)).padStart(2, '0')}` : '0:00'}</Text>
               </Text>
             </View>
             <Pressable onPress={handleSeek} onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)} className="w-full h-3 justify-center">
-              <View className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
-                <View className="h-full bg-orange-600 rounded-full" style={{ width: status ? `${(status.positionMillis / (status.durationMillis || 1)) * 100}%` : '0%' }} />
+              <View className="w-full h-1 bg-card/20 rounded-full overflow-hidden">
+                <View className="h-full bg-brand-600 rounded-full" style={{ width: status ? `${(status.positionMillis / (status.durationMillis || 1)) * 100}%` : '0%' }} />
               </View>
             </Pressable>
           </View>
@@ -257,7 +257,8 @@ const ProjectCard = memo(({
   openComments,
   openEditModal,
   handleDeleteProject,
-  navigation
+  navigation,
+  stamped,
 }: {
   item: Project;
   userId: string | undefined;
@@ -266,6 +267,8 @@ const ProjectCard = memo(({
   openEditModal: (p: Project) => void;
   handleDeleteProject: (id: string) => void;
   navigation: any;
+  /** The lead pitch carries the screen's one stamp. */
+  stamped?: boolean;
 }) => {
   const isLiked = item.liked_by.includes(userId || "");
   const isOwner = item.user._id === userId || (item.user as any).id === userId;
@@ -295,27 +298,30 @@ const ProjectCard = memo(({
     : words.slice(0, 25).join(" ") + "...";
 
   return (
-    <View className="mx-6 mb-10 rounded-2xl bg-white border border-slate-100 shadow-sm shadow-black/5 overflow-hidden">
+    <View
+      className={`mx-gutter mb-10 rounded-card bg-card overflow-hidden ${stamped ? 'border-2 border-ink' : 'border border-line'}`}
+      style={stamped ? { shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 } : undefined}
+    >
       {/* User Info Header */}
       <View className="flex-row items-center justify-between px-6 py-5">
         <TouchableOpacity
           onPress={() => navigation.navigate("PublicProfile", { user: item.user })}
           className="flex-row items-center"
         >
-          <Image source={{ uri: item.user.avatar || 'https://ui-avatars.com/api/?name=User' }} className="h-10 w-10 rounded-full mr-2 border border-slate-100 bg-slate-50" />
+          <Image source={{ uri: item.user.avatar || 'https://ui-avatars.com/api/?name=User' }} className="h-10 w-10 rounded-full mr-2 border border-line bg-paper-2" />
           <View>
-            <Text className="font-black text-slate-900 text-sm uppercase tracking-tighter">{item.user.username || item.user.name}</Text>
-            <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide">{item.user.college || "PROJECT LEAD"}</Text>
+            <Text className="font-display text-ink text-sm uppercase">{item.user.username || item.user.name}</Text>
+            <Text className="text-label text-ink-3 font-display uppercase">{item.user.college || "PROJECT LEAD"}</Text>
           </View>
         </TouchableOpacity>
 
         {isOwner && (
           <View className="flex-row gap-3">
-            <TouchableOpacity onPress={() => openEditModal(item)} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
-              <Ionicons name="pencil" size={16} color="#18181b" />
+            <TouchableOpacity onPress={() => openEditModal(item)} className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line">
+              <Ionicons name="pencil" size={16} color="#12100E" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleDeleteProject(item._id)} className="w-10 h-10 bg-red-50 rounded-2xl items-center justify-center border border-red-100">
-              <Ionicons name="trash" size={16} color="#ef4444" />
+            <TouchableOpacity onPress={() => handleDeleteProject(item._id)} className="w-10 h-10 bg-danger/10 rounded-card items-center justify-center border border-danger/15">
+              <Ionicons name="trash" size={16} color="#DC2626" />
             </TouchableOpacity>
           </View>
         )}
@@ -349,15 +355,15 @@ const ProjectCard = memo(({
                     source={{ uri: secureUrl }}
                     style={{ width: CARD_WIDTH, height: 320 }}
                     resizeMode="cover"
-                    className="bg-black"
+                    className="bg-ink"
                   />
                 );
               }
             }}
           />
           {mediaData.length > 1 && (
-            <View pointerEvents="none" className="absolute top-6 right-6 bg-white/90 px-3 py-1.5 rounded-xl border border-slate-100 shadow-sm z-10">
-              <Text className="text-slate-900 text-2xs font-black uppercase tracking-tight">
+            <View pointerEvents="none" className="absolute top-6 right-6 bg-card/90 px-3 py-1.5 rounded-card border border-line shadow-hair z-10">
+              <Text className="text-ink text-label font-display uppercase">
                 {currentImageIndex + 1} / {mediaData.length}
               </Text>
             </View>
@@ -367,12 +373,12 @@ const ProjectCard = memo(({
 
       {/* Project Details */}
       <View className="px-6 py-6">
-        <Text className="font-black text-slate-900 text-2xl uppercase tracking-tighter mb-3 leading-tight">{item.title}</Text>
+        <Text className="font-display text-ink text-2xl uppercase mb-3 leading-tight">{item.title}</Text>
 
-        <Text className="text-slate-600 text-sm leading-6 mb-6 font-medium">
+        <Text className="text-ink-2 text-sm leading-6 mb-6 font-medium">
           {displayDescription}
           {isLong && (
-            <Text onPress={() => setIsExpanded(!isExpanded)} className="text-orange-600 font-black uppercase tracking-wide text-2xs">
+            <Text onPress={() => setIsExpanded(!isExpanded)} className="text-accent-text font-display uppercase text-label">
               {isExpanded ? "  Show Less" : "  Read More"}
             </Text>
           )}
@@ -381,21 +387,21 @@ const ProjectCard = memo(({
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-6">
             <Pressable onPress={() => toggleLike(item)} className="flex-row items-center">
-              <Ionicons name={isLiked ? "heart" : "heart-outline"} size={30} color={isLiked ? "#f97316" : "#1A1A1A"} />
-              <Text className="ml-2 text-slate-900 font-black text-sm uppercase">{item.likes}</Text>
+              <Ionicons name={isLiked ? "heart" : "heart-outline"} size={30} color={isLiked ? "#F97316" : "#12100E"} />
+              <Text className="ml-2 text-ink font-display text-sm uppercase">{item.likes}</Text>
             </Pressable>
 
             <Pressable onPress={() => openComments(item._id)} className="flex-row items-center">
-              <Ionicons name="chatbubble-outline" size={26} color="#1A1A1A" />
+              <Ionicons name="chatbubble-outline" size={26} color="#12100E" />
             </Pressable>
 
             {!isOwner && (
               <TouchableOpacity
                 onPress={() => navigation.navigate("PublicProfile", { user: item.user })}
-                className="flex-row items-center bg-slate-900 px-5 py-3 rounded-2xl shadow-lg shadow-black/20"
+                className="flex-row items-center bg-ink px-5 py-3 rounded-card shadow-hair"
               >
                 <Ionicons name="chatbubbles-outline" size={16} color="#fff" />
-                <Text className="text-white text-2xs font-black uppercase tracking-wide ml-2">Connect</Text>
+                <Text className="text-white text-label font-display uppercase ml-2">Connect</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -404,17 +410,17 @@ const ProjectCard = memo(({
             {item.github_url && (
               <TouchableOpacity
                 onPress={() => Linking.openURL(item.github_url as string)}
-                className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100"
+                className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line"
               >
-                <Ionicons name="logo-github" size={20} color="#1A1A1A" />
+                <Ionicons name="logo-github" size={20} color="#12100E" />
               </TouchableOpacity>
             )}
             {item.deployed_url && (
               <TouchableOpacity
                 onPress={() => Linking.openURL(item.deployed_url as string)}
-                className="w-10 h-10 bg-orange-50 rounded-2xl items-center justify-center border border-orange-100"
+                className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line"
               >
-                <Ionicons name="globe-outline" size={20} color="#f97316" />
+                <Ionicons name="globe-outline" size={20} color="#F97316" />
               </TouchableOpacity>
             )}
           </View>
@@ -565,14 +571,14 @@ export default function FundingFeed() {
   const CommentItem = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => (
     <View className={`${isReply ? 'ml-12 mt-4' : 'mb-8 px-2'}`}>
       <View className="flex-row">
-        <Image source={{ uri: comment.commentor?.avatar || 'https://ui-avatars.com/api/?name=User' }} className={`${isReply ? 'w-8 h-8' : 'w-12 h-12'} rounded-2xl bg-slate-50 border border-slate-100`} />
-        <View className="ml-4 flex-1 bg-slate-50 p-5 rounded-3xl rounded-tl-none border border-slate-100">
+        <Image source={{ uri: comment.commentor?.avatar || 'https://ui-avatars.com/api/?name=User' }} className={`${isReply ? 'w-8 h-8' : 'w-12 h-12'} rounded-card bg-paper-2 border border-line`} />
+        <View className="ml-4 flex-1 bg-paper p-5 rounded-card rounded-tl-none border border-line">
           <View className="flex-row items-baseline mb-2">
-            <Text className="font-black text-2xs text-slate-900 mr-3 uppercase tracking-tight">{comment.commentor?.username || comment.commentor?.name}</Text>
-            <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide">{new Date(comment.createdAt).toLocaleDateString()}</Text>
+            <Text className="font-display text-label text-ink mr-3 uppercase">{comment.commentor?.username || comment.commentor?.name}</Text>
+            <Text className="text-label text-ink-3 font-display uppercase">{new Date(comment.createdAt).toLocaleDateString()}</Text>
           </View>
-          <Text className="text-slate-600 text-xs leading-5 font-medium">
-            {comment.replyToUser && <Text className="text-orange-500 font-black">@{comment.replyToUser.username} </Text>}
+          <Text className="text-ink-2 text-xs leading-5 font-medium">
+            {comment.replyToUser && <Text className="text-accent-text font-display">@{comment.replyToUser.username} </Text>}
             {comment.text}
           </Text>
           {!isReply && (
@@ -582,9 +588,9 @@ export default function FundingFeed() {
                 setCommentText(`@${comment.commentor.username} `);
                 commentInputRef.current?.focus();
               }}
-              className="mt-4 bg-white self-start px-4 py-1.5 rounded-xl border border-slate-100"
+              className="mt-4 bg-card self-start px-4 py-1.5 rounded-card border border-line"
             >
-              <Text className="text-slate-900 text-2xs font-black uppercase tracking-wide">Reply</Text>
+              <Text className="text-ink text-label font-display uppercase">Reply</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -597,21 +603,18 @@ export default function FundingFeed() {
 
   return (
     <GestureHandlerRootView className="flex-1">
-      <View className="flex-1 bg-[#FDFDFF]">
+      <View className="flex-1 bg-paper">
         <StatusBar barStyle="dark-content" />
         
         {/* Background Protocol Gradient */}
-        <View className="absolute top-0 w-full h-80 opacity-20">
-          <LinearGradient colors={['#f97316', 'transparent']} className="w-full h-full" />
-        </View>
 
         <SafeAreaView className="flex-1" edges={['top']}>
           {/* Arena Header */}
-          <View className="px-8 pt-6 pb-4 flex-row justify-between items-center bg-transparent">
+          <View className="px-gutter pt-6 pb-4 flex-row justify-between items-center bg-transparent">
             <View className="flex-row items-center">
               <View>
-                <Text className="text-slate-900 text-3xl font-black uppercase tracking-tighter leading-tight">Funding <Text className="text-orange-500">Feed</Text></Text>
-                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Innovation Hub</Text>
+                <Text className="text-ink text-3xl font-display uppercase leading-tight">Funding <Text className="text-accent-text">Feed</Text></Text>
+                <Text className="text-ink-3 text-label font-display uppercase">Innovation Hub</Text>
               </View>
             </View>
           </View>
@@ -623,9 +626,10 @@ export default function FundingFeed() {
           ) : (
             <FlatList
               data={projects}
-              renderItem={({ item }) => (
+              renderItem={({ item, index }) => (
                 <ProjectCard
                   item={item}
+                  stamped={index === 0}
                   userId={userId}
                   toggleLike={toggleLike}
                   openComments={openComments}
@@ -636,24 +640,24 @@ export default function FundingFeed() {
               )}
               keyExtractor={(item) => item._id}
               showsVerticalScrollIndicator={false}
-              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />}
+              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />}
               onEndReached={handleLoadMore}
               onEndReachedThreshold={0.5}
               ListFooterComponent={() => (
                 loadingMore ? (
                   <View className="py-10 items-center">
-                    <ActivityIndicator size="small" color="#f97316" />
+                    <ActivityIndicator size="small" color="#F97316" />
                   </View>
                 ) : <View className="h-40" />
               )}
               contentContainerStyle={{ paddingTop: 20 }}
               ListEmptyComponent={
-                <View className="items-center mt-20 px-10">
-                  <View className="w-24 h-24 bg-white rounded-4xl items-center justify-center mb-6 border border-slate-100 shadow-sm">
-                    <Ionicons name="rocket-outline" size={48} color="#cbd5e1" />
+                <View className="items-center mt-20 px-gutter">
+                  <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                    <Ionicons name="rocket-outline" size={48} color="#C4BEB6" />
                   </View>
-                  <Text className="text-slate-500 font-black uppercase text-xs tracking-wide text-center">Archive Empty</Text>
-                  <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center leading-5">Deploy your innovation to the innovation registry and establish your presence.</Text>
+                  <Text className="font-semibold text-base text-ink text-center">Archive Empty</Text>
+                  <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Deploy your innovation to the innovation registry and establish your presence.</Text>
                 </View>
               }
             />
@@ -662,18 +666,18 @@ export default function FundingFeed() {
           <Modal visible={commentModal} transparent={true} animationType="slide" onRequestClose={() => setCommentModal(false)}>
             <View className="flex-1 bg-black/50 justify-end">
               <Pressable className="flex-1" onPress={() => { setCommentModal(false); setReplyingTo(null); }} />
-              <View className="bg-white h-[80%] rounded-t-5xl border-t border-slate-100 overflow-hidden shadow-2xl">
-                <View className="flex-row justify-between items-center px-10 py-8 border-b border-slate-50 bg-white">
+              <View className="bg-paper h-[80%] rounded-t-sheet border-t border-line overflow-hidden shadow-hair">
+                <View className="flex-row justify-between items-center px-gutter py-8 border-b border-line bg-card">
                   <View>
-                    <Text className="text-slate-900 text-2xl font-black uppercase tracking-tighter leading-tight">Signal <Text className="text-orange-500">Intel</Text></Text>
-                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">Community Discussion</Text>
+                    <Text className="text-ink font-display uppercase text-h1">Signal <Text className="text-accent-text">Intel</Text></Text>
+                    <Text className="text-ink-3 text-label font-display uppercase mt-1">Community Discussion</Text>
                   </View>
-                  <TouchableOpacity onPress={() => { setCommentModal(false); setReplyingTo(null); }} className="w-12 h-12 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
-                    <Ionicons name="close" size={24} color="#18181b" />
+                  <TouchableOpacity onPress={() => { setCommentModal(false); setReplyingTo(null); }} className="w-12 h-12 bg-paper-2 rounded-card items-center justify-center border border-line">
+                    <Ionicons name="close" size={24} color="#12100E" />
                   </TouchableOpacity>
                 </View>
 
-                {commentsLoading ? <ActivityIndicator className="mt-10" color="#f97316" /> : (
+                {commentsLoading ? <ActivityIndicator className="mt-10" color="#F97316" /> : (
                   <FlatList
                     data={comments}
                     keyExtractor={c => c._id}
@@ -681,24 +685,24 @@ export default function FundingFeed() {
                     renderItem={({ item }) => <CommentItem comment={item} />}
                     showsVerticalScrollIndicator={false}
                     ListEmptyComponent={
-                      <View className="items-center mt-20 px-10">
-                        <View className="w-20 h-20 bg-slate-50 rounded-4xl items-center justify-center mb-6 border border-slate-100">
-                          <Ionicons name="chatbubbles-outline" size={32} color="#cbd5e1" />
+                      <View className="items-center mt-20 px-gutter">
+                        <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                          <Ionicons name="chatbubbles-outline" size={32} color="#C4BEB6" />
                         </View>
-                        <Text className="text-slate-500 font-black uppercase text-xs tracking-wide text-center">No Signals Detected</Text>
-                        <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center">Transmit your thoughts to the innovation network.</Text>
+                        <Text className="font-semibold text-base text-ink text-center">No Signals Detected</Text>
+                        <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Transmit your thoughts to the innovation network.</Text>
                       </View>
                     }
                   />
                 )}
 
                 <KeyboardAvoidingView behavior="padding">
-                  <View className="p-8 border-t border-slate-50 bg-white pb-12">
+                  <View className="p-card-pad border-t border-line bg-card pb-12">
                     {replyingTo && (
-                      <View className="flex-row items-center justify-between bg-orange-50 px-5 py-3 mb-4 rounded-2xl border border-orange-100">
-                        <Text className="text-orange-600 font-black uppercase text-2xs tracking-wide">Replying to @{replyingTo.commentor.username}</Text>
+                      <View className="flex-row items-center justify-between bg-paper-2 px-5 py-3 mb-4 rounded-card border border-line">
+                        <Text className="text-accent-text font-display uppercase text-label">Replying to @{replyingTo.commentor.username}</Text>
                         <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                          <Ionicons name="close-circle" size={18} color="#f97316" />
+                          <Ionicons name="close-circle" size={18} color="#F97316" />
                         </TouchableOpacity>
                       </View>
                     )}
@@ -708,11 +712,11 @@ export default function FundingFeed() {
                         value={commentText}
                         onChangeText={setCommentText}
                         placeholder={replyingTo ? "Transmit reply..." : "Transmit intelligence..."}
-                        placeholderTextColor="#94a3b8"
-                        className="flex-1 bg-slate-50 text-slate-900 rounded-2xl px-6 py-5 mr-4 border border-slate-100 font-black uppercase text-xs"
+                        placeholderTextColor="#8B857E"
+                        className="font-semibold text-base text-ink flex-1 bg-paper px-6 py-5 mr-4 border-[1.5px] border-ink rounded-md"
                         multiline
                       />
-                      <TouchableOpacity onPress={postComment} className="w-14 h-14 bg-slate-900 rounded-2xl items-center justify-center shadow-lg shadow-black/20">
+                      <TouchableOpacity onPress={postComment} className="w-14 h-14 bg-ink items-center justify-center border-2 border-ink rounded-md">
                         <Ionicons name="send" size={20} color="white" />
                       </TouchableOpacity>
                     </View>

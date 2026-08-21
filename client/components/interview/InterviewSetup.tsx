@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform, Pressable, Modal} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { WebView } from 'react-native-webview';
 import * as DocumentPicker from 'expo-document-picker';
 import { useNavigation } from '@react-navigation/native';
@@ -89,7 +88,7 @@ export default function InterviewSetup() {
                       }));
                     }
                   },
-                  theme: { color: "#ec4899" }
+                  theme: { color: "#F97316" }
                 };
                 var rzp1 = new Razorpay(options);
                 rzp1.open();
@@ -171,9 +170,7 @@ export default function InterviewSetup() {
   };
 
   return (
-    <View className="flex-1 bg-white">
-      {/* Background Gradient */}
-      <LinearGradient colors={['rgba(236, 72, 153, 0.05)', '#ffffff']} className="absolute w-full h-full" />
+    <View className="flex-1 bg-paper">
 
       <SafeAreaView className="flex-1">
         <KeyboardAvoidingView
@@ -184,34 +181,37 @@ export default function InterviewSetup() {
           <View className="flex-row items-center px-6 pt-4 mb-2">
             <TouchableOpacity
               onPress={() => navigation.goBack()}
-              className="p-2 bg-slate-100 rounded-full mr-4 border border-slate-200"
+              className="w-11 h-11 items-center justify-center rounded-xl"
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Ionicons name="chevron-back" size={24} color="#1f2937" />
+            
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+              <Ionicons name="chevron-back" size={24} color="#57534E" />
             </TouchableOpacity>
-            <Text className="text-slate-900 text-3xl font-black  tracking-tighter">
-              AI <Text className="text-pink-500">INTERVIEW</Text> 🤖
+            <Text className="text-ink text-3xl font-display">
+              AI <Text className="text-accent-text">INTERVIEW</Text>
             </Text>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} className="px-6">
 
-            <Text className="text-slate-500 mb-8 mt-2 text-sm leading-5">
+            <Text className="text-ink-3 mb-8 mt-2 text-sm leading-5">
               Configure your AI interviewer. Upload your resume and let the system tailor the technical questions to your profile.
             </Text>
 
             {/* MAIN FORM CARD */}
-            <View className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <View className="bg-card p-6 rounded-card border border-line shadow-hair">
 
               <View className="gap-6">
 
                 {/* Domain Input */}
                 <View>
-                  <Text className="text-slate-500 font-bold mb-2 ml-1 text-xs uppercase tracking-wider">Target Role / Domain</Text>
+                  <Text className="text-ink-3 font-semibold mb-2 ml-1 text-xs uppercase">Target Role / Domain</Text>
                   <TextInput
                     placeholder="e.g. React Native, Data Scientist"
-                    placeholderTextColor="#9ca3af"
-                    className="bg-slate-50 text-slate-900 p-4 rounded-2xl border border-slate-200 font-medium"
+                    placeholderTextColor="#C4BEB6"
+                    className="bg-card text-ink p-4 border-[1.5px] border-ink font-medium rounded-md"
                     value={domain}
                     onChangeText={setDomain}
                   />
@@ -219,11 +219,11 @@ export default function InterviewSetup() {
 
                 {/* Experience Input */}
                 <View>
-                  <Text className="text-slate-500 font-bold mb-2 ml-1 text-xs uppercase tracking-wider">Years of Experience</Text>
+                  <Text className="text-ink-3 font-semibold mb-2 ml-1 text-xs uppercase">Years of Experience</Text>
                   <TextInput
                     placeholder="e.g. 2"
-                    placeholderTextColor="#9ca3af"
-                    className="bg-slate-50 text-slate-900 p-4 rounded-2xl border border-slate-200 font-medium"
+                    placeholderTextColor="#C4BEB6"
+                    className="bg-card text-ink p-4 border-[1.5px] border-ink font-medium rounded-md"
                     keyboardType="numeric"
                     value={experience}
                     onChangeText={setExperience}
@@ -232,22 +232,19 @@ export default function InterviewSetup() {
 
                 {/* Duration Selector */}
                 <View>
-                  <Text className="text-slate-500 font-bold mb-3 ml-1 text-xs uppercase tracking-wider">Interview Duration & Price</Text>
+                  <Text className="text-ink-3 font-semibold mb-3 ml-1 text-xs uppercase">Interview Duration & Price</Text>
                   <View className="flex-row gap-3">
                     {[10, 15].map((min) => (
                       <TouchableOpacity
                         key={min}
                         activeOpacity={0.8}
                         onPress={() => setDuration(min)}
-                        className={`flex-1 p-4 rounded-2xl items-center border transition-all ${duration === min
-                            ? 'bg-pink-50 border-pink-500'
-                            : 'bg-slate-50 border-slate-200'
-                          }`}
+                        className={`flex-1 p-4 rounded-card items-center border transition-all ${duration === min ? 'bg-brand-50 border-brand-500' : 'bg-paper-2 border-line' }`}
                       >
-                        <Text className={`font-bold text-lg ${duration === min ? 'text-pink-600' : 'text-slate-500'}`}>
+                        <Text className={`font-display text-lg ${duration === min ? 'text-accent-text' : 'text-ink-3'}`}>
                           {min} <Text className="text-xs font-medium">min</Text>
                         </Text>
-                        <Text className={`text-xs font-bold mt-1 ${duration === min ? 'text-pink-500' : 'text-slate-500'}`}>
+                        <Text className={`text-xs font-semibold mt-1 ${duration === min ? 'text-accent-text' : 'text-ink-3'}`}>
                           ₹{min === 10 ? '5' : '7'}
                         </Text>
                       </TouchableOpacity>
@@ -257,27 +254,26 @@ export default function InterviewSetup() {
 
                 {/* File Upload */}
                 <View>
-                  <Text className="text-slate-500 font-bold mb-3 ml-1 text-xs uppercase tracking-wider">Resume (PDF)</Text>
+                  <Text className="text-ink-3 font-semibold mb-3 ml-1 text-xs uppercase">Resume (PDF)</Text>
                   <Pressable
                     onPress={pickResume}
-                    className={`p-6 rounded-3xl border-2 border-dashed items-center justify-center transition-all ${resume ? 'border-pink-500 bg-pink-50' : 'border-slate-200 bg-slate-50'
-                      }`}
+                    className={`p-6 rounded-card border-2 border-dashed items-center justify-center transition-all ${resume ? 'border-brand-500 bg-brand-50' : 'border-line bg-paper-2' }`}
                   >
                     {resume ? (
                       <View className="items-center">
-                        <View className="bg-pink-100 p-3 rounded-full mb-3 border border-pink-200">
-                          <Ionicons name="document-text" size={32} color="#ec4899" />
+                        <View className="bg-brand-100 p-3 rounded-full mb-3 border border-brand-200">
+                          <Ionicons name="document-text" size={32} color="#F97316" />
                         </View>
-                        <Text className="text-slate-900 font-bold text-center" numberOfLines={1}>
+                        <Text className="text-ink font-semibold text-center" numberOfLines={1}>
                           {resume.name}
                         </Text>
-                        <Text className="text-pink-500 font-bold text-xs mt-1 uppercase tracking-wide">Ready to upload</Text>
+                        <Text className="text-accent-text font-semibold text-xs mt-1 uppercase">Ready to upload</Text>
                       </View>
                     ) : (
                       <View className="items-center py-2">
-                        <Ionicons name="cloud-upload-outline" size={40} color="#9ca3af" />
-                        <Text className="text-slate-500 font-bold mt-3">Tap to Upload Resume</Text>
-                        <Text className="text-slate-500 text-xs mt-1">PDF format only</Text>
+                        <Ionicons name="cloud-upload-outline" size={40} color="#C4BEB6" />
+                        <Text className="text-ink-3 font-semibold mt-3">Tap to Upload Resume</Text>
+                        <Text className="text-ink-3 text-xs mt-1">PDF format only</Text>
                       </View>
                     )}
                   </Pressable>
@@ -291,15 +287,19 @@ export default function InterviewSetup() {
               <TouchableOpacity
                 onPress={startSession}
                 disabled={loading}
-                className={`w-full py-5 rounded-2xl shadow-sm flex-row justify-center items-center ${loading ? 'bg-pink-400' : 'bg-pink-600'
-                  }`}
+                accessibilityRole="button"
+                className={`w-full py-5 rounded-card border-2 border-ink flex-row justify-center items-center ${loading ? 'bg-brand-200' : 'bg-brand-500'}`}
+                style={{
+                  shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0,
+                  shadowOffset: { width: 4, height: 4 }, elevation: 0,
+                }}
               >
                 {loading ? (
-                  <ActivityIndicator color="white" />
+                  <ActivityIndicator color="#12100E" />
                 ) : (
                   <>
-                    <Text className="text-white font-black text-xl mr-2 tracking-widest uppercase">Start Interview</Text>
-                    <Ionicons name="rocket" size={20} color="white" />
+                    <Text className="font-display text-ink uppercase mr-2" style={{ fontSize: 14, letterSpacing: 0.3 }}>Start Interview</Text>
+                    <Ionicons name="arrow-forward" size={16} color="#12100E" />
                   </>
                 )}
               </TouchableOpacity>
@@ -312,14 +312,14 @@ export default function InterviewSetup() {
       {/* Razorpay WebView Modal */}
       <Modal visible={showWebView} animationType="slide" transparent={false}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-          <View className="flex-row items-center justify-between p-4 border-b border-slate-100 bg-white">
-            <Text className="text-slate-900 font-bold text-lg">Secure Checkout</Text>
+          <View className="flex-row items-center justify-between p-4 border-b border-line bg-card">
+            <Text className="text-ink font-display text-lg">Secure Checkout</Text>
             <Pressable onPress={() => {
               setShowWebView(false);
               setLoading(false);
               Alert.alert("Cancelled", "Payment was cancelled.");
             }}>
-              <Ionicons name="close" size={24} color="#1f2937" />
+              <Ionicons name="close" size={24} color="#57534E" />
             </Pressable>
           </View>
           {html ? (
@@ -330,8 +330,8 @@ export default function InterviewSetup() {
               style={{ flex: 1 }}
             />
           ) : (
-            <View className="flex-1 bg-white justify-center items-center">
-              <ActivityIndicator size="large" color="#f97316" />
+            <View className="flex-1 bg-paper justify-center items-center">
+              <ActivityIndicator size="large" color="#F97316" />
             </View>
           )}
         </SafeAreaView>

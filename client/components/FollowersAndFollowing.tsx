@@ -15,7 +15,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
-import { LinearGradient } from "expo-linear-gradient";
 
 type User = {
   _id: string;
@@ -88,12 +87,12 @@ const FollowersAndFollowing = () => {
     const isFollowing = (item.followers || []).includes(myId);
 
     return (
-      <View className="mx-8 mb-1 bg-white rounded-xl overflow-hidden border border-slate-100 shadow-sm shadow-black/5 p-3 flex-row items-center">
+      <View className="mx-gutter mb-1 bg-card rounded-card overflow-hidden border border-line shadow-hair p-3 flex-row items-center">
         <Pressable
           onPress={() => navigation.push("PublicProfile", { user: item })}
           className="flex-row items-center flex-1"
         >
-          <View className="w-10 h-10 bg-slate-50 rounded-full mr-2 overflow-hidden border border-slate-100 items-center justify-center">
+          <View className="w-10 h-10 bg-paper-2 rounded-full mr-2 overflow-hidden border border-line items-center justify-center">
             <Image
               source={{
                 uri: item.avatar || `https://ui-avatars.com/api/?name=${item.username}&background=random&color=fff`,
@@ -104,21 +103,17 @@ const FollowersAndFollowing = () => {
           </View>
 
           <View className="flex-1 justify-center">
-            <Text className="text-slate-900 font-black text-sm tracking-tight">{item.username}</Text>
-            <Text className="text-slate-500 text-2xs font-bold" numberOfLines={1}>{item.name}</Text>
+            <Text className="text-ink font-display text-sm">{item.username}</Text>
+            <Text className="text-ink-3 text-label font-semibold" numberOfLines={1}>{item.name}</Text>
           </View>
         </Pressable>
 
         {!isMe && (
           <TouchableOpacity
             onPress={() => toggleFollow(item._id, isFollowing)}
-            className={`px-4 py-2 rounded-md shadow-sm ml-2 ${
-              isFollowing 
-                ? "bg-slate-50 border border-slate-200" 
-                : "bg-orange-500 shadow-orange-500/20"
-            }`}
+            className={`px-4 py-2 rounded-md shadow-hair ml-2 ${ isFollowing ? "bg-paper-2 border border-line" : "bg-brand-500 " }`}
           >
-            <Text className={`font-black text-2xs uppercase tracking-widest ${isFollowing ? "text-slate-500" : "text-white"}`}>
+            <Text className={`font-display text-label uppercase ${isFollowing ? "text-ink-3" : "text-ink"}`}>
               {isFollowing ? "Following" : "Follow"}
             </Text>
           </TouchableOpacity>
@@ -128,29 +123,26 @@ const FollowersAndFollowing = () => {
   };
 
   const ItemSkeleton = () => (
-    <View className="mx-8 mb-6 bg-white rounded-4xl overflow-hidden border border-slate-100 shadow-sm p-6 flex-row items-center">
-        <View className="w-16 h-16 bg-slate-50 rounded-2xl mr-5" />
+    <View className="mx-gutter mb-6 bg-card rounded-sheet overflow-hidden border border-line shadow-hair p-6 flex-row items-center">
+        <View className="w-16 h-16 bg-paper-2 rounded-card mr-5" />
         <View className="flex-1 justify-center">
-            <View className="h-4 bg-slate-50 rounded w-3/4 mb-3" />
-            <View className="h-3 bg-slate-50 rounded w-1/2 mb-2" />
+            <View className="h-4 bg-paper-2 rounded w-3/4 mb-3" />
+            <View className="h-3 bg-paper-2 rounded w-1/2 mb-2" />
         </View>
-        <View className="w-20 h-10 bg-slate-50 rounded-lg ml-2" />
+        <View className="w-20 h-10 bg-paper-2 rounded-lg ml-2" />
     </View>
   );
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
-      <View className="absolute top-0 w-full h-80 opacity-20 pointer-events-none">
-          <LinearGradient colors={['#f97316', 'transparent']} className="w-full h-full" />
-      </View>
 
       <SafeAreaView className="flex-1" edges={['top']}>
-        <View className="px-8 pt-6 pb-2">
+        <View className="px-gutter pt-6 pb-2">
             <View className="flex-row items-center mb-3">
                 <View>
-                    <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase leading-tight">Social <Text className="text-orange-500">{type}</Text></Text>
-                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Network Grid Protocol</Text>
+                    <Text className="text-ink text-3xl font-display uppercase leading-tight">Social <Text className="text-accent-text">{type}</Text></Text>
+                    <Text className="text-ink-3 text-label font-display uppercase">Network Grid Protocol</Text>
                 </View>
             </View>
         </View>
@@ -167,12 +159,12 @@ const FollowersAndFollowing = () => {
                 contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
                 showsVerticalScrollIndicator={false}
                 ListEmptyComponent={
-                <View className="items-center justify-center mt-20 px-10">
-                    <View className="w-24 h-24 bg-white rounded-4xl items-center justify-center mb-6 border border-slate-100 shadow-sm shadow-black/5">
-                        <Ionicons name="people" size={40} color="#cbd5e1" />
+                <View className="items-center justify-center mt-20 px-gutter">
+                    <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                        <Ionicons name="people" size={40} color="#C4BEB6" />
                     </View>
-                    <Text className="text-slate-500 font-black uppercase text-xs tracking-wide text-center">No {type} Found</Text>
-                    <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center">There are no users in this list yet.</Text>
+                    <Text className="font-semibold text-base text-ink text-center">No {type} Found</Text>
+                    <Text className="font-sans text-sm text-ink-4 mt-2 text-center">There are no users in this list yet.</Text>
                 </View>
                 }
             />

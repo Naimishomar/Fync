@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {View, Text, ScrollView, BackHandler, ActivityIndicator, Image, TouchableOpacity, Modal, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
@@ -118,16 +117,16 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
   // --- RENDER WAITING MODAL ---
   if (waitingForOpponent) {
     return (
-      <View className="flex-1 bg-[#F8FAFC]">
+      <View className="flex-1 bg-paper">
         <StatusBar barStyle="dark-content" />
-        <SafeAreaView className="flex-1 justify-center items-center px-10">
-          <View className="bg-white p-10 rounded-5xl border border-slate-100 items-center w-full shadow-2xl shadow-black/5">
-            <View className="bg-pink-50 p-6 rounded-full mb-8 border border-pink-100">
-              <ActivityIndicator size="large" color="#f97316" />
+        <SafeAreaView className="flex-1 justify-center items-center px-gutter">
+          <View className="bg-card p-card-pad rounded-sheet border border-line items-center w-full shadow-hair">
+            <View className="bg-paper-2 p-6 rounded-full mb-8 border border-line">
+              <ActivityIndicator size="large" color="#F97316" />
             </View>
-            <Text className="text-3xl font-black  tracking-tighter text-slate-900 mb-2 text-center uppercase">Submitted!</Text>
-            <Text className="text-slate-500 text-center text-lg font-bold uppercase tracking-tight">
-              Waiting for <Text className="font-black text-pink-500 ">{opponent?.name || "Target"}</Text> to finalize...
+            <Text className="text-3xl font-display text-ink text-center uppercase mt-6 mb-2">Submitted!</Text>
+            <Text className="text-ink-3 text-center text-lg font-display uppercase">
+              Waiting for <Text className="font-display text-accent-text">{opponent?.name || "Target"}</Text> to finalize...
             </Text>
           </View>
         </SafeAreaView>
@@ -136,63 +135,62 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
   }
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
       <SafeAreaView className="flex-1">
         {/* --- HEADER --- */}
-        <View className="px-8 pt-8 pb-6 border-b border-slate-100 bg-white shadow-sm shadow-black/5">
+        <View className="px-gutter pt-8 pb-6 border-b border-line bg-card shadow-hair">
 
           {mode === '1v1' && opponent && (
-            <View className="flex-row items-center justify-between mb-8 bg-slate-50 p-4 rounded-3xl border border-slate-100 shadow-sm shadow-black/5">
+            <View className="flex-row items-center justify-between mb-8 bg-paper-2 p-4 rounded-card border border-line shadow-hair">
               <View className="flex-row items-center gap-3">
-                <View className="w-12 h-12 bg-white rounded-2xl border border-slate-100 overflow-hidden items-center justify-center shadow-sm">
+                <View className="w-12 h-12 bg-card rounded-card border border-line overflow-hidden items-center justify-center shadow-hair">
                   {opponent.avatar ? (
                     <Image source={{ uri: opponent.avatar }} className="w-full h-full" />
                   ) : (
-                    <Text className="font-black text-slate-300 text-xl ">{opponent.username?.[0]?.toUpperCase()}</Text>
+                    <Text className="font-display text-ink-4 text-xl">{opponent.username?.[0]?.toUpperCase()}</Text>
                   )}
                 </View>
                 <View>
-                  <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide">Global Opponent</Text>
-                  <Text className="font-black  text-slate-900 uppercase tracking-tighter">{opponent.name || opponent.username}</Text>
+                  <Text className="text-label text-ink-3 font-display uppercase">Global Opponent</Text>
+                  <Text className="font-display text-ink uppercase">{opponent.name || opponent.username}</Text>
                 </View>
               </View>
-              <View className="bg-pink-500 px-4 py-1.5 rounded-full shadow-lg shadow-pink-500/20">
-                <Text className="text-white font-black  text-2xs tracking-wide uppercase">1V1 Match</Text>
+              <View className="bg-brand-500 px-2.5 py-1 rounded-full">
+                <Text className="text-ink font-display text-label uppercase">1V1 Match</Text>
               </View>
             </View>
           )}
 
           <View className="flex-row justify-between items-center">
             <View className="flex-row items-center">
-              <Text className="font-black  text-xl text-slate-900 tracking-tighter uppercase">
-                Q. <Text className="text-pink-500 text-2xl">{currentIndex + 1}</Text> / {questions.length}
+              <Text className="font-display text-xl text-ink uppercase">
+                Q. <Text className="text-accent-text text-2xl">{currentIndex + 1}</Text> / {questions.length}
               </Text>
             </View>
 
-            <View className={`px-5 py-2.5 rounded-2xl border flex-row items-center shadow-sm ${timeLeft < 60 ? 'bg-red-50 border-red-100 shadow-red-500/5' : 'bg-slate-50 border-slate-100 shadow-black/5'
-              }`}>
-              <Ionicons name="stopwatch" size={20} color={timeLeft < 60 ? '#f87171' : '#ec4899'} />
-              <Text className={`font-black  text-xl ml-3 tracking-tighter uppercase ${timeLeft < 60 ? 'text-red-400' : 'text-slate-900'}`}>
+            <View className={`px-5 py-2.5 rounded-card border flex-row items-center shadow-hair ${timeLeft < 60 ? 'bg-danger/10 border-danger/15 ' : 'bg-paper-2 border-line ' }`}>
+              <Ionicons name="stopwatch" size={20} color={timeLeft < 60 ? '#DC2626' : '#F97316'} />
+              <Text className={`font-display text-xl ml-3 uppercase ${timeLeft < 60 ? 'text-danger' : 'text-ink'}`}>
                 {formatTime(timeLeft)}
               </Text>
             </View>
           </View>
 
           {/* Progress Bar */}
-          <View className="w-full h-2 bg-slate-50 rounded-full mt-6 overflow-hidden border border-slate-100">
+          <View className="w-full h-2 bg-paper-2 rounded-full mt-6 overflow-hidden border border-line">
             <View
-              className="h-full bg-pink-500 rounded-full"
+              className="h-full bg-brand-500 rounded-full"
               style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
             />
           </View>
         </View>
 
         {/* --- CURRENT QUESTION --- */}
-        <ScrollView className="flex-1 px-8 pt-10" showsVerticalScrollIndicator={false}>
-          <View className="mb-10 bg-white p-8 rounded-5xl border border-slate-100 shadow-2xl shadow-black/5">
-            <Text className="text-2xl font-black  text-slate-900 mb-10 leading-8 tracking-tighter uppercase">
+        <ScrollView className="flex-1 px-gutter pt-10" showsVerticalScrollIndicator={false}>
+          <View className="mb-10 bg-card p-card-pad rounded-sheet border border-line shadow-hair">
+            <Text className="text-2xl font-display text-ink mb-10 leading-8 uppercase">
               {currentQuestion.question}
             </Text>
 
@@ -208,14 +206,12 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
                     newAns[currentIndex] = optIndex;
                     setAnswers(newAns);
                   }}
-                  className={`p-6 mb-5 rounded-3xl border flex-row items-center transition-all ${isSelected ? 'bg-white border-pink-500 shadow-xl shadow-pink-500/10' : 'bg-slate-50 border-slate-100'
-                    }`}
+                  className={`p-6 mb-5 rounded-card border flex-row items-center transition-all ${isSelected ? 'bg-card border-brand-500 shadow-hair ' : 'bg-paper-2 border-line' }`}
                 >
-                  <View className={`w-6 h-6 rounded-full border-2 mr-4 items-center justify-center ${isSelected ? 'border-pink-500 bg-pink-500' : 'border-slate-300 bg-white'
-                    }`}>
-                    {isSelected && <Ionicons name="checkmark" size={14} color="white" />}
+                  <View className={`w-6 h-6 rounded-full border-2 mr-4 items-center justify-center ${isSelected ? 'border-brand-500 bg-brand-500' : 'border-line bg-card' }`}>
+                    {isSelected && <Ionicons name="checkmark" size={14} color="#12100E" />}
                   </View>
-                  <Text className={`flex-1 text-base font-black  uppercase tracking-tight ${isSelected ? 'text-white' : 'text-slate-500'}`}>
+                  <Text className={`flex-1 text-base font-display uppercase ${isSelected ? 'text-white' : 'text-ink-3'}`}>
                     {opt}
                   </Text>
                 </TouchableOpacity>
@@ -225,16 +221,15 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
         </ScrollView>
 
         {/* --- NAVIGATION BUTTONS --- */}
-        <View className="p-8 bg-white border-t border-slate-100 flex-row justify-between items-center pb-12 shadow-2xl shadow-black/10">
+        <View className="p-card-pad bg-card border-t border-line flex-row justify-between items-center pb-12 shadow-hair">
 
           {/* Previous Button */}
           <TouchableOpacity
             onPress={() => setCurrentIndex(prev => prev - 1)}
             disabled={isFirstQuestion || submitted}
-            className={`py-5 px-8 rounded-3xl border ${isFirstQuestion ? 'bg-slate-50 border-slate-50 opacity-30' : 'bg-slate-50 border-slate-100'
-              }`}
+            className={`py-5 px-gutter rounded-card border ${isFirstQuestion ? 'bg-paper-2 border-line opacity-30' : 'bg-paper-2 border-line' }`}
           >
-            <Ionicons name="arrow-back" size={24} color={isFirstQuestion ? "#94a3b8" : "#18181b"} />
+            <Ionicons name="arrow-back" size={24} color={isFirstQuestion ? "#8B857E" : "#12100E"} />
           </TouchableOpacity>
 
           {/* Next / Submit Button */}
@@ -242,20 +237,20 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
             <TouchableOpacity
               onPress={() => setCurrentIndex(prev => prev + 1)}
               activeOpacity={0.9}
-              className="py-5 px-16 rounded-3xl bg-pink-500 shadow-xl shadow-pink-500/20 flex-row items-center"
+              className="py-5 px-gutter rounded-card bg-brand-500 shadow-hair flex-row items-center"
             >
-              <Text className="text-white font-black  uppercase tracking-[2px] text-sm mr-3">Next Step</Text>
-              <Ionicons name="arrow-forward" size={18} color="white" />
+              <Text className="text-ink font-display uppercase text-sm mr-3">Next Step</Text>
+              <Ionicons name="arrow-forward" size={18} color="#12100E" />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
               onPress={() => setShowConfirmModal(true)}
               disabled={submitted}
               activeOpacity={0.9}
-              className="py-5 px-16 rounded-3xl bg-pink-500 shadow-xl shadow-pink-500/20 flex-row items-center"
+              className="py-5 px-gutter rounded-card bg-brand-500 shadow-hair flex-row items-center"
             >
-              <Text className="text-white font-black  uppercase tracking-[2px] text-sm mr-3">Finalize</Text>
-              <Ionicons name="rocket" size={22} color="white" />
+              <Text className="text-ink font-display uppercase text-sm mr-3">Finalize</Text>
+              <Ionicons name="rocket" size={22} color="#12100E" />
             </TouchableOpacity>
           )}
 
@@ -268,19 +263,19 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
           animationType="fade"
           onRequestClose={() => setShowConfirmModal(false)}
         >
-          <View className="flex-1 bg-slate-900/60 justify-center items-center px-8">
-            <View className="bg-white p-10 rounded-5xl border border-slate-100 w-full items-center shadow-2xl">
-              <View className="bg-amber-50 p-6 rounded-full mb-8 border border-amber-100">
-                <Ionicons name="alert-circle" size={48} color="#d97706" />
+          <View className="flex-1 bg-ink/60 justify-center items-center px-gutter">
+            <View className="bg-card p-card-pad rounded-sheet border border-line w-full items-center shadow-hair">
+              <View className="bg-warning/10 p-6 rounded-full mb-8 border border-warning/15">
+                <Ionicons name="alert-circle" size={48} color="#B45309" />
               </View>
-              <Text className="text-3xl font-black  tracking-tighter text-slate-900 mb-3 text-center uppercase">Complete Quiz?</Text>
+              <Text className="text-3xl font-display text-ink text-center uppercase mt-6 mb-3">Complete Quiz?</Text>
 
               {answers.includes(-1) ? (
-                <Text className="text-red-500 text-center font-bold text-lg mb-10 tracking-tight">
-                  Warning: <Text className="font-black ">{answers.filter(a => a === -1).length}</Text> questions remain unaddressed!
+                <Text className="text-danger text-center font-display text-lg mb-10">
+                  Warning: <Text className="font-display">{answers.filter(a => a === -1).length}</Text> questions remain unaddressed!
                 </Text>
               ) : (
-                <Text className="text-slate-500 text-center font-bold text-base mb-10 tracking-tight uppercase">
+                <Text className="text-ink-3 text-center font-semibold text-base mb-10 uppercase">
                   Protocol finished. Verify your inputs before final submission.
                 </Text>
               )}
@@ -288,16 +283,16 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
               <View className="flex-row w-full gap-5">
                 <TouchableOpacity
                   onPress={() => setShowConfirmModal(false)}
-                  className="flex-1 py-5 bg-slate-50 rounded-3xl border border-slate-100 items-center shadow-sm"
+                  className="flex-1 py-5 bg-paper-2 border border-line items-center shadow-hair rounded-md"
                 >
-                  <Text className="text-slate-500 font-black  uppercase tracking-wide text-xs">Review</Text>
+                  <Text className="font-semibold text-base text-ink">Review</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={submitQuiz}
-                  className="flex-1 py-5 bg-pink-500 rounded-3xl shadow-xl shadow-pink-500/20 items-center"
+                  className="flex-1 py-5 bg-brand-500 items-center border-2 border-ink rounded-md"
                 >
-                  <Text className="text-white font-black  uppercase tracking-wide text-xs">Confirm</Text>
+                  <Text className="text-ink font-display uppercase text-sm">Confirm</Text>
                 </TouchableOpacity>
               </View>
             </View>

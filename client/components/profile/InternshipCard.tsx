@@ -4,12 +4,12 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 
 const TYPE_CONFIG: Record<string, { icon: string; color: string; bg: string }> = {
-  internship:   { icon: 'school-outline',    color: '#18181b', bg: '#f8fafc' },
-  'full-time':  { icon: 'briefcase',         color: '#f97316', bg: '#fff7ed' },
-  'part-time':  { icon: 'briefcase-outline', color: '#18181b', bg: '#f8fafc' },
-  freelance:    { icon: 'laptop-outline',    color: '#f97316', bg: '#fff7ed' },
-  contract:     { icon: 'document-outline', color: '#18181b', bg: '#f8fafc' },
-  'open-source':{ icon: 'code-slash-outline',color: '#f97316', bg: '#fff7ed' },
+  internship:   { icon: 'school-outline',    color: '#12100E', bg: '#F5F2EC' },
+  'full-time':  { icon: 'briefcase',         color: '#F97316', bg: '#EDE8E0' },
+  'part-time':  { icon: 'briefcase-outline', color: '#12100E', bg: '#F5F2EC' },
+  freelance:    { icon: 'laptop-outline',    color: '#F97316', bg: '#EDE8E0' },
+  contract:     { icon: 'document-outline', color: '#12100E', bg: '#F5F2EC' },
+  'open-source':{ icon: 'code-slash-outline',color: '#F97316', bg: '#EDE8E0' },
 };
 
 interface Internship {
@@ -52,40 +52,40 @@ export default function InternshipCard({ item, isOwner, onEdit, onDelete }: Prop
   }
 
   return (
-    <View className="mx-4 mb-4 bg-white rounded-3xl border border-slate-100 p-6 shadow-sm shadow-black/5">
+    <View className="mx-4 mb-4 bg-card rounded-card border border-line p-6 shadow-hair">
       <View className="flex-row">
-        <View className="w-12 h-12 rounded-2xl items-center justify-center mr-4 flex-shrink-0 shadow-sm"
-          style={{ backgroundColor: type.bg, borderWidth: 1, borderColor: '#f1f5f9' }}>
+        <View className="w-12 h-12 rounded-card items-center justify-center mr-4 flex-shrink-0 shadow-hair"
+          style={{ backgroundColor: type.bg, borderWidth: 1, borderColor: '#EDE8E0' }}>
           <Ionicons name={type.icon as any} size={20} color={type.color} />
         </View>
 
         <View className="flex-1">
-          <Text className="text-slate-900 font-black uppercase text-sm tracking-tight leading-tight">{item.role}</Text>
-          <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide mt-0.5">{item.company}</Text>
+          <Text className="text-ink font-display uppercase text-sm leading-tight">{item.role}</Text>
+          <Text className="text-ink-3 font-display uppercase text-label mt-0.5">{item.company}</Text>
 
           <View className="flex-row flex-wrap items-center gap-x-4 gap-y-2 mt-3">
             <View className="flex-row items-center gap-1.5">
-              <Feather name="calendar" size={10} color="#94A3B8" />
-              <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wider">{start} — {end}</Text>
+              <Feather name="calendar" size={10} color="#8B857E" />
+              <Text className="text-ink-3 font-semibold text-label uppercase">{start} — {end}</Text>
             </View>
             {durationStr ? (
-              <View className="bg-slate-50 px-2 py-0.5 rounded-lg">
-                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">{durationStr}</Text>
+              <View className="bg-paper-2 px-2.5 py-1 rounded-full">
+                <Text className="text-ink-3 text-label font-display uppercase">{durationStr}</Text>
               </View>
             ) : null}
             <View className="flex-row items-center gap-1.5">
-              <Feather name="map-pin" size={10} color="#94A3B8" />
-              <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wider">{item.workMode || 'remote'}</Text>
+              <Feather name="map-pin" size={10} color="#8B857E" />
+              <Text className="text-ink-3 font-semibold text-label uppercase">{item.workMode || 'remote'}</Text>
             </View>
             {item.isCurrentlyWorking && (
-              <View className="bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
-                <Text className="text-emerald-600 text-2xs font-black uppercase tracking-wide">Active</Text>
+              <View className="bg-success/10 border border-success/15 px-2.5 py-1 rounded-full">
+                <Text className="text-success text-label font-display uppercase">Active</Text>
               </View>
             )}
           </View>
 
           {item.description ? (
-            <Text className="text-slate-500 text-xs mt-4 leading-[18px] font-medium" numberOfLines={3}>
+            <Text className="text-ink-3 text-xs mt-4 leading-[18px] font-medium" numberOfLines={3}>
               {item.description}
             </Text>
           ) : null}
@@ -93,8 +93,8 @@ export default function InternshipCard({ item, isOwner, onEdit, onDelete }: Prop
           {item.techStack && item.techStack.length > 0 && (
             <View className="flex-row flex-wrap gap-2 mt-4">
               {item.techStack.slice(0, 4).map((t, i) => (
-                <View key={i} className="bg-slate-900 px-2.5 py-1 rounded-lg">
-                  <Text className="text-white text-2xs font-black uppercase tracking-wide">{t}</Text>
+                <View key={i} className="bg-ink px-2.5 py-1 rounded-full">
+                  <Text className="text-white text-label font-display uppercase">{t}</Text>
                 </View>
               ))}
             </View>
@@ -102,12 +102,12 @@ export default function InternshipCard({ item, isOwner, onEdit, onDelete }: Prop
         </View>
 
         {isOwner && (
-          <View className="ml-4 gap-3 border-l border-slate-50 pl-4">
-            <Pressable onPress={() => onEdit?.(item)} className="w-8 h-8 items-center justify-center bg-slate-900 rounded-xl">
+          <View className="ml-4 gap-3 border-l border-line pl-4">
+            <Pressable onPress={() => onEdit?.(item)} className="w-8 h-8 items-center justify-center bg-ink rounded-xl">
               <Feather name="edit-3" size={12} color="white" />
             </Pressable>
-            <Pressable onPress={() => onDelete?.(item._id)} className="w-8 h-8 items-center justify-center bg-rose-50 rounded-xl">
-              <Ionicons name="trash-outline" size={14} color="#ef4444" />
+            <Pressable onPress={() => onDelete?.(item._id)} className="w-8 h-8 items-center justify-center bg-danger/10 rounded-xl">
+              <Ionicons name="trash-outline" size={14} color="#DC2626" />
             </Pressable>
           </View>
         )}

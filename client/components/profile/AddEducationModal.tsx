@@ -57,24 +57,24 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
         <Pressable className="absolute inset-0" onPress={onClose} />
         <KeyboardAvoidingView
           behavior="padding"
-          className="bg-white rounded-t-5xl overflow-hidden"
+          className="bg-paper rounded-t-sheet overflow-hidden"
           style={{ height: screenHeight * 0.85 }}
         >
           {/* Handle */}
           <View className="items-center py-4">
-            <View className="w-12 h-1.5 bg-slate-200 rounded-full" />
+            <View className="w-12 h-1.5 bg-ink-4 rounded-full" />
           </View>
 
           {/* Header */}
-          <View className="flex-row items-center justify-between px-6 pb-4 border-b border-slate-50">
+          <View className="flex-row items-center justify-between px-gutter pb-3 border-b border-line">
             <View>
-              <Text className="text-slate-900 font-black uppercase text-xl tracking-tighter">
-                {isEdit ? 'Update' : 'Record'} <Text className="text-orange-500">Education</Text>
+              <Text className="text-ink font-display uppercase text-h1">
+                {isEdit ? 'Update' : 'Record'} <Text className="text-accent-text">Education</Text>
               </Text>
-              <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wide mt-0.5">Academic History Module</Text>
+              <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Academic History Module</Text>
             </View>
-            <Pressable onPress={onClose} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
-              <Ionicons name="close" size={20} color="#18181b" />
+            <Pressable onPress={onClose} className="w-11 h-11 rounded-xl items-center justify-center" hitSlop={2}>
+              <Ionicons name="close" size={20} color="#12100E" />
             </Pressable>
           </View>
 
@@ -88,12 +88,13 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
             ].map(f => (
               <View key={f.key} className="mb-6">
                 <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name={f.icon as any} size={12} color="#94A3B8" />
-                  <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">{f.label}</Text>
+                  <Feather name={f.icon as any} size={12} color="#8B857E" />
+                  <Text className="text-ink-3 font-display uppercase text-label">{f.label}</Text>
                 </View>
                 <TextInput
-                  className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 text-sm font-semibold"
-                  placeholder={f.ph} placeholderTextColor="#94A3B8"
+                  className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
+            style={{ minHeight: 50 }}
+                  placeholder={f.ph} placeholderTextColor="#8B857E"
                   value={form[f.key as keyof typeof form] as string}
                   onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
                   keyboardType={f.num ? 'numeric' : 'default'}
@@ -102,36 +103,37 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
             ))}
 
             {/* Currently studying toggle */}
-            <View className="flex-row items-center justify-between mb-6 bg-slate-50 px-5 py-4 rounded-2xl border border-slate-100">
+            <View className="flex-row items-center justify-between mb-6 bg-paper-2 px-5 py-4 rounded-card border border-line">
               <View className="flex-row items-center gap-2">
-                <Feather name="clock" size={12} color="#18181b" />
-                <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">Currently Studying Here</Text>
+                <Feather name="clock" size={12} color="#12100E" />
+                <Text className="text-ink font-display uppercase text-label">Currently Studying Here</Text>
               </View>
               <Switch value={form.isCurrent}
                 onValueChange={v => setForm(p => ({ ...p, isCurrent: v }))}
-                trackColor={{ true: '#f97316' }} />
+                trackColor={{ true: '#F97316' }} />
             </View>
 
             {!form.isCurrent && (
               <View className="mb-6">
                 <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name="calendar" size={12} color="#94A3B8" />
-                  <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">End Year</Text>
+                  <Feather name="calendar" size={12} color="#8B857E" />
+                  <Text className="text-ink-3 font-display uppercase text-label">End Year</Text>
                 </View>
-                <TextInput className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 text-sm font-semibold"
-                  placeholder="2024" placeholderTextColor="#94A3B8" keyboardType="numeric"
+                <TextInput className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
+            style={{ minHeight: 50 }}
+                  placeholder="2024" placeholderTextColor="#8B857E" keyboardType="numeric"
                   value={form.endYear} onChangeText={v => setForm(p => ({ ...p, endYear: v }))} />
               </View>
             )}
 
             <View className="mb-12">
               <View className="flex-row items-center gap-2 mb-2">
-                <Feather name="align-left" size={12} color="#94A3B8" />
-                <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">Description</Text>
+                <Feather name="align-left" size={12} color="#8B857E" />
+                <Text className="text-ink-3 font-display uppercase text-label">Description</Text>
               </View>
-              <TextInput className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 text-sm font-semibold"
-                placeholder="Clubs, achievements, projects..." placeholderTextColor="#94A3B8"
-                style={{ height: 100, textAlignVertical: 'top' }}
+              <TextInput className="bg-card border-[1.5px] border-ink px-4 py-3 text-ink text-base font-sans rounded-md"
+                placeholder="Clubs, achievements, projects..." placeholderTextColor="#8B857E"
+                style={{ minHeight: 100, textAlignVertical: 'top' }}
                 value={form.description} multiline
                 onChangeText={v => setForm(p => ({ ...p, description: v }))} />
             </View>
@@ -139,14 +141,14 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
           </ScrollView>
 
           {/* Footer Action */}
-          <View className="p-6 border-t border-slate-50 bg-white shadow-2xl shadow-black">
+          <View className="p-card-pad border-t border-line bg-paper">
             <Pressable onPress={save} disabled={saving}
-              className="bg-slate-900 py-5 rounded-2xl flex-row items-center justify-center shadow-xl shadow-black/20">
-              {saving ? <ActivityIndicator size="small" color="#f97316" />
+              className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md">
+              {saving ? <ActivityIndicator size="small" color="#F97316" />
                 : (
                   <>
                     <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />
-                    <Text className="text-white font-black uppercase text-xs tracking-wide ml-2">
+                    <Text className="text-white font-display uppercase text-xs ml-2">
                       {isEdit ? 'Update Record' : 'Commit Education'}
                     </Text>
                   </>

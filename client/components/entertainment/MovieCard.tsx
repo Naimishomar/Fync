@@ -17,7 +17,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ item, onPress, width = 140, heigh
       activeOpacity={0.8}
       onPress={onPress}
       style={{ width, height, marginRight: 12 }}
-      className="rounded-xl overflow-hidden bg-slate-900 shadow-xl"
+      className="rounded-xl overflow-hidden bg-ink shadow-hair"
     >
       <Image
         source={{ uri: getImageUrl(item.poster_path, 'w342') || '' }}
@@ -30,15 +30,15 @@ const MovieCard: React.FC<MovieCardProps> = ({ item, onPress, width = 140, heigh
       >
         <View className="flex-row justify-between items-end">
           <View className="flex-1 mr-1">
-            <Text className="text-white text-2xs font-bold" numberOfLines={1}>
+            <Text className="text-white text-label font-semibold" numberOfLines={1}>
               {item.title}
             </Text>
             <View className="flex-row items-center mt-0.5">
-              <Ionicons name="star" size={10} color="#fbbf24" />
-              <Text className="text-slate-300 text-2xs ml-1">{item.vote_average.toFixed(1)}</Text>
+              <Ionicons name="star" size={10} color="#B45309" />
+              <Text className="text-ink-4 text-label ml-1">{item.vote_average.toFixed(1)}</Text>
             </View>
           </View>
-          <View className="bg-rose-600/80 rounded-full p-1">
+          <View className="bg-danger/80 rounded-full p-1">
             <Ionicons name="play" size={10} color="white" />
           </View>
         </View>

@@ -5,13 +5,13 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import * as WebBrowser from "expo-web-browser";
-import { LinearGradient } from "expo-linear-gradient";
 import axios from "../context/axiosConfig";
 import socket from "../utils/socket";
 import { useAuth } from "../context/auth.context";
 import Avatar from "./Avatar";
 import { Alert } from './ui/AlertModal';
 
+import { RoleSticker } from './ui/kit';
 const { width } = Dimensions.get("window");
 
 const ProfessionalHub = ({ navigation }: any) => {
@@ -246,7 +246,6 @@ const ProfessionalHub = ({ navigation }: any) => {
     const renderMessage = ({ item }: { item: any }) => {
         const isMe = (item.sender?._id || item.sender) === (user?._id || user?.id);
         const sender = typeof item.sender === 'object' ? item.sender : null;
-        const isAlumni = sender?.user_access === 'alumni';
 
         return (
             <View className={`flex-row w-full ${isMe ? "justify-end" : "justify-start"} items-end pb-4`}>
@@ -257,29 +256,34 @@ const ProfessionalHub = ({ navigation }: any) => {
                 )}
                 <View className={`ml-2 ${isMe ? "items-end" : "items-start"}`}>
                     {!isMe && (
-                        <View className="flex-row items-center mb-1">
-                            <Text className={`text-2xs font-bold ${isAlumni ? 'text-pink-500' : 'text-blue-500'}`}>
-                                {sender?.name} {isAlumni ? '🎓' : '👤'}
+                        <View className="flex-row items-center mb-1" style={{ gap: 6 }}>
+                            {/* Name reads as a name, not as a coloured status. The
+                                role is carried by the sticker and the avatar ring,
+                                so colour is never doing the job alone — and the
+                                emoji is gone, per the icon rule. */}
+                            <Text className="font-semibold text-sm text-ink">
+                                {sender?.name}
                             </Text>
+                            <RoleSticker role={sender?.user_access} />
                             {sender?.company && (
-                                <Text className="text-2xs text-slate-500 ml-1 font-medium tracking-tight">• {sender.company}</Text>
+                                <Text className="font-sans text-label text-ink-3">· {sender.company}</Text>
                             )}
                         </View>
                     )}
                     <TouchableOpacity
                         activeOpacity={0.9}
                         onLongPress={() => isMe ? handleDeleteMessage(item._id) : setReplyingTo(item)}
-                        className={`max-w-[280px] p-3 rounded-2xl ${isMe ? "bg-slate-900 rounded-br-none" : "bg-white rounded-bl-none"} shadow-sm border ${isMe ? 'border-slate-800' : 'border-slate-100'}`}>
+                        className={`max-w-[280px] p-3 rounded-card ${isMe ? "bg-ink rounded-br-none" : "bg-card rounded-bl-none"} shadow-hair border ${isMe ? 'border-ink' : 'border-line'}`}>
 
                         {item.replyTo && (
-                            <View className={`mb-2 p-2 rounded-lg border-l-2 border-pink-500 ${isMe ? 'bg-slate-800' : 'bg-slate-50'}`}>
-                                <Text className="text-pink-500 text-2xs font-bold">{item.replyTo.sender?.name || "User"}</Text>
-                                <Text className={`${isMe ? 'text-slate-500' : 'text-slate-500'} text-2xs`} numberOfLines={1}>{item.replyTo.message}</Text>
+                            <View className={`mb-2 p-2 rounded-lg border-l-2 border-brand-500 ${isMe ? 'bg-ink' : 'bg-paper-2'}`}>
+                                <Text className="text-accent-text text-label font-semibold">{item.replyTo.sender?.name || "User"}</Text>
+                                <Text className={`${isMe ? 'text-ink-3' : 'text-ink-3'} text-label`} numberOfLines={1}>{item.replyTo.message}</Text>
                             </View>
                         )}
 
                         {item.messageType === 'text' && (
-                            <Text className={`${isMe ? 'text-white' : 'text-slate-800'} text-sm leading-5 font-medium`}>{item.message}</Text>
+                            <Text className={`${isMe ? 'text-white' : 'text-ink'} text-sm leading-5 font-medium`}>{item.message}</Text>
                         )}
                         {item.messageType === 'image' && (
                             <Image source={{ uri: item.fileUrl }} className="w-52 h-52 rounded-lg" resizeMode="cover" />
@@ -295,17 +299,17 @@ const ProfessionalHub = ({ navigation }: any) => {
                                         }
                                     }
                                 }}
-                                className={`flex-row items-center p-2 rounded-lg ${isMe ? 'bg-slate-800' : 'bg-slate-100'}`}
+                                className={`flex-row items-center p-2 rounded-lg ${isMe ? 'bg-ink' : 'bg-paper-2'}`}
                             >
-                                <Ionicons name="document-text" size={24} color="#ec4899" />
+                                <Ionicons name="document-text" size={24} color="#F97316" />
                                 <View className="ml-2">
-                                    <Text className={`${isMe ? 'text-white' : 'text-slate-800'} text-xs font-bold`} numberOfLines={1}>{item.fileName || "Document"}</Text>
-                                    <Text className="text-slate-500 text-2xs">Mentorship Resource (Limit 5MB)</Text>
+                                    <Text className={`${isMe ? 'text-white' : 'text-ink'} text-xs font-semibold`} numberOfLines={1}>{item.fileName || "Document"}</Text>
+                                    <Text className="text-ink-3 text-label">Mentorship Resource (Limit 5MB)</Text>
                                 </View>
                             </TouchableOpacity>
                         )}
                     </TouchableOpacity>
-                    <Text className="text-2xs text-slate-500 mt-1 font-bold">
+                    <Text className="text-label text-ink-3 mt-1 font-semibold">
                         {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>
                 </View>
@@ -314,22 +318,34 @@ const ProfessionalHub = ({ navigation }: any) => {
     };
 
     return (
-        <View className="flex-1 bg-[#F5F7FA]">
+        <View className="flex-1 bg-paper-2">
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1">
                 {/* Header */}
-                <View className="flex-row items-center justify-between px-4 py-4 bg-white border-b border-slate-100 shadow-sm">
+                <View className="flex-row items-center justify-between px-4 py-4 bg-card border-b border-line shadow-hair">
                     <View className="flex-row items-center">
-                        <Pressable onPress={() => navigation.goBack()} className="mr-2 p-2 bg-slate-50 rounded-full">
-                            <Ionicons name="arrow-back" size={22} color="#1A1A1A" />
+                        <Pressable onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+                            <Ionicons name="arrow-back" size={22} color="#12100E" />
                         </Pressable>
                         <View>
-                            <Text className="text-slate-900 font-black text-lg  tracking-tight">Professional <Text className="text-pink-500">Hub</Text></Text>
-                            <Text className="text-pink-500 text-2xs font-bold tracking-wide uppercase">{user?.college} Community</Text>
+                            <Text className="text-ink font-semibold text-lg">Professional <Text className="text-accent-text">Hub</Text></Text>
+                            <Text className="text-accent-text text-label font-semibold uppercase">{user?.college} Community</Text>
                         </View>
                     </View>
-                    <View className="bg-pink-500 px-3 py-1.5 rounded-full border border-pink-100 shadow-sm shadow-pink-500/20">
-                        <Text className="text-white text-2xs font-black  tracking-tighter">STUDENT-ALUMNI</Text>
+                    <View
+                        className="bg-brand-200 px-2.5 py-1 border-2 border-ink"
+                        style={{
+                            borderRadius: 4, transform: [{ rotate: '-1.6deg' }],
+                            shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0,
+                            shadowOffset: { width: 2, height: 2 }, elevation: 0,
+                        }}
+                    >
+                        <Text className="font-display text-ink uppercase" style={{ fontSize: 10, letterSpacing: 1 }}>
+                            Student-Alumni
+                        </Text>
                     </View>
                 </View>
 
@@ -338,7 +354,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                     className="flex-1"
                 >
                     {loading ? (
-                        <ActivityIndicator className="flex-1" color="#f97316" />
+                        <ActivityIndicator className="flex-1" color="#F97316" />
                     ) : (
                         <FlatList
                             ref={flatListRef}
@@ -354,37 +370,37 @@ const ProfessionalHub = ({ navigation }: any) => {
                     )}
 
                     {typingUsers.length > 0 && (
-                        <Text className="px-5 py-1 text-slate-500 text-2xs font-bold ">
+                        <Text className="px-5 py-1 text-ink-3 text-label font-semibold">
                             {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
                         </Text>
                     )}
 
                     {replyingTo && (
-                        <View className="px-4 py-3 bg-white border-t border-slate-100 flex-row items-center justify-between">
-                            <View className="border-l-2 border-pink-500 pl-3">
-                                <Text className="text-pink-500 text-2xs font-black uppercase">REPLYING TO {replyingTo.sender?.name}</Text>
-                                <Text className="text-slate-500 text-xs mt-0.5 font-medium" numberOfLines={1}>{replyingTo.message}</Text>
+                        <View className="px-4 py-3 bg-card border-t border-line flex-row items-center justify-between">
+                            <View className="border-l-2 border-brand-500 pl-3">
+                                <Text className="text-accent-text text-label font-display uppercase">REPLYING TO {replyingTo.sender?.name}</Text>
+                                <Text className="text-ink-3 text-xs mt-0.5 font-medium" numberOfLines={1}>{replyingTo.message}</Text>
                             </View>
                             <Pressable onPress={() => setReplyingTo(null)} className="p-1">
-                                <Ionicons name="close-circle" size={20} color="#9ca3af" />
+                                <Ionicons name="close-circle" size={20} color="#C4BEB6" />
                             </Pressable>
                         </View>
                     )}
 
                     {showMentions && mentionResults.length > 0 && (
-                        <View className="max-h-48 bg-white border-t border-slate-100 shadow-xl">
+                        <View className="max-h-48 bg-card border-t border-line shadow-hair">
                             <FlatList
                                 data={mentionResults}
                                 keyExtractor={(item) => item._id}
                                 renderItem={({ item }) => (
                                     <TouchableOpacity
                                         onPress={() => applyMention(item.username)}
-                                        className="flex-row items-center px-4 py-3 border-b border-slate-50 active:bg-slate-50"
+                                        className="flex-row items-center px-4 py-3 border-b border-line active:bg-paper-2"
                                     >
-                                        <Image source={{ uri: item.avatar }} className="w-9 h-9 rounded-full border border-slate-100" />
+                                        <Image source={{ uri: item.avatar }} className="w-9 h-9 rounded-full border border-line" />
                                         <View className="ml-3">
-                                            <Text className="text-slate-900 font-bold text-sm">@{item.username}</Text>
-                                            <Text className="text-slate-500 text-2xs font-medium">{item.name}</Text>
+                                            <Text className="text-ink font-semibold text-sm">@{item.username}</Text>
+                                            <Text className="text-ink-3 text-label font-medium">{item.name}</Text>
                                         </View>
                                     </TouchableOpacity>
                                 )}
@@ -392,31 +408,31 @@ const ProfessionalHub = ({ navigation }: any) => {
                         </View>
                     )}
 
-                    <View className="p-4 bg-white border-t border-slate-100 shadow-sm">
-                        <View className="flex-row items-center bg-slate-50 rounded-3xl px-3 py-1 border border-slate-100">
+                    <View className="p-4 bg-card border-t border-line shadow-hair">
+                        <View className="flex-row items-center bg-paper-2 rounded-card px-3 py-1 border border-line">
                             <Pressable onPress={handlePickMedia} className="p-2">
-                                <Ionicons name="image-outline" size={24} color="#6b7280" />
+                                <Ionicons name="image-outline" size={24} color="#8B857E" />
                             </Pressable>
                             <Pressable onPress={handlePickDocument} className="p-2">
-                                <Ionicons name="attach-outline" size={26} color="#6b7280" />
+                                <Ionicons name="attach-outline" size={26} color="#8B857E" />
                             </Pressable>
                             <TextInput
                                 value={text}
                                 onChangeText={handleTyping}
                                 placeholder="Ask alumni anything..."
-                                placeholderTextColor="#9ca3af"
-                                className="flex-1 text-slate-900 py-3 px-2 text-sm font-medium"
+                                placeholderTextColor="#C4BEB6"
+                                className="flex-1 text-ink py-3 px-2 text-sm font-medium"
                                 multiline
                             />
                             {text.trim().length > 0 && (
-                                <Pressable onPress={handleSendText} className="bg-pink-500 p-2.5 rounded-full ml-2 shadow-sm shadow-pink-500/30">
-                                    <Ionicons name="send" size={16} color="white" />
+                                <Pressable onPress={handleSendText} className="bg-brand-500 p-2.5 rounded-full ml-2 shadow-hair">
+                                    <Ionicons name="send" size={16} color="#12100E" />
                                 </Pressable>
                             )}
                         </View>
                         <View className="flex-row items-center justify-center mt-3">
-                            <Ionicons name="at-circle" size={14} color="#ec4899" />
-                            <Text className="text-2xs text-slate-500 ml-1 font-bold">Type @ followed by username to tag mentors or peers</Text>
+                            <Ionicons name="at-circle" size={14} color="#F97316" />
+                            <Text className="text-label text-ink-3 ml-1 font-semibold">Type @ followed by username to tag mentors or peers</Text>
                         </View>
                     </View>
                 </KeyboardAvoidingView>

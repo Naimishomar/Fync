@@ -1,0 +1,89 @@
+/* ============================================================
+   FYNC DESIGN TOKENS — "Campus Press"
+   Art direction: college notice board / fest flyer / xerox poster.
+   Ink on warm paper, one loud accent, hard edges, stamped numerals.
+   These map 1:1 onto client/tailwind.config.js — see mockups/README.md.
+   ============================================================ */
+:root {
+  /* --- Ink & paper. Warm neutrals, NOT cool slate. This is the single
+         biggest reason the app stops looking like a default template. --- */
+  --ink:        #12100E;  /* headings, borders, tab bar */
+  --ink-2:      #57534E;  /* body copy */
+  --ink-3:      #8B857E;  /* meta, timestamps */
+  --ink-4:      #C4BEB6;  /* disabled, placeholder */
+  --paper:      #F5F2EC;  /* app background */
+  --paper-2:    #EDE8E0;  /* pressed / inset surfaces */
+  --card:       #FFFFFF;
+  --line:       #E3DDD3;  /* hairline */
+  --line-hard:  #12100E;  /* the 2px structural rule */
+
+  /* --- Brand. Unchanged from the shipped app: orange is already the
+         most-used colour and lives in the icon, splash and notifications. --- */
+  --brand-50:  #FFF7ED;
+  --brand-100: #FFEDD5;
+  --brand-200: #FED7AA;
+  --brand-400: #FB923C;
+  --brand:     #F97316;
+  --brand-600: #EA580C;  /* orange text on paper — 4.6:1, the readable one */
+  --brand-700: #C2410C;
+
+  /* --- Audience colours. Semantic: a ring/stamp tells you who you are
+         looking at before you read a word. --- */
+  --student:   #F97316;
+  --alumni:    #B45309;  /* gold that survives 4.5:1 on paper */
+  --alumni-lit:#F5B700;  /* gold on ink only */
+  --recruiter: #4F46E5;
+
+  /* --- Feature families. Explore tiles inherit these; a category is a
+         colour, not 40 random tints. --- */
+  --study:  #7C3AED;
+  --career: #2563EB;
+  --events: #EA580C;
+  --social: #0891B2;
+  --campus: #57534E;
+  --fun:    #DB2777;
+
+  /* --- Semantic --- */
+  --success: #047857;
+  --warning: #B45309;
+  --danger:  #DC2626;
+  --info:    #2563EB;
+
+  /* --- Night surface: Shorts, 12 AM Club, calls. A real second theme,
+         not an inverted copy. --- */
+  --night:    #0D0B12;
+  --night-2:  #171320;
+  --night-ink:#EDE8E0;
+  --night-3:  #8B8397;
+  --violet:   #A78BFA;
+
+  /* --- Type --- */
+  --font-display: 'Space Grotesk', 'SF Pro Display', system-ui, sans-serif;
+  --font-body:    'Inter', system-ui, -apple-system, sans-serif;
+
+  --t-display: 34px;  /* screen title, one per screen */
+  --t-h1:      24px;
+  --t-h2:      19px;
+  --t-body:    15px;
+  --t-sm:      13px;
+  --t-label:   11px;  /* uppercase only, never body copy */
+
+  /* --- Space: 4pt rhythm --- */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px;
+  --s6: 24px; --s8: 32px; --s10: 40px; --s12: 48px;
+
+  /* --- Radius. Flyers are not pill-shaped: mid radii only, and one
+         genuinely square element per screen for contrast. --- */
+  --r-sm: 6px; --r: 12px; --r-lg: 18px; --r-card: 20px; --r-sheet: 26px;
+
+  /* --- Elevation. Exactly two: a hairline, and one hard offset stamp
+         reserved for the single primary card on a screen. --- */
+  --shadow-hair: 0 1px 2px rgba(18,16,14,.05);
+  --shadow-stamp: 4px 4px 0 var(--ink);
+  --shadow-stamp-brand: 4px 4px 0 var(--brand-600);
+
+  /* --- Motion --- */
+  --dur-tap: 120ms;
+  --dur-move: 260ms;
+  --ease: cubic-bezier(.2,.8,.2,1);
+}

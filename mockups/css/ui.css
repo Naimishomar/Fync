@@ -1,0 +1,341 @@
+/* ============================================================
+   FYNC UI KIT — mockup stylesheet
+   Every class here has a named NativeWind equivalent in README.md.
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Centre the device in whatever viewport opens it. Inside the 390x844 iframes
+   on the board this resolves to a zero offset, so the frames are unaffected;
+   opened on its own, a screen sits in the middle of the window instead of
+   hugging the top-left corner. */
+html:has(body.screen) { min-height: 100vh; display: flex; background: var(--paper-2); }
+html:has(body.screen.night) { background: #060509; }
+
+body.screen {
+  /* margin:auto — NOT justify/align-content. Auto margins centre the device when
+     there is free space and collapse to 0 when there is not, so a viewport at or
+     under 390px still starts at the left edge instead of overflowing off both
+     sides the way centred justification does. */
+  width: 390px; height: 844px; margin: auto; overflow: hidden; flex: none;
+  background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: var(--t-body);
+  display: flex; flex-direction: column; position: relative;
+  -webkit-font-smoothing: antialiased;
+}
+body.screen.night { background: var(--night); color: var(--night-ink); }
+
+.scroll { flex: 1; overflow-y: auto; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+.pad { padding-left: var(--s5); padding-right: var(--s5); }
+
+/* ---------- status bar ---------- */
+.statusbar {
+  height: 50px; display: flex; align-items: flex-end; justify-content: space-between;
+  padding: 0 var(--s5) 6px; font-family: var(--font-display);
+  font-size: 14px; font-weight: 700; letter-spacing: .2px; flex: none;
+}
+.statusbar .sb-right { display: flex; align-items: center; gap: 5px; }
+.sb-bar { width: 3px; background: currentColor; border-radius: 1px; }
+.sb-batt { width: 22px; height: 11px; border: 1.5px solid currentColor; border-radius: 3px; padding: 1.5px; }
+.sb-batt i { display: block; height: 100%; width: 72%; background: currentColor; border-radius: 1px; }
+
+/* ---------- typography ---------- */
+.display { font-family: var(--font-display); font-size: var(--t-display); font-weight: 700;
+  letter-spacing: -1.2px; line-height: 1.02; text-transform: uppercase; }
+.h1 { font-family: var(--font-display); font-size: var(--t-h1); font-weight: 700; letter-spacing: -.6px; line-height: 1.12; }
+.h2 { font-family: var(--font-display); font-size: var(--t-h2); font-weight: 700; letter-spacing: -.4px; line-height: 1.2; }
+.body { font-size: var(--t-body); line-height: 1.55; color: var(--ink-2); }
+.sm { font-size: var(--t-sm); line-height: 1.45; color: var(--ink-2); }
+.meta { font-size: var(--t-sm); color: var(--ink-3); }
+/* Uppercase is a LABEL treatment only. Never body text — that was the
+   readability problem in the shipped screens. */
+.label { font-family: var(--font-display); font-size: var(--t-label); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.4px; color: var(--ink-3); }
+.num { font-family: var(--font-display); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.5px; }
+.brandtext { color: var(--brand-600); }
+
+/* ---------- signature device 1: section rule ----------
+   Notice-board header: eyebrow, hard 2px rule to the edge, count on the right. */
+.rule { display: flex; align-items: center; gap: var(--s3); margin: var(--s6) 0 var(--s3); }
+.rule .line { flex: 1; height: 2px; background: var(--line-hard); opacity: .82; }
+.night .rule .line { background: var(--night-ink); opacity: .3; }
+.rule .label { color: var(--ink); white-space: nowrap; }
+.night .rule .label { color: var(--night-ink); }
+.rule .count { font-family: var(--font-display); font-size: var(--t-label); font-weight: 700;
+  font-variant-numeric: tabular-nums; color: var(--ink-3); }
+
+/* ---------- signature device 2: sticker chip ----------
+   Slightly rotated, hard border, hard shadow. Reads as something pasted
+   onto the board rather than another rounded pill. */
+.sticker {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-display); font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  padding: 5px 9px; border: 2px solid var(--ink); border-radius: 4px;
+  background: var(--brand-200); color: var(--ink);
+  box-shadow: 2px 2px 0 var(--ink); transform: rotate(-1.6deg);
+}
+.sticker.alt   { background: #FFF; }
+.sticker.live  { background: var(--danger); color: #fff; border-color: var(--ink); }
+.sticker.gold  { background: var(--alumni-lit); }
+.sticker.rec   { background: #C7D2FE; }
+.sticker.flat  { transform: none; box-shadow: none; }
+.sticker.tilt-r { transform: rotate(1.8deg); }
+
+/* ---------- chips (non-sticker, for filters/tags) ---------- */
+.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--card);
+  font-size: var(--t-sm); font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+/* Read-only metadata — not a tap target, so the 44px floor does not apply. */
+.chip.tag { min-height: 28px; padding: 0 10px; font-size: 11px; }
+.chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.chiprow { display: flex; gap: var(--s2); overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+/* A scroller inside a padded box must run out to that box's edge, otherwise
+   the last chip reads as clipped by a bug rather than as scrollable. */
+.card.pad-in > .chiprow, .card .pad-in > .chiprow {
+  margin-left: calc(var(--s4) * -1); margin-right: calc(var(--s4) * -1);
+  padding-left: var(--s4); padding-right: var(--s4); }
+/* Metadata inside a card wraps instead of scrolling — a horizontal scroller
+   nested in a vertical list fights the scroll gesture and hides content
+   behind a hard edge. Scrollers are for filters at page level only. */
+.tagrow { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.scroll.pad > .chiprow, .bleed {
+  margin-left: calc(var(--s5) * -1); margin-right: calc(var(--s5) * -1);
+  padding-left: var(--s5); padding-right: var(--s5); }
+.chiprow::-webkit-scrollbar { display: none; }
+
+/* ---------- cards ---------- */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-card);
+  box-shadow: var(--shadow-hair); overflow: hidden; }
+/* One per screen. The offset stamp is what carries the "printed" feel. */
+.card.stamp { border: 2px solid var(--ink); box-shadow: var(--shadow-stamp); }
+/* Standalone too — a bare .pad-in inside a card (the body under a media block)
+   was getting no padding at all, which is what clipped the number stamps. */
+.pad-in { padding: var(--s4); }
+/* One stamp per screen. A stamped child inside a stamped card also has its
+   4px offset shadow clipped by the card's own overflow:hidden. */
+/* The stamp is a scarcity device: exactly one per screen, and it belongs to the
+   hero card. Buttons inside any card, and the docked CTA, keep the brand fill
+   and the 2px rule but drop the offset shadow. */
+.card .btn.primary, .bottombar .btn.primary,
+.card.stamp .sticker, .card.stamp .card { box-shadow: none; }
+.night .card { background: var(--night-2); border-color: rgba(237,232,224,.12); box-shadow: none; }
+
+/* ---------- signature device 3: number stamp ----------
+   Dashed circular stamp for streaks / score / rank. Tabular numerals. */
+.stampnum { width: 66px; height: 66px; border-radius: 50%; border: 2px dashed var(--ink);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--brand-100); flex: none; }
+.stampnum b { font-family: var(--font-display); font-size: 21px; font-weight: 700;
+  font-variant-numeric: tabular-nums; line-height: 1; letter-spacing: -.5px; }
+.stampnum span { font-family: var(--font-display); font-size: 8px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .5px; color: var(--ink-2); margin-top: 2px;
+  /* the caption must fit inside the ring — ELIGIBLE / CAMPUS used to spill out */
+  max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- signature device 4: ticker ---------- */
+.ticker { display: flex; align-items: center; gap: 22px; background: var(--ink); color: var(--paper);
+  padding: 7px 0 7px var(--s5); overflow: hidden; white-space: nowrap; flex: none; }
+.ticker span { font-family: var(--font-display); font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.4px; display: inline-flex; align-items: center; gap: 7px; }
+.ticker .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--brand); flex: none; }
+
+/* ---------- buttons ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 0 var(--s5); border-radius: var(--r); border: 2px solid var(--ink);
+  background: var(--ink); color: var(--paper); font-family: var(--font-display);
+  font-size: 14px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; cursor: pointer; }
+.btn.primary { background: var(--brand); color: var(--ink); box-shadow: var(--shadow-stamp); }
+.btn.ghost { background: transparent; color: var(--ink); }
+.btn.quiet { background: var(--card); color: var(--ink); border-color: var(--line); box-shadow: var(--shadow-hair); }
+.btn.block { display: flex; width: 100%; }
+.btn.sm { min-height: 44px; font-size: 12px; padding: 0 var(--s4); border-width: 1.5px; }
+
+/* ---------- avatars ---------- */
+.av { border-radius: 50%; background: var(--paper-2); display: flex; align-items: center;
+  justify-content: center; font-family: var(--font-display); font-weight: 700; color: var(--ink-2);
+  flex: none; overflow: hidden; }
+.av.s { width: 36px; height: 36px; font-size: 13px; }
+.av.m { width: 44px; height: 44px; font-size: 15px; }
+.av.l { width: 76px; height: 76px; font-size: 26px; }
+/* Role ring: a 2px ring says student / alumni / recruiter at a glance. */
+.av.ring-student   { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--student); }
+.av.ring-alumni    { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--alumni); }
+.av.ring-recruiter { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--recruiter); }
+
+/* ---------- app bar ---------- */
+.appbar { display: flex; align-items: center; gap: var(--s3); padding: var(--s2) var(--s5) var(--s3); flex: none; }
+.appbar .grow { flex: 1; min-width: 0; }
+/* A 44px touch box at the screen edge overhangs by 11px so the glyph — not the
+   box — lines up with the 20px gutter everything else uses. */
+.appbar > .iconbtn:first-child, .appbar .back { margin-left: -11px; }
+.appbar .actions { display: flex; align-items: center; margin-right: -11px; }
+.appbar .actions .iconbtn.boxed { margin-right: 11px; }
+.iconbtn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+  border-radius: 12px; color: var(--ink); position: relative; flex: none; }
+.iconbtn.boxed { border: 1px solid var(--line); background: var(--card); }
+.night .iconbtn { color: var(--night-ink); }
+.badge { position: absolute; top: 6px; right: 6px; min-width: 17px; height: 17px; padding: 0 4px;
+  border-radius: 9px; background: var(--danger); color: #fff; border: 2px solid var(--paper);
+  font-family: var(--font-display); font-size: 9px; font-weight: 700; display: flex;
+  align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
+
+/* ---------- search ---------- */
+.search { display: flex; align-items: center; gap: 10px; height: 50px; padding: 0 var(--s4);
+  background: var(--card); border: 2px solid var(--ink); border-radius: var(--r); color: var(--ink-3); }
+.search span { font-size: var(--t-body); }
+
+/* ---------- segmented tabs ---------- */
+.tabs { display: flex; gap: var(--s6); padding: 0 var(--s5); border-bottom: 1px solid var(--line); flex: none; }
+.tabs a { font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: -.2px;
+  color: var(--ink-3); padding: 10px 0 12px; position: relative; text-decoration: none; }
+.tabs a.on { color: var(--ink); }
+.tabs a.on::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px;
+  height: 3px; background: var(--brand); border-radius: 2px; }
+
+/* ---------- bottom tab bar (floating dark pill, as shipped) ---------- */
+.tabbar { position: absolute; left: 20px; right: 20px; bottom: 22px; height: 64px;
+  background: rgba(18,16,14,.94); border: 1px solid rgba(255,255,255,.12); border-radius: 32px;
+  display: flex; align-items: center; justify-content: space-around;
+  box-shadow: 0 10px 30px rgba(18,16,14,.28); backdrop-filter: blur(12px); }
+.tabbar .t { color: rgba(245,242,236,.55); display: flex; flex-direction: column; align-items: center; gap: 3px;
+  width: 56px; height: 64px; justify-content: center; }
+.tabbar .t.on { color: var(--brand); }
+.tabbar .t em { font-family: var(--font-display); font-size: 8px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .8px; font-style: normal; }
+.fab { width: 56px; height: 56px; border-radius: 50%; background: var(--brand);
+  display: flex; align-items: center; justify-content: center; color: var(--ink);
+  box-shadow: 0 6px 16px rgba(249,115,22,.5); border: 2px solid var(--ink); }
+
+/* ---------- rows / list ---------- */
+.row { display: flex; align-items: center; gap: var(--s3); padding: var(--s3) 0; }
+.row .grow { flex: 1; min-width: 0; }
+.divider { height: 1px; background: var(--line); }
+
+/* ---------- misc ---------- */
+.tile { display: flex; flex-direction: column; align-items: center; gap: 7px; width: 25%; padding: 0 6px 18px; }
+/* Full-column box. With a 54px box centred in an 87px column the first icon sat
+   17px inside the gutter and the row never lined up with the rules above it. */
+.tile .box { width: 100%; height: 62px; border-radius: 16px; display: flex; align-items: center;
+  justify-content: center; background: var(--card); border: 1.5px solid var(--line); }
+.tile em { font-family: var(--font-display); font-size: 10px; font-weight: 700; font-style: normal;
+  text-align: center; line-height: 1.2; letter-spacing: -.1px; }
+.grid { display: flex; flex-wrap: wrap; margin: 0 -6px; }
+.media { background: var(--paper-2); position: relative; }
+.stack { display: flex; flex-direction: column; }
+.between { display: flex; align-items: center; justify-content: space-between; }
+.gap2 { gap: var(--s2); } .gap3 { gap: var(--s3); } .gap4 { gap: var(--s4); }
+.mt2 { margin-top: var(--s2);} .mt3 { margin-top: var(--s3);} .mt4 { margin-top: var(--s4);}
+.mt5 { margin-top: var(--s5);} .mt6 { margin-top: var(--s6);}
+.clear { height: 118px; } /* keeps last row clear of the floating tab bar */
+.clear.sm { height: 24px; }  /* screens with a docked bottom bar instead of the tab bar */
+/* Docked action bar — pinned above the home indicator, not flush to the glass. */
+.bottombar { flex: none; display: flex; align-items: center; gap: var(--s3);
+  padding: var(--s3) var(--s5) calc(var(--s5) + 10px);
+  background: var(--paper); border-top: 1px solid var(--line); }
+.night .bottombar { background: var(--night); border-top-color: rgba(237,232,224,.14); }
+.row.flush:not(.pad-in) { padding: 0; }
+/* A card that is itself a row keeps its own padding — .row and .row.flush must
+   not strip it. Re-stated here so it wins on source order as well. */
+.pad-in, .card.pad-in, .row.pad-in { padding: var(--s4); }
+/* Cut-corner motif — repeats across feature cards as a quiet signature. */
+.notch { clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%); }
+
+/* ---------- icons: CSS masks, so they inherit currentColor and need no
+     network or build step ---------- */
+.ic { display: inline-block; width: 22px; height: 22px; background: currentColor; flex: none;
+  -webkit-mask: var(--m) center/contain no-repeat; mask: var(--m) center/contain no-repeat; }
+.ic.s { width: 16px; height: 16px; } .ic.l { width: 28px; height: 28px; }
+
+/* --- icon set (Phosphor-flavoured, single 2px stroke weight) --- */
+.ic-home{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M3%2010.6%2012%203l9%207.6V20a1%201%200%200%201-1%201h-5v-6.5H9V21H4a1%201%200%200%201-1-1z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-compass{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2021a9%209%200%201%200%200-18%209%209%200%200%200%200%2018zM15.6%208.4l-2.3%205.2-5.2%202.3%202.3-5.2z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-play{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M8%205.4v13.2L19%2012z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-plus{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%205v14M5%2012h14%27%2F%3E%3C%2Fsvg%3E")}
+.ic-user{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2011.5a3.6%203.6%200%201%200%200-7.2%203.6%203.6%200%200%200%200%207.2zM4.6%2020.5a7.4%207.4%200%200%201%2014.8%200%27%2F%3E%3C%2Fsvg%3E")}
+.ic-bell{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M18%2016.2V11a6%206%200%201%200-12%200v5.2L4%2019.4h16zM9.9%2022h4.2%27%2F%3E%3C%2Fsvg%3E")}
+.ic-chat{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M21%2012a8.4%208.4%200%200%201-8.4%208.4H3.6l2.3-3.3A8.4%208.4%200%201%201%2021%2012z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-search{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M11%2018a7%207%200%201%200%200-14%207%207%200%200%200%200%2014zM16.2%2016.2%2020.5%2020.5%27%2F%3E%3C%2Fsvg%3E")}
+.ic-fire{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2021.5c3.9%200%206.4-2.7%206.4-6%200-4.5-3.9-6-3.9-10-2%201-3%203-3%205-1-.6-1.5-1.6-1.5-3-2%202-4.4%204.5-4.4%208%200%203.3%202.5%206%206.4%206z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-trophy{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M7%204h10v5.2a5%205%200%200%201-10%200zM7%206H4v1.8A3.2%203.2%200%200%200%207.2%2011M17%206h3v1.8A3.2%203.2%200%200%201%2016.8%2011M9.2%2020.5h5.6M12%2014.4v6%27%2F%3E%3C%2Fsvg%3E")}
+.ic-rocket{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M9.2%2015%205%2019.2M6.8%2020.6%204%2021l.4-2.8M13.6%203.4c3.6%201.8%206%205.6%206%209.6L15%2017.6l-6.2-6.2z%20M14.6%209.6a1.6%201.6%200%201%200%200-3.2%201.6%201.6%200%200%200%200%203.2z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-briefcase{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M3%208h18v11.5H3zM9%208V5h6v3M3%2013.2h18%27%2F%3E%3C%2Fsvg%3E")}
+.ic-book{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%204.2h6.6A3.4%203.4%200%200%201%2014%207.6v12.2a2.6%202.6%200%200%200-2.6-2.4H4zM20%204.2h-2.6A3.4%203.4%200%200%200%2014%207.6v12.2a2.6%202.6%200%200%201%202.6-2.4H20z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-users{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M9.2%2011.4a3.4%203.4%200%201%200%200-6.8%203.4%203.4%200%200%200%200%206.8zM2.6%2020.4a6.6%206.6%200%200%201%2013.2%200M16.6%205.6a3.2%203.2%200%200%201%200%205.6M18%2014.6a6%206%200%200%201%203.4%205.4%27%2F%3E%3C%2Fsvg%3E")}
+.ic-cart{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M3%204.4h2.6l2.4%2011h9.6l2-8H6.2M10.2%2020.4a1.2%201.2%200%201%200%200-2.4%201.2%201.2%200%200%200%200%202.4zM17.6%2020.4a1.2%201.2%200%201%200%200-2.4%201.2%201.2%200%200%200%200%202.4z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-moon{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M20.4%2014.6A8.6%208.6%200%200%201%209.4%203.6a8.6%208.6%200%201%200%2011%2011z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-heart{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2020.4S3.4%2014.6%203.4%209.2A4.6%204.6%200%200%201%2012%206.6a4.6%204.6%200%200%201%208.6%202.6c0%205.4-8.6%2011.2-8.6%2011.2z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-up{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2019.4V5M6%2011l6-6%206%206%27%2F%3E%3C%2Fsvg%3E")}
+.ic-down{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%204.6V19M18%2013l-6%206-6-6%27%2F%3E%3C%2Fsvg%3E")}
+.ic-share{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2016V4M8.2%207.8%2012%204l3.8%203.8M4.6%2014v5.4h14.8V14%27%2F%3E%3C%2Fsvg%3E")}
+.ic-bookmark{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M6.2%203.2h11.6v18l-5.8-4.4-5.8%204.4z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-right{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27m9.4%205%207%207-7%207%27%2F%3E%3C%2Fsvg%3E")}
+.ic-left{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27m14.6%205-7%207%207%207%27%2F%3E%3C%2Fsvg%3E")}
+.ic-dots{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M5%2012h.01M12%2012h.01M19%2012h.01%27%2F%3E%3C%2Fsvg%3E")}
+.ic-cal{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%206h16v15H4zM4%2011h16M8.6%203.2v4M15.4%203.2v4%27%2F%3E%3C%2Fsvg%3E")}
+.ic-pin{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2021.4s7-6.2%207-11.2a7%207%200%201%200-14%200c0%205%207%2011.2%207%2011.2zM12%2012.6a2.6%202.6%200%201%200%200-5.2%202.6%202.6%200%200%200%200%205.2z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-check{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27m5%2012.8%204.6%204.6L19%207%27%2F%3E%3C%2Fsvg%3E")}
+.ic-close{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M6%206%2018%2018M18%206%206%2018%27%2F%3E%3C%2Fsvg%3E")}
+.ic-gift{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M3.4%2011.2h17.2v9.6H3.4zM3.4%207.2h17.2v4H3.4zM12%207.2v13.6M12%207.2S9.4%207.2%208.4%206.2a2%202%200%201%201%203.6-1zM12%207.2s2.6%200%203.6-1a2%202%200%201%200-3.6-1z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-spark{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%203l1.9%205.3L19%2010l-5.1%201.7L12%2017l-1.9-5.3L5%2010l5.1-1.7zM18.6%2015.6l.8%202%202%20.8-2%20.8-.8%202-.8-2-2-.8%202-.8z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-send{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M3.6%2012%2021%204l-8%2017-2.4-6.6zM10.6%2014.4%2021%204%27%2F%3E%3C%2Fsvg%3E")}
+.ic-code{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27m9.2%208-5%204%205%204M14.8%208l5%204-5%204%27%2F%3E%3C%2Fsvg%3E")}
+.ic-timer{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2021.4a8.2%208.2%200%201%200%200-16.4%208.2%208.2%200%200%200%200%2016.4zM12%209.2v4l2.6%202M9.2%202.6h5.6%27%2F%3E%3C%2Fsvg%3E")}
+.ic-cap{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M2%209.2%2012%204.8l10%204.4-10%204.4zM6.2%2011.2v4.8c0%201.6%202.6%203%205.8%203s5.8-1.4%205.8-3v-4.8%27%2F%3E%3C%2Fsvg%3E")}
+.ic-coin{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2020.6a8.6%208.6%200%201%200%200-17.2%208.6%208.6%200%200%200%200%2017.2zM9.2%208h5.6M9.2%2011h5.6M13.4%208a3.2%203.2%200%200%201%200%206.4H9.2l5.4%204.2%27%2F%3E%3C%2Fsvg%3E")}
+.ic-image{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M3.4%205h17.2v14H3.4zM3.4%2016l5-5%204%204%203-3%205.8%205.8M8.6%2010.4a1.6%201.6%200%201%200%200-3.2%201.6%201.6%200%200%200%200%203.2z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-camera{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M3%208h4l2-3h6l2%203h4v12H3zM12%2016.8a3.6%203.6%200%201%200%200-7.2%203.6%203.6%200%200%200%200%207.2z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-eyeoff{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%204%2020%2020M10.4%206.3A9.4%209.4%200%200%201%2012%206.2c5%200%209%205.8%209%205.8a15%2015%200%200%201-3.1%203.7M7%208.4A15.4%2015.4%200%200%200%203%2012s4%205.8%209%205.8a9%209%200%200%200%203.3-.6%27%2F%3E%3C%2Fsvg%3E")}
+.ic-globe{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2021a9%209%200%201%200%200-18%209%209%200%200%200%200%2018zM3.2%2012h17.6M12%203a14%2014%200%200%201%200%2018%2014%2014%200%200%201%200-18z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-mic{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%203.2a3%203%200%200%201%203%203v5.6a3%203%200%200%201-6%200V6.2a3%203%200%200%201%203-3zM5.6%2011.6a6.4%206.4%200%200%200%2012.8%200M12%2018v3.2%27%2F%3E%3C%2Fsvg%3E")}
+.ic-bolt{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M13.4%202.8%205%2014h6l-1%207.2L19%2010h-6z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-filter{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%205h16l-6.2%207.2v6.4l-3.6%202v-8.4z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-lock{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M6%2011h12v9.6H6zM9%2011V8.2a3%203%200%200%201%206%200V11%27%2F%3E%3C%2Fsvg%3E")}
+.ic-star{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%203.4l2.6%205.6%206%20.8-4.4%204.2%201.1%206-5.3-2.9-5.3%202.9%201.1-6L3.4%209.8l6-.8z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-flag{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M6%2021V4h12l-2.4%204L18%2012H6%27%2F%3E%3C%2Fsvg%3E")}
+.ic-clock{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2021a9%209%200%201%200%200-18%209%209%200%200%200%200%2018zM12%207v5.2l3.4%202%27%2F%3E%3C%2Fsvg%3E")}
+.ic-arrowright{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4.6%2012h14.8M13.4%206l6%206-6%206%27%2F%3E%3C%2Fsvg%3E")}
+.ic-grid{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%204h7v7H4zM13%204h7v7h-7zM4%2013h7v7H4zM13%2013h7v7h-7z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-eye{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%205.6c5.4%200%209%206.4%209%206.4s-3.6%206.4-9%206.4S3%2012%203%2012s3.6-6.4%209-6.4zM12%2015a3%203%200%201%200%200-6%203%203%200%200%200%200%206z%27%2F%3E%3C%2Fsvg%3E")}
+
+.trunc { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* --- service icons: study, career, events, social, campus, fun, account --- */
+.ic-folder{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M3%206.4h6l2%202.4h10V19.6H3z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-file{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M6%203.2h7.4L18.6%208.4V20.8H6zM13.4%203.2v5.2h5.2M9%2013h6M9%2016.6h6%27%2F%3E%3C%2Fsvg%3E")}
+.ic-wrench{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M14.6%203.8a5%205%200%200%200-5.9%206.6L3.4%2015.7a2%202%200%201%200%202.9%202.9l5.3-5.3a5%205%200%200%200%206.6-5.9l-3%203-2.6-2.6z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-qr{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%204h6v6H4zM14%204h6v6h-6zM4%2014h6v6H4zM14%2014h2.6v2.6H14zM20%2014v6h-6%27%2F%3E%3C%2Fsvg%3E")}
+.ic-wallet{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M3.4%207.4h14.4a2.4%202.4%200%200%201%202.4%202.4v8a2.4%202.4%200%200%201-2.4%202.4H3.4zM3.4%207.4V5.6a1.6%201.6%200%200%201%201.6-1.6h11.2M16.6%2014.4h.01%27%2F%3E%3C%2Fsvg%3E")}
+.ic-ribbon{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2014.2a5.4%205.4%200%201%200%200-10.8%205.4%205.4%200%200%200%200%2010.8zM8.4%2013.2%206.6%2021l5.4-2.8%205.4%202.8-1.8-7.8%27%2F%3E%3C%2Fsvg%3E")}
+.ic-easel{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%204h16v10.4H4zM12%2014.4V21M8%2021l4-3.4%204%203.4M12%201.8V4%27%2F%3E%3C%2Fsvg%3E")}
+.ic-enter{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12.6%203.4H19a1.6%201.6%200%200%201%201.6%201.6v14a1.6%201.6%200%200%201-1.6%201.6h-6.4M9.4%2016.4%2014%2012l-4.6-4.4M14%2012H3.4%27%2F%3E%3C%2Fsvg%3E")}
+.ic-podium{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M9.4%209.4h5.2V21H9.4zM3.4%2013.6h6V21h-6zM14.6%2011.6h6V21h-6zM12%203.2l1.3%202.6%202.9.4-2.1%202%20.5%202.9L12%207.7%209.4%2011l.5-2.9-2.1-2%202.9-.4z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-megaphone{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M3.4%209.4h4L15%204.6v14.8L7.4%2014.6h-4zM19%209a3.6%203.6%200%200%201%200%206M7.4%2014.6V20h3.2%27%2F%3E%3C%2Fsvg%3E")}
+.ic-bulb{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M9.4%2018.6h5.2M10%2021.4h4M8%2012.6a5.4%205.4%200%201%201%208%200c-.9%201-1.4%201.9-1.4%203H9.4c0-1.1-.5-2-1.4-3z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-news{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%205.4h13.6v15.2H4zM17.6%209h2.4v9.2a2.4%202.4%200%200%201-4.8%200M7%209h7.4M7%2012.6h7.4M7%2016.2h4.6%27%2F%3E%3C%2Fsvg%3E")}
+.ic-reader{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M5%203.4h14v17.2H5zM8.4%208h7.2M8.4%2012h7.2M8.4%2016h4.4%27%2F%3E%3C%2Fsvg%3E")}
+.ic-gamepad{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M8.4%2011h-3M6.9%209.5v3M15.4%2010.4h.01M17.8%2012.6h.01M7.2%206.6h9.6a4.6%204.6%200%200%201%204.6%204.6v1.6a4.6%204.6%200%200%201-8.4%202.6h-2a4.6%204.6%200%200%201-8.4-2.6v-1.6a4.6%204.6%200%200%201%204.6-4.6z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-mask{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M3.4%206.6h17.2v5.6a8.6%208.6%200%200%201-17.2%200zM7.6%2010.2h2.6M13.8%2010.2h2.6M9.8%2016h4.4%27%2F%3E%3C%2Fsvg%3E")}
+.ic-phone{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M8.2%203.6%2010.4%208l-2%202a11%2011%200%200%200%205.6%205.6l2-2%204.4%202.2v3.2a1.6%201.6%200%200%201-1.8%201.6C10.6%2020%204%2013.4%203%205.4a1.6%201.6%200%200%201%201.6-1.8z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-video{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M3.4%206.4h11.2v11.2H3.4zM14.6%2010.2%2020.6%207v10l-6-3.2z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-film{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M3.4%204.4h17.2v15.2H3.4zM8%204.4v15.2M16%204.4v15.2M3.4%2012h17.2M3.4%208.2H8M3.4%2015.8H8M16%208.2h4.6M16%2015.8h4.6%27%2F%3E%3C%2Fsvg%3E")}
+.ic-headset{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%2014.6v-2.6a8%208%200%201%201%2016%200v2.6M4%2013.4h2.4v5.2H5.2A1.2%201.2%200%200%201%204%2017.4zM20%2013.4h-2.4v5.2h1.2a1.2%201.2%200%200%200%201.2-1.2zM17.6%2018.6v.6a2%202%200%200%201-2%202H12%27%2F%3E%3C%2Fsvg%3E")}
+.ic-shield{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%203%205%205.8v5.4c0%204.4%203%207.6%207%209.4%204-1.8%207-5%207-9.4V5.8zM9.2%2012l2%202%203.6-3.8%27%2F%3E%3C%2Fsvg%3E")}
+.ic-trash{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4.6%206.6h14.8M9.4%206.6V4.4h5.2v2.2M6.6%206.6l1%2013.4h8.8l1-13.4M10%2010.4v6M14%2010.4v6%27%2F%3E%3C%2Fsvg%3E")}
+.ic-pencil{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%2020h4l11-11a2.8%202.8%200%201%200-4-4L4%2016zM14.6%205.4l4%204%27%2F%3E%3C%2Fsvg%3E")}
+.ic-warn{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%203.6%2021%2019.4H3zM12%209.6v4.4M12%2016.6h.01%27%2F%3E%3C%2Fsvg%3E")}
+.ic-sliders{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%207h9M17%207h3M4%2017h3M11%2017h9M15%204.6v4.8M9%2014.6v4.8%27%2F%3E%3C%2Fsvg%3E")}
+.ic-mail{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M3.4%205.4h17.2v13.2H3.4zM3.4%206.6%2012%2013l8.6-6.4%27%2F%3E%3C%2Fsvg%3E")}
+.ic-target{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2021a9%209%200%201%200%200-18%209%209%200%200%200%200%2018zM12%2016.4a4.4%204.4%200%201%200%200-8.8%204.4%204.4%200%200%200%200%208.8zM12%2012h.01%27%2F%3E%3C%2Fsvg%3E")}
+.ic-sun{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2016.4a4.4%204.4%200%201%200%200-8.8%204.4%204.4%200%200%200%200%208.8zM12%202.6v2M12%2019.4v2M2.6%2012h2M19.4%2012h2M5.4%205.4l1.4%201.4M17.2%2017.2l1.4%201.4M18.6%205.4l-1.4%201.4M6.8%2017.2l-1.4%201.4%27%2F%3E%3C%2Fsvg%3E")}
+.ic-list{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M8.4%206.4h12M8.4%2012h12M8.4%2017.6h12M4%206.4h.01M4%2012h.01M4%2017.6h.01%27%2F%3E%3C%2Fsvg%3E")}
+.ic-swords{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M3.4%203.4h3.4l11%2011-3.4%203.4zM20.6%203.4h-3.4l-4.2%204.2%203.4%203.4zM6.6%2014.4%203.4%2017.6l3%203%203.2-3.2M17.4%2014.4l3.2%203.2-3%203-3.2-3.2%27%2F%3E%3C%2Fsvg%3E")}
+.ic-link{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M9.6%2013.4a4%204%200%200%200%205.8.3l3-3a4%204%200%200%200-5.7-5.7l-1.7%201.7M14.4%2010.6a4%204%200%200%200-5.8-.3l-3%203a4%204%200%200%200%205.7%205.7l1.7-1.7%27%2F%3E%3C%2Fsvg%3E")}
+.ic-download{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%203.6v11.6M7.4%2011l4.6%204.6L16.6%2011M4.4%2019.4h15.2%27%2F%3E%3C%2Fsvg%3E")}
+.ic-flame2{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%2021.5c3.9%200%206.4-2.7%206.4-6%200-4.5-3.9-6-3.9-10-2%201-3%203-3%205-1-.6-1.5-1.6-1.5-3-2%202-4.4%204.5-4.4%208%200%203.3%202.5%206%206.4%206z%27%2F%3E%3C%2Fsvg%3E")}
+.ic-refresh{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M20.4%2012a8.4%208.4%200%201%201-2.5-6M20.4%203.6v5h-5%27%2F%3E%3C%2Fsvg%3E")}
+.ic-chart{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%2020.4h16.4M7%2017V10M12%2017V5.6M17%2017v-4.6%27%2F%3E%3C%2Fsvg%3E")}
+.ic-plusbox{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%204h16v16H4zM12%208.4v7.2M8.4%2012h7.2%27%2F%3E%3C%2Fsvg%3E")}
+.ic-ticket{--m:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M3.4%208.6V6.4h17.2v2.2a2.4%202.4%200%200%200%200%206.8v2.2H3.4v-2.2a2.4%202.4%200%200%200%200-6.8zM9.6%206.4v11.2%27%2F%3E%3C%2Fsvg%3E")}

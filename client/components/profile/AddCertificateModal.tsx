@@ -103,24 +103,24 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
         <Pressable className="absolute inset-0" onPress={onClose} />
         <KeyboardAvoidingView
           behavior="padding"
-          className="bg-white rounded-t-5xl overflow-hidden"
+          className="bg-paper rounded-t-sheet overflow-hidden"
           style={{ height: screenHeight * 0.85 }}
         >
           {/* Handle */}
           <View className="items-center py-4">
-            <View className="w-12 h-1.5 bg-slate-200 rounded-full" />
+            <View className="w-12 h-1.5 bg-ink-4 rounded-full" />
           </View>
 
           {/* Header */}
-          <View className="flex-row items-center justify-between px-6 pb-4 border-b border-slate-50">
+          <View className="flex-row items-center justify-between px-gutter pb-3 border-b border-line">
             <View>
-              <Text className="text-slate-900 font-black uppercase text-xl tracking-tighter">
-                {isEdit ? 'Verify' : 'Add'} <Text className="text-orange-500">Certificate</Text>
+              <Text className="text-ink font-display uppercase text-h1">
+                {isEdit ? 'Verify' : 'Add'} <Text className="text-accent-text">Certificate</Text>
               </Text>
-              <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wide mt-0.5">Academic Validation Module</Text>
+              <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Academic Validation Module</Text>
             </View>
-            <Pressable onPress={onClose} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
-              <Ionicons name="close" size={20} color="#18181b" />
+            <Pressable onPress={onClose} className="w-11 h-11 rounded-xl items-center justify-center" hitSlop={2}>
+              <Ionicons name="close" size={20} color="#12100E" />
             </Pressable>
           </View>
 
@@ -128,15 +128,15 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
             {/* Category chips */}
             <View className="mb-6">
               <View className="flex-row items-center gap-2 mb-3">
-                <Feather name="tag" size={12} color="#94A3B8" />
-                <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">Specialization Field</Text>
+                <Feather name="tag" size={12} color="#8B857E" />
+                <Text className="text-ink-3 font-display uppercase text-label">Specialization Field</Text>
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row gap-2 pr-6">
                   {CATEGORIES.map(c => (
                     <Pressable key={c} onPress={() => setForm(p => ({ ...p, category: c }))}
-                      className={`px-4 py-2.5 rounded-xl border items-center shadow-sm ${form.category === c ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-100'}`}>
-                      <Text className={`text-2xs font-black uppercase tracking-widest ${form.category === c ? 'text-white' : 'text-slate-500'}`}>
+                      className={`px-4 py-2.5 rounded-xl border items-center shadow-hair ${form.category === c ? 'bg-ink border-ink' : 'bg-card border-line'}`}>
+                      <Text className={`text-label font-display uppercase ${form.category === c ? 'text-white' : 'text-ink-3'}`}>
                         {c.replace('-', ' ')}
                       </Text>
                     </Pressable>
@@ -155,12 +155,13 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
             ].map(f => (
               <View key={f.key} className="mb-6">
                 <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name={f.icon as any} size={12} color="#94A3B8" />
-                  <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">{f.label}</Text>
+                  <Feather name={f.icon as any} size={12} color="#8B857E" />
+                  <Text className="text-ink-3 font-display uppercase text-label">{f.label}</Text>
                 </View>
                 <TextInput
-                  className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 text-sm font-semibold"
-                  placeholder={f.ph} placeholderTextColor="#94A3B8"
+                  className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
+            style={{ minHeight: 50 }}
+                  placeholder={f.ph} placeholderTextColor="#8B857E"
                   value={(form as any)[f.key]}
                   onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
                 />
@@ -170,30 +171,30 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
             {/* Image Picker */}
             <View className="mb-12">
               <View className="flex-row items-center gap-2 mb-4">
-                <Feather name="image" size={12} color="#94A3B8" />
-                <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">Digital Proof / Manifest</Text>
+                <Feather name="image" size={12} color="#8B857E" />
+                <Text className="text-ink-3 font-display uppercase text-label">Digital Proof / Manifest</Text>
               </View>
               <Pressable onPress={pickImage}>
                 {image ? (
-                   <View className="w-full h-48 rounded-3xl overflow-hidden border border-slate-100 shadow-sm">
+                   <View className="w-full h-48 rounded-card overflow-hidden border border-line shadow-hair">
                      <Image source={{ uri: image.uri }} className="w-full h-full" resizeMode="contain" />
                      <View className="absolute top-3 right-3 bg-black/60 rounded-full p-2 border border-white/20">
                        <Feather name="edit-2" size={14} color="white" />
                      </View>
                    </View>
                 ) : existingImage ? (
-                   <View className="w-full h-48 rounded-3xl overflow-hidden border border-slate-100 shadow-sm">
+                   <View className="w-full h-48 rounded-card overflow-hidden border border-line shadow-hair">
                      <Image source={{ uri: existingImage }} className="w-full h-full" resizeMode="contain" />
                      <View className="absolute top-3 right-3 bg-black/60 rounded-full p-2 border border-white/20">
                         <Feather name="edit-2" size={14} color="white" />
                      </View>
                    </View>
                 ) : (
-                   <View className="w-full h-48 border-2 border-dashed border-slate-200 rounded-4xl items-center justify-center bg-slate-50/50">
-                     <View className="w-12 h-12 bg-white rounded-full items-center justify-center shadow-sm mb-3">
-                       <Feather name="upload-cloud" size={20} color="#f97316" />
+                   <View className="w-full h-48 border-2 border-dashed border-line rounded-sheet items-center justify-center bg-paper-2/50">
+                     <View className="w-12 h-12 bg-card rounded-full items-center justify-center shadow-hair mb-3">
+                       <Feather name="upload-cloud" size={20} color="#F97316" />
                      </View>
-                     <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Initialize Proof Upload</Text>
+                     <Text className="text-ink-3 text-label font-display uppercase">Initialize Proof Upload</Text>
                    </View>
                 )}
               </Pressable>
@@ -203,14 +204,14 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
           </ScrollView>
 
           {/* Footer Action */}
-          <View className="p-6 border-t border-slate-50 bg-white shadow-2xl shadow-black">
+          <View className="p-card-pad border-t border-line bg-paper">
             <Pressable onPress={save} disabled={saving}
-              className="bg-slate-900 py-5 rounded-2xl flex-row items-center justify-center shadow-xl shadow-black/20">
-              {saving ? <ActivityIndicator size="small" color="#f97316" />
+              className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md">
+              {saving ? <ActivityIndicator size="small" color="#F97316" />
                 : (
                   <>
                     <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />
-                    <Text className="text-white font-black uppercase text-xs tracking-wide ml-2">
+                    <Text className="text-white font-display uppercase text-xs ml-2">
                       {isEdit ? 'Update Certificate' : 'Verify Achievement'}
                     </Text>
                   </>

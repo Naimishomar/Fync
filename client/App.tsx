@@ -16,6 +16,20 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { AlertHost } from './components/ui/AlertModal';
 //@ts-ignore
 import "./global.css";
+
+// Campus Press type: Space Grotesk carries every heading, numeral and label;
+// Inter carries everything a user actually reads. Both SIL Open Font Licence.
+import {
+  useFonts,
+  SpaceGrotesk_500Medium,
+  SpaceGrotesk_700Bold,
+} from '@expo-google-fonts/space-grotesk';
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
 import { StatusBar } from 'expo-status-bar';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -583,7 +597,7 @@ function RootNavigator() {
 
 const navTheme = {
   ...DefaultTheme,
-  colors: { ...DefaultTheme.colors, background: '#F8FAFC' },
+  colors: { ...DefaultTheme.colors, background: '#F5F2EC' },
 };
 
 const linking = {
@@ -603,6 +617,15 @@ const linking = {
 export default function App() {
   const [isConnected, setIsConnected] = React.useState(true);
 
+  const [fontsLoaded] = useFonts({
+    SpaceGrotesk_500Medium,
+    SpaceGrotesk_700Bold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+
   React.useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
       setIsConnected(state.isConnected !== false);
@@ -614,6 +637,16 @@ export default function App() {
     return (
       <View className="flex-1">
         <NoInternetScreen onRetry={() => setIsConnected(true)} />
+      </View>
+    );
+  }
+
+  // Hold on paper rather than white: a white flash before the first paint reads
+  // as a different app than the one that follows.
+  if (!fontsLoaded) {
+    return (
+      <View className="flex-1 items-center justify-center bg-paper">
+        <ActivityIndicator color="#EA580C" />
       </View>
     );
   }

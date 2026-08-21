@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform, Pressable, Animated, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
 import socket from '../utils/socket';
@@ -35,69 +34,69 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
     const posterName = item.postedBy?.name || (isOwner ? currentUser?.name : 'Anonymous');
 
     return (
-        <View className="bg-white mx-8 mb-6 rounded-4xl border border-slate-100 shadow-sm shadow-black/5 overflow-hidden">
-            <View className="absolute left-0 top-0 bottom-0 w-[6px] bg-pink-500" />
+        <View className="bg-card mx-gutter mb-6 rounded-sheet border border-line shadow-hair overflow-hidden">
+            <View className="absolute left-0 top-0 bottom-0 w-[6px] bg-brand-500" />
 
             <View className="p-6 pl-8">
                 <View className="flex-row justify-between items-start mb-4">
                     <View className="flex-1 mr-4">
-                        <Text className="text-slate-900 font-black  text-lg uppercase tracking-tight leading-tight" numberOfLines={2}>
+                        <Text className="text-ink font-display text-lg uppercase leading-tight" numberOfLines={2}>
                             {item.title}
                         </Text>
-                        <Text className="text-slate-500 text-2xs mt-1 uppercase tracking-wide font-black ">
+                        <Text className="text-ink-3 text-label mt-1 uppercase font-display">
                             {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
                         </Text>
                     </View>
                     {isOwner && (
-                        <View className="flex-row gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
-                            <TouchableOpacity onPress={() => onEdit(item)} className="p-2 bg-white rounded-xl border border-slate-100">
-                                <Ionicons name="pencil" size={12} color="#18181b" />
+                        <View className="flex-row gap-2 bg-paper-2 p-1.5 rounded-card border border-line">
+                            <TouchableOpacity onPress={() => onEdit(item)} className="p-2 bg-card rounded-xl border border-line">
+                                <Ionicons name="pencil" size={12} color="#12100E" />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => onDelete(item._id)} className="p-2 bg-rose-50 rounded-xl border border-rose-100">
-                                <Ionicons name="trash" size={12} color="#f43f5e" />
+                            <TouchableOpacity onPress={() => onDelete(item._id)} className="p-2 bg-danger/10 rounded-xl border border-danger/15">
+                                <Ionicons name="trash" size={12} color="#DB2777" />
                             </TouchableOpacity>
                         </View>
                     )}
                 </View>
 
-                <View className="flex-row items-center bg-emerald-50 self-start px-3 py-1.5 rounded-xl border border-emerald-100 mb-6">
-                    <Ionicons name="cash-outline" size={14} color="#10b981" />
-                    <Text className="text-emerald-600 text-2xs font-black ml-1.5 uppercase tracking-wide">
+                <View className="flex-row items-center bg-success/10 self-start px-3 py-1.5 rounded-xl border border-success/15 mb-6">
+                    <Ionicons name="cash-outline" size={14} color="#047857" />
+                    <Text className="text-success text-label font-display ml-1.5 uppercase">
                         {item.stipend || 'Pay: Open'}
                     </Text>
                 </View>
 
-                <Text className="text-slate-600 text-sm leading-6 mb-6 font-medium ">
+                <Text className="text-ink-2 text-sm leading-6 mb-6 font-medium">
                     "{item.description.length > MAX_CHAR && !isExpanded
                         ? `${item.description.substring(0, MAX_CHAR)}...`
                         : item.description
                     }"
                     {item.description.length > MAX_CHAR && (
-                        <Text onPress={() => setIsExpanded(!isExpanded)} className="text-pink-500 font-black ml-1 uppercase text-2xs">
+                        <Text onPress={() => setIsExpanded(!isExpanded)} className="text-accent-text font-display ml-1 uppercase text-label">
                             {isExpanded ? " Less" : " Read More"}
                         </Text>
                     )}
                 </Text>
 
-                <View className="h-[1px] bg-slate-50 w-full mb-6" />
+                <View className="h-[1px] bg-paper-2 w-full mb-6" />
 
                 <View className="flex-row justify-between items-center mb-6">
                     <View className="flex-row items-center">
                         <Image
                             source={{ uri: avatarUrl }}
-                            className="w-10 h-10 rounded-2xl border border-slate-200 bg-slate-50"
+                            className="w-10 h-10 rounded-card border border-line bg-paper-2"
                         />
                         <View className="ml-3">
-                            <Text className="text-2xs text-slate-500 uppercase tracking-wide font-black ">Poster</Text>
-                            <Text className="text-slate-900 text-xs font-black  uppercase mt-0.5 tracking-tight" numberOfLines={1}>
+                            <Text className="text-label text-ink-3 uppercase font-display">Poster</Text>
+                            <Text className="font-semibold text-base text-ink mt-0.5" numberOfLines={1}>
                                 {posterName}
                             </Text>
                         </View>
                     </View>
 
                     {!isOwner && (
-                        <View className="bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100">
-                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide" numberOfLines={1}>
+                        <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
+                            <Text className="text-ink-3 font-display text-label uppercase" numberOfLines={1}>
                                 {item.postedUserCollege}
                             </Text>
                         </View>
@@ -107,33 +106,30 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                 {isOwner ? (
                     <TouchableOpacity
                         onPress={() => onCloseGig(item._id, 'Closed')}
-                        className="w-full py-5 bg-rose-50 border border-rose-100 rounded-3xl items-center justify-center flex-row shadow-sm"
+                        className="w-full py-5 bg-danger/10 border border-danger/15 rounded-card items-center justify-center flex-row shadow-hair"
                     >
-                        <Ionicons name="close-circle" size={18} color="#f43f5e" />
-                        <Text className="text-rose-500 font-black text-2xs uppercase tracking-wide ml-2 ">Terminate Gig</Text>
+                        <Ionicons name="close-circle" size={18} color="#DB2777" />
+                        <Text className="text-danger font-display text-label uppercase ml-2">Terminate Gig</Text>
                     </TouchableOpacity>
                 ) : (
                     <TouchableOpacity
                         onPress={() => onMessage(item._id, item.postedBy)}
                         disabled={connectingId !== null}
                         activeOpacity={0.8}
-                        className="w-full rounded-3xl overflow-hidden shadow-lg shadow-pink-500/20"
+                        className="w-full rounded-card overflow-hidden shadow-hair"
                     >
-                        <LinearGradient
-                            colors={['#ec4899', '#be185d']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
+                        <View
                             className="py-5 flex-row items-center justify-center"
-                        >
+                         style={{ backgroundColor: '#F97316' }}>
                             {connectingId === item._id ? (
                                 <ActivityIndicator size="small" color="white" />
                             ) : (
                                 <>
                                     <Ionicons name="chatbubble-ellipses" size={18} color="white" />
-                                    <Text className="text-white font-black text-2xs uppercase tracking-wide ml-2 ">Initiate Contact</Text>
+                                    <Text className="text-white font-display text-label uppercase ml-2">Initiate Contact</Text>
                                 </>
                             )}
-                        </LinearGradient>
+                        </View>
                     </TouchableOpacity>
                 )}
             </View>
@@ -363,54 +359,51 @@ export default function PaidGigs({ navigation }: any) {
         return (
             <Animated.View
                 style={{ opacity: pulseAnim }}
-                className="bg-white mx-8 mb-6 rounded-4xl border border-slate-100 p-8 shadow-sm shadow-black/5"
+                className="bg-card mx-gutter mb-6 rounded-sheet border border-line p-card-pad shadow-hair"
             >
                 <View className="flex-row justify-between items-center mb-6">
-                    <View className="h-6 bg-slate-50 rounded w-2/3" />
-                    <View className="w-10 h-10 bg-slate-50 rounded-2xl" />
+                    <View className="h-6 bg-paper-2 rounded w-2/3" />
+                    <View className="w-10 h-10 bg-paper-2 rounded-card" />
                 </View>
-                <View className="h-8 bg-slate-50 rounded-xl w-32 mb-8" />
+                <View className="h-8 bg-paper-2 rounded-xl w-32 mb-8" />
 
-                <View className="h-4 bg-slate-50 rounded w-full mb-3" />
-                <View className="h-4 bg-slate-50 rounded w-4/5 mb-10" />
+                <View className="h-4 bg-paper-2 rounded w-full mb-3" />
+                <View className="h-4 bg-paper-2 rounded w-4/5 mb-10" />
 
-                <View className="flex-row justify-between items-center pt-6 border-t border-slate-50">
+                <View className="flex-row justify-between items-center pt-6 border-t border-line">
                     <View className="flex-row items-center">
-                        <View className="w-10 h-10 bg-slate-50 rounded-2xl" />
-                        <View className="ml-3"><View className="h-4 bg-slate-50 rounded w-20" /></View>
+                        <View className="w-10 h-10 bg-paper-2 rounded-card" />
+                        <View className="ml-3"><View className="h-4 bg-paper-2 rounded w-20" /></View>
                     </View>
-                    <View className="w-24 h-10 bg-slate-50 rounded-2xl" />
+                    <View className="w-24 h-10 bg-paper-2 rounded-card" />
                 </View>
             </Animated.View>
         );
     };
 
     return (
-        <View className="flex-1 bg-[#F8FAFC]">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
-            <View className="absolute top-0 w-full h-80 opacity-10">
-                <LinearGradient colors={['#f97316', 'transparent']} className="w-full h-full" />
-            </View>
 
             <SafeAreaView className="flex-1" edges={['top']}>
-                <View className="px-8 pt-6">
+                <View className="px-gutter pt-6">
                     <View className="flex-row justify-between items-center mb-8">
                         <View>
-                            <Text className="text-3xl font-black  text-slate-900 tracking-tighter uppercase leading-tight">
-                                Paid <Text className="text-pink-500">Gigs</Text> 💰
+                            <Text className="text-3xl font-display text-ink uppercase leading-tight">
+                                Paid <Text className="text-accent-text">Gigs</Text>
                             </Text>
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Freelance Work Protocol</Text>
+                            <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Freelance Work Protocol</Text>
                         </View>
                         <TouchableOpacity
                             onPress={openCreateModal}
                             activeOpacity={0.8}
-                            className="w-14 h-14 rounded-2xl bg-slate-900 items-center justify-center shadow-2xl shadow-black/40"
+                            className="w-14 h-14 bg-ink items-center justify-center border-2 border-ink rounded-md"
                         >
                             <Ionicons name="add" size={28} color="white" />
                         </TouchableOpacity>
                     </View>
 
-                    <View className="flex-row bg-white p-1.5 rounded-2xl mb-8 border border-slate-100">
+                    <View className="flex-row bg-card p-1.5 rounded-card mb-8 border border-line">
                         {[
                             { key: 'college', label: 'College' },
                             { key: 'global', label: 'Global' },
@@ -419,9 +412,9 @@ export default function PaidGigs({ navigation }: any) {
                             <TouchableOpacity
                                 key={t.key}
                                 onPress={() => setActiveTab(t.key as any)}
-                                className={`flex-1 py-3.5 items-center rounded-xl ${activeTab === t.key ? 'bg-slate-900' : 'bg-transparent'}`}
+                                className={`flex-1 py-3.5 items-center rounded-xl ${activeTab === t.key ? 'bg-ink' : 'bg-transparent'}`}
                             >
-                                <Text className={`font-black tracking-widest text-2xs  uppercase ${activeTab === t.key ? 'text-white' : 'text-slate-500'}`}>
+                                <Text className={`font-display text-label uppercase ${activeTab === t.key ? 'text-white' : 'text-ink-3'}`}>
                                     {t.label}
                                 </Text>
                             </TouchableOpacity>
@@ -436,7 +429,7 @@ export default function PaidGigs({ navigation }: any) {
                         data={gigs}
                         keyExtractor={(item) => item._id}
                         showsVerticalScrollIndicator={false}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />}
                         contentContainerStyle={{ paddingBottom: 120, paddingTop: 10 }}
                         renderItem={({ item }) => (
                             <GigCard
@@ -454,17 +447,17 @@ export default function PaidGigs({ navigation }: any) {
                         ListFooterComponent={() => (
                             loadingMore ? (
                                 <View className="py-6 items-center">
-                                    <ActivityIndicator size="small" color="#f97316" />
+                                    <ActivityIndicator size="small" color="#F97316" />
                                 </View>
                             ) : <View className="h-10" />
                         )}
                         ListEmptyComponent={
-                            <View className="items-center justify-center mt-20 px-10">
-                                <View className="w-20 h-20 bg-white rounded-4xl items-center justify-center mb-6 border border-slate-100 shadow-sm">
-                                    <Ionicons name="briefcase-outline" size={32} color="#CBD5E1" />
+                            <View className="items-center justify-center mt-20 px-gutter">
+                                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                                    <Ionicons name="briefcase-outline" size={32} color="#C4BEB6" />
                                 </View>
-                                <Text className="text-slate-500 font-black  uppercase text-xs tracking-wide text-center">No Gigs Active</Text>
-                                <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center">Transmission silence detected.</Text>
+                                <Text className="font-semibold text-base text-ink text-center">No Gigs Active</Text>
+                                <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Transmission silence detected.</Text>
                             </View>
                         }
                     />
@@ -473,73 +466,76 @@ export default function PaidGigs({ navigation }: any) {
 
             {/* CREATE / EDIT MODAL */}
             <Modal visible={modalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeModal}>
-                <View className="flex-1 bg-[#F8FAFC]">
+                <View className="flex-1 bg-paper">
                     <StatusBar barStyle="dark-content" />
-                    <View className="flex-row justify-between items-center px-8 py-6 border-b border-slate-100 bg-white">
-                        <Text className="text-xl font-black text-slate-900  tracking-tighter uppercase leading-tight">
-                            {editMode ? 'Edit' : 'New'} <Text className="text-pink-500">Gig Protocol</Text>
+                    <View className="flex-row justify-between items-center px-gutter py-6 border-b border-line bg-card">
+                        <Text className="text-xl font-display text-ink uppercase leading-tight">
+                            {editMode ? 'Edit' : 'New'} <Text className="text-accent-text">Gig Protocol</Text>
                         </Text>
-                        <TouchableOpacity onPress={closeModal} className="bg-slate-50 p-2 rounded-2xl border border-slate-100">
-                            <Ionicons name="close" size={20} color="#18181b" />
+                        <TouchableOpacity onPress={closeModal} className="bg-paper-2 p-2 rounded-card border border-line">
+                            <Ionicons name="close" size={20} color="#12100E" />
                         </TouchableOpacity>
                     </View>
 
                     <KeyboardAvoidingView behavior="padding" className="flex-1">
-                        <ScrollView className="p-8" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+                        <ScrollView className="p-card-pad" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
 
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Subject Matter</Text>
+                            <Text className="text-ink-3 text-label font-display uppercase mb-4">Subject Matter</Text>
                             <TextInput
                                 value={title} onChangeText={setTitle}
                                 placeholder="Requirement Heading"
-                                placeholderTextColor="#CBD5E1"
-                                className="bg-white p-5 rounded-3xl mb-6 border border-slate-100 shadow-sm text-slate-900 font-black  uppercase text-xs"
+                                placeholderTextColor="#C4BEB6"
+                                className="font-semibold text-base text-ink bg-card p-5 mb-6 border-[1.5px] border-ink shadow-hair rounded-md"
                             />
 
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Visible Radius</Text>
-                            <View className="flex-row bg-white p-1.5 rounded-2xl mb-8 border border-slate-100 shadow-sm">
+                            <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
+                              <Text className="text-ink-3 text-label font-display uppercase">Visible Radius</Text>
+                              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                            </View>
+                            <View className="flex-row bg-card p-1.5 rounded-card mb-8 border border-line shadow-hair">
                                 <TouchableOpacity
                                     onPress={() => setVisibility('College')}
-                                    className={`flex-1 py-3.5 items-center rounded-xl ${visibility === 'College' ? 'bg-slate-900' : 'bg-transparent'}`}
+                                    className={`flex-1 py-3.5 items-center rounded-xl ${visibility === 'College' ? 'bg-ink' : 'bg-transparent'}`}
                                 >
-                                    <Text className={`font-black tracking-widest text-2xs  uppercase ${visibility === 'College' ? 'text-white' : 'text-slate-500'}`}>
+                                    <Text className={`font-display text-label uppercase ${visibility === 'College' ? 'text-white' : 'text-ink-3'}`}>
                                         Campus Only
                                     </Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     onPress={() => setVisibility('Global')}
-                                    className={`flex-1 py-3.5 items-center rounded-xl ${visibility === 'Global' ? 'bg-pink-500' : 'bg-transparent'}`}
+                                    className={`flex-1 py-3.5 items-center rounded-xl ${visibility === 'Global' ? 'bg-brand-500' : 'bg-transparent'}`}
                                 >
-                                    <Text className={`font-black tracking-widest text-2xs  uppercase ${visibility === 'Global' ? 'text-white' : 'text-slate-500'}`}>
+                                    <Text className={`font-display text-label uppercase ${visibility === 'Global' ? 'text-ink' : 'text-ink-3'}`}>
                                         Global Unit
                                     </Text>
                                 </TouchableOpacity>
                             </View>
 
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Transmission Intel</Text>
+                            <Text className="text-ink-3 text-label font-display uppercase mb-4">Transmission Intel</Text>
                             <TextInput
                                 value={description} onChangeText={setDescription}
                                 multiline numberOfLines={5} textAlignVertical="top"
                                 placeholder="Establish the requirements..."
-                                placeholderTextColor="#CBD5E1"
-                                className="bg-white p-5 rounded-3xl mb-6 border border-slate-100 shadow-sm text-slate-700 leading-6 min-h-[150px] font-medium text-xs "
+                                placeholderTextColor="#C4BEB6"
+                                className="bg-card p-5 mb-6 border-[1.5px] border-ink shadow-hair text-ink-2 leading-6 min-h-[150px] font-medium text-xs rounded-md"
                             />
 
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Stipend Allocation</Text>
+                            <Text className="text-ink-3 text-label font-display uppercase mb-4">Stipend Allocation</Text>
                             <TextInput
                                 value={stipend} onChangeText={setStipend}
                                 placeholder="Credit Amount (Optional)"
-                                placeholderTextColor="#CBD5E1"
-                                className="bg-white p-5 rounded-3xl mb-10 border border-slate-100 shadow-sm text-emerald-600 font-black  uppercase text-xs"
+                                placeholderTextColor="#C4BEB6"
+                                className="bg-card p-5 mb-10 border-[1.5px] border-ink shadow-hair text-success font-display uppercase text-xs rounded-md"
                             />
 
                             <TouchableOpacity
                                 onPress={handleSubmit} disabled={submitting}
                                 activeOpacity={0.8}
-                                className={`py-5 rounded-2xl items-center shadow-xl flex-row justify-center ${submitting ? 'bg-slate-100' : 'bg-slate-900 shadow-black/20'}`}
+                                className={`py-5 rounded-card items-center shadow-hair flex-row justify-center ${submitting ? 'bg-paper-2' : 'bg-ink '}`}
                             >
-                                {submitting ? <ActivityIndicator color="#f97316" /> : (
+                                {submitting ? <ActivityIndicator color="#F97316" /> : (
                                     <>
-                                        <Text className="text-white font-black  uppercase tracking-wide text-xs mr-3">
+                                        <Text className="text-white font-display uppercase text-xs mr-3">
                                             {editMode ? 'Sync Changes' : 'Deploy Gig'}
                                         </Text>
                                         <Ionicons name={editMode ? "checkmark-circle" : "paper-plane"} size={16} color="white" />

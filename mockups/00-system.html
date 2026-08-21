@@ -1,0 +1,171 @@
+<!doctype html>
+<meta charset="utf-8"><title>Fync — Campus Press design system</title>
+<link rel="stylesheet" href="css/tokens.css"><link rel="stylesheet" href="css/ui.css">
+<style>
+  body{background:var(--paper);color:var(--ink);font-family:var(--font-body);margin:0;padding:48px 40px 90px}
+  .wrap{max-width:1080px;margin:0 auto}
+  .sw{display:flex;flex-wrap:wrap;gap:14px}
+  .swatch{flex:1 1 132px;min-width:132px}
+  .swatch .chipbox{height:74px;border-radius:12px;border:2px solid var(--ink)}
+  .swatch code{font-family:var(--font-display);font-size:11px;color:var(--ink-3);display:block;margin-top:6px}
+  .swatch b{font-size:12px;display:block;margin-top:4px}
+  .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+  .spec{border-left:2px solid var(--ink);padding-left:14px}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  td,th{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:var(--font-display);font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--ink-3)}
+  code{background:var(--paper-2);padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+<div class="wrap">
+
+  <div style="display:flex;gap:10px"><span class="sticker">Design system</span><span class="sticker alt tilt-r">v1</span></div>
+  <div class="display mt4" style="font-size:56px">Fync —<br>Campus <span class="brandtext">Press</span></div>
+  <p class="body mt4" style="max-width:640px">The visual world is an Indian college notice board: xeroxed fest posters, stamped forms, taped-on stickers, hand-ruled section headers. Ink on warm paper, one loud orange, hard edges. It is deliberately <b>not</b> the cool-grey rounded-card look every template ships with — that look is why the app reads as generic.</p>
+
+  <div class="rule"><span class="label">01 — Ink &amp; paper</span><span class="line"></span></div>
+  <p class="sm" style="max-width:640px">The single highest-leverage change: surfaces move from cool slate (<code>#F8FAFC</code>) to warm paper (<code>#F5F2EC</code>), and body text from blue-grey to warm ink. Same layouts, completely different temperature.</p>
+  <div class="sw mt4">
+    <div class="swatch"><div class="chipbox" style="background:#12100E"></div><b>Ink</b><code>#12100E</code></div>
+    <div class="swatch"><div class="chipbox" style="background:#57534E"></div><b>Ink 2 / body</b><code>#57534E</code></div>
+    <div class="swatch"><div class="chipbox" style="background:#8B857E"></div><b>Ink 3 / meta</b><code>#8B857E</code></div>
+    <div class="swatch"><div class="chipbox" style="background:#F5F2EC"></div><b>Paper</b><code>#F5F2EC</code></div>
+    <div class="swatch"><div class="chipbox" style="background:#EDE8E0"></div><b>Paper 2</b><code>#EDE8E0</code></div>
+    <div class="swatch"><div class="chipbox" style="background:#FFFFFF"></div><b>Card</b><code>#FFFFFF</code></div>
+  </div>
+
+  <div class="rule"><span class="label">02 — Brand &amp; audience</span><span class="line"></span></div>
+  <p class="sm" style="max-width:640px">Orange is kept: it is already the app icon, the splash, the notification tint and the most-used accent in the codebase. <code>#EA580C</code> is the text-safe variant (4.6:1 on paper) — <code>#F97316</code> is for fills only. Role colours are semantic: a ring or stamp tells you who you are reading before you read a word.</p>
+  <div class="sw mt4">
+    <div class="swatch"><div class="chipbox" style="background:#F97316"></div><b>Brand fill</b><code>#F97316</code></div>
+    <div class="swatch"><div class="chipbox" style="background:#EA580C"></div><b>Brand text</b><code>#EA580C</code></div>
+    <div class="swatch"><div class="chipbox" style="background:#B45309"></div><b>Alumni</b><code>#B45309</code></div>
+    <div class="swatch"><div class="chipbox" style="background:#4F46E5"></div><b>Recruiter</b><code>#4F46E5</code></div>
+    <div class="swatch"><div class="chipbox" style="background:#0D0B12"></div><b>Night surface</b><code>#0D0B12</code></div>
+    <div class="swatch"><div class="chipbox" style="background:#A78BFA"></div><b>Night accent</b><code>#A78BFA</code></div>
+  </div>
+  <p class="sm mt4">Feature families — Explore tiles and section icons inherit these, so a category reads as a colour instead of forty unrelated tints:</p>
+  <div class="sw mt2">
+    <div class="swatch"><div class="chipbox" style="background:#7C3AED"></div><b>Study</b></div>
+    <div class="swatch"><div class="chipbox" style="background:#2563EB"></div><b>Career</b></div>
+    <div class="swatch"><div class="chipbox" style="background:#EA580C"></div><b>Events</b></div>
+    <div class="swatch"><div class="chipbox" style="background:#0891B2"></div><b>Social</b></div>
+    <div class="swatch"><div class="chipbox" style="background:#57534E"></div><b>Campus</b></div>
+    <div class="swatch"><div class="chipbox" style="background:#DB2777"></div><b>Fun</b></div>
+  </div>
+
+  <div class="rule"><span class="label">03 — Type</span><span class="line"></span></div>
+  <div class="cols mt3">
+    <div class="spec">
+      <div class="display">Space Grotesk</div>
+      <p class="sm mt2">Display / headings / all numerals. 700 only, tracking −1.2px at display size. Its slightly mechanical letterforms are what stop the app looking like every Inter-only product.</p>
+    </div>
+    <div class="spec">
+      <div class="h1" style="font-family:var(--font-body);font-weight:700">Inter</div>
+      <p class="sm mt2">Body, 15px / 1.55. Sentence case. The shipped app sets body copy in uppercase font-black at 11px — that is the readability bug this fixes.</p>
+    </div>
+  </div>
+  <table class="mt4">
+    <tr><th>Role</th><th>Size</th><th>Font</th><th>Rule</th></tr>
+    <tr><td>Display</td><td>34px</td><td>Grotesk 700, uppercase</td><td>One per screen. Never two.</td></tr>
+    <tr><td>H1 / H2</td><td>24 / 19px</td><td>Grotesk 700, sentence case</td><td>Card and section titles.</td></tr>
+    <tr><td>Body</td><td>15px</td><td>Inter 400/500</td><td>Sentence case, always.</td></tr>
+    <tr><td>Small</td><td>13px</td><td>Inter 400</td><td>Supporting copy, meta.</td></tr>
+    <tr><td>Label</td><td>11px</td><td>Grotesk 700, uppercase, +1.4 tracking</td><td><b>Only</b> place uppercase is allowed.</td></tr>
+    <tr><td>Numerals</td><td>—</td><td>Grotesk, tabular</td><td>Counts, scores, timers, money.</td></tr>
+  </table>
+
+  <div class="rule"><span class="label">04 — The six signature devices</span><span class="line"></span></div>
+  <p class="sm" style="max-width:640px">These carry the identity. Used consistently, they are recognisable in a screenshot with the logo cropped out.</p>
+  <div class="cols mt4">
+    <div class="card pad-in">
+      <div class="label">1 · Section rule</div>
+      <div class="rule" style="margin-top:10px"><span class="label">Feed</span><span class="line"></span><span class="count">128 new</span></div>
+      <p class="sm">Eyebrow, 2px hard rule to the edge, tabular count on the right. Replaces the floating "See all" row. Reads as a ruled notice board.</p>
+    </div>
+    <div class="card pad-in">
+      <div class="label">2 · Sticker chip</div>
+      <div class="mt3" style="display:flex;gap:8px"><span class="sticker">Live now</span><span class="sticker alt tilt-r">3 seats left</span><span class="sticker gold flat">Alumni</span></div>
+      <p class="sm mt3">2px border, 2px hard shadow, rotated 1.6°. For status and identity only — never for navigation.</p>
+    </div>
+    <div class="card pad-in">
+      <div class="label">3 · Hard stamp shadow</div>
+      <div class="card stamp mt3" style="height:52px"></div>
+      <p class="sm mt3"><code>4px 4px 0 ink</code>. <b>Exactly one card per screen</b> gets it — the one action that screen exists for. Everything else is a 1px hairline.</p>
+    </div>
+    <div class="card pad-in">
+      <div class="label">4 · Number stamp</div>
+      <div class="mt3" style="display:flex;gap:12px"><span class="stampnum"><b>41</b><span>min</span></span><span class="stampnum"><b>#12</b><span>campus</span></span></div>
+      <p class="sm mt3">Dashed circle, tabular numerals. Streaks, ranks, scores, countdowns — the numbers students screenshot.</p>
+    </div>
+    <div class="card pad-in">
+      <div class="label">5 · Ticker</div>
+      <div class="ticker mt3" style="border-radius:8px;padding:7px 12px"><span><i class="dot"></i>412 online</span><span><i class="dot"></i>Fest week</span></div>
+      <p class="sm mt3">Ink strip under the status bar on Home only. Campus is a live place; the app should say so before you scroll.</p>
+    </div>
+    <div class="card pad-in">
+      <div class="label">6 · Cut corner</div>
+      <div class="card notch mt3" style="height:52px;background:var(--paper-2)"></div>
+      <p class="sm mt3">18px notch on the top-right of secondary feature cards. A quiet repeat that ties unrelated screens together.</p>
+    </div>
+  </div>
+
+  <div class="rule"><span class="label">05 — Components</span><span class="line"></span></div>
+  <div class="cols mt3">
+    <div class="card pad-in">
+      <div class="label">Buttons — 48px min</div>
+      <div class="mt3" style="display:flex;flex-wrap:wrap;gap:10px">
+        <a class="btn primary">Register</a><a class="btn">Confirm</a><a class="btn quiet">Later</a><a class="btn ghost sm">Skip</a>
+      </div>
+      <p class="sm mt3">One primary per screen. Primary = brand fill + 2px rule + ink text (contrast holds on orange). The stamp shadow belongs to the hero card, so a primary button <em>inside</em> a card or a docked bar drops it — otherwise the card clips it and the screen carries two stamps.</p>
+    </div>
+    <div class="card pad-in">
+      <div class="label">Role rings</div>
+      <div class="mt3" style="display:flex;gap:16px">
+        <span class="av m ring-student">NO</span><span class="av m ring-alumni">AK</span><span class="av m ring-recruiter">HR</span>
+      </div>
+      <p class="sm mt3">Student / alumni / recruiter. Never colour-only: a text sticker accompanies the ring wherever identity changes what the content means.</p>
+    </div>
+    <div class="card pad-in">
+      <div class="label">Chips</div>
+      <div class="chiprow mt3"><span class="chip on">All</span><span class="chip">Campus</span></div>
+      <div class="tagrow mt3"><span class="chip tag"><i class="ic s ic-coin"></i>₹55k</span><span class="chip tag">6 months</span></div>
+      <p class="sm mt3">Rounded — the one soft shape in the system, so filters never read as stickers. Two sizes, and the size states intent: <code>.chip</code> is a 44px tap target for filters; <code>.chip.tag</code> is 28px, read-only metadata, and wraps in a <code>.tagrow</code> instead of scrolling.</p>
+    </div>
+    <div class="card pad-in">
+      <div class="label">Icons</div>
+      <div class="mt3" style="display:flex;flex-wrap:wrap;gap:14px">
+        <i class="ic ic-home"></i><i class="ic ic-compass"></i><i class="ic ic-fire"></i><i class="ic ic-rocket"></i><i class="ic ic-cap"></i><i class="ic ic-coin"></i><i class="ic ic-moon"></i><i class="ic ic-trophy"></i><i class="ic ic-users"></i><i class="ic ic-code"></i>
+      </div>
+      <p class="sm mt3">Single 1.9px stroke weight, 22px default, 44×44 tap area. Outline only — no mixed fill/outline in one row. No emoji as icons, ever.</p>
+    </div>
+  </div>
+
+  <div class="rule"><span class="label">06 — Rules that are not negotiable</span><span class="line"></span></div>
+  <table>
+    <tr><th>Rule</th><th>Why</th></tr>
+    <tr><td>Body copy is sentence case at 15px</td><td>Uppercase font-black at 11px is the current app's biggest legibility cost.</td></tr>
+    <tr><td>Uppercase only for <code>.label</code></td><td>The device stops working when everything shouts.</td></tr>
+    <tr><td>One stamp shadow per screen</td><td>Hierarchy comes from scarcity, not from more shadow.</td></tr>
+    <tr><td>Tap targets ≥ 44×44</td><td>Apple HIG / Material minimum. Applies to the vote arrows and chat icons.</td></tr>
+    <tr><td>Text contrast ≥ 4.5:1</td><td><code>#F97316</code> text on white fails. Use <code>#EA580C</code>.</td></tr>
+    <tr><td>Colour is never the only signal</td><td>Role ring always pairs with a text sticker.</td></tr>
+    <tr><td>Content clears the floating tab bar</td><td>118px bottom padding — use <code>useTabBarClearance()</code>, already in the repo.</td></tr>
+    <tr><td>Night surface is a theme, not an inversion</td><td>Shorts, 12 AM Club and calls share one warm-dark palette with a violet accent.</td></tr>
+  </table>
+
+  <div class="rule"><span class="label">07 — Padding &amp; the gutter</span><span class="line"></span></div>
+  <p class="body" style="max-width:660px">Every screen is audited against these in a headless pass; a violation is a build failure, not a judgement call. The list exists because each line here was a real defect found in the first cut of these mockups.</p>
+  <table>
+    <tr><th>Rule</th><th>What it prevents</th></tr>
+    <tr><td>One gutter: <b>20px</b>, <code>.pad</code></td><td>The status bar, app bar, tabs, section rules and cards all start on the same vertical line. The status bar was at 22px and read as a wobble.</td></tr>
+    <tr><td>Card body padding is <b>16px</b>, <code>.pad-in</code></td><td><code>.pad-in</code> works standalone, not only as <code>.card.pad-in</code>. When it did not, the body under a media block got zero padding and every number stamp was clipped at the card edge.</td></tr>
+    <tr><td>An edge icon button overhangs by <b>11px</b></td><td>A 44px touch box aligned at 20px puts its glyph at 31px. The <em>glyph</em> lines up with the gutter; the box hangs off it.</td></tr>
+    <tr><td>A tile's box fills its column</td><td>A fixed 54px box centred in an 87px column sat 17px inside the gutter, so the icon grid never lined up with the rule above it.</td></tr>
+    <tr><td>Nothing with a hard shadow or a rotation sits flush against a clipping edge</td><td><code>.card</code> is <code>overflow:hidden</code> for its media. A stamped button or a rotated sticker at the padding edge gets sliced.</td></tr>
+    <tr><td>Horizontal scrollers bleed to the edge of the box that holds them</td><td>A chiprow cut at an arbitrary inner point reads as a bug. Inside a card, metadata should not scroll at all — wrap it in a <code>.tagrow</code>.</td></tr>
+    <tr><td><code>.row</code> never strips a card's own padding</td><td>A card that <em>is</em> a row keeps <code>.pad-in</code>; only nested rows go flush.</td></tr>
+    <tr><td>A docked bottom bar clears the home indicator</td><td><code>.bottombar</code> pads <b>20px + 10px</b> at the bottom. A composer flush to the glass is unreachable on a notched device.</td></tr>
+    <tr><td>Number stamp captions fit inside the ring</td><td>The ring is 66px; the caption is capped at 56px and ellipsised. <code>ELIGIBLE</code> and <code>CAMPUS</code> used to spill past the dashes.</td></tr>
+  </table>
+
+</div>

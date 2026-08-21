@@ -26,8 +26,8 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
         source={{ uri: avatarUrl }}
         style={[
           { width: size, height: size, borderRadius: size / 2 },
-          isAlumni && { borderWidth: 2, borderColor: '#FFD700' },
-          isRecruiter && { borderWidth: 2, borderColor: '#6366f1' }
+          isAlumni && { borderWidth: 2, borderColor: '#F5B700' },
+          isRecruiter && { borderWidth: 2, borderColor: '#4F46E5' }
         ]}
         className="rounded-full"
         cachePolicy="disk"
@@ -37,7 +37,7 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
           style={[
             styles.badge, 
             { 
-              backgroundColor: '#FFD700',
+              backgroundColor: '#F5B700',
               width: size * 0.4, 
               height: size * 0.4, 
               borderRadius: (size * 0.4) / 2,
@@ -54,7 +54,7 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
           style={[
             styles.badge, 
             { 
-              backgroundColor: '#6366f1',
+              backgroundColor: '#4F46E5',
               width: size * 0.4, 
               height: size * 0.4, 
               borderRadius: (size * 0.4) / 2,
@@ -63,7 +63,7 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
             }
           ]}
         >
-          <Ionicons name="briefcase" size={size * 0.25} color="white" />
+          <Ionicons name="briefcase" size={size * 0.25} color="#12100E" />
         </View>
       )}
     </View>
@@ -73,11 +73,11 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
 const styles = StyleSheet.create({
   badge: {
     position: 'absolute',
-    backgroundColor: '#FFD700',
+    backgroundColor: '#F5B700',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: 'white',
+    borderColor: '#F5F2EC',
   },
 });
 

@@ -78,8 +78,8 @@ const PDFViewerScreen = ({ route, navigation }: any) => {
     }
   };
 
-  const foreground = dark ? '#ffffff' : '#0f172a';
-  const border = dark ? 'rgba(255,255,255,0.12)' : 'rgba(15,23,42,0.08)';
+  const foreground = dark ? '#ffffff' : '#12100E';
+  const border = dark ? 'rgba(255,255,255,0.12)' : 'rgba(18, 16, 14,0.08)';
 
   return (
     <View style={{ flex: 1, backgroundColor: bg }}>
@@ -101,15 +101,16 @@ const PDFViewerScreen = ({ route, navigation }: any) => {
           <Pressable
             onPress={() => navigation.goBack()}
             hitSlop={12}
-            style={{ padding: 6, marginRight: 4 }}
+            style={{ marginLeft: -11,  padding: 6, marginRight: 4 }}
             accessibilityRole="button"
             accessibilityLabel="Go back"
-          >
+          
+            className="w-11 h-11 items-center justify-center rounded-xl">
             <Ionicons name="chevron-back" size={24} color={foreground} />
           </Pressable>
           <Text
             numberOfLines={1}
-            style={{ flex: 1, color: foreground, fontSize: 15, fontWeight: '800' }}
+            style={{ flex: 1, color: foreground, fontSize: 15, fontFamily: 'SpaceGrotesk_700Bold' }}
           >
             {title}
           </Text>
@@ -138,7 +139,7 @@ const PDFViewerScreen = ({ route, navigation }: any) => {
               backgroundColor: bg,
             }}
           >
-            <ActivityIndicator size="large" color="#8b5cf6" />
+            <ActivityIndicator size="large" color="#7C3AED" />
           </View>
         )}
       />

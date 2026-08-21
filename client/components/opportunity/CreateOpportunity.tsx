@@ -119,15 +119,15 @@ const CreateOpportunity = () => {
 
   const SelectionGroup = ({ label, options, field }: { label: string, options: string[], field: string }) => (
     <View className="mb-5">
-      <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide mb-3 ml-1">{label}</Text>
+      <Text className="text-ink-3 font-display uppercase text-label mb-3 ml-1">{label}</Text>
       <View className="flex-row flex-wrap gap-2">
         {options.map((opt) => (
           <TouchableOpacity
             key={opt}
             onPress={() => setFormData({ ...formData, [field]: opt })}
-            className={`px-6 py-3 rounded-2xl border ${formData[field as keyof typeof formData] === opt ? 'bg-slate-900 border-slate-900' : 'bg-slate-50 border-slate-100'}`}
+            className={`px-6 py-3 rounded-card border ${formData[field as keyof typeof formData] === opt ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
           >
-            <Text className={`font-black  uppercase text-2xs ${formData[field as keyof typeof formData] === opt ? 'text-white' : 'text-slate-500'}`}>{opt}</Text>
+            <Text className={`font-display uppercase text-label ${formData[field as keyof typeof formData] === opt ? 'text-white' : 'text-ink-3'}`}>{opt}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -135,33 +135,36 @@ const CreateOpportunity = () => {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-paper">
       <KeyboardAvoidingView
         behavior="padding"
         className="flex-1"
       >
-        <View className="px-6 py-4 border-b border-slate-100 flex-row items-center justify-between">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 items-center justify-center rounded-full bg-slate-50">
+        <View className="px-6 py-4 border-b border-line flex-row items-center justify-between">
+          <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
             <Ionicons name="chevron-back" size={24} color="black" />
           </TouchableOpacity>
-          <Text className="text-xl font-black uppercase tracking-tighter">{isEdit ? 'Edit Opportunity' : 'Post Opportunity'}</Text>
+          <Text className="text-xl font-display uppercase">{isEdit ? 'Edit Opportunity' : 'Post Opportunity'}</Text>
           <View className="w-10" />
         </View>
 
         <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
           {/* Type Selector */}
-          <View className="mt-6 flex-row bg-slate-100 p-1.5 rounded-2xl border border-slate-100">
+          <View className="mt-6 flex-row bg-paper-2 p-1.5 rounded-card border border-line">
             <TouchableOpacity
               onPress={() => setFormData({ ...formData, type: 'internship' })}
-              className={`flex-1 py-3 rounded-xl items-center ${formData.type === 'internship' ? 'bg-white' : ''}`}
+              className={`flex-1 py-3 rounded-xl items-center ${formData.type === 'internship' ? 'bg-card' : ''}`}
             >
-              <Text className={`font-black uppercase text-2xs tracking-widest ${formData.type === 'internship' ? 'text-pink-500' : 'text-slate-500'}`}>Internship</Text>
+              <Text className={`font-display uppercase text-label ${formData.type === 'internship' ? 'text-accent-text' : 'text-ink-3'}`}>Internship</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setFormData({ ...formData, type: 'job' })}
-              className={`flex-1 py-3 rounded-xl items-center ${formData.type === 'job' ? 'bg-white' : ''}`}
+              className={`flex-1 py-3 rounded-xl items-center ${formData.type === 'job' ? 'bg-card' : ''}`}
             >
-              <Text className={`font-black uppercase text-2xs tracking-widest ${formData.type === 'job' ? 'text-pink-500' : 'text-slate-500'}`}>Full Job</Text>
+              <Text className={`font-display uppercase text-label ${formData.type === 'job' ? 'text-accent-text' : 'text-ink-3'}`}>Full Job</Text>
             </TouchableOpacity>
           </View>
 
@@ -169,24 +172,27 @@ const CreateOpportunity = () => {
 
             {/* Company Logo Picker */}
             <View>
-              <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide mb-3 ml-1">Company Logo *</Text>
+              <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
+                <Text className="text-ink-3 font-display uppercase text-label">Company Logo *</Text>
+                <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+              </View>
               <TouchableOpacity
                 onPress={pickLogo}
                 activeOpacity={0.8}
-                className="items-center justify-center bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-6"
+                className="items-center justify-center bg-paper-2 border-2 border-dashed border-line rounded-card p-6"
               >
                 {logoUri ? (
                   <View className="items-center">
-                    <Image source={{ uri: logoUri }} className="w-24 h-24 rounded-2xl" resizeMode="contain" />
-                    <Text className="text-pink-500 font-bold text-2xs uppercase mt-3">Tap to change</Text>
+                    <Image source={{ uri: logoUri }} className="w-24 h-24 rounded-card" resizeMode="contain" />
+                    <Text className="text-accent-text font-semibold text-label uppercase mt-3">Tap to change</Text>
                   </View>
                 ) : (
                   <View className="items-center">
-                    <View className="w-16 h-16 bg-slate-100 rounded-2xl items-center justify-center mb-3">
-                      <Ionicons name="image-outline" size={28} color="#94a3b8" />
+                    <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-3">
+                      <Ionicons name="image-outline" size={28} color="#8B857E" />
                     </View>
-                    <Text className="text-slate-600 font-black uppercase text-xs">Upload Company Logo</Text>
-                    <Text className="text-slate-500 text-2xs mt-1">PNG, JPG • Square recommended</Text>
+                    <Text className="font-semibold text-base text-ink">Upload Company Logo</Text>
+                    <Text className="text-ink-3 text-label mt-1">PNG, JPG • Square recommended</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -226,15 +232,18 @@ const CreateOpportunity = () => {
 
             <View className="flex-row gap-4">
               <View className="flex-1">
-                <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide mb-3 ml-1">Payment *</Text>
+                <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
+                  <Text className="text-ink-3 font-display uppercase text-label">Payment *</Text>
+                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                </View>
                 <View className="flex-row gap-2">
                   {["Unpaid", "Paid"].map(opt => (
                     <TouchableOpacity
                       key={opt}
                       onPress={() => setFormData({ ...formData, isPaid: opt === 'Paid' })}
-                      className={`px-6 py-3 rounded-2xl border ${(formData.isPaid && opt === 'Paid') || (!formData.isPaid && opt === 'Unpaid') ? 'bg-slate-900 border-slate-900' : 'bg-slate-50 border-slate-100'}`}
+                      className={`px-6 py-3 rounded-card border ${(formData.isPaid && opt === 'Paid') || (!formData.isPaid && opt === 'Unpaid') ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
                     >
-                      <Text className={`font-black  uppercase text-2xs ${(formData.isPaid && opt === 'Paid') || (!formData.isPaid && opt === 'Unpaid') ? 'text-white' : 'text-slate-500'}`}>{opt}</Text>
+                      <Text className={`font-display uppercase text-label ${(formData.isPaid && opt === 'Paid') || (!formData.isPaid && opt === 'Unpaid') ? 'text-white' : 'text-ink-3'}`}>{opt}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -268,16 +277,16 @@ const CreateOpportunity = () => {
             />
 
             {/* Require Resume Toggle */}
-            <View className="bg-slate-50 p-5 rounded-3xl flex-row items-center justify-between border border-slate-100">
+            <View className="bg-paper-2 p-5 rounded-card flex-row items-center justify-between border border-line">
               <View className="flex-1 mr-4">
-                <Text className="text-slate-900 font-black uppercase text-xs tracking-tighter">Require Resume?</Text>
-                <Text className="text-slate-500 font-bold text-2xs uppercase mt-1">Candidates must share their resume to apply</Text>
+                <Text className="font-semibold text-base text-ink">Require Resume?</Text>
+                <Text className="text-ink-3 font-semibold text-label uppercase mt-1">Candidates must share their resume to apply</Text>
               </View>
               <Switch
                 value={formData.requireResume}
                 onValueChange={(v) => setFormData({ ...formData, requireResume: v })}
-                trackColor={{ false: "#e2e8f0", true: "#f9a8d4" }}
-                thumbColor={formData.requireResume ? "#ec4899" : "#94a3b8"}
+                trackColor={{ false: "#E3DDD3", true: "#DB2777" }}
+                thumbColor={formData.requireResume ? "#F97316" : "#8B857E"}
               />
             </View>
 
@@ -292,12 +301,12 @@ const CreateOpportunity = () => {
             <TouchableOpacity
               onPress={handlePost}
               disabled={loading}
-              className="bg-slate-900 h-16 rounded-2xl items-center justify-center mt-4"
+              className="bg-ink h-16 items-center justify-center mt-4 border-2 border-ink rounded-md"
             >
               {loading ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Text className="text-white font-black uppercase text-lg">{isEdit ? 'Update Changes' : 'Post Live Opportunity'}</Text>
+                <Text className="text-white font-display uppercase text-lg">{isEdit ? 'Update Changes' : 'Post Live Opportunity'}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -309,15 +318,15 @@ const CreateOpportunity = () => {
 
 const InputGroup = ({ label, value, onChange, placeholder, multiline = false }: any) => (
   <View>
-    <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide mb-2 ml-1">{label}</Text>
+    <Text className="text-ink-3 font-display uppercase text-label mb-2 ml-1">{label}</Text>
     <TextInput
       value={value}
       onChangeText={onChange}
       placeholder={placeholder}
-      placeholderTextColor="#cbd5e1"
+      placeholderTextColor="#C4BEB6"
       multiline={multiline}
       numberOfLines={multiline ? 4 : 1}
-      className={`bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 font-bold  ${multiline ? 'h-40 text-top' : ''}`}
+      className={`bg-paper-2 border border-line rounded-card px-5 py-4 text-ink font-semibold ${multiline ? 'h-40 text-top' : ''}`}
       textAlignVertical={multiline ? 'top' : 'center'}
     />
   </View>

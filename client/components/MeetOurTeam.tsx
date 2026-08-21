@@ -76,22 +76,22 @@ const MeetOurTeam = () => {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-white">
+        <SafeAreaView className="flex-1 bg-paper">
             <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
                 {/* Title Section */}
-                <View className="items-center px-10 mb-16 mt-3">
+                <View className="items-center px-gutter mb-16 mt-3">
                     <View className="flex-row items-baseline">
-                        <Text className="text-4xl font-extrabold text-[#1A1A1A] tracking-[4px]">
+                        <Text className="text-4xl font-display text-ink">
                             MEET
                         </Text>
-                        <Text className="text-xl font-serif text-pink-500 mx-2  mb-[-5px]">
+                        <Text className="text-xl font-display text-accent-text mx-2 mb-[-5px]">
                             the
                         </Text>
-                        <Text className="text-4xl font-extrabold text-[#1A1A1A] tracking-[4px]">
+                        <Text className="text-4xl font-display text-ink">
                             TEAM
                         </Text>
                     </View>
-                    <Text className="text-2xs text-slate-500 font-bold tracking-wide mt-4 uppercase text-center">
+                    <Text className="font-sans text-sm text-ink-3 mt-4 text-center">
                         Responsible for making the magic happen
                     </Text>
                 </View>
@@ -103,7 +103,7 @@ const MeetOurTeam = () => {
                             <View key={member.id} style={{ width: '50%' }} className="items-center mb-12 px-3">
                                 {/* Circular Frame */}
                                 <View
-                                    className={`relative w-36 h-36 rounded-full items-center justify-center p-1 overflow-hidden ${member.isHighlighted ? 'bg-cyan-400' : 'bg-slate-100'}`}
+                                    className={`relative w-36 h-36 rounded-full items-center justify-center p-1 overflow-hidden ${member.isHighlighted ? 'bg-fam-social' : 'bg-paper-2'}`}
                                 >
                                     <Image
                                         source={{ uri: member.image }}
@@ -112,16 +112,16 @@ const MeetOurTeam = () => {
                                     />
                                     {/* Overlay for grayscale effect if not highlighted */}
                                     {!member.isHighlighted && (
-                                        <View className="absolute inset-0 bg-slate-500/10" />
+                                        <View className="absolute inset-0 bg-ink-3/10" />
                                     )}
                                 </View>
 
                                 {/* Member Details */}
                                 <View className="mt-5 items-center">
-                                    <Text className="text-sm font-black text-[#1A1A1A] tracking-[1.5px] text-center uppercase">
+                                    <Text className="text-sm font-display text-ink text-center uppercase">
                                         {member.name}
                                     </Text>
-                                    <Text className="text-2xs text-slate-500 font-semibold  mt-1 text-center">
+                                    <Text className="text-label text-ink-3 font-semibold mt-1 text-center">
                                         {member.role}
                                     </Text>
 

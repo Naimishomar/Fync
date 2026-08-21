@@ -15,7 +15,6 @@ import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 import socket from "../utils/socket";
 import { supabase, fetchUnreadCounts } from "../utils/supabase";
 import { readCache, writeCache, userKey } from "../utils/screenCache";
@@ -262,7 +261,7 @@ const ChatList = () => {
 
     return (
       <TouchableOpacity
-        className="flex-row items-center p-5 mb-4 bg-white rounded-2xl border border-slate-100 shadow-sm"
+        className="flex-row items-center p-card-pad mb-3 bg-card rounded-card border border-line"
         onPress={() => navigation.navigate("Chat", {
           conversationId: item._id,
           otherUser: otherUser
@@ -275,36 +274,36 @@ const ChatList = () => {
             size={38}
           />
           {onlineUsers.has(otherUser?._id) && (
-            <View className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
+            <View className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-success rounded-full border-2 border-card" />
           )}
         </View>
 
         <View className="ml-4 flex-1 justify-center">
           <View className="flex-row items-center justify-between mb-1">
-            <Text className="font-bold text-base text-slate-900">
+            <Text className="font-semibold text-base text-ink">
               {otherUser?.username || "Unknown"}
             </Text>
-            <Text className="text-2xs text-orange-500 font-bold uppercase tracking-wider">
+            <Text className="font-display text-label text-accent-text uppercase">
               {formatDateTime(item.updatedAt || new Date()).time}
             </Text>
           </View>
 
           <View className="flex-row items-center justify-between">
             <Text
-              className={`flex-1 text-sm mr-4 ${typingStates[item._id] ? 'text-green-500 font-bold italic' : (unread > 0 ? 'text-slate-900 font-bold' : 'text-slate-500')}`}
+              className={`flex-1 text-sm mr-4 ${typingStates[item._id] ? 'text-success font-semibold italic' : (unread > 0 ? 'text-ink font-semibold' : 'text-ink-3')}`}
               numberOfLines={1}
             >
               {typingStates[item._id] ? "typing..." : (isLastMsgMine ? "You: " : "") + (item.lastMessage || "Started a chat")}
             </Text>
 
             <View className="flex-row items-center">
-              <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide mr-2">
+              <Text className="font-display text-label text-ink-3 uppercase mr-2">
                 {formatDateTime(item.updatedAt || new Date()).date}
               </Text>
               
               {unread > 0 && (
-                <View className="bg-orange-500 min-w-[18px] h-4 px-1 flex justify-center items-center rounded-full">
-                  <Text className="text-white text-2xs font-black">
+                <View className="bg-brand-500 min-w-[18px] h-4 px-1 flex justify-center items-center rounded-full">
+                  <Text className="text-ink text-label font-display">
                     {unread > 9 ? '9+' : unread}
                   </Text>
                 </View>
@@ -318,7 +317,7 @@ const ChatList = () => {
 
   const renderUserItem = useCallback(({ item }: any) => (
     <TouchableOpacity
-      className="flex-row items-center p-5 mb-4 bg-white rounded-2xl border border-slate-100 shadow-sm"
+      className="flex-row items-center p-card-pad mb-3 bg-card rounded-card border border-line"
       onPress={() => startChat(item)}
       activeOpacity={0.7}
     >
@@ -328,63 +327,57 @@ const ChatList = () => {
           size={48}
         />
         {onlineUsers.has(item._id) && (
-          <View className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+          <View className="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-card" />
         )}
       </View>
 
       <View className="ml-4 flex-1">
-        <Text className="font-bold text-slate-900 text-base">
+        <Text className="font-semibold text-ink text-base">
           {item.username}
         </Text>
-        <Text className="text-slate-500 text-sm mt-0.5">
+        <Text className="text-ink-3 text-sm mt-0.5">
           {item.name}
         </Text>
       </View>
-      <Ionicons name="chatbubble-ellipses-outline" size={20} color="#f97316" />
+      <Ionicons name="chatbubble-ellipses-outline" size={20} color="#F97316" />
     </TouchableOpacity>
   ), [onlineUsers]);
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
       {/* HEADER DECORATION */}
-      <View className="absolute top-0 w-full h-80 opacity-20">
-        <LinearGradient
-          colors={['#f97316', 'transparent']}
-          className="w-full h-full"
-        />
-      </View>
 
       <SafeAreaView className="flex-1" edges={['top']}>
         {/* Arena Header */}
-        <View className="px-8 pt-2 bg-transparent">
+        <View className="px-gutter pt-4 bg-transparent">
           <View className="flex-row items-center justify-between mb-5">
             <View className="flex-1">
               <View className="flex-row items-center">
-                <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase leading-tight">
-                  Inbox <Text className="text-orange-500">Center</Text>
+                <Text className="font-display text-ink uppercase" style={{ fontSize: 38, lineHeight: 39, letterSpacing: -1.4 }}>
+                  Inbox <Text className="text-accent-text">Center</Text>
                 </Text>
               </View>
-              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Real-time Encrypted Protocol</Text>
+              <Text className="font-display text-label text-ink-3 uppercase">Real-time Encrypted Protocol</Text>
             </View>
           </View>
 
           {/* SEARCH DOCK */}
-          <View className="flex-row items-center bg-white px-5 py-1 rounded-2xl border border-slate-100 shadow-xl shadow-black/5 mb-5">
-            <Ionicons name="search" size={20} color="#94A3B8" />
+          <View className="flex-row items-center bg-card px-5 py-1 border-2 border-ink shadow-hair mb-5 rounded-md">
+            <Ionicons name="search" size={20} color="#8B857E" />
             <TextInput
               placeholder="Search contacts..."
-              placeholderTextColor="#CBD5E1"
+              placeholderTextColor="#C4BEB6"
               value={search}
               onChangeText={handleSearchChange}
-              className="flex-1 text-slate-900 font-bold text-sm tracking-tight p-3"
+              className="flex-1 text-ink font-semibold text-sm p-3"
               autoCapitalize="none"
               autoCorrect={false}
             />
             {search.length > 0 && (
               <TouchableOpacity onPress={() => handleSearchChange("")}>
-                <Ionicons name="close-circle" size={18} color="#CBD5E1" />
+                <Ionicons name="close-circle" size={18} color="#C4BEB6" />
               </TouchableOpacity>
             )}
           </View>
@@ -392,9 +385,9 @@ const ChatList = () => {
 
         {/* LIST CONTENT */}
         {loading ? (
-          <View className="flex-1 px-8">
+          <View className="flex-1 px-gutter">
             {[1, 2, 3, 4].map(i => (
-              <View key={i} className="mb-4 bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+              <View key={i} className="mb-4 bg-card rounded-card border border-line p-4 shadow-hair">
                 <ChatListSkeleton />
               </View>
             ))}
@@ -404,7 +397,7 @@ const ChatList = () => {
             data={search.length > 0 ? results : conversations}
             keyExtractor={(item) => item._id}
             renderItem={search.length > 0 ? renderUserItem : renderConversationItem}
-            contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 120 }}
+            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
@@ -417,22 +410,25 @@ const ChatList = () => {
                 {/* Special Channels (Only when not searching) */}
                 {search.length === 0 && (
                   <View className="mb-6">
-                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4 ml-2">Dedicated Channels</Text>
+                    <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
+                      <Text className="text-ink-3 text-label font-display uppercase">Dedicated Channels</Text>
+                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                    </View>
 
                     {user?.college && (
                       <TouchableOpacity
                         activeOpacity={0.8}
                         onPress={() => navigation.navigate("CollegeChatScreen")}
-                        className="flex-row items-center bg-white rounded-2xl p-5 border border-slate-100 shadow-sm mb-2"
+                        className="flex-row items-center bg-card rounded-card p-5 border border-line shadow-hair mb-2"
                       >
-                        <View className="w-12 h-12 rounded-2xl bg-orange-50 items-center justify-center border border-orange-100 mr-4">
-                          <Ionicons name="school" size={24} color="#f97316" />
+                        <View className="w-12 h-12 rounded-card bg-paper-2 items-center justify-center border border-line mr-4">
+                          <Ionicons name="school" size={24} color="#F97316" />
                         </View>
                         <View className="flex-1">
-                          <Text className="text-slate-900 font-black uppercase text-xs tracking-tight">{user.college} Area</Text>
-                          <Text className="text-slate-500 text-2xs font-bold tracking-wide mt-1 ">24hr Expiring Zone</Text>
+                          <Text className="font-semibold text-base text-ink">{user.college} Area</Text>
+                          <Text className="text-ink-3 text-label font-semibold mt-1">24hr Expiring Zone</Text>
                         </View>
-                        <View className="bg-orange-500 w-2 h-2 rounded-full" />
+                        <View className="bg-brand-500 w-2 h-2 rounded-full" />
                       </TouchableOpacity>
                     )}
 
@@ -440,17 +436,17 @@ const ChatList = () => {
                       <TouchableOpacity
                         activeOpacity={0.8}
                         onPress={() => navigation.navigate("AlumniConnect")}
-                        className="flex-row items-center bg-white rounded-2xl p-5 border border-slate-100 shadow-sm"
+                        className="flex-row items-center bg-card rounded-card p-5 border border-line shadow-hair"
                       >
-                        <View className="w-12 h-12 rounded-2xl bg-indigo-50 items-center justify-center border border-indigo-100 mr-4">
-                          <Ionicons name="people" size={24} color="#4f46e5" />
+                        <View className="w-12 h-12 rounded-card bg-recruiter/10 items-center justify-center border border-recruiter/15 mr-4">
+                          <Ionicons name="people" size={24} color="#4F46E5" />
                         </View>
                         <View className="flex-1">
-                          <Text className="text-slate-900 font-black uppercase text-xs tracking-tight">Student-Alumni Chat</Text>
-                          <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-1 ">Global Networking Zone</Text>
+                          <Text className="font-semibold text-base text-ink">Student-Alumni Chat</Text>
+                          <Text className="text-ink-3 text-label font-semibold uppercase mt-1">Global Networking Zone</Text>
                         </View>
-                        <View className="bg-indigo-500 px-2 py-0.5 rounded-full">
-                          <Text className="text-2xs text-white font-black">Connect</Text>
+                        <View className="bg-recruiter px-2.5 py-1 rounded-full">
+                          <Text className="text-label text-white font-display">Connect</Text>
                         </View>
                       </TouchableOpacity>
                     )}
@@ -459,38 +455,41 @@ const ChatList = () => {
                       <TouchableOpacity
                         activeOpacity={0.8}
                         onPress={() => navigation.navigate("ProfessionalHub")}
-                        className="flex-row items-center bg-white rounded-2xl p-5 border border-slate-100 shadow-sm"
+                        className="flex-row items-center bg-card rounded-card p-5 border border-line shadow-hair"
                       >
-                        <View className="w-12 h-12 rounded-2xl bg-slate-900 items-center justify-center mr-4">
+                        <View className="w-12 h-12 rounded-card bg-ink items-center justify-center mr-4">
                           <Ionicons name="briefcase" size={24} color="white" />
                         </View>
                         <View className="flex-1">
-                          <Text className="text-slate-900 font-black uppercase text-xs tracking-tight">Professional Hub</Text>
-                          <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-1">Global Alumni Network</Text>
+                          <Text className="font-semibold text-base text-ink">Professional Hub</Text>
+                          <Text className="text-ink-3 text-label font-semibold uppercase mt-1">Global Alumni Network</Text>
                         </View>
-                        <View className="bg-slate-900 px-2 py-0.5 rounded-full">
-                          <Text className="text-2xs text-white font-black ">PRO</Text>
+                        <View className="bg-ink px-2.5 py-1 rounded-full">
+                          <Text className="text-label text-white font-display">PRO</Text>
                         </View>
                       </TouchableOpacity>
                     )}
                   </View>
                 )}
-                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4 ml-2">Recent transmissions</Text>
+                <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
+                  <Text className="text-ink-3 text-label font-display uppercase">Recent transmissions</Text>
+                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                </View>
               </>
             )}
             ListEmptyComponent={
-              <View className="items-center justify-center mt-20 px-10">
-                <View className="w-20 h-20 bg-white rounded-4xl items-center justify-center mb-6 border border-slate-100 shadow-sm">
+              <View className="items-center justify-center mt-20 px-gutter">
+                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
                   <Ionicons
                     name={search.length > 0 ? "person-remove-outline" : "chatbubbles-outline"}
                     size={32}
-                    color="#CBD5E1"
+                    color="#C4BEB6"
                   />
                 </View>
-                <Text className="text-slate-500 font-black  uppercase text-xs tracking-wide text-center">
+                <Text className="font-semibold text-base text-ink text-center">
                   {search.length > 0 ? "Registry Empty" : "No Transmissions"}
                 </Text>
-                <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center">
+                <Text className="font-sans text-sm text-ink-4 mt-2 text-center">
                   Initialize search to establish connection.
                 </Text>
               </View>

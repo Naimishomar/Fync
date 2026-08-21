@@ -148,35 +148,35 @@ export default function CommunityFeed() {
         <TouchableOpacity
             activeOpacity={0.9}
             onPress={() => navigation.navigate('CommunityPostDetail', { postId: item._id, subName })}
-            className="bg-white mx-5 mb-3 rounded-3xl border border-slate-100 shadow-sm shadow-black/5 flex-row overflow-hidden"
+            className="bg-card mx-5 mb-3 rounded-card border border-line shadow-hair flex-row overflow-hidden"
         >
             {/* Vote rail */}
-            <View className="bg-slate-50 px-3 py-5 items-center justify-start border-r border-slate-100">
+            <View className="bg-paper-2 px-3 py-5 items-center justify-start border-r border-line">
                 <TouchableOpacity onPress={() => vote(item, 1)} hitSlop={8}>
-                    <Ionicons name={item.myVote === 1 ? 'arrow-up-circle' : 'arrow-up-circle-outline'} size={26} color={item.myVote === 1 ? '#f97316' : '#94a3b8'} />
+                    <Ionicons name={item.myVote === 1 ? 'arrow-up-circle' : 'arrow-up-circle-outline'} size={26} color={item.myVote === 1 ? '#F97316' : '#8B857E'} />
                 </TouchableOpacity>
-                <Text className={`font-black text-sm my-1 ${item.myVote === 1 ? 'text-orange-500' : item.myVote === -1 ? 'text-blue-500' : 'text-slate-900'}`}>
+                <Text className={`font-display text-sm my-1 ${item.myVote === 1 ? 'text-accent-text' : item.myVote === -1 ? 'text-fam-career' : 'text-ink'}`}>
                     {item.score}
                 </Text>
                 <TouchableOpacity onPress={() => vote(item, -1)} hitSlop={8}>
-                    <Ionicons name={item.myVote === -1 ? 'arrow-down-circle' : 'arrow-down-circle-outline'} size={26} color={item.myVote === -1 ? '#3b82f6' : '#94a3b8'} />
+                    <Ionicons name={item.myVote === -1 ? 'arrow-down-circle' : 'arrow-down-circle-outline'} size={26} color={item.myVote === -1 ? '#2563EB' : '#8B857E'} />
                 </TouchableOpacity>
             </View>
 
             <View className="flex-1 p-5">
-                <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-1">
+                <Text className="text-ink-3 font-display text-label uppercase mb-1">
                     {item.author?.username || 'unknown'} · {ago(item.createdAt)}
                 </Text>
-                <Text className="text-slate-900 font-black text-base leading-snug tracking-tight">{item.title}</Text>
+                <Text className="text-ink font-semibold text-base leading-snug">{item.title}</Text>
                 {!!item.body && (
-                    <Text numberOfLines={3} className="text-slate-600 text-sm mt-2 leading-snug">{item.body}</Text>
+                    <Text numberOfLines={3} className="text-ink-2 text-sm mt-2 leading-snug">{item.body}</Text>
                 )}
                 {!!item.image?.length && (
-                    <Image source={{ uri: item.image[0] }} className="w-full h-44 rounded-2xl mt-3" resizeMode="cover" />
+                    <Image source={{ uri: item.image[0] }} className="w-full h-44 rounded-card mt-3" resizeMode="cover" />
                 )}
                 <View className="flex-row items-center mt-3">
-                    <Feather name="message-circle" size={14} color="#94a3b8" />
-                    <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide ml-2">
+                    <Feather name="message-circle" size={14} color="#8B857E" />
+                    <Text className="text-ink-3 font-display text-label uppercase ml-2">
                         {item.commentCount} {item.commentCount === 1 ? 'Comment' : 'Comments'}
                     </Text>
                 </View>
@@ -185,18 +185,21 @@ export default function CommunityFeed() {
     );
 
     return (
-        <View className="flex-1 bg-[#F8FAFC]">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top']}>
                 <View className="px-5 pt-2 pb-4 flex-row items-center">
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 items-center justify-center">
-                        <Ionicons name="chevron-back" size={24} color="#0f172a" />
+                    <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+                        <Ionicons name="chevron-back" size={24} color="#12100E" />
                     </TouchableOpacity>
                     <View className="flex-1 ml-1">
-                        <Text className="text-slate-900 text-2xl font-black tracking-tighter">{subName}</Text>
-                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Community Feed</Text>
+                        <Text className="text-ink text-2xl font-display">{subName}</Text>
+                        <Text className="text-ink-3 text-label font-display uppercase">Community Feed</Text>
                     </View>
-                    <TouchableOpacity onPress={() => setComposerOpen(true)} className="w-10 h-10 bg-slate-900 rounded-xl items-center justify-center shadow-lg shadow-black/20">
+                    <TouchableOpacity onPress={() => setComposerOpen(true)} className="w-10 h-10 bg-ink rounded-xl items-center justify-center shadow-hair">
                         <Ionicons name="add" size={24} color="white" />
                     </TouchableOpacity>
                 </View>
@@ -206,10 +209,10 @@ export default function CommunityFeed() {
                         <TouchableOpacity
                             key={s.key}
                             onPress={() => changeSort(s.key)}
-                            className={`flex-row items-center px-4 h-10 rounded-xl border ${sort === s.key ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-100'}`}
+                            className={`flex-row items-center px-4 h-10 rounded-xl border ${sort === s.key ? 'bg-ink border-ink' : 'bg-card border-line'}`}
                         >
-                            <Ionicons name={s.icon as any} size={14} color={sort === s.key ? '#fff' : '#94a3b8'} />
-                            <Text className={`font-black text-2xs uppercase tracking-wide ml-2 ${sort === s.key ? 'text-white' : 'text-slate-500'}`}>
+                            <Ionicons name={s.icon as any} size={14} color={sort === s.key ? '#fff' : '#8B857E'} />
+                            <Text className={`font-display text-label uppercase ml-2 ${sort === s.key ? 'text-white' : 'text-ink-3'}`}>
                                 {s.label}
                             </Text>
                         </TouchableOpacity>
@@ -217,7 +220,7 @@ export default function CommunityFeed() {
                 </View>
 
                 {loading ? (
-                    <ActivityIndicator size="large" color="#f97316" className="mt-10" />
+                    <ActivityIndicator size="large" color="#F97316" className="mt-10" />
                 ) : (
                     <FlatList
                         data={posts}
@@ -226,14 +229,14 @@ export default function CommunityFeed() {
                         contentContainerStyle={{ paddingBottom: 40 }}
                         onEndReached={loadMore}
                         onEndReachedThreshold={0.4}
-                        ListFooterComponent={loadingMore ? <ActivityIndicator color="#f97316" className="my-4" /> : null}
+                        ListFooterComponent={loadingMore ? <ActivityIndicator color="#F97316" className="my-4" /> : null}
                         refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); setCursor(null); fetchFeed(sort); }} tintColor="#f97316" />
+                            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); setCursor(null); fetchFeed(sort); }} tintColor="#F97316" />
                         }
                         ListEmptyComponent={
-                            <View className="bg-slate-50 mx-5 p-10 rounded-4xl items-center border border-slate-100 border-dashed">
-                                <Feather name="feather" size={32} color="#CBD5E1" />
-                                <Text className="text-slate-500 font-black uppercase text-2xs mt-4 tracking-wide text-center">Nothing posted yet</Text>
+                            <View className="bg-paper-2 mx-5 p-card-pad rounded-sheet items-center border border-line border-dashed">
+                                <Feather name="feather" size={32} color="#C4BEB6" />
+                                <Text className="font-sans text-sm text-ink-3 mt-4 text-center">Nothing posted yet</Text>
                             </View>
                         }
                     />
@@ -241,21 +244,21 @@ export default function CommunityFeed() {
             </SafeAreaView>
 
             <Modal visible={composerOpen} animationType="slide" onRequestClose={() => setComposerOpen(false)}>
-                <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+                <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
                     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
-                        <View className="flex-row items-center px-5 py-3 border-b border-slate-100">
+                        <View className="flex-row items-center px-5 py-3 border-b border-line">
                             <TouchableOpacity onPress={() => setComposerOpen(false)}>
-                                <Ionicons name="close" size={24} color="#0f172a" />
+                                <Ionicons name="close" size={24} color="#12100E" />
                             </TouchableOpacity>
-                            <Text className="flex-1 text-slate-900 font-black uppercase text-2xs tracking-wide ml-4">New Post</Text>
+                            <Text className="flex-1 text-ink font-display uppercase text-label ml-4">New Post</Text>
                             <TouchableOpacity
                                 onPress={submitPost}
                                 disabled={posting || !title.trim()}
-                                className={`px-5 h-10 rounded-xl items-center justify-center ${posting || !title.trim() ? 'bg-slate-200' : 'bg-slate-900'}`}
+                                className={`px-5 h-10 rounded-xl items-center justify-center ${posting || !title.trim() ? 'bg-paper-2' : 'bg-ink'}`}
                             >
                                 {posting
                                     ? <ActivityIndicator color="white" size="small" />
-                                    : <Text className="text-white font-black uppercase text-2xs tracking-wide">Post</Text>}
+                                    : <Text className="text-white font-display uppercase text-label">Post</Text>}
                             </TouchableOpacity>
                         </View>
 
@@ -264,23 +267,23 @@ export default function CommunityFeed() {
                                 value={title}
                                 onChangeText={setTitle}
                                 placeholder="Title"
-                                placeholderTextColor="#94a3b8"
+                                placeholderTextColor="#8B857E"
                                 maxLength={300}
-                                className="text-slate-900 text-xl font-black tracking-tight mb-4"
+                                className="text-ink text-xl font-display mb-4"
                             />
                             <TextInput
                                 value={body}
                                 onChangeText={setBody}
                                 placeholder="Body (optional)"
-                                placeholderTextColor="#94a3b8"
+                                placeholderTextColor="#8B857E"
                                 multiline
-                                className="text-slate-700 text-base flex-1 leading-relaxed"
+                                className="text-ink-2 text-base flex-1 leading-relaxed"
                                 textAlignVertical="top"
                             />
-                            {!!image && <Image source={{ uri: image }} className="w-full h-40 rounded-2xl mb-3" resizeMode="cover" />}
-                            <TouchableOpacity onPress={pickImage} className="flex-row items-center h-12 px-4 bg-slate-50 rounded-xl border border-slate-100">
-                                <Feather name="image" size={16} color="#f97316" />
-                                <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide ml-3">
+                            {!!image && <Image source={{ uri: image }} className="w-full h-40 rounded-card mb-3" resizeMode="cover" />}
+                            <TouchableOpacity onPress={pickImage} className="flex-row items-center h-12 px-4 bg-paper-2 rounded-card border border-line">
+                                <Feather name="image" size={16} color="#F97316" />
+                                <Text className="text-ink-3 font-display uppercase text-label ml-3">
                                     {image ? 'Change Image' : 'Add Image'}
                                 </Text>
                             </TouchableOpacity>

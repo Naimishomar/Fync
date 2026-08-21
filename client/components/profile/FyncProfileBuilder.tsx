@@ -11,7 +11,6 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../context/auth.context';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
-import { LinearGradient } from 'expo-linear-gradient';
 
 import FyncScoreCard from './FyncScoreCard';
 import ProjectCard from './ProjectCard';
@@ -26,34 +25,34 @@ import EducationCard, { EducationEntry } from './EducationCard';
 import AddEducationModal from './AddEducationModal';
 import { Alert } from '../ui/AlertModal';
 
+import { StampCard } from '../ui/kit';
 const { width } = Dimensions.get('window');
 
 // ─── Completeness Bar ─────────────────────────────────────────────────────────
 function CompletenessBar({ pct }: { pct: number }) {
   return (
-    <View className="mx-4 mb-6 bg-white rounded-3xl p-6 border border-slate-100 shadow-sm shadow-black/5">
+    <StampCard style={{ marginHorizontal: 16, marginBottom: 24 }}>
+    <View className="p-card-pad">
       <View className="flex-row justify-between mb-3">
-        <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">Profile Completeness</Text>
-        <Text className="font-black text-xs text-orange-500">{pct}%</Text>
+        <Text className="text-ink font-display uppercase text-label">Profile Completeness</Text>
+        <Text className="font-display text-xs text-accent-text">{pct}%</Text>
       </View>
-      <View className="h-2 bg-slate-100 rounded-full overflow-hidden">
+      <View className="h-2 bg-paper-2 rounded-full overflow-hidden">
         <View className="h-full rounded-full overflow-hidden" style={{ width: `${pct}%` }}>
-          <LinearGradient
-            colors={['#f97316', '#fb923c']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+          <View
             className="h-full w-full"
-          />
+           style={{ backgroundColor: '#F97316' }} />
         </View>
       </View>
       {pct < 100 && (
-        <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wider mt-3">
-          {pct < 50 ? '🚀 Add projects & work experience to boost your score!'
-            : pct < 80 ? '💡 Almost there — connect GitHub & add certificates!'
-            : '🌟 You\'re almost a Legend! Complete all sections.'}
+        <Text className="text-ink-3 font-semibold text-label uppercase mt-3">
+          {pct < 50 ? 'Add projects and work experience to boost your score.'
+            : pct < 80 ? 'Almost there — connect GitHub and add certificates.'
+            : 'You are almost a Legend. Complete all sections.'}
         </Text>
       )}
     </View>
+    </StampCard>
   );
 }
 
@@ -64,16 +63,16 @@ function SectionHeader({ title, icon, onAdd, addLabel }: {
   return (
     <View className="flex-row items-center justify-between px-6 mb-4 mt-8">
       <View className="flex-row items-center gap-3">
-        <View className="w-10 h-10 bg-slate-900 rounded-2xl items-center justify-center shadow-lg shadow-black/20">
-          <Ionicons name={icon as any} size={18} color="#f97316" />
+        <View className="w-10 h-10 bg-ink rounded-card items-center justify-center shadow-hair">
+          <Ionicons name={icon as any} size={18} color="#F97316" />
         </View>
-        <Text className="text-slate-900 font-black uppercase text-sm tracking-tighter">{title}</Text>
+        <Text className="text-ink font-display uppercase text-sm">{title}</Text>
       </View>
       {onAdd && (
         <Pressable onPress={onAdd}
-          className="flex-row items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-100 shadow-sm">
-          <Ionicons name="add" size={16} color="#18181b" />
-          <Text className="text-slate-900 text-2xs font-black uppercase tracking-wide">{addLabel || 'Add'}</Text>
+          className="flex-row items-center gap-2 bg-card px-4 py-2.5 rounded-card border border-line shadow-hair">
+          <Ionicons name="add" size={16} color="#12100E" />
+          <Text className="text-ink text-label font-display uppercase">{addLabel || 'Add'}</Text>
         </Pressable>
       )}
     </View>
@@ -338,8 +337,8 @@ export default function FyncProfileBuilder() {
   };
 
   if (loading) return (
-    <SafeAreaView className="flex-1 bg-white items-center justify-center">
-      <ActivityIndicator size="large" color="#f97316" />
+    <SafeAreaView className="flex-1 bg-paper items-center justify-center">
+      <ActivityIndicator size="large" color="#F97316" />
     </SafeAreaView>
   );
 
@@ -355,43 +354,43 @@ export default function FyncProfileBuilder() {
 
             {/* User Statistics Row */}
             <View className="flex-row mx-4 mb-6 gap-4">
-              <View className="flex-1 bg-white border border-slate-100 rounded-3xl p-5 shadow-sm shadow-black/5 items-center justify-center">
-                <View className="bg-orange-100 p-3 rounded-2xl mb-3">
-                   <Ionicons name="flame" size={24} color="#f97316" />
+              <View className="flex-1 bg-paper border border-line p-5 shadow-hair items-center justify-center rounded-md">
+                <View className="bg-brand-100 p-3 rounded-card mb-3">
+                   <Ionicons name="flame" size={24} color="#F97316" />
                 </View>
-                <Text className="text-slate-900 text-2xl font-black tracking-tighter">{profile?.user?.highestStreak || 0}</Text>
-                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">Max Streak</Text>
+                <Text className="text-ink text-2xl font-display">{profile?.user?.highestStreak || 0}</Text>
+                <Text className="text-ink-3 text-label font-display uppercase mt-1">Max Streak</Text>
               </View>
               
               <Pressable 
                 onPress={() => setShowCodingModal(true)}
-                className="flex-1 bg-white border border-slate-100 rounded-3xl p-5 shadow-sm shadow-black/5 items-center justify-center"
+                className="flex-1 bg-paper border border-line p-5 shadow-hair items-center justify-center rounded-md"
               >
-                <View className="bg-slate-100 p-3 rounded-2xl mb-3">
-                   <Ionicons name="code-working" size={24} color="#18181b" />
+                <View className="bg-paper-2 p-3 rounded-card mb-3">
+                   <Ionicons name="code-working" size={24} color="#12100E" />
                 </View>
-                <Text className="text-slate-900 text-2xs font-black uppercase tracking-wide text-center">Coding Profiles</Text>
-                <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wider mt-1">Boost Score</Text>
+                <Text className="text-ink text-label font-display uppercase text-center">Coding Profiles</Text>
+                <Text className="text-ink-3 text-label font-semibold uppercase mt-1">Boost Score</Text>
               </Pressable>
             </View>
 
             <FyncScoreCard userId={user?._id!} isOwner onRecalculate={fetchProfile} />
 
             {/* Resume Upload Section (NEW) */}
-            <View className="mx-4 mb-6 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm shadow-black/5">
+            <View className="mx-4 mb-6 bg-card border border-line rounded-card p-6 shadow-hair">
               <View className="flex-row items-center justify-between mb-4">
                 <View className="flex-row items-center gap-3">
-                  <View className="w-10 h-10 bg-indigo-100 rounded-2xl items-center justify-center">
-                    <Ionicons name="document-text" size={18} color="#4f46e5" />
+                  <View className="w-10 h-10 bg-recruiter/15 rounded-card items-center justify-center">
+                    <Ionicons name="document-text" size={18} color="#4F46E5" />
                   </View>
                   <View>
-                    <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">Career Document</Text>
-                    <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wide mt-0.5">Resume / CV (PDF)</Text>
+                    <Text className="text-ink font-display uppercase text-label">Career Document</Text>
+                    <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Resume / CV (PDF)</Text>
                   </View>
                 </View>
                 {profile?.user?.resumeUrl && (
-                  <Pressable onPress={downloadResume} className="bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">
-                    <Text className="text-indigo-600 font-black text-2xs uppercase">Preview</Text>
+                  <Pressable onPress={downloadResume} className="bg-recruiter/10 border border-recruiter/15 px-2.5 py-1 rounded-full">
+                    <Text className="text-recruiter font-display text-label uppercase">Preview</Text>
                   </Pressable>
                 )}
               </View>
@@ -399,34 +398,37 @@ export default function FyncProfileBuilder() {
               <Pressable 
                 onPress={handlePickResume}
                 disabled={uploadingResume}
-                className={`flex-row items-center justify-center gap-3 h-14 rounded-2xl border-2 border-dashed ${profile?.user?.resumeUrl ? 'border-indigo-200 bg-indigo-50/30' : 'border-slate-200 bg-slate-50'}`}
+                className={`flex-row items-center justify-center gap-3 h-14 rounded-card border-2 border-dashed ${profile?.user?.resumeUrl ? 'border-recruiter/25 bg-recruiter/10' : 'border-line bg-paper-2'}`}
               >
                 {uploadingResume ? (
-                  <ActivityIndicator color="#4f46e5" size="small" />
+                  <ActivityIndicator color="#4F46E5" size="small" />
                 ) : (
                   <>
-                    <Feather name={profile?.user?.resumeUrl ? "check-circle" : "upload-cloud"} size={18} color={profile?.user?.resumeUrl ? "#10b981" : "#94a3b8"} />
-                    <Text className={`font-black uppercase text-2xs tracking-widest ${profile?.user?.resumeUrl ? 'text-indigo-600' : 'text-slate-500'}`}>
+                    <Feather name={profile?.user?.resumeUrl ? "check-circle" : "upload-cloud"} size={18} color={profile?.user?.resumeUrl ? "#047857" : "#8B857E"} />
+                    <Text className={`font-display uppercase text-label ${profile?.user?.resumeUrl ? 'text-recruiter' : 'text-ink-3'}`}>
                       {profile?.user?.resumeUrl ? (profile?.user?.resumeName || "Update Resume") : "Upload Resume (PDF)"}
                     </Text>
                   </>
                 )}
               </Pressable>
               {profile?.user?.resumeName && (
-                 <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-2 text-center">
+                 <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
                     Current: {profile.user.resumeName}
                  </Text>
               )}
 
               {/* --- Skills Section --- */}
-              <View className="mt-6 border-t border-slate-100 pt-5">
-                <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide mb-3">Core Skills & Stack</Text>
-                <View className="bg-slate-50 rounded-2xl p-3 flex-row flex-wrap gap-2 border border-slate-100">
+              <View className="mt-6 border-t border-line pt-5">
+                <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
+                  <Text className="text-ink font-display uppercase text-label">Core Skills & Stack</Text>
+                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                </View>
+                <View className="bg-paper-2 rounded-card p-3 flex-row flex-wrap gap-2 border border-line">
                   {skills.map((skill, index) => (
-                    <View key={index} className="bg-indigo-100/50 border border-indigo-100 px-3 py-1.5 rounded-full flex-row items-center">
-                      <Text className="text-indigo-800 font-bold text-2xs uppercase tracking-wider mr-1">{skill}</Text>
+                    <View key={index} className="bg-recruiter/15 border border-recruiter/15 flex-row items-center px-2.5 py-1 rounded-full">
+                      <Text className="text-recruiter font-semibold text-label uppercase mr-1">{skill}</Text>
                       <Pressable onPress={() => removeSkill(index)}>
-                        <Ionicons name="close-circle" size={14} color="#6366f1" />
+                        <Ionicons name="close-circle" size={14} color="#4F46E5" />
                       </Pressable>
                     </View>
                   ))}
@@ -434,11 +436,11 @@ export default function FyncProfileBuilder() {
                     value={skillInput}
                     onChangeText={handleSkillInput}
                     placeholder={skills.length > 0 ? "" : "React, Node.js, Design..."}
-                    placeholderTextColor="#94a3b8"
-                    className="text-slate-700 min-w-[120px] flex-1 py-1 text-2xs font-bold uppercase tracking-wider"
+                    placeholderTextColor="#8B857E"
+                    className="text-ink-2 min-w-[120px] flex-1 py-1 text-label font-semibold uppercase"
                   />
                 </View>
-                <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-2 ml-1">
+                <Text className="text-ink-3 text-label font-semibold uppercase mt-2 ml-1">
                    * Type and press comma (,) to add a skill. Auto-saves.
                 </Text>
               </View>
@@ -463,12 +465,12 @@ export default function FyncProfileBuilder() {
               onAdd={() => { setEditingProject(null); setShowAddProject(true); }}
               addLabel="Add Project" />
             {projects.length === 0 ? (
-              <View className="items-center py-20 px-8">
-                <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-6">
-                  <Feather name="box" size={32} color="#CBD5E1" />
+              <View className="items-center py-20 px-gutter">
+                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                  <Feather name="box" size={32} color="#C4BEB6" />
                 </View>
-                <Text className="text-slate-900 font-black uppercase text-xs tracking-wide text-center">No projects yet</Text>
-                <Text className="text-slate-500 font-bold text-2xs mt-2 text-center uppercase tracking-wider">
+                <Text className="font-semibold text-base text-ink text-center">No projects yet</Text>
+                <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
                   Add your first project to boost your Fync Score!
                 </Text>
               </View>
@@ -489,12 +491,12 @@ export default function FyncProfileBuilder() {
               onAdd={() => { setEditingInternship(null); setShowAddInternship(true); }}
               addLabel="Add Experience" />
             {internships.length === 0 ? (
-              <View className="items-center py-20 px-8">
-                <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-6">
-                  <Ionicons name="briefcase-outline" size={32} color="#CBD5E1" />
+              <View className="items-center py-20 px-gutter">
+                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                  <Ionicons name="briefcase-outline" size={32} color="#C4BEB6" />
                 </View>
-                <Text className="text-slate-900 font-black uppercase text-xs tracking-wide text-center">No experience added yet</Text>
-                <Text className="text-slate-500 font-bold text-2xs mt-2 text-center uppercase tracking-wider">
+                <Text className="font-semibold text-base text-ink text-center">No experience added yet</Text>
+                <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
                   Add internships, freelance, or jobs!
                 </Text>
               </View>
@@ -510,12 +512,12 @@ export default function FyncProfileBuilder() {
               onAdd={() => { setEditingEducation(null); setShowAddEducation(true); }}
               addLabel="Add Education" />
             {education.length === 0 ? (
-              <View className="items-center py-20 px-8">
-                <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-6">
-                  <Ionicons name="school-outline" size={32} color="#CBD5E1" />
+              <View className="items-center py-20 px-gutter">
+                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                  <Ionicons name="school-outline" size={32} color="#C4BEB6" />
                 </View>
-                <Text className="text-slate-900 font-black uppercase text-xs tracking-wide text-center">No education added yet</Text>
-                <Text className="text-slate-500 font-bold text-2xs mt-2 text-center uppercase tracking-wider">
+                <Text className="font-semibold text-base text-ink text-center">No education added yet</Text>
+                <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
                   Add your academic background!
                 </Text>
               </View>
@@ -534,12 +536,12 @@ export default function FyncProfileBuilder() {
               onAdd={() => { setEditingCert(null); setShowAddCert(true); }}
               addLabel="Add Cert" />
             {certificates.length === 0 ? (
-              <View className="items-center py-20 px-8">
-                <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-6">
-                  <Ionicons name="ribbon-outline" size={32} color="#CBD5E1" />
+              <View className="items-center py-20 px-gutter">
+                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                  <Ionicons name="ribbon-outline" size={32} color="#C4BEB6" />
                 </View>
-                <Text className="text-slate-900 font-black uppercase text-xs tracking-wide text-center">No certificates added yet</Text>
-                <Text className="text-slate-500 font-bold text-2xs mt-2 text-center uppercase tracking-wider">
+                <Text className="font-semibold text-base text-ink text-center">No certificates added yet</Text>
+                <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
                   Showcase your learning!
                 </Text>
               </View>
@@ -565,39 +567,33 @@ export default function FyncProfileBuilder() {
   ] as const;
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
       {/* HEADER DECORATION - MATCHING DRIVE/STUDY MATERIAL */}
-      <View className="absolute top-0 w-full h-80 opacity-20">
-        <LinearGradient
-          colors={['#f97316', 'transparent']}
-          className="w-full h-full"
-        />
-      </View>
 
       <SafeAreaView className="flex-1" edges={['top']}>
         {/* Header Content */}
-        <View className="px-8 pt-8 bg-transparent">
+        <View className="px-gutter pt-8 bg-transparent">
           <View className="flex-row items-center justify-between mb-8">
             <View className="flex-row items-center gap-4">
               <View>
-                <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase leading-tight">Fync <Text className="text-orange-500">Portfolio</Text></Text>
+                <Text className="text-ink text-3xl font-display uppercase leading-tight">Fync <Text className="text-accent-text">Portfolio</Text></Text>
                 <View className="flex-row items-center">
-                  <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Core Interface</Text>
+                  <Text className="text-ink-3 text-label font-display uppercase">Core Interface</Text>
                 </View>
               </View> 
             </View>
             <Pressable onPress={downloadResume}
-              className="bg-slate-900 px-4 py-3 rounded-2xl flex-row items-center shadow-xl shadow-black/20">
-              <Feather name="file-text" size={14} color="#f97316" />
-              <Text className="text-white font-black uppercase text-2xs tracking-wide ml-2">Resume</Text>
+              className="bg-ink px-4 py-3 flex-row items-center border-2 border-ink rounded-md">
+              <Feather name="file-text" size={14} color="#F97316" />
+              <Text className="text-white font-display uppercase text-label ml-2">Resume</Text>
             </Pressable>
           </View>
         </View>
 
         {/* Modern Tab Strip */}
-        <View className="flex-row bg-white/50 px-4 py-2 border-b border-slate-100">
+        <View className="flex-row bg-card/50 px-4 py-2 border-b border-line">
           {TABS.map(tab => (
             <Pressable
               key={tab.key}
@@ -605,12 +601,12 @@ export default function FyncProfileBuilder() {
               className={`flex-1 items-center py-4 relative`}
             >
               <Ionicons name={tab.icon as any} size={20}
-                color={activeTab === tab.key ? '#f97316' : '#94A3B8'} />
-              <Text className={`text-2xs font-black uppercase tracking-widest mt-1.5 ${activeTab === tab.key ? 'text-slate-900' : 'text-slate-500'}`}>
+                color={activeTab === tab.key ? '#F97316' : '#8B857E'} />
+              <Text className={`text-label font-display uppercase mt-1.5 ${activeTab === tab.key ? 'text-ink' : 'text-ink-3'}`}>
                 {tab.label}
               </Text>
               {activeTab === tab.key && (
-                <View className="absolute bottom-0 w-12 h-1 bg-orange-500 rounded-full" />
+                <View className="absolute bottom-0 w-12 h-1 bg-brand-500 rounded-full" />
               )}
             </Pressable>
           ))}
@@ -619,7 +615,7 @@ export default function FyncProfileBuilder() {
         <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />}
           contentContainerStyle={{ paddingBottom: 60, paddingTop: 16 }}
         >
           {renderContent()}

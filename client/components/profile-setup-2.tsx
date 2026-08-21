@@ -133,20 +133,20 @@ export default function ProfileSetup2() {
         behavior="padding"
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
-        <View className="flex-1 bg-[#F3F4F6]">
+        <View className="flex-1 bg-paper">
           {/* Background */}
           <View className="flex-1 p-4">
             <Image
               source={loginImage}
-              className="h-full w-full rounded-2xl"
+              className="h-full w-full rounded-card"
               resizeMode="cover"
             />
           </View>
 
           {/* Bottom Sheet */}
-          <View className="rounded-t-5xl bg-white px-6 pt-8 pb-16">
+          <View className="rounded-t-sheet bg-paper px-6 pt-8 pb-16">
             <ScrollView keyboardShouldPersistTaps="handled">
-              <Text className="text-3xl font-bold mb-6 text-center">
+              <Text className="font-display mb-6 text-center text-h1">
                 Profile Setup
               </Text>
 
@@ -154,7 +154,7 @@ export default function ProfileSetup2() {
               <View className="items-center mb-8">
                 <Pressable
                   onPress={handleUploadProfilePic}
-                  className="h-36 w-36 items-center justify-center overflow-hidden rounded-full bg-slate-200"
+                  className="h-36 w-36 items-center justify-center overflow-hidden rounded-full bg-paper-2 border-2 border-dashed border-ink-4"
                 >
                   {profileImageUri ? (
                     <Image
@@ -163,23 +163,25 @@ export default function ProfileSetup2() {
                       resizeMode="cover"
                     />
                   ) : (
-                    <Ionicons name="camera" size={36} color="#6B7280" />
+                    <Ionicons name="camera-outline" size={36} color="#8B857E" />
                   )}
                 </Pressable>
-                <Text className="mt-3 text-slate-600">Upload Profile Photo</Text>
+                <Text className="font-display text-label text-ink-3 uppercase mt-3" style={{ letterSpacing: 1.4 }}>Upload Profile Photo</Text>
               </View>
 
               {/* Continue */}
               {isLoading ? (
-                <Pressable className="rounded-full bg-black py-4 items-center mb-4">
-                  <ActivityIndicator size="small" color="white" />
+                <Pressable className="bg-brand-500 items-center justify-center mb-4 border-2 border-ink rounded-md" style={{ minHeight: 48 }}>
+                  <ActivityIndicator size="small" color="#12100E" />
                 </Pressable>
               ) : (
                 <Pressable
-                  className="rounded-full bg-black py-4 items-center mb-4"
+                  className="bg-brand-500 items-center justify-center mb-4 border-2 border-ink rounded-md"
+                  style={{ minHeight: 48 }}
                   onPress={submitRegistration}
+                  accessibilityRole="button"
                 >
-                  <Text className="text-white text-lg font-semibold">
+                  <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>
                     Continue
                   </Text>
                 </Pressable>
@@ -187,21 +189,21 @@ export default function ProfileSetup2() {
 
               {/* Skip */}
               {isLoading ? (
-                <Pressable className="rounded-full border border-slate-300 py-4 items-center">
-                  <ActivityIndicator size="small" color="#6B7280" />
+                <Pressable className="rounded-full border border-line py-4 items-center">
+                  <ActivityIndicator size="small" color="#8B857E" />
                 </Pressable>
               ) : (
                 <Pressable
-                  className="rounded-full border border-slate-300 py-4 items-center"
+                  className="rounded-full border border-line py-4 items-center"
                   onPress={submitRegistration}
                 >
-                  <Text className="text-slate-700 text-lg font-semibold">
+                  <Text className="text-ink-2 text-lg font-semibold">
                     Skip for now
                   </Text>
                 </Pressable>
               )}
 
-              <Text className="mt-5 text-center text-slate-500">
+              <Text className="mt-5 text-center text-ink-3">
                 Step 2 of 2
               </Text>
             </ScrollView>

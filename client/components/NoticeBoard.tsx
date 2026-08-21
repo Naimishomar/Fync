@@ -5,7 +5,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import axios from '../context/axiosConfig';
@@ -151,7 +150,7 @@ const NoticeBoard = () => {
         const currentOrder = orderRes.data;
         const content = `
             <html>
-            <body style="background-color: #F8FAFC;">
+            <body style="background-color: #F5F2EC;">
                 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
                 <script>
                 var options = {
@@ -166,7 +165,7 @@ const NoticeBoard = () => {
                         email: "${user?.email || ''}",
                         contact: "${user?.mobileNumber || ''}"
                     },
-                    theme: { color: "#f97316" },
+                    theme: { color: "#F97316" },
                     handler: function (response) {
                         window.ReactNativeWebView.postMessage(JSON.stringify({
                             event: "SUCCESS",
@@ -317,40 +316,43 @@ const NoticeBoard = () => {
     }
   };
 
-  const renderNotice = useCallback(({ item }: { item: NoticeType }) => {
+  const renderNotice = useCallback(({ item, index }: { item: NoticeType; index: number }) => {
     const isOwner = item.user?._id === user?._id;
     const avatarUrl = item.user?.avatar || `https://ui-avatars.com/api/?name=${item.user?.username || 'Admin'}`;
 
     return (
-      <View className="bg-white rounded-4xl mb-6 overflow-hidden mx-8 border border-slate-100 shadow-sm shadow-black/5">
+      <View
+        className={`bg-card rounded-card mb-6 overflow-hidden mx-gutter ${index === 0 ? 'border-2 border-ink' : 'border border-line'}`}
+        style={index === 0 ? { shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 } : undefined}
+      >
         <View className="p-6">
           <View className="flex-row justify-between items-start mb-4">
             <View className="flex-1 mr-4">
-              <Text className="text-slate-900 font-black  text-lg uppercase tracking-tight leading-tight">{item.title}</Text>
-              <Text className="text-slate-500 text-2xs mt-1 uppercase tracking-wide font-black ">
+              <Text className="text-ink font-display text-lg uppercase leading-tight">{item.title}</Text>
+              <Text className="text-ink-3 text-label mt-1 uppercase font-display">
                 {format(new Date(item.createdAt), "dd MMM, yyyy • hh:mm a")}
               </Text>
             </View>
             {activeTab === 'global' && (
-              <View className="bg-rose-50 px-3 py-1 rounded-full flex-row items-center border border-rose-100">
-                <MaterialCommunityIcons name="shield-check" size={12} color="#f43f5e" />
-                <Text className="text-rose-500 text-2xs font-black ml-1 uppercase tracking-wide">Official</Text>
+              <View className="bg-danger/10 px-3 py-1 rounded-full flex-row items-center border border-danger/15">
+                <MaterialCommunityIcons name="shield-check" size={12} color="#DB2777" />
+                <Text className="text-danger text-label font-display ml-1 uppercase">Official</Text>
               </View>
             )}
           </View>
 
-          <Text className="text-slate-600 text-sm leading-6 mb-6 font-medium ">"{item.description}"</Text>
+          <Text className="text-ink-2 text-sm leading-6 mb-6 font-medium">"{item.description}"</Text>
 
           {item.link && (
             <TouchableOpacity
               onPress={() => Linking.openURL(item.link!)}
               activeOpacity={0.8}
-              className="flex-row items-center bg-slate-50 p-4 rounded-3xl mb-6 self-start border border-slate-100"
+              className="flex-row items-center bg-paper-2 p-4 rounded-card mb-6 self-start border border-line"
             >
-              <View className="w-8 h-8 bg-slate-900 rounded-2xl items-center justify-center mr-3">
+              <View className="w-8 h-8 bg-ink rounded-card items-center justify-center mr-3">
                 <Ionicons name="link" size={14} color="white" />
               </View>
-              <Text className="text-slate-900 text-2xs font-black uppercase tracking-wide" numberOfLines={1}>
+              <Text className="text-ink text-label font-display uppercase" numberOfLines={1}>
                 Open Attachment
               </Text>
             </TouchableOpacity>
@@ -374,7 +376,7 @@ const NoticeBoard = () => {
                 >
                   <ExpoImage
                     source={{ uri: imgUri || 'https://via.placeholder.com/150' }}
-                    className="w-64 h-40 rounded-3xl mr-4 bg-slate-50 border border-slate-100"
+                    className="w-64 h-40 rounded-card mr-4 bg-paper-2 border border-line"
                     contentFit="cover"
                     cachePolicy="disk"
                   />
@@ -383,14 +385,14 @@ const NoticeBoard = () => {
             />
           )}
 
-          <View className="h-[1px] bg-slate-50 mb-6" />
+          <View className="h-[1px] bg-paper-2 mb-6" />
 
           <View className="flex-row justify-between items-center">
             <View className="flex-row items-center">
-              <ExpoImage source={{ uri: avatarUrl?.trim() ? avatarUrl : `https://ui-avatars.com/api/?name=User` }} className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-200" cachePolicy="disk" />
+              <ExpoImage source={{ uri: avatarUrl?.trim() ? avatarUrl : `https://ui-avatars.com/api/?name=User` }} className="w-10 h-10 rounded-card bg-paper-2 border border-line" cachePolicy="disk" />
               <View className="ml-3">
-                <Text className="text-2xs text-slate-500 uppercase tracking-wide font-black ">By Protocol</Text>
-                <Text className="text-slate-900 text-xs font-black  uppercase mt-0.5 tracking-tight">
+                <Text className="text-label text-ink-3 uppercase font-display">By Protocol</Text>
+                <Text className="font-semibold text-base text-ink mt-0.5">
                   {item.user?.name || "Official Admin"}
                 </Text>
               </View>
@@ -399,24 +401,24 @@ const NoticeBoard = () => {
             <View className="flex-row items-center gap-3">
               <TouchableOpacity
                 onPress={() => handleLikeNotice(item._id, !!item.liked_by?.includes(user?._id || ''))}
-                className="flex-row items-center px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100"
+                className="flex-row items-center px-4 py-2 bg-paper-2 rounded-card border border-line"
               >
                 <Ionicons
                   name={item.liked_by?.includes(user?._id || '') ? "heart" : "heart-outline"}
                   size={16}
-                  color={item.liked_by?.includes(user?._id || '') ? "#f43f5e" : "#CBD5E1"}
+                  color={item.liked_by?.includes(user?._id || '') ? "#DB2777" : "#C4BEB6"}
                 />
-                <Text className="text-slate-900 text-2xs ml-2 font-black ">{item.likes || 0}</Text>
+                <Text className="text-ink text-label ml-2 font-display">{item.likes || 0}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => openComments(item._id)} className="flex-row items-center px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100">
-                <Ionicons name="chatbubble-outline" size={16} color="#CBD5E1" />
-                <Text className="text-slate-900 text-2xs ml-2 font-black ">{item.comments?.length || 0}</Text>
+              <TouchableOpacity onPress={() => openComments(item._id)} className="flex-row items-center px-4 py-2 bg-paper-2 rounded-card border border-line">
+                <Ionicons name="chatbubble-outline" size={16} color="#C4BEB6" />
+                <Text className="text-ink text-label ml-2 font-display">{item.comments?.length || 0}</Text>
               </TouchableOpacity>
 
               {isOwner && (
-                <TouchableOpacity onPress={() => deleteNoticeItem(item._id)} className="w-10 h-10 bg-rose-50 rounded-2xl items-center justify-center border border-rose-100">
-                  <Ionicons name="trash-outline" size={16} color="#f43f5e" />
+                <TouchableOpacity onPress={() => deleteNoticeItem(item._id)} className="w-10 h-10 bg-danger/10 rounded-card items-center justify-center border border-danger/15">
+                  <Ionicons name="trash-outline" size={16} color="#DB2777" />
                 </TouchableOpacity>
               )}
             </View>
@@ -438,19 +440,19 @@ const NoticeBoard = () => {
     }, []);
 
     return (
-      <Animated.View style={{ opacity: pulseAnim }} className="bg-white rounded-4xl mb-6 border border-slate-100 p-8 mx-8">
-        <View className="h-6 bg-slate-50 rounded w-3/4 mb-4" />
-        <View className="h-3 bg-slate-50 rounded w-1/4 mb-10" />
-        <View className="h-4 bg-slate-50 rounded w-full mb-3" />
-        <View className="h-4 bg-slate-50 rounded w-4/5 mb-10" />
+      <Animated.View style={{ opacity: pulseAnim }} className="bg-card rounded-sheet mb-6 border border-line p-card-pad mx-gutter">
+        <View className="h-6 bg-paper-2 rounded w-3/4 mb-4" />
+        <View className="h-3 bg-paper-2 rounded w-1/4 mb-10" />
+        <View className="h-4 bg-paper-2 rounded w-full mb-3" />
+        <View className="h-4 bg-paper-2 rounded w-4/5 mb-10" />
         <View className="flex-row justify-between items-center">
           <View className="flex-row items-center">
-            <View className="w-10 h-10 bg-slate-50 rounded-2xl" />
-            <View className="ml-3"><View className="h-4 bg-slate-50 rounded w-20" /></View>
+            <View className="w-10 h-10 bg-paper-2 rounded-card" />
+            <View className="ml-3"><View className="h-4 bg-paper-2 rounded w-20" /></View>
           </View>
           <View className="flex-row gap-2">
-            <View className="w-12 h-10 bg-slate-50 rounded-2xl" />
-            <View className="w-12 h-10 bg-slate-50 rounded-2xl" />
+            <View className="w-12 h-10 bg-paper-2 rounded-card" />
+            <View className="w-12 h-10 bg-paper-2 rounded-card" />
           </View>
         </View>
       </Animated.View>
@@ -458,36 +460,33 @@ const NoticeBoard = () => {
   });
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
-      <View className="absolute top-0 w-full h-80 opacity-20">
-        <LinearGradient colors={['#f97316', 'transparent']} className="w-full h-full" />
-      </View>
 
       <SafeAreaView className="flex-1" edges={['top']}>
-        <View className="px-8 pt-6">
+        <View className="px-gutter pt-6">
           <View className="flex-row justify-between items-center mb-8">
             <View>
-              <Text className="text-3xl font-black  text-slate-900 tracking-tighter uppercase leading-tight">
-                Fync <Text className="text-orange-500">Board</Text> 📌
+              <Text className="text-3xl font-display text-ink uppercase leading-tight">
+                Fync <Text className="text-accent-text">Board</Text>
               </Text>
-              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Announcement Protocol</Text>
+              <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Announcement Protocol</Text>
             </View>
           </View>
 
-          <View className="flex-row bg-white p-1.5 rounded-2xl mb-8 border border-slate-100 shadow-sm">
+          <View className="flex-row bg-card p-1.5 rounded-card mb-8 border border-line shadow-hair">
             <TouchableOpacity
               onPress={() => setActiveTab('college')}
-              className={`flex-1 py-3.5 items-center rounded-xl ${activeTab === 'college' ? 'bg-slate-900 shadow-lg shadow-black/20' : 'bg-transparent'}`}
+              className={`flex-1 py-3.5 items-center rounded-xl ${activeTab === 'college' ? 'bg-ink shadow-hair ' : 'bg-transparent'}`}
             >
-              <Text className={`font-black tracking-widest text-2xs  uppercase ${activeTab === 'college' ? 'text-white' : 'text-slate-500'}`}>Campus</Text>
+              <Text className={`font-display text-label uppercase ${activeTab === 'college' ? 'text-white' : 'text-ink-3'}`}>Campus</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => setActiveTab('global')}
-              className={`flex-1 py-3.5 items-center rounded-xl ${activeTab === 'global' ? 'bg-orange-500' : 'bg-transparent'}`}
+              className={`flex-1 py-3.5 items-center rounded-xl ${activeTab === 'global' ? 'bg-brand-500' : 'bg-transparent'}`}
             >
-              <Text className={`font-black tracking-widest text-2xs  uppercase ${activeTab === 'global' ? 'text-white' : 'text-slate-500'}`}>Global</Text>
+              <Text className={`font-display text-label uppercase ${activeTab === 'global' ? 'text-ink' : 'text-ink-3'}`}>Global</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -501,7 +500,7 @@ const NoticeBoard = () => {
               renderItem={renderNotice}
               contentContainerStyle={{ paddingBottom: 120, paddingTop: 10 }}
               showsVerticalScrollIndicator={false}
-              refreshControl={<RefreshControl tintColor="#f97316" refreshing={refreshing} onRefresh={onRefresh} />}
+              refreshControl={<RefreshControl tintColor="#F97316" refreshing={refreshing} onRefresh={onRefresh} />}
               onEndReached={handleLoadMore}
               onEndReachedThreshold={0.5}
               initialNumToRender={5}
@@ -511,17 +510,17 @@ const NoticeBoard = () => {
             ListFooterComponent={() => (
               loadingMore ? (
                 <View className="py-6 items-center">
-                  <ActivityIndicator size="small" color="#f97316" />
+                  <ActivityIndicator size="small" color="#F97316" />
                 </View>
               ) : <View className="h-10" />
             )}
             ListEmptyComponent={
-              <View className="items-center justify-center mt-20 px-10">
-                <View className="w-20 h-20 bg-white rounded-4xl items-center justify-center mb-6 border border-slate-100">
-                  <Ionicons name="clipboard-outline" size={32} color="#CBD5E1" />
+              <View className="items-center justify-center mt-20 px-gutter">
+                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                  <Ionicons name="clipboard-outline" size={32} color="#C4BEB6" />
                 </View>
-                <Text className="text-slate-500 font-black  uppercase text-xs tracking-wide text-center">No Active Intel</Text>
-                <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center">The board is currently silent.</Text>
+                <Text className="font-semibold text-base text-ink text-center">No Active Intel</Text>
+                <Text className="font-sans text-sm text-ink-4 mt-2 text-center">The board is currently silent.</Text>
               </View>
             }
           />
@@ -530,82 +529,85 @@ const NoticeBoard = () => {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => setCreateModalVisible(true)}
-          className="absolute bottom-14 right-8 w-14 h-14 rounded-2xl bg-slate-900 items-center justify-center"
+          className="absolute bottom-14 right-8 w-14 h-14 rounded-card bg-ink items-center justify-center"
         >
           <Ionicons name="pencil" size={24} color="white" />
         </TouchableOpacity>
 
         <Modal visible={createModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setCreateModalVisible(false)}>
-          <View className="flex-1 bg-[#F8FAFC]">
+          <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
-            <View className="flex-row justify-between items-center px-8 py-6 border-b border-slate-100 bg-white">
-              <Text className="text-xl font-black text-slate-900  tracking-tighter uppercase leading-tight">
-                New <Text className="text-orange-500">{activeTab === 'global' ? 'Global Intel' : 'Campus Intel'}</Text>
+            <View className="flex-row justify-between items-center px-gutter py-6 border-b border-line bg-card">
+              <Text className="text-xl font-display text-ink uppercase leading-tight">
+                New <Text className="text-accent-text">{activeTab === 'global' ? 'Global Intel' : 'Campus Intel'}</Text>
               </Text>
-              <TouchableOpacity onPress={() => setCreateModalVisible(false)} className="bg-slate-50 p-2 rounded-2xl border border-slate-100">
-                <Ionicons name="close" size={20} color="#18181b" />
+              <TouchableOpacity onPress={() => setCreateModalVisible(false)} className="bg-paper-2 p-2 rounded-card border border-line">
+                <Ionicons name="close" size={20} color="#12100E" />
               </TouchableOpacity>
             </View>
-            <ScrollView className="p-8" contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
+            <ScrollView className="p-card-pad" contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
 
-              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Intel Subject</Text>
+              <Text className="text-ink-3 text-label font-display uppercase mb-4">Intel Subject</Text>
               <TextInput
                 value={title}
                 onChangeText={setTitle}
-                className="bg-white p-5 rounded-3xl mb-6 border border-slate-100 shadow-sm text-slate-900 font-black  uppercase text-xs"
-                placeholderTextColor="#CBD5E1"
+                className="font-semibold text-base text-ink bg-card p-5 mb-6 border-[1.5px] border-ink shadow-hair rounded-md"
+                placeholderTextColor="#C4BEB6"
                 placeholder="Notice Heading"
               />
 
-              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Transmission Details</Text>
+              <Text className="text-ink-3 text-label font-display uppercase mb-4">Transmission Details</Text>
               <TextInput
                 value={desc}
                 onChangeText={setDesc}
                 multiline
                 numberOfLines={5}
-                className="bg-white p-5 rounded-3xl mb-6 border border-slate-100 shadow-sm text-slate-700 leading-6 min-h-[150px] font-medium text-xs "
-                placeholderTextColor="#CBD5E1"
+                className="bg-card p-5 mb-6 border-[1.5px] border-ink shadow-hair text-ink-2 leading-6 min-h-[150px] font-medium text-xs rounded-md"
+                placeholderTextColor="#C4BEB6"
                 placeholder="Establish the facts..."
                 textAlignVertical="top"
               />
 
-              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Resource Link (Optional)</Text>
+              <Text className="text-ink-3 text-label font-display uppercase mb-4">Resource Link (Optional)</Text>
               <TextInput
                 value={link}
                 onChangeText={setLink}
-                className="bg-white p-5 rounded-3xl mb-8 border border-slate-100 shadow-sm text-orange-500 font-bold text-xs"
-                placeholderTextColor="#CBD5E1"
+                className="bg-card p-5 mb-8 border-[1.5px] border-ink shadow-hair text-accent-text font-semibold text-xs rounded-md"
+                placeholderTextColor="#C4BEB6"
                 placeholder="https://protocol-link.com/..."
                 autoCapitalize="none"
               />
 
-              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Visual Evidence</Text>
+              <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
+                <Text className="text-ink-3 text-label font-display uppercase">Visual Evidence</Text>
+                <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+              </View>
               <TouchableOpacity
                 onPress={async () => {
                   const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsMultipleSelection: true, quality: 0.7 });
                   if (!result.canceled) setImages(result.assets);
                 }}
                 activeOpacity={0.8}
-                className="border-2 border-dashed border-slate-200 rounded-4xl p-10 items-center justify-center mb-8 bg-slate-50"
+                className="border-2 border-dashed border-line rounded-sheet p-card-pad items-center justify-center mb-8 bg-paper-2"
               >
-                <Ionicons name="images-outline" size={32} color="#CBD5E1" />
-                <Text className="text-slate-500 font-black  uppercase text-2xs mt-2">Attach Files</Text>
+                <Ionicons name="images-outline" size={32} color="#C4BEB6" />
+                <Text className="text-ink-3 font-display uppercase text-label mt-2">Attach Files</Text>
               </TouchableOpacity>
 
               {images.length > 0 && (
                 <ScrollView horizontal className="mb-8" showsHorizontalScrollIndicator={false}>
-                  {images.map((img, i) => <Image key={i} source={{ uri: img.uri || 'https://via.placeholder.com/150' }} className="w-24 h-24 rounded-2xl mr-4 border border-slate-100" />)}
+                  {images.map((img, i) => <Image key={i} source={{ uri: img.uri || 'https://via.placeholder.com/150' }} className="w-24 h-24 rounded-card mr-4 border border-line" />)}
                 </ScrollView>
               )}
 
               <TouchableOpacity
                 onPress={() => handleCreateNotice()}
                 disabled={submitting}
-                className={`py-5 rounded-2xl items-center shadow-xl flex-row justify-center ${submitting ? 'bg-slate-100' : 'bg-slate-900 shadow-black/20'}`}
+                className={`py-5 rounded-card items-center shadow-hair flex-row justify-center ${submitting ? 'bg-paper-2' : 'bg-ink '}`}
               >
-                {submitting ? <ActivityIndicator color="#f97316" /> : (
+                {submitting ? <ActivityIndicator color="#F97316" /> : (
                   <>
-                    <Text className="text-white font-black  uppercase tracking-wide text-xs mr-3">
+                    <Text className="text-white font-display uppercase text-xs mr-3">
                       {activeTab === 'global' && !isAdmin ? 'Deploy for ₹49' : 'Deploy Notice'}
                     </Text>
                     <Ionicons name="paper-plane" size={16} color="white" />
@@ -618,20 +620,20 @@ const NoticeBoard = () => {
 
         {/* Comments Modal */}
         <Modal visible={commentsModalVisible} animationType="slide" transparent onRequestClose={() => setCommentsModalVisible(false)}>
-          <View className="flex-1 bg-slate-900/40 justify-end">
+          <View className="flex-1 bg-ink/40 justify-end">
             <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={() => setCommentsModalVisible(false)} />
-            <View className="bg-white h-[80%] rounded-t-5xl overflow-hidden shadow-2xl">
-              <View className="w-12 h-1.5 bg-slate-100 rounded-full self-center mt-4 mb-2" />
-              <View className="flex-row justify-between items-center px-8 py-6 border-b border-slate-100">
-                <Text className="font-black  text-xl text-slate-900 tracking-tighter uppercase leading-tight">
-                  Transmission <Text className="text-orange-500">Log</Text> 💬
+            <View className="bg-paper h-[80%] rounded-t-sheet overflow-hidden shadow-hair">
+              <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
+              <View className="flex-row justify-between items-center px-gutter py-6 border-b border-line">
+                <Text className="font-display text-ink uppercase text-h1">
+                  Transmission <Text className="text-accent-text">Log</Text>
                 </Text>
-                <TouchableOpacity onPress={() => setCommentsModalVisible(false)} className="bg-slate-50 p-2 rounded-2xl border border-slate-100">
-                  <Ionicons name="close" size={20} color="#18181b" />
+                <TouchableOpacity onPress={() => setCommentsModalVisible(false)} className="bg-paper-2 p-2 rounded-card border border-line">
+                  <Ionicons name="close" size={20} color="#12100E" />
                 </TouchableOpacity>
               </View>
 
-              {commentsLoading ? <ActivityIndicator className="mt-20" color="#f97316" size="large" /> : (
+              {commentsLoading ? <ActivityIndicator className="mt-20" color="#F97316" size="large" /> : (
                 <FlatList
                   data={noticeComments}
                   keyExtractor={c => c._id}
@@ -639,10 +641,10 @@ const NoticeBoard = () => {
                   showsVerticalScrollIndicator={false}
                   renderItem={({ item }) => (
                     <View className="flex-row mb-6">
-                  <ExpoImage source={{ uri: item.commentor?.avatar?.trim() ? item.commentor.avatar : 'https://ui-avatars.com/api/?name=User' }} className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-200" cachePolicy="disk" />
-                      <View className="ml-4 flex-1 bg-slate-50 p-5 rounded-3xl rounded-tl-sm border border-slate-100">
-                        <Text className="font-black  text-2xs text-orange-500 mb-1 uppercase tracking-wide">{item.commentor?.name || 'Anonymous'}</Text>
-                        <Text className="text-slate-600 text-xs font-medium leading-5 ">"{item.text}"</Text>
+                  <ExpoImage source={{ uri: item.commentor?.avatar?.trim() ? item.commentor.avatar : 'https://ui-avatars.com/api/?name=User' }} className="w-10 h-10 rounded-card bg-paper-2 border border-line" cachePolicy="disk" />
+                      <View className="ml-4 flex-1 bg-paper p-5 rounded-card rounded-tl-sm border border-line">
+                        <Text className="font-display text-label text-accent-text mb-1 uppercase">{item.commentor?.name || 'Anonymous'}</Text>
+                        <Text className="text-ink-2 text-xs font-medium leading-5">"{item.text}"</Text>
                       </View>
 
                       {item.commentor?._id === user?._id && (
@@ -663,35 +665,35 @@ const NoticeBoard = () => {
                             }
                           }}
                         >
-                          <Ionicons name="trash-outline" size={16} color="#f43f5e" />
+                          <Ionicons name="trash-outline" size={16} color="#DB2777" />
                         </TouchableOpacity>
                       )}
                     </View>
                   )}
                   ListEmptyComponent={
                     <View className="items-center mt-10">
-                      <Ionicons name="chatbubbles-outline" size={32} color="#CBD5E1" />
-                      <Text className="text-center text-slate-500 mt-4 font-black  uppercase text-2xs tracking-wide">No active discussion.</Text>
+                      <Ionicons name="chatbubbles-outline" size={32} color="#C4BEB6" />
+                      <Text className="font-sans text-sm text-center text-ink-3 mt-4">No active discussion.</Text>
                     </View>
                   }
                 />
               )}
 
               <KeyboardAvoidingView behavior="padding">
-                <View className="p-6 border-t border-slate-100 flex-row items-center bg-white pb-10">
+                <View className="p-6 border-t border-line flex-row items-center bg-card pb-10">
                   <TextInput
                     value={newComment}
                     onChangeText={setNewComment}
                     placeholder="Establish contact..."
-                    placeholderTextColor="#CBD5E1"
-                    className="flex-1 bg-slate-50 border border-slate-100 text-slate-900 rounded-2xl px-5 py-4 mr-3 font-black  uppercase text-2xs"
+                    placeholderTextColor="#C4BEB6"
+                    className="flex-1 bg-paper border-[1.5px] border-ink text-ink px-5 py-4 mr-3 font-display uppercase text-label rounded-md"
                   />
                   <TouchableOpacity
                     onPress={postComment}
                     disabled={newComment.trim().length === 0}
-                    className={`w-12 h-12 rounded-2xl items-center justify-center ${newComment.trim().length > 0 ? 'bg-slate-900 shadow-lg' : 'bg-slate-50 border border-slate-100'}`}
+                    className={`w-12 h-12 rounded-card items-center justify-center ${newComment.trim().length > 0 ? 'bg-ink shadow-hair' : 'bg-paper-2 border border-line'}`}
                   >
-                    <Ionicons name="send" size={18} color={newComment.trim().length > 0 ? "white" : "#CBD5E1"} />
+                    <Ionicons name="send" size={18} color={newComment.trim().length > 0 ? "white" : "#C4BEB6"} />
                   </TouchableOpacity>
                 </View>
               </KeyboardAvoidingView>
@@ -703,23 +705,23 @@ const NoticeBoard = () => {
         <Modal visible={previewVisible} transparent={true} animationType="fade" onRequestClose={() => setPreviewVisible(false)}>
           <View style={styles.previewContainer}>
             <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setPreviewVisible(false)} />
-            <TouchableOpacity onPress={() => setPreviewVisible(false)} className="absolute top-12 right-8 z-50 w-12 h-12 bg-black/50 rounded-2xl items-center justify-center border border-white/20">
+            <TouchableOpacity onPress={() => setPreviewVisible(false)} className="absolute top-12 right-8 z-50 w-12 h-12 bg-black/50 rounded-card items-center justify-center border border-white/20">
               <Ionicons name="close" size={24} color="white" />
             </TouchableOpacity>
             {selectedImage ? <ExpoImage source={{ uri: selectedImage }} className="w-full h-5/6" contentFit="contain" cachePolicy="disk" /> : null}
             <View className="absolute bottom-12 items-center w-full">
-              <Text className="text-white/40 text-2xs font-black  uppercase tracking-wide leading-tight">Secure Preview Protocol • Tap to Close</Text>
+              <Text className="text-white/40 text-label font-display uppercase leading-tight">Secure Preview Protocol • Tap to Close</Text>
             </View>
           </View>
         </Modal>
 
         {/* PAYMENT MODAL */}
         <Modal visible={!!showPaymentParams} animationType="slide" transparent={false} onRequestClose={() => setShowPaymentParams(null)}>
-          <SafeAreaView style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
-            <View className="flex-row items-center justify-between p-6 border-b border-slate-100 bg-white">
-              <Text className="text-slate-900 font-black  uppercase text-sm tracking-tight">Secure <Text className="text-orange-500">Transaction</Text></Text>
+          <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F2EC' }}>
+            <View className="flex-row items-center justify-between p-6 border-b border-line bg-card">
+              <Text className="text-ink font-display uppercase text-sm">Secure <Text className="text-accent-text">Transaction</Text></Text>
               <Pressable onPress={() => { setShowPaymentParams(null); Alert.alert('Cancelled', 'Payment is required to post a global notice.'); }}>
-                <Ionicons name="close" size={24} color="#18181b" />
+                <Ionicons name="close" size={24} color="#12100E" />
               </Pressable>
             </View>
             {showPaymentParams?.html ? (
@@ -727,11 +729,11 @@ const NoticeBoard = () => {
                 source={{ html: showPaymentParams.html }}
                 originWhitelist={["*"]}
                 onMessage={handleWebViewMessage}
-                style={{ flex: 1, backgroundColor: '#F8FAFC' }}
+                style={{ flex: 1, backgroundColor: '#F5F2EC' }}
               />
             ) : (
-              <View className="flex-1 bg-[#F8FAFC] justify-center items-center">
-                <ActivityIndicator size="large" color="#f97316" />
+              <View className="flex-1 bg-paper justify-center items-center">
+                <ActivityIndicator size="large" color="#F97316" />
               </View>
             )}
           </SafeAreaView>

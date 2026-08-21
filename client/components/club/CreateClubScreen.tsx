@@ -78,15 +78,19 @@ const CreateClubScreen = () => {
     };
 
     return (
-        <View className="flex-1 bg-white">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top']}>
                 {/* Header */}
-                <View className="px-5 py-4 flex-row items-center justify-between border-b border-slate-100">
-                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                <View className="px-5 py-4 flex-row items-center justify-between border-b border-line">
+                    <TouchableOpacity onPress={() => navigation.goBack()}
+            className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
                         <Ionicons name="close" size={28} color="black" />
                     </TouchableOpacity>
-                    <Text className="text-slate-900 text-lg font-black uppercase tracking-widest">Establish Club</Text>
+                    <Text className="text-ink text-lg font-display uppercase">Establish Club</Text>
                     <View className="w-7"></View>
                 </View>
 
@@ -96,14 +100,14 @@ const CreateClubScreen = () => {
                         {/* Banner Upload */}
                         <TouchableOpacity 
                             onPress={() => pickImage('banner')}
-                            className="w-full h-40 bg-slate-100 rounded-3xl overflow-hidden items-center justify-center border border-dashed border-slate-300"
+                            className="w-full h-40 bg-paper-2 overflow-hidden items-center justify-center border border-dashed border-line rounded-md"
                         >
                             {banner ? (
                                 <Image source={{ uri: banner.uri }} className="w-full h-full" />
                             ) : (
                                 <View className="items-center">
-                                    <Feather name="image" size={32} color="#a1a1aa" />
-                                    <Text className="text-slate-500 font-bold text-2xs uppercase mt-2">Upload Banner (16:9)</Text>
+                                    <Feather name="image" size={32} color="#8B857E" />
+                                    <Text className="text-ink-3 font-semibold text-label uppercase mt-2">Upload Banner (16:9)</Text>
                                 </View>
                             )}
                         </TouchableOpacity>
@@ -111,37 +115,37 @@ const CreateClubScreen = () => {
                         {/* Logo Upload */}
                         <TouchableOpacity 
                             onPress={() => pickImage('logo')}
-                            className="w-24 h-24 rounded-3xl bg-white border-4 border-white shadow-lg overflow-hidden -mt-12 ml-6 items-center justify-center"
+                            className="w-24 h-24 rounded-card bg-card border-4 border-white shadow-hair overflow-hidden -mt-12 ml-6 items-center justify-center"
                         >
                             {logo ? (
                                 <Image source={{ uri: logo.uri }} className="w-full h-full" />
                             ) : (
-                                <Feather name="camera" size={24} color="#a1a1aa" />
+                                <Feather name="camera" size={24} color="#8B857E" />
                             )}
                         </TouchableOpacity>
 
                         {/* Form Fields */}
                         <View className="mt-8">
-                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-2 ml-1">Identity</Text>
+                            <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Identity</Text>
                             <TextInput 
                                 placeholder="Club Name"
-                                className="bg-slate-50 p-5 rounded-2xl mb-4 font-bold border border-slate-100 text-slate-900"
+                                className="bg-card p-5 mb-4 font-semibold border-[1.5px] border-ink text-ink rounded-md"
                                 value={name}
                                 onChangeText={setName}
                             />
                             
-                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-2 ml-1">Specialization</Text>
+                            <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Specialization</Text>
                             <TextInput 
                                 placeholder="Category (e.g. Technical, Sports)"
-                                className="bg-slate-50 p-5 rounded-2xl mb-4 font-bold border border-slate-100 text-slate-900"
+                                className="bg-card p-5 mb-4 font-semibold border-[1.5px] border-ink text-ink rounded-md"
                                 value={category}
                                 onChangeText={setCategory}
                             />
 
-                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-2 ml-1">Mission Statement</Text>
+                            <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Mission Statement</Text>
                             <TextInput 
                                 placeholder="Describe the club's goal..."
-                                className="bg-slate-50 p-5 rounded-2xl mb-6 font-semibold border border-slate-100 text-slate-900"
+                                className="bg-card p-5 mb-6 font-semibold border-[1.5px] border-ink text-ink rounded-md"
                                 multiline
                                 numberOfLines={4}
                                 value={description}
@@ -152,12 +156,12 @@ const CreateClubScreen = () => {
                         <TouchableOpacity 
                             onPress={handleCreate}
                             disabled={loading}
-                            className="bg-black py-5 rounded-3xl items-center shadow-xl shadow-black/20"
+                            className="bg-ink py-5 items-center border-2 border-ink rounded-md"
                         >
                             {loading ? (
                                 <ActivityIndicator color="white" />
                             ) : (
-                                <Text className="text-white font-black uppercase tracking-widest">Establish Community</Text>
+                                <Text className="text-white font-display uppercase">Establish Community</Text>
                             )}
                         </TouchableOpacity>
                         

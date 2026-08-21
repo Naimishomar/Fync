@@ -124,7 +124,7 @@ const SingleShort = React.memo(({
   };
 
   return (
-    <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }} className="bg-black">
+    <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }} className="bg-ink">
       <Pressable onPress={togglePlay}>
         <Video
           ref={videoRef}
@@ -167,19 +167,19 @@ const SingleShort = React.memo(({
               size={40} 
             />
             <View className="ml-3">
-              <Text className="text-white font-semibold">{item.user.name}</Text>
-              <Text className="text-slate-300 text-xs">@{item.user.username}</Text>
+              <Text className="font-semibold text-base text-white">{item.user.name}</Text>
+              <Text className="font-sans text-sm text-night-3">@{item.user.username}</Text>
             </View>
           </Pressable>
 
           {/* Truncated Title & Description */}
           <View>
-            <Text className="text-slate-300 font-bold mb-1">
+            <Text className="font-display text-base text-white mb-1">
               {(!showFullText && item.title.length > 50) 
                 ? item.title.substring(0, 50) + "..." 
                 : item.title}
             </Text>
-            <Text className="text-slate-500 text-sm">
+            <Text className="font-sans text-sm text-night-ink">
               {(!showFullText && item.description.length > 50) 
                 ? item.description.substring(0, 50) + "..." 
                 : item.description}
@@ -187,7 +187,7 @@ const SingleShort = React.memo(({
             
             {(item.title.length > 50 || item.description.length > 50) && (
               <Pressable onPress={() => setShowFullText(!showFullText)} className="mt-1">
-                <Text className="text-orange-400 font-bold text-xs">
+                <Text className="font-semibold text-sm text-brand-400">
                   {showFullText ? "Show Less" : "Show More"}
                 </Text>
               </Pressable>
@@ -211,7 +211,7 @@ const SingleShort = React.memo(({
               }}
               className="mb-4"
             >
-              <Ionicons name="trash-outline" size={28} color="#ef4444" />
+              <Ionicons name="trash-outline" size={28} color="#DC2626" />
             </Pressable>
           )}
 
@@ -219,10 +219,10 @@ const SingleShort = React.memo(({
             <Ionicons
               name={isLiked ? "heart" : "heart-outline"}
               size={34}
-              color={isLiked ? "red" : "white"}
+              color={isLiked ? "#F97316" : "#FFFFFF"}
             />
           </Pressable>
-          <Text className="text-white text-xs mb-4">{item.likes || 0}</Text>
+          <Text className="font-display text-label text-white mb-4">{item.likes || 0}</Text>
 
           <Pressable onPress={() => onComment(item._id)} className="mb-4">
             <Ionicons name="chatbubble-outline" size={28} color="white" />
@@ -245,10 +245,10 @@ const SingleShort = React.memo(({
             }}
             className="mb-4 items-center"
           >
-            <View className="bg-green-500/20 p-2 rounded-full border border-green-500/30">
-              <Ionicons name="cash-outline" size={26} color="#4ade80" />
+            <View className="bg-brand-500/20 p-2 rounded-full border border-brand-500/40">
+              <Ionicons name="cash-outline" size={26} color="#F97316" />
             </View>
-            <Text className="text-green-400 text-2xs mt-1 font-bold">TIP</Text>
+            <Text className="font-display text-label text-brand-400 mt-1 uppercase">Tip</Text>
           </Pressable>
 
           <Pressable onPress={handleShare} className="mb-4">
@@ -256,7 +256,7 @@ const SingleShort = React.memo(({
           </Pressable>
 
           <Ionicons name="eye-outline" size={28} color="white" />
-          <Text className="text-white text-xs">{item.views || 0}</Text>
+          <Text className="font-display text-label text-white">{item.views || 0}</Text>
         </View>
       </View>
     </View>
@@ -501,16 +501,16 @@ export default function Shorts() {
       <View className="flex-row">
         <Image
           source={{ uri: getFullUrl(comment.commentor?.avatar) || `https://ui-avatars.com/api/?name=${comment.commentor?.username}` }}
-          className={`${isReply ? 'h-7 w-7' : 'h-9 w-9'} rounded-full mr-3 bg-slate-800`}
+          className={`${isReply ? 'h-7 w-7' : 'h-9 w-9'} rounded-full mr-3 bg-ink`}
         />
         <View className="flex-1">
           <View className="flex flex-row items-center gap-1">
             <Text className="text-white font-semibold text-xs">{comment.commentor?.name}</Text>
-            <Text className="text-slate-500 text-2xs">@{comment.commentor?.username}</Text>
+            <Text className="text-ink-3 text-label">@{comment.commentor?.username}</Text>
           </View>
           
-          <Text className="text-slate-300 text-xs mt-0.5">
-            {comment.replyToUser && <Text className="text-pink-400">@{comment.replyToUser.username} </Text>}
+          <Text className="text-ink-4 text-xs mt-0.5">
+            {comment.replyToUser && <Text className="text-accent-text">@{comment.replyToUser.username} </Text>}
             {comment.text}
           </Text>
 
@@ -521,12 +521,12 @@ export default function Shorts() {
                  setCommentText(`@${comment.commentor.username} `);
                  commentInputRef.current?.focus();
                }}>
-                 <Text className="text-slate-500 text-2xs font-bold">Reply</Text>
+                 <Text className="text-ink-3 text-label font-semibold">Reply</Text>
                </Pressable>
              )}
              {comment.commentor?._id === currentUserId && (
                <Pressable onPress={() => deleteComment(comment._id)}>
-                 <Text className="text-red-500/70 text-2xs font-bold">Delete</Text>
+                 <Text className="text-danger/70 text-label font-semibold">Delete</Text>
                </Pressable>
              )}
           </View>
@@ -586,9 +586,9 @@ export default function Shorts() {
             onPress={() => setCommentModalVisible(false)}
           />
 
-          <View className="bg-slate-900 rounded-t-2xl h-[75%] px-0 pt-4">
+          <View className="bg-ink rounded-t-sheet h-[75%] px-0 pt-4">
             <View className="items-center mb-3">
-              <View className="h-1 w-10 bg-slate-600 rounded-full mb-2" />
+              <View className="h-1 w-10 bg-night-3 rounded-full mb-2" />
               <Text className="text-white font-semibold text-base">Comments</Text>
             </View>
 
@@ -603,7 +603,7 @@ export default function Shorts() {
                   <CommentSkeleton />
                 </>
               ) : comments.length === 0 ? (
-                <Text className="text-slate-500 text-center mt-10">
+                <Text className="text-ink-3 text-center mt-10">
                   No comments yet
                 </Text>
               ) : (
@@ -613,12 +613,12 @@ export default function Shorts() {
               )}
             </ScrollView>
 
-            <View className="absolute bottom-0 left-0 right-0 border-t border-slate-800 bg-slate-900 px-3 pt-3 pb-8">
+            <View className="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-night px-3 pt-3 pb-8">
               {replyingTo && (
-                <View className="flex-row items-center justify-between bg-slate-800 px-3 py-2 mb-2 rounded-lg">
-                  <Text className="text-slate-500 text-xs text-slate-100">Replying to <Text className="font-bold">@{replyingTo.commentor.username}</Text></Text>
+                <View className="flex-row items-center justify-between bg-ink px-3 py-2 mb-2 rounded-lg">
+                  <Text className="text-ink-3 text-xs">Replying to <Text className="font-semibold">@{replyingTo.commentor.username}</Text></Text>
                   <Pressable onPress={() => setReplyingTo(null)}>
-                    <Ionicons name="close-circle" size={18} color="#9ca3af" />
+                    <Ionicons name="close-circle" size={18} color="#C4BEB6" />
                   </Pressable>
                 </View>
               )}
@@ -628,12 +628,12 @@ export default function Shorts() {
                   value={commentText}
                   onChangeText={setCommentText}
                   placeholder={replyingTo ? "Add a reply..." : "Add a comment..."}
-                  placeholderTextColor="#888"
-                  className="flex-1 text-white bg-slate-800 rounded-full px-4 py-3 mr-2"
+                  placeholderTextColor="#8B857E"
+                  className="flex-1 font-sans text-base text-night-ink bg-night-2 rounded-full px-4 py-3 mr-2 border border-white/10"
                   multiline
                 />
                 <Pressable onPress={addComment} disabled={!commentText.trim()}>
-                  <Text className={`font-semibold ${!commentText.trim() ? 'text-slate-600' : 'text-pink-300'}`}>Post</Text>
+                  <Text className={`font-semibold ${!commentText.trim() ? 'text-ink-2' : 'text-brand-300'}`}>Post</Text>
                 </Pressable>
               </View>
             </View>

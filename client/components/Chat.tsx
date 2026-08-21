@@ -238,7 +238,7 @@ const Chat = ({ route, navigation }: any) => {
             bottom: 40,
             marginHorizontal: Dimensions.get('window').width * 0.05,
             backgroundColor: "rgba(20, 20, 20, 0.86)",
-            borderRadius: 40,
+            borderRadius: 26,
             height: 60,
             borderWidth: 1,
             borderColor: "rgba(255, 255, 255, 0.12)",
@@ -540,7 +540,7 @@ const Chat = ({ route, navigation }: any) => {
         <View className={`flex-row items-end ${isMe ? "flex-row-reverse" : "flex-row"} max-w-[85%]`}>
           {/* AVATAR */}
           <View className={`${isMe ? "ml-3" : "mr-3"}`}>
-            <View className="w-9 h-9 rounded-2xl border-2 border-white shadow-sm overflow-hidden bg-slate-200">
+            <View className="w-9 h-9 rounded-card border-2 border-white shadow-hair overflow-hidden bg-paper-2">
               <Image
                 source={{
                   uri: isMe
@@ -573,26 +573,22 @@ const Chat = ({ route, navigation }: any) => {
                 borderTopRightRadius: isMe ? 6 : 16,
                 borderBottomRightRadius: isMe ? 6 : 16,
               }}
-              className={`px-5 py-3 ${isMe
-                ? "bg-slate-900 shadow-md shadow-black/20"
-                : "bg-white border border-slate-100 shadow-sm"
-                }`}
+              className={`px-5 py-3 ${isMe ? "bg-ink shadow-hair " : "bg-card border border-line shadow-hair" }`}
             >
               {/* REPLY PREVIEW */}
               {item.replyTo && (
-                <View className={`mb-2 p-2 rounded-xl border-l-2 ${isMe ? "bg-white/10 border-orange-500" : "bg-slate-50 border-orange-500"
-                  }`}>
-                  <Text className={`text-2xs font-black uppercase tracking-widest ${isMe ? "text-orange-400" : "text-orange-600"}`}>
+                <View className={`mb-2 p-2 rounded-xl border-l-2 ${isMe ? "bg-card/10 border-brand-500" : "bg-paper-2 border-brand-500" }`}>
+                  <Text className={`text-label font-display uppercase ${isMe ? "text-accent-text" : "text-accent-text"}`}>
                     REF: {item.replyTo.sender?.name || (item.replyTo.sender === user._id ? "YOU" : "USER")}
                   </Text>
-                  <Text className={`${isMe ? "text-slate-300" : "text-slate-500"} text-2xs font-medium`} numberOfLines={1}>
+                  <Text className={`${isMe ? "text-ink-4" : "text-ink-3"} text-label font-medium`} numberOfLines={1}>
                     {item.replyTo.message}
                   </Text>
                 </View>
               )}
 
               {(item.messageType === "text" || !item.messageType) && item.message ? (
-                <Text className={`text-sm leading-6 font-bold tracking-tight ${isMe ? "text-white" : "text-slate-900"}`}>
+                <Text className={`text-sm leading-6 font-semibold ${isMe ? "text-white" : "text-ink"}`}>
                   {item.message}
                 </Text>
               ) : null}
@@ -612,7 +608,7 @@ const Chat = ({ route, navigation }: any) => {
                 <Pressable 
                   onPress={(e) => e.stopPropagation()} 
                   onLongPress={(e) => e.stopPropagation()}
-                  className="w-64 h-40 bg-slate-900 rounded-xl overflow-hidden shadow-lg"
+                  className="w-64 h-40 bg-ink rounded-xl overflow-hidden shadow-hair"
                 >
                   <Video
                     source={{ uri: item.mediaUrl }}
@@ -640,18 +636,18 @@ const Chat = ({ route, navigation }: any) => {
                     Linking.openURL(item.mediaUrl);
                   }}
                   onLongPress={(e) => e.stopPropagation()}
-                  className={`flex-row items-center p-3 rounded-xl ${isMe ? 'bg-white/10' : 'bg-black/5'}`}
+                  className={`flex-row items-center p-3 rounded-xl ${isMe ? 'bg-card/10' : 'bg-black/5'}`}
                 >
-                  <View className={`w-10 h-10 rounded-lg items-center justify-center ${isMe ? 'bg-slate-800' : 'bg-orange-100'}`}>
-                    <Ionicons name="document-text" size={24} color={isMe ? "white" : "#f97316"} />
+                  <View className={`w-10 h-10 rounded-lg items-center justify-center ${isMe ? 'bg-ink' : 'bg-brand-100'}`}>
+                    <Ionicons name="document-text" size={24} color={isMe ? "white" : "#F97316"} />
                   </View>
                   <View className="ml-3 flex-1">
-                    <Text className={`text-sm font-bold ${isMe ? "text-white" : "text-slate-900"}`} numberOfLines={1}>
+                    <Text className={`text-sm font-semibold ${isMe ? "text-white" : "text-ink"}`} numberOfLines={1}>
                       {item.message || 'Shared PDF'}
                     </Text>
-                    <Text className={`${isMe ? "text-slate-500" : "text-slate-500"} text-2xs uppercase font-bold`}>Tap to view PDF</Text>
+                    <Text className={`${isMe ? "text-ink-3" : "text-ink-3"} text-label uppercase font-semibold`}>Tap to view PDF</Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={18} color={isMe ? "white" : "#cbd5e1"} />
+                  <Ionicons name="chevron-forward" size={18} color={isMe ? "white" : "#C4BEB6"} />
                 </Pressable>
               )}
             </TouchableOpacity>
@@ -659,7 +655,7 @@ const Chat = ({ route, navigation }: any) => {
             {/* TIMESTAMP & STATUS */}
             <View className={`mt-1.5 ${isMe ? "items-end" : "items-start"}`}>
               <View className="flex-row items-center">
-                <Text className="text-2xs text-slate-500 font-black uppercase tracking-tighter">
+                <Text className="text-label text-ink-3 font-display uppercase">
                   {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </Text>
                 
@@ -668,9 +664,9 @@ const Chat = ({ route, navigation }: any) => {
                     <Ionicons
                       name={item.seen ? "checkmark-done" : "checkmark"}
                       size={12}
-                      color={item.seen ? "#f97316" : "#cbd5e1"}
+                      color={item.seen ? "#F97316" : "#C4BEB6"}
                     />
-                    <Text className={`text-2xs ml-0.5 font-black uppercase ${item.seen ? "text-orange-500" : "text-slate-300"}`}>
+                    <Text className={`text-label ml-0.5 font-display uppercase ${item.seen ? "text-accent-text" : "text-ink-4"}`}>
                       {item.seen ? "READ" : "SENT"}
                     </Text>
                   </View>
@@ -685,21 +681,21 @@ const Chat = ({ route, navigation }: any) => {
 
   if (!conversationId) {
     return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-white">
-        <Text className="text-slate-500">No conversation selected</Text>
+      <SafeAreaView className="flex-1 justify-center items-center bg-card">
+        <Text className="text-ink-3">No conversation selected</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+    <View style={{ flex: 1, backgroundColor: '#F5F2EC' }}>
       {/* HEADER DECORATION (SOLAR GLOW) */}
       <View 
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 300, zIndex: -1 }}
         pointerEvents="none"
       >
         <LinearGradient
-          colors={['#f19422', 'rgba(241, 148, 34, 0)']}
+          colors={['#F97316', 'rgba(241, 148, 34, 0)']}
           style={{ flex: 1 }}
         />
       </View>
@@ -710,9 +706,13 @@ const Chat = ({ route, navigation }: any) => {
           <View className="flex-row items-center">
             <TouchableOpacity
               onPress={() => navigation.goBack()}
-              className="w-10 h-10 items-center justify-center rounded-2xl bg-slate-50 border border-slate-100"
-            >
-              <Ionicons name="chevron-back" size={24} color="#18181b" />
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              hitSlop={2}
+              className="w-11 h-11 items-center justify-center rounded-xl"
+            
+            style={{ marginLeft: -11 }}>
+              <Ionicons name="chevron-back" size={24} color="#12100E" />
             </TouchableOpacity>
 
             {otherUser && (
@@ -725,7 +725,7 @@ const Chat = ({ route, navigation }: any) => {
                 }
               >
                 <View className="relative">
-                  <View className="w-11 h-11 rounded-full border-2 border-white shadow-sm overflow-hidden">
+                  <View className="w-11 h-11 rounded-full border-2 border-white shadow-hair overflow-hidden">
                     <Image
                       source={{
                         uri:
@@ -736,20 +736,20 @@ const Chat = ({ route, navigation }: any) => {
                     />
                   </View>
                   {onlineUsers.has(otherUser?._id) && (
-                    <View className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
+                    <View className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-success rounded-full border-2 border-white" />
                   )}
                 </View>
 
                 <View className="ml-3">
-                  <Text className="font-black text-slate-900 text-base tracking-tight">
+                  <Text className="font-display text-ink text-base">
                     {otherUser.name}
                   </Text>
                   {isTyping ? (
-                    <Text className="text-2xs text-green-500 font-bold uppercase tracking-wide">
+                    <Text className="text-label text-success font-semibold uppercase">
                       typing...
                     </Text>
                   ) : (
-                    <Text className="text-2xs text-orange-500 font-black tracking-wide">
+                    <Text className="text-label text-accent-text font-display">
                       @{otherUser.username}
                     </Text>
                   )}
@@ -767,7 +767,7 @@ const Chat = ({ route, navigation }: any) => {
       >
         <View style={{ flex: 1 }}>
             {/* MESSAGE CONTAINER (ROUNDED CARD) */}
-          <View className="flex-1 bg-white shadow-sm overflow-hidden border-t border-slate-200">
+          <View className="flex-1 bg-paper shadow-hair overflow-hidden border-t border-line">
             {loading ? (
               <View className="flex-1 p-6">
                 {[1, 2, 3, 4, 5, 6].map(i => <ChatSkeleton key={i} isMe={i % 2 === 0} />)}
@@ -791,47 +791,47 @@ const Chat = ({ route, navigation }: any) => {
 
           {/* ✅ reply indicator */}
           {replyingTo && (
-            <View className="mx-6 mb-2 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm flex-row items-center justify-between">
-              <View className="flex-1 border-l-2 border-orange-500 pl-3">
-                <Text className="text-orange-500 text-2xs font-black uppercase tracking-wide mb-1">
+            <View className="mx-gutter mb-2 p-3 bg-card rounded-card border border-line shadow-hair flex-row items-center justify-between">
+              <View className="flex-1 border-l-2 border-brand-500 pl-3">
+                <Text className="text-accent-text text-label font-display uppercase mb-1">
                   Reference: {replyingTo.sender?.name || (replyingTo.sender === user._id ? "You" : "User")}
                 </Text>
-                <Text className="text-slate-600 text-xs font-bold" numberOfLines={1}>
+                <Text className="text-ink-2 text-xs font-semibold" numberOfLines={1}>
                   {replyingTo.message}
                 </Text>
               </View>
               <TouchableOpacity
                 onPress={() => setReplyingTo(null)}
-                className="ml-3 w-6 h-6 items-center justify-center rounded-full bg-slate-50"
+                className="ml-3 w-6 h-6 items-center justify-center rounded-full bg-paper-2"
               >
-                <Ionicons name="close" size={14} color="#94a3b8" />
+                <Ionicons name="close" size={14} color="#8B857E" />
               </TouchableOpacity>
             </View>
           )}
 
           {/* INPUT AREA */}
           <View style={{ paddingBottom: isKeyboardVisible ? 20 : (insets.bottom > 0 ? insets.bottom : 12) }}>
-            <View className="px-6 pb-2 pt-2 bg-white">
-              <View className="flex-row items-center bg-slate-100 p-2 rounded-3xl border border-slate-100 shadow-xl shadow-black/5">
-                <TouchableOpacity onPress={handlePickImage} className="w-10 h-10 items-center justify-center">
-                  <Ionicons name="image-outline" size={22} color="#64748b" />
+            <View className="px-6 pb-2 pt-2 bg-card">
+              <View className="flex-row items-center bg-paper-2 p-2 rounded-card border border-line shadow-hair">
+                <TouchableOpacity onPress={handlePickImage} className="w-10 h-10 items-center justify-center" hitSlop={2}>
+                  <Ionicons name="image-outline" size={22} color="#8B857E" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handlePickDocument} className="w-10 h-10 items-center justify-center mr-1">
-                  <Ionicons name="attach-outline" size={24} color="#64748b" />
+                <TouchableOpacity onPress={handlePickDocument} className="w-10 h-10 items-center justify-center mr-1" hitSlop={2}>
+                  <Ionicons name="attach-outline" size={24} color="#8B857E" />
                 </TouchableOpacity>
                 <TextInput
                   value={text}
                   onChangeText={handleTyping}
                   placeholder="Encrypting transmission..."
-                  placeholderTextColor="#CBD5E1"
-                  className="flex-1 px-3 text-slate-900 font-bold text-sm tracking-tight py-2 placeholder:text-black"
+                  placeholderTextColor="#C4BEB6"
+                  className="flex-1 px-3 text-ink font-semibold text-sm py-2 placeholder:text-ink"
                   multiline={true}
                   numberOfLines={1}
                 />
 
                 <TouchableOpacity
                   onPress={sendMessage}
-                  className="w-11 h-11 bg-slate-900 rounded-full items-center justify-center shadow-lg shadow-black/20"
+                  className="w-11 h-11 bg-ink rounded-full items-center justify-center shadow-hair"
                 >
                   <Ionicons name="paper-plane" size={18} color="white" />
                 </TouchableOpacity>
@@ -845,7 +845,7 @@ const Chat = ({ route, navigation }: any) => {
         <View className="flex-1 bg-black/95 justify-center items-center">
           <TouchableOpacity
             onPress={() => setSelectedImage(null)}
-            className="absolute top-12 right-6 w-10 h-10 bg-white/10 rounded-full items-center justify-center z-50"
+            className="absolute top-12 right-6 w-10 h-10 bg-card/10 rounded-full items-center justify-center z-50"
           >
             <Ionicons name="close" size={24} color="white" />
           </TouchableOpacity>

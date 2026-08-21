@@ -4,10 +4,7 @@ import {
   Text,
   TextInput,
   Pressable,
-  Image,
   ScrollView,
-  TouchableWithoutFeedback,
-  Keyboard,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -59,96 +56,114 @@ export default function LoginScreen() {
     >
       <ScrollView 
         contentContainerStyle={{ flexGrow: 1 }} 
-        scrollEnabled={false} 
         keyboardShouldPersistTaps="handled"
       >
-        <View className="flex-1 bg-white justify-end">
-          
-          {/* Top Image that shrinks */}
-          <View style={{ flex: 1, minHeight: 0 }}>
-              <Image
-                source={{ uri: 'https://i.pinimg.com/1200x/d8/39/f1/d839f11ee984f4a725af419b6237af35.jpg' }}
-                style={{ width: '100%', height: '100%' }}
-                resizeMode="cover"
-              />
+        <View className="flex-1 bg-paper">
+
+          {/* A poster, not a photo. The old stock image said nothing about the
+              product; the wordmark and the promise do. */}
+          <View className="px-gutter pt-16 pb-2">
+            <Text className="font-display text-5xl text-ink uppercase" style={{ letterSpacing: -1.6 }}>Fync</Text>
+            <Text className="font-sans text-base text-ink-2 mt-3">Login to the exclusive student network</Text>
           </View>
 
-          {/* Login Sheet */}
-          <View className="rounded-t-5xl bg-white px-6 pt-8 pb-7 -mt-10">
-              <Image source={require('../assets/Fync.png')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
-              <Text className="text-slate-500 mb-2">Login to the exclusive student network</Text>
+          {/* The one stamped card on this screen. */}
+          <View className="px-gutter mt-6">
+            <View className="relative">
+              <View pointerEvents="none" className="absolute left-1 top-1 -right-1 -bottom-1 bg-ink rounded-card" />
+              <View className="bg-card border-2 border-ink rounded-card p-card-pad">
 
-              <TextInput
-                className="mb-4 rounded-xl border border-slate-300 px-4 py-4 text-base text-black"
-                placeholder="Email or username"
-                placeholderTextColor="#9CA3AF"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-
-              <View className="flex-row items-center rounded-xl border border-slate-300 px-4">
-                <TextInput
-                  className="flex-1 py-4 text-base text-black"
-                  placeholder="Password"
-                  placeholderTextColor="#9CA3AF"
-                  secureTextEntry={!passwordVisible}
-                  value={password}
-                  onChangeText={setPassword}
-                />
-                <Pressable onPress={togglePassword}>
-                  <Ionicons
-                    name={passwordVisible ? 'eye-off' : 'eye'}
-                    size={22}
-                    color="#9CA3AF"
+                <Text className="font-display text-label text-ink-3 uppercase" style={{ letterSpacing: 1.4 }}>Email or username</Text>
+                <View className="mt-2 flex-row items-center border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50 }}>
+                  <TextInput
+                    className="flex-1 font-sans text-base text-ink"
+                    placeholder="you@college.ac.in"
+                    placeholderTextColor="#8B857E"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="username"
                   />
-                </Pressable>
-              </View>
+                </View>
 
-              <Pressable className='items-end mb-6 mt-1' onPress={() => navigation.navigate('ForgotPassword', {
-                email
-              })}>
-                <Text className='text-red-400'>Forgot Password?</Text>
-              </Pressable>
+                <Text className="font-display text-label text-ink-3 uppercase mt-4" style={{ letterSpacing: 1.4 }}>Password</Text>
+                <View className="mt-2 flex-row items-center border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50 }}>
+                  <TextInput
+                    className="flex-1 font-sans text-base text-ink"
+                    placeholder="••••••••"
+                    placeholderTextColor="#8B857E"
+                    secureTextEntry={!passwordVisible}
+                    value={password}
+                    onChangeText={setPassword}
+                    autoComplete="password"
+                  />
+                  <Pressable onPress={togglePassword} hitSlop={12} accessibilityRole="button"
+                    accessibilityLabel={passwordVisible ? 'Hide password' : 'Show password'}>
+                    <Ionicons name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} size={22} color="#8B857E" />
+                  </Pressable>
+                </View>
 
-              {isLoading ?
-                <Pressable className="rounded-full bg-black py-4 items-center">
-                  <ActivityIndicator size="small" color="#9CA3AF" />
+                <Pressable className="items-end mt-3" hitSlop={8}
+                  onPress={() => navigation.navigate('ForgotPassword', { email })}>
+                  <Text className="font-semibold text-sm text-danger">Forgot Password?</Text>
                 </Pressable>
-                :
+
+                {/* Primary sits inside a card, so it takes the brand fill and the
+                    2px rule but drops the stamp — one stamp per screen. */}
                 <Pressable
-                  className="rounded-full bg-black py-4 items-center"
-                  onPress={handleSubmit}
+                  className="mt-4 bg-brand-500 items-center justify-center border-2 border-ink rounded-md"
+                  style={{ minHeight: 48 }}
+                  onPress={isLoading ? undefined : handleSubmit}
+                  disabled={isLoading}
+                  accessibilityRole="button"
                 >
-                  <Text className="text-white text-lg font-semibold">Login</Text>
+                  {isLoading
+                    ? <ActivityIndicator size="small" color="#12100E" />
+                    : <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Login</Text>}
                 </Pressable>
-              }
 
-              <View className="mt-5 flex-row justify-center">
-                <Text className="text-slate-600">Don’t have an account? </Text>
-                <Pressable onPress={() => navigation.navigate('Signup')}>
-                  <Text className="font-semibold text-black">Signup</Text>
-                </Pressable>
+                <View className="mt-4 flex-row justify-center items-center">
+                  <Text className="font-sans text-sm text-ink-2">Don’t have an account? </Text>
+                  <Pressable onPress={() => navigation.navigate('Signup')} hitSlop={8}>
+                    <Text className="font-semibold text-sm text-ink">Signup</Text>
+                  </Pressable>
+                </View>
               </View>
+            </View>
+          </View>
 
-              <View className="mt-4 border-t border-slate-50 pt-4 pb-6">
-                 <Text className="text-center text-slate-500 mb-3 text-xs uppercase tracking-wide font-bold">Other ways to join</Text>
-                 <View className="flex-row gap-3">
-                    <Pressable 
-                      className="flex-1 rounded-xl border border-black py-3 items-center"
-                      onPress={() => navigation.navigate('AlumniSignup')}
-                    >
-                        <Text className="text-black font-semibold">Join as Alumni</Text>
-                    </Pressable>
-                    <Pressable 
-                      className="flex-1 rounded-xl border border-black bg-black py-3 items-center"
-                      onPress={() => navigation.navigate('RecruiterSignup')}
-                    >
-                        <Text className="text-white font-semibold">Join as Recruiter</Text>
-                    </Pressable>
-                 </View>
-              </View>
+          {/* Section rule: eyebrow, 2px hard rule to the edge. */}
+          <View className="px-gutter">
+            <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
+              <Text className="font-display text-label text-ink uppercase" style={{ letterSpacing: 1.4 }}>Other ways to join</Text>
+              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+            </View>
+
+            <View className="flex-row" style={{ gap: 12 }}>
+              <Pressable
+                className="flex-1 flex-row items-center justify-center border-[1.5px] border-line bg-card rounded-md"
+                style={{ minHeight: 44 }}
+                onPress={() => navigation.navigate('AlumniSignup')}
+                accessibilityRole="button"
+              >
+                <Ionicons name="school-outline" size={15} color="#12100E" style={{ marginRight: 7 }} />
+                <Text className="font-display text-ink uppercase" style={{ fontSize: 12, letterSpacing: 0.3 }}>Join as Alumni</Text>
+              </Pressable>
+              <Pressable
+                className="flex-1 flex-row items-center justify-center bg-ink border-2 border-ink rounded-md"
+                style={{ minHeight: 44 }}
+                onPress={() => navigation.navigate('RecruiterSignup')}
+                accessibilityRole="button"
+              >
+                <Ionicons name="briefcase-outline" size={15} color="#F5F2EC" style={{ marginRight: 7 }} />
+                <Text className="font-display text-paper uppercase" style={{ fontSize: 12, letterSpacing: 0.3 }}>Join as Recruiter</Text>
+              </Pressable>
+            </View>
+
+            <Text className="font-sans text-sm text-ink-3 mt-4">
+              Alumni and recruiter accounts are verified separately and see a different app.
+            </Text>
           </View>
         </View>
       </ScrollView>

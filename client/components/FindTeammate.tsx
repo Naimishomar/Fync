@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {View, Text, TouchableOpacity, FlatList, Image, ActivityIndicator, RefreshControl, Linking, TextInput, Animated, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -120,8 +119,11 @@ export default function FindTeammate() {
     };
 
     // --- RENDER CARD ---
-    const renderCard = ({ item }: { item: UserProfile }) => (
-        <View className="bg-white rounded-4xl p-6 mb-5 border border-slate-100 mx-5">
+    const renderCard = ({ item, index }: { item: UserProfile; index: number }) => (
+        <View
+            className={`bg-card rounded-card p-card-pad mb-5 mx-gutter ${index === 0 ? 'border-2 border-ink' : 'border border-line'}`}
+            style={index === 0 ? { shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 } : undefined}
+        >
 
             {/* Header */}
             <View className="flex-row items-center mb-5">
@@ -129,18 +131,18 @@ export default function FindTeammate() {
                     className="flex-row items-center flex-1"
                     onPress={() => navigation.navigate('PublicProfile', { userId: item._id })}
                 >
-                    <View className="p-1 rounded-full border border-slate-100 shadow-sm bg-white">
+                    <View className="p-1 rounded-full border border-line shadow-hair bg-card">
                         <Image
                             source={{ uri: item.avatar || `https://ui-avatars.com/api/?name=${item.name}` }}
                             className="w-16 h-16 rounded-full"
                         />
                     </View>
                     <View className="ml-4 flex-1">
-                        <Text className="text-slate-900 text-lg font-black  tracking-tighter uppercase">{item.name}</Text>
-                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">@{item.username}</Text>
-                        <View className="flex-row items-center mt-1.5 bg-slate-50 self-start px-2 py-0.5 rounded-full border border-slate-100">
-                            <MaterialCommunityIcons name="school" size={12} color="#94a3b8" />
-                            <Text className="text-slate-500 text-2xs font-bold ml-1 uppercase tracking-tighter">
+                        <Text className="text-ink text-lg font-display uppercase">{item.name}</Text>
+                        <Text className="text-ink-3 text-label font-display uppercase mt-0.5">@{item.username}</Text>
+                        <View className="flex-row items-center mt-1.5 bg-paper-2 self-start px-2 py-0.5 rounded-full border border-line">
+                            <MaterialCommunityIcons name="school" size={12} color="#8B857E" />
+                            <Text className="text-ink-3 text-label font-semibold ml-1 uppercase">
                                 {item.year}YR • {item.major}
                             </Text>
                         </View>
@@ -150,12 +152,12 @@ export default function FindTeammate() {
                 {/* Social Icons */}
                 <View className="flex-row gap-2">
                     {item.github_id && (
-                        <TouchableOpacity onPress={() => openLink(item.github_id)} className="w-9 h-9 bg-slate-50 rounded-xl items-center justify-center border border-slate-100">
-                            <FontAwesome name="github" size={18} color="#18181b" />
+                        <TouchableOpacity onPress={() => openLink(item.github_id)} className="w-9 h-9 bg-paper-2 rounded-card items-center justify-center border border-line">
+                            <FontAwesome name="github" size={18} color="#12100E" />
                         </TouchableOpacity>
                     )}
                     {item.linkedIn_id && (
-                        <TouchableOpacity onPress={() => openLink(item.linkedIn_id)} className="w-9 h-9 bg-blue-50 rounded-xl items-center justify-center border border-blue-100">
+                        <TouchableOpacity onPress={() => openLink(item.linkedIn_id)} className="w-9 h-9 bg-fam-career/10 rounded-xl items-center justify-center border border-fam-career/15">
                             <FontAwesome name="linkedin" size={18} color="#0077b5" />
                         </TouchableOpacity>
                     )}
@@ -165,43 +167,43 @@ export default function FindTeammate() {
             {/* Skills */}
             <View className="flex-row flex-wrap gap-2 mb-5">
                 {item.skills?.slice(0, 4).map((skill, index) => (
-                    <View key={index} className="bg-white px-4 py-1.5 rounded-2xl border border-pink-100 shadow-sm shadow-pink-500/5">
-                        <Text className="text-pink-500 text-2xs font-black  uppercase tracking-tight">{skill}</Text>
+                    <View key={index} className="bg-card border border-brand-100 px-2.5 py-1 rounded-full">
+                        <Text className="text-accent-text text-label font-display uppercase">{skill}</Text>
                     </View>
                 ))}
                 {item.skills?.length > 4 && (
-                    <View className="bg-slate-50 px-3 py-1.5 rounded-2xl border border-slate-100">
-                        <Text className="text-slate-500 text-2xs font-black uppercase">+{item.skills.length - 4}</Text>
+                    <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
+                        <Text className="text-ink-3 text-label font-display uppercase">+{item.skills.length - 4}</Text>
                     </View>
                 )}
             </View>
 
             {/* Bio */}
             {(item.about || item.experience) && (
-                <View className="bg-slate-50/50 p-4 rounded-2xl mb-6 border border-slate-100">
-                    <Text className="text-slate-500 text-xs font-medium leading-5 " numberOfLines={3}>
+                <View className="bg-paper-2/50 p-4 rounded-card mb-6 border border-line">
+                    <Text className="text-ink-3 text-xs font-medium leading-5" numberOfLines={3}>
                         {item.about || item.experience || "No bio available."}
                     </Text>
                 </View>
             )}
 
             {/* Footer */}
-            <View className="flex-row justify-between items-center bg-slate-900/5 p-2 rounded-2xl border border-slate-900/5">
+            <View className="flex-row justify-between items-center bg-ink/5 p-2 rounded-card border border-ink/5">
                 <View className="flex-row items-center flex-1 ml-3 mr-4">
-                    <Ionicons name="location" size={14} color="#94a3b8" />
-                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-tighter ml-2 flex-1" numberOfLines={1}>
+                    <Ionicons name="location" size={14} color="#8B857E" />
+                    <Text className="text-ink-3 text-label font-display uppercase ml-2 flex-1" numberOfLines={1}>
                         {item.college}
                     </Text>
                 </View>
 
-                <TouchableOpacity onPress={() => handleMessage(item)} disabled={connectingId !== null} className='rounded-2xl overflow-hidden'>
-                    <View className="px-6 py-3 bg-slate-900 flex-row items-center">
+                <TouchableOpacity onPress={() => handleMessage(item)} disabled={connectingId !== null} className='rounded-card overflow-hidden'>
+                    <View className="px-6 py-3 bg-ink flex-row items-center">
                         {connectingId === item._id ? (
                             <ActivityIndicator size="small" color="white" />
                         ) : (
                             <>
                                 <Ionicons name="chatbubble" size={16} color="white" />
-                                <Text className="text-white font-black  ml-2 text-2xs uppercase tracking-wide">Chat</Text>
+                                <Text className="text-white font-display ml-2 text-label uppercase">Chat</Text>
                             </>
                         )}
                     </View>
@@ -226,98 +228,95 @@ export default function FindTeammate() {
         return (
             <Animated.View
                 style={{ opacity: pulseAnim }}
-                className="bg-white rounded-4xl p-6 mb-5 border border-slate-100 mx-5 mt-2"
+                className="bg-card rounded-sheet p-6 mb-5 border border-line mx-5 mt-2"
             >
                 <View className="flex-row items-center mb-6">
-                    <View className="w-16 h-16 rounded-full bg-slate-100" />
+                    <View className="w-16 h-16 rounded-full bg-paper-2" />
                     <View className="ml-4 flex-1">
-                        <View className="h-5 bg-slate-100 rounded w-1/2 mb-2" />
-                        <View className="h-3 bg-slate-100 rounded w-1/4 mb-3" />
-                        <View className="h-3 bg-slate-100 rounded w-1/3" />
+                        <View className="h-5 bg-paper-2 rounded w-1/2 mb-2" />
+                        <View className="h-3 bg-paper-2 rounded w-1/4 mb-3" />
+                        <View className="h-3 bg-paper-2 rounded w-1/3" />
                     </View>
                 </View>
 
                 <View className="flex-row gap-2 mb-6">
-                    {[1, 2, 3].map(i => <View key={i} className="h-7 w-20 bg-slate-100 rounded-2xl" />)}
+                    {[1, 2, 3].map(i => <View key={i} className="h-7 w-20 bg-paper-2 rounded-card" />)}
                 </View>
 
-                <View className="bg-slate-50 p-4 rounded-2xl mb-6 border border-slate-100">
-                    <View className="h-3 bg-slate-100 rounded w-full mb-2" />
-                    <View className="h-3 bg-slate-100 rounded w-4/5" />
+                <View className="bg-paper-2 p-4 rounded-card mb-6 border border-line">
+                    <View className="h-3 bg-paper-2 rounded w-full mb-2" />
+                    <View className="h-3 bg-paper-2 rounded w-4/5" />
                 </View>
 
                 <View className="flex-row justify-between items-center">
-                    <View className="h-4 bg-slate-100 rounded w-1/3" />
-                    <View className="w-24 h-12 bg-slate-100 rounded-2xl" />
+                    <View className="h-4 bg-paper-2 rounded w-1/3" />
+                    <View className="w-24 h-12 bg-paper-2 rounded-card" />
                 </View>
             </Animated.View>
         );
     };
 
     return (
-        <View className="flex-1 bg-[#F8FAFC]">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
             {/* HEADER DECORATION */}
-            <View className="absolute top-0 w-full h-80 opacity-40">
-                <LinearGradient
-                    colors={['#ec4899', 'transparent']}
-                    className="w-full h-full"
-                />
-            </View>
 
             <SafeAreaView className="flex-1">
 
                 {/* HEADER */}
-                <View className="px-8 pt-8 pb-4 flex-row justify-between items-center">
+                <View className="px-gutter pt-8 pb-4 flex-row justify-between items-center">
                     <View>
-                        <Text className="text-slate-900 text-3xl font-black  tracking-tighter uppercase">Squad <Text className="text-pink-500">Builder</Text></Text>
-                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">
+                        <Text className="text-ink text-3xl font-display uppercase">Squad <Text className="text-accent-text">Builder</Text></Text>
+                        <Text className="text-ink-3 text-label font-display uppercase mt-0.5">
                             Build your dream team today.
                         </Text>
                     </View>
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="w-12 h-12 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm">
-                        <Ionicons name="close" size={24} color="#18181b" />
+                    <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+                        <Ionicons name="close" size={24} color="#12100E" />
                     </TouchableOpacity>
                 </View>
 
                 {/* SEARCH BAR */}
-                <View className="mx-8 mt-6 mb-6">
-                    <View className="flex-row items-center bg-white rounded-3xl px-6 py-4 border border-slate-100 shadow-2xl shadow-black/5">
-                        <Ionicons name="search" size={20} color="#CBD5E1" />
+                <View className="mx-gutter mt-6 mb-6">
+                    <View className="flex-row items-center bg-card px-6 py-4 border-2 border-ink shadow-hair rounded-md">
+                        <Ionicons name="search" size={20} color="#C4BEB6" />
                         <TextInput
                             placeholder="Search by skill or index..."
-                            placeholderTextColor="#CBD5E1"
+                            placeholderTextColor="#C4BEB6"
                             value={searchQuery}
                             onChangeText={setSearchQuery}
-                            className="flex-1 ml-4 text-slate-900 text-sm font-black  tracking-tight"
+                            className="flex-1 ml-4 text-ink text-sm font-display"
                         />
                         {searchQuery.length > 0 && (
                             <TouchableOpacity onPress={() => setSearchQuery("")}>
-                                <Ionicons name="close-circle" size={20} color="#CBD5E1" />
+                                <Ionicons name="close-circle" size={20} color="#C4BEB6" />
                             </TouchableOpacity>
                         )}
                     </View>
                 </View>
 
                 {/* TABS */}
-                <View className="flex-row mb-8 mx-8 bg-white p-1.5 rounded-2xl border border-slate-100 shadow-sm">
+                <View className="flex-row mb-8 mx-gutter bg-card p-1.5 rounded-card border border-line shadow-hair">
                     <TouchableOpacity
-                        className={`flex-1 py-3.5 rounded-xl items-center justify-center flex-row ${activeTab === 'global' ? 'bg-slate-900' : 'bg-transparent'}`}
+                        className={`flex-1 py-3.5 rounded-xl items-center justify-center flex-row ${activeTab === 'global' ? 'bg-ink' : 'bg-transparent'}`}
                         onPress={() => setActiveTab('global')}
                     >
-                        <Ionicons name="globe-outline" size={16} color={activeTab === 'global' ? 'white' : '#94a3b8'} />
-                        <Text className={`font-black  text-2xs uppercase tracking-widest ml-2 ${activeTab === 'global' ? 'text-white' : 'text-slate-500'}`}>
+                        <Ionicons name="globe-outline" size={16} color={activeTab === 'global' ? 'white' : '#8B857E'} />
+                        <Text className={`font-display text-label uppercase ml-2 ${activeTab === 'global' ? 'text-white' : 'text-ink-3'}`}>
                             Global
                         </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        className={`flex-1 py-3.5 rounded-xl items-center justify-center flex-row ${activeTab === 'college' ? 'bg-slate-900' : 'bg-transparent'}`}
+                        className={`flex-1 py-3.5 rounded-xl items-center justify-center flex-row ${activeTab === 'college' ? 'bg-ink' : 'bg-transparent'}`}
                         onPress={() => setActiveTab('college')}
                     >
-                        <Ionicons name="school-outline" size={16} color={activeTab === 'college' ? 'white' : '#94a3b8'} />
-                        <Text className={`font-black  text-2xs uppercase tracking-widest ml-2 ${activeTab === 'college' ? 'text-white' : 'text-slate-500'}`}>
+                        <Ionicons name="school-outline" size={16} color={activeTab === 'college' ? 'white' : '#8B857E'} />
+                        <Text className={`font-display text-label uppercase ml-2 ${activeTab === 'college' ? 'text-white' : 'text-ink-3'}`}>
                             Campus
                         </Text>
                     </TouchableOpacity>
@@ -336,15 +335,15 @@ export default function FindTeammate() {
                         contentContainerStyle={{ paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
                         refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />
                         }
                         ListEmptyComponent={
-                            <View className="items-center mt-20 px-10">
-                                <View className="w-20 h-20 bg-slate-50 rounded-4xl items-center justify-center mb-6 border border-slate-100">
-                                    <MaterialCommunityIcons name="account-search-outline" size={40} color="#CBD5E1" />
+                            <View className="items-center mt-20 px-gutter">
+                                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                                    <MaterialCommunityIcons name="account-search-outline" size={40} color="#C4BEB6" />
                                 </View>
-                                <Text className="text-slate-900 font-black  text-xl tracking-tight text-center uppercase">No Talent Found</Text>
-                                <Text className="text-slate-500 text-center font-bold text-xs mt-2 uppercase tracking-wide">
+                                <Text className="text-ink font-display text-xl text-center uppercase">No Talent Found</Text>
+                                <Text className="font-sans text-sm text-ink-3 text-center mt-2">
                                     {searchQuery ? "Your criteria returned void results." : "The arena is currently empty."}
                                 </Text>
                             </View>

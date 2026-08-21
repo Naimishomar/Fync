@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback, memo } from 'react';
 import {View, Text, FlatList, TextInput, TouchableOpacity, ActivityIndicator, StatusBar, Image, ScrollView, Modal} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
@@ -66,25 +65,25 @@ const TeamCard = memo(({
     <TouchableOpacity
       onPress={() => onViewTeam(team)}
       activeOpacity={0.88}
-      className="bg-white rounded-2xl p-4 mb-3 border border-slate-100"
+      className="bg-card rounded-card p-4 mb-3 border border-line"
       style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 }}
     >
       {/* Header row */}
       <View className="flex-row items-start justify-between mb-3">
         <View className="flex-1 mr-3">
-          <Text className="text-slate-900 font-extrabold text-base leading-5">{team.name}</Text>
+          <Text className="text-ink font-semibold text-base leading-5">{team.name}</Text>
           {team.description && (
-            <Text className="text-slate-500 text-xs mt-1 leading-4" numberOfLines={2}>{team.description}</Text>
+            <Text className="text-ink-3 text-xs mt-1 leading-4" numberOfLines={2}>{team.description}</Text>
           )}
         </View>
         {score !== undefined && (
           <View className="bg-brand-100 rounded-xl px-2.5 py-1">
-            <Text className="text-brand-600 font-bold text-xs">{Math.round(score * 100)}% match</Text>
+            <Text className="text-brand-600 font-semibold text-xs">{Math.round(score * 100)}% match</Text>
           </View>
         )}
         {(myTeam || iLeader || iMember) && (
-          <View className="bg-emerald-100 rounded-xl px-2.5 py-1">
-            <Text className="text-emerald-700 font-bold text-2xs">Your Team</Text>
+          <View className="bg-success/15 rounded-xl px-2.5 py-1">
+            <Text className="text-success font-semibold text-label">Your Team</Text>
           </View>
         )}
       </View>
@@ -98,23 +97,23 @@ const TeamCard = memo(({
                 <Image source={{ uri: m.user.avatar }} className="w-7 h-7 rounded-full border-2 border-white" />
               ) : (
                 <View className="w-7 h-7 rounded-full bg-brand-100 border-2 border-white items-center justify-center">
-                  <Ionicons name="person" size={11} color="#f97316" />
+                  <Ionicons name="person" size={11} color="#F97316" />
                 </View>
               )}
             </View>
           ))}
         </View>
-        <Text className="text-slate-500 text-xs font-semibold ml-1">
+        <Text className="text-ink-3 text-xs font-semibold ml-1">
           {team.members?.length ?? 0} member{team.members?.length !== 1 ? 's' : ''}
         </Text>
         {!team.lookingForMembers && (
-          <View className="ml-auto bg-red-50 border border-red-100 rounded-lg px-2 py-0.5">
-            <Text className="text-red-500 text-2xs font-bold">Closed</Text>
+          <View className="ml-auto bg-danger/10 border border-danger/15 rounded-lg px-2 py-0.5">
+            <Text className="text-danger text-label font-semibold">Closed</Text>
           </View>
         )}
         {team.lookingForMembers && (
-          <View className="ml-auto bg-green-50 border border-green-100 rounded-lg px-2 py-0.5">
-            <Text className="text-green-600 text-2xs font-bold">Open 🟢</Text>
+          <View className="ml-auto bg-success/10 border border-success/15 rounded-lg px-2 py-0.5">
+            <Text className="text-success text-label font-semibold">Open</Text>
           </View>
         )}
       </View>
@@ -123,8 +122,8 @@ const TeamCard = memo(({
       {team.requiredSkills && team.requiredSkills.length > 0 && (
         <View className="flex-row flex-wrap gap-1.5 mb-3">
           {team.requiredSkills.slice(0, 5).map((s, i) => (
-            <View key={i} className="bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-lg">
-              <Text className="text-slate-600 text-2xs font-bold">{s}</Text>
+            <View key={i} className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
+              <Text className="text-ink-2 text-label font-semibold">{s}</Text>
             </View>
           ))}
         </View>
@@ -136,20 +135,20 @@ const TeamCard = memo(({
           {team.leader?.avatar ? (
             <Image source={{ uri: team.leader.avatar }} className="w-5 h-5 rounded-full mr-1.5" />
           ) : (
-            <View className="w-5 h-5 rounded-full bg-amber-100 items-center justify-center mr-1.5">
-              <Ionicons name="person" size={9} color="#d97706" />
+            <View className="w-5 h-5 rounded-full bg-warning/15 items-center justify-center mr-1.5">
+              <Ionicons name="person" size={9} color="#B45309" />
             </View>
           )}
-          <Text className="text-slate-500 text-2xs font-semibold">Leader: {team.leader?.name}</Text>
+          <Text className="text-ink-3 text-label font-semibold">Leader: {team.leader?.name}</Text>
         </View>
 
         {/* Action button */}
         {!iMember && !iLeader && team.lookingForMembers && !team.isLocked && (
           <TouchableOpacity
             onPress={() => onRequest(team._id)}
-            className="bg-slate-900 rounded-xl px-3 py-1.5"
+            className="bg-ink rounded-xl px-3 py-1.5"
           >
-            <Text className="text-white font-bold text-2xs">Request</Text>
+            <Text className="font-display text-label text-white uppercase">Request</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -195,7 +194,7 @@ const CreateTeamModal = ({
         requiredskill: skills,
         isLocked: false,
       });
-      Toast.show({ type: 'success', text1: 'Team created! 🚀' });
+      Toast.show({ type: 'success', text1: 'Team created!' });
       onCreated();
       onClose();
     } catch (err: any) {
@@ -207,12 +206,12 @@ const CreateTeamModal = ({
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-      <View className="flex-1 bg-[#F8FAFC]">
+      <View className="flex-1 bg-paper">
         <SafeAreaView className="flex-1">
-          <View className="flex-row items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 bg-white">
-            <Text className="text-slate-900 font-extrabold text-xl">Create Team</Text>
+          <View className="flex-row items-center justify-between px-5 pt-4 pb-3 border-b border-line bg-card">
+            <Text className="text-ink font-display text-xl">Create Team</Text>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#64748b" />
+              <Ionicons name="close" size={24} color="#8B857E" />
             </TouchableOpacity>
           </View>
 
@@ -222,42 +221,42 @@ const CreateTeamModal = ({
             showsVerticalScrollIndicator={false}
           >
             {/* Team Name */}
-            <Text className="text-slate-500 text-2xs font-bold mb-2">Team Name *</Text>
+            <Text className="text-ink-3 text-label font-semibold mb-2">Team Name *</Text>
             <TextInput
               value={name}
               onChangeText={setName}
               placeholder="e.g. Night Owls"
-              placeholderTextColor="#94a3b8"
-              className="bg-white rounded-2xl px-4 py-3.5 text-slate-900 font-semibold border border-slate-200 mb-5"
+              placeholderTextColor="#8B857E"
+              className="bg-card px-4 py-3.5 text-ink font-semibold border-[1.5px] border-ink mb-5 rounded-md"
             />
 
             {/* Description */}
-            <Text className="text-slate-500 text-2xs font-bold mb-2">Description</Text>
+            <Text className="text-ink-3 text-label font-semibold mb-2">Description</Text>
             <TextInput
               value={description}
               onChangeText={setDescription}
               placeholder="What are you building?"
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor="#8B857E"
               multiline
               numberOfLines={3}
               textAlignVertical="top"
-              className="bg-white rounded-2xl px-4 py-3.5 text-slate-900 font-semibold border border-slate-200 mb-5 h-24"
+              className="bg-card px-4 py-3.5 text-ink font-semibold border-[1.5px] border-ink mb-5 h-24 rounded-md"
             />
 
             {/* Required Skills */}
-            <Text className="text-slate-500 text-2xs font-bold mb-2">Required Skills</Text>
+            <Text className="text-ink-3 text-label font-semibold mb-2">Required Skills</Text>
             <View className="flex-row mb-3">
               <TextInput
                 value={skillInput}
                 onChangeText={setSkillInput}
                 onSubmitEditing={addSkill}
                 placeholder="e.g. React Native, ML"
-                placeholderTextColor="#94a3b8"
-                className="flex-1 bg-white rounded-2xl px-4 py-3 text-slate-900 font-semibold border border-slate-200 mr-2"
+                placeholderTextColor="#8B857E"
+                className="flex-1 bg-paper px-4 py-3 text-ink font-semibold border-[1.5px] border-ink mr-2 rounded-md"
               />
               <TouchableOpacity
                 onPress={addSkill}
-                className="bg-slate-900 rounded-2xl px-4 items-center justify-center"
+                className="bg-ink px-4 items-center justify-center border-2 border-ink rounded-md"
               >
                 <Ionicons name="add" size={20} color="white" />
               </TouchableOpacity>
@@ -269,24 +268,24 @@ const CreateTeamModal = ({
                   onPress={() => setSkills(p => p.filter(x => x !== s))}
                   className="flex-row items-center bg-brand-100 border border-brand-200 rounded-xl px-3 py-1.5"
                 >
-                  <Text className="text-brand-700 font-bold text-xs mr-1">{s}</Text>
-                  <Ionicons name="close" size={10} color="#c2410c" />
+                  <Text className="text-brand-700 font-semibold text-xs mr-1">{s}</Text>
+                  <Ionicons name="close" size={10} color="#EA580C" />
                 </TouchableOpacity>
               ))}
             </View>
           </ScrollView>
 
           {/* Submit */}
-          <View className="px-5 pb-8 pt-4 bg-white border-t border-slate-100">
+          <View className="px-5 pb-8 pt-4 bg-card border-t border-line">
             <TouchableOpacity onPress={submit} disabled={loading} activeOpacity={0.88}>
-              <LinearGradient colors={['#f97316', '#ea580c']} className="rounded-2xl">
+              <View className="rounded-card" style={{ backgroundColor: '#F97316' }}>
                 <View className="py-4 items-center">
                   {loading
-                    ? <ActivityIndicator size="small" color="white" />
-                    : <Text className="text-white font-bold text-sm">Create Team 🚀</Text>
+                    ? <ActivityIndicator size="small" color="#12100E" />
+                    : <Text className="text-ink font-semibold text-sm">Create Team</Text>
                   }
                 </View>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -428,24 +427,27 @@ const HackathonTeamScreen = () => {
   };
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
       <SafeAreaView className="flex-1">
 
         {/* Header */}
         <View className="flex-row items-center px-5 pt-4 pb-3">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3">
-            <Ionicons name="arrow-back" size={22} color="#1e293b" />
+          <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+            <Ionicons name="arrow-back" size={22} color="#12100E" />
           </TouchableOpacity>
           <View className="flex-1">
-            <Text className="text-slate-900 text-xl font-extrabold">Teams</Text>
-            <Text className="text-slate-500 text-2xs font-bold">Find your squad</Text>
+            <Text className="text-ink text-xl font-display">Teams</Text>
+            <Text className="text-ink-3 text-label font-semibold">Find your squad</Text>
           </View>
           <TouchableOpacity
             onPress={() => setShowCreate(true)}
-            className="bg-slate-900 rounded-2xl px-4 py-2.5"
+            className="bg-ink rounded-card px-4 py-2.5"
           >
-            <Text className="text-white font-bold text-xs">+ Create</Text>
+            <Text className="text-white font-semibold text-xs">+ Create</Text>
           </TouchableOpacity>
         </View>
 
@@ -459,9 +461,9 @@ const HackathonTeamScreen = () => {
             <TouchableOpacity
               key={i}
               onPress={() => setActiveTab(i)}
-              className={`px-5 py-2.5 rounded-2xl border ${activeTab === i ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-200'}`}
+              className={`px-5 py-2.5 rounded-card border ${activeTab === i ? 'bg-ink border-ink' : 'bg-card border-line'}`}
             >
-              <Text className={`font-bold text-xs ${activeTab === i ? 'text-white' : 'text-slate-500'}`}>
+              <Text className={`font-semibold text-xs ${activeTab === i ? 'text-white' : 'text-ink-3'}`}>
                 {tab}
               </Text>
             </TouchableOpacity>
@@ -471,7 +473,7 @@ const HackathonTeamScreen = () => {
         {/* Content */}
         {loading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#f97316" />
+            <ActivityIndicator size="large" color="#F97316" />
           </View>
         ) : (
           <>
@@ -497,11 +499,11 @@ const HackathonTeamScreen = () => {
                 )}
                 ListEmptyComponent={() => (
                   <View className="items-center py-16">
-                    <LinearGradient colors={['#ffedd5', '#ffedd5']} className="w-20 h-20 rounded-3xl items-center justify-center mb-4">
-                      <Ionicons name="analytics-outline" size={36} color="#f97316" />
-                    </LinearGradient>
-                    <Text className="text-slate-700 font-extrabold text-base">No Matches Yet</Text>
-                    <Text className="text-slate-500 text-xs mt-1 text-center px-8">
+                    <View className="w-20 h-20 rounded-card items-center justify-center mb-4" style={{ backgroundColor: '#EDE8E0' }}>
+                      <Ionicons name="analytics-outline" size={36} color="#F97316" />
+                    </View>
+                    <Text className="text-ink-2 font-semibold text-base">No Matches Yet</Text>
+                    <Text className="text-ink-3 text-xs mt-1 text-center px-gutter">
                       Update your profile skills to get skill-matched with teams
                     </Text>
                   </View>
@@ -530,9 +532,9 @@ const HackathonTeamScreen = () => {
                 )}
                 ListEmptyComponent={() => (
                   <View className="items-center py-16">
-                    <Ionicons name="people-outline" size={48} color="#cbd5e1" />
-                    <Text className="text-slate-500 font-extrabold text-base mt-3">No teams yet</Text>
-                    <Text className="text-slate-300 text-xs mt-1">Be the first to create one!</Text>
+                    <Ionicons name="people-outline" size={48} color="#C4BEB6" />
+                    <Text className="text-ink-3 font-semibold text-base mt-3">No teams yet</Text>
+                    <Text className="text-ink-4 text-xs mt-1">Be the first to create one!</Text>
                   </View>
                 )}
               />
@@ -544,40 +546,40 @@ const HackathonTeamScreen = () => {
                 {myTeam ? (
                   <View>
                     {/* Team header */}
-                    <LinearGradient colors={['#f97316', '#ea580c']} className="rounded-3xl p-5 mb-4">
-                      <Text className="text-white text-xs font-bold mb-1">Your Team</Text>
-                      <Text className="text-white text-2xl font-extrabold">{myTeam.name}</Text>
+                    <View className="rounded-card p-5 mb-4" style={{ backgroundColor: '#F97316' }}>
+                      <Text className="text-white text-xs font-semibold mb-1">Your Team</Text>
+                      <Text className="text-white text-2xl font-display">{myTeam.name}</Text>
                       {myTeam.description && (
-                        <Text className="text-slate-300 text-xs mt-2 leading-4">{myTeam.description}</Text>
+                        <Text className="text-ink-4 text-xs mt-2 leading-4">{myTeam.description}</Text>
                       )}
                       <View className="flex-row items-center mt-3">
-                        <View className={`px-3 py-1 rounded-full ${myTeam.lookingForMembers ? 'bg-green-400' : 'bg-white/20'}`}>
-                          <Text className="text-white font-bold text-2xs">
-                            {myTeam.lookingForMembers ? 'Open 🟢' : 'Closed 🔒'}
+                        <View className={`px-3 py-1 rounded-full ${myTeam.lookingForMembers ? 'bg-success' : 'bg-card/20'}`}>
+                          <Text className="font-display text-label text-white uppercase">
+                            {myTeam.lookingForMembers ? 'Open' : 'Closed'}
                           </Text>
                         </View>
                       </View>
-                    </LinearGradient>
+                    </View>
 
                     {/* Members */}
-                    <View className="bg-white rounded-2xl p-4 mb-4 border border-slate-100">
-                      <Text className="text-slate-900 font-bold mb-3">👥 Members ({myTeam.members?.length})</Text>
+                    <View className="bg-card rounded-card p-4 mb-4 border border-line">
+                      <Text className="font-display text-label text-ink uppercase mb-3">Members ({myTeam.members?.length})</Text>
                       {myTeam.members?.map((m, i) => (
                         <View key={i} className="flex-row items-center mb-3 last:mb-0">
                           {m.user?.avatar ? (
                             <Image source={{ uri: m.user.avatar }} className="w-10 h-10 rounded-full" />
                           ) : (
                             <View className="w-10 h-10 rounded-full bg-brand-100 items-center justify-center">
-                              <Ionicons name="person" size={18} color="#f97316" />
+                              <Ionicons name="person" size={18} color="#F97316" />
                             </View>
                           )}
                           <View className="ml-3 flex-1">
-                            <Text className="text-slate-800 font-bold text-sm">{m.user?.name}</Text>
-                            <Text className="text-slate-500 text-2xs capitalize">{m.role}</Text>
+                            <Text className="text-ink font-semibold text-sm">{m.user?.name}</Text>
+                            <Text className="text-ink-3 text-label capitalize">{m.role}</Text>
                           </View>
                           {m.role === 'leader' && (
-                            <View className="bg-amber-100 rounded-lg px-2 py-0.5">
-                              <Text className="text-amber-700 font-bold text-2xs">👑 Leader</Text>
+                            <View className="bg-warning/15 rounded-lg px-2 py-0.5">
+                              <Text className="font-display text-label text-warning uppercase">Leader</Text>
                             </View>
                           )}
                         </View>
@@ -586,12 +588,15 @@ const HackathonTeamScreen = () => {
 
                     {/* Required skills */}
                     {myTeam.requiredSkills && myTeam.requiredSkills.length > 0 && (
-                      <View className="bg-white rounded-2xl p-4 mb-4 border border-slate-100">
-                        <Text className="text-slate-900 font-bold mb-3">🛠 Required Skills</Text>
+                      <View className="bg-card rounded-card p-4 mb-4 border border-line">
+                        <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
+                          <Text className="font-display text-label text-ink uppercase">Required Skills</Text>
+                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                        </View>
                         <View className="flex-row flex-wrap gap-2">
                           {myTeam.requiredSkills.map((s, i) => (
-                            <View key={i} className="bg-brand-50 border border-brand-100 rounded-xl px-3 py-1.5">
-                              <Text className="text-brand-600 font-bold text-xs">{s}</Text>
+                            <View key={i} className="bg-paper-2 border border-line rounded-xl px-3 py-1.5">
+                              <Text className="text-brand-600 font-semibold text-xs">{s}</Text>
                             </View>
                           ))}
                         </View>
@@ -601,39 +606,39 @@ const HackathonTeamScreen = () => {
                     {/* Incoming Requests (Leader only) */}
                     {myTeam.leader?._id === user?._id && incomingRequests.length > 0 && (
                       <View className="mb-4">
-                        <Text className="text-slate-900 font-bold mb-3">📬 Pending Requests ({incomingRequests.length})</Text>
+                        <Text className="font-display text-label text-ink uppercase mb-3">Pending Requests ({incomingRequests.length})</Text>
                         {incomingRequests.map((req) => (
-                          <View key={req._id} className="bg-white rounded-2xl p-4 mb-3 border border-brand-100 border-l-4 border-l-indigo-500">
+                          <View key={req._id} className="bg-card rounded-card p-4 mb-3 border border-line border-l-4 border-l-recruiter">
                             <View className="flex-row items-center justify-between mb-2">
                               <View className="flex-row items-center">
                                 {req.user?.avatar ? (
                                   <Image source={{ uri: req.user.avatar }} className="w-8 h-8 rounded-full" />
                                 ) : (
-                                  <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
-                                    <Ionicons name="person" size={14} color="#64748b" />
+                                  <View className="w-8 h-8 rounded-full bg-paper-2 items-center justify-center">
+                                    <Ionicons name="person" size={14} color="#8B857E" />
                                   </View>
                                 )}
-                                <Text className="text-slate-800 font-bold text-sm ml-2">{req.user?.name}</Text>
+                                <Text className="text-ink font-semibold text-sm ml-2">{req.user?.name}</Text>
                               </View>
                               <View className="flex-row gap-2">
                                 <TouchableOpacity
                                   onPress={() => handleResponse(req._id, 'rejected')}
                                   disabled={respondingTo === req._id}
-                                  className="w-8 h-8 rounded-full bg-red-50 items-center justify-center border border-red-100"
+                                  className="w-8 h-8 rounded-full bg-danger/10 items-center justify-center border border-danger/15"
                                 >
-                                  <Ionicons name="close" size={16} color="#ef4444" />
+                                  <Ionicons name="close" size={16} color="#DC2626" />
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                   onPress={() => handleResponse(req._id, 'accepted')}
                                   disabled={respondingTo === req._id}
-                                  className="w-8 h-8 rounded-full bg-green-50 items-center justify-center border border-green-100"
+                                  className="w-8 h-8 rounded-full bg-success/10 items-center justify-center border border-success/15"
                                 >
-                                  <Ionicons name="checkmark" size={16} color="#10b981" />
+                                  <Ionicons name="checkmark" size={16} color="#047857" />
                                 </TouchableOpacity>
                               </View>
                             </View>
                             {req.message && (
-                              <Text className="text-slate-500 text-xs leading-4 bg-slate-50 p-2 rounded-lg">
+                              <Text className="text-ink-3 text-xs leading-4 bg-paper-2 p-2 rounded-lg">
                                 "{req.message}"
                               </Text>
                             )}
@@ -646,25 +651,25 @@ const HackathonTeamScreen = () => {
                     {myTeam.leader?._id !== user?._id && (
                       <TouchableOpacity
                         onPress={handleLeaveTeam}
-                        className="border border-red-200 rounded-2xl py-4 items-center"
+                        className="border border-danger/25 rounded-card py-4 items-center"
                       >
-                        <Text className="text-red-500 font-bold text-sm">Leave Team</Text>
+                        <Text className="text-danger font-semibold text-sm">Leave Team</Text>
                       </TouchableOpacity>
                     )}
                   </View>
                 ) : (
                   <View className="items-center py-16">
-                    <LinearGradient colors={['#ffedd5', '#ffedd5']} className="w-24 h-24 rounded-3xl items-center justify-center mb-5">
-                      <Ionicons name="people-outline" size={42} color="#f97316" />
-                    </LinearGradient>
-                    <Text className="text-slate-700 font-extrabold text-xl mb-2">No Team Yet</Text>
-                    <Text className="text-slate-500 text-xs text-center px-8 mb-6">
+                    <View className="w-24 h-24 rounded-card items-center justify-center mb-5" style={{ backgroundColor: '#EDE8E0' }}>
+                      <Ionicons name="people-outline" size={42} color="#F97316" />
+                    </View>
+                    <Text className="text-ink-2 font-display text-xl mb-2">No Team Yet</Text>
+                    <Text className="text-ink-3 text-xs text-center px-gutter mb-6">
                       Create your own team or join an open one for this hackathon!
                     </Text>
                     <TouchableOpacity onPress={() => setShowCreate(true)} activeOpacity={0.88}>
-                      <LinearGradient colors={['#f97316', '#ea580c']} className="rounded-2xl px-8 py-3.5">
-                        <Text className="text-white font-bold text-sm">Create Team</Text>
-                      </LinearGradient>
+                      <View className="rounded-card px-gutter py-3.5" style={{ backgroundColor: '#F97316' }}>
+                        <Text className="text-ink font-semibold text-sm">Create Team</Text>
+                      </View>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -684,42 +689,42 @@ const HackathonTeamScreen = () => {
 
       {/* Join Request Modal */}
       <Modal visible={showRequestModal} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView className="flex-1 bg-[#F8FAFC]">
-          <View className="flex-row items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 bg-white">
-            <Text className="text-slate-900 font-extrabold text-xl">Request to Join</Text>
+        <SafeAreaView className="flex-1 bg-paper">
+          <View className="flex-row items-center justify-between px-5 pt-4 pb-3 border-b border-line bg-card">
+            <Text className="text-ink font-display text-xl">Request to Join</Text>
             <TouchableOpacity onPress={() => setShowRequestModal(false)}>
-              <Ionicons name="close" size={24} color="#64748b" />
+              <Ionicons name="close" size={24} color="#8B857E" />
             </TouchableOpacity>
           </View>
           <View className="flex-1 px-5 pt-5">
             {selectedTeam && (
-              <View className="bg-brand-50 rounded-2xl p-4 mb-5 border border-brand-100">
-                <Text className="text-brand-700 font-extrabold text-base">{selectedTeam.name}</Text>
-                <Text className="text-slate-500 text-xs mt-0.5">Led by {selectedTeam.leader?.name}</Text>
+              <View className="bg-paper-2 rounded-card p-4 mb-5 border border-line">
+                <Text className="text-brand-700 font-semibold text-base">{selectedTeam.name}</Text>
+                <Text className="text-ink-3 text-xs mt-0.5">Led by {selectedTeam.leader?.name}</Text>
               </View>
             )}
-            <Text className="text-slate-500 text-2xs font-bold mb-2">Message (optional)</Text>
+            <Text className="text-ink-3 text-label font-semibold mb-2">Message (optional)</Text>
             <TextInput
               value={requestMsg}
               onChangeText={setRequestMsg}
               placeholder="Tell the leader why you'd like to join..."
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor="#8B857E"
               multiline
               numberOfLines={4}
               textAlignVertical="top"
-              className="bg-white rounded-2xl px-4 py-3.5 text-slate-900 font-semibold border border-slate-200 h-28"
+              className="bg-card px-4 py-3.5 text-ink font-semibold border-[1.5px] border-ink h-28 rounded-md"
             />
           </View>
-          <View className="px-5 pb-8 bg-white border-t border-slate-100 pt-4">
+          <View className="px-5 pb-8 bg-card border-t border-line pt-4">
             <TouchableOpacity onPress={sendRequest} disabled={sendingRequest} activeOpacity={0.88}>
-              <LinearGradient colors={['#f97316', '#ea580c']} className="rounded-2xl">
+              <View className="rounded-card" style={{ backgroundColor: '#F97316' }}>
                 <View className="py-4 items-center">
                   {sendingRequest
-                    ? <ActivityIndicator size="small" color="white" />
-                    : <Text className="text-white font-bold text-sm">Send Request</Text>
+                    ? <ActivityIndicator size="small" color="#12100E" />
+                    : <Text className="text-ink font-semibold text-sm">Send Request</Text>
                   }
                 </View>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           </View>
         </SafeAreaView>

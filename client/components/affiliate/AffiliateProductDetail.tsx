@@ -75,7 +75,7 @@ const AffiliateProductDetail = () => {
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#00FF9D" />
+                <ActivityIndicator size="large" color="#F97316" />
             </View>
         );
     }
@@ -84,7 +84,11 @@ const AffiliateProductDetail = () => {
         return (
             <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>Product not found</Text>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+                <TouchableOpacity onPress={() => navigation.goBack()}
+            className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
                     <Text style={styles.goBackText}>Go Back</Text>
                 </TouchableOpacity>
             </View>
@@ -100,7 +104,13 @@ const AffiliateProductDetail = () => {
                         colors={['rgba(0,0,0,0.5)', 'transparent']}
                         style={styles.imageHeader}
                     >
-                        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
+                        <TouchableOpacity
+                            onPress={() => navigation.goBack()}
+                            accessibilityRole="button"
+                            accessibilityLabel="Go back"
+                            className="w-11 h-11 items-center justify-center rounded-xl"
+                            style={[styles.iconButton, { marginLeft: -11 }]}
+                        >
                             <Ionicons name="arrow-back" size={24} color="#fff" />
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.iconButton} onPress={handleShare}>
@@ -136,7 +146,7 @@ const AffiliateProductDetail = () => {
                                         key={s} 
                                         name={s <= (product.rating || 4.5) ? "star" : "star-half"} 
                                         size={18} 
-                                        color="#FFD700" 
+                                        color="#F5B700" 
                                     />
                                 ))}
                             </View>
@@ -154,17 +164,17 @@ const AffiliateProductDetail = () => {
 
                     <View style={styles.infoCards}>
                         <View style={styles.infoCard}>
-                            <Ionicons name="shield-checkmark-outline" size={24} color="#00FF9D" />
+                            <Ionicons name="shield-checkmark-outline" size={24} color="#F97316" />
                             <Text style={styles.infoCardTitle}>Authentic</Text>
                             <Text style={styles.infoCardSub}>100% Genuine</Text>
                         </View>
                         <View style={styles.infoCard}>
-                            <Ionicons name="return-up-back-outline" size={24} color="#00FF9D" />
+                            <Ionicons name="return-up-back-outline" size={24} color="#F97316" />
                             <Text style={styles.infoCardTitle}>7 Days</Text>
                             <Text style={styles.infoCardSub}>Easy Return</Text>
                         </View>
                         <View style={styles.infoCard}>
-                            <Ionicons name="flash-outline" size={24} color="#00FF9D" />
+                            <Ionicons name="flash-outline" size={24} color="#F97316" />
                             <Text style={styles.infoCardTitle}>Fast</Text>
                             <Text style={styles.infoCardSub}>Delivery</Text>
                         </View>
@@ -181,7 +191,7 @@ const AffiliateProductDetail = () => {
                 </View>
                 <TouchableOpacity style={styles.buyButton} onPress={handleBuyNow}>
                     <Text style={styles.buyButtonText}>Buy Now</Text>
-                    <Ionicons name="arrow-forward" size={20} color="#000" style={{marginLeft: 8}} />
+                    <Ionicons name="arrow-forward" size={20} color="#12100E" style={{marginLeft: 8}} />
                 </TouchableOpacity>
             </View>
         </View>
@@ -191,32 +201,33 @@ const AffiliateProductDetail = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000',
+        backgroundColor: '#F5F2EC',
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#000',
+        backgroundColor: '#F5F2EC',
     },
     errorContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#000',
+        backgroundColor: '#F5F2EC',
     },
     errorText: {
-        color: '#fff',
+        color: '#12100E',
         fontSize: 18,
     },
     goBackText: {
-        color: '#00FF9D',
+        color: '#EA580C',
+        fontFamily: 'Inter_700Bold',
         marginTop: 10,
     },
     imageContainer: {
         width: '100%',
         height: 400,
-        backgroundColor: '#111',
+        backgroundColor: '#FFFFFF',
     },
     productImage: {
         width: '100%',
@@ -243,36 +254,41 @@ const styles = StyleSheet.create({
     },
     content: {
         padding: 20,
-        backgroundColor: '#000',
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
+        backgroundColor: '#F5F2EC',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
         marginTop: -30,
     },
     headerInfo: {
         marginBottom: 20,
     },
     categoryBadge: {
-        backgroundColor: '#222',
-        color: '#999',
+        backgroundColor: '#F97316',
+        color: '#12100E',
         paddingHorizontal: 12,
-        paddingVertical: 4,
+        paddingVertical: 5,
         borderRadius: 6,
+        borderWidth: 2,
+        borderColor: '#12100E',
+        overflow: 'hidden',
         fontSize: 10,
+        letterSpacing: 0.5,
         alignSelf: 'flex-start',
-        marginBottom: 10,
-        fontWeight: 'bold',
+        marginBottom: 12,
+        fontFamily: 'SpaceGrotesk_700Bold',
         textTransform: 'uppercase',
     },
     brandText: {
-        color: '#00FF9D',
+        color: '#EA580C',
         fontSize: 14,
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
         marginBottom: 5,
     },
     productTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#fff',
+        fontSize: 26,
+        fontFamily: 'SpaceGrotesk_700Bold',
+        letterSpacing: -0.5,
+        color: '#12100E',
         marginBottom: 15,
         lineHeight: 32,
     },
@@ -283,25 +299,26 @@ const styles = StyleSheet.create({
     },
     priceText: {
         fontSize: 28,
-        fontWeight: 'bold',
-        color: '#fff',
+        fontFamily: 'SpaceGrotesk_700Bold',
+        fontVariant: ['tabular-nums'],
+        color: '#12100E',
         marginRight: 15,
     },
     originalPriceText: {
         fontSize: 18,
-        color: '#666',
+        color: '#8B857E',
         textDecorationLine: 'line-through',
         marginRight: 15,
     },
     discountContainer: {
-        backgroundColor: '#FF3B30',
+        backgroundColor: '#DC2626',
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 8,
     },
     discountText: {
-        color: '#fff',
-        fontWeight: 'bold',
+        color: '#12100E',
+        fontFamily: 'Inter_700Bold',
         fontSize: 14,
     },
     ratingSection: {
@@ -313,30 +330,35 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     ratingText: {
-        color: '#fff',
+        color: '#12100E',
         marginRight: 10,
-        fontWeight: '600',
+        fontFamily: 'Inter_600SemiBold',
     },
     reviewsText: {
-        color: '#666',
+        color: '#8B857E',
     },
     divider: {
         height: 1,
-        backgroundColor: '#222',
+        backgroundColor: '#E3DDD3',
         marginVertical: 20,
     },
     section: {
         marginBottom: 30,
     },
     sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#fff',
-        marginBottom: 15,
+        fontSize: 12,
+        fontFamily: 'SpaceGrotesk_700Bold',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        color: '#12100E',
+        paddingBottom: 8,
+        marginBottom: 14,
+        borderBottomWidth: 2,
+        borderBottomColor: '#12100E',
     },
     descriptionText: {
         fontSize: 15,
-        color: '#ccc',
+        color: '#57534E',
         lineHeight: 24,
     },
     infoCards: {
@@ -344,22 +366,22 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     infoCard: {
-        backgroundColor: '#111',
+        backgroundColor: '#FFFFFF',
         padding: 15,
-        borderRadius: 15,
+        borderRadius: 14,
         alignItems: 'center',
         width: (width - 60) / 3,
-        borderWidth: 1,
-        borderColor: '#222',
+        borderWidth: 2,
+        borderColor: '#12100E',
     },
     infoCardTitle: {
-        color: '#fff',
-        fontWeight: 'bold',
+        color: '#12100E',
+        fontFamily: 'Inter_700Bold',
         fontSize: 14,
         marginTop: 8,
     },
     infoCardSub: {
-        color: '#666',
+        color: '#8B857E',
         fontSize: 10,
         marginTop: 4,
     },
@@ -368,40 +390,44 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: '#111',
+        backgroundColor: '#F5F2EC',
         paddingHorizontal: 20,
         paddingTop: 15,
         paddingBottom: 35,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        borderTopWidth: 1,
-        borderTopColor: '#222',
+        borderTopWidth: 2,
+        borderTopColor: '#12100E',
     },
     bottomPrice: {
         flex: 1,
     },
     bottomPriceLabel: {
-        color: '#999',
+        color: '#8B857E',
         fontSize: 12,
     },
     bottomPriceValue: {
-        color: '#fff',
+        color: '#12100E',
         fontSize: 22,
-        fontWeight: 'bold',
+        fontFamily: 'SpaceGrotesk_700Bold',
+        fontVariant: ['tabular-nums'],
     },
     buyButton: {
-        backgroundColor: '#00FF9D',
-        paddingHorizontal: 30,
-        paddingVertical: 15,
-        borderRadius: 15,
+        backgroundColor: '#F97316',
+        paddingHorizontal: 20,
+        paddingVertical: 14,
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: '#12100E',
+        minHeight: 48,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
     },
     buyButtonText: {
-        color: '#000',
-        fontWeight: 'bold',
+        color: '#12100E',
+        fontFamily: 'Inter_700Bold',
         fontSize: 16,
     }
 });

@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Avatar from '../Avatar';
 import type { CallUser } from '../../services/CallSignalingService';
 import { RTCView } from 'react-native-webrtc';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Mic, MicOff, PhoneOff, Camera, CameraOff, RefreshCw } from '../ui/icons';
 import { webRTCManager } from '../../services/WebRTCService';
 
@@ -68,7 +67,6 @@ export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall
         ) : (
           <View style={styles.remoteFallback}>
             {/* Same orange wash as every other screen, over the app's dark slate. */}
-            <LinearGradient colors={['#f97316', 'transparent']} style={styles.wash} />
             <Avatar user={remoteUser as any} size={140} showBadge={false} />
             <Text style={styles.remoteName} numberOfLines={1}>{remoteUser.name}</Text>
             {!!remoteUser.college && (
@@ -100,11 +98,11 @@ export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall
       {/* CONTROLS */}
       <View style={styles.controls}>
         <TouchableOpacity onPress={handleToggleMute} style={[styles.controlBtn, isMuted && styles.controlBtnActive]}>
-          {isMuted ? <MicOff size={22} color="#0f172a" /> : <Mic size={22} color="#fff" />}
+          {isMuted ? <MicOff size={22} color="#12100E" /> : <Mic size={22} color="#fff" />}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleToggleVideo} style={[styles.controlBtn, !isVideoOn && styles.controlBtnActive]}>
-          {isVideoOn ? <Camera size={22} color="#fff" /> : <CameraOff size={22} color="#0f172a" />}
+          {isVideoOn ? <Camera size={22} color="#fff" /> : <CameraOff size={22} color="#12100E" />}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleSwitchCamera} style={styles.controlBtn}>
@@ -122,20 +120,20 @@ export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#12100E',
   },
   remoteContainer: {
     flex: 1,
   },
   remoteVideo: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#12100E',
   },
   remoteFallback: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0f172a',
+    backgroundColor: '#12100E',
   },
   wash: {
     position: 'absolute',
@@ -148,27 +146,27 @@ const styles = StyleSheet.create({
   remoteName: {
     color: '#fff',
     fontSize: 22,
-    fontWeight: '900',
+    fontFamily: 'SpaceGrotesk_700Bold',
     letterSpacing: -0.5,
     textTransform: 'uppercase',
     marginTop: 28,
-    paddingHorizontal: 32,
+    paddingHorizontal: 20,
     textAlign: 'center',
   },
   remoteCollege: {
     color: 'rgba(255,255,255,0.5)',
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     marginTop: 4,
-    paddingHorizontal: 32,
+    paddingHorizontal: 20,
     textAlign: 'center',
   },
   callingText: {
-    color: '#fb923c',
+    color: '#F97316',
     fontSize: 11,
-    fontWeight: '900',
+    fontFamily: 'SpaceGrotesk_700Bold',
     letterSpacing: 3,
     textTransform: 'uppercase',
     marginTop: 20,
@@ -183,7 +181,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     overflow: 'hidden',
   },
   localContainer: {
@@ -196,7 +194,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.4)',
-    backgroundColor: '#000',
+    backgroundColor: '#12100E',
   },
   localVideo: {
     flex: 1,
@@ -205,7 +203,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
     paddingVertical: 40,
     backgroundColor: 'rgba(0,0,0,0.6)',
   },
@@ -228,8 +226,8 @@ const styles = StyleSheet.create({
   endBtn: {
     width: 72,
     height: 72,
-    borderRadius: 36,
-    backgroundColor: '#ef4444',
+    borderRadius: 26,
+    backgroundColor: '#DC2626',
     alignItems: 'center',
     justifyContent: 'center',
   },

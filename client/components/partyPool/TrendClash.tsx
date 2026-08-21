@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const TERMS = [
   { id: 'Python_(programming_language)', name: 'Python' },
@@ -108,93 +107,96 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
 
     if (loading && !itemA) {
         return (
-            <View className="flex-1 bg-slate-900 justify-center items-center h-[500px] rounded-4xl">
-                <ActivityIndicator size="large" color="#f97316" />
-                <Text className="text-white mt-4 font-black tracking-widest uppercase">Fetching Live Trends...</Text>
+            <View className="flex-1 bg-ink justify-center items-center h-[500px] rounded-sheet">
+                <ActivityIndicator size="large" color="#F97316" />
+                <Text className="text-white mt-4 font-display uppercase">Fetching Live Trends...</Text>
             </View>
         );
     }
 
     if (status === 'gameover') {
         return (
-            <View className="flex-1 bg-slate-900 justify-center items-center h-[500px] rounded-4xl p-6 border-2 border-red-500/30">
-                <Ionicons name="close-circle" size={80} color="#ef4444" />
-                <Text className="text-white text-3xl font-black uppercase mt-4 text-center">Game Over</Text>
-                <Text className="text-slate-500 text-sm font-bold uppercase tracking-[2px] mt-2 text-center">
+            <View className="flex-1 bg-ink justify-center items-center h-[500px] rounded-sheet p-6 border-2 border-danger/30">
+                <Ionicons name="close-circle" size={80} color="#DC2626" />
+                <Text className="text-white text-3xl font-display uppercase mt-4 text-center">Game Over</Text>
+                <Text className="text-ink-3 text-sm font-semibold uppercase mt-2 text-center">
                     {itemB.name} has {formatNumber(itemB.views)} views.
                 </Text>
-                <View className="bg-orange-500/20 px-6 py-3 rounded-full mt-6 border border-orange-500">
-                    <Text className="text-orange-500 font-black text-xl tracking-widest">SCORE: {score}</Text>
+                <View className="bg-brand-500/20 px-6 py-3 rounded-full mt-6 border border-brand-500">
+                    <Text className="text-accent-text font-display text-xl">SCORE: {score}</Text>
                 </View>
 
                 <TouchableOpacity 
                     onPress={initGame}
-                    className="mt-10 bg-white px-8 py-4 rounded-full w-full items-center shadow-lg shadow-orange-500/30"
+                    className="mt-10 bg-card px-gutter py-4 rounded-full w-full items-center shadow-hair"
                 >
-                    <Text className="text-slate-900 font-black uppercase tracking-widest">Play Again</Text>
+                    <Text className="text-ink font-display uppercase">Play Again</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                     onPress={onClose}
-                    className="mt-4 bg-slate-800 px-8 py-4 rounded-full w-full items-center border border-slate-700"
+                    className="mt-4 bg-ink px-gutter py-4 rounded-full w-full items-center border border-ink"
                 >
-                    <Text className="text-white font-black uppercase tracking-widest">Exit</Text>
+                    <Text className="text-white font-display uppercase">Exit</Text>
                 </TouchableOpacity>
             </View>
         );
     }
 
     return (
-        <View className="flex-1 h-[600px] rounded-4xl overflow-hidden bg-slate-900 border border-slate-800">
+        <View className="flex-1 h-[600px] rounded-sheet overflow-hidden bg-ink border border-ink">
             {/* Top Half - Item A */}
-            <View className="flex-1 justify-center items-center p-6 border-b border-slate-800 bg-slate-900 relative">
-                <TouchableOpacity onPress={onClose} className="absolute top-4 left-4 z-10 bg-white/10 p-2 rounded-full">
+            <View className="flex-1 justify-center items-center p-6 border-b border-ink bg-ink relative">
+                <TouchableOpacity onPress={onClose} className="absolute top-4 left-4 z-10 bg-card/10 p-2 rounded-full">
                     <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
-                <Text className="text-orange-500 font-black text-xs tracking-wide uppercase mb-2">Wikipedia Pageviews</Text>
-                <Text className="text-white text-3xl font-black text-center uppercase tracking-tighter leading-[36px]">"{itemA?.name}"</Text>
-                <Text className="text-slate-500 font-bold text-sm tracking-[2px] uppercase mt-2">has</Text>
-                <Text className="text-white text-4xl font-black text-center text-orange-400 mt-2">{formatNumber(itemA?.views)}</Text>
-                <Text className="text-slate-500 font-bold text-xs tracking-wide uppercase mt-2">views per month</Text>
+                <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
+                  <Text className="text-accent-text font-display text-xs uppercase">Wikipedia Pageviews</Text>
+                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                </View>
+                <Text className="text-white text-3xl font-display text-center uppercase leading-[36px]">"{itemA?.name}"</Text>
+                <Text className="text-ink-3 font-semibold text-sm uppercase mt-2">has</Text>
+                <Text className="text-4xl font-display text-center text-accent-text mt-2">{formatNumber(itemA?.views)}</Text>
+                <Text className="text-ink-3 font-semibold text-xs uppercase mt-2">views per month</Text>
             </View>
 
             {/* Score Pill in Center */}
-            <View className="absolute top-1/2 left-1/2 -translate-x-[40px] -translate-y-6 z-10 w-[80px] h-12 bg-white rounded-full items-center justify-center shadow-2xl shadow-black border-2 border-slate-900">
-                <Text className="text-slate-900 font-black text-lg">★ {score}</Text>
+            <View className="absolute top-1/2 left-1/2 -translate-x-[40px] -translate-y-6 z-10 w-[80px] h-12 bg-card rounded-full items-center justify-center shadow-hair border-2 border-ink">
+                <Text className="text-ink font-semibold text-lg"> {score}</Text>
             </View>
 
             {/* Bottom Half - Item B */}
-            <View className="flex-1 justify-center items-center p-6 bg-slate-800 relative">
+            <View className="flex-1 justify-center items-center p-6 bg-ink relative">
                 {loading && status === 'playing' ? (
-                    <ActivityIndicator size="large" color="#f97316" />
+                    <ActivityIndicator size="large" color="#F97316" />
                 ) : (
                     <>
-                        <Text className="text-white text-3xl font-black text-center uppercase tracking-tighter leading-[36px]">"{itemB?.name}"</Text>
-                        <Text className="text-slate-500 font-bold text-sm tracking-[2px] uppercase mt-2 mb-6">has</Text>
+                        <Text className="text-white text-3xl font-display text-center uppercase leading-[36px]">"{itemB?.name}"</Text>
+                        <Text className="text-ink-3 font-semibold text-sm uppercase mt-2 mb-6">has</Text>
                         
                         {status === 'revealing' ? (
-                            <Text className={`text-4xl font-black text-center mt-2 ${(itemB?.views >= itemA?.views) ? 'text-green-500' : 'text-red-500'}`}>
+                            <Text className={`text-4xl font-display text-center mt-2 ${(itemB?.views >= itemA?.views) ? 'text-success' : 'text-danger'}`}>
                                 {formatNumber(itemB?.views)}
                             </Text>
                         ) : (
                             <View className="w-full flex-row justify-center gap-x-4">
                                 <TouchableOpacity 
                                     onPress={() => handleGuess('higher')}
-                                    className="bg-white/10 px-6 py-4 rounded-2xl items-center border border-white/20 flex-1"
+                                    className="bg-card/10 px-6 py-4 rounded-card items-center border border-white/20 flex-1"
                                 >
-                                    <Ionicons name="caret-up" size={32} color="#22c55e" />
-                                    <Text className="text-white font-black tracking-wide mt-1 uppercase text-xs">Higher</Text>
+                                    <Ionicons name="caret-up" size={32} color="#047857" />
+                                    <Text className="text-white font-display mt-1 uppercase text-xs">Higher</Text>
                                 </TouchableOpacity>
                                 
                                 <TouchableOpacity 
                                     onPress={() => handleGuess('lower')}
-                                    className="bg-white/10 px-6 py-4 rounded-2xl items-center border border-white/20 flex-1"
+                                    className="bg-card/10 px-6 py-4 rounded-card items-center border border-white/20 flex-1"
                                 >
-                                    <Ionicons name="caret-down" size={32} color="#ef4444" />
-                                    <Text className="text-white font-black tracking-wide mt-1 uppercase text-xs">Lower</Text>
+                                    <Ionicons name="caret-down" size={32} color="#DC2626" />
+                                    <Text className="text-white font-display mt-1 uppercase text-xs">Lower</Text>
                                 </TouchableOpacity>
                             </View>
                         )}
-                        <Text className="text-slate-500 font-bold text-xs tracking-wide uppercase mt-6">views than {itemA?.name}</Text>
+                        <Text className="text-ink-3 font-semibold text-xs uppercase mt-6">views than {itemA?.name}</Text>
                     </>
                 )}
             </View>

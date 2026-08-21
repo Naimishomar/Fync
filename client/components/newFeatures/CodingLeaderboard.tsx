@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {View, Text, FlatList, Image, TextInput, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, ScrollView, Linking, Animated, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
@@ -12,6 +11,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 
+import { StampCard } from '../ui/kit';
 // Mirrors LEETCODE_COOLDOWN_SECONDS on the server.
 const COOLDOWN_MS = 15 * 60 * 1000;
 
@@ -54,7 +54,7 @@ export default function CodingLeaderboard() {
             const res = await axios.put('/leaderboard/update-profiles', { leetcode: lcUsername });
             if (res.data.success) {
                 setUser(res.data.user);
-                Alert.alert("Welcome to the Arena! 🏆", "Your profile has been connected. Start coding to climb the ranks.");
+                Alert.alert("Welcome to the Arena!", "Your profile has been connected. Start coding to climb the ranks.");
                 fetchLeaderboard();
             }
         } catch (err: any) {
@@ -115,7 +115,7 @@ export default function CodingLeaderboard() {
                 if (res.data.nextRefreshAt) setNextRefreshAt(new Date(res.data.nextRefreshAt));
                 const total = res.data.user.codingStats.totalSolved;
                 Alert.alert(
-                    res.data.synced ? "Synced! ⚡" : "Already Up To Date",
+                    res.data.synced ? "Synced" : "Already Up To Date",
                     `You have solved ${total} problems on LeetCode.`
                 );
                 fetchLeaderboard();
@@ -190,30 +190,30 @@ export default function CodingLeaderboard() {
     }, [hasLinkedProfile, user?.codingStats?.lastUpdated, nextRefreshAt]);
 
     const renderItem = ({ item, index }: { item: any, index: number }) => (
-        <TouchableOpacity onPress={() => openUserProfile(item)} className="flex-row items-center bg-white p-5 mb-4 mx-5 rounded-3xl border border-slate-100 shadow-sm shadow-black/5">
+        <TouchableOpacity onPress={() => openUserProfile(item)} className="flex-row items-center bg-card p-5 mb-4 mx-5 rounded-card border border-line shadow-hair">
             <View className="w-10 items-center justify-center mr-3">
                 {index < 3 ? (
-                    <View className={`w-8 h-8 rounded-full items-center justify-center ${index === 0 ? 'bg-amber-50' : index === 1 ? 'bg-slate-50' : 'bg-orange-50'}`}>
-                        <MaterialCommunityIcons name="crown" size={18} color={index === 0 ? "#fbbf24" : index === 1 ? "#94a3b8" : "#78350f"} />
+                    <View className={`w-8 h-8 rounded-full items-center justify-center ${index === 0 ? 'bg-warning/10' : index === 1 ? 'bg-paper-2' : 'bg-brand-50'}`}>
+                        <MaterialCommunityIcons name="crown" size={18} color={index === 0 ? "#B45309" : index === 1 ? "#8B857E" : "#B45309"} />
                     </View>
                 ) : (
-                    <Text className="text-slate-300 font-black  text-lg">#{index + 1}</Text>
+                    <Text className="text-ink-4 font-display text-lg">#{index + 1}</Text>
                 )}
             </View>
-            <View className="p-0.5 rounded-full border border-slate-100 bg-white">
+            <View className="p-0.5 rounded-full border border-line bg-card">
                 <Image source={{ uri: item.avatar }} className="w-12 h-12 rounded-full" />
             </View>
             <View className="flex-1 ml-4">
-                <Text className="text-slate-900 font-black  text-sm uppercase tracking-tight" numberOfLines={1}>{item.name || item.username}</Text>
+                <Text className="text-ink font-display text-sm uppercase" numberOfLines={1}>{item.name || item.username}</Text>
                 <View className="flex-row items-center mt-1">
-                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">{item.college || "Global Arena"}</Text>
+                    <Text className="text-ink-3 text-label font-display uppercase">{item.college || "Global Arena"}</Text>
                 </View>
             </View>
-            <View className="items-center bg-slate-50 px-3 py-1.5 rounded-2xl border border-slate-100">
-                <Text className="text-slate-900 font-black  text-lg tracking-tighter">
+            <View className="items-center bg-paper-2 px-3 py-1.5 rounded-card border border-line">
+                <Text className="text-ink font-display text-lg">
                     {timeFilter === 'weekly' ? (item.weeklyStats?.questionsThisWeek || 0) : (item.codingStats?.totalSolved || 0)}
                 </Text>
-                <Text className="text-slate-500 text-2xs font-black uppercase tracking-tighter">{timeFilter === 'weekly' ? '7 Days' : 'Solved'}</Text>
+                <Text className="text-ink-3 text-label font-display uppercase">{timeFilter === 'weekly' ? '7 Days' : 'Solved'}</Text>
             </View>
         </TouchableOpacity>
     );
@@ -233,18 +233,18 @@ export default function CodingLeaderboard() {
         return (
             <Animated.View
                 style={{ opacity: pulseAnim }}
-                className="flex-row items-center bg-white p-5 mb-4 mx-5 rounded-3xl border border-slate-100"
+                className="flex-row items-center bg-card p-5 mb-4 mx-5 rounded-card border border-line"
             >
                 <View className="w-10 items-center justify-center mr-3">
-                    <View className="w-8 h-8 bg-slate-50 rounded-full" />
+                    <View className="w-8 h-8 bg-paper-2 rounded-full" />
                 </View>
-                <View className="w-12 h-12 rounded-full bg-slate-50" />
+                <View className="w-12 h-12 rounded-full bg-paper-2" />
                 <View className="flex-1 ml-4 justify-center">
-                    <View className="h-4 bg-slate-50 rounded w-1/2 mb-2" />
-                    <View className="h-3 bg-slate-50 rounded w-1/4" />
+                    <View className="h-4 bg-paper-2 rounded w-1/2 mb-2" />
+                    <View className="h-3 bg-paper-2 rounded w-1/4" />
                 </View>
                 <View className="items-end justify-center">
-                    <View className="h-8 bg-slate-50 rounded-xl w-14" />
+                    <View className="h-8 bg-paper-2 rounded-xl w-14" />
                 </View>
             </Animated.View>
         );
@@ -252,71 +252,75 @@ export default function CodingLeaderboard() {
 
     if (!hasLinkedProfile) {
         return (
-            <View className="flex-1 bg-white">
+            <View className="flex-1 bg-paper">
                 <StatusBar barStyle="dark-content" />
-                <LinearGradient colors={['#f97316', 'transparent']} className="absolute top-0 w-full h-80 opacity-10" />
 
                 <SafeAreaView className="flex-1">
                     {/* Header with Back Button */}
-                    <View className="px-8 py-4 flex-row items-center">
+                    <View className="px-gutter py-4 flex-row items-center">
                         <TouchableOpacity 
                             onPress={() => navigation.goBack()}
-                            className="w-10 h-10 rounded-full bg-slate-50 items-center justify-center border border-slate-100"
-                        >
-                            <Ionicons name="arrow-back" size={20} color="#1e293b" />
+                            className="w-11 h-11 items-center justify-center rounded-xl"
+                        
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+                            <Ionicons name="arrow-back" size={20} color="#12100E" />
                         </TouchableOpacity>
                     </View>
 
-                    <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 32, paddingBottom: 50 }}>
+                    <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 20, paddingBottom: 50 }}>
                         <View className="items-center mb-10">
-                            <View className="w-24 h-24 bg-white rounded-5xl items-center justify-center shadow-2xl shadow-orange-500/20 border border-slate-100 mb-8">
-                                <MaterialCommunityIcons name="shield-lock" size={48} color="#f97316" />
+                            <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-8">
+                                <MaterialCommunityIcons name="shield-lock" size={48} color="#F97316" />
                             </View>
 
-                            <Text className="text-slate-900 text-4xl font-black uppercase tracking-tighter text-center">Join The<Text className="text-orange-500"> Arena</Text></Text>
-                            <Text className="text-slate-500 text-center font-black uppercase text-2xs tracking-wide mt-4 leading-5 px-6">
+                            <Text className="text-ink text-4xl font-display uppercase text-center">Join The<Text className="text-accent-text"> Arena</Text></Text>
+                            <Text className="font-sans text-sm text-ink-3 text-center mt-4 px-6">
                                 Connect your LeetCode profile to unlock the leaderboard and climb the global ranks.
                             </Text>
                         </View>
 
-                        <View className="w-full bg-slate-50 p-8 rounded-5xl border border-slate-100">
+                        <StampCard radius={26} style={{ width: '100%' }}>
+                        <View className="w-full p-card-pad">
                             <View className="flex-row items-center mb-6 px-2">
-                                <View className="w-10 h-10 rounded-2xl bg-white items-center justify-center mr-4 shadow-sm">
+                                <View className="w-10 h-10 rounded-card bg-card items-center justify-center mr-4 shadow-hair">
                                     <Image source={{ uri: LC_LOGO }} className="w-5 h-5" resizeMode="contain" />
                                 </View>
                                 <View>
-                                    <Text className="text-slate-800 font-black uppercase text-xs tracking-tight">LeetCode Identity</Text>
-                                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Verification Required</Text>
+                                    <Text className="font-semibold text-base text-ink">LeetCode Identity</Text>
+                                    <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Verification Required</Text>
                                 </View>
                             </View>
 
                             <TextInput
                                 placeholder="USERNAME (E.G. NAIMISHOMAR)"
-                                placeholderTextColor="#94a3b8"
+                                placeholderTextColor="#8B857E"
                                 value={lcUsername}
                                 onChangeText={setLcUsername}
                                 autoCapitalize="none"
-                                className="bg-white px-6 py-5 rounded-2xl text-slate-900 font-black text-sm border border-slate-100"
+                                className="bg-card px-6 py-5 text-ink font-display text-sm border-[1.5px] border-ink rounded-md"
                             />
 
                             <TouchableOpacity
                                 onPress={handleLinkProfile}
                                 disabled={connecting}
                                 activeOpacity={0.8}
-                                className="bg-slate-900 mt-6 py-5 rounded-2xl items-center shadow-xl shadow-black/10"
+                                className="bg-ink mt-6 py-5 items-center border-2 border-ink rounded-md"
                             >
                                 {connecting ? (
                                     <ActivityIndicator size="small" color="white" />
                                 ) : (
                                     <View className="flex-row items-center">
-                                        <Text className="text-white font-black uppercase tracking-wide text-2xs mr-2">Link Profile & Enter</Text>
+                                        <Text className="text-white font-display uppercase text-label mr-2">Link Profile & Enter</Text>
                                         <Ionicons name="rocket-outline" size={16} color="white" />
                                     </View>
                                 )}
                             </TouchableOpacity>
                         </View>
+                        </StampCard>
 
-                        <Text className="text-slate-300 text-2xs font-black uppercase tracking-wide mt-12 text-center px-10 leading-4">
+                        <Text className="font-sans text-sm text-ink-4 mt-12 text-center px-gutter">
                             Your coding stats will be fetched directly from LeetCode and displayed in the Fync Arena.
                         </Text>
                     </ScrollView>
@@ -326,22 +330,16 @@ export default function CodingLeaderboard() {
     }
 
     return (
-        <View className="flex-1 bg-[#F8FAFC]">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
             {/* HEADER DECORATION */}
-            <View className="absolute top-0 w-full h-80 opacity-40">
-                <LinearGradient
-                    colors={['#f97316', 'transparent']}
-                    className="w-full h-full"
-                />
-            </View>
 
             <SafeAreaView className="flex-1">
-                <View className="px-8 pt-8 mb-6 flex-row justify-between items-center">
+                <View className="px-gutter pt-8 mb-6 flex-row justify-between items-center">
                     <View>
-                        <Text className="text-slate-900 text-3xl font-black  tracking-tighter uppercase">Coding<Text className="text-orange-500"> Rank</Text></Text>
-                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Campus Coding Arena</Text>
+                        <Text className="text-ink text-3xl font-display uppercase">Coding<Text className="text-accent-text"> Rank</Text></Text>
+                        <Text className="text-ink-3 text-label font-display uppercase">Campus Coding Arena</Text>
                     </View>
                     
                     {/* Synchronized Refresh Timer */}
@@ -352,45 +350,45 @@ export default function CodingLeaderboard() {
                                 setCanRefresh(false);
                             }} 
                             disabled={loading} 
-                            className={`px-4 py-2.5 rounded-xl items-center shadow-sm ${loading ? 'bg-orange-200' : 'bg-orange-500 shadow-orange-500/30'}`}
+                            className={`px-4 py-2.5 rounded-xl items-center shadow-hair ${loading ? 'bg-brand-200' : 'bg-brand-500 '}`}
                         >
                             {loading ? (
-                                <ActivityIndicator size="small" color="#fff" />
+                                <ActivityIndicator size="small" color="#12100E" />
                             ) : (
                                 <View className="flex-row items-center">
-                                    <Ionicons name="reload" size={12} color="white" />
-                                    <Text className="text-white font-black text-2xs uppercase tracking-wide ml-1.5">Load Fresh</Text>
+                                    <Ionicons name="reload" size={12} color="#12100E" />
+                                    <Text className="text-ink font-display text-label uppercase ml-1.5">Load Fresh</Text>
                                 </View>
                             )}
                         </TouchableOpacity>
                     ) : (
-                        <View className="px-4 py-1.5 rounded-xl bg-white border border-slate-200 items-center justify-center shadow-sm shadow-black/5">
-                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-0.5">Next Sync</Text>
-                            <Text className="text-slate-900 font-black text-sm tracking-tighter">{syncCountdown}</Text>
+                        <View className="bg-card border border-line items-center justify-center px-2.5 py-1 rounded-full">
+                            <Text className="font-display text-label text-ink-3 uppercase mb-0.5">Next Sync</Text>
+                            <Text className="text-ink font-display text-sm">{syncCountdown}</Text>
                         </View>
                     )}
                 </View>
 
-                <View className="px-8 mb-6">
-                    <View className="flex-row items-center bg-white px-4 py-1 rounded-2xl border border-slate-100 shadow-2xl shadow-black/5 mb-6">
-                        <Ionicons name="search" size={20} color="#CBD5E1" />
-                        <TextInput placeholder="Search hunters..." placeholderTextColor="#CBD5E1" value={search} onChangeText={setSearch} className="flex-1 text-slate-900 font-black  uppercase text-sm tracking-tight" />
+                <View className="px-gutter mb-6">
+                    <View className="flex-row items-center bg-card px-4 py-1 border-2 border-ink shadow-hair mb-6 rounded-md">
+                        <Ionicons name="search" size={20} color="#C4BEB6" />
+                        <TextInput placeholder="Search hunters..." placeholderTextColor="#C4BEB6" value={search} onChangeText={setSearch} className="flex-1 text-ink font-display uppercase text-sm" />
                     </View>
 
                     <View className="flex-row justify-between gap-4">
-                        <View className="flex-1 flex-row bg-white rounded-xl p-1.5 border border-slate-100 shadow-sm">
+                        <View className="flex-1 flex-row bg-card rounded-xl p-1.5 border border-line shadow-hair">
                             {['college', 'global'].map(scope => (
-                                <TouchableOpacity key={scope} onPress={() => setActiveScope(scope as any)} className={`flex-1 items-center py-3 rounded-md ${activeScope === scope ? 'bg-slate-900' : 'bg-transparent'}`}>
-                                    <Text className={`font-black  text-2xs uppercase tracking-widest ${activeScope === scope ? 'text-white' : 'text-slate-500'}`}>{scope === 'college' ? 'Campus' : 'Global'}</Text>
+                                <TouchableOpacity key={scope} onPress={() => setActiveScope(scope as any)} className={`flex-1 items-center py-3 rounded-md ${activeScope === scope ? 'bg-ink' : 'bg-transparent'}`}>
+                                    <Text className={`font-display text-label uppercase ${activeScope === scope ? 'text-white' : 'text-ink-3'}`}>{scope === 'college' ? 'Campus' : 'Global'}</Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
-                        <View className="flex-1 flex-row bg-white rounded-xl p-1.5 border border-slate-100 shadow-sm">
-                            <TouchableOpacity onPress={() => setTimeFilter('allTime')} className={`flex-1 items-center py-3 rounded-md ${timeFilter === 'allTime' ? 'bg-orange-500' : 'bg-transparent'}`}>
-                                <Text className={`font-black  text-2xs uppercase tracking-widest ${timeFilter === 'allTime' ? 'text-white' : 'text-slate-500'}`}>All</Text>
+                        <View className="flex-1 flex-row bg-card rounded-xl p-1.5 border border-line shadow-hair">
+                            <TouchableOpacity onPress={() => setTimeFilter('allTime')} className={`flex-1 items-center py-3 rounded-md ${timeFilter === 'allTime' ? 'bg-brand-500' : 'bg-transparent'}`}>
+                                <Text className={`font-display text-label uppercase ${timeFilter === 'allTime' ? 'text-ink' : 'text-ink-3'}`}>All</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => setTimeFilter('weekly')} className={`flex-1 items-center py-3 rounded-md ${timeFilter === 'weekly' ? 'bg-green-500' : 'bg-transparent'}`}>
-                                <Text className={`font-black  text-2xs uppercase tracking-widest ${timeFilter === 'weekly' ? 'text-white' : 'text-slate-500'}`}>7 Days</Text>
+                            <TouchableOpacity onPress={() => setTimeFilter('weekly')} className={`flex-1 items-center py-3 rounded-md ${timeFilter === 'weekly' ? 'bg-success' : 'bg-transparent'}`}>
+                                <Text className={`font-display text-label uppercase ${timeFilter === 'weekly' ? 'text-white' : 'text-ink-3'}`}>7 Days</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -405,14 +403,14 @@ export default function CodingLeaderboard() {
                         data={users} keyExtractor={(item) => item._id} renderItem={renderItem}
                         contentContainerStyle={{ paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />}
                         ListEmptyComponent={
-                            <View className="items-center mt-20 px-10">
-                                <View className="w-20 h-20 bg-slate-50 rounded-4xl items-center justify-center mb-6 border border-slate-100">
-                                    <FontAwesome5 name="code" size={32} color="#CBD5E1" />
+                            <View className="items-center mt-20 px-gutter">
+                                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                                    <FontAwesome5 name="code" size={32} color="#C4BEB6" />
                                 </View>
-                                <Text className="text-slate-900 font-black  text-xl tracking-tight text-center uppercase">No Hunters Found</Text>
-                                <Text className="text-slate-500 text-center font-bold text-xs mt-2 uppercase tracking-wide">The arena is currently quiet.</Text>
+                                <Text className="text-ink font-display text-xl text-center uppercase">No Hunters Found</Text>
+                                <Text className="font-sans text-sm text-ink-3 text-center mt-2">The arena is currently quiet.</Text>
                             </View>
                         }
                     />
@@ -422,96 +420,99 @@ export default function CodingLeaderboard() {
                 <Modal visible={modalVisible} transparent={true} animationType="slide" onRequestClose={() => setModalVisible(false)}>
                     <BlurView intensity={20} tint="light" className="flex-1 justify-end">
                         <TouchableOpacity className="absolute inset-0" onPress={() => setModalVisible(false)} />
-                        <View className="bg-white h-[85%] rounded-t-5xl border-t border-slate-100 p-8 shadow-2xl">
-                            <View className="w-12 h-1.5 bg-slate-100 rounded-full self-center mb-8" />
+                        <View className="bg-paper h-[85%] rounded-t-sheet border-t border-line p-card-pad shadow-hair">
+                            <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mb-8" />
 
                             {profileLoading || !lcData ? (
-                                <ActivityIndicator size="large" color="#f97316" className="mt-20" />
+                                <ActivityIndicator size="large" color="#F97316" className="mt-20" />
                             ) : (
                                 <ScrollView showsVerticalScrollIndicator={false}>
 
                                     {/* 1. Header Profile */}
                                     <View className="items-center mb-10">
-                                        <View className="p-1.5 rounded-full border-2 border-orange-500 bg-white shadow-xl shadow-orange-500/20">
-                                            <Image source={{ uri: lcData?.profile?.avatar }} className="w-24 h-24 rounded-full bg-slate-50" />
+                                        <View className="p-1.5 rounded-full border-2 border-brand-500 bg-card shadow-hair">
+                                            <Image source={{ uri: lcData?.profile?.avatar }} className="w-24 h-24 rounded-full bg-paper-2" />
                                         </View>
-                                        <Text className="text-slate-900 text-3xl font-black uppercase tracking-tighter mt-3">{lcData.profile?.name || dbUser?.name}</Text>
-                                        <Text className="text-slate-500 font-black text-2xs tracking-wide">@{dbUser?.codingProfiles?.leetcode}</Text>
+                                        <Text className="text-ink text-3xl font-display uppercase mt-3">{lcData.profile?.name || dbUser?.name}</Text>
+                                        <Text className="text-ink-3 font-display text-label">@{dbUser?.codingProfiles?.leetcode}</Text>
 
                                         {/* Buttons Row */}
                                         <View className="flex-row mt-8 gap-4">
                                             <TouchableOpacity
                                                 onPress={navigateToAppProfile}
-                                                className="flex-row items-center bg-slate-900 px-6 py-3.5 rounded-2xl shadow-lg shadow-black/20"
+                                                className="flex-row items-center bg-ink px-6 py-3.5 border-2 border-ink rounded-md"
                                             >
                                                 <Ionicons name="person" size={14} color="white" />
-                                                <Text className="text-white font-black  text-2xs uppercase tracking-wide ml-2">Profile</Text>
+                                                <Text className="text-white font-display text-label uppercase ml-2">Profile</Text>
                                             </TouchableOpacity>
 
                                             <TouchableOpacity
                                                 onPress={openLeetCodeExternal}
-                                                className="flex-row items-center bg-white px-6 py-3.5 rounded-2xl border border-slate-100 shadow-sm"
+                                                className="flex-row items-center bg-card px-6 py-3.5 rounded-card border border-line shadow-hair"
                                             >
                                                 <Image source={{ uri: LC_LOGO }} className="w-3.5 h-3.5" />
-                                                <Text className="text-slate-900 font-black  text-2xs uppercase tracking-wide ml-2">LeetCode</Text>
+                                                <Text className="text-ink font-display text-label uppercase ml-2">LeetCode</Text>
                                             </TouchableOpacity>
                                         </View>
 
                                         {/* Ranking Chips */}
                                         <View className="flex-row mt-6 gap-3">
-                                            <View className="bg-amber-50 px-4 py-2 rounded-2xl border border-amber-100">
-                                                <Text className="text-amber-600 font-black  text-2xs uppercase tracking-tight">Global Rank #{lcData.profile?.ranking || "N/A"}</Text>
+                                            <View className="bg-warning/10 border border-warning/15 px-2.5 py-1 rounded-full">
+                                                <Text className="text-warning font-display text-label uppercase">Global Rank #{lcData.profile?.ranking || "N/A"}</Text>
                                             </View>
-                                            <View className="bg-indigo-50 px-4 py-2 rounded-2xl border border-indigo-100">
-                                                <Text className="text-indigo-600 font-black  text-2xs uppercase tracking-tight">{lcData.profile?.country || "Earth"}</Text>
+                                            <View className="bg-recruiter/10 border border-recruiter/15 px-2.5 py-1 rounded-full">
+                                                <Text className="text-recruiter font-display text-label uppercase">{lcData.profile?.country || "Earth"}</Text>
                                             </View>
                                         </View>
                                     </View>
 
                                     {/* 2. Solved Stats */}
                                     <View className="flex-row gap-4 mb-8">
-                                        <View className="flex-1 bg-slate-900 p-6 rounded-4xl items-center justify-center shadow-xl shadow-black/10">
-                                            <Text className="text-4xl font-black  text-white tracking-tighter">{lcData.solved?.solvedProblem || 0}</Text>
-                                            <View className="mt-1 bg-white/10 px-2 py-0.5 rounded-full">
-                                                <Text className="text-white text-2xs font-black uppercase tracking-wide">Total</Text>
+                                        <View className="flex-1 bg-ink p-6 rounded-sheet items-center justify-center shadow-hair">
+                                            <Text className="text-4xl font-display text-white">{lcData.solved?.solvedProblem || 0}</Text>
+                                            <View className="mt-1 bg-card/10 px-2 py-0.5 rounded-full">
+                                                <Text className="text-white text-label font-display uppercase">Total</Text>
                                             </View>
                                         </View>
                                         <View className="flex-1 gap-2">
-                                            <View className="flex-row justify-between bg-emerald-50 px-4 py-3 rounded-2xl border border-emerald-100">
-                                                <Text className="text-emerald-600 text-2xs font-black uppercase ">Easy</Text>
-                                                <Text className="text-slate-900 text-xs font-black ">{lcData.solved?.easySolved || 0}</Text>
+                                            <View className="flex-row justify-between bg-success/10 px-4 py-3 rounded-card border border-success/15">
+                                                <Text className="text-success text-label font-display uppercase">Easy</Text>
+                                                <Text className="text-ink text-xs font-display">{lcData.solved?.easySolved || 0}</Text>
                                             </View>
-                                            <View className="flex-row justify-between bg-amber-50 px-4 py-3 rounded-2xl border border-amber-100">
-                                                <Text className="text-amber-600 text-2xs font-black uppercase ">Med</Text>
-                                                <Text className="text-slate-900 text-xs font-black ">{lcData.solved?.mediumSolved || 0}</Text>
+                                            <View className="flex-row justify-between bg-warning/10 px-4 py-3 rounded-card border border-warning/15">
+                                                <Text className="text-warning text-label font-display uppercase">Med</Text>
+                                                <Text className="text-ink text-xs font-display">{lcData.solved?.mediumSolved || 0}</Text>
                                             </View>
-                                            <View className="flex-row justify-between bg-rose-50 px-4 py-3 rounded-2xl border border-rose-100">
-                                                <Text className="text-rose-600 text-2xs font-black uppercase ">Hard</Text>
-                                                <Text className="text-slate-900 text-xs font-black ">{lcData.solved?.hardSolved || 0}</Text>
+                                            <View className="flex-row justify-between bg-danger/10 px-4 py-3 rounded-card border border-danger/15">
+                                                <Text className="text-danger text-label font-display uppercase">Hard</Text>
+                                                <Text className="text-ink text-xs font-display">{lcData.solved?.hardSolved || 0}</Text>
                                             </View>
                                         </View>
                                     </View>
 
                                     {/* 3. Activity Heatmap */}
-                                    <View className="mb-8 bg-white p-6 rounded-4xl border border-slate-100 shadow-sm">
-                                        <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-6">Activity Snapshot</Text>
+                                    <View className="mb-8 bg-card p-6 rounded-sheet border border-line shadow-hair">
+                                        <View className="flex-row items-center mt-6 mb-6" style={{ gap: 12 }}>
+                                          <Text className="text-ink-3 font-display text-label uppercase">Activity Snapshot</Text>
+                                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                                        </View>
                                         <View className="flex-row justify-between items-end px-2">
                                             {getActivityData(lcData.submissionCalendar).map((day: any, i: number) => (
                                                 <View key={i} className="items-center gap-3">
                                                     {day.count > 0 ? (
                                                         <View className="items-center">
-                                                            <View className="bg-emerald-50 px-1 rounded mb-1 border border-emerald-100">
-                                                                <Text className="text-emerald-600 text-2xs font-black">{day.count}</Text>
+                                                            <View className="bg-success/10 px-1 rounded mb-1 border border-success/15">
+                                                                <Text className="text-success text-label font-display">{day.count}</Text>
                                                             </View>
                                                             <View
-                                                                className="w-4 bg-emerald-500 rounded-full"
+                                                                className="w-4 bg-success rounded-full"
                                                                 style={{ height: Math.min(day.count * 10, 40) }}
                                                             />
                                                         </View>
                                                     ) : (
-                                                        <View className="w-4 h-4 bg-slate-50 rounded-full border border-slate-100" />
+                                                        <View className="w-4 h-4 bg-paper-2 rounded-full border border-line" />
                                                     )}
-                                                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-tighter">{day.dayName}</Text>
+                                                    <Text className="text-ink-3 text-label font-display uppercase">{day.dayName}</Text>
                                                 </View>
                                             ))}
                                         </View>
@@ -520,16 +521,16 @@ export default function CodingLeaderboard() {
                                     {/* 4. Badges (Horizontal Scroll) */}
                                     {lcData.badges && lcData.badges.length > 0 && (
                                         <View className="mb-8">
-                                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-4 ml-1">Elite Badges ({lcData.badges.length})</Text>
+                                            <Text className="text-ink-3 font-display text-label uppercase mb-4 ml-1">Elite Badges ({lcData.badges.length})</Text>
                                             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-1">
                                                 {lcData.badges.map((badge: any, i: number) => (
-                                                    <View key={i} className="mr-6 items-center w-24 bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
+                                                    <View key={i} className="mr-6 items-center w-24 bg-card p-4 rounded-card border border-line shadow-hair">
                                                         <Image
                                                             source={{ uri: badge.icon.startsWith("http") ? badge.icon : `https://leetcode.com${badge.icon}` }}
                                                             className="w-14 h-14 mb-3"
                                                             resizeMode="contain"
                                                         />
-                                                        <Text className="text-slate-900 font-black  text-2xs text-center uppercase tracking-tight" numberOfLines={2}>{badge.displayName}</Text>
+                                                        <Text className="text-ink font-display text-label text-center uppercase" numberOfLines={2}>{badge.displayName}</Text>
                                                     </View>
                                                 ))}
                                             </ScrollView>
@@ -538,31 +539,34 @@ export default function CodingLeaderboard() {
 
                                     {/* 5. Contest Rating */}
                                     {lcData.contest && (
-                                        <View className="bg-slate-50 p-6 rounded-4xl border border-slate-100 mb-8 flex-row justify-between items-center">
+                                        <View className="bg-paper-2 p-6 rounded-sheet border border-line mb-8 flex-row justify-between items-center">
                                             <View>
-                                                <Text className="text-slate-900 font-black  text-lg tracking-tight uppercase">Contest Rating</Text>
-                                                <Text className="text-slate-500 text-2xs font-bold uppercase mt-0.5">Top {lcData.contest.contestTopPercentage || 0}% Global</Text>
+                                                <Text className="text-ink font-display text-lg uppercase">Contest Rating</Text>
+                                                <Text className="text-ink-3 text-label font-semibold uppercase mt-0.5">Top {lcData.contest.contestTopPercentage || 0}% Global</Text>
                                             </View>
-                                            <View className="items-end bg-white px-5 py-2 rounded-2xl border border-slate-100 shadow-sm">
-                                                <Text className="text-3xl font-black  text-orange-500 tracking-tighter">{Math.round(lcData.contest.contestRating || 0)}</Text>
+                                            <View className="items-end bg-card px-5 py-2 rounded-card border border-line shadow-hair">
+                                                <Text className="text-3xl font-display text-accent-text">{Math.round(lcData.contest.contestRating || 0)}</Text>
                                             </View>
                                         </View>
                                     )}
 
                                     {/* 8. Recent Questions */}
-                                    <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-4 ml-1">Recently Mastered</Text>
+                                    <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
+                                      <Text className="text-ink-3 font-display text-label uppercase">Recently Mastered</Text>
+                                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                                    </View>
                                     {lcData.recentSubmissions && lcData.recentSubmissions.length > 0 ? (
                                         <View className="gap-2 mb-8">
                                             {lcData.recentSubmissions.slice(0, 5).map((sub: any, i: number) => (
-                                                <View key={i} className="flex-row justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                                <View key={i} className="flex-row justify-between items-center bg-card p-4 rounded-card border border-line shadow-hair">
                                                     <View className="flex-1 mr-4">
-                                                        <Text className="text-slate-900 font-black  text-sm tracking-tight uppercase" numberOfLines={1}>{sub.title}</Text>
-                                                        <Text className="text-slate-500 text-2xs font-bold uppercase mt-1">
+                                                        <Text className="text-ink font-display text-sm uppercase" numberOfLines={1}>{sub.title}</Text>
+                                                        <Text className="text-ink-3 text-label font-semibold uppercase mt-1">
                                                             {new Date(parseInt(sub.timestamp) * 1000).toLocaleDateString()}
                                                         </Text>
                                                     </View>
-                                                    <View className={`px-3 py-1 rounded-full ${sub.statusDisplay === 'Accepted' ? 'bg-emerald-50' : 'bg-rose-50'}`}>
-                                                        <Text className={`text-2xs font-black uppercase tracking-widest ${sub.statusDisplay === 'Accepted' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                    <View className={`px-3 py-1 rounded-full ${sub.statusDisplay === 'Accepted' ? 'bg-success/10' : 'bg-danger/10'}`}>
+                                                        <Text className={`text-label font-display uppercase ${sub.statusDisplay === 'Accepted' ? 'text-success' : 'text-danger'}`}>
                                                             {sub.statusDisplay}
                                                         </Text>
                                                     </View>
@@ -570,14 +574,14 @@ export default function CodingLeaderboard() {
                                             ))}
                                         </View>
                                     ) : (
-                                        <Text className="text-slate-300  mb-8">No recent activity detected.</Text>
+                                        <Text className="text-ink-4 mb-8">No recent activity detected.</Text>
                                     )}
 
                                     <TouchableOpacity
                                         onPress={() => setModalVisible(false)}
-                                        className="bg-slate-900 py-5 rounded-2xl items-center mb-10 shadow-xl shadow-black/20"
+                                        className="bg-ink py-5 rounded-card items-center mb-10 shadow-hair"
                                     >
-                                        <Text className="text-white font-black uppercase tracking-wide text-xs">Close Profile</Text>
+                                        <Text className="text-white font-display uppercase text-xs">Close Profile</Text>
                                     </TouchableOpacity>
                                 </ScrollView>
                             )}

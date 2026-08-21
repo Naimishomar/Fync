@@ -112,25 +112,25 @@ export default function CommunityPostDetail() {
     };
 
     const CommentRow = ({ comment, depth, rootId }: { comment: CommentNode; depth: number; rootId: string }) => (
-        <View style={{ marginLeft: depth * 16 }} className={depth > 0 ? 'border-l-2 border-slate-100 pl-3' : ''}>
+        <View style={{ marginLeft: depth * 16 }} className={depth > 0 ? 'border-l-2 border-line pl-3' : ''}>
             <View className="py-3">
                 <View className="flex-row items-center mb-1">
-                    <Text className="text-slate-900 font-black text-2xs uppercase tracking-wide">
+                    <Text className="text-ink font-display text-label uppercase">
                         {comment.commentor?.username || 'unknown'}
                     </Text>
-                    <Text className="text-slate-400 font-bold text-2xs ml-2">· {ago(comment.createdAt)}</Text>
+                    <Text className="text-ink-3 font-semibold text-label ml-2">· {ago(comment.createdAt)}</Text>
                 </View>
                 {!!comment.replyToUser?.username && depth > 0 && (
-                    <Text className="text-orange-500 font-black text-2xs mb-1">@{comment.replyToUser.username}</Text>
+                    <Text className="text-accent-text font-display text-label mb-1">@{comment.replyToUser.username}</Text>
                 )}
-                <Text className="text-slate-700 text-sm leading-snug">{comment.text}</Text>
+                <Text className="text-ink-2 text-sm leading-snug">{comment.text}</Text>
                 <View className="flex-row items-center mt-2 gap-4">
                     <TouchableOpacity onPress={() => setReplyTo({ comment, rootId })}>
-                        <Text className="text-slate-400 font-black text-2xs uppercase tracking-wide">Reply</Text>
+                        <Text className="text-ink-3 font-display text-label uppercase">Reply</Text>
                     </TouchableOpacity>
                     {String(comment.commentor?._id) === String(user?._id) && (
                         <TouchableOpacity onPress={() => removeComment(comment)}>
-                            <Text className="text-slate-400 font-black text-2xs uppercase tracking-wide">Delete</Text>
+                            <Text className="text-ink-3 font-display text-label uppercase">Delete</Text>
                         </TouchableOpacity>
                     )}
                 </View>
@@ -143,74 +143,77 @@ export default function CommunityPostDetail() {
 
     if (loading) {
         return (
-            <View className="flex-1 bg-[#F8FAFC] items-center justify-center">
-                <ActivityIndicator size="large" color="#f97316" />
+            <View className="flex-1 bg-paper items-center justify-center">
+                <ActivityIndicator size="large" color="#F97316" />
             </View>
         );
     }
 
     return (
-        <View className="flex-1 bg-[#F8FAFC]">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top']}>
                 <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
                     <View className="px-5 py-2 flex-row items-center">
-                        <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 items-center justify-center">
-                            <Ionicons name="chevron-back" size={24} color="#0f172a" />
+                        <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+                            <Ionicons name="chevron-back" size={24} color="#12100E" />
                         </TouchableOpacity>
-                        <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide ml-1">{subName}</Text>
+                        <Text className="text-ink font-display uppercase text-label ml-1">{subName}</Text>
                     </View>
 
                     <ScrollView
                         contentContainerStyle={{ paddingBottom: 24 }}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchPost(); }} tintColor="#f97316" />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchPost(); }} tintColor="#F97316" />}
                     >
-                        <View className="bg-white mx-5 p-6 rounded-3xl border border-slate-100 shadow-sm shadow-black/5">
-                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-2">
+                        <View className="bg-card mx-5 p-6 rounded-card border border-line shadow-hair">
+                            <Text className="text-ink-3 font-display text-label uppercase mb-2">
                                 {post?.author?.username || 'unknown'} · {post ? ago(post.createdAt) : ''}
                             </Text>
-                            <Text className="text-slate-900 text-xl font-black leading-snug tracking-tight">{post?.title}</Text>
-                            {!!post?.body && <Text className="text-slate-700 text-base mt-3 leading-relaxed">{post.body}</Text>}
+                            <Text className="text-ink text-xl font-display leading-snug">{post?.title}</Text>
+                            {!!post?.body && <Text className="text-ink-2 text-base mt-3 leading-relaxed">{post.body}</Text>}
                             {post?.image?.map((url: string) => (
-                                <Image key={url} source={{ uri: url }} className="w-full h-56 rounded-2xl mt-4" resizeMode="cover" />
+                                <Image key={url} source={{ uri: url }} className="w-full h-56 rounded-card mt-4" resizeMode="cover" />
                             ))}
 
                             <View className="flex-row items-center mt-5 gap-5">
-                                <View className="flex-row items-center bg-slate-50 rounded-xl px-3 h-11 border border-slate-100">
+                                <View className="flex-row items-center bg-paper-2 rounded-card px-3 h-11 border border-line">
                                     <TouchableOpacity onPress={() => vote(1)} hitSlop={8}>
-                                        <Ionicons name={post?.myVote === 1 ? 'arrow-up-circle' : 'arrow-up-circle-outline'} size={24} color={post?.myVote === 1 ? '#f97316' : '#94a3b8'} />
+                                        <Ionicons name={post?.myVote === 1 ? 'arrow-up-circle' : 'arrow-up-circle-outline'} size={24} color={post?.myVote === 1 ? '#F97316' : '#8B857E'} />
                                     </TouchableOpacity>
-                                    <Text className="text-slate-900 font-black text-sm mx-3">{post?.score ?? 0}</Text>
+                                    <Text className="text-ink font-display text-sm mx-3">{post?.score ?? 0}</Text>
                                     <TouchableOpacity onPress={() => vote(-1)} hitSlop={8}>
-                                        <Ionicons name={post?.myVote === -1 ? 'arrow-down-circle' : 'arrow-down-circle-outline'} size={24} color={post?.myVote === -1 ? '#3b82f6' : '#94a3b8'} />
+                                        <Ionicons name={post?.myVote === -1 ? 'arrow-down-circle' : 'arrow-down-circle-outline'} size={24} color={post?.myVote === -1 ? '#2563EB' : '#8B857E'} />
                                     </TouchableOpacity>
                                 </View>
                                 <View className="flex-row items-center">
-                                    <Feather name="message-circle" size={15} color="#94a3b8" />
-                                    <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide ml-2">
+                                    <Feather name="message-circle" size={15} color="#8B857E" />
+                                    <Text className="text-ink-3 font-display text-label uppercase ml-2">
                                         {post?.commentCount ?? 0}
                                     </Text>
                                 </View>
                             </View>
                         </View>
 
-                        <View className="bg-white mx-5 mt-4 px-6 py-2 rounded-3xl border border-slate-100">
+                        <View className="bg-card mx-5 mt-4 px-6 py-2 rounded-card border border-line">
                             {comments.length === 0 ? (
-                                <Text className="text-slate-400 font-black uppercase text-2xs tracking-wide text-center py-8">
+                                <Text className="font-sans text-sm text-ink-3 text-center py-8">
                                     No comments yet
                                 </Text>
                             ) : comments.map((c) => <CommentRow key={c._id} comment={c} depth={0} rootId={c._id} />)}
                         </View>
                     </ScrollView>
 
-                    <View className="border-t border-slate-100 bg-white px-5 py-3">
+                    <View className="border-t border-line bg-card px-5 py-3">
                         {!!replyTo && (
                             <View className="flex-row items-center mb-2">
-                                <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide flex-1">
+                                <Text className="text-ink-3 font-display text-label uppercase flex-1">
                                     Replying to @{replyTo.comment.commentor?.username}
                                 </Text>
                                 <TouchableOpacity onPress={() => setReplyTo(null)}>
-                                    <Ionicons name="close" size={16} color="#94a3b8" />
+                                    <Ionicons name="close" size={16} color="#8B857E" />
                                 </TouchableOpacity>
                             </View>
                         )}
@@ -219,14 +222,14 @@ export default function CommunityPostDetail() {
                                 value={draft}
                                 onChangeText={setDraft}
                                 placeholder="Add a comment"
-                                placeholderTextColor="#94a3b8"
+                                placeholderTextColor="#8B857E"
                                 multiline
-                                className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-slate-900 max-h-28"
+                                className="flex-1 bg-paper border-[1.5px] border-ink px-4 py-3 text-ink max-h-28 rounded-md"
                             />
                             <TouchableOpacity
                                 onPress={submitComment}
                                 disabled={sending || !draft.trim()}
-                                className={`w-11 h-11 rounded-xl items-center justify-center ${sending || !draft.trim() ? 'bg-slate-200' : 'bg-slate-900'}`}
+                                className={`w-11 h-11 rounded-xl items-center justify-center ${sending || !draft.trim() ? 'bg-paper-2' : 'bg-ink'}`}
                             >
                                 {sending ? <ActivityIndicator color="white" size="small" /> : <Ionicons name="send" size={17} color="white" />}
                             </TouchableOpacity>

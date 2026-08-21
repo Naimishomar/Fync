@@ -80,12 +80,12 @@ const HackathonList = () => {
   };
 
   const renderItem = ({ item }: { item: any }) => (
-    <View className="bg-white rounded-2xl mb-5 mx-6 p-6 shadow-sm shadow-black/5 border border-slate-300">
+    <View className="bg-card rounded-card mb-5 mx-gutter p-6 shadow-hair border border-line">
 
       {/* Header Row */}
       <View className="flex-row gap-4 items-center">
         {/* Logo */}
-        <View className="w-16 h-16 rounded-2xl border border-slate-200 overflow-hidden bg-slate-50 items-center justify-center p-2">
+        <View className="w-16 h-16 rounded-card border border-line overflow-hidden bg-paper-2 items-center justify-center p-2">
           <Image
             source={{ uri: item.logoUrl2 || item.organisation?.logoUrl || 'https://via.placeholder.com/100' }}
             className="w-12 h-12 rounded-xl"
@@ -95,10 +95,10 @@ const HackathonList = () => {
 
         {/* Title & Company */}
         <View className="flex-1">
-          <Text className="text-slate-900 text-lg font-black  tracking-tighter uppercase leading-5" numberOfLines={2}>
+          <Text className="text-ink text-lg font-display uppercase leading-5" numberOfLines={2}>
             {item.title}
           </Text>
-          <Text className="text-slate-600 text-2xs font-black uppercase tracking-wide mt-1">
+          <Text className="text-ink-2 text-label font-display uppercase mt-1">
             {item.organisation?.name || "Global Organisation"}
           </Text>
         </View>
@@ -107,31 +107,31 @@ const HackathonList = () => {
       {/* Tags Row */}
       <View className="mt-5 flex-row flex-wrap gap-2">
         {/* Location / Mode */}
-        <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-300">
+        <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
           <Ionicons
             name={item.job_location?.toLowerCase().includes('online') ? "globe-outline" : "location-sharp"}
             size={14}
-            color="#64748b"
+            color="#8B857E"
           />
-          <Text className="text-2xs font-black uppercase tracking-tight text-slate-500 ml-1">
+          <Text className="text-label font-display uppercase text-ink-3 ml-1">
             {item.job_location || "Global"}
           </Text>
         </View>
 
         {/* Mode (Online/Offline/Region) */}
         {item.region && item.region.toLowerCase() !== (item.job_location || '').toLowerCase() && (
-          <View className="flex-row items-center bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-100">
-            <Ionicons name="earth" size={14} color="#6366f1" />
-            <Text className="text-2xs font-black uppercase tracking-tight text-indigo-500 ml-1">
+          <View className="flex-row items-center bg-recruiter/10 px-3 py-1.5 rounded-xl border border-recruiter/15">
+            <Ionicons name="earth" size={14} color="#4F46E5" />
+            <Text className="text-label font-display uppercase text-recruiter ml-1">
               {item.region}
             </Text>
           </View>
         )}
 
         {/* Region/Deadline */}
-        <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-300">
-          <Ionicons name="calendar" size={14} color="#64748b" />
-          <Text className="text-2xs font-black uppercase tracking-tight text-slate-500 ml-1">
+        <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
+          <Ionicons name="calendar" size={14} color="#8B857E" />
+          <Text className="text-label font-display uppercase text-ink-3 ml-1">
             {item.regnEndDate ? new Date(item.regnEndDate).toLocaleDateString() : "Open"}
           </Text>
         </View>
@@ -139,8 +139,8 @@ const HackathonList = () => {
         {item.filters?.map((f: any, i: number) => {
           if (f.type === 'opportunity_type' || f.name?.toLowerCase().includes('online') || f.name?.toLowerCase().includes('offline')) {
             return (
-              <View key={i} className="bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">
-                <Text className="text-2xs font-black uppercase tracking-tight text-blue-500">{f.name}</Text>
+              <View key={i} className="bg-fam-career/10 border border-fam-career/15 px-2.5 py-1 rounded-full">
+                <Text className="text-label font-display uppercase text-fam-career">{f.name}</Text>
               </View>
             )
           }
@@ -151,8 +151,8 @@ const HackathonList = () => {
       {/* Footer / CTA */}
       <View className="mt-3 flex-row items-center justify-between">
         <View>
-          <Text className="text-slate-600 font-black uppercase text-2xs tracking-wide">Opportunity Worth</Text>
-          <Text className="text-slate-900 text-lg font-black mt-0.5 tracking-tighter uppercase">
+          <Text className="text-ink-2 font-display uppercase text-label">Opportunity Worth</Text>
+          <Text className="text-ink text-lg font-display mt-0.5 uppercase">
             {item.payment_amount
               ? `₹${item.payment_amount}`
               : "Prizes/Certificates"
@@ -163,9 +163,9 @@ const HackathonList = () => {
         <TouchableOpacity
           onPress={() => openLink(item.public_url)}
           activeOpacity={0.9}
-          className="bg-pink-500 px-8 py-3.5 rounded-2xl shadow-lg shadow-black/20 border border-pink-300"
+          className="bg-brand-500 px-gutter py-3.5 rounded-card shadow-hair border border-brand-300"
         >
-          <Text className="text-white font-black  uppercase tracking-wide text-xs">Participate</Text>
+          <Text className="text-ink font-display uppercase text-sm">Participate</Text>
         </TouchableOpacity>
       </View>
 
@@ -176,44 +176,44 @@ const HackathonList = () => {
     if (!loading) return <View className="h-12" />;
     return (
       <View className="py-6 items-center">
-        <ActivityIndicator size="small" color="#f97316" />
+        <ActivityIndicator size="small" color="#F97316" />
       </View>
     );
   };
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
       <SafeAreaView className="flex-1">
 
         {/* Header Title */}
-        <View className="px-8 pt-8 pb-4">
+        <View className="px-gutter pt-8 pb-4">
           <View className="flex-row items-center gap-3">
-            <View className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/20">
-              <Ionicons name="rocket" size={24} color="white" />
+            <View className="w-12 h-12 bg-brand-500 rounded-card items-center justify-center shadow-hair">
+              <Ionicons name="rocket" size={24} color="#12100E" />
             </View>
             <View>
-              <Text className="text-slate-900 text-3xl font-black  tracking-tighter uppercase">Hackathons</Text>
-              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Build The Future Globally</Text>
+              <Text className="text-ink text-3xl font-display uppercase">Hackathons</Text>
+              <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Build The Future Globally</Text>
             </View>
           </View>
         </View>
 
         {/* 🔍 Search Bar */}
         <View className="px-6 mt-2 mb-4">
-          <View className="flex-row items-center bg-white rounded-3xl px-6 py-2 border border-slate-300 shadow-sm shadow-black/5">
-            <Ionicons name="search" size={20} color="#ec4899" />
+          <View className="flex-row items-center bg-card px-6 py-2 border-2 border-ink shadow-hair rounded-md">
+            <Ionicons name="search" size={20} color="#F97316" />
             <TextInput
               placeholder="Search hackathons, companies..."
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor="#8B857E"
               value={searchQuery}
               onChangeText={setSearchQuery}
-              className="flex-1 ml-3 text-slate-900 text-base font-black "
+              className="flex-1 ml-3 text-ink text-base font-display"
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-slate-50 p-1 rounded-full">
-                <Ionicons name="close" size={18} color="#94a3b8" />
+              <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-paper-2 p-1 rounded-full">
+                <Ionicons name="close" size={18} color="#8B857E" />
               </TouchableOpacity>
             )}
           </View>
@@ -231,12 +231,12 @@ const HackathonList = () => {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             !loading ? (
-              <View className="items-center mt-20 px-10">
-                <View className="w-20 h-20 bg-slate-50 rounded-4xl items-center justify-center mb-6">
-                  <Ionicons name="search" size={40} color="#CBD5E1" />
+              <View className="items-center mt-20 px-gutter">
+                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                  <Ionicons name="search" size={40} color="#C4BEB6" />
                 </View>
-                <Text className="text-slate-900 font-black  text-xl tracking-tight text-center uppercase">Zero Hits</Text>
-                <Text className="text-slate-500 text-center font-bold text-xs mt-2 uppercase tracking-wide">
+                <Text className="text-ink font-display text-xl text-center uppercase">Zero Hits</Text>
+                <Text className="font-sans text-sm text-ink-3 text-center mt-2">
                   {searchQuery ? "We couldn't find matches for your search protocol." : "The hackathon vault is currently locked."}
                 </Text>
               </View>

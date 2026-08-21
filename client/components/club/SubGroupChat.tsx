@@ -166,11 +166,11 @@ const SubGroupChat = ({ navigation, route }: any) => {
         return (
             <View className={`mb-4 flex-row ${isMine ? 'justify-end' : 'justify-start'}`}>
                 {!isMine && (
-                    <Image source={{ uri: item.sender?.avatar || 'https://via.placeholder.com/150' }} className="w-8 h-8 rounded-full bg-slate-100 mr-2" />
+                    <Image source={{ uri: item.sender?.avatar || 'https://via.placeholder.com/150' }} className="w-8 h-8 rounded-full bg-paper-2 mr-2" />
                 )}
-                <View className={`max-w-[80%] rounded-2xl px-4 py-3 ${isMine ? 'bg-slate-200' : 'bg-white border border-slate-100'}`}>
+                <View className={`max-w-[80%] rounded-card px-4 py-3 ${isMine ? 'bg-paper-2' : 'bg-card border border-line'}`}>
                     {!isMine && (
-                        <Text className="text-black font-bold text-2xs mb-1">{item.sender?.name} {isAdmin && '• [Admin]'}</Text>
+                        <Text className="text-ink font-semibold text-label mb-1">{item.sender?.name} {isAdmin && '• [Admin]'}</Text>
                     )}
                     
                     {item.fileUrl && (
@@ -178,9 +178,9 @@ const SubGroupChat = ({ navigation, route }: any) => {
                             {item.fileType === 'image' ? (
                                 <Image source={{ uri: item.fileUrl }} className="w-48 h-48 rounded-lg" />
                             ) : (
-                                <View className="bg-slate-50 p-2 rounded-lg flex-row items-center border border-slate-100">
-                                    <Feather name="file" size={20} color="#71717a" />
-                                    <Text className="ml-2 text-slate-600 text-xs font-bold" numberOfLines={1}>{item.fileName}</Text>
+                                <View className="bg-paper-2 p-2 rounded-lg flex-row items-center border border-line">
+                                    <Feather name="file" size={20} color="#57534E" />
+                                    <Text className="ml-2 text-ink-2 text-xs font-semibold" numberOfLines={1}>{item.fileName}</Text>
                                 </View>
                             )}
                         </View>
@@ -188,7 +188,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
 
                     {item.isPoll ? (
                         <View className="w-56">
-                            <Text className="text-slate-900 font-bold text-sm mb-3">{item.pollQuestion}</Text>
+                            <Text className="text-ink font-semibold text-sm mb-3">{item.pollQuestion}</Text>
                             {item.pollOptions.map((opt: any, idx: number) => {
                                 const totalVotes = item.pollOptions.reduce((acc: number, curr: any) => acc + curr.votes.length, 0);
                                 const percentage = totalVotes === 0 ? 0 : (opt.votes.length / totalVotes) * 100;
@@ -198,38 +198,38 @@ const SubGroupChat = ({ navigation, route }: any) => {
                                     <TouchableOpacity 
                                         key={idx} 
                                         onPress={() => voteInPoll(item._id, idx)}
-                                        className={`mb-2 bg-slate-50 rounded-lg overflow-hidden border ${hasVoted ? 'border-blue-400 bg-blue-50/30' : 'border-slate-100'}`}
+                                        className={`mb-2 bg-paper-2 rounded-lg overflow-hidden border ${hasVoted ? 'border-fam-career bg-fam-career/10' : 'border-line'}`}
                                     >
                                         <View className="flex-row items-center justify-between p-3 relative">
                                             <View 
-                                                className={`absolute left-0 top-0 bottom-0 ${percentage === 100 ? 'bg-blue-300' : 'bg-blue-100'}`} 
+                                                className={`absolute left-0 top-0 bottom-0 ${percentage === 100 ? 'bg-fam-career/40' : 'bg-fam-career/15'}`} 
                                                 style={{ width: `${percentage}%` }} 
                                             />
                                             <View className="flex-row items-center z-10 flex-1">
-                                                <Text className={`text-xs font-bold ${hasVoted ? 'text-blue-900' : 'text-slate-800'}`}>{opt.optionText}</Text>
+                                                <Text className={`text-xs font-semibold ${hasVoted ? 'text-fam-career' : 'text-ink'}`}>{opt.optionText}</Text>
                                                 {hasVoted && (
-                                                    <Ionicons name="checkmark-circle" size={14} color="#1d4ed8" style={{ marginLeft: 6 }} />
+                                                    <Ionicons name="checkmark-circle" size={14} color="#2563EB" style={{ marginLeft: 6 }} />
                                                 )}
                                             </View>
-                                            <Text className={`text-2xs font-black z-10 ${percentage === 100 ? 'text-white' : 'text-slate-500'}`}>{Math.round(percentage)}%</Text>
+                                            <Text className={`text-label font-display z-10 ${percentage === 100 ? 'text-white' : 'text-ink-3'}`}>{Math.round(percentage)}%</Text>
                                         </View>
                                     </TouchableOpacity>
                                 );
                             })}
-                            <View className="mt-2 pt-2 border-t border-slate-100 flex-row items-center justify-between">
-                                <View className="bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
-                                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-tight">
+                            <View className="mt-2 pt-2 border-t border-line flex-row items-center justify-between">
+                                <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
+                                    <Text className="text-ink-3 text-label font-display uppercase">
                                         {item.pollOptions.reduce((acc: number, curr: any) => acc + curr.votes.length, 0)} Votes
                                     </Text>
                                 </View>
                             </View>
                         </View>
                     ) : (
-                        <Text className={`text-md ${isMine ? 'text-black' : 'text-slate-800'}`}>{item.text}</Text>
+                        <Text className="text-base text-ink">{item.text}</Text>
                     )}
 
                     <View className="flex-row justify-end mt-1">
-                         <Text className={`text-2xs font-bold ${isMine ? 'text-slate-500' : 'text-slate-300'}`}>
+                         <Text className={`text-label font-semibold ${isMine ? 'text-ink-3' : 'text-ink-4'}`}>
                             {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </Text>
                     </View>
@@ -239,40 +239,44 @@ const SubGroupChat = ({ navigation, route }: any) => {
     };
 
     return (
-        <View className="flex-1 bg-white">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
                 {/* Header */}
-                <View className="px-5 py-4 flex-row items-center border-b border-slate-50">
-                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                <View className="px-5 py-4 flex-row items-center border-b border-line">
+                    <TouchableOpacity onPress={() => navigation.goBack()}
+            className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
                         <Ionicons name="chevron-back" size={24} color="black" />
                     </TouchableOpacity>
                     <View className="ml-4 flex-1">
                         <View className="flex-row items-center">
-                            {subGroup?.isGeneral && <MaterialCommunityIcons name="shield-check" size={14} color="#10b981" style={{ marginRight: 4 }} />}
-                            <Text className="text-slate-900 font-black uppercase text-xs">{subGroupName}</Text>
+                            {subGroup?.isGeneral && <MaterialCommunityIcons name="shield-check" size={14} color="#047857" style={{ marginRight: 4 }} />}
+                            <Text className="font-semibold text-base text-ink">{subGroupName}</Text>
                         </View>
-                        <Text className="text-green-500 font-bold text-2xs uppercase tracking-wide">{subGroup?.isGeneral ? 'Community Hub' : 'Connected Now'}</Text>
+                        <Text className="text-success font-semibold text-label uppercase">{subGroup?.isGeneral ? 'Community Hub' : 'Connected Now'}</Text>
                     </View>
                     <TouchableOpacity onPress={() => navigation.navigate('EditSubGroup', { subGroupId })} className="mr-4">
-                        <Feather name="info" size={22} color="#52525b" />
+                        <Feather name="info" size={22} color="#57534E" />
                     </TouchableOpacity>
                     {isRoomAdmin && (
                         <TouchableOpacity onPress={() => setShowPollModal(true)} className="mr-4">
-                            <MaterialCommunityIcons name="poll" size={24} color="#52525b" />
+                            <MaterialCommunityIcons name="poll" size={24} color="#57534E" />
                         </TouchableOpacity>
                     )}
                     {!subGroup?.isGeneral && (
                         <TouchableOpacity onPress={handleLeaveRoom}>
-                            <Ionicons name="log-out-outline" size={22} color="#ef4444" />
+                            <Ionicons name="log-out-outline" size={22} color="#DC2626" />
                         </TouchableOpacity>
                     )}
                 </View>
 
                 {/* Chat Area */}
-                <View className="flex-1 bg-slate-50">
+                <View className="flex-1 bg-paper">
                     {loading ? (
-                        <ActivityIndicator color="#000" className="mt-10" />
+                        <ActivityIndicator color="#12100E" className="mt-10" />
                     ) : (
                         <FlatList 
                             ref={flatListRef}
@@ -290,19 +294,19 @@ const SubGroupChat = ({ navigation, route }: any) => {
 
                 {/* Input Area */}
                 <KeyboardAvoidingView behavior="padding">
-                    <View className="bg-white px-5 py-4 border-t border-slate-100">
+                    <View className="bg-card px-5 py-4 border-t border-line">
                         {canType ? (
                             <View className="flex-row items-end gap-3">
                                 <TouchableOpacity 
                                     onPress={handlePickDocument}
-                                    className="w-11 h-11 bg-slate-100 rounded-2xl items-center justify-center mb-1"
+                                    className="w-11 h-11 bg-paper-2 rounded-card items-center justify-center mb-1"
                                 >
-                                    <Feather name="paperclip" size={20} color="#71717a" />
+                                    <Feather name="paperclip" size={20} color="#57534E" />
                                 </TouchableOpacity>
-                                <View className="flex-1 min-h-[40px] max-h-32 bg-slate-100 rounded-2xl px-4 border border-slate-100 justify-center">
+                                <View className="flex-1 min-h-[40px] max-h-32 bg-paper-2 rounded-card px-4 border border-line justify-center">
                                     <TextInput 
                                         placeholder="Type message..." 
-                                        className="text-slate-900 text-sm font-semibold"
+                                        className="text-ink text-sm font-semibold"
                                         multiline
                                         value={text}
                                         onChangeText={setText}
@@ -311,15 +315,15 @@ const SubGroupChat = ({ navigation, route }: any) => {
                                 <TouchableOpacity 
                                     onPress={() => handleSend()}
                                     disabled={sending || (!text.trim())}
-                                    className={`w-11 h-11 rounded-2xl items-center justify-center mb-1 ${text.trim() ? 'bg-black' : 'bg-slate-200'}`}
+                                    className={`w-11 h-11 rounded-card items-center justify-center mb-1 ${text.trim() ? 'bg-ink' : 'bg-paper-2'}`}
                                 >
                                     {sending ? <ActivityIndicator color="white" size="small" /> : <Feather name="arrow-up" size={24} color="white" />}
                                 </TouchableOpacity>
                             </View>
                         ) : (
-                            <View className="bg-slate-50 py-4 rounded-2xl items-center justify-center border border-dashed border-slate-200">
-                                <Feather name="lock" size={14} color="#a1a1aa" />
-                                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">Only admins can send messages</Text>
+                            <View className="bg-paper-2 py-4 rounded-card items-center justify-center border border-dashed border-line">
+                                <Feather name="lock" size={14} color="#8B857E" />
+                                <Text className="text-ink-3 text-label font-display uppercase mt-1">Only admins can send messages</Text>
                             </View>
                         )}
                     </View>
@@ -328,17 +332,17 @@ const SubGroupChat = ({ navigation, route }: any) => {
                 {/* Poll Creation Modal */}
                 <Modal visible={showPollModal} animationType="slide" transparent>
                     <View className="flex-1 bg-black/60 justify-end">
-                        <View className="bg-white rounded-t-5xl p-8">
+                        <View className="bg-paper rounded-t-sheet p-card-pad">
                             <View className="flex-row justify-between items-center mb-6">
-                                <Text className="text-slate-900 text-xl font-black uppercase tracking-widest">Create Poll</Text>
+                                <Text className="text-ink font-display uppercase text-h1">Create Poll</Text>
                                 <TouchableOpacity onPress={() => setShowPollModal(false)}>
-                                    <Ionicons name="close" size={28} color="#000" />
+                                    <Ionicons name="close" size={28} color="#12100E" />
                                 </TouchableOpacity>
                             </View>
                             
                             <TextInput 
                                 placeholder="What's your question?"
-                                className="bg-slate-100 p-4 rounded-2xl mb-4 font-bold"
+                                className="bg-paper-2 p-4 rounded-card mb-4 font-semibold"
                                 value={pollQuestion}
                                 onChangeText={setPollQuestion}
                             />
@@ -347,7 +351,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                                 <TextInput 
                                     key={idx}
                                     placeholder={`Option ${idx + 1}`}
-                                    className="bg-slate-100 p-4 rounded-xl mb-3"
+                                    className="bg-paper-2 p-4 rounded-xl mb-3"
                                     value={opt}
                                     onChangeText={(val) => {
                                         const newOpts = [...pollOptions];
@@ -361,14 +365,14 @@ const SubGroupChat = ({ navigation, route }: any) => {
                                 onPress={() => setPollOptions([...pollOptions, ''])}
                                 className="items-center py-2"
                             >
-                                <Text className="text-blue-600 font-bold">+ Add Option</Text>
+                                <Text className="text-fam-career font-semibold">+ Add Option</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity 
                                 onPress={handleCreatePoll}
-                                className="bg-black py-4 rounded-2xl mt-6 items-center"
+                                className="bg-ink py-4 mt-6 items-center border-2 border-ink rounded-md"
                             >
-                                <Text className="text-white font-black uppercase tracking-widest">Post Poll</Text>
+                                <Text className="text-white font-display uppercase">Post Poll</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

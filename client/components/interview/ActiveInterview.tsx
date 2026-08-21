@@ -219,39 +219,39 @@ export default function ActiveInterview() {
 
   if (report) {
     return (
-      <View className="flex-1 bg-white p-6 pt-16">
+      <View className="flex-1 bg-paper p-6 pt-16">
         <View className="items-center mb-8">
-          <View className="bg-green-100 p-4 rounded-full mb-4">
-            <Ionicons name="checkmark-circle" size={60} color="#10b981" />
+          <View className="bg-success/15 p-4 rounded-full mb-4">
+            <Ionicons name="checkmark-circle" size={60} color="#047857" />
           </View>
-          <Text className="text-3xl font-black text-slate-900 tracking-tighter ">
-            INTERVIEW<Text className="text-pink-500">COMPLETE</Text>
+          <Text className="text-3xl font-display text-ink">
+            INTERVIEW<Text className="text-accent-text">COMPLETE</Text>
           </Text>
-          <Text className="text-slate-500 mt-2">Evaluation results are ready</Text>
+          <Text className="text-ink-3 mt-2">Evaluation results are ready</Text>
         </View>
 
         <ScrollView className="flex-1 mb-6" showsVerticalScrollIndicator={false}>
           {/* Score Row */}
           <View className="flex-row gap-4 mb-6">
-            <View className="flex-1 bg-slate-50 p-5 rounded-3xl border border-slate-100 items-center">
-              <Text className="text-slate-500 font-bold text-xs uppercase mb-1">Technical</Text>
-              <Text className="text-3xl font-black text-pink-600">{report.technical_score}<Text className="text-slate-300 text-lg">/10</Text></Text>
+            <View className="flex-1 bg-paper p-5 border border-line items-center rounded-md">
+              <Text className="text-ink-3 font-semibold text-xs uppercase mb-1">Technical</Text>
+              <Text className="text-3xl font-display text-accent-text">{report.technical_score}<Text className="text-ink-4 text-lg">/10</Text></Text>
             </View>
-            <View className="flex-1 bg-slate-50 p-5 rounded-3xl border border-slate-100 items-center">
-              <Text className="text-slate-500 font-bold text-xs uppercase mb-1">Soft Skills</Text>
-              <Text className="text-3xl font-black text-blue-600">{report.communication_score}<Text className="text-slate-300 text-lg">/10</Text></Text>
+            <View className="flex-1 bg-paper p-5 border border-line items-center rounded-md">
+              <Text className="text-ink-3 font-semibold text-xs uppercase mb-1">Soft Skills</Text>
+              <Text className="text-3xl font-display text-fam-career">{report.communication_score}<Text className="text-ink-4 text-lg">/10</Text></Text>
             </View>
           </View>
 
           {/* Summary */}
-          <View className="bg-slate-50 p-6 rounded-3xl border border-slate-100 mb-6">
-            <Text className="text-slate-900 font-bold mb-2">Detailed Summary</Text>
-            <Text className="text-slate-600 leading-6">{report.summary}</Text>
+          <View className="bg-paper-2 p-6 rounded-card border border-line mb-6">
+            <Text className="text-ink font-semibold mb-2">Detailed Summary</Text>
+            <Text className="text-ink-2 leading-6">{report.summary}</Text>
           </View>
 
           {/* Verdict */}
-          <View className={`p-4 rounded-2xl items-center border mb-6 ${report.verdict === 'Pass' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-            <Text className={`font-black uppercase tracking-widest ${report.verdict === 'Pass' ? 'text-green-600' : 'text-red-600'}`}>
+          <View className={`p-4 rounded-card items-center border mb-6 ${report.verdict === 'Pass' ? 'bg-success/10 border-success/25' : 'bg-danger/10 border-danger/25'}`}>
+            <Text className={`font-display uppercase ${report.verdict === 'Pass' ? 'text-success' : 'text-danger'}`}>
               Verdict: {report.verdict}
             </Text>
           </View>
@@ -259,25 +259,25 @@ export default function ActiveInterview() {
           {/* Lists */}
           <View className="gap-6">
             <View>
-              <Text className="text-slate-900 font-bold mb-3 flex-row items-center">
-                <Ionicons name="star" size={16} color="#eab308" /> Strengths
+              <Text className="text-ink font-semibold mb-3 flex-row items-center">
+                <Ionicons name="star" size={16} color="#B45309" /> Strengths
               </Text>
               {report.strengths.map((s: string, i: number) => (
-                <View key={i} className="flex-row items-start mb-2 bg-green-50/50 p-3 rounded-xl">
-                  <Ionicons name="caret-forward" size={14} color="#10b981" style={{ marginTop: 4, marginRight: 8 }} />
-                  <Text className="text-slate-700 flex-1">{s}</Text>
+                <View key={i} className="flex-row items-start mb-2 bg-success/10 p-3 rounded-xl">
+                  <Ionicons name="caret-forward" size={14} color="#047857" style={{ marginTop: 4, marginRight: 8 }} />
+                  <Text className="text-ink-2 flex-1">{s}</Text>
                 </View>
               ))}
             </View>
 
             <View>
-              <Text className="text-slate-900 font-bold mb-3">
-                <Ionicons name="build" size={16} color="#3b82f6" /> Areas of Improvement
+              <Text className="font-display text-label text-ink uppercase mb-3">
+                <Ionicons name="build" size={16} color="#2563EB" /> Areas of Improvement
               </Text>
               {report.improvements.map((s: string, i: number) => (
-                <View key={i} className="flex-row items-start mb-2 bg-blue-50/50 p-3 rounded-xl">
-                  <Ionicons name="caret-forward" size={14} color="#3b82f6" style={{ marginTop: 4, marginRight: 8 }} />
-                  <Text className="text-slate-700 flex-1">{s}</Text>
+                <View key={i} className="flex-row items-start mb-2 bg-fam-career/10 p-3 rounded-xl">
+                  <Ionicons name="caret-forward" size={14} color="#2563EB" style={{ marginTop: 4, marginRight: 8 }} />
+                  <Text className="text-ink-2 flex-1">{s}</Text>
                 </View>
               ))}
             </View>
@@ -287,17 +287,20 @@ export default function ActiveInterview() {
         <View className="gap-3">
           <TouchableOpacity
             onPress={downloadReport}
-            className="w-full bg-pink-600 py-5 rounded-2xl flex-row justify-center items-center shadow-sm"
+            className="w-full bg-brand-600 py-5 rounded-card flex-row justify-center items-center shadow-hair"
           >
             <Ionicons name="cloud-download-outline" size={24} color="white" className="mr-2" />
-            <Text className="text-white font-black text-lg ml-2 uppercase tracking-widest">Download Report PDF</Text>
+            <Text className="text-white font-display text-lg ml-2 uppercase">Download Report PDF</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            className="w-full bg-white border border-slate-200 py-5 rounded-2xl items-center"
-          >
-            <Text className="text-slate-500 font-bold text-lg uppercase tracking-widest">Close</Text>
+            className="w-11 h-11 items-center justify-center rounded-xl w-full"
+          
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+            <Text className="text-ink-3 font-display text-lg uppercase">Close</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -305,17 +308,21 @@ export default function ActiveInterview() {
   }
 
   return (
-    <View className="flex-1 bg-white justify-between items-center p-6 py-12">
+    <View className="flex-1 bg-paper justify-between items-center p-6 py-12">
 
       {/* Top Bar */}
       <View className="w-full flex-row justify-between items-center mt-4">
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={28} color="#1f2937" />
+        <TouchableOpacity onPress={() => navigation.goBack()}
+            className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+          <Ionicons name="chevron-back" size={28} color="#57534E" />
         </TouchableOpacity>
 
-        <View className="bg-slate-50 px-4 py-2 rounded-full border border-slate-100 flex-row items-center gap-2">
-          <Ionicons name="time-outline" size={20} color={timeLeft < 60 ? "#ef4444" : "#ec4899"} />
-          <Text className={`font-mono text-xl font-bold ${timeLeft < 60 ? 'text-red-500' : 'text-pink-500'}`}>
+        <View className="bg-paper-2 px-4 py-2 rounded-full border border-line flex-row items-center gap-2">
+          <Ionicons name="time-outline" size={20} color={timeLeft < 60 ? "#DC2626" : "#F97316"} />
+          <Text className={`text-xl font-display ${timeLeft < 60 ? 'text-danger' : 'text-accent-text'}`}>
             {formatTime(timeLeft)}
           </Text>
         </View>
@@ -324,27 +331,24 @@ export default function ActiveInterview() {
 
       {/* AI Visualizer */}
       <View className="items-center w-full flex-1 justify-center">
-        <View className={`w-56 h-56 rounded-full border-2 items-center justify-center mb-8 shadow-sm
-            ${aiState === 'SPEAKING' ? 'border-pink-500 bg-pink-50' :
-            aiState === 'PROCESSING' ? 'border-blue-500 bg-blue-50' :
-              aiState === 'LISTENING' ? 'border-red-500 bg-red-50' : 'border-slate-100 bg-slate-50'}`}
+        <View className={`w-56 h-56 rounded-full border-2 items-center justify-center mb-8 shadow-hair ${aiState === 'SPEAKING' ? 'border-brand-500 bg-brand-50' : aiState === 'PROCESSING' ? 'border-fam-career bg-fam-career/10' : aiState === 'LISTENING' ? 'border-danger bg-danger/10' : 'border-line bg-paper-2'}`}
         >
           {aiState === 'PROCESSING' ? (
-            <ActivityIndicator size="large" color="#3b82f6" />
+            <ActivityIndicator size="large" color="#2563EB" />
           ) : (
             <View className="items-center">
               <Ionicons
                 name={aiState === 'LISTENING' ? "mic" : "navigate"}
                 size={60}
-                color={aiState === 'LISTENING' ? "#ef4444" : "#ec4899"}
+                color={aiState === 'LISTENING' ? "#DC2626" : "#F97316"}
               />
-              <Text className="text-2xs font-black text-pink-300 uppercase tracking-tighter mt-2">Laura AI</Text>
+              <Text className="text-label font-display text-brand-300 uppercase mt-2">Laura AI</Text>
             </View>
           )}
         </View>
 
-        <View className="bg-slate-50 px-8 py-6 rounded-3xl w-full min-h-[140px] justify-center border border-slate-100">
-          <Text className="text-slate-800 text-center text-xl leading-8 font-semibold ">
+        <View className="bg-paper-2 px-gutter py-6 rounded-card w-full min-h-[140px] justify-center border border-line">
+          <Text className="text-ink text-center text-xl leading-8 font-semibold">
             "{currentQuestion}"
           </Text>
         </View>
@@ -352,7 +356,7 @@ export default function ActiveInterview() {
 
       {/* Controls */}
       <View className="items-center w-full gap-8 mb-4">
-        <Text className="text-slate-500 text-xs font-bold uppercase tracking-wide">
+        <Text className="text-ink-3 text-xs font-semibold uppercase">
           {aiState === 'SPEAKING' ? "Laura is speaking..." :
             aiState === 'LISTENING' ? "Release when done" :
               aiState === 'PROCESSING' ? "Thinking..." : "Hold to answer"}
@@ -361,18 +365,16 @@ export default function ActiveInterview() {
         <View className="flex-row items-center justify-center gap-10 w-full">
           <TouchableOpacity
             onPress={() => Alert.alert("End Interview", "Finish early?", [{ text: "Cancel" }, { text: "End", onPress: cleanupAndExit }])}
-            className="w-16 h-16 rounded-full bg-red-50 items-center justify-center border border-red-100"
+            className="w-16 h-16 rounded-full bg-danger/10 items-center justify-center border border-danger/15"
           >
-            <MaterialIcons name="call-end" size={28} color="#ef4444" />
+            <MaterialIcons name="call-end" size={28} color="#DC2626" />
           </TouchableOpacity>
 
           <TouchableOpacity
             disabled={aiState === 'SPEAKING' || aiState === 'PROCESSING'}
             onPressIn={startRecording}
             onPressOut={stopRecordingAndSend}
-            className={`w-28 h-28 rounded-full items-center justify-center shadow-lg
-                    ${aiState === 'LISTENING' ? 'bg-red-500 scale-110' :
-                aiState === 'SPEAKING' || aiState === 'PROCESSING' ? 'bg-slate-200 opacity-50' : 'bg-pink-600'}`}
+            className={`w-28 h-28 rounded-full items-center justify-center shadow-hair ${aiState === 'LISTENING' ? 'bg-danger scale-110' : aiState === 'SPEAKING' || aiState === 'PROCESSING' ? 'bg-paper-2 opacity-50' : 'bg-brand-600'}`}
           >
             <Ionicons name={aiState === 'LISTENING' ? "mic" : "mic-outline"} size={48} color="white" />
           </TouchableOpacity>

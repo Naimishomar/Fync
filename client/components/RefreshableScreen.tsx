@@ -27,9 +27,9 @@ const RefreshableScreen = ({ onRefresh, children, style }: Props) => {
         <RefreshControl
           refreshing={refreshing}
           onRefresh={handleRefresh}
-          colors={["#ffffff"]}
-          tintColor="#ffffff"
-          progressBackgroundColor="#000"
+          colors={["#F97316"]}
+          tintColor="#F97316"
+          progressBackgroundColor="#FFFFFF"
         />
       }
       showsVerticalScrollIndicator={false}

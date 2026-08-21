@@ -12,7 +12,6 @@ import * as Sharing from 'expo-sharing';
 // StorageAccessFramework behind the legacy entry point; importing from the
 // package root leaves them undefined at runtime.
 import * as FileSystem from 'expo-file-system/legacy';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Alert } from '../ui/AlertModal';
 
 export default function QRCodeToolScreen() {
@@ -53,40 +52,43 @@ export default function QRCodeToolScreen() {
   };
 
   return (
-    <LinearGradient colors={['#ffffff', '#fff7ed', '#ffedd5']} className="flex-1">
+    <View className="flex-1" style={{ backgroundColor: '#ffffff' }}>
       <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS === 'android' ? 25 : 0 }}>
         {/* Header */}
-        <View className="px-5 py-4 flex-row items-center border-b border-orange-100 bg-transparent">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
-            <Ionicons name="arrow-back" size={24} color="#0f172a" />
+        <View className="px-5 py-4 flex-row items-center border-b border-brand-100 bg-transparent">
+          <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+            <Ionicons name="arrow-back" size={24} color="#12100E" />
           </TouchableOpacity>
-          <Text className="text-xl font-black text-slate-900 tracking-tight flex-1">QR Generator</Text>
+          <Text className="text-xl font-display text-ink flex-1">QR Generator</Text>
         </View>
 
         <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
-        <View className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm mb-6">
-          <Text className="text-sm font-bold text-slate-800 mb-2">Content or URL</Text>
+        <View className="bg-card rounded-card p-5 border border-line shadow-hair mb-6">
+          <Text className="text-sm font-semibold text-ink mb-2">Content or URL</Text>
           <TextInput
             value={inputText}
             onChangeText={setInputText}
             placeholder="https://fync.app or any text..."
-            placeholderTextColor="#94a3b8"
-            className="bg-slate-50 p-4 rounded-xl text-slate-900 border border-slate-200 mb-4"
+            placeholderTextColor="#8B857E"
+            className="bg-card p-4 text-ink border-[1.5px] border-ink mb-4 rounded-md"
             multiline
             numberOfLines={3}
             textAlignVertical="top"
           />
           <TouchableOpacity
             onPress={generateQR}
-            className="w-full py-4 rounded-xl items-center justify-center bg-purple-500 shadow-sm"
+            className="w-full py-4 rounded-xl items-center justify-center bg-fam-study shadow-hair"
           >
-            <Text className="text-white font-bold text-base">Generate QR Code</Text>
+            <Text className="text-white font-semibold text-base">Generate QR Code</Text>
           </TouchableOpacity>
         </View>
 
         {qrValue !== '' && (
-          <View className="items-center bg-white rounded-3xl p-8 border border-slate-100 shadow-sm mb-10">
-            <View className="bg-white p-4 shadow-sm border border-slate-100 rounded-2xl mb-6">
+          <View className="items-center bg-card rounded-card p-card-pad border border-line shadow-hair mb-10">
+            <View className="bg-card p-4 shadow-hair border border-line rounded-card mb-6">
               <QRCode
                 value={qrValue}
                 size={200}
@@ -97,15 +99,15 @@ export default function QRCodeToolScreen() {
             </View>
             <TouchableOpacity
               onPress={shareQR}
-              className="w-full py-4 rounded-xl items-center justify-center flex-row bg-slate-900 shadow-sm"
+              className="w-full py-4 items-center justify-center flex-row bg-ink border-2 border-ink rounded-md"
             >
               <Ionicons name="share-outline" size={20} color="white" className="mr-2" />
-              <Text className="text-white font-bold text-base ml-2">Save / Share QR</Text>
+              <Text className="text-white font-semibold text-base ml-2">Save / Share QR</Text>
             </TouchableOpacity>
           </View>
         )}
         </ScrollView>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }

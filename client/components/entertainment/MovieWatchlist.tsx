@@ -48,18 +48,22 @@ const MovieWatchlist = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
+    <SafeAreaView className="flex-1 bg-ink">
       {/* Header */}
       <View className="px-4 py-4 flex-row items-center gap-3">
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => navigation.goBack()}
+            className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text className="text-white text-2xl font-bold">My <Text className="text-rose-600">Watchlist</Text></Text>
+        <Text className="text-white text-2xl font-display">My <Text className="text-danger">Watchlist</Text></Text>
       </View>
 
       {loading ? (
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#e11d48" />
+          <ActivityIndicator size="large" color="#DB2777" />
         </View>
       ) : (
         <FlatList
@@ -79,13 +83,13 @@ const MovieWatchlist = () => {
           )}
           ListEmptyComponent={
             <View className="flex-1 items-center mt-20">
-              <Ionicons name="bookmark-outline" size={64} color="#1f2937" />
-              <Text className="text-slate-500 mt-4 text-lg">Your watchlist is empty</Text>
+              <Ionicons name="bookmark-outline" size={64} color="#57534E" />
+              <Text className="text-ink-3 mt-4 text-lg">Your watchlist is empty</Text>
               <TouchableOpacity 
                 onPress={() => navigation.navigate('EntertainmentHome')}
-                className="mt-6 bg-rose-600 px-8 py-3 rounded-full"
+                className="mt-6 bg-danger px-gutter py-3 rounded-full"
               >
-                <Text className="text-white font-bold">Discover Movies</Text>
+                <Text className="text-white font-semibold">Discover Movies</Text>
               </TouchableOpacity>
             </View>
           }

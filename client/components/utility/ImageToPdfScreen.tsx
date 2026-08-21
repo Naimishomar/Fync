@@ -9,7 +9,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import { LinearGradient } from 'expo-linear-gradient';
 
 // expo-file-system 19 moved documentDirectory / EncodingType /
 // StorageAccessFramework behind the legacy entry point; importing from the
@@ -124,35 +123,38 @@ export default function ImageToPdfScreen() {
   };
 
   return (
-    <LinearGradient colors={['#ffffff', '#fff7ed', '#ffedd5']} className="flex-1">
+    <View className="flex-1" style={{ backgroundColor: '#ffffff' }}>
       <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS === 'android' ? 25 : 0 }}>
         {/* Header */}
-        <View className="px-5 py-4 flex-row items-center border-b border-orange-100 bg-transparent">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
-          <Ionicons name="arrow-back" size={24} color="#0f172a" />
+        <View className="px-5 py-4 flex-row items-center border-b border-brand-100 bg-transparent">
+        <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+          <Ionicons name="arrow-back" size={24} color="#12100E" />
         </TouchableOpacity>
-        <Text className="text-xl font-black text-slate-900 tracking-tight flex-1">Image to PDF</Text>
+        <Text className="text-xl font-display text-ink flex-1">Image to PDF</Text>
         <TouchableOpacity onPress={() => setImages([])} className="p-2">
-          <Text className="text-sm font-bold text-slate-500">CLEAR</Text>
+          <Text className="text-sm font-semibold text-ink-3">CLEAR</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
         <TouchableOpacity
           onPress={pickImages}
-          className="w-full bg-white border-2 border-dashed border-orange-200 rounded-3xl p-8 items-center justify-center mb-6 shadow-sm"
+          className="w-full bg-card border-2 border-dashed border-brand-200 rounded-card p-card-pad items-center justify-center mb-6 shadow-hair"
         >
-          <View className="w-16 h-16 bg-orange-50 rounded-full items-center justify-center mb-3">
-            <Ionicons name="images-outline" size={32} color="#f97316" />
+          <View className="w-16 h-16 bg-brand-50 rounded-full items-center justify-center mb-3">
+            <Ionicons name="images-outline" size={32} color="#F97316" />
           </View>
-          <Text className="text-lg font-bold text-slate-800 mb-1">Select Images</Text>
-          <Text className="text-xs font-medium text-slate-500 text-center">Tap here to choose multiple images from your gallery</Text>
+          <Text className="text-lg font-display text-ink mb-1">Select Images</Text>
+          <Text className="text-xs font-medium text-ink-3 text-center">Tap here to choose multiple images from your gallery</Text>
         </TouchableOpacity>
 
         {images.length > 0 && (
           <View className="flex-row flex-wrap justify-between pb-24">
             {images.map((uri, index) => (
-              <View key={index} className="w-[48%] aspect-[3/4] mb-4 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden relative">
+              <View key={index} className="w-[48%] aspect-[3/4] mb-4 bg-card rounded-card shadow-hair border border-line overflow-hidden relative">
                 <Image source={{ uri }} className="w-full h-full" resizeMode="cover" />
                 <TouchableOpacity 
                   onPress={() => removeImage(index)}
@@ -161,7 +163,7 @@ export default function ImageToPdfScreen() {
                   <Ionicons name="close" size={18} color="white" />
                 </TouchableOpacity>
                 <View className="absolute bottom-2 left-2 bg-black/50 px-2 py-1 rounded-md backdrop-blur-md">
-                  <Text className="text-white text-2xs font-bold">PAGE {index + 1}</Text>
+                  <Text className="text-white text-label font-semibold">PAGE {index + 1}</Text>
                 </View>
               </View>
             ))}
@@ -170,19 +172,19 @@ export default function ImageToPdfScreen() {
       </ScrollView>
 
       {images.length > 0 && (
-        <View className="absolute bottom-0 left-0 right-0 p-5 bg-white/90 backdrop-blur-xl border-t border-slate-200">
+        <View className="absolute bottom-0 left-0 right-0 p-5 bg-card/90 backdrop-blur-xl border-t border-line">
           {!generatedPdfUri ? (
             <TouchableOpacity
               onPress={generatePdf}
               disabled={isProcessing}
-              className={`w-full py-4 rounded-2xl items-center justify-center flex-row shadow-sm ${isProcessing ? 'bg-orange-400' : 'bg-orange-500'}`}
+              className={`w-full py-4 rounded-card items-center justify-center flex-row shadow-hair ${isProcessing ? 'bg-brand-400' : 'bg-brand-500'}`}
             >
               {isProcessing ? (
-                <ActivityIndicator color="white" />
+                <ActivityIndicator color="#12100E" />
               ) : (
                 <>
-                  <Ionicons name="document-text" size={20} color="white" className="mr-2" />
-                  <Text className="text-white font-bold text-base ml-2">Generate PDF ({images.length} pages)</Text>
+                  <Ionicons name="document-text" size={20} color="#12100E" className="mr-2" />
+                  <Text className="text-ink font-semibold text-base ml-2">Generate PDF ({images.length} pages)</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -190,23 +192,23 @@ export default function ImageToPdfScreen() {
             <View className="flex-row justify-between">
               <TouchableOpacity
                 onPress={sharePdf}
-                className="flex-1 py-4 rounded-2xl items-center justify-center flex-row shadow-sm bg-indigo-500 mr-2"
+                className="flex-1 py-4 rounded-card items-center justify-center flex-row shadow-hair bg-recruiter mr-2"
               >
                 <Ionicons name="share-social" size={20} color="white" className="mr-2" />
-                <Text className="text-white font-bold text-base ml-2">Share</Text>
+                <Text className="text-white font-semibold text-base ml-2">Share</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={downloadPdf}
-                className="flex-1 py-4 rounded-2xl items-center justify-center flex-row shadow-sm bg-orange-500 ml-2"
+                className="flex-1 py-4 items-center justify-center flex-row bg-brand-500 ml-2 border-2 border-ink rounded-md"
               >
-                <Ionicons name="download" size={20} color="white" className="mr-2" />
-                <Text className="text-white font-bold text-base ml-2">Download</Text>
+                <Ionicons name="download" size={20} color="#12100E" className="mr-2" />
+                <Text className="text-ink font-semibold text-base ml-2">Download</Text>
               </TouchableOpacity>
             </View>
           )}
         </View>
       )}
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }

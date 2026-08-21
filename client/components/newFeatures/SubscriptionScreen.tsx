@@ -4,13 +4,13 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from "react-native-webview";
-import { LinearGradient } from 'expo-linear-gradient';
 import axios from '../../context/axiosConfig';
 import { RAZORPAY_KEY_ID } from '../../constants/keys';
 import { useAuth } from '../../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
 
+import { StampCard } from '../ui/kit';
 const SubscriptionScreen = ({ onSuccess }: any) => {
     const { user, logout } = useAuth();
     const navigation = useNavigation<any>();
@@ -64,7 +64,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                             contact: "${user?.mobileNumber || ''}"
                         },
                         theme: {
-                            color: "#f97316"
+                            color: "#F97316"
                         },
                         handler: function (response) {
                             window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -111,7 +111,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                 });
 
                 if (verifyRes.data.success) {
-                    Alert.alert("Success! 🎉", "Your premium subscription is now active.", [
+                    Alert.alert("Success!", "Your premium subscription is now active.", [
                         { text: "Continue", onPress: () => {
                             if (onSuccess) onSuccess();
                             else if (navigation.canGoBack()) navigation.goBack();
@@ -133,63 +133,66 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
     };
 
     return (
-        <View className="flex-1 bg-white">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
-            <LinearGradient colors={['#f97316', 'transparent']} className="absolute top-0 w-full h-80 opacity-30" />
 
             <SafeAreaView className="flex-1">
                 {/* Header */}
-                <View className="px-8 py-4 flex-row items-center justify-between">
+                <View className="px-gutter py-4 flex-row items-center justify-between">
                     {navigation.canGoBack() ? (
-                        <Pressable onPress={() => navigation.goBack()} className="w-10 h-10 rounded-full bg-slate-50 items-center justify-center border border-slate-100">
-                            <Ionicons name="arrow-back" size={20} color="#1e293b" />
+                        <Pressable onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+                            <Ionicons name="arrow-back" size={20} color="#12100E" />
                         </Pressable>
                     ) : (
                         <View className="w-10" />
                     )}
-                    <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">Premium Plan</Text>
+                    <Text className="text-ink font-display uppercase text-label">Premium Plan</Text>
                     <View className='w-10'></View>
                 </View>
 
-                <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 32, paddingBottom: 50 }}>
+                <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingBottom: 50 }}>
                     <View className="items-center mt-8 mb-10">
-                        <View className="w-24 h-24 bg-white rounded-5xl items-center justify-center shadow-2xl shadow-orange-500/20 border border-slate-100 mb-8">
-                            <Ionicons name="flash" size={48} color="#f97316" />
+                        <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-8">
+                            <Ionicons name="flash" size={48} color="#F97316" />
                         </View>
 
-                        <Text className="text-slate-900 text-4xl font-black uppercase tracking-tighter text-center">Fync<Text className="text-orange-500"> Pro</Text></Text>
-                        <Text className="text-slate-500 text-center font-black uppercase text-2xs tracking-wide mt-4 leading-5 px-6">
+                        <Text className="text-ink text-4xl font-display uppercase text-center">Fync<Text className="text-accent-text"> Pro</Text></Text>
+                        <Text className="font-sans text-sm text-ink-3 text-center mt-4 px-6">
                             {user?.is_subscribed ? "Your mission is active. Extend to maintain your elite status." : "Unlock the full potential of your campus experience."}
                         </Text>
                     </View>
 
                     {/* Plan Card */}
-                    <View className="w-full bg-slate-900 p-8 rounded-5xl border border-slate-800 shadow-2xl shadow-black/20 overflow-hidden">
-                        <View className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -mr-16 -mt-16" />
+                    <StampCard radius={26} style={{ width: '100%' }}>
+                    <View className="w-full bg-ink p-card-pad overflow-hidden">
+                        <View className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full -mr-16 -mt-16" />
                         
                         <View className="flex-row justify-between items-start mb-10">
                             <View>
-                                <Text className="text-white font-black uppercase text-xs tracking-tight">Full Access Pass</Text>
-                                <Text className="text-orange-500 text-2xs font-black uppercase tracking-wide mt-1">Limited Time Offer</Text>
+                                <Text className="text-ink font-display uppercase text-sm">Full Access Pass</Text>
+                                <Text className="text-accent-text text-label font-display uppercase mt-1">Limited Time Offer</Text>
                             </View>
                             <View className="items-end">
-                                <Text className="text-white font-black text-3xl tracking-tighter">₹{subscriptionAmount}</Text>
-                                <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">/ Month</Text>
+                                <Text className="text-white font-display text-3xl">₹{subscriptionAmount}</Text>
+                                <Text className="text-ink-3 font-display uppercase text-label">/ Month</Text>
                             </View>
                         </View>
 
                         <View className="gap-y-5 mb-10">
                             {[
-                                { icon: "infinite", text: "UNLIMITED APP SERVICES", color: "#f97316" },
-                                { icon: "wifi", text: "SMART WIFI MANAGER", color: "#38bdf8" },
-                                { icon: "wallet", text: "SPLIT & PAY ECOSYSTEM", color: "#4ade80" },
-                                { icon: "rocket", text: "PRIORITY FEATURE ACCESS", color: "#f472b6" },
+                                { icon: "infinite", text: "UNLIMITED APP SERVICES", color: "#F97316" },
+                                { icon: "wifi", text: "SMART WIFI MANAGER", color: "#0891B2" },
+                                { icon: "wallet", text: "SPLIT & PAY ECOSYSTEM", color: "#047857" },
+                                { icon: "rocket", text: "PRIORITY FEATURE ACCESS", color: "#DB2777" },
                             ].map((item, index) => (
                                 <View key={index} className="flex-row items-center">
-                                    <View className="w-8 h-8 rounded-xl bg-white/5 items-center justify-center mr-4 border border-white/10">
+                                    <View className="w-8 h-8 rounded-xl bg-card/5 items-center justify-center mr-4 border border-white/10">
                                         <Ionicons name={item.icon as any} size={16} color={item.color} />
                                     </View>
-                                    <Text className="text-slate-300 font-black uppercase text-2xs tracking-wide">{item.text}</Text>
+                                    <Text className="text-ink-4 font-display uppercase text-label">{item.text}</Text>
                                 </View>
                             ))}
                         </View>
@@ -198,26 +201,27 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                             onPress={handleSubscribe}
                             disabled={loading}
                             activeOpacity={0.8}
-                            className="bg-white py-5 rounded-2xl items-center"
+                            className="bg-card py-5 rounded-card items-center"
                         >
                             {loading ? (
-                                <ActivityIndicator size="small" color="#000" />
+                                <ActivityIndicator size="small" color="#12100E" />
                             ) : (
                                 <View className="flex-row items-center">
-                                    <Text className="text-slate-900 font-black uppercase tracking-wide text-2xs mr-2">
+                                    <Text className="text-ink font-display uppercase text-label mr-2">
                                         {user?.is_subscribed ? "Extend Subscription" : "Unlock Premium Now"}
                                     </Text>
-                                    <Ionicons name="chevron-forward" size={16} color="#000" />
+                                    <Ionicons name="chevron-forward" size={16} color="#12100E" />
                                 </View>
                             )}
                         </TouchableOpacity>
                     </View>
+                    </StampCard>
 
                     <View className="mt-12 items-center flex-row justify-center gap-3">
-                        <View className="w-8 h-8 rounded-xl bg-slate-50 items-center justify-center border border-slate-100">
-                            <Ionicons name="shield-checkmark" size={16} color="#94a3b8" />
+                        <View className="w-8 h-8 rounded-xl bg-paper-2 items-center justify-center border border-line">
+                            <Ionicons name="shield-checkmark" size={16} color="#8B857E" />
                         </View>
-                        <Text className="text-slate-300 text-2xs font-black uppercase tracking-wide text-center leading-4 max-w-[200px]">
+                        <Text className="font-sans text-sm text-ink-4 text-center max-w-[200px]">
                             Secure 256-bit encrypted payment processed by Razorpay.
                         </Text>
                     </View>
@@ -236,7 +240,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                         />
                     ) : (
                         <View className="flex-1 justify-center items-center">
-                            <ActivityIndicator size="large" color="#f97316" />
+                            <ActivityIndicator size="large" color="#F97316" />
                         </View>
                     )}
                 </SafeAreaView>

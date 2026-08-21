@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BOLLYWOOD_MOVIES, INDIAN_PERSONALITIES } from './charadesData';
 
@@ -40,10 +39,10 @@ const DesiCharades = () => {
   const toggleTimer = () => setIsTimerRunning(!isTimerRunning);
 
   return (
-    <View className="p-6 bg-white rounded-5xl border border-[#F1F5F9] shadow-sm items-center" style={{ width: width - 40 }}>
+    <View className="p-6 bg-card rounded-sheet border border-paper-2 shadow-hair items-center" style={{ width: width - 40 }}>
       <View className="items-center mb-6">
-        <Text className="text-2xl font-black text-[#1A1A1A] uppercase tracking-[-1px]">DESI <Text className="text-[#db2777]">CHARADES</Text></Text>
-        <Text className="text-2xs text-[#94A3B8] font-black uppercase tracking-wide mt-1">Cultural Expression Engine v2.0</Text>
+        <Text className="text-2xl font-display text-ink uppercase">DESI <Text className="text-fam-fun">CHARADES</Text></Text>
+        <Text className="text-label text-ink-3 font-display uppercase mt-1">Cultural Expression Engine v2.0</Text>
       </View>
 
       {/* Category Picker */}
@@ -57,9 +56,9 @@ const DesiCharades = () => {
                 setTimer(null);
                 setIsTimerRunning(false);
             }}
-            className={`px-6 py-2 rounded-full mx-1 border ${activeCategory === cat ? 'bg-[#1A1A1A] border-[#1A1A1A]' : 'bg-white border-[#F1F5F9]'}`}
+            className={`px-6 py-2 rounded-full mx-1 border ${activeCategory === cat ? 'bg-ink border-ink' : 'bg-card border-paper-2'}`}
           >
-            <Text className={`text-2xs font-black uppercase tracking-widest ${activeCategory === cat ? 'text-white' : 'text-[#94A3B8]'}`}>
+            <Text className={`text-label font-display uppercase ${activeCategory === cat ? 'text-white' : 'text-ink-3'}`}>
               {cat}
             </Text>
           </TouchableOpacity>
@@ -68,49 +67,48 @@ const DesiCharades = () => {
 
       {/* Card Display */}
       <View className="w-full h-[180px] mb-8">
-        <LinearGradient
-            colors={['#FDF2F8', '#fff']}
-            className="flex-1 rounded-4xl border border-[#FCE7F3] items-center justify-center p-6"
-        >
+        <View
+            className="flex-1 rounded-sheet border border-fam-fun/10 items-center justify-center p-6"
+         style={{ backgroundColor: '#EDE8E0' }}>
             {currentPrompt ? (
                 <>
-                    <Text className="text-2xs font-black text-[#db2777] uppercase tracking-wide mb-2">{activeCategory}</Text>
-                    <Text className="text-2xl font-black text-[#1A1A1A] text-center" numberOfLines={3}>
+                    <Text className="text-label font-display text-fam-fun uppercase mb-2">{activeCategory}</Text>
+                    <Text className="text-2xl font-display text-ink text-center" numberOfLines={3}>
                         {currentPrompt}
                     </Text>
-                    <Text className="text-2xs font-bold text-[#94A3B8] mt-2 uppercase">Items in collection: {CATEGORIES[activeCategory].length}</Text>
+                    <Text className="text-label font-semibold text-ink-3 mt-2 uppercase">Items in collection: {CATEGORIES[activeCategory].length}</Text>
                 </>
             ) : (
                 <View className="items-center">
-                    <Ionicons name="sparkles" size={32} color="#94A3B8" />
-                    <Text className="text-2xs font-black text-[#94A3B8] uppercase mt-2 text-center">
+                    <Ionicons name="sparkles" size={32} color="#8B857E" />
+                    <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
                         {activeCategory === 'BOLLYWOOD' ? '1000+ MOVIES LOADED' : '200+ PERSONALITIES LOADED'}
                     </Text>
                 </View>
             )}
-        </LinearGradient>
+        </View>
       </View>
 
       {/* Timer Display */}
       {timer !== null && (
-          <View className="flex-row items-center mb-8 bg-[#F8FAFC] px-6 py-3 rounded-2xl border border-[#F1F5F9]">
-              <Ionicons name="timer-outline" size={20} color={timer < 10 ? '#db2777' : '#64748B'} />
-              <Text className={`text-xl font-black ml-2 ${timer < 10 ? 'text-[#db2777]' : 'text-[#1A1A1A]'}`}>
+          <View className="flex-row items-center mb-8 bg-paper px-6 py-3 rounded-card border border-paper-2">
+              <Ionicons name="timer-outline" size={20} color={timer < 10 ? '#db2777' : '#8B857E'} />
+              <Text className={`text-xl font-display ml-2 ${timer < 10 ? 'text-fam-fun' : 'text-ink'}`}>
                 00:{timer < 10 ? `0${timer}` : timer}
               </Text>
               <TouchableOpacity onPress={toggleTimer} className="ml-4">
-                  <Ionicons name={isTimerRunning ? "pause-circle" : "play-circle"} size={28} color="#1A1A1A" />
+                  <Ionicons name={isTimerRunning ? "pause-circle" : "play-circle"} size={28} color="#12100E" />
               </TouchableOpacity>
           </View>
       )}
 
       <TouchableOpacity 
         onPress={generatePrompt}
-        className="w-full h-[60px] rounded-2xl overflow-hidden shadow-lg"
+        className="w-full h-[60px] rounded-card overflow-hidden shadow-hair"
       >
-        <LinearGradient colors={['#db2777', '#9d174d']} className="flex-1 justify-center items-center">
-            <Text className="text-white text-xs font-black tracking-wide uppercase">GENERATE PROMPT</Text>
-        </LinearGradient>
+        <View className="flex-1 justify-center items-center" style={{ backgroundColor: '#db2777' }}>
+            <Text className="text-white text-xs font-display uppercase">GENERATE PROMPT</Text>
+        </View>
       </TouchableOpacity>
     </View>
   );

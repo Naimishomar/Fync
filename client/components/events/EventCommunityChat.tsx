@@ -5,7 +5,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import * as ImagePicker from 'expo-image-picker';
-import { LinearGradient } from 'expo-linear-gradient';
 import socket from '../../utils/socket';
 import { goBack, navigate } from '../../utils/navigation';
 import { Alert } from '../ui/AlertModal';
@@ -202,8 +201,8 @@ export default function EventCommunityChat({ route }: any) {
             <View>
                 {showDateSeparator && (
                     <View className="items-center my-6">
-                        <View className="bg-slate-100 px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">
+                        <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
+                            <Text className="text-ink-3 text-label font-display uppercase">
                                 {formatDateHeader(item.createdAt)}
                             </Text>
                         </View>
@@ -228,20 +227,20 @@ export default function EventCommunityChat({ route }: any) {
                     {!isMine && (
                         <Image
                             source={{ uri: item.sender.avatar || 'https://via.placeholder.com/100' }}
-                            className="w-8 h-8 rounded-2xl mr-2 mb-1 border-2 border-indigo-50"
+                            className="w-8 h-8 rounded-card mr-2 mb-1 border-2 border-recruiter/10"
                         />
                     )}
                     <View
-                        className={`max-w-[75%] shadow-sm ${isMine ? 'bg-indigo-600 rounded-3xl rounded-br-none' : 'bg-white rounded-3xl rounded-bl-none'} overflow-hidden shadow-black/10`}
+                        className={`max-w-[75%] shadow-hair ${isMine ? 'bg-recruiter rounded-card rounded-br-none' : 'bg-card rounded-card rounded-bl-none'} overflow-hidden`}
                         style={{ elevation: 2 }}
                     >
                         {/* Reply Preview inside Bubble */}
                         {item.replyTo && (
-                            <View className={`m-2 p-2 rounded-xl border-l-4 ${isMine ? 'bg-black/10 border-indigo-300' : 'bg-slate-100 border-indigo-500'}`}>
-                                <Text className={`text-2xs font-black uppercase ${isMine ? 'text-indigo-200' : 'text-indigo-600'}`}>
+                            <View className={`m-2 p-2 rounded-xl border-l-4 ${isMine ? 'bg-black/10 border-recruiter/40' : 'bg-paper-2 border-recruiter'}`}>
+                                <Text className={`text-label font-display uppercase ${isMine ? 'text-recruiter' : 'text-recruiter'}`}>
                                     {item.replyTo.sender?.name || "User"}
                                 </Text>
-                                <Text className={`text-2xs ${isMine ? 'text-indigo-100' : 'text-slate-500'}`} numberOfLines={1}>
+                                <Text className={`text-label ${isMine ? 'text-recruiter' : 'text-ink-3'}`} numberOfLines={1}>
                                     {item.replyTo.text}
                                 </Text>
                             </View>
@@ -257,20 +256,20 @@ export default function EventCommunityChat({ route }: any) {
 
                         <View className="p-3 px-4">
                             {!isMine && (
-                                <Text className="text-2xs font-black uppercase text-indigo-400 mb-1 tracking-tighter">
+                                <Text className="text-label font-display uppercase text-recruiter mb-1">
                                     {item.sender.name}
                                 </Text>
                             )}
                             {item.text && item.text.trim() !== '' && (
-                                <Text className={`text-xs font-bold leading-5 ${isMine ? 'text-white' : 'text-slate-800'}`}>
+                                <Text className={`text-xs font-semibold leading-5 ${isMine ? 'text-white' : 'text-ink'}`}>
                                     {item.text}
                                 </Text>
                             )}
                             <View className="flex-row items-center justify-end mt-1 gap-1">
-                                <Text className={`text-2xs font-bold ${isMine ? 'text-indigo-200' : 'text-slate-500'}`}>
+                                <Text className={`text-label font-semibold ${isMine ? 'text-recruiter' : 'text-ink-3'}`}>
                                     {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </Text>
-                                {isMine && <Ionicons name="checkmark-done" size={10} color="#c7d2fe" />}
+                                {isMine && <Ionicons name="checkmark-done" size={10} color="#EDE8E0" />}
                             </View>
                         </View>
                     </View>
@@ -280,30 +279,35 @@ export default function EventCommunityChat({ route }: any) {
     }, [messages, user, isAdmin]);
 
     return (
-        <View className="flex-1 bg-slate-50">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
                 {/* Header */}
-                <View className="flex-row items-center p-5 bg-white border-b border-slate-100 shadow-sm shadow-black/5 z-10">
-                    <TouchableOpacity onPress={() => goBack()} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center">
-                        <Ionicons name="chevron-back" size={20} color="#1e1b4b" />
+                <View className="flex-row items-center p-5 bg-card border-b border-line shadow-hair z-10">
+                    <TouchableOpacity
+                        onPress={() => goBack()}
+                        accessibilityRole="button"
+                        accessibilityLabel="Go back"
+                        className="w-11 h-11 items-center justify-center rounded-xl"
+                        style={{ marginLeft: -11 }}>
+                        <Ionicons name="chevron-back" size={24} color="#12100E" />
                     </TouchableOpacity>
 
                     <View className="ml-4 flex-1">
-                        <Text className="text-slate-900 font-black  uppercase text-base tracking-tighter" numberOfLines={1}>
+                        <Text className="text-ink font-display uppercase text-base" numberOfLines={1}>
                             {eventName}
                         </Text>
                         <View className="flex-row items-center">
-                            <View className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5" />
-                            <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide">Community Hub</Text>
+                            <View className="w-1.5 h-1.5 bg-success rounded-full mr-1.5" />
+                            <Text className="text-ink-3 text-label font-semibold uppercase">Community Hub</Text>
                         </View>
                     </View>
                 </View>
 
                 {loading ? (
                     <View className="flex-1 items-center justify-center">
-                        <ActivityIndicator size="large" color="#6366f1" />
-                        <Text className="mt-4 text-slate-500 text-2xs font-bold uppercase tracking-wide">Encrypting Chat...</Text>
+                        <ActivityIndicator size="large" color="#4F46E5" />
+                        <Text className="mt-4 text-ink-3 text-label font-semibold uppercase">Encrypting Chat...</Text>
                     </View>
                 ) : (
                     <FlatList
@@ -325,42 +329,42 @@ export default function EventCommunityChat({ route }: any) {
                     enabled={Platform.OS === 'ios'}
                 >
                     {/* Input Area */}
-                    <View className="p-4 bg-white border-t border-slate-100">
+                    <View className="p-4 bg-card border-t border-line">
                         {/* Reply Indicator Preview */}
                         {replyingTo && (
-                            <View className="px-5 py-3 bg-white border-t border-indigo-100 flex-row items-center justify-between mb-4 rounded-2xl">
-                                <View className="border-l-4 border-indigo-600 pl-4">
-                                    <Text className="text-indigo-600 text-2xs font-black uppercase tracking-wide">
+                            <View className="px-5 py-3 bg-card border-t border-recruiter/15 flex-row items-center justify-between mb-4 rounded-card">
+                                <View className="border-l-4 border-recruiter pl-4">
+                                    <Text className="text-recruiter text-label font-display uppercase">
                                         Replying to {replyingTo.sender.name}
                                     </Text>
-                                    <Text className="text-slate-500 text-2xs mt-0.5" numberOfLines={1}>
+                                    <Text className="text-ink-3 text-label mt-0.5" numberOfLines={1}>
                                         {replyingTo.text}
                                     </Text>
                                 </View>
                                 <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                                    <Ionicons name="close-circle" size={22} color="#4f46e5" />
+                                    <Ionicons name="close-circle" size={22} color="#4F46E5" />
                                 </TouchableOpacity>
                             </View>
                         )}
 
-                        <View className="flex-row items-center bg-slate-50 rounded-3xl px-2 py-2 border border-blue-50">
+                        <View className="flex-row items-center bg-paper-2 rounded-card px-2 py-2 border border-fam-career/10">
                             <TouchableOpacity
                                 onPress={pickImage}
                                 className="w-10 h-10 items-center justify-center"
-                            >
-                                <Ionicons name="image" size={22} color="#6366f1" />
+                             hitSlop={2}>
+                                <Ionicons name="image" size={22} color="#4F46E5" />
                             </TouchableOpacity>
                             <TextInput
                                 placeholder="Type a message..."
                                 value={inputText}
                                 onChangeText={setInputText}
-                                className="flex-1 h-10 text-slate-800 font-bold px-2 text-xs"
-                                placeholderTextColor="#94a3b8"
+                                className="flex-1 h-10 text-ink font-semibold px-2 text-xs"
+                                placeholderTextColor="#8B857E"
                             />
                             <TouchableOpacity
                                 onPress={() => handleSend()}
                                 disabled={sending || (!inputText.trim())}
-                                className={`w-10 h-10 rounded-full items-center justify-center ${inputText.trim() ? 'bg-indigo-600 shadow-lg shadow-indigo-300' : 'bg-slate-200'}`}
+                                className={`w-10 h-10 rounded-full items-center justify-center ${inputText.trim() ? 'bg-recruiter shadow-hair ' : 'bg-paper-2'}`}
                             >
                                 {sending ? (
                                     <ActivityIndicator size="small" color="white" />

@@ -291,21 +291,21 @@ export default function TwelveAMClub() {
             {!isMe && (
                 <Image 
                     source={{ uri: identity.avatar }} 
-                    className="w-8 h-8 rounded-full bg-slate-800 border border-white/10 mr-2 self-end mb-1" 
+                    className="w-8 h-8 rounded-full bg-ink border border-white/10 mr-2 self-end mb-1" 
                 />
             )}
-            <View className={`max-w-[80%] rounded-xl px-4 py-3 ${isMe ? 'bg-indigo-600' : 'bg-slate-900/90 border border-white/5'}`}>
+            <View className={`max-w-[80%] rounded-xl px-4 py-3 ${isMe ? 'bg-recruiter' : 'bg-ink/90 border border-white/5'}`}>
                 <Pressable
                   onLongPress={() => mode === 'global' && setReplyingTo(item)}
                   delayLongPress={300}
                 >
                     {!isMe && (
-                        <Text className="text-white/60 font-black text-2xs mb-1 uppercase tracking-wide">{identity.username}</Text>
+                        <Text className="text-white/60 font-display text-label mb-1 uppercase">{identity.username}</Text>
                     )}
 
                     {mode === 'global' && item.replyTo && (
-                        <View className="bg-slate-950/50 border-l-2 border-indigo-400 rounded-md mb-2 p-2">
-                             <Text className="text-indigo-400 text-2xs font-black uppercase tracking-wide">{item.replyTo.senderName}</Text>
+                        <View className="bg-ink/50 border-l-2 border-recruiter rounded-md mb-2 p-2">
+                             <Text className="text-recruiter text-label font-display uppercase">{item.replyTo.senderName}</Text>
                              <Text className="text-white/50 text-xs" numberOfLines={1}>{item.replyTo.text}</Text>
                         </View>
                     )}
@@ -330,7 +330,7 @@ export default function TwelveAMClub() {
                     )}
 
                     <View className="flex-row justify-end mt-1.5">
-                         <Text className={`text-2xs font-bold ${isMe ? 'text-indigo-200/50' : 'text-slate-500'}`}>
+                         <Text className={`text-label font-semibold ${isMe ? 'text-violet/50' : 'text-night-3'}`}>
                             {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </Text>
                     </View>
@@ -342,59 +342,62 @@ export default function TwelveAMClub() {
 
   if (!isOpen) {
     return (
-      <View className="flex-1 bg-black justify-center items-center">
+      <View className="flex-1 bg-ink justify-center items-center">
         <Image source={{ uri: BG_IMAGE }} className="absolute w-full h-full opacity-60" />
         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.95)']} className="absolute w-full h-full" />
-        <View className="items-center p-10 bg-black/40 rounded-5xl border border-white/10 shadow-2xl w-[85%]">
-            <Ionicons name="lock-closed" size={42} color="#818cf8" />
-            <Text className="text-white text-3xl font-black mt-4 uppercase tracking-tighter">Club Locked</Text>
-            <Text className="text-indigo-400 font-mono text-xl font-bold mt-2">{timeLeft}</Text>
-            <Text className="text-slate-500 text-2xs uppercase font-black tracking-wide mt-8 text-center">Doors Open At Midnight</Text>
+        <View className="items-center p-card-pad bg-black/40 rounded-sheet border border-white/10 shadow-hair w-[85%]">
+            <Ionicons name="lock-closed" size={42} color="#4F46E5" />
+            <Text className="text-white text-3xl font-display mt-4 uppercase">Club Locked</Text>
+            <Text className="text-recruiter text-xl font-display mt-2">{timeLeft}</Text>
+            <Text className="text-night-3 text-label uppercase font-display mt-8 text-center">Doors Open At Midnight</Text>
         </View>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-black">
+    <View className="flex-1 bg-ink">
         <StatusBar barStyle="light-content" />
         <Image source={{ uri: BG_IMAGE }} className="absolute w-full h-full opacity-30" />
-        <LinearGradient colors={['rgba(79, 70, 229, 0.1)', 'rgba(0,0,0,0.9)', '#000000']} className="absolute w-full h-full" />
+        <LinearGradient colors={['rgba(79, 70, 229, 0.1)', 'rgba(0,0,0,0.9)', '#12100E']} className="absolute w-full h-full" />
 
         <SafeAreaView className="flex-1" edges={['top']}>
             <BlurView intensity={40} tint="dark" className="px-4 py-4 flex-row items-center justify-between border-b border-white/5">
                 <View className="flex-row items-center">
                     <TouchableOpacity 
                         onPress={() => navigation.goBack()}
-                        className="w-10 h-10 rounded-xl bg-slate-900 border border-white/10 items-center justify-center mr-3"
-                    >
+                        className="w-11 h-11 items-center justify-center rounded-xl"
+                    
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
                         <Ionicons name="arrow-back" size={20} color="white" />
                     </TouchableOpacity>
                     <TouchableOpacity 
                         onPress={() => setMode(mode === 'global' ? 'private' : 'global')}
-                        className="bg-indigo-500/20 p-2 rounded-xl border border-indigo-500/30 mr-3"
+                        className="bg-recruiter/20 p-2 rounded-xl border border-recruiter/30 mr-3"
                     >
-                        <MaterialCommunityIcons name={mode === 'global' ? "earth" : "incognito"} size={22} color="#818cf8" />
+                        <MaterialCommunityIcons name={mode === 'global' ? "earth" : "incognito"} size={22} color="#4F46E5" />
                     </TouchableOpacity>
                     <View>
-                        <Text className="text-white font-black uppercase text-2xs tracking-wide">{mode === 'global' ? 'Night Club' : 'Secret 1v1'}</Text>
-                        <Text className="text-indigo-400 font-bold text-2xs uppercase tracking-wide">{mode === 'global' ? 'Ephemeral Group Chat' : 'One-on-One Secrets'}</Text>
+                        <Text className="text-white font-display uppercase text-label">{mode === 'global' ? 'Night Club' : 'Secret 1v1'}</Text>
+                        <Text className="text-recruiter font-semibold text-label uppercase">{mode === 'global' ? 'Ephemeral Group Chat' : 'One-on-One Secrets'}</Text>
                     </View>
                 </View>
 
                 {mode === 'private' && matchRoomId && (
                     <TouchableOpacity 
                         onPress={skipMatch}
-                        className="bg-slate-800 px-4 py-2 rounded-full border border-white/10"
+                        className="bg-ink border border-white/10 px-2.5 py-1 rounded-full"
                     >
-                        <Text className="text-indigo-400 text-2xs font-black uppercase">Next ➔</Text>
+                        <Text className="text-recruiter text-label font-display uppercase">Next</Text>
                     </TouchableOpacity>
                 )}
 
                 {mode === 'global' && (
-                    <View className="flex-row items-center bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/20">
-                        <View className="w-1.5 h-1.5 rounded-full bg-red-500 mr-2" />
-                        <Text className="text-red-400 text-2xs font-black uppercase tracking-wide">Live</Text>
+                    <View className="flex-row items-center bg-danger/10 px-3 py-1.5 rounded-full border border-danger/20">
+                        <View className="w-1.5 h-1.5 rounded-full bg-danger mr-2" />
+                        <Text className="text-danger text-label font-display uppercase">Live</Text>
                     </View>
                 )}
             </BlurView>
@@ -402,22 +405,22 @@ export default function TwelveAMClub() {
             <View className="flex-1">
                 {mode === 'private' && isSearching ? (
                     <View className="flex-1 justify-center items-center">
-                        <View className="w-32 h-32 rounded-full border-2 border-indigo-500/30 items-center justify-center">
-                            <ActivityIndicator size="large" color="#818cf8" />
+                        <View className="w-32 h-32 rounded-full border-2 border-recruiter/30 items-center justify-center">
+                            <ActivityIndicator size="large" color="#4F46E5" />
                         </View>
-                        <Text className="text-white font-black uppercase text-sm tracking-widest mt-6">Searching for souls...</Text>
-                        <Text className="text-slate-500 text-2xs uppercase mt-2">Connecting you to a random stranger</Text>
+                        <Text className="text-white font-display uppercase text-sm mt-6">Searching for souls...</Text>
+                        <Text className="text-night-3 text-label uppercase mt-2">Connecting you to a random stranger</Text>
                     </View>
                 ) : mode === 'private' && !matchRoomId ? (
-                    <View className="flex-1 justify-center items-center px-10">
-                        <MaterialCommunityIcons name="comment-search-outline" size={60} color="#4b5563" />
-                        <Text className="text-white text-xl font-black uppercase tracking-tighter mt-4 text-center">Ready to Chat?</Text>
-                        <Text className="text-slate-500 text-sm text-center mt-2 leading-5">Match with someone anonymous and start a private conversation. Completely secret.</Text>
+                    <View className="flex-1 justify-center items-center px-gutter">
+                        <MaterialCommunityIcons name="comment-search-outline" size={60} color="#57534E" />
+                        <Text className="text-white text-xl font-display uppercase mt-4 text-center">Ready to Chat?</Text>
+                        <Text className="text-night-3 text-sm text-center mt-2 leading-5">Match with someone anonymous and start a private conversation. Completely secret.</Text>
                         <TouchableOpacity 
                             onPress={findMatch}
-                            className="bg-indigo-600 px-8 py-4 rounded-2xl mt-8 w-full items-center shadow-lg shadow-indigo-500/40"
+                            className="bg-recruiter px-gutter py-4 rounded-card mt-8 w-full items-center shadow-hair"
                         >
-                            <Text className="text-white font-black uppercase tracking-widest">Connect Now</Text>
+                            <Text className="text-white font-display uppercase">Connect Now</Text>
                         </TouchableOpacity>
                     </View>
                 ) : (
@@ -438,8 +441,8 @@ export default function TwelveAMClub() {
                 
                 {mode === 'global' && replyingTo && (
                   <BlurView intensity={80} tint="dark" className="px-5 py-3 border-t border-white/5 flex-row items-center justify-between">
-                    <View className="border-l-2 border-indigo-500 pl-3 flex-1">
-                      <Text className="text-indigo-400 text-2xs font-black uppercase tracking-wide">
+                    <View className="border-l-2 border-recruiter pl-3 flex-1">
+                      <Text className="text-recruiter text-label font-display uppercase">
                         Replying to {getNightIdentity(replyingTo.sender?.id ?? replyingTo.sender?._id).username}
                       </Text>
                       <Text className="text-white/60 text-xs" numberOfLines={1}>
@@ -447,33 +450,33 @@ export default function TwelveAMClub() {
                       </Text>
                     </View>
                     <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                      <Ionicons name="close-circle" size={20} color="#6b7280" />
+                      <Ionicons name="close-circle" size={20} color="#8B857E" />
                     </TouchableOpacity>
                   </BlurView>
                 )}
 
                 {/* Hide input if searching or no match in private mode */}
                 {!(mode === 'private' && (isSearching || !matchRoomId)) && (
-                  <View className="bg-slate-950/80 px-5 pt-4 pb-8 border-t border-white/5">
+                  <View className="bg-ink/80 px-5 pt-4 pb-8 border-t border-white/5">
                       <View className="flex-row items-end gap-3">
                           {mode === 'global' && (
                               <TouchableOpacity 
                                   onPress={pickImage}
                                   disabled={isProcessing}
-                                  className="w-11 h-11 bg-slate-900 rounded-2xl items-center justify-center mb-1 border border-white/5"
+                                  className="w-11 h-11 bg-ink items-center justify-center mb-1 border-2 border-ink rounded-md"
                               >
                                   {isProcessing ? (
-                                      <ActivityIndicator size="small" color="#818cf8" />
+                                      <ActivityIndicator size="small" color="#4F46E5" />
                                   ) : (
-                                      <Feather name="image" size={20} color="#818cf8" />
+                                      <Feather name="image" size={20} color="#4F46E5" />
                                   )}
                               </TouchableOpacity>
                           )}
                           
-                          <View className="flex-1 min-h-[44px] max-h-32 bg-slate-900/50 rounded-2xl px-4 border border-white/5 justify-center">
+                          <View className="flex-1 min-h-[44px] max-h-32 bg-ink/50 rounded-card px-4 border border-white/5 justify-center">
                               <TextInput 
                                   placeholder={isProcessing ? "Sending binary data..." : mode === 'global' ? `Posting as ${myIdentity.username}...` : "Type a secret message..."}
-                                  placeholderTextColor="#4b5563"
+                                  placeholderTextColor="#57534E"
                                   className="text-white text-sm font-semibold"
                                   multiline
                                   value={inputText}
@@ -485,13 +488,13 @@ export default function TwelveAMClub() {
                           <TouchableOpacity 
                               onPress={sendMessage}
                               disabled={isProcessing || !inputText.trim()}
-                              className={`w-11 h-11 rounded-2xl items-center justify-center mb-1 ${inputText.trim() ? 'bg-indigo-600' : 'bg-slate-800'}`}
+                              className={`w-11 h-11 rounded-card items-center justify-center mb-1 ${inputText.trim() ? 'bg-recruiter' : 'bg-ink'}`}
                           >
-                              <Feather name="arrow-up" size={24} color={inputText.trim() ? "white" : "#4b5563"} />
+                              <Feather name="arrow-up" size={24} color={inputText.trim() ? "white" : "#57534E"} />
                           </TouchableOpacity>
                       </View>
                       
-                      <Text className="text-slate-600 text-2xs font-black uppercase tracking-wide text-center mt-4">
+                      <Text className="text-night-ink text-label font-display uppercase text-center mt-4">
                           {mode === 'global' ? 'All chat history vanishes at 6 AM' : '1-on-1 chats are not stored and vanish instantly'}
                       </Text>
                   </View>

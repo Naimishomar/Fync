@@ -139,24 +139,24 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
         <Pressable className="absolute inset-0" onPress={onClose} />
         <KeyboardAvoidingView
           behavior="padding"
-          className="bg-white rounded-t-5xl overflow-hidden"
+          className="bg-paper rounded-t-sheet overflow-hidden"
           style={{ height: screenHeight * 0.85 }}
         >
           {/* Handle */}
           <View className="items-center py-4">
-            <View className="w-12 h-1.5 bg-slate-200 rounded-full" />
+            <View className="w-12 h-1.5 bg-ink-4 rounded-full" />
           </View>
 
           {/* Header */}
-          <View className="flex-row items-center justify-between px-6 pb-4 border-b border-slate-50">
+          <View className="flex-row items-center justify-between px-gutter pb-3 border-b border-line">
             <View>
-              <Text className="text-slate-900 font-black uppercase text-xl tracking-tighter">
-                {isEdit ? 'Update' : 'Record'} <Text className="text-orange-500">Experience</Text>
+              <Text className="text-ink font-display uppercase text-h1">
+                {isEdit ? 'Update' : 'Record'} <Text className="text-accent-text">Experience</Text>
               </Text>
-              <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wide mt-0.5">Career History Module</Text>
+              <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Career History Module</Text>
             </View>
-            <Pressable onPress={onClose} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
-              <Ionicons name="close" size={20} color="#18181b" />
+            <Pressable onPress={onClose} className="w-11 h-11 rounded-xl items-center justify-center" hitSlop={2}>
+              <Ionicons name="close" size={20} color="#12100E" />
             </Pressable>
           </View>
 
@@ -164,15 +164,15 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
             {/* Type */}
             <View className="mb-6">
               <View className="flex-row items-center gap-2 mb-3">
-                <Feather name="layers" size={12} color="#94A3B8" />
-                <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">Engagement Type</Text>
+                <Feather name="layers" size={12} color="#8B857E" />
+                <Text className="text-ink-3 font-display uppercase text-label">Engagement Type</Text>
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row gap-2 pr-6">
                   {TYPES.map(t => (
                     <Pressable key={t} onPress={() => setForm(p => ({ ...p, type: t }))}
-                      className={`px-4 py-2.5 rounded-xl border items-center shadow-sm ${form.type === t ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-100'}`}>
-                      <Text className={`text-2xs font-black uppercase tracking-widest ${form.type === t ? 'text-white' : 'text-slate-500'}`}>{t.replace('-', ' ')}</Text>
+                      className={`px-4 py-2.5 rounded-xl border items-center shadow-hair ${form.type === t ? 'bg-ink border-ink' : 'bg-card border-line'}`}>
+                      <Text className={`text-label font-display uppercase ${form.type === t ? 'text-white' : 'text-ink-3'}`}>{t.replace('-', ' ')}</Text>
                     </Pressable>
                   ))}
                 </View>
@@ -189,13 +189,13 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
             ].map(f => (
               <View key={f.key} className="mb-6">
                 <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name={f.icon as any} size={12} color="#94A3B8" />
-                  <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">{f.label}</Text>
+                  <Feather name={f.icon as any} size={12} color="#8B857E" />
+                  <Text className="text-ink-3 font-display uppercase text-label">{f.label}</Text>
                 </View>
                 <TextInput
-                  className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 text-sm font-semibold"
-                  style={f.multi ? { height: 100, textAlignVertical: 'top' } : {}}
-                  placeholder={f.ph} placeholderTextColor="#94A3B8"
+                  className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
+                  style={[{ minHeight: 50 }, f.multi ? { height: 100, textAlignVertical: 'top' } : null]}
+                  placeholder={f.ph} placeholderTextColor="#8B857E"
                   value={form[f.key as keyof typeof form] as string}
                   onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
                   multiline={!!f.multi}
@@ -204,24 +204,25 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
             ))}
 
             {/* Currently working toggle */}
-            <View className="flex-row items-center justify-between mb-6 bg-slate-50 px-5 py-4 rounded-2xl border border-slate-100">
+            <View className="flex-row items-center justify-between mb-6 bg-paper-2 px-5 py-4 rounded-card border border-line">
               <View className="flex-row items-center gap-2">
-                <Feather name="clock" size={12} color="#18181b" />
-                <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">Currently Active</Text>
+                <Feather name="clock" size={12} color="#12100E" />
+                <Text className="text-ink font-display uppercase text-label">Currently Active</Text>
               </View>
               <Switch value={form.isCurrentlyWorking}
                 onValueChange={v => setForm(p => ({ ...p, isCurrentlyWorking: v }))}
-                trackColor={{ true: '#f97316' }} />
+                trackColor={{ true: '#F97316' }} />
             </View>
 
             {!form.isCurrentlyWorking && (
               <View className="mb-6">
                 <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name="calendar" size={12} color="#94A3B8" />
-                  <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">End Date (YYYY-MM-DD)</Text>
+                  <Feather name="calendar" size={12} color="#8B857E" />
+                  <Text className="text-ink-3 font-display uppercase text-label">End Date (YYYY-MM-DD)</Text>
                 </View>
-                <TextInput className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 text-sm font-semibold"
-                  placeholder="2024-09-30" placeholderTextColor="#94A3B8"
+                <TextInput className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
+            style={{ minHeight: 50 }}
+                  placeholder="2024-09-30" placeholderTextColor="#8B857E"
                   value={form.endDate} onChangeText={v => setForm(p => ({ ...p, endDate: v }))} />
               </View>
             )}
@@ -229,54 +230,60 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
             {/* Work mode */}
             <View className="mb-8">
               <View className="flex-row items-center gap-2 mb-3">
-                <Feather name="globe" size={12} color="#94A3B8" />
-                <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">Work Mode</Text>
+                <Feather name="globe" size={12} color="#8B857E" />
+                <Text className="text-ink-3 font-display uppercase text-label">Work Mode</Text>
               </View>
               <View className="flex-row gap-3">
                 {MODES.map(m => (
                   <Pressable key={m} onPress={() => setForm(p => ({ ...p, workMode: m }))}
-                    className={`flex-1 py-3.5 rounded-2xl border items-center shadow-sm ${form.workMode === m ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-100'}`}>
-                    <Text className={`text-2xs font-black uppercase tracking-widest ${form.workMode === m ? 'text-white' : 'text-slate-500'}`}>{m}</Text>
+                    className={`flex-1 py-3.5 rounded-card border items-center shadow-hair ${form.workMode === m ? 'bg-ink border-ink' : 'bg-card border-line'}`}>
+                    <Text className={`text-label font-display uppercase ${form.workMode === m ? 'text-white' : 'text-ink-3'}`}>{m}</Text>
                   </Pressable>
                 ))}
               </View>
             </View>
 
             {/* Document Section */}
-            <View className="mb-12 p-6 bg-orange-50 border border-orange-100 rounded-3xl shadow-sm shadow-orange-500/10">
+            <View className="mb-12 p-6 bg-paper-2 border border-line rounded-card shadow-hair">
                <View className="flex-row items-center mb-4">
-                 <View className="w-8 h-8 bg-white rounded-xl items-center justify-center shadow-sm mr-3">
-                   <Ionicons name="shield-checkmark" size={16} color="#f97316" />
+                 <View className="w-8 h-8 bg-card rounded-xl items-center justify-center shadow-hair mr-3">
+                   <Ionicons name="shield-checkmark" size={16} color="#F97316" />
                  </View>
-                 <Text className="text-slate-900 font-black uppercase text-xs tracking-tight">Integrity Verification</Text>
+                 <Text className="font-semibold text-base text-ink">Integrity Verification</Text>
                </View>
                
                {form.isCurrentlyWorking ? (
                  <View>
-                   <Text className="text-orange-600 text-2xs uppercase font-black tracking-wide mb-3 ml-1">Upload Offer Letter (PDF)</Text>
+                   <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
+                     <Text className="text-accent-text text-label uppercase font-display">Upload Offer Letter (PDF)</Text>
+                     <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                   </View>
                    <Pressable onPress={() => pickDocument('offer')} 
-                     className="bg-white border border-orange-100 p-5 rounded-2xl flex-row items-center justify-between shadow-sm">
+                     className="bg-card border border-brand-100 p-5 rounded-card flex-row items-center justify-between shadow-hair">
                       <View className="flex-row items-center flex-1 pr-4">
-                        <Feather name="file-text" size={18} color="#f97316" />
-                        <Text className="text-slate-900 text-2xs ml-3 font-black uppercase tracking-tight" numberOfLines={1}>
-                          {offerLetter ? offerLetter.name : (existingOfferLetter ? 'Offer Letter Synced ✅' : 'Select PDF Manifest')}
+                        <Feather name="file-text" size={18} color="#F97316" />
+                        <Text className="text-ink text-label ml-3 font-display uppercase" numberOfLines={1}>
+                          {offerLetter ? offerLetter.name : (existingOfferLetter ? 'Offer Letter Synced' : 'Select PDF Manifest')}
                         </Text>
                       </View>
-                      <Feather name="upload" size={16} color="#f97316" />
+                      <Feather name="upload" size={16} color="#F97316" />
                    </Pressable>
                  </View>
                ) : (
                  <View>
-                   <Text className="text-orange-600 text-2xs uppercase font-black tracking-wide mb-3 ml-1">Upload Completion Proof (PDF)</Text>
+                   <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
+                     <Text className="text-accent-text text-label uppercase font-display">Upload Completion Proof (PDF)</Text>
+                     <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                   </View>
                    <Pressable onPress={() => pickDocument('cert')} 
-                     className="bg-white border border-orange-100 p-5 rounded-2xl flex-row items-center justify-between shadow-sm">
+                     className="bg-card border border-brand-100 p-5 rounded-card flex-row items-center justify-between shadow-hair">
                       <View className="flex-row items-center flex-1 pr-4">
-                        <Feather name="award" size={18} color="#f97316" />
-                        <Text className="text-slate-900 text-2xs ml-3 font-black uppercase tracking-tight" numberOfLines={1}>
-                          {completionCertificate ? completionCertificate.name : (existingCertificate ? 'Proof Synced ✅' : 'Select PDF Manifest')}
+                        <Feather name="award" size={18} color="#F97316" />
+                        <Text className="text-ink text-label ml-3 font-display uppercase" numberOfLines={1}>
+                          {completionCertificate ? completionCertificate.name : (existingCertificate ? 'Proof Synced' : 'Select PDF Manifest')}
                         </Text>
                       </View>
-                      <Feather name="upload" size={16} color="#f97316" />
+                      <Feather name="upload" size={16} color="#F97316" />
                    </Pressable>
                  </View>
                )}
@@ -285,14 +292,14 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
           </ScrollView>
 
           {/* Footer Action */}
-          <View className="p-6 border-t border-slate-50 bg-white shadow-2xl shadow-black">
+          <View className="p-card-pad border-t border-line bg-paper">
             <Pressable onPress={save} disabled={saving}
-              className="bg-slate-900 py-5 rounded-2xl flex-row items-center justify-center shadow-xl shadow-black/20">
-              {saving ? <ActivityIndicator size="small" color="#f97316" />
+              className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md">
+              {saving ? <ActivityIndicator size="small" color="#F97316" />
                 : (
                   <>
                     <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />
-                    <Text className="text-white font-black uppercase text-xs tracking-wide ml-2">
+                    <Text className="text-white font-display uppercase text-xs ml-2">
                       {isEdit ? 'Update Record' : 'Commit Experience'}
                     </Text>
                   </>

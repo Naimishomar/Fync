@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {View, Text, FlatList, ScrollView, TouchableOpacity, ActivityIndicator, StatusBar, TextInput, Modal} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
@@ -45,20 +44,20 @@ const ScoreSlider = ({
     <View className="mb-6">
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-1 mr-3">
-          <Text className="text-slate-800 font-bold text-sm">{criterion.name}</Text>
+          <Text className="text-ink font-semibold text-sm">{criterion.name}</Text>
           {criterion.description && (
-            <Text className="text-slate-500 text-xs mt-0.5">{criterion.description}</Text>
+            <Text className="text-ink-3 text-xs mt-0.5">{criterion.description}</Text>
           )}
         </View>
-        <View className="bg-slate-900 rounded-xl px-3 py-1.5 min-w-[44px] items-center">
-          <Text className="text-white font-extrabold text-base">{value}</Text>
+        <View className="bg-ink rounded-xl px-3 py-1.5 min-w-[44px] items-center">
+          <Text className="text-white font-semibold text-base">{value}</Text>
         </View>
       </View>
 
       {/* Weight badge */}
       <View className="flex-row items-center mb-3">
-        <View className="bg-amber-100 rounded-lg px-2.5 py-1">
-          <Text className="text-amber-700 font-bold text-2xs">
+        <View className="bg-warning/15 rounded-lg px-2.5 py-1">
+          <Text className="font-display text-label text-warning uppercase">
             Weight: {criterion.weightage}%
           </Text>
         </View>
@@ -70,24 +69,10 @@ const ScoreSlider = ({
           <TouchableOpacity
             key={s}
             onPress={() => onChange(s)}
-            className={`w-9 h-9 rounded-xl items-center justify-center border ${value === s
- ? 'bg-slate-900 border-slate-900'
- : s <= 3
- ? 'bg-red-50 border-red-100'
- : s <= 6
- ? 'bg-amber-50 border-amber-100'
- : 'bg-green-50 border-green-100'
- }`}
+            className={`w-9 h-9 rounded-xl items-center justify-center border ${value === s ? 'bg-ink border-ink' : s <= 3 ? 'bg-danger/10 border-danger/15' : s <= 6 ? 'bg-warning/10 border-warning/15' : 'bg-success/10 border-success/15' }`}
           >
             <Text
-              className={`font-bold text-xs ${value === s
- ? 'text-white'
- : s <= 3
- ? 'text-red-500'
- : s <= 6
- ? 'text-amber-600'
- : 'text-green-600'
- }`}
+              className={`font-semibold text-xs ${value === s ? 'text-white' : s <= 3 ? 'text-danger' : s <= 6 ? 'text-warning' : 'text-success' }`}
             >
               {s}
             </Text>
@@ -96,13 +81,13 @@ const ScoreSlider = ({
       </View>
 
       {/* Visual progress */}
-      <View className="mt-3 h-2 bg-slate-100 rounded-full overflow-hidden">
-        <LinearGradient
-          colors={value <= 3 ? ['#f87171', '#ef4444'] : value <= 6 ? ['#fbbf24', '#f59e0b'] : ['#34d399', '#10b981']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
+      <View className="mt-3 h-2 bg-paper-2 rounded-full overflow-hidden">
+        <View
           className="h-full rounded-full"
-          style={{ width: `${value * 10}%` }}
+          style={{
+            width: `${value * 10}%`,
+            backgroundColor: value <= 3 ? '#DC2626' : value <= 6 ? '#B45309' : '#047857',
+          }}
         />
       </View>
     </View>
@@ -118,38 +103,35 @@ const PendingCard = ({
   onScore: (sub: PendingSubmission) => void;
 }) => (
   <View
-    className="bg-white rounded-2xl p-4 mb-3 border border-slate-100"
+    className="bg-card rounded-card p-4 mb-3 border border-line"
     style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 }}
   >
     <View className="flex-row items-start justify-between mb-2">
       <View className="flex-1 mr-3">
-        <Text className="text-slate-900 font-extrabold text-base leading-5">{sub.ProjectName}</Text>
-        {sub.tagline && <Text className="text-slate-500 text-xs mt-0.5" numberOfLines={1}>{sub.tagline}</Text>}
+        <Text className="text-ink font-semibold text-base leading-5">{sub.ProjectName}</Text>
+        {sub.tagline && <Text className="text-ink-3 text-xs mt-0.5" numberOfLines={1}>{sub.tagline}</Text>}
       </View>
-      <View className="bg-amber-100 rounded-xl px-2.5 py-1">
-        <Text className="text-amber-700 font-bold text-2xs">Pending</Text>
+      <View className="bg-warning/15 rounded-xl px-2.5 py-1">
+        <Text className="font-display text-label text-warning uppercase">Pending</Text>
       </View>
     </View>
 
     {sub.team && (
       <View className="flex-row items-center mb-3">
-        <Ionicons name="people-outline" size={12} color="#94a3b8" />
-        <Text className="text-slate-500 text-xs font-semibold ml-1">{sub.team.name}</Text>
+        <Ionicons name="people-outline" size={12} color="#8B857E" />
+        <Text className="text-ink-3 text-xs font-semibold ml-1">{sub.team.name}</Text>
       </View>
     )}
 
     <TouchableOpacity onPress={() => onScore(sub)} activeOpacity={0.88}>
-      <LinearGradient
-        colors={['#f97316', '#ea580c']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
+      <View
         className="rounded-xl"
-      >
+       style={{ backgroundColor: '#F97316' }}>
         <View className="py-3 flex-row items-center justify-center">
-          <Ionicons name="star" size={14} color="white" />
-          <Text className="text-white font-bold text-xs ml-2">Score This</Text>
+          <Ionicons name="star" size={14} color="#12100E" />
+          <Text className="text-ink font-semibold text-xs ml-2">Score This</Text>
         </View>
-      </LinearGradient>
+      </View>
     </TouchableOpacity>
   </View>
 );
@@ -259,7 +241,7 @@ const HackathonJudgePanel = () => {
                 criteria: criteriaScores,
                 feedback,
               });
-              Toast.show({ type: 'success', text1: `Scored ${selectedSub.ProjectName} — ${total}/10 ✅` });
+              Toast.show({ type: 'success', text1: `Scored ${selectedSub.ProjectName} — ${total}/10` });
               setScoringModal(false);
               loadPending(); // Refresh pending list
             } catch (err: any) {
@@ -278,31 +260,31 @@ const HackathonJudgePanel = () => {
   };
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="light-content" />
 
       {/* Header */}
-      <LinearGradient
-        colors={['#0f172a', '#1e293b', '#334155']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+      <View
         className="pb-6 pt-2"
-      >
+       style={{ backgroundColor: '#12100E' }}>
         <SafeAreaView>
           <View className="flex-row items-center px-5 pt-2">
             <TouchableOpacity
               onPress={() => navigation.goBack()}
-              className="w-10 h-10 rounded-2xl bg-white/10 items-center justify-center mr-3"
-            >
+              className="w-11 h-11 items-center justify-center rounded-xl"
+            
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
               <Ionicons name="arrow-back" size={20} color="white" />
             </TouchableOpacity>
             <View className="flex-1">
-              <Text className="text-white text-xl font-extrabold">Judge Panel</Text>
-              <Text className="text-slate-300 text-2xs font-bold">
+              <Text className="text-white text-xl font-display">Judge Panel</Text>
+              <Text className="text-ink-4 text-label font-semibold">
                 Review & Score Submissions
               </Text>
             </View>
-            <TouchableOpacity onPress={loadPending} className="w-10 h-10 rounded-2xl bg-white/10 items-center justify-center">
+            <TouchableOpacity onPress={loadPending} className="w-10 h-10 rounded-card bg-card/10 items-center justify-center" hitSlop={2}>
               <Ionicons name="refresh" size={18} color="white" />
             </TouchableOpacity>
           </View>
@@ -311,39 +293,39 @@ const HackathonJudgePanel = () => {
           <View className="flex-row px-5 mt-5 gap-3">
             <TouchableOpacity
               onPress={() => setActiveTab('pending')}
-              className={`flex-1 rounded-2xl px-4 py-3 border ${activeTab === 'pending' ? 'bg-white border-white' : 'bg-white/10 border-white/10'}`}
+              className={`flex-1 rounded-card px-4 py-3 border ${activeTab === 'pending' ? 'bg-card border-white' : 'bg-card/10 border-white/10'}`}
             >
-              <Text className={`text-center font-bold text-2xs ${activeTab === 'pending' ? 'text-slate-900' : 'text-white/60'}`}>
+              <Text className={`text-center font-semibold text-label ${activeTab === 'pending' ? 'text-ink' : 'text-white/60'}`}>
                 To Score ({pending.length})
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setActiveTab('scored')}
-              className={`flex-1 rounded-2xl px-4 py-3 border ${activeTab === 'scored' ? 'bg-white border-white' : 'bg-white/10 border-white/10'}`}
+              className={`flex-1 rounded-card px-4 py-3 border ${activeTab === 'scored' ? 'bg-card border-white' : 'bg-card/10 border-white/10'}`}
             >
-              <Text className={`text-center font-bold text-2xs ${activeTab === 'scored' ? 'text-slate-900' : 'text-white/60'}`}>
+              <Text className={`text-center font-semibold text-label ${activeTab === 'scored' ? 'text-ink' : 'text-white/60'}`}>
                 Scored ({scoredSubmissions.length})
               </Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
-      </LinearGradient>
+      </View>
 
       {/* Content */}
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#f97316" />
+          <ActivityIndicator size="large" color="#F97316" />
         </View>
       ) : activeTab === 'pending' ? (
         pending.length === 0 ? (
-          <View className="flex-1 items-center justify-center px-10">
-            <LinearGradient colors={['#d1fae5', '#a7f3d0']} className="w-24 h-24 rounded-4xl items-center justify-center mb-5">
-              <Ionicons name="checkmark-circle" size={44} color="#10b981" />
-            </LinearGradient>
-            <Text className="text-slate-900 font-extrabold text-xl text-center mb-2">
+          <View className="flex-1 items-center justify-center px-gutter">
+            <View className="w-24 h-24 rounded-sheet items-center justify-center mb-5" style={{ backgroundColor: '#EDE8E0' }}>
+              <Ionicons name="checkmark-circle" size={44} color="#047857" />
+            </View>
+            <Text className="text-ink font-display text-xl text-center mb-2">
               All Scored!
             </Text>
-            <Text className="text-slate-500 text-center font-semibold text-xs">
+            <Text className="text-ink-3 text-center font-semibold text-xs">
               You have scored all submissions for this hackathon.
             </Text>
           </View>
@@ -363,22 +345,22 @@ const HackathonJudgePanel = () => {
           contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
-            <View className="bg-white rounded-2xl p-4 mb-3 border border-slate-100 opacity-80">
+            <View className="bg-card rounded-card p-4 mb-3 border border-line opacity-80">
               <View className="flex-row items-center justify-between mb-2">
-                <Text className="text-slate-900 font-bold flex-1 mr-2">{item.submission?.ProjectName || 'Unknown Project'}</Text>
+                <Text className="text-ink font-semibold flex-1 mr-2">{item.submission?.ProjectName || 'Unknown Project'}</Text>
                 <View className="bg-brand-50 px-2 py-1 rounded-lg">
-                  <Text className="text-brand-600 font-bold text-xs">{item.totalScore}/10</Text>
+                  <Text className="text-brand-600 font-semibold text-xs">{item.totalScore}/10</Text>
                 </View>
               </View>
               <TouchableOpacity onPress={() => openScoring(item)}>
-                <Text className="text-brand-600 font-bold text-2xs text-right">Edit Score →</Text>
+                <Text className="text-brand-600 font-semibold text-label text-right">Edit Score →</Text>
               </TouchableOpacity>
             </View>
           )}
           ListEmptyComponent={() => (
             <View className="flex-1 items-center justify-center mt-20">
-              <Ionicons name="star-outline" size={48} color="#cbd5e1" />
-              <Text className="text-slate-500 font-bold mt-4">No scored items yet</Text>
+              <Ionicons name="star-outline" size={48} color="#C4BEB6" />
+              <Text className="text-ink-3 font-semibold mt-4">No scored items yet</Text>
             </View>
           )}
         />
@@ -386,18 +368,18 @@ const HackathonJudgePanel = () => {
 
       {/* Scoring Modal */}
       <Modal visible={scoringModal} animationType="slide" presentationStyle="pageSheet">
-        <View className="flex-1 bg-[#F8FAFC]">
+        <View className="flex-1 bg-paper">
           <SafeAreaView className="flex-1">
             {/* Modal Header */}
-            <View className="flex-row items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 bg-white">
+            <View className="flex-row items-center justify-between px-5 pt-4 pb-3 border-b border-line bg-card">
               <View className="flex-1 mr-4">
-                <Text className="text-slate-900 font-extrabold text-lg" numberOfLines={1}>
+                <Text className="text-ink font-display text-lg" numberOfLines={1}>
                   {selectedSub?.ProjectName}
                 </Text>
-                <Text className="text-slate-500 text-2xs font-bold">Score Submission</Text>
+                <Text className="text-ink-3 text-label font-semibold">Score Submission</Text>
               </View>
               <TouchableOpacity onPress={() => setScoringModal(false)}>
-                <Ionicons name="close" size={24} color="#64748b" />
+                <Ionicons name="close" size={24} color="#8B857E" />
               </TouchableOpacity>
             </View>
 
@@ -407,16 +389,15 @@ const HackathonJudgePanel = () => {
               showsVerticalScrollIndicator={false}
             >
               {/* Total score preview */}
-              <LinearGradient
-                colors={['#ffedd5', '#ffedd5']}
-                className="rounded-2xl px-5 py-4 mb-6 flex-row items-center justify-between"
-              >
+              <View
+                className="rounded-card px-5 py-4 mb-6 flex-row items-center justify-between"
+               style={{ backgroundColor: '#EDE8E0' }}>
                 <View>
-                  <Text className="text-brand-600 text-2xs font-bold">Weighted Total</Text>
-                  <Text className="text-slate-900 font-extrabold text-3xl">{computeTotalScore()}<Text className="text-slate-500 text-lg">/10</Text></Text>
+                  <Text className="text-brand-600 text-label font-semibold">Weighted Total</Text>
+                  <Text className="text-ink font-display text-3xl">{computeTotalScore()}<Text className="text-ink-3 text-lg">/10</Text></Text>
                 </View>
-                <Ionicons name="star" size={32} color="#f97316" />
-              </LinearGradient>
+                <Ionicons name="star" size={32} color="#F97316" />
+              </View>
 
               {/* Per-criteria scoring */}
               {parsedCriteria.length > 0 ? (
@@ -443,18 +424,18 @@ const HackathonJudgePanel = () => {
 
               {/* Feedback */}
               <View className="mb-6">
-                <Text className="text-slate-500 text-2xs font-bold mb-2">
-                  Feedback <Text className="text-slate-300">(optional)</Text>
+                <Text className="text-ink-3 text-label font-semibold mb-2">
+                  Feedback <Text className="text-ink-4">(optional)</Text>
                 </Text>
                 <TextInput
                   value={feedback}
                   onChangeText={setFeedback}
                   placeholder="What did you think? Constructive feedback helps teams grow..."
-                  placeholderTextColor="#94a3b8"
+                  placeholderTextColor="#8B857E"
                   multiline
                   numberOfLines={4}
                   textAlignVertical="top"
-                  className="bg-white rounded-2xl px-4 py-3.5 text-slate-900 font-semibold border border-slate-200 h-28"
+                  className="bg-card px-4 py-3.5 text-ink font-semibold border-[1.5px] border-ink h-28 rounded-md"
                 />
               </View>
 
@@ -462,22 +443,22 @@ const HackathonJudgePanel = () => {
             </ScrollView>
 
             {/* Submit */}
-            <View className="px-5 pb-8 pt-4 bg-white border-t border-slate-100">
+            <View className="px-5 pb-8 pt-4 bg-card border-t border-line">
               <TouchableOpacity onPress={submitScore} disabled={submitting} activeOpacity={0.88}>
-                <LinearGradient colors={['#f97316', '#ea580c']} className="rounded-2xl">
+                <View className="rounded-card" style={{ backgroundColor: '#F97316' }}>
                   <View className="py-4 flex-row items-center justify-center">
                     {submitting ? (
                       <ActivityIndicator size="small" color="white" />
                     ) : (
                       <>
                         <Ionicons name="star" size={16} color="white" />
-                        <Text className="text-white font-bold text-sm ml-2">
+                        <Text className="text-white font-semibold text-sm ml-2">
                           Submit Score — {computeTotalScore()}/10
                         </Text>
                       </>
                     )}
                   </View>
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             </View>
           </SafeAreaView>

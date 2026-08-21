@@ -49,24 +49,28 @@ const MovieSearch = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
+    <SafeAreaView className="flex-1 bg-ink">
       <View className="px-4 py-4 flex-row items-center gap-3">
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => navigation.goBack()}
+            className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        <View className="flex-1 bg-slate-900 rounded-full flex-row items-center px-4 py-2 border border-slate-800">
-          <Ionicons name="search" size={20} color="#9ca3af" />
+        <View className="flex-1 bg-ink rounded-full flex-row items-center px-4 py-2 border border-ink">
+          <Ionicons name="search" size={20} color="#C4BEB6" />
           <TextInput
             autoFocus
             placeholder="Search movies, trailers..."
-            placeholderTextColor="#6b7280"
+            placeholderTextColor="#8B857E"
             className="flex-1 ml-2 text-white text-base"
             value={query}
             onChangeText={setQuery}
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={() => setQuery('')}>
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+              <Ionicons name="close-circle" size={20} color="#C4BEB6" />
             </TouchableOpacity>
           )}
         </View>
@@ -74,7 +78,7 @@ const MovieSearch = () => {
 
       {loading ? (
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#e11d48" />
+          <ActivityIndicator size="large" color="#DB2777" />
         </View>
       ) : (
         <FlatList
@@ -95,13 +99,13 @@ const MovieSearch = () => {
           ListEmptyComponent={
             query.length > 2 ? (
               <View className="flex-1 items-center mt-20">
-                <Ionicons name="film-outline" size={64} color="#1f2937" />
-                <Text className="text-slate-500 mt-4 text-lg">No movies found for "{query}"</Text>
+                <Ionicons name="film-outline" size={64} color="#57534E" />
+                <Text className="text-ink-3 mt-4 text-lg">No movies found for "{query}"</Text>
               </View>
             ) : (
               <View className="flex-1 items-center mt-20">
-                <Ionicons name="search-outline" size={64} color="#1f2937" />
-                <Text className="text-slate-500 mt-4 text-lg text-center px-10">
+                <Ionicons name="search-outline" size={64} color="#57534E" />
+                <Text className="text-ink-3 mt-4 text-lg text-center px-gutter">
                   Search for your favorite movies and watch their trailers.
                 </Text>
               </View>

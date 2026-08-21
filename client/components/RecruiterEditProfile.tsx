@@ -130,24 +130,28 @@ export default function RecruiterEditProfile() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-paper">
       <StatusBar style="dark" />
 
       {/* Header */}
-      <View className="flex-row items-center justify-between px-5 py-4 border-b border-slate-50">
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="close" size={24} color="#1f2937" />
+      <View className="flex-row items-center justify-between px-5 py-4 border-b border-line">
+        <TouchableOpacity onPress={() => navigation.goBack()}
+            className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+          <Ionicons name="close" size={24} color="#57534E" />
         </TouchableOpacity>
-        <Text className="text-slate-900 font-black  uppercase text-xs tracking-wide">Global Profile Settings</Text>
+        <Text className="font-semibold text-base text-ink">Global Profile Settings</Text>
         <TouchableOpacity
           onPress={handleUpdate}
           disabled={loading || !hasChanges}
-          className={`bg-indigo-600 px-5 py-2 rounded-xl shadow-sm ${(!hasChanges || loading) ? 'opacity-50' : ''}`}
+          className={`bg-recruiter px-5 py-2 rounded-xl shadow-hair ${(!hasChanges || loading) ? 'opacity-50' : ''}`}
         >
           {loading ? (
             <ActivityIndicator size="small" color="white" />
           ) : (
-            <Text className="text-white font-black  uppercase text-2xs tracking-wide">Save</Text>
+            <Text className="text-white font-display uppercase text-label">Save</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -155,39 +159,39 @@ export default function RecruiterEditProfile() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
 
         {/* Banner Section */}
-        <TouchableOpacity onPress={() => pickImage('banner')} className="w-full h-40 bg-slate-100 relative">
+        <TouchableOpacity onPress={() => pickImage('banner')} className="w-full h-40 bg-paper-2 relative">
           {banner ? (
             <Image source={{ uri: banner }} className="w-full h-full" resizeMode="cover" />
           ) : (
             <View className="flex-1 items-center justify-center">
-              <Ionicons name="image-outline" size={32} color="#94a3b8" />
-              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-2">Add Banner</Text>
+              <Ionicons name="image-outline" size={32} color="#8B857E" />
+              <Text className="text-ink-3 text-label font-display uppercase mt-2">Add Banner</Text>
             </View>
           )}
-          <View className="absolute bottom-3 right-3 bg-white/90 p-2 rounded-full shadow-md">
-            <Ionicons name="camera" size={18} color="#6366f1" />
+          <View className="absolute bottom-3 right-3 bg-card/90 p-2 rounded-full shadow-hair">
+            <Ionicons name="camera" size={18} color="#4F46E5" />
           </View>
         </TouchableOpacity>
 
         {/* Avatar / Logo Section */}
         <View className="items-center -mt-12">
-          <TouchableOpacity onPress={() => pickImage('avatar')} className="p-1.5 bg-white rounded-full shadow-lg">
+          <TouchableOpacity onPress={() => pickImage('avatar')} className="p-1.5 bg-card rounded-full shadow-hair">
             <Image
               source={{ uri: avatar || 'https://ui-avatars.com/api/?name=Company' }}
-              className="h-24 w-24 rounded-full bg-slate-100"
+              className="h-24 w-24 rounded-full bg-paper-2"
             />
-            <View className="absolute bottom-1 right-1 bg-indigo-600 p-1.5 rounded-full border-2 border-white">
+            <View className="absolute bottom-1 right-1 bg-recruiter p-1.5 rounded-full border-2 border-paper">
               <Ionicons name="pencil" size={14} color="white" />
             </View>
           </TouchableOpacity>
-          <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-3">Company Logo / Profile</Text>
+          <Text className="text-ink-3 text-label font-display uppercase mt-3">Company Logo / Profile</Text>
         </View>
 
         <View className="px-5 mt-8 pb-10 gap-6">
 
           {/* Section: Company Details */}
           <View>
-            <SectionHeader title="Corporate Identity" icon="business" color="#6366f1" />
+            <SectionHeader title="Corporate Identity" icon="business" color="#4F46E5" />
             <View className="gap-4">
               <InputGroup label="Company Name" value={company} onChange={setCompany} placeholder="e.g. Acme Corp" />
               <InputGroup label="Company Website" value={companyWebsite} onChange={setCompanyWebsite} placeholder="https://acme.org" keyboardType="url" />
@@ -205,15 +209,18 @@ export default function RecruiterEditProfile() {
 
           {/* Section: Your Professional Role */}
           <View>
-            <SectionHeader title="Professional Identity" icon="person-circle" color="#10b981" />
+            <SectionHeader title="Professional Identity" icon="person-circle" color="#047857" />
             <View className="gap-4">
               <InputGroup label="Your Name" value={name} onChange={setName} placeholder="Your full name" />
               <InputGroup label="Role / Designation" value={role} onChange={setRole} placeholder="e.g. Head of Talent" />
 
               <View>
-                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-1.5 ml-1">Username (Fixed)</Text>
-                <View className="bg-slate-100 p-4 rounded-2xl border border-slate-200">
-                  <Text className="text-slate-500 font-bold text-sm">@{user?.username}</Text>
+                <View className="flex-row items-center mt-6 mb-1.5" style={{ gap: 12 }}>
+                  <Text className="text-ink-3 text-label font-display uppercase">Username (Fixed)</Text>
+                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                </View>
+                <View className="bg-paper-2 p-4 rounded-card border border-line">
+                  <Text className="text-ink-3 font-semibold text-sm">@{user?.username}</Text>
                 </View>
               </View>
             </View>
@@ -221,13 +228,13 @@ export default function RecruiterEditProfile() {
 
           {/* Section: Professional Links */}
           <View>
-            <SectionHeader title="Presence" icon="share-social" color="#ef4444" />
+            <SectionHeader title="Presence" icon="share-social" color="#DC2626" />
             <InputGroup label="LinkedIn Company/Personal URL" value={linkedinId} onChange={setLinkedinId} placeholder="https://linkedin.com/..." />
           </View>
 
           {/* Section: About Company */}
           <View>
-            <SectionHeader title="About the Organization" icon="document-text" color="#f59e0b" />
+            <SectionHeader title="About the Organization" icon="document-text" color="#B45309" />
             <InputGroup
               label="Company Overview"
               value={about}
@@ -247,19 +254,19 @@ const SectionHeader = ({ title, icon, color }: any) => (
   <View className="flex-row items-center gap-2 mb-4">
     <View className="w-1 h-5 rounded-full" style={{ backgroundColor: color }} />
     <Ionicons name={icon} size={16} color={color} />
-    <Text className="text-slate-900 font-black  uppercase text-2xs tracking-wide">{title}</Text>
+    <Text className="text-ink font-display uppercase text-label">{title}</Text>
   </View>
 );
 
 const InputGroup = ({ label, value, onChange, placeholder, multiline = false, keyboardType = 'default' }: any) => (
   <View>
-    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-1.5 ml-1">{label}</Text>
+    <Text className="text-ink-3 text-label font-display uppercase mb-1.5 ml-1">{label}</Text>
     <TextInput
       value={value}
       onChangeText={onChange}
-      className={`bg-slate-50 text-slate-900 p-4 rounded-2xl text-sm font-bold border border-slate-100 ${multiline ? 'min-h-[100px]' : ''}`}
+      className={`bg-paper-2 text-ink p-4 rounded-card text-sm font-semibold border border-line ${multiline ? 'min-h-[100px]' : ''}`}
       placeholder={placeholder}
-      placeholderTextColor="#94a3b8"
+      placeholderTextColor="#8B857E"
       multiline={multiline}
       keyboardType={keyboardType as any}
       textAlignVertical={multiline ? 'top' : 'center'}

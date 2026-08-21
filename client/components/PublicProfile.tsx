@@ -252,7 +252,7 @@ const PublicProfile = () => {
                 style={{ width: COLUMN_SIZE, height: isVideo ? COLUMN_SIZE * 1.5 : COLUMN_SIZE }}
             >
                 {isVideo ? (
-                    <View className="flex-1 bg-slate-900 justify-center items-center overflow-hidden">
+                    <View className="flex-1 bg-ink justify-center items-center overflow-hidden">
                         <Video
                             source={{ uri: getFullUrl(item.video) || '' }}
                             style={{ width: '100%', height: '100%' }}
@@ -264,7 +264,7 @@ const PublicProfile = () => {
                         <View className="absolute inset-0 items-center justify-center">
                             <Ionicons name="play-outline" size={28} color="white" style={{ opacity: 0.8 }} />
                         </View>
-                        <Text className="text-white text-2xs font-bold absolute bottom-1.5 left-2 truncate w-[90%] z-20 shadow-sm">
+                        <Text className="text-white text-label font-semibold absolute bottom-1.5 left-2 truncate w-[90%] z-20 shadow-hair">
                             {item.title}
                         </Text>
                     </View>
@@ -272,7 +272,7 @@ const PublicProfile = () => {
                     <>
                         <Image
                             source={{ uri: getFullUrl(item.image?.[0]) || '' }}
-                            className="flex-1 bg-slate-100"
+                            className="flex-1 bg-paper-2"
                             resizeMode="cover"
                         />
 
@@ -280,7 +280,7 @@ const PublicProfile = () => {
                         {item.image && item.image.length > 1 && (
                             <View className="absolute top-2 right-2 bg-black/50 px-2 py-1 rounded-full flex-row items-center gap-1">
                                 <Ionicons name="copy-outline" size={10} color="white" />
-                                <Text className="text-white text-2xs font-bold">{item.image.length}</Text>
+                                <Text className="text-white text-label font-semibold">{item.image.length}</Text>
                             </View>
                         )}
                     </>
@@ -293,9 +293,12 @@ const PublicProfile = () => {
     const AboutSection = () => (
         <View className="px-5 py-6 pb-32">
             {/* About Card */}
-            <View className="bg-white rounded-4xl p-6 border border-slate-100 mb-6 shadow-sm shadow-slate-200">
-                <Text className="text-orange-500 text-xs font-black uppercase mb-3 tracking-wide">About</Text>
-                <Text className="text-slate-600 text-sm font-medium leading-relaxed">
+            <View className="bg-card rounded-sheet p-6 border border-line mb-6 shadow-hair">
+                <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
+                  <Text className="text-accent-text text-xs font-display uppercase">About</Text>
+                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                </View>
+                <Text className="text-ink-2 text-sm font-medium leading-relaxed">
                     {profileUser?.about || "This user prefers to stay mysterious."}
                 </Text>
             </View>
@@ -303,13 +306,16 @@ const PublicProfile = () => {
             {/* Details Grid */}
             <View className="flex-row flex-wrap gap-4 mb-6">
                 {profileUser?.experience && (
-                    <View className="w-full bg-white p-5 rounded-4xl border border-slate-100 flex-row items-center shadow-sm shadow-slate-200">
-                        <View className="bg-orange-50 p-3 rounded-2xl mr-4">
-                            <Ionicons name="briefcase" size={24} color="#f97316" />
+                    <View className="w-full bg-card p-5 rounded-sheet border border-line flex-row items-center shadow-hair">
+                        <View className="bg-brand-50 p-3 rounded-card mr-4">
+                            <Ionicons name="briefcase" size={24} color="#F97316" />
                         </View>
                         <View className="flex-1">
-                            <Text className="text-orange-500 text-2xs font-black uppercase tracking-wide mb-1">Experience</Text>
-                            <Text className="text-slate-700 text-sm font-bold">{profileUser.experience}</Text>
+                            <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
+                              <Text className="text-accent-text text-label font-display uppercase">Experience</Text>
+                              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                            </View>
+                            <Text className="text-ink-2 text-sm font-semibold">{profileUser.experience}</Text>
                         </View>
                     </View>
                 )}
@@ -317,22 +323,25 @@ const PublicProfile = () => {
 
             {/* Tags Collection */}
             {(profileUser?.skills?.length || profileUser?.hobbies || profileUser?.interest) && (
-                <View className="mb-6 bg-white p-6 rounded-4xl border border-slate-100 shadow-sm shadow-slate-200">
-                    <Text className="text-slate-500 text-2xs font-black uppercase mb-4 tracking-wide">Tags & Interests</Text>
+                <View className="mb-6 bg-card p-6 rounded-sheet border border-line shadow-hair">
+                    <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
+                      <Text className="text-ink-3 text-label font-display uppercase">Tags & Interests</Text>
+                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                    </View>
                     <View className="flex-row flex-wrap gap-2">
                         {profileUser?.skills?.map((skill, i) => (
-                            <View key={i} className="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
-                                <Text className="text-slate-600 text-2xs font-black uppercase tracking-tight">{skill}</Text>
+                            <View key={i} className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
+                                <Text className="text-ink-2 text-label font-display uppercase">{skill}</Text>
                             </View>
                         ))}
                         {profileUser?.interest && (
-                            <View className="bg-orange-50 px-4 py-2 rounded-xl border border-orange-100">
-                                <Text className="text-orange-600 text-2xs font-black uppercase tracking-tight">♥ {profileUser.interest}</Text>
+                            <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
+                                <Text className="text-accent-text text-label font-display uppercase"> {profileUser.interest}</Text>
                             </View>
                         )}
                         {profileUser?.hobbies && (
-                            <View className="bg-orange-50 px-4 py-2 rounded-xl border border-orange-100">
-                                <Text className="text-orange-600 text-2xs font-black uppercase tracking-tight">★ {profileUser.hobbies}</Text>
+                            <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
+                                <Text className="text-accent-text text-label font-display uppercase"> {profileUser.hobbies}</Text>
                             </View>
                         )}
                     </View>
@@ -340,7 +349,10 @@ const PublicProfile = () => {
             )}
 
             {/* Social Links */}
-            <Text className="text-slate-500 text-2xs font-black uppercase mb-4 tracking-wide ml-1">Connect</Text>
+            <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
+              <Text className="text-ink-3 text-label font-display uppercase">Connect</Text>
+              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+            </View>
             
             {profileUser?.github_id && (
                 <View className="-mx-5 mb-6">
@@ -354,31 +366,31 @@ const PublicProfile = () => {
 
             <View className="gap-3">
                 {profileUser?.github_id && (
-                    <Pressable onPress={() => Linking.openURL(profileUser.github_id!)} className="flex-row items-center bg-white px-5 py-4 rounded-2xl border border-slate-100 shadow-sm">
-                        <Ionicons name="logo-github" size={24} color="#18181b" />
-                        <Text className="text-slate-900 ml-4 font-black uppercase tracking-tight">GitHub</Text>
-                        <Ionicons name="open-outline" size={18} color="#94a3b8" style={{ marginLeft: 'auto' }} />
+                    <Pressable onPress={() => Linking.openURL(profileUser.github_id!)} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
+                        <Ionicons name="logo-github" size={24} color="#12100E" />
+                        <Text className="text-ink ml-4 font-display uppercase">GitHub</Text>
+                        <Ionicons name="open-outline" size={18} color="#8B857E" style={{ marginLeft: 'auto' }} />
                     </Pressable>
                 )}
                 {profileUser?.linkedIn_id && (
-                    <Pressable onPress={() => Linking.openURL(profileUser.linkedIn_id!)} className="flex-row items-center bg-white px-5 py-4 rounded-2xl border border-slate-100 shadow-sm">
+                    <Pressable onPress={() => Linking.openURL(profileUser.linkedIn_id!)} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
                         <Ionicons name="logo-linkedin" size={24} color="#0077b5" />
-                        <Text className="text-slate-900 ml-4 font-black uppercase tracking-tight">LinkedIn</Text>
-                        <Ionicons name="open-outline" size={18} color="#94a3b8" style={{ marginLeft: 'auto' }} />
+                        <Text className="text-ink ml-4 font-display uppercase">LinkedIn</Text>
+                        <Ionicons name="open-outline" size={18} color="#8B857E" style={{ marginLeft: 'auto' }} />
                     </Pressable>
                 )}
                 {profileUser?.codingProfiles?.leetcode && (
-                    <Pressable onPress={() => Linking.openURL(`https://leetcode.com/${profileUser.codingProfiles?.leetcode}`)} className="flex-row items-center bg-white px-5 py-4 rounded-2xl border border-slate-100 shadow-sm">
-                        <Image source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png" }} className="w-6 h-6" style={{ tintColor: '#facc15' }} />
-                        <Text className="text-slate-900 ml-4 font-black uppercase tracking-tight">LeetCode</Text>
-                        <Ionicons name="open-outline" size={18} color="#94a3b8" style={{ marginLeft: 'auto' }} />
+                    <Pressable onPress={() => Linking.openURL(`https://leetcode.com/${profileUser.codingProfiles?.leetcode}`)} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
+                        <Image source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png" }} className="w-6 h-6" style={{ tintColor: '#F5B700' }} />
+                        <Text className="text-ink ml-4 font-display uppercase">LeetCode</Text>
+                        <Ionicons name="open-outline" size={18} color="#8B857E" style={{ marginLeft: 'auto' }} />
                     </Pressable>
                 )}
                 {profileUser?.codingProfiles?.gfg && (
-                    <Pressable onPress={() => Linking.openURL(`https://www.geeksforgeeks.org/user/${profileUser.codingProfiles?.gfg}`)} className="flex-row items-center bg-white px-5 py-4 rounded-2xl border border-slate-100 shadow-sm">
+                    <Pressable onPress={() => Linking.openURL(`https://www.geeksforgeeks.org/user/${profileUser.codingProfiles?.gfg}`)} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
                         <Image source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/4/43/GeeksforGeeks.svg" }} className="w-6 h-6" />
-                        <Text className="text-slate-900 ml-4 font-black uppercase tracking-tight">GeeksForGeeks</Text>
-                        <Ionicons name="open-outline" size={18} color="#94a3b8" style={{ marginLeft: 'auto' }} />
+                        <Text className="text-ink ml-4 font-display uppercase">GeeksForGeeks</Text>
+                        <Ionicons name="open-outline" size={18} color="#8B857E" style={{ marginLeft: 'auto' }} />
                     </Pressable>
                 )}
             </View>
@@ -404,7 +416,7 @@ const PublicProfile = () => {
         }, [profileUser]);
 
         return (
-            <ScrollView className="flex-1 bg-slate-50" showsVerticalScrollIndicator={false}>
+            <ScrollView className="flex-1 bg-paper" showsVerticalScrollIndicator={false}>
                 {/* Banner & Actions */}
                 <View className="h-48 w-full relative">
                     <ExpoImage
@@ -415,8 +427,11 @@ const PublicProfile = () => {
                     <View className="absolute inset-0 bg-black/30" />
                     <TouchableOpacity
                         onPress={() => navigation.goBack()}
-                        className="absolute top-12 left-4 bg-white/20 p-2 rounded-full"
-                    >
+                        className="w-11 h-11 items-center justify-center rounded-xl top-12 left-4"
+                    
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
                         <Ionicons name="chevron-back" size={24} color="white" />
                     </TouchableOpacity>
                 </View>
@@ -424,59 +439,59 @@ const PublicProfile = () => {
                 {/* Info Card Overlay */}
                 <View className="px-5 -mt-12 pb-6">
                     <View className="flex-row items-end justify-between">
-                        <View className="p-1.5 bg-white rounded-full shadow-xl">
+                        <View className="p-1.5 bg-card rounded-full shadow-hair">
                             <Avatar user={profileUser as any} size={100} />
                         </View>
                         <View className="flex-row gap-2 mb-2">
-                            <TouchableOpacity onPress={startChat} className="bg-slate-900 px-6 py-2.5 rounded-2xl flex-row items-center gap-2">
+                            <TouchableOpacity onPress={startChat} className="bg-ink px-6 py-2.5 flex-row items-center gap-2 border-2 border-ink rounded-md">
                                 <Ionicons name="chatbubble-ellipses-outline" size={18} color="white" />
-                                <Text className="text-white font-black uppercase text-2xs tracking-wide">Message</Text>
+                                <Text className="text-white font-display uppercase text-label">Message</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
 
                     <View className="mt-4">
                         <View className="flex-row items-center gap-2">
-                            <Text className="text-2xl font-black text-slate-900  uppercase">
+                            <Text className="text-2xl font-display text-ink uppercase">
                                 {(profileUser as any)?.company || profileUser?.name}
                             </Text>
-                            <MaterialCommunityIcons name="check-decagram" size={22} color="#6366f1" />
+                            <MaterialCommunityIcons name="check-decagram" size={22} color="#4F46E5" />
                         </View>
-                        <Text className="text-slate-500 font-bold text-xs uppercase tracking-wide mt-1">
+                        <Text className="text-ink-3 font-semibold text-xs uppercase mt-1">
                             {(profileUser as any)?.industry || 'Corporate Partner'} • {(profileUser as any)?.companySize || 'Growing Team'}
                         </Text>
                     </View>
 
                     {/* Quick Stats */}
-                    <View className="flex-row bg-slate-900 rounded-3xl p-5 mt-6 shadow-xl border border-slate-800">
-                        <View className="flex-1 items-center border-r border-slate-800">
-                            <Text className="text-white text-xl font-black ">{recruiterStats.active}</Text>
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">Active Roles</Text>
+                    <View className="flex-row bg-ink rounded-card p-5 mt-6 shadow-hair border border-ink">
+                        <View className="flex-1 items-center border-r border-ink">
+                            <Text className="text-white text-xl font-display">{recruiterStats.active}</Text>
+                            <Text className="text-ink-3 text-label font-display uppercase mt-1">Active Roles</Text>
                         </View>
                         <View className="flex-1 items-center">
-                            <Text className="text-white text-xl font-black ">{recruiterStats.total}</Text>
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">Total Posts</Text>
+                            <Text className="text-white text-xl font-display">{recruiterStats.total}</Text>
+                            <Text className="text-ink-3 text-label font-display uppercase mt-1">Total Posts</Text>
                         </View>
                     </View>
 
                     {/* About */}
-                    <View className="mt-8 bg-white p-6 rounded-4xl border border-slate-100 shadow-sm">
+                    <View className="mt-8 bg-card p-6 rounded-sheet border border-line shadow-hair">
                         <View className="flex-row items-center gap-2 mb-4">
-                            <View className="w-1 h-5 rounded-full bg-indigo-500" />
-                            <Text className="text-slate-900 font-black  uppercase text-xs tracking-wide">About Organization</Text>
+                            <View className="w-1 h-5 rounded-full bg-recruiter" />
+                            <Text className="font-semibold text-base text-ink">About Organization</Text>
                         </View>
-                        <Text className="text-slate-500 text-xs leading-5 ">
+                        <Text className="text-ink-3 text-xs leading-5">
                             {profileUser?.about || "We're committed to finding the best talent and building the future of innovation."}
                         </Text>
 
                         <View className="gap-4 mt-6">
                             <View className="flex-row items-center gap-4">
-                                <View className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center">
-                                    <Ionicons name="location-outline" size={20} color="#ef4444" />
+                                <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center">
+                                    <Ionicons name="location-outline" size={20} color="#DC2626" />
                                 </View>
                                 <View>
-                                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Headquarters</Text>
-                                    <Text className="text-slate-900 font-bold text-sm tracking-tight">{(profileUser as any)?.college || 'India (Remote)'}</Text>
+                                    <Text className="text-ink-3 text-label font-display uppercase">Headquarters</Text>
+                                    <Text className="text-ink font-semibold text-sm">{(profileUser as any)?.college || 'India (Remote)'}</Text>
                                 </View>
                             </View>
                             {(profileUser as any)?.companyWebsite && (
@@ -484,12 +499,12 @@ const PublicProfile = () => {
                                     onPress={() => Linking.openURL((profileUser as any).companyWebsite)}
                                     className="flex-row items-center gap-4"
                                 >
-                                    <View className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center">
-                                        <Ionicons name="globe-outline" size={20} color="#6366f1" />
+                                    <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center">
+                                        <Ionicons name="globe-outline" size={20} color="#4F46E5" />
                                     </View>
                                     <View>
-                                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Official Website</Text>
-                                        <Text className="text-indigo-600 font-bold text-sm tracking-tight underline">Visit Page</Text>
+                                        <Text className="text-ink-3 text-label font-display uppercase">Official Website</Text>
+                                        <Text className="text-recruiter font-semibold text-sm underline">Visit Page</Text>
                                     </View>
                                 </TouchableOpacity>
                             )}
@@ -500,18 +515,18 @@ const PublicProfile = () => {
                     <View className="flex-row gap-3 mt-8">
                         <TouchableOpacity
                             onPress={() => navigation.navigate('InternshipList', { recruiterId: profileUser?._id })}
-                            className="flex-1 bg-pink-600 p-4 rounded-2xl items-center shadow-lg shadow-pink-200"
+                            className="flex-1 bg-brand-600 p-4 rounded-card items-center shadow-hair"
                         >
                             <Ionicons name="school-outline" size={20} color="white" className="mb-1" />
-                            <Text className="text-white font-black  uppercase text-2xs tracking-wide">View Internships</Text>
+                            <Text className="text-white font-display uppercase text-label">View Internships</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
                             onPress={() => navigation.navigate('JobList', { recruiterId: profileUser?._id })}
-                            className="flex-1 bg-slate-900 p-4 rounded-2xl items-center shadow-lg shadow-slate-200"
+                            className="flex-1 bg-ink p-4 rounded-card items-center shadow-hair"
                         >
                             <Ionicons name="briefcase-outline" size={20} color="white" className="mb-1" />
-                            <Text className="text-white font-black  uppercase text-2xs tracking-wide">View Job Openings</Text>
+                            <Text className="text-white font-display uppercase text-label">View Job Openings</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -530,10 +545,13 @@ const PublicProfile = () => {
     }
 
     return (
-        <View className="flex-1 bg-slate-50">
+        <View className="flex-1 bg-paper">
             {/* Back Button Overlay */}
             <View className="absolute top-12 left-4 z-20">
-                <Pressable onPress={() => navigation.goBack()} className="bg-black/30 p-2.5 rounded-full backdrop-blur-md">
+                <Pressable onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl p-2.5 backdrop-blur-md"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
                     <Ionicons name="arrow-back" size={24} color="white" />
                 </Pressable>
             </View>
@@ -558,42 +576,42 @@ const PublicProfile = () => {
                         </View>
 
                         {/* Top Profile Card */}
-                        <View className="items-center pb-6 px-5 bg-white rounded-t-5xl -mt-12 shadow-2xl">
-                            <View className="-mt-14 p-1.5 bg-white rounded-full shadow-2xl">
+                        <View className="items-center pb-6 px-5 bg-paper rounded-t-sheet -mt-12 shadow-hair">
+                            <View className="-mt-14 p-1.5 bg-card rounded-full shadow-hair">
                                 <View className="rounded-full overflow-hidden border-4 border-white">
                                     <Avatar user={profileUser as any} size={110} />
                                 </View>
                             </View>
 
                             {/* Name + username */}
-                            <Text className="text-3xl font-black text-slate-900 tracking-tight mt-4">
+                            <Text className="font-display text-ink mt-4 text-h1">
                                 {profileUser?.name || profileUser?.username}
                             </Text>
-                            <Text className="text-orange-500 font-black text-sm tracking-widest mt-1">
+                            <Text className="text-accent-text font-display text-sm mt-1">
                                 @{profileUser?.username}
                             </Text>
                             
-                            <Text className="text-slate-500 text-center mt-4 px-6 text-sm leading-[22px] font-medium">
-                                {profileUser?.about || "Ready to connect and collaborate 🚀"}
+                            <Text className="text-ink-3 text-center mt-4 px-6 text-sm leading-[22px] font-medium">
+                                {profileUser?.about || "Ready to connect and collaborate"}
                             </Text>
 
-                            <View className="flex-row items-center mt-4 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100 gap-2">
-                                <Ionicons name="location" size={16} color="#f97316" />
-                                <Text className="text-slate-900 text-xs font-black uppercase tracking-wider">{profileUser?.college || 'Earth'}</Text>
+                            <View className="flex-row items-center mt-4 px-4 py-2 bg-paper-2 rounded-card border border-line gap-2">
+                                <Ionicons name="location" size={16} color="#F97316" />
+                                <Text className="font-semibold text-base text-ink">{profileUser?.college || 'Earth'}</Text>
                             </View>
 
                             {/* Stats Dashboard */}
-                            <View className="flex-row w-full bg-slate-900 rounded-4xl mt-6 p-6 shadow-xl shadow-slate-300">
+                            <View className="flex-row w-full bg-ink rounded-sheet mt-6 p-6 shadow-hair">
                                 {[
                                     { label: 'Posts', value: posts.length },
                                     { label: 'Followers', value: profileUser?.followers?.length || 0, onPress: () => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "followers" }) },
                                     { label: 'Following', value: profileUser?.following?.length || 0, onPress: () => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "following" }) },
                                 ].map((s, i) => (
                                     <React.Fragment key={i}>
-                                        {i > 0 && <View className="w-[1px] h-8 self-center bg-white/10" />}
+                                        {i > 0 && <View className="w-[1px] h-8 self-center bg-card/10" />}
                                         <Pressable className="items-center flex-1" onPress={s.onPress}>
-                                            <Text className="text-xl font-black text-white">{s.value}</Text>
-                                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">{s.label}</Text>
+                                            <Text className="text-xl font-display text-white">{s.value}</Text>
+                                            <Text className="text-ink-3 text-label font-display uppercase mt-1">{s.label}</Text>
                                         </Pressable>
                                     </React.Fragment>
                                 ))}
@@ -604,32 +622,32 @@ const PublicProfile = () => {
                                 <View className="flex-row gap-3 mt-6 w-full">
                                     <Pressable
                                         onPress={handleFollowToggle}
-                                        className={`flex-1 py-4 rounded-3xl items-center justify-center border shadow-lg ${isFollowing ? 'bg-white border-slate-200 shadow-slate-200' : 'bg-orange-500 border-orange-500 shadow-orange-500/30'}`}
+                                        className={`flex-1 py-4 rounded-card items-center justify-center border shadow-hair ${isFollowing ? 'bg-card border-line ' : 'bg-brand-500 border-brand-500 '}`}
                                     >
-                                        <Text className={`font-black uppercase tracking-widest text-xs ${isFollowing ? 'text-slate-500' : 'text-white'}`}>
+                                        <Text className={`font-display uppercase text-sm ${isFollowing ? 'text-ink-3' : 'text-ink'}`}>
                                             {isFollowing ? "Following" : "Follow"}
                                         </Text>
                                     </Pressable>
                                     <Pressable
                                         onPress={startChat}
-                                        className="flex-1 bg-slate-900 py-4 rounded-3xl items-center justify-center border border-slate-900 shadow-lg shadow-slate-900/30"
+                                        className="flex-1 bg-ink py-4 items-center justify-center border-2 border-ink rounded-md"
                                     >
-                                        <Text className="text-white font-black uppercase tracking-wide text-xs">Message</Text>
+                                        <Text className="text-white font-display uppercase text-xs">Message</Text>
                                     </Pressable>
                                 </View>
                             )}
                         </View>
 
                         {/* Custom Tab Bar */}
-                        <View className="flex-row border-b border-slate-100 bg-white">
-                            <Pressable onPress={() => setActiveTab('posts')} className={`flex-1 items-center pb-4 pt-4 ${activeTab === 'posts' ? 'border-b-[3px] border-orange-500' : ''}`}>
-                                <Ionicons name="grid" size={22} color={activeTab === 'posts' ? '#f97316' : '#94a3b8'} />
+                        <View className="flex-row border-b border-line bg-card">
+                            <Pressable onPress={() => setActiveTab('posts')} className={`flex-1 items-center pb-4 pt-4 ${activeTab === 'posts' ? 'border-b-[3px] border-brand-500' : ''}`}>
+                                <Ionicons name="grid" size={22} color={activeTab === 'posts' ? '#F97316' : '#8B857E'} />
                             </Pressable>
-                            <Pressable onPress={() => setActiveTab('shorts')} className={`flex-1 items-center pb-4 pt-4 ${activeTab === 'shorts' ? 'border-b-[3px] border-orange-500' : ''}`}>
-                                <Ionicons name="videocam" size={24} color={activeTab === 'shorts' ? '#f97316' : '#94a3b8'} />
+                            <Pressable onPress={() => setActiveTab('shorts')} className={`flex-1 items-center pb-4 pt-4 ${activeTab === 'shorts' ? 'border-b-[3px] border-brand-500' : ''}`}>
+                                <Ionicons name="videocam" size={24} color={activeTab === 'shorts' ? '#F97316' : '#8B857E'} />
                             </Pressable>
-                            <Pressable onPress={() => setActiveTab('tags')} className={`flex-1 items-center pb-4 pt-4 ${activeTab === 'tags' ? 'border-b-[3px] border-orange-500' : ''}`}>
-                                <MaterialCommunityIcons name="account-details" size={26} color={activeTab === 'tags' ? '#f97316' : '#94a3b8'} />
+                            <Pressable onPress={() => setActiveTab('tags')} className={`flex-1 items-center pb-4 pt-4 ${activeTab === 'tags' ? 'border-b-[3px] border-brand-500' : ''}`}>
+                                <MaterialCommunityIcons name="account-details" size={26} color={activeTab === 'tags' ? '#F97316' : '#8B857E'} />
                             </Pressable>
                         </View>
                     </View>
@@ -640,18 +658,18 @@ const PublicProfile = () => {
                 }}
                 ListFooterComponent={
                     isFetchingMore ? (
-                        <View className="py-4 bg-white">
-                            <ActivityIndicator size="small" color="#f97316" />
+                        <View className="py-4 bg-card">
+                            <ActivityIndicator size="small" color="#F97316" />
                         </View>
                     ) : null
                 }
                 ListEmptyComponent={
-                    <View className="items-center mt-20 opacity-50 bg-slate-50">
-                        <Ionicons name={activeTab === 'shorts' ? "videocam-off-outline" : "images-outline"} size={48} color="#cbd5e1" />
-                        <Text className="text-slate-500 mt-2 font-bold uppercase tracking-wide text-2xs">Nothing to see here</Text>
+                    <View className="items-center mt-20 opacity-50 bg-paper-2">
+                        <Ionicons name={activeTab === 'shorts' ? "videocam-off-outline" : "images-outline"} size={48} color="#C4BEB6" />
+                        <Text className="text-ink-3 mt-2 font-semibold uppercase text-label">Nothing to see here</Text>
                     </View>
                 }
-                className="bg-slate-50"
+                className="bg-paper-2"
             />
 
             {/* Light Modal */}
@@ -660,23 +678,23 @@ const PublicProfile = () => {
                     <Pressable style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} onPress={() => setModalVisible(false)} />
 
                     {selectedItem && (
-                        <View className="w-full bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-2xl">
-                            <View className="w-full h-96 bg-slate-100 justify-center items-center relative">
+                        <View className="w-full bg-card rounded-card overflow-hidden border border-line shadow-hair">
+                            <View className="w-full h-96 bg-paper-2 justify-center items-center relative">
                                 {activeTab === 'shorts' ? (
                                     <View className="items-center">
-                                        <Ionicons name="play-circle" size={64} color="#f97316" />
-                                        <Text className="text-slate-500 mt-2 font-bold uppercase tracking-wide text-2xs">PREVIEW MODE</Text>
+                                        <Ionicons name="play-circle" size={64} color="#F97316" />
+                                        <Text className="text-ink-3 mt-2 font-semibold uppercase text-label">PREVIEW MODE</Text>
                                     </View>
                                 ) : (
                                     <Image source={{ uri: getFullUrl(selectedItem.image ? selectedItem.image[0] : '') || '' }} className="w-full h-full" resizeMode="cover" />
                                 )}
-                                <Pressable onPress={() => setModalVisible(false)} className="absolute top-4 right-4 bg-white/80 p-2 rounded-full">
-                                    <Ionicons name="close" size={20} color="#18181b" />
+                                <Pressable onPress={() => setModalVisible(false)} className="absolute top-4 right-4 bg-card/80 p-2 rounded-full">
+                                    <Ionicons name="close" size={20} color="#12100E" />
                                 </Pressable>
                             </View>
                             <View className="p-5">
-                                {activeTab === 'shorts' && <Text className="text-lg font-black text-slate-900 mb-2 uppercase">{selectedItem.title}</Text>}
-                                <Text className="text-slate-500 font-medium leading-6">{selectedItem.description || "No caption."}</Text>
+                                {activeTab === 'shorts' && <Text className="text-lg font-display text-ink mb-2 uppercase">{selectedItem.title}</Text>}
+                                <Text className="text-ink-3 font-medium leading-6">{selectedItem.description || "No caption."}</Text>
                             </View>
                         </View>
                     )}

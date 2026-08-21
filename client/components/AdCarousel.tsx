@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, FlatList, Image, useWindowDimensions, ActivityIndicator, TouchableOpacity, Linking } from "react-native";
 import axios from "../context/axiosConfig";
 
+import { StampCard } from './ui/kit';
 const AdCarousel = () => {
   const flatListRef = useRef<FlatList>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -53,8 +54,8 @@ const AdCarousel = () => {
 
   if (loading) {
     return (
-      <View style={{ height: imageHeight }} className="items-center justify-center bg-slate-100">
-        <ActivityIndicator color="#ff841fff" />
+      <View style={{ height: imageHeight }} className="items-center justify-center bg-paper-2">
+        <ActivityIndicator color="#F97316" />
       </View>
     );
   }
@@ -72,12 +73,23 @@ const AdCarousel = () => {
         onMomentumScrollEnd={onScrollEnd}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <TouchableOpacity activeOpacity={item.linkUrl ? 0.85 : 1} onPress={() => handleAdPress(item)}>
-            <Image
-              source={{ uri: item.imageUrl }}
-              style={{ width, height: imageHeight }}
-              resizeMode="cover"
-            />
+          // Home's hero slot, so it carries the screen's one stamp. Inset to the
+          // 20px gutter rather than full-bleed, so it lines up with the feed
+          // cards and the section rules underneath it.
+          <TouchableOpacity
+            activeOpacity={item.linkUrl ? 0.85 : 1}
+            onPress={() => handleAdPress(item)}
+            accessibilityRole={item.linkUrl ? 'link' : 'image'}
+            accessibilityLabel={item.title || 'Sponsored'}
+            style={{ width, paddingHorizontal: 20, paddingTop: 8 }}
+          >
+            <StampCard>
+              <Image
+                source={{ uri: item.imageUrl }}
+                style={{ width: width - 44, height: imageHeight }}
+                resizeMode="cover"
+              />
+            </StampCard>
           </TouchableOpacity>
         )}
       />
@@ -88,9 +100,7 @@ const AdCarousel = () => {
           {ads.map((_, index) => (
             <View
               key={index}
-              className={`h-2 rounded-full transition-all ${
-                currentIndex === index ? "bg-orange-500 w-4" : "bg-white/60 w-2"
-              }`}
+              className={`h-2 rounded-full transition-all ${ currentIndex === index ? "bg-brand-500 w-4" : "bg-card/60 w-2" }`}
             />
           ))}
         </View>

@@ -21,6 +21,7 @@ import EducationCard, { EducationEntry } from './profile/EducationCard';
 import { useTabBarClearance } from '../constants/layout';
 import { Alert } from './ui/AlertModal';
 
+import { StampCard, StampNumber } from './ui/kit';
 const { width } = Dimensions.get('window');
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -40,26 +41,28 @@ type UserType = {
 
 
 // ─── SECTION HEADER ──────────────────────────────────────────────────────────
-const SH = ({ title, icon, accent = '#f97316' }: { title: string; icon: string; accent?: string }) => (
-  <View className="flex-row items-center gap-3 mb-4 px-1">
-    <View className="w-1.5 h-6 rounded-full" style={{ backgroundColor: accent, shadowColor: accent, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4 }} />
-    <View className="bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+const SH = ({ title, icon, accent = '#F97316' }: { title: string; icon: string; accent?: string }) => (
+  <View className="flex-row items-center mb-3 mt-6" style={{ gap: 12 }}>
+
+    <View className="hidden">
       <Ionicons name={icon as any} size={18} color={accent} />
     </View>
-    <Text className="font-extrabold text-slate-900 text-xs uppercase tracking-wide">{title}</Text>
+    <Text className="font-display text-label text-ink uppercase" style={{ letterSpacing: 1.4 }}>{title}</Text>
+    <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
   </View>
 );
 
 // ─── SKILL CHIP ───────────────────────────────────────────────────────────────
 const SkillChip = ({ label }: { label: string }) => (
-  <View className="bg-white border border-slate-100 px-4 py-2 rounded-2xl shadow-sm mb-1 mr-1">
-    <Text className="text-slate-700 text-xs font-bold">{label}</Text>
+  <View className="bg-card border border-line px-3 rounded-full mb-2 mr-2 justify-center" style={{ minHeight: 28 }}>
+    <Text className="font-medium text-label text-ink-2">{label}</Text>
   </View>
 );
 
 // ─── FYNC SCORE MINI BADGE ────────────────────────────────────────────────────
-const BADGE_EMOJI: Record<string, string> = {
-  Newcomer: '🌱', Explorer: '🗺️', Builder: '🔨', Innovator: '💡', Pioneer: '🚀', Legend: '🌟'
+// Ionicons names, not emoji — rendered through <Ionicons>, never as text.
+const BADGE_ICON: Record<string, any> = {
+  Newcomer: 'leaf', Explorer: 'compass', Builder: 'hammer', Innovator: 'bulb', Pioneer: 'rocket', Legend: 'star'
 };
 
 // ─── CODING STAT CARD ─────────────────────────────────────────────────────────
@@ -68,22 +71,22 @@ const CodingPlatformCard = ({ icon, name, color, bg, username, solved, rating, p
   return (
     <Pressable
       onPress={() => username && Linking.openURL(profileUrl)}
-      className="flex-1 rounded-2xl border p-4 items-center bg-white shadow-sm"
+      className="flex-1 rounded-card border p-4 items-center bg-card shadow-hair"
       style={{ borderColor: color + '20' }}
     >
-      <View className="w-12 h-12 rounded-2xl items-center justify-center mb-3" style={{ backgroundColor: color + '10' }}>
+      <View className="w-12 h-12 rounded-xl items-center justify-center mb-3" style={{ backgroundColor: color + '1A' }}>
         {typeof icon === 'string' && icon.startsWith('http')
           ? <Image source={{ uri: icon }} className="w-7 h-7" resizeMode="contain" />
           : <Ionicons name={icon} size={26} color={color} />}
       </View>
-      <Text className="font-black text-xl text-slate-900 leading-tight">{solved || 0}</Text>
-      <Text className="text-2xs text-slate-500 font-bold uppercase tracking-wider mb-2">Solved</Text>
+      <Text className="font-display text-xl text-ink leading-tight">{solved || 0}</Text>
+      <Text className="font-display text-label text-ink-3 uppercase mb-2" style={{ letterSpacing: 1.4 }}>Solved</Text>
       {rating ? (
-        <View className="bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 mt-1">
-          <Text className="text-2xs font-black" style={{ color }}>⭐ {rating}</Text>
+        <View className="bg-paper-2 border border-line mt-1 px-2.5 py-1 rounded-full">
+          <Text className="font-display text-label" style={{ color }}>{rating}</Text>
         </View>
       ) : null}
-      <Text className="text-2xs text-slate-500 font-bold mt-3 text-center">{name}</Text>
+      <Text className="font-semibold text-label text-ink mt-3 text-center">{name}</Text>
     </Pressable>
   );
 };
@@ -119,34 +122,34 @@ function CodingStatsModal({ visible, user, onClose, onSuccess }: {
   };
 
   const fields = [
-    { label: '🟡 LeetCode Problems Solved', key: 'leetcodeSolved', ph: '250' },
-    { label: '🟡 LeetCode Rating', key: 'leetcodeRating', ph: '1650' },
-    { label: '🟢 GFG Problems Solved', key: 'gfgSolved', ph: '300' },
-    { label: '🟢 GFG Rating (Score)', key: 'gfgRating', ph: '2100' },
-    { label: '🔵 CodeChef Username', key: 'codechef', ph: 'my_handle', numeric: false },
-    { label: '🔵 CodeChef Problems Solved', key: 'codechefSolved', ph: '150' },
-    { label: '🔵 CodeChef Rating', key: 'codechefRating', ph: '1400' },
+    { label: 'LeetCode Problems Solved', key: 'leetcodeSolved', ph: '250' },
+    { label: 'LeetCode Rating', key: 'leetcodeRating', ph: '1650' },
+    { label: 'GFG Problems Solved', key: 'gfgSolved', ph: '300' },
+    { label: 'GFG Rating (Score)', key: 'gfgRating', ph: '2100' },
+    { label: 'CodeChef Username', key: 'codechef', ph: 'my_handle', numeric: false },
+    { label: 'CodeChef Problems Solved', key: 'codechefSolved', ph: '150' },
+    { label: 'CodeChef Rating', key: 'codechefRating', ph: '1400' },
   ];
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <KeyboardAvoidingView className="flex-1 bg-white" behavior="padding">
-        <View className="flex-row items-center justify-between px-4 py-4 border-b border-slate-100">
-          <Pressable onPress={onClose}><Ionicons name="close" size={24} color="#374151" /></Pressable>
-          <Text className="font-bold text-slate-900 text-lg">Update Coding Stats</Text>
-          <Pressable onPress={save} disabled={saving} className="bg-orange-500 px-4 py-2 rounded-xl">
-            {saving ? <ActivityIndicator size="small" color="white" /> : <Text className="text-white font-bold">Save</Text>}
+      <KeyboardAvoidingView className="flex-1 bg-paper" behavior="padding">
+        <View className="flex-row items-center justify-between px-4 py-4 border-b border-line">
+          <Pressable onPress={onClose}><Ionicons name="close" size={24} color="#57534E" /></Pressable>
+          <Text className="font-display text-h2 text-ink">Update Coding Stats</Text>
+          <Pressable onPress={save} disabled={saving} className="bg-brand-500 px-4 py-2 rounded-xl">
+            {saving ? <ActivityIndicator size="small" color="#12100E" /> : <Text className="text-ink font-semibold">Save</Text>}
           </Pressable>
         </View>
         <ScrollView className="flex-1 px-4 pt-2" keyboardShouldPersistTaps="handled">
-          <View className="bg-amber-50 border border-amber-100 px-4 py-3 rounded-xl my-3">
-            <Text className="text-amber-700 text-xs font-medium">📌 These are self-reported. Enter your current stats from each platform.</Text>
+          <View className="bg-paper-2 border border-line px-4 py-3 rounded-xl my-3">
+            <Text className="font-sans text-sm text-brand-700">These are self-reported. Enter your current stats from each platform.</Text>
           </View>
           {fields.map(f => (
             <View key={f.key} className="mb-4">
-              <Text className="text-slate-700 font-semibold text-sm mb-1.5">{f.label}</Text>
-              <TextInput className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 text-sm"
-                placeholder={f.ph} placeholderTextColor="#9CA3AF"
+              <Text className="font-display text-label text-ink-3 uppercase mb-2" style={{ letterSpacing: 1.4 }}>{f.label}</Text>
+              <TextInput className="bg-card border-[1.5px] border-ink px-4 py-3 text-ink text-sm rounded-md"
+                placeholder={f.ph} placeholderTextColor="#C4BEB6"
                 keyboardType={f.numeric === false ? 'default' : 'numeric'}
                 value={form[f.key] || ''}
                 onChangeText={v => setForm((p: any) => ({ ...p, [f.key]: v }))} />
@@ -174,42 +177,60 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
   const hasCoding = cp.leetcode || cp.gfg || cp.codechef || cs.leetcodeSolved || cs.gfgSolved;
 
   return (
-    <ScrollView className="flex-1 bg-slate-50" contentContainerStyle={{ paddingBottom: tabBarClearance }}>
+    <ScrollView className="flex-1 bg-paper" contentContainerStyle={{ paddingBottom: tabBarClearance }}>
 
       {/* ── Fync Score Banner ──────────────────────────────────────────── */}
+      {/* The one stamped card on this screen. The score is what Profile is for,
+          and a stamped white card reads as a printed receipt rather than as the
+          fifth orange gradient in the app. */}
       {user?.fyncScore !== undefined && (
-        <Pressable onPress={() => navigation.navigate('FyncProfileBuilder')}
-          className="mx-4 mt-6 mb-2 rounded-3xl overflow-hidden">
-          <LinearGradient colors={['#f97316', '#fb923c']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} className="px-6 py-5 flex-row items-center">
-            <View className="bg-white/20 w-14 h-14 rounded-2xl items-center justify-center mr-4">
-              <Text style={{ fontSize: 32 }}>{BADGE_EMOJI[user.fyncBadge || 'Newcomer']}</Text>
-            </View>
-            <View className="flex-1">
-              <View className="flex-row items-center justify-between mb-1">
-                <Text className="text-white font-black text-xl">{user.fyncScore}</Text>
-                <Text className="text-orange-100 text-2xs font-black uppercase tracking-wide">Score Portfolio</Text>
+        <Pressable onPress={() => navigation.navigate('FyncProfileBuilder')} className="mx-gutter mt-6 mb-2">
+          <StampCard>
+            <View className="p-card-pad">
+              <View className="flex-row items-start">
+                <View className="flex-1">
+                  <Text className="font-display text-label text-ink-3 uppercase">Score</Text>
+                  <Text className="font-display text-ink" style={{ fontSize: 40, lineHeight: 42, letterSpacing: -1.2 }}>
+                    {user.fyncScore}
+                  </Text>
+                  <Text className="font-sans text-sm text-ink-2 mt-2">
+                    Score Portfolio · Level {user.fyncBadge || 'Newcomer'}
+                  </Text>
+                </View>
+                <StampNumber value={user.fyncScore} caption="score" />
               </View>
-              <View className="h-1.5 bg-black/10 rounded-full overflow-hidden mb-2">
-                <View className="h-full bg-white rounded-full" style={{ width: `${(user.fyncScore / 1000) * 100}%` }} />
+
+              <View className="h-2 bg-paper-2 rounded-full overflow-hidden mt-5">
+                <View className="h-full bg-brand-500 rounded-full" style={{ width: `${(user.fyncScore / 1000) * 100}%` }} />
               </View>
-              <Text className="text-orange-100 text-2xs font-bold">Level: {user.fyncBadge || 'Newcomer'} • Tap to expand →</Text>
+              <View className="flex-row items-center justify-between mt-3">
+                <Text className="font-display text-label text-ink-3 uppercase">Next: 1000</Text>
+                <Text className="font-display text-label text-accent-text uppercase">
+                  +{Math.max(0, 1000 - user.fyncScore)} to go
+                </Text>
+              </View>
+
+              <View className="mt-4 border-2 border-ink bg-brand-500 items-center justify-center flex-row rounded-md" style={{ minHeight: 48 }}>
+                <Ionicons name={BADGE_ICON[user.fyncBadge || 'Newcomer']} size={16} color="#12100E" style={{ marginRight: 8 }} />
+                <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Boost Score</Text>
+              </View>
             </View>
-          </LinearGradient>
+          </StampCard>
         </Pressable>
       )}
 
       {/* ── About ──────────────────────────────────────────────────────── */}
       {user?.about && (
-        <View className="mx-4 mt-4 bg-white rounded-4xl p-6 border border-slate-100 shadow-sm">
+        <View className="mx-4 mt-4 bg-card rounded-sheet p-6 border border-line shadow-hair">
           <SH title="About Me" icon="person-outline" />
-          <Text className="text-slate-600 text-sm leading-[24px] font-medium">{user.about}</Text>
+          <Text className="text-ink-2 text-sm leading-[24px] font-medium">{user.about}</Text>
         </View>
       )}
 
       {/* ── Skills ──────────────────────────────────────────────────────── */}
       {skills.length > 0 && (
-        <View className="mx-4 mt-4 bg-white rounded-4xl p-6 border border-slate-100 shadow-sm">
-          <SH title="Skills & Stack" icon="code-slash-outline" accent="#8B5CF6" />
+        <View className="mx-4 mt-4 bg-card rounded-sheet p-6 border border-line shadow-hair">
+          <SH title="Skills & Stack" icon="code-slash-outline" accent="#7C3AED" />
           <View className="flex-row flex-wrap gap-2">
             {skills.map((s, i) => <SkillChip key={i} label={s} />)}
           </View>
@@ -218,19 +239,19 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
 
       {/* ── Interests & Hobbies ─────────────────────────────────────────── */}
       {(user?.interest || user?.hobbies) && (
-        <View className="mx-4 mt-4 bg-white rounded-4xl p-6 border border-slate-100 shadow-sm">
-          <SH title="Vibe & Interests" icon="heart-outline" accent="#EC4899" />
+        <View className="mx-4 mt-4 bg-card rounded-sheet p-6 border border-line shadow-hair">
+          <SH title="Vibe & Interests" icon="heart-outline" accent="#DB2777" />
           <View className="flex-row flex-wrap gap-3">
             {(Array.isArray(user.interest) ? user.interest : [user.interest]).filter(Boolean).map((t, i) => (
-              <View key={`i${i}`} className="flex-row items-center bg-pink-50/50 px-4 py-2 rounded-2xl border border-pink-100">
-                <Text className="text-pink-600 text-xs font-black uppercase tracking-wide mr-1.5">♥</Text>
-                <Text className="text-pink-700 text-xs font-bold">{t}</Text>
+              <View key={`i${i}`} className="flex-row items-center bg-paper-2 px-4 py-2 rounded-card border border-line">
+                <Text className="text-accent-text text-xs font-display uppercase mr-1.5"></Text>
+                <Text className="text-brand-700 text-xs font-semibold">{t}</Text>
               </View>
             ))}
             {(Array.isArray(user.hobbies) ? user.hobbies : [user.hobbies]).filter(Boolean).map((h, i) => (
-              <View key={`h${i}`} className="flex-row items-center bg-emerald-50/50 px-4 py-2 rounded-2xl border border-emerald-100">
-                <Text className="text-emerald-600 text-xs font-black uppercase tracking-wide mr-1.5">★</Text>
-                <Text className="text-emerald-700 text-xs font-bold">{h}</Text>
+              <View key={`h${i}`} className="flex-row items-center bg-success/10 px-4 py-2 rounded-card border border-success/15">
+                <Text className="text-success text-xs font-display uppercase mr-1.5"></Text>
+                <Text className="text-success text-xs font-semibold">{h}</Text>
               </View>
             ))}
           </View>
@@ -241,20 +262,20 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
       <View className="mx-4 mt-6">
         <View className="flex-row items-center justify-between mb-4 px-1">
           <View className="flex-row items-center gap-3">
-            <View className="w-1.5 h-6 rounded-full bg-orange-500" />
-            <View className="bg-orange-50 p-1.5 rounded-lg border border-orange-100">
-              <Ionicons name="school-outline" size={18} color="#f97316" />
+            <View className="w-1.5 h-6 rounded-full bg-brand-500" />
+            <View className="bg-paper-2 p-1.5 rounded-lg border border-line">
+              <Ionicons name="school-outline" size={18} color="#F97316" />
             </View>
-            <Text className="font-extrabold text-slate-900 text-xs uppercase tracking-wide">Education</Text>
+            <Text className="font-semibold text-ink text-xs uppercase">Education</Text>
           </View>
         </View>
         {education.length === 0 ? (
-          <View className="bg-white rounded-4xl border border-slate-100 p-10 items-center shadow-sm">
-            <View className="w-16 h-16 bg-slate-50 rounded-full items-center justify-center mb-4">
-              <Ionicons name="school-outline" size={32} color="#D1D5DB" />
+          <View className="bg-card rounded-sheet border border-line p-card-pad items-center shadow-hair">
+            <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-4">
+              <Ionicons name="school-outline" size={32} color="#C4BEB6" />
             </View>
-            <Text className="text-slate-900 font-bold text-sm">No education yet</Text>
-            <Text className="text-slate-500 text-xs mt-1 text-center">Highlight your academic journey here</Text>
+            <Text className="text-ink font-semibold text-sm">No education yet</Text>
+            <Text className="text-ink-3 text-xs mt-1 text-center">Highlight your academic journey here</Text>
           </View>
         ) : education.map(e => (
           <EducationCard key={e._id} item={e} isOwner={false} />
@@ -263,26 +284,29 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
 
       {/* ── Coding Platforms ─────────────────────────────────────────────── */}
       {(hasCoding || isOwner) && (
-        <View className="mx-4 mt-4 bg-slate-50 rounded-4xl p-1">
-          <View className="bg-white rounded-4xl p-6 border border-slate-100 shadow-sm">
+        <View className="mx-4 mt-4 bg-paper-2 rounded-sheet p-1">
+          <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
             <View className="flex-row items-center justify-between mb-5">
-              <SH title="Coding Stats" icon="code-slash-outline" accent="#0EA5E9" />
+              <SH title="Coding Stats" icon="code-slash-outline" accent="#0891B2" />
               {isOwner && (
                 <Pressable onPress={() => setShowCodingModal(true)}
-                  className="bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-100">
-                  <Ionicons name="pencil-outline" size={14} color="#0EA5E9" />
+                  className="bg-fam-career/10 px-3 py-1.5 rounded-xl border border-fam-career/15">
+                  <Ionicons name="pencil-outline" size={14} color="#0891B2" />
                 </Pressable>
               )}
             </View>
 
             {/* Total solved banner */}
             {cs.totalSolved ? (
-              <View className="bg-slate-900 rounded-2xl px-6 py-5 mb-5 flex-row items-center justify-between shadow-lg shadow-slate-200">
+              <View className="bg-ink rounded-card px-6 py-5 mb-5 flex-row items-center justify-between shadow-hair">
                 <View>
-                  <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-1">Total Solved</Text>
-                  <Text className="text-white font-black text-2xl">{cs.totalSolved}</Text>
+                  <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
+                    <Text className="text-ink-3 font-display text-label uppercase">Total Solved</Text>
+                    <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                  </View>
+                  <Text className="text-white font-display text-2xl">{cs.totalSolved}</Text>
                 </View>
-                <View className="w-12 h-12 bg-white/10 rounded-2xl items-center justify-center">
+                <View className="w-12 h-12 bg-card/10 rounded-card items-center justify-center">
                   <Ionicons name="trophy" size={24} color="#F89F1B" />
                 </View>
               </View>
@@ -291,19 +315,19 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
             <View className="flex-row gap-3">
               <CodingPlatformCard
                 icon="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/leetcode-xp0gbbxtpmnkjk8uhdrmhg.png/leetcode-jj5yfhjdsmrt5j9xb3sec.png?_a=DATAiZiuZAA0"
-                name="LeetCode" color="#F89F1B" bg="#FFFBF0"
+                name="LeetCode" color="#F89F1B" bg="#EDE8E0"
                 username={cp.leetcode} solved={cs.leetcodeSolved} rating={cs.leetcodeRating}
                 profileUrl={`https://leetcode.com/${cp.leetcode}`}
               />
               <CodingPlatformCard
                 icon="https://upload.wikimedia.org/wikipedia/commons/e/eb/GeeksForGeeks_logo.png"
-                name="GFG" color="#2E8B57" bg="#F0FFF4"
+                name="GFG" color="#047857" bg="#EDE8E0"
                 username={cp.gfg} solved={cs.gfgSolved} rating={cs.gfgRating}
                 profileUrl={`https://www.geeksforgeeks.org/user/${cp.gfg}`}
               />
               <CodingPlatformCard
                 icon="https://cdn.codechef.com/images/cc-logo.svg"
-                name="CodeChef" color="#6F4E37" bg="#FFF8F0"
+                name="CodeChef" color="#6F4E37" bg="#EDE8E0"
                 username={cp.codechef} solved={cs.codechefSolved} rating={cs.codechefRating}
                 profileUrl={`https://www.codechef.com/users/${cp.codechef}`}
               />
@@ -314,39 +338,39 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
 
       {/* ── Social Links ─────────────────────────────────────────────────── */}
       {(user?.github_id || user?.linkedIn_id || user?.githubUsername) && (
-        <View className="mx-4 mt-6 bg-white rounded-4xl p-6 border border-slate-100 shadow-sm">
-          <SH title="Connected Accounts" icon="share-outline" accent="#1F2937" />
+        <View className="mx-4 mt-6 bg-card rounded-sheet p-6 border border-line shadow-hair">
+          <SH title="Connected Accounts" icon="share-outline" accent="#57534E" />
           <View className="gap-3">
             {user?.github_id && (
               <Pressable onPress={() => Linking.openURL(user.github_id!)}
-                className="flex-row items-center bg-slate-50 px-5 py-4 rounded-2xl border border-slate-100">
-                <Ionicons name="logo-github" size={24} color="#1F2937" />
+                className="flex-row items-center bg-paper-2 px-5 py-4 rounded-card border border-line">
+                <Ionicons name="logo-github" size={24} color="#57534E" />
                 <View className="ml-4 flex-1">
-                  <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide">Developer</Text>
-                  <Text className="text-slate-900 font-bold text-sm">GitHub</Text>
+                  <Text className="text-label text-ink-3 font-display uppercase">Developer</Text>
+                  <Text className="text-ink font-semibold text-sm">GitHub</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
+                <Ionicons name="chevron-forward" size={16} color="#C4BEB6" />
               </Pressable>
             )}
             {user?.linkedIn_id && (
               <Pressable onPress={() => Linking.openURL(user.linkedIn_id!)}
-                className="flex-row items-center bg-slate-50 px-5 py-4 rounded-2xl border border-slate-100">
+                className="flex-row items-center bg-paper-2 px-5 py-4 rounded-card border border-line">
                 <Ionicons name="logo-linkedin" size={24} color="#0077B5" />
                 <View className="ml-4 flex-1">
-                  <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide">Professional</Text>
-                  <Text className="text-slate-900 font-bold text-sm">LinkedIn</Text>
+                  <Text className="text-label text-ink-3 font-display uppercase">Professional</Text>
+                  <Text className="text-ink font-semibold text-sm">LinkedIn</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
+                <Ionicons name="chevron-forward" size={16} color="#C4BEB6" />
               </Pressable>
             )}
             {user?.upiId && (
-              <View className="flex-row items-center bg-emerald-50 px-5 py-4 rounded-2xl border border-emerald-100">
-                <View className="w-10 h-10 bg-emerald-500 rounded-2xl items-center justify-center">
+              <View className="flex-row items-center bg-success/10 px-5 py-4 rounded-card border border-success/15">
+                <View className="w-10 h-10 bg-success rounded-card items-center justify-center">
                   <Ionicons name="wallet" size={20} color="white" />
                 </View>
                 <View className="ml-4 flex-1">
-                  <Text className="text-emerald-800 text-2xs font-black uppercase tracking-wide">Payments</Text>
-                  <Text className="text-emerald-700 font-bold text-sm">{user.upiId}</Text>
+                  <Text className="text-success text-label font-display uppercase">Payments</Text>
+                  <Text className="text-success font-semibold text-sm">{user.upiId}</Text>
                 </View>
               </View>
             )}
@@ -557,14 +581,14 @@ function Profile() {
           await FileSystem.deleteAsync(itemPath, { idempotent: true });
         }
         await ExpoImage.clearDiskCache(); await ExpoImage.clearMemoryCache();
-        Alert.alert('Cache Cleared 🧹', `Reclaimed ${(totalFreed / 1048576).toFixed(2)} MB`);
+        Alert.alert('Cache Cleared', `Reclaimed ${(totalFreed / 1048576).toFixed(2)} MB`);
       }
     } catch { Toast.show({ type: 'error', text1: 'Failed to clear cache' }); }
   };
 
   // ── Profile Header ─────────────────────────────────────────────────────
   const renderProfileInfo = () => (
-    <View className="bg-white">
+    <View className="bg-card">
       <View className="h-64 w-full relative">
         <ExpoImage
           source={{ uri: getFullUrl(user?.banner) || 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000' }}
@@ -580,16 +604,16 @@ function Profile() {
           </Pressable>
 
           {showSettingsMenu && (
-            <View className="absolute top-14 right-0 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden w-48 mt-1 z-50">
+            <View className="absolute top-14 right-0 bg-card rounded-card shadow-hair border border-line overflow-hidden w-48 mt-1 z-50">
               <Pressable 
                 onPress={() => {
                   setShowSettingsMenu(false);
                   clearAppCache();
                 }} 
-                className="flex-row items-center px-4 py-4 border-b border-slate-50 active:bg-slate-50"
+                className="flex-row items-center px-4 py-4 border-b border-line active:bg-paper-2"
               >
-                <Ionicons name="trash-outline" size={18} color="#ef4444" />
-                <Text className="ml-3 text-slate-900 text-2xs font-black uppercase tracking-wide">Clear Cache</Text>
+                <Ionicons name="trash-outline" size={18} color="#DC2626" />
+                <Text className="ml-3 text-ink text-label font-display uppercase">Clear Cache</Text>
               </Pressable>
 
               <Pressable 
@@ -600,18 +624,18 @@ function Profile() {
                     { text: 'Logout', onPress: handleLogout, style: 'destructive' }
                   ]);
                 }} 
-                className="flex-row items-center px-4 py-4 active:bg-slate-50"
+                className="flex-row items-center px-4 py-4 active:bg-paper-2"
               >
-                <Ionicons name="log-out-outline" size={18} color="#ef4444" />
-                <Text className="ml-3 text-slate-900 text-2xs font-black uppercase tracking-wide">Logout</Text>
+                <Ionicons name="log-out-outline" size={18} color="#DC2626" />
+                <Text className="ml-3 text-ink text-label font-display uppercase">Logout</Text>
               </Pressable>
             </View>
           )}
         </View>
       </View>
 
-      <View className="items-center pb-6 px-5 bg-white rounded-t-5xl -mt-12 shadow-2xl">
-        <View className="-mt-14 p-1.5 bg-white rounded-full shadow-2xl">
+      <View className="items-center pb-6 px-5 bg-paper rounded-t-sheet -mt-12 shadow-hair">
+        <View className="-mt-14 p-1.5 bg-card rounded-full shadow-hair">
           <View className="rounded-full overflow-hidden border-4 border-white">
             <Avatar user={user as any} size={110} />
           </View>
@@ -619,31 +643,31 @@ function Profile() {
 
         {/* Name + badge */}
         <View className="flex-row items-center mt-4 gap-2">
-          <Text className="text-3xl font-black text-slate-900 tracking-tight">{user?.name || user?.username}</Text>
+          <Text className="font-display text-ink text-h1">{user?.name || user?.username}</Text>
         </View>
-        <Text className="text-orange-500 font-black text-sm tracking-widest mt-1">@{user?.username}</Text>
+        <Text className="text-accent-text font-display text-sm mt-1">@{user?.username}</Text>
 
-        <Text className="text-slate-500 text-center mt-4 px-6 text-sm leading-[22px] font-medium">
-          {user?.about || "Elevating the future of networking at Fync 💫"}
+        <Text className="text-ink-3 text-center mt-4 px-6 text-sm leading-[22px] font-medium">
+          {user?.about || "Elevating the future of networking at Fync"}
         </Text>
 
-        <View className="flex-row items-center mt-4 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100 gap-2">
-          <Ionicons name="location" size={16} color="#f97316" />
-          <Text className="text-slate-900 text-xs font-black uppercase tracking-wider">{user?.college || 'Earth'}</Text>
+        <View className="flex-row items-center mt-4 px-4 py-2 bg-paper-2 rounded-card border border-line gap-2">
+          <Ionicons name="location" size={16} color="#F97316" />
+          <Text className="font-semibold text-base text-ink">{user?.college || 'Earth'}</Text>
         </View>
 
         {/* Stats Dashboard */}
-        <View className="flex-row w-full bg-slate-900 rounded-4xl mt-6 p-6 shadow-xl shadow-slate-300">
+        <View className="flex-row w-full bg-ink rounded-sheet mt-6 p-6 shadow-hair">
           {[
             { label: 'Posts', value: posts.length },
             { label: 'Followers', value: user?.followers?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user._id, type: 'followers' }) },
             { label: 'Following', value: user?.following?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user._id, type: 'following' }) },
           ].map((s, i) => (
             <React.Fragment key={i}>
-              {i > 0 && <View className="w-[1px] h-8 self-center bg-white/10" />}
+              {i > 0 && <View className="w-[1px] h-8 self-center bg-card/10" />}
               <Pressable className="items-center flex-1" onPress={s.onPress}>
-                <Text className="text-xl font-black text-white">{s.value}</Text>
-                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">{s.label}</Text>
+                <Text className="text-xl font-display text-white">{s.value}</Text>
+                <Text className="text-ink-3 text-label font-display uppercase mt-1">{s.label}</Text>
               </Pressable>
             </React.Fragment>
           ))}
@@ -651,16 +675,16 @@ function Profile() {
 
         {/* Subscription Status Bar */}
         {subscription?.status === 'active' && (
-          <View className="w-full mt-4 bg-orange-50 border border-orange-100 rounded-2xl px-5 py-3 flex-row items-center justify-between">
+          <View className="w-full mt-4 bg-paper-2 border border-line px-5 py-3 flex-row items-center justify-between rounded-md">
             <View className="flex-row items-center">
-              <View className="w-8 h-8 bg-orange-500 rounded-xl items-center justify-center mr-3">
-                <Ionicons name="flash" size={16} color="white" />
+              <View className="w-8 h-8 bg-brand-500 rounded-xl items-center justify-center mr-3">
+                <Ionicons name="flash" size={16} color="#12100E" />
               </View>
               <View>
-                <Text className="text-orange-900 font-black text-2xs uppercase tracking-wide">
+                <Text className="text-brand-900 font-display text-label uppercase">
                   {subscription.isLifetime ? "Lifetime Access" : "Premium Member"}
                 </Text>
-                <Text className="text-orange-600 font-bold text-2xs mt-0.5">
+                <Text className="text-accent-text font-semibold text-label mt-0.5">
                   {subscription.isLifetime ? "Infinite Protocol Active" : `${subscription.daysRemaining} Days remaining`}
                 </Text>
               </View>
@@ -668,9 +692,9 @@ function Profile() {
             {!subscription.isLifetime && (
               <Pressable 
                 onPress={() => navigation.navigate('SubscriptionScreen')}
-                className="bg-white px-3 py-1.5 rounded-lg border border-orange-200"
+                className="bg-card border border-brand-200 px-2.5 py-1 rounded-full"
               >
-                <Text className="text-orange-600 font-black text-2xs uppercase tracking-tighter">Extend</Text>
+                <Text className="text-accent-text font-display text-label uppercase">Extend</Text>
               </Pressable>
             )}
           </View>
@@ -679,30 +703,30 @@ function Profile() {
         {subscription?.status === 'expired' && (
           <Pressable 
             onPress={() => navigation.navigate('SubscriptionScreen')}
-            className="w-full mt-4 bg-orange-50 border border-orange-100 rounded-2xl px-5 py-3 flex-row items-center justify-between"
+            className="w-full mt-4 bg-paper-2 border border-line px-5 py-3 flex-row items-center justify-between rounded-md"
           >
              <View className="flex-row items-center">
-              <View className="w-8 h-8 bg-orange-500 rounded-xl items-center justify-center mr-3">
-                <Ionicons name="alert-circle" size={18} color="white" />
+              <View className="w-8 h-8 bg-brand-500 rounded-xl items-center justify-center mr-3">
+                <Ionicons name="alert-circle" size={18} color="#12100E" />
               </View>
               <View>
-                <Text className="text-orange-900 font-black text-2xs uppercase tracking-wide">Plan Expired</Text>
-                <Text className="text-orange-600 font-bold text-2xs mt-0.5">Renew to unlock all features</Text>
+                <Text className="text-brand-900 font-display text-label uppercase">Plan Expired</Text>
+                <Text className="text-accent-text font-semibold text-label mt-0.5">Renew to unlock all features</Text>
               </View>
             </View>
-            <Ionicons name="arrow-forward" size={16} color="#f97316" />
+            <Ionicons name="arrow-forward" size={16} color="#F97316" />
           </Pressable>
         )}
 
         {/* Action buttons */}
         <View className="flex-row gap-4 mt-6 w-full">
           <Pressable onPress={() => navigation.navigate('EditProfile')}
-            className="flex-1 bg-white border-2 border-slate-100 py-4 rounded-2xl items-center shadow-sm">
-            <Text className="text-slate-900 font-black uppercase text-xs tracking-wide">Edit Profile</Text>
+            className="flex-1 bg-paper border-2 border-line py-4 items-center shadow-hair rounded-md">
+            <Text className="font-semibold text-base text-ink">Edit Profile</Text>
           </Pressable>
           <Pressable onPress={() => navigation.navigate('FyncProfileBuilder')}
-            className="flex-1 bg-orange-500 py-4 rounded-2xl items-center shadow-lg shadow-orange-200">
-            <Text className="text-white font-black uppercase text-xs tracking-wide">Portfolio</Text>
+            className="flex-1 bg-brand-500 py-4 rounded-card items-center shadow-hair">
+            <Text className="text-ink font-display uppercase text-sm">Portfolio</Text>
           </Pressable>
         </View>
       </View>
@@ -711,7 +735,7 @@ function Profile() {
 
   // ── Tab Bar ────────────────────────────────────────────────────────────
   const renderTabBar = () => (
-    <View className="flex-row bg-white border-t border-slate-100 py-2 px-4 shadow-sm">
+    <View className="flex-row bg-card border-t border-line py-2 px-4 shadow-hair">
       {[
         { key: 'posts', icon: 'grid-outline', activeIcon: 'grid' },
         { key: 'shorts', icon: 'play-circle-outline', activeIcon: 'play-circle' },
@@ -720,11 +744,11 @@ function Profile() {
         const isActive = activeTab === t.key;
         return (
           <Pressable key={t.key} onPress={() => setActiveTab(t.key as any)} className="flex-1 items-center py-2 relative">
-            <View className={`w-14 h-10 rounded-2xl items-center justify-center ${isActive ? 'bg-orange-50' : 'bg-transparent'}`}>
+            <View className={`w-14 h-10 rounded-card items-center justify-center ${isActive ? 'bg-paper-2' : 'bg-transparent'}`}>
               <Ionicons name={(isActive ? t.activeIcon : t.icon) as any} size={24}
-                color={isActive ? '#f97316' : '#9CA3AF'} />
+                color={isActive ? '#F97316' : '#C4BEB6'} />
             </View>
-            {isActive && <View className="absolute bottom-[-4px] w-1 h-1 bg-orange-500 rounded-full" />}
+            {isActive && <View className="absolute bottom-[-4px] w-1 h-1 bg-brand-500 rounded-full" />}
           </Pressable>
         );
       })}
@@ -742,20 +766,20 @@ function Profile() {
       className="m-[1px] rounded-lg overflow-hidden"
       style={{ width: (width / 3) - 2, height: isShort ? (width / 1.8) : (width / 3) }}>
       {isShort ? (
-        <View className="w-full h-full bg-slate-100 overflow-hidden">
+        <View className="w-full h-full bg-paper-2 overflow-hidden">
           <Video source={{ uri: getFullUrl(item.video) || '' }} style={{ width: '100%', height: '100%' }}
             resizeMode={ResizeMode.COVER} shouldPlay={false} positionMillis={100} />
           <LinearGradient colors={['transparent', 'rgba(0,0,0,0.5)']} className="absolute inset-0" />
           <View className="absolute bottom-2 left-2 flex-row items-center gap-1.5">
             <Ionicons name="play" size={12} color="white" />
-            <Text className="text-white text-2xs font-black">{item.views || 0}</Text>
+            <Text className="text-white text-label font-display">{item.views || 0}</Text>
           </View>
         </View>
       ) : item.image?.length > 0 ? (
         <ExpoImage source={{ uri: getFullUrl(item.image[0]) || '' }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="disk" />
       ) : (
-        <View className="w-full h-full bg-orange-50/50 items-center justify-center p-3">
-          <Text className="text-orange-400 text-2xs font-bold text-center" numberOfLines={4}>{item.title || item.description}</Text>
+        <View className="w-full h-full bg-paper-2 items-center justify-center p-3">
+          <Text className="text-accent-text text-label font-semibold text-center" numberOfLines={4}>{item.title || item.description}</Text>
         </View>
       )}
       {!isShort && item.image?.length > 1 && (
@@ -767,14 +791,14 @@ function Profile() {
   ), [navigation, deleteShort, deletePost]);
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50" edges={['bottom']}>
+    <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
       <StatusBar style="dark" />
       <FlatList
         key={activeTab}
         data={activeTab === 'posts' ? posts : activeTab === 'shorts' ? shorts : (['ABOUT'] as any)}
         keyExtractor={(item, i) => (typeof item === 'string' ? item : item._id + i)}
         numColumns={activeTab === 'about' ? 1 : 3}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366F1" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4F46E5" />}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         initialNumToRender={12}
@@ -788,11 +812,11 @@ function Profile() {
           if (activeTab === 'shorts') return renderGridItem({ item, isShort: true });
           return null;
         }}
-        ListFooterComponent={isLoadingMore ? <View className="py-4"><ActivityIndicator size="small" color="#6366F1" /></View> : null}
+        ListFooterComponent={isLoadingMore ? <View className="py-4"><ActivityIndicator size="small" color="#4F46E5" /></View> : null}
         ListEmptyComponent={
           <View className="items-center justify-center py-20">
-            <Ionicons name="images-outline" size={48} color="#d1d5db" />
-            <Text className="text-slate-500 mt-4 font-medium">No content here yet</Text>
+            <Ionicons name="images-outline" size={48} color="#C4BEB6" />
+            <Text className="text-ink-3 mt-4 font-medium">No content here yet</Text>
           </View>
         }
         contentContainerStyle={{ paddingBottom: tabBarClearance }}

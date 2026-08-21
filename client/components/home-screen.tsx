@@ -15,7 +15,6 @@ import { takePrefetchedFeed } from '../utils/feedPrefetch';
 // @ts-ignore
 import no_post from '../assets/no_post.png';
 import AdCarousel from './AdCarousel';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Image as ExpoImage } from 'expo-image';
 import { memo } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -147,26 +146,26 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
   };
 
   const CommentItem = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => (
-    <View className={`${isReply ? 'ml-12 mt-2' : 'px-4 py-3 border-b border-slate-50'}`}>
+    <View className={`${isReply ? 'ml-12 mt-2' : 'px-4 py-3 border-b border-line'}`}>
       <View className="flex-row">
         <ExpoImage
           source={{ uri: getFullUrl(comment.commentor?.avatar) || `https://ui-avatars.com/api/?name=${comment.commentor?.username}` }}
           style={{ width: isReply ? 28 : 36, height: isReply ? 28 : 36, borderRadius: 999 }}
-          className="bg-slate-100"
+          className="bg-paper-2"
           cachePolicy="disk"
         />
         <View className="ml-3 flex-1">
           <View className="flex-row items-baseline mb-1">
-            <Text className="text-slate-900 font-bold text-xs mr-2">{comment.commentor?.username}</Text>
-            <Text className="text-slate-500 text-2xs">{new Date(comment.createdAt).toLocaleDateString()}</Text>
+            <Text className="font-semibold text-xs text-ink mr-2">{comment.commentor?.username}</Text>
+            <Text className="text-ink-3 text-label">{new Date(comment.createdAt).toLocaleDateString()}</Text>
           </View>
-          <Text className="text-slate-700 text-sm leading-5">
-            {comment.replyToUser && <Text className="text-pink-500">@{comment.replyToUser.username} </Text>}
+          <Text className="text-ink-2 text-sm leading-5">
+            {comment.replyToUser && <Text className="text-accent-text">@{comment.replyToUser.username} </Text>}
             {comment.text}
           </Text>
           {!isReply && (
             <Pressable onPress={() => handleReply(comment)} className="mt-2">
-              <Text className="text-slate-500 text-xs font-bold">Reply</Text>
+              <Text className="font-semibold text-xs text-accent-text">Reply</Text>
             </Pressable>
           )}
         </View>
@@ -189,35 +188,35 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
           behavior="padding"
           className="w-full"
         >
-          <View className="bg-white h-[650px] rounded-t-3xl w-full overflow-hidden">
-            <View className="flex-row justify-center items-center py-4 border-b border-slate-100">
-              <View className="w-12 h-1 bg-slate-200 rounded-full absolute top-2 self-center" />
-              <Text className="text-slate-900 font-bold text-base">Comments</Text>
+          <View className="bg-paper h-[650px] rounded-t-sheet w-full overflow-hidden">
+            <View className="flex-row justify-center items-center py-4 border-b border-line">
+              <View className="w-12 h-1 bg-ink-4 rounded-full absolute top-2 self-center" />
+              <Text className="font-display text-h2 text-ink">Comments</Text>
               <Pressable onPress={onClose} className="absolute right-4 p-1">
-                <Ionicons name="close" size={24} color="#1A1A1A" />
+                <Ionicons name="close" size={24} color="#12100E" />
               </Pressable>
             </View>
             {loading ? (
-              <ActivityIndicator size="large" color="#f97316" className="mt-10" />
+              <ActivityIndicator size="large" color="#F97316" className="mt-10" />
             ) : (
               <FlatList
                 data={comments}
                 renderItem={({ item }) => <CommentItem comment={item} />}
                 keyExtractor={(item) => item._id}
                 contentContainerStyle={{ paddingBottom: 150 }}
-                ListEmptyComponent={<Text className="text-slate-500 text-center mt-10">No comments yet.</Text>}
+                ListEmptyComponent={<Text className="text-ink-3 text-center mt-10">No comments yet.</Text>}
                 showsVerticalScrollIndicator={false}
               />
             )}
 
             {/* Guessing 40 on iOS / 20 on Android put this input under the gesture
                 bar on tall Android devices and left a gap on older ones. */}
-            <View className="w-full bg-white border-t border-slate-100 px-4 pt-2" style={{ paddingBottom: commentInputInset }}>
+            <View className="w-full bg-paper border-t border-line px-4 pt-2" style={{ paddingBottom: commentInputInset }}>
               {replyingTo && (
-                <View className="flex-row items-center justify-between bg-slate-50 px-3 py-2 mb-2 rounded-lg">
-                  <Text className="text-slate-500 text-xs">Replying to <Text className="font-bold">@{replyingTo.commentor.username}</Text></Text>
+                <View className="flex-row items-center justify-between bg-paper-2 px-3 py-2 mb-2 rounded-lg">
+                  <Text className="text-ink-3 text-xs">Replying to <Text className="font-semibold text-ink">@{replyingTo.commentor.username}</Text></Text>
                   <Pressable onPress={() => setReplyingTo(null)}>
-                    <Ionicons name="close-circle" size={18} color="#9ca3af" />
+                    <Ionicons name="close-circle" size={18} color="#C4BEB6" />
                   </Pressable>
                 </View>
               )}
@@ -233,12 +232,12 @@ const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded
                   value={newComment}
                   onChangeText={setNewComment}
                   placeholder={replyingTo ? "Add a reply..." : "Add a comment..."}
-                  placeholderTextColor="#9ca3af"
-                  className="flex-1 text-black bg-slate-50 rounded-full px-4 py-3 mr-3 border border-slate-100"
+                  placeholderTextColor="#C4BEB6"
+                  className="flex-1 font-sans text-ink bg-card rounded-full px-4 py-3 mr-3 border border-line"
                   multiline
                 />
                 <Pressable onPress={handlePostComment} disabled={posting || !newComment.trim()}>
-                  {posting ? <ActivityIndicator size="small" color="#f97316" /> : <Text className={`font-bold ${!newComment.trim() ? 'text-slate-300' : 'text-pink-500'}`}>Post</Text>}
+                  {posting ? <ActivityIndicator size="small" color="#F97316" /> : <Text className={`font-semibold ${!newComment.trim() ? 'text-ink-4' : 'text-accent-text'}`}>Post</Text>}
                 </Pressable>
               </View>
             </View>
@@ -355,7 +354,7 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
   };
 
   return (
-    <View className="bg-white border-b border-slate-100 py-4 px-3 mb-2">
+    <View className="bg-card border border-line rounded-card mx-gutter mb-3 py-4 px-4">
       {/* Top Header Row (Reddit Style) */}
       <View className="flex-row items-center justify-between mb-3">
         <View className="flex-row items-center">
@@ -363,15 +362,15 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
             {item.user?.avatar ? (
               <Avatar user={item.user as any} size={28} />
             ) : (
-              <View className="w-7 h-7 rounded-full bg-indigo-500 items-center justify-center">
-                <Text className="text-white font-bold text-2xs">{(item.user?.name || 'U').charAt(0).toUpperCase()}</Text>
+              <View className="w-7 h-7 rounded-full bg-recruiter items-center justify-center">
+                <Text className="font-display text-label text-white uppercase">{(item.user?.name || 'U').charAt(0).toUpperCase()}</Text>
               </View>
             )}
           </Pressable>
           <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })} className="ml-2 flex-row items-center">
-            <Text className="text-slate-900 font-bold text-sm">{item.user?.username || "Unknown"}</Text>
-            <Text className="text-slate-500 text-sm mx-1">·</Text>
-            <Text className="text-slate-500 text-sm font-medium">{timeAgo(item.createdAt)}</Text>
+            <Text className="font-semibold text-sm text-ink">{item.user?.username || "Unknown"}</Text>
+            <Text className="text-ink-3 text-sm mx-1">·</Text>
+            <Text className="text-ink-3 text-sm">{timeAgo(item.createdAt)}</Text>
           </Pressable>
         </View>
         <Pressable onPress={() => {
@@ -401,19 +400,19 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
             }
           ]);
         }} className="p-1">
-          <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
+          <Ionicons name="ellipsis-horizontal" size={20} color="#8B857E" />
         </Pressable>
       </View>
 
       <View className="mb-3 px-1">
-        <Text className="text-slate-900 text-sm font-medium leading-6">
+        <Text className="font-sans text-base text-ink-2">
           {isExpanded || (item.description?.length || 0) <= MAX_CHAR_LIMIT
             ? item.description
             : `${item.description?.slice(0, MAX_CHAR_LIMIT)}...`}
         </Text>
         {(item.description?.length || 0) > MAX_CHAR_LIMIT && (
           <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} className="mt-1">
-            <Text className="text-orange-500 font-bold">
+            <Text className="text-accent-text font-semibold">
               {isExpanded ? 'Show Less' : 'Show More'}
             </Text>
           </TouchableOpacity>
@@ -454,7 +453,7 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
         {/* Image Counter (Top Right) */}
         {(item.image?.length || 0) > 1 && (
           <View className="absolute top-3 right-3 bg-black/50 px-2 py-1 rounded-lg">
-            <Text className="text-white text-2xs font-bold">
+            <Text className="text-white text-label font-semibold">
               {activeIndex + 1}/{(item.image?.length || 0)}
             </Text>
           </View>
@@ -462,7 +461,7 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
         {(item.image?.length || 0) > 1 && (
           <View className="flex-row justify-center gap-1.5 absolute bottom-4 w-full">
             {(item.image || []).map((_, i) => (
-              <View key={i} className={`h-1.5 rounded-full ${activeIndex === i ? 'w-4 bg-white' : 'w-1.5 bg-white/50'}`} />
+              <View key={i} className={`h-1.5 rounded-full ${activeIndex === i ? 'w-4 bg-card' : 'w-1.5 bg-card/50'}`} />
             ))}
           </View>
         )}
@@ -471,34 +470,34 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
       {/* Action Bar (Reddit Style Pills) */}
       <View className="flex-row items-center gap-2">
         {/* Vote Pill */}
-        <Animated.View style={{ transform: [{ scale: springValue }] }} className="flex-row items-center bg-slate-50 rounded-full px-1 py-0.5">
+        <Animated.View style={{ transform: [{ scale: springValue }] }} className="flex-row items-center bg-paper-2 border border-line rounded-full px-1 py-0.5">
           <Pressable onPress={() => handleVote('up')} className="p-1.5">
-            <Ionicons name={vote === 'up' ? "arrow-up" : "arrow-up-outline"} size={19} color={vote === 'up' ? "#f97316" : "#536471"} />
+            <Ionicons name={vote === 'up' ? "arrow-up" : "arrow-up-outline"} size={19} color={vote === 'up' ? "#F97316" : "#57534E"} />
           </Pressable>
-          <Text className={`font-semibold text-xs px-1 min-w-[20px] text-center ${vote === 'up' ? 'text-[#f97316]' : vote === 'down' ? 'text-[#7193FF]' : 'text-[#536471]'}`}>
+          <Text className={`font-semibold text-xs px-1 min-w-[20px] text-center ${vote === 'up' ? 'text-brand-500' : vote === 'down' ? 'text-fam-career' : 'text-ink-3'}`}>
             {score === 0 ? 'Vote' : score > 999 ? formatCount(score) : score}
           </Text>
           <Pressable onPress={() => handleVote('down')} className="p-1.5">
-            <Ionicons name={vote === 'down' ? "arrow-down" : "arrow-down-outline"} size={19} color={vote === 'down' ? "#7193FF" : "#536471"} />
+            <Ionicons name={vote === 'down' ? "arrow-down" : "arrow-down-outline"} size={19} color={vote === 'down' ? "#7193FF" : "#57534E"} />
           </Pressable>
         </Animated.View>
 
         {/* Comment Pill */}
         <Pressable 
           onPress={() => openComments(item._id)}
-          className="flex-row items-center bg-slate-50 rounded-full px-3 py-1.5"
+          className="flex-row items-center bg-paper-2 border border-line rounded-full px-3 py-1.5"
         >
-          <Ionicons name="chatbubble-outline" size={17} color="#536471" />
-          <Text className="text-[#536471] font-semibold text-xs ml-1.5">{formatCount(displayCommentCount)}</Text>
+          <Ionicons name="chatbubble-outline" size={17} color="#8B857E" />
+          <Text className="text-ink-3 font-semibold text-xs ml-1.5">{formatCount(displayCommentCount)}</Text>
         </Pressable>
 
         {/* Share Pill */}
         <Pressable 
           onPress={handleShare}
-          className="flex-row items-center bg-slate-50 rounded-full px-3 py-1.5"
+          className="flex-row items-center bg-paper-2 border border-line rounded-full px-3 py-1.5"
         >
-          <Ionicons name="share-social-outline" size={17} color="#536471" />
-          <Text className="text-[#536471] font-semibold text-xs ml-1.5">Share</Text>
+          <Ionicons name="share-social-outline" size={17} color="#8B857E" />
+          <Text className="text-ink-3 font-semibold text-xs ml-1.5">Share</Text>
         </Pressable>
 
         <View className="flex-1" />
@@ -779,39 +778,39 @@ export default function HomeScreen() {
           <ExpoImage
             source={{ uri: getFullUrl(profileImage) || `https://ui-avatars.com/api/?name=${user?.username}&background=random&color=fff` }}
             style={{ width: 32, height: 32, borderRadius: 999 }}
-            className="mr-3 rounded-full border border-slate-100"
+            className="mr-3 rounded-full border border-line"
             cachePolicy="disk"
           />
         </Pressable>
-        <Text className="text-xl font-bold text-slate-900 tracking-tighter">{`Hi, ${user?.name?.split(" ")[0]}`}</Text>
+        <Text className="font-display text-h2 text-ink" numberOfLines={1}>{`Hi, ${user?.name?.split(" ")[0]}`}</Text>
       </View>
 
       <View className="flex-row items-center gap-5">
         {/* Streak Display */}
         <TouchableOpacity 
           onPress={() => setShowLeaderboard(true)}
-          className="flex-row items-center bg-orange-100 px-3 py-1.5 rounded-full border border-orange-200"
+          className="flex-row items-center bg-brand-100 px-3 py-1.5 rounded-full border border-brand-200"
         >
           <MaterialCommunityIcons 
             name="fire" 
             size={20} 
-            color={(user as any)?.streakCount > 0 ? "#f97316" : "#f97316"} 
+            color={(user as any)?.streakCount > 0 ? "#F97316" : "#F97316"} 
           />
-          <Text className={`font-black text-sm ml-1 ${(user as any)?.streakCount > 0 ? "text-orange-600" : "text-orange-400"}`}>
+          <Text className="font-display text-sm ml-1 text-brand-700">
             {(user as any)?.streakCount || 0}
           </Text>
         </TouchableOpacity>
 
         <Pressable onPress={() => navigation.navigate('SearchScreen')}>
-          <Ionicons name="search-outline" size={26} color="#1A1A1A" />
+          <Ionicons name="search-outline" size={26} color="#12100E" />
         </Pressable>
 
         <Pressable onPress={() => navigation.navigate('Notification')}>
           <View>
-            <Ionicons name="heart-outline" size={26} color="#1A1A1A" />
+            <Ionicons name="heart-outline" size={26} color="#12100E" />
             {unreadCount > 0 && (
-              <View className="absolute -top-2 -right-2 bg-orange-500 rounded-full w-5 h-5 justify-center items-center border border-white">
-                <Text className="text-white text-2xs font-bold">
+              <View className="absolute -top-2 -right-2 bg-brand-500 rounded-full w-5 h-5 justify-center items-center border border-white">
+                <Text className="text-ink text-label font-semibold">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </Text>
               </View>
@@ -820,10 +819,10 @@ export default function HomeScreen() {
         </Pressable>
         <Pressable onPress={() => navigation.navigate('ChatList')}>
           <View>
-            <Ionicons name="chatbubble-ellipses-outline" size={26} color="#1A1A1A" />
+            <Ionicons name="chatbubble-ellipses-outline" size={26} color="#12100E" />
             {chatUnreadCount > 0 && (
-              <View className="absolute -top-1 -right-1 bg-pink-500 rounded-full w-5 h-5 justify-center items-center border border-white">
-                <Text className="text-white text-2xs font-bold">
+              <View className="absolute -top-1 -right-1 bg-fam-fun rounded-full w-5 h-5 justify-center items-center border border-white">
+                <Text className="text-white text-label font-semibold">
                   {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
                 </Text>
               </View>
@@ -832,12 +831,12 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
-      {/* <View className='absolute bg-pink-200 w-48 h-48 rounded-full -right-14 -top-24 -z-10 opacity-40'></View> */}
+      {/* <View className='absolute bg-brand-200 w-48 h-48 rounded-full -right-14 -top-24 -z-10 opacity-40'></View> */}
     </View>
   );
 
   const renderTabBar = () => (
-    <View className="flex-row bg-transparent border-b border-slate-100/10">
+    <View className="flex-row bg-transparent border-b border-line">
       {['For You', 'Following'].map((tabTitle) => {
         const key = tabTitle === 'For You' ? 'forYou' : 'following';
         const isActive = activeTab === key;
@@ -847,10 +846,10 @@ export default function HomeScreen() {
             onPress={() => setActiveTab(key as any)}
             className="flex-1 items-center pb-2 pt-1"
           >
-            <Text className={`text-base font-bold ${isActive ? 'text-slate-900' : 'text-slate-500'}`}>
+            <Text className={`font-display text-sm ${isActive ? 'text-ink' : 'text-ink-3'}`}>
               {tabTitle}
             </Text>
-            {isActive && <View className="absolute bottom-0 h-0.5 bg-slate-900 w-1/2 rounded-full" />}
+            {isActive && <View className="absolute bottom-0 h-[3px] bg-brand-500 w-1/2 rounded-full" />}
           </Pressable>
         );
       })}
@@ -862,25 +861,25 @@ export default function HomeScreen() {
     if (!loadingMore) return <View className="h-20" />;
     return (
       <View className="py-4 h-20">
-        <ActivityIndicator size="small" color="#f97316" />
+        <ActivityIndicator size="small" color="#F97316" />
       </View>
     );
   };
   const features: any[] = useMemo(() => [
-    { id: 'fyncAcademy', name: 'Academy', imageUrl: 'https://i.pinimg.com/736x/5e/4e/cb/5e4ecb34c19b87cfed2053ee96bbf08f.jpg', colorHex: '#8b5cf6', bgClass: 'bg-purple-50', sparkle: true, onPress: () => navigation.navigate('MasterStudyHub') },
-    // { id: 'internship', name: 'Internship', imageUrl: 'https://i.pinimg.com/736x/21/64/40/2164400be5fa3f7c681354a2df865bc8.jpg', colorHex: '#3b82f6', bgClass: 'bg-blue-50', sparkle: false, onPress: () => navigation.navigate('InternshipList') },
-    { id: 'jobs', name: 'Jobs', imageUrl: 'https://i.pinimg.com/736x/f1/97/94/f19794f0bc2872555bcf0a1424a3f090.jpg', colorHex: '#3b82f6', bgClass: 'bg-blue-50', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
-    { id: 'contest', name: 'Contests', imageUrl: 'https://i.pinimg.com/736x/62/f3/e9/62f3e929d234353e0cf48216012f1331.jpg', colorHex: '#4f46e5', bgClass: 'bg-indigo-50', sparkle: true, onPress: () => navigation.navigate('DSAAndDevelopmentContest') },
-    { id: 'utilityHub', name: 'Utilities', imageUrl: 'https://i.pinimg.com/736x/14/e6/a5/14e6a51f3f18dc0034fee8181e3d285d.jpg', colorHex: '#10b981', bgClass: 'bg-emerald-50', sparkle: true, onPress: () => navigation.navigate('UtilityHubScreen') },
-    { id: 'partyPool', name: 'Party Pool', imageUrl: 'https://i.pinimg.com/736x/e7/8b/09/e78b09f6adfd51c96062659dff826d03.jpg', colorHex: '#db2777', bgClass: 'bg-pink-50', sparkle: true, onPress: () => navigation.navigate('PartyPool') },
-    { id: 'entertainment', name: 'Movies', imageUrl: 'https://i.pinimg.com/736x/30/9f/86/309f86d79b2ca442fa81202ea7c879aa.jpg', colorHex: '#e11d48', bgClass: 'bg-rose-50', sparkle: true, onPress: () => navigation.navigate('EntertainmentHome') },
-    { id: 'fyncMedia', name: 'Fync Media', imageUrl: 'https://i.pinimg.com/736x/60/10/f3/6010f333db6714ec3861ec908973d6b1.jpg', colorHex: '#f43f5e', bgClass: 'bg-rose-50', sparkle: false, onPress: () => navigation.navigate('FyncMediaFeed') },
-    { id: 'competitions', name: 'Reward', imageUrl: 'https://i.pinimg.com/736x/8b/b1/a4/8bb1a490de08b581618ce6a0e0990122.jpg', colorHex: '#f59e0b', bgClass: 'bg-amber-50', sparkle: false, onPress: () => navigation.navigate('RewardsMarketplace') },
-    { id: 'bootcamps', name: 'Bootcamps', imageUrl: 'https://i.pinimg.com/736x/29/c1/be/29c1bea31c35e94c773a7b8f7b599ec0.jpg', colorHex: '#a855f7', bgClass: 'bg-purple-50', sparkle: true, onPress: () => navigation.navigate('BootcampScreen') },
-    // { id: 'codingLeaderboard', name: 'Leaderboard', imageUrl: 'https://i.pinimg.com/736x/3b/26/26/3b2626a5c5153ac9d0d45673a36ad39a.jpg', colorHex: '#f97316', bgClass: 'bg-orange-50', sparkle: false, onPress: () => navigation.navigate('CodingLeaderboard') },
-    { id: 'confessions', name: 'Confessions', imageUrl: 'https://i.pinimg.com/736x/71/29/ca/7129ca1ff74ba44b9dda205b7425cb76.jpg', colorHex: '#14b8a6', bgClass: 'bg-teal-50', sparkle: false, onPress: () => navigation.navigate('ConfessionFeed') },
-    { id: 'speakers', name: 'Speakers', imageUrl: 'https://i.pinimg.com/736x/c2/c6/d3/c2c6d3c80febbfabe4b8e263806501d3.jpg', colorHex: '#6366f1', bgClass: 'bg-indigo-50', sparkle: false, onPress: () => navigation.navigate('SpeakerSessionScreen') },
-    { id: 'college_clubs', name: 'Clubs', imageUrl: 'https://i.pinimg.com/736x/ed/a3/5a/eda35ac4a08a5c5d6ffade9a94380d78.jpg', colorHex: '#10b981', bgClass: 'bg-emerald-50', sparkle: false, onPress: () => navigation.navigate('ClubList') },
+    { id: 'fyncAcademy', name: 'Academy', imageUrl: 'https://i.pinimg.com/736x/5e/4e/cb/5e4ecb34c19b87cfed2053ee96bbf08f.jpg', colorHex: '#7C3AED', bgClass: 'bg-fam-study/10', sparkle: true, onPress: () => navigation.navigate('MasterStudyHub') },
+    // { id: 'internship', name: 'Internship', imageUrl: 'https://i.pinimg.com/736x/21/64/40/2164400be5fa3f7c681354a2df865bc8.jpg', colorHex: '#2563EB', bgClass: 'bg-fam-career/10', sparkle: false, onPress: () => navigation.navigate('InternshipList') },
+    { id: 'jobs', name: 'Jobs', imageUrl: 'https://i.pinimg.com/736x/f1/97/94/f19794f0bc2872555bcf0a1424a3f090.jpg', colorHex: '#2563EB', bgClass: 'bg-fam-career/10', sparkle: false, onPress: () => navigation.navigate('AlumniJobs') },
+    { id: 'contest', name: 'Contests', imageUrl: 'https://i.pinimg.com/736x/62/f3/e9/62f3e929d234353e0cf48216012f1331.jpg', colorHex: '#EA580C', bgClass: 'bg-fam-events/10', sparkle: true, onPress: () => navigation.navigate('DSAAndDevelopmentContest') },
+    { id: 'utilityHub', name: 'Utilities', imageUrl: 'https://i.pinimg.com/736x/14/e6/a5/14e6a51f3f18dc0034fee8181e3d285d.jpg', colorHex: '#7C3AED', bgClass: 'bg-fam-study/10', sparkle: true, onPress: () => navigation.navigate('UtilityHubScreen') },
+    { id: 'partyPool', name: 'Party Pool', imageUrl: 'https://i.pinimg.com/736x/e7/8b/09/e78b09f6adfd51c96062659dff826d03.jpg', colorHex: '#DB2777', bgClass: 'bg-fam-fun/10', sparkle: true, onPress: () => navigation.navigate('PartyPool') },
+    { id: 'entertainment', name: 'Movies', imageUrl: 'https://i.pinimg.com/736x/30/9f/86/309f86d79b2ca442fa81202ea7c879aa.jpg', colorHex: '#DB2777', bgClass: 'bg-fam-fun/10', sparkle: true, onPress: () => navigation.navigate('EntertainmentHome') },
+    { id: 'fyncMedia', name: 'Fync Media', imageUrl: 'https://i.pinimg.com/736x/60/10/f3/6010f333db6714ec3861ec908973d6b1.jpg', colorHex: '#0891B2', bgClass: 'bg-fam-social/10', sparkle: false, onPress: () => navigation.navigate('FyncMediaFeed') },
+    { id: 'competitions', name: 'Reward', imageUrl: 'https://i.pinimg.com/736x/8b/b1/a4/8bb1a490de08b581618ce6a0e0990122.jpg', colorHex: '#57534E', bgClass: 'bg-fam-campus/10', sparkle: false, onPress: () => navigation.navigate('RewardsMarketplace') },
+    { id: 'bootcamps', name: 'Bootcamps', imageUrl: 'https://i.pinimg.com/736x/29/c1/be/29c1bea31c35e94c773a7b8f7b599ec0.jpg', colorHex: '#EA580C', bgClass: 'bg-fam-events/10', sparkle: true, onPress: () => navigation.navigate('BootcampScreen') },
+    // { id: 'codingLeaderboard', name: 'Leaderboard', imageUrl: 'https://i.pinimg.com/736x/3b/26/26/3b2626a5c5153ac9d0d45673a36ad39a.jpg', colorHex: '#EA580C', bgClass: 'bg-fam-events/10', sparkle: false, onPress: () => navigation.navigate('CodingLeaderboard') },
+    { id: 'confessions', name: 'Confessions', imageUrl: 'https://i.pinimg.com/736x/71/29/ca/7129ca1ff74ba44b9dda205b7425cb76.jpg', colorHex: '#DB2777', bgClass: 'bg-fam-fun/10', sparkle: false, onPress: () => navigation.navigate('ConfessionFeed') },
+    { id: 'speakers', name: 'Speakers', imageUrl: 'https://i.pinimg.com/736x/c2/c6/d3/c2c6d3c80febbfabe4b8e263806501d3.jpg', colorHex: '#EA580C', bgClass: 'bg-fam-events/10', sparkle: false, onPress: () => navigation.navigate('SpeakerSessionScreen') },
+    { id: 'college_clubs', name: 'Clubs', imageUrl: 'https://i.pinimg.com/736x/ed/a3/5a/eda35ac4a08a5c5d6ffade9a94380d78.jpg', colorHex: '#0891B2', bgClass: 'bg-fam-social/10', sparkle: false, onPress: () => navigation.navigate('ClubList') },
   ], [navigation]);
   const displayedFeatures = useMemo(() => features.slice(0, 6), [features]);
   
@@ -888,7 +887,7 @@ export default function HomeScreen() {
   const visibleFeatures = isFeaturesExpanded ? features : features.slice(0, 3);
 
   return (
-    <View className="bg-white py-2 px-2 w-full">
+    <View className="bg-transparent py-2 px-2 w-full">
       {/* Grid Container */}
       <View className="flex-row flex-wrap">
         {visibleFeatures.map((item, index) => (
@@ -899,12 +898,12 @@ export default function HomeScreen() {
           >
             <Pressable
               onPress={item.onPress}
-              className="w-full bg-white rounded-2xl p-1.5 flex flex-col items-center justify-between border border-slate-100"
+              className="w-full bg-card p-1.5 flex flex-col items-center justify-between border-[1.5px] border-line rounded-md"
               style={{
-                shadowColor: "#94a3b8",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,
-                shadowRadius: 8,
+                shadowColor: "#12100E",
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.05,
+                shadowRadius: 2,
                 elevation: 2,
                 aspectRatio: 1
               }}
@@ -921,7 +920,7 @@ export default function HomeScreen() {
               </View>
 
               {/* Title below image */}
-              <Text className="text-slate-800 font-bold text-2xs text-center px-0.5 leading-tight" numberOfLines={2}>
+              <Text className="font-display text-ink text-label text-center px-0.5 leading-tight" numberOfLines={2}>
                 {item.name}
               </Text>
             </Pressable>
@@ -936,20 +935,20 @@ export default function HomeScreen() {
           >
             <Pressable
               onPress={() => setIsFeaturesExpanded(true)}
-              className="w-full bg-white rounded-2xl p-1.5 flex flex-col items-center justify-between border border-slate-100"
+              className="w-full bg-card p-1.5 flex flex-col items-center justify-between border-[1.5px] border-line rounded-md"
               style={{
-                shadowColor: "#94a3b8",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,
-                shadowRadius: 8,
+                shadowColor: "#12100E",
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.05,
+                shadowRadius: 2,
                 elevation: 2,
                 aspectRatio: 1
               }}
             >
-              <View className="w-full flex-1 rounded-xl overflow-hidden mb-1 justify-center items-center bg-white border border-slate-100">
-                 <Ionicons name="grid-outline" size={24} color="#64748b" />
+              <View className="w-full flex-1 rounded-xl overflow-hidden mb-1 justify-center items-center bg-card">
+                 <Ionicons name="grid-outline" size={24} color="#8B857E" />
               </View>
-              <Text className="text-slate-800 font-bold text-2xs text-center px-0.5 leading-tight" numberOfLines={2}>
+              <Text className="font-display text-ink text-label text-center px-0.5 leading-tight" numberOfLines={2}>
                 View More
               </Text>
             </Pressable>
@@ -964,20 +963,20 @@ export default function HomeScreen() {
           >
             <Pressable
               onPress={() => setIsFeaturesExpanded(false)}
-              className="w-full bg-white rounded-2xl p-1.5 flex flex-col items-center justify-between border border-slate-100"
+              className="w-full bg-card p-1.5 flex flex-col items-center justify-between border-[1.5px] border-line rounded-md"
               style={{
-                shadowColor: "#94a3b8",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,
-                shadowRadius: 8,
+                shadowColor: "#12100E",
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.05,
+                shadowRadius: 2,
                 elevation: 2,
                 aspectRatio: 1
               }}
             >
-              <View className="w-full flex-1 rounded-xl overflow-hidden mb-1 justify-center items-center bg-slate-50 border border-slate-100">
-                 <Ionicons name="chevron-up" size={24} color="#64748b" />
+              <View className="w-full flex-1 rounded-xl overflow-hidden mb-1 justify-center items-center bg-paper-2">
+                 <Ionicons name="chevron-up" size={24} color="#8B857E" />
               </View>
-              <Text className="text-slate-800 font-bold text-2xs text-center px-0.5 leading-tight" numberOfLines={2}>
+              <Text className="font-display text-ink text-label text-center px-0.5 leading-tight" numberOfLines={2}>
                 Show Less
               </Text>
             </Pressable>
@@ -990,7 +989,7 @@ export default function HomeScreen() {
 
 
   return (
-    <View className="flex-1 bg-[#FDFDFF]">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
       
       {renderHeader()}
@@ -1020,7 +1019,7 @@ export default function HomeScreen() {
         }
 
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />
         }
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
@@ -1033,8 +1032,8 @@ export default function HomeScreen() {
                 className="h-48 w-[80%]"
                 contentFit="contain"
               />
-              <Text className="text-xl font-bold text-slate-900 mt-4">Welcome to Fync!</Text>
-              <Text className="text-slate-500 text-center mt-2 px-10">
+              <Text className="font-display text-h1 text-ink mt-4">Welcome to Fync!</Text>
+              <Text className="text-ink-3 text-center mt-2 px-gutter">
                 Your feed is empty. Start following people or create a post to see updates here.
               </Text>
             </View>

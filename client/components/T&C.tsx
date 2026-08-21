@@ -2,18 +2,17 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 
 const TCSection = ({ icon, title, content }: { icon: any; title: string; content: string }) => (
-  <View className="mb-6 bg-white rounded-3xl p-5 border border-slate-100 shadow-sm">
+  <View className="mb-6 bg-card rounded-card p-5 border border-line shadow-hair">
     <View className="flex-row items-center mb-3">
-      <View className="w-10 h-10 rounded-2xl bg-indigo-50 items-center justify-center mr-3">
-        <Ionicons name={icon} size={20} color="#6366f1" />
+      <View className="w-10 h-10 rounded-card bg-recruiter/10 items-center justify-center mr-3">
+        <Ionicons name={icon} size={20} color="#4F46E5" />
       </View>
-      <Text className="text-slate-900 text-lg font-black  uppercase tracking-tighter">{title}</Text>
+      <Text className="text-ink text-lg font-display uppercase">{title}</Text>
     </View>
-    <Text className="text-slate-500 text-xs font-semibold leading-5 leading-relaxed">{content}</Text>
+    <Text className="text-ink-3 text-xs font-semibold leading-5 leading-relaxed">{content}</Text>
   </View>
 );
 
@@ -21,7 +20,7 @@ export default function TermsAndCondition() {
   const navigation = useNavigation<any>();
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
       <SafeAreaView className="flex-1">
 
@@ -29,34 +28,34 @@ export default function TermsAndCondition() {
         <View className="px-6 py-4 flex-row items-center justify-between">
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            className="w-12 h-12 rounded-2xl bg-white border border-slate-100 items-center justify-center shadow-sm"
-          >
-            <Ionicons name="arrow-back" size={24} color="#1e293b" />
+            className="w-11 h-11 items-center justify-center rounded-xl"
+          
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+            <Ionicons name="arrow-back" size={24} color="#12100E" />
           </TouchableOpacity>
           <View className="items-end">
-            <Text className="text-slate-900 text-xl font-black uppercase tracking-tighter">Legal Hub</Text>
-            <Text className="text-indigo-500 text-2xs font-black uppercase tracking-wide">Fync Ecosystem</Text>
+            <Text className="text-ink text-xl font-display uppercase">Legal Hub</Text>
+            <Text className="text-recruiter text-label font-display uppercase">Fync Ecosystem</Text>
           </View>
           <View className='w-10'></View>
         </View>
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 40 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}
         >
           {/* Hero Section */}
-          <LinearGradient
-            colors={['#6366f1', '#a855f7']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            className="rounded-5xl p-8 mb-8 overflow-hidden relative"
-          >
+          <View
+            className="rounded-sheet p-card-pad mb-8 overflow-hidden relative"
+           style={{ backgroundColor: '#4F46E5' }}>
             <Ionicons name="document-text" size={120} color="rgba(255,255,255,0.1)" style={{ position: 'absolute', right: -20, bottom: -20 }} />
-            <Text className="text-white text-3xl font-black  tracking-tighter mb-2">Terms & Conditions</Text>
-            <Text className="text-indigo-100 text-xs font-bold leading-5">
+            <Text className="text-white text-3xl font-display mb-2">Terms & Conditions</Text>
+            <Text className="text-white/80 text-xs font-semibold leading-5">
               Please read these terms carefully before joining the exclusive student network.
             </Text>
-          </LinearGradient>
+          </View>
 
           {/* Sections */}
           <TCSection
@@ -90,7 +89,7 @@ export default function TermsAndCondition() {
           />
 
           <View className="mt-4 items-center">
-            <Text className="text-slate-300 text-2xs font-black uppercase tracking-wide">Verified By Fync Legal</Text>
+            <Text className="text-ink-4 text-label font-display uppercase">Verified By Fync Legal</Text>
           </View>
 
         </ScrollView>

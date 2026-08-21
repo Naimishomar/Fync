@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {View, Text, TextInput, ScrollView, TouchableOpacity, ActivityIndicator, StatusBar, Clipboard, Platform} from 'react-native'
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient"; // Added LinearGradient
 import DateTimePicker, { DateTimePickerAndroid, DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
@@ -108,7 +107,7 @@ const CreateRoom = () => {
       const newRoomId = res.data.roomId;
 
       Alert.alert(
-        "Room Created! 🎉",
+        "Room Created",
         `Room ID: ${newRoomId}\nShare this with participants.`,
         [
           {
@@ -129,44 +128,47 @@ const CreateRoom = () => {
   };
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
       <SafeAreaView className="flex-1">
 
         {/* Header with Back Button */}
-        <View className="flex-row items-center px-8 pt-8 mb-6">
+        <View className="flex-row items-center px-gutter pt-8 mb-6">
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             activeOpacity={0.9}
-            className="w-12 h-12 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm shadow-black/5 mr-4"
-          >
-            <Ionicons name="arrow-back" size={24} color="#18181b" />
+            className="w-11 h-11 items-center justify-center rounded-xl"
+          
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+            <Ionicons name="arrow-back" size={24} color="#12100E" />
           </TouchableOpacity>
           <View>
-            <Text className="text-slate-900 text-3xl font-black  tracking-tighter uppercase">
-              Room <Text className="text-pink-500">Builder</Text>
+            <Text className="text-ink text-3xl font-display uppercase">
+              Room <Text className="text-accent-text">Builder</Text>
             </Text>
-            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Initialize Custom Node</Text>
+            <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Initialize Custom Node</Text>
           </View>
         </View>
 
-        <ScrollView className="px-8 pb-12" showsVerticalScrollIndicator={false}>
+        <ScrollView className="px-gutter pb-12" showsVerticalScrollIndicator={false}>
 
           {/* DOMAIN SELECTION */}
-          <Text className="text-slate-500 font-black  text-2xs mb-4 uppercase tracking-wide">Select Specialization</Text>
+          <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
+            <Text className="text-ink-3 font-display text-label uppercase">Select Specialization</Text>
+            <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+          </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-8 p-1">
             {DOMAINS.map((d) => (
               <TouchableOpacity
                 key={d}
                 activeOpacity={0.9}
                 onPress={() => setDomain(d)}
-                className={`px-6 py-3 mr-4 rounded-2xl border transition-all ${domain === d
-                    ? "bg-white border-pink-500 shadow-lg shadow-pink-500/10"
-                    : "bg-white border-slate-100 shadow-sm"
-                  }`}
+                className={`px-6 py-3 mr-4 rounded-card border transition-all ${domain === d ? "bg-card border-brand-500 shadow-hair " : "bg-card border-line shadow-hair" }`}
               >
-                <Text className={`font-black  uppercase text-xs tracking-tight ${domain === d ? "text-pink-500" : "text-slate-500"}`}>
+                <Text className={`font-display uppercase text-sm ${domain === d ? "text-accent-text" : "text-ink-3"}`}>
                   {d}
                 </Text>
               </TouchableOpacity>
@@ -174,54 +176,54 @@ const CreateRoom = () => {
           </ScrollView>
 
           {/* SETTINGS CARD */}
-          <View className="bg-white rounded-5xl p-8 border border-slate-100 mb-10 shadow-2xl shadow-black/5">
-            <Text className="text-slate-500 font-black  text-2xs mb-6 uppercase tracking-wide">Global Configuration</Text>
+          <View className="bg-card rounded-sheet p-card-pad border border-line mb-10 shadow-hair">
+            <Text className="text-ink-3 font-display text-label mb-6 uppercase">Global Configuration</Text>
 
             <View className="mb-6">
-              <Text className="text-slate-900 font-black  text-xs mb-3 uppercase tracking-tight">Capacity (Members)</Text>
+              <Text className="font-semibold text-base text-ink mb-3">Capacity (Members)</Text>
               <TextInput
                 value={maxMembers}
                 onChangeText={setMaxMembers}
                 keyboardType="numeric"
-                placeholderTextColor="#94a3b8"
-                className="border border-slate-100 p-5 rounded-3xl bg-slate-50 text-slate-900 font-black "
+                placeholderTextColor="#8B857E"
+                className="border-[1.5px] border-ink p-5 bg-card text-ink font-display rounded-md"
               />
             </View>
 
             <View className="mb-6">
-              <Text className="text-slate-900 font-black  text-xs mb-3 uppercase tracking-tight">Duration (Minutes)</Text>
+              <Text className="font-semibold text-base text-ink mb-3">Duration (Minutes)</Text>
               <TextInput
                 value={duration}
                 onChangeText={setDuration}
                 keyboardType="numeric"
-                placeholderTextColor="#94a3b8"
-                className="border border-slate-100 p-5 rounded-3xl bg-slate-50 text-slate-900 font-black "
+                placeholderTextColor="#8B857E"
+                className="border-[1.5px] border-ink p-5 bg-card text-ink font-display rounded-md"
               />
             </View>
 
             {/* DATE PICKER BUTTON */}
             <View>
-              <Text className="text-slate-900 font-black  text-xs mb-3 uppercase tracking-tight">Execution Time</Text>
+              <Text className="font-semibold text-base text-ink mb-3">Execution Time</Text>
               <TouchableOpacity
                 onPress={handleDatePress}
                 activeOpacity={0.9}
-                className="bg-slate-50 p-5 rounded-3xl border border-slate-100 flex-row items-center justify-between"
+                className="bg-paper-2 p-5 rounded-card border border-line flex-row items-center justify-between"
               >
-                <Text className="text-slate-900 font-black  text-base">
+                <Text className="text-ink font-display text-base">
                   {startTime.toLocaleString([], {
                     month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                   })}
                 </Text>
-                <Ionicons name="stopwatch" size={20} color="#ec4899" />
+                <Ionicons name="stopwatch" size={20} color="#F97316" />
               </TouchableOpacity>
             </View>
 
             {/* iOS ONLY PICKER */}
             {Platform.OS === 'ios' && showIOSPicker && (
-              <View className="bg-white rounded-3xl mt-4 p-4 border border-slate-100 shadow-xl">
-                <View className="flex-row justify-end border-b border-slate-50 pb-3 mb-3">
+              <View className="bg-card rounded-card mt-4 p-4 border border-line shadow-hair">
+                <View className="flex-row justify-end border-b border-line pb-3 mb-3">
                   <TouchableOpacity onPress={() => setShowIOSPicker(false)}>
-                    <Text className="text-pink-500 font-black  text-base px-4 uppercase">Sync</Text>
+                    <Text className="text-accent-text font-display text-base px-4 uppercase">Sync</Text>
                   </TouchableOpacity>
                 </View>
                 <DateTimePicker
@@ -230,7 +232,7 @@ const CreateRoom = () => {
                   mode="datetime"
                   display="spinner"
                   onChange={onIOSChange}
-                  textColor="#18181b"
+                  textColor="#12100E"
                   themeVariant="light"
                 />
               </View>
@@ -239,34 +241,34 @@ const CreateRoom = () => {
 
           {/* QUESTIONS EDITOR */}
           <View className="flex-row justify-between items-center mb-6 px-1">
-            <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide">Core Dataset ({questions.length})</Text>
-            <TouchableOpacity onPress={addQuestion} className="bg-pink-50 px-4 py-2 rounded-xl border border-pink-100">
-              <Text className="text-pink-500 font-black  text-2xs uppercase tracking-tighter">+ Add Question</Text>
+            <Text className="text-ink-3 font-display text-label uppercase">Core Dataset ({questions.length})</Text>
+            <TouchableOpacity onPress={addQuestion} className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
+              <Text className="text-accent-text font-display text-label uppercase">+ Add Question</Text>
             </TouchableOpacity>
           </View>
 
           {questions.map((q, qIndex) => (
-            <View key={qIndex} className="bg-white border border-slate-100 rounded-5xl p-8 mb-8 shadow-2xl shadow-black/5">
+            <View key={qIndex} className="bg-card border border-line rounded-sheet p-card-pad mb-8 shadow-hair">
               <View className="flex-row justify-between items-center mb-6">
-                <View className="bg-slate-50 border border-slate-100 px-4 py-1.5 rounded-full">
-                  <Text className="font-black  text-slate-900 text-2xs uppercase tracking-wide">Question {qIndex + 1}</Text>
+                <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
+                  <Text className="font-display text-ink text-label uppercase">Question {qIndex + 1}</Text>
                 </View>
                 {questions.length > 1 && (
                   <TouchableOpacity
                     onPress={() => setQuestions(questions.filter((_, i) => i !== qIndex))}
-                    className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center border border-slate-100"
+                    className="w-10 h-10 bg-paper-2 rounded-xl items-center justify-center border border-line"
                   >
-                    <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                    <Ionicons name="trash-outline" size={18} color="#DC2626" />
                   </TouchableOpacity>
                 )}
               </View>
 
               <TextInput
                 placeholder="Initialize primary prompt..."
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor="#8B857E"
                 value={q.question}
                 onChangeText={(t) => updateQuestion(qIndex, "question", t)}
-                className="border border-slate-100 p-6 rounded-3xl mb-6 bg-slate-50 text-slate-900 font-black  text-base min-h-[100px]"
+                className="border border-line p-6 rounded-card mb-6 bg-paper-2 text-ink font-display text-base min-h-[100px]"
                 multiline
                 textAlignVertical="top"
               />
@@ -279,19 +281,17 @@ const CreateRoom = () => {
                   className="flex-row items-center mb-4"
                 >
                   <View
-                    className={`w-6 h-6 mr-4 rounded-full border-2 items-center justify-center transition-all ${q.correctAnswer === i ? "bg-pink-500 border-pink-500 shadow-sm shadow-pink-500/50" : "border-slate-300 bg-white"
-                      }`}
+                    className={`w-6 h-6 mr-4 rounded-full border-2 items-center justify-center transition-all ${q.correctAnswer === i ? "bg-brand-500 border-brand-500 shadow-hair " : "border-line bg-card" }`}
                   >
-                    {q.correctAnswer === i && <Ionicons name="checkmark" size={14} color="white" />}
+                    {q.correctAnswer === i && <Ionicons name="checkmark" size={14} color="#12100E" />}
                   </View>
 
                   <TextInput
                     value={opt}
                     placeholder={`Buffer Option ${i + 1}`}
-                    placeholderTextColor="#94a3b8"
+                    placeholderTextColor="#8B857E"
                     onChangeText={(text) => updateOption(qIndex, i, text)}
-                    className={`border p-5 rounded-2xl flex-1 font-black  uppercase tracking-tight text-sm ${q.correctAnswer === i ? "bg-white border-pink-500 text-slate-900 shadow-lg shadow-pink-500/5" : "bg-white border-slate-100 text-slate-500"
-                      }`}
+                    className={`border p-5 rounded-card flex-1 font-display uppercase text-sm ${q.correctAnswer === i ? "bg-card border-brand-500 text-ink shadow-hair " : "bg-card border-line text-ink-3" }`}
                   />
                 </TouchableOpacity>
               ))}
@@ -303,15 +303,14 @@ const CreateRoom = () => {
             onPress={submitRoom}
             disabled={loading}
             activeOpacity={0.9}
-            className={`py-6 rounded-4xl mb-16 shadow-2xl flex-row justify-center items-center ${loading ? 'bg-pink-400' : 'bg-pink-500 shadow-pink-500/20'
-              }`}
+            className={`py-6 rounded-sheet mb-16 shadow-hair flex-row justify-center items-center ${loading ? 'bg-brand-400' : 'bg-brand-500 ' }`}
           >
             {loading ? (
-              <ActivityIndicator color="white" />
+              <ActivityIndicator color="#12100E" />
             ) : (
               <>
-                <Text className="text-white text-center font-black  text-lg mr-3 tracking-[3px] uppercase">Finalize Node</Text>
-                <Ionicons name="rocket" size={20} color="white" />
+                <Text className="font-display text-ink uppercase mr-2" style={{ fontSize: 14, letterSpacing: 0.3 }}>Finalize Node</Text>
+                <Ionicons name="rocket" size={20} color="#12100E" />
               </>
             )}
           </TouchableOpacity>

@@ -6,7 +6,6 @@ import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import axios from "../context/axiosConfig";
 import Toast from "react-native-toast-message";
@@ -50,7 +49,7 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
       className="p-[1px]"
       style={{ width: ITEM_SIZE, height: ITEM_SIZE * 1.3 }}
     >
-      <View className={`flex-1 rounded-2xl overflow-hidden border-2 ${isSelected ? 'border-[#f97316]' : 'border-transparent'}`}>
+      <View className={`flex-1 rounded-card overflow-hidden border-2 ${isSelected ? 'border-brand-500' : 'border-transparent'}`}>
         {thumbnail ? (
           <Image
             source={{ uri: thumbnail }}
@@ -59,22 +58,22 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
             style={{ opacity: isSelected ? 0.7 : 1 }}
           />
         ) : (
-          <View className="flex-1 bg-slate-100 items-center justify-center">
+          <View className="flex-1 bg-paper-2 items-center justify-center">
              {error ? (
-                <Ionicons name="videocam-outline" size={24} color="#94a3b8" />
+                <Ionicons name="videocam-outline" size={24} color="#8B857E" />
              ) : (
-                <ActivityIndicator size="small" color="#f97316" />
+                <ActivityIndicator size="small" color="#F97316" />
              )}
           </View>
         )}
         <View className="absolute bottom-2 right-2 bg-black/60 px-2 py-0.5 rounded-lg">
-          <Text className="text-white text-2xs font-black">
+          <Text className="text-white text-label font-display">
             {Math.floor(item.duration / 60)}:{Math.round(item.duration % 60).toString().padStart(2, '0')}
           </Text>
         </View>
         {isSelected && (
-          <View className="absolute top-2 right-2 bg-[#f97316] rounded-full w-6 h-6 items-center justify-center shadow-lg">
-            <Ionicons name="checkmark" size={14} color="white" />
+          <View className="absolute top-2 right-2 bg-brand-500 rounded-full w-6 h-6 items-center justify-center shadow-hair">
+            <Ionicons name="checkmark" size={14} color="#12100E" />
           </View>
         )}
       </View>
@@ -221,24 +220,26 @@ const CreateShorts = () => {
   };
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
-      <LinearGradient colors={['#f97316', 'transparent']} className="absolute top-0 w-full h-80 opacity-30" />
       
       <SafeAreaView className="flex-1">
       {/* Header */}
       <View className="flex-row items-center justify-between px-6 py-4">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 rounded-full bg-slate-50 items-center justify-center">
-          <Ionicons name="close" size={24} color="#1e293b" />
+        <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+          <Ionicons name="close" size={24} color="#12100E" />
         </TouchableOpacity>
         <View className="items-center">
-          <Text className="text-[#1e293b] text-xl font-black uppercase tracking-tighter">Create Short</Text>
-          <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Gallery Sync</Text>
+          <Text className="text-ink font-display uppercase text-h1">Create Short</Text>
+          <Text className="text-ink-3 text-label font-display uppercase">Gallery Sync</Text>
         </View>
         <TouchableOpacity 
           onPress={() => selectedAsset && setShowDetailsModal(true)}
           disabled={!selectedAsset}
-          className={`w-10 h-10 rounded-full items-center justify-center ${selectedAsset ? 'bg-[#f97316]' : 'bg-slate-100'}`}
+          className={`w-10 h-10 rounded-full items-center justify-center ${selectedAsset ? 'bg-brand-500' : 'bg-paper-2'}`}
         >
           <Ionicons name="arrow-forward" size={20} color="black" />
         </TouchableOpacity>
@@ -246,7 +247,7 @@ const CreateShorts = () => {
 
       {/* Main Preview Container */}
       <View className="px-6 py-4" style={{ height: height * 0.35 }}>
-         <View className="flex-1 bg-slate-50 rounded-4xl overflow-hidden border border-slate-100 shadow-sm">
+         <View className="flex-1 bg-paper rounded-sheet overflow-hidden border border-line shadow-hair">
             {selectedAsset ? (
               <View className="flex-1">
                 <Video
@@ -267,15 +268,15 @@ const CreateShorts = () => {
             ) : (
               <View className="flex-1 items-center justify-center">
                  {fetching ? (
-                   <ActivityIndicator color="#f97316" size="large" />
+                   <ActivityIndicator color="#F97316" size="large" />
                  ) : (
-                   <View className="items-center px-10">
-                      <Ionicons name="videocam-off-outline" size={40} color="#cbd5e1" />
-                      <Text className="text-slate-500 mt-2 font-black text-center text-2xs uppercase tracking-wide">
+                   <View className="items-center px-gutter">
+                      <Ionicons name="videocam-off-outline" size={40} color="#C4BEB6" />
+                      <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
                           {permissionError ? "Permission Denied" : "No Content Found"}
                       </Text>
-                      <TouchableOpacity onPress={pickFromSystem} className="mt-4 bg-[#f97316] px-6 py-3 rounded-2xl">
-                          <Text className="text-white font-black uppercase text-2xs tracking-wide">Browse Vault</Text>
+                      <TouchableOpacity onPress={pickFromSystem} className="mt-4 bg-brand-500 px-6 py-3 rounded-card">
+                          <Text className="text-ink font-display uppercase text-label">Browse Vault</Text>
                       </TouchableOpacity>
                    </View>
                  )}
@@ -288,18 +289,18 @@ const CreateShorts = () => {
       <View className="flex-1 px-4">
         <View className="flex-row justify-between items-center px-2 mb-4">
            <View>
-              <Text className="text-2xl font-black text-[#1e293b] tracking-tighter">GALLERY</Text>
-              <Text className="text-2xs text-slate-500 font-black uppercase tracking-wide">{assets.length} Videos Available</Text>
+              <Text className="text-2xl font-display text-ink">GALLERY</Text>
+              <Text className="text-label text-ink-3 font-display uppercase">{assets.length} Videos Available</Text>
            </View>
-           <TouchableOpacity onPress={pickFromSystem} className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-              <Ionicons name="search-outline" size={20} color="#f97316" />
+           <TouchableOpacity onPress={pickFromSystem} className="bg-paper-2 p-3 rounded-xl border border-line">
+              <Ionicons name="search-outline" size={20} color="#F97316" />
            </TouchableOpacity>
         </View>
 
         {fetching ? (
           <View className="flex-1 items-center justify-center pb-20">
-              <ActivityIndicator color="#f97316" />
-              <Text className="text-slate-500 mt-4 font-black uppercase text-2xs tracking-wide">Indexing Assets...</Text>
+              <ActivityIndicator color="#F97316" />
+              <Text className="text-ink-3 mt-4 font-display uppercase text-label">Indexing Assets...</Text>
           </View>
         ) : (
           <FlatList
@@ -310,11 +311,11 @@ const CreateShorts = () => {
               contentContainerStyle={{ paddingBottom: 100 }}
               ListEmptyComponent={
                   <View className="flex-1 items-center justify-center pt-10">
-                      <Text className="text-slate-500 font-bold text-center text-xs px-10 leading-5">
+                      <Text className="text-ink-3 font-semibold text-center text-xs px-gutter leading-5">
                           Unable to access gallery. Please use the system browser to select a video.
                       </Text>
-                      <TouchableOpacity onPress={pickFromSystem} className="mt-6 bg-[#1e293b] px-8 py-3 rounded-2xl shadow-lg">
-                          <Text className="text-white font-black uppercase text-2xs tracking-wide">Open Browser</Text>
+                      <TouchableOpacity onPress={pickFromSystem} className="mt-6 bg-ink px-gutter py-3 rounded-card shadow-hair">
+                          <Text className="text-white font-display uppercase text-label">Open Browser</Text>
                       </TouchableOpacity>
                   </View>
               }
@@ -343,7 +344,7 @@ const CreateShorts = () => {
           />
           <View 
             style={{ height: height * 0.5 }} 
-            className="bg-white rounded-t-5xl shadow-2xl overflow-hidden"
+            className="bg-paper rounded-t-sheet shadow-hair overflow-hidden"
           >
             <KeyboardAvoidingView 
               behavior="padding" 
@@ -351,46 +352,46 @@ const CreateShorts = () => {
             >
               {/* Grab Handle */}
               <View className="items-center pt-4 pb-2">
-                <View className="w-12 h-1.5 bg-slate-200 rounded-full" />
+                <View className="w-12 h-1.5 bg-ink-4 rounded-full" />
               </View>
 
               {/* Modal Header */}
-              <View className="flex-row items-center justify-between px-8 py-4">
+              <View className="flex-row items-center justify-between px-gutter py-4">
                 <View className="w-10" />
                 <View className="items-center">
-                  <Text className="text-[#1e293b] text-xl font-black uppercase tracking-tighter">Finalize</Text>
-                  <Text className="text-[#f97316] text-2xs font-black uppercase tracking-wide">Details</Text>
+                  <Text className="text-ink font-display uppercase text-h1">Finalize</Text>
+                  <Text className="text-brand-500 text-label font-display uppercase">Details</Text>
                 </View>
-                <TouchableOpacity onPress={() => setShowDetailsModal(false)} className="w-10 h-10 rounded-full bg-slate-50 items-center justify-center">
-                  <Ionicons name="close" size={20} color="#1e293b" />
+                <TouchableOpacity onPress={() => setShowDetailsModal(false)} className="w-10 h-10 rounded-full bg-paper-2 items-center justify-center">
+                  <Ionicons name="close" size={20} color="#12100E" />
                 </TouchableOpacity>
               </View>
 
-              <View className="flex-1 px-8 pt-6">
+              <View className="flex-1 px-gutter pt-6">
                 <View className="mb-8">
-                  <Text className="text-slate-500 font-black text-2xs mb-1 ml-1 uppercase tracking-wide">Title</Text>
-                  <View className="bg-slate-50 rounded-xl border border-slate-100 px-3 justify-center shadow-sm">
+                  <Text className="text-ink-3 font-display text-label mb-1 ml-1 uppercase">Title</Text>
+                  <View className="bg-paper-2 rounded-xl border border-line px-3 justify-center shadow-hair">
                     <TextInput
                       placeholder="WHAT'S THIS SHORT ABOUT?"
-                      placeholderTextColor="#94a3b8"
+                      placeholderTextColor="#8B857E"
                       value={title}
                       onChangeText={setTitle}
-                      className="text-[#1e293b] font-black tracking-tight text-base"
+                      className="text-ink font-display text-base"
                     />
                   </View>
                 </View>
 
                 <View className="mb-10">
-                  <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide mb-1 ml-1">Description <Text className="text-slate-300">(Optional)</Text></Text>
-                  <View className="bg-slate-50 rounded-xl border border-slate-100 px-3 py-1 min-h-[160px] shadow-sm">
+                  <Text className="text-ink-3 font-display text-label uppercase mb-1 ml-1">Description <Text className="text-ink-4">(Optional)</Text></Text>
+                  <View className="bg-paper-2 rounded-xl border border-line px-3 py-1 min-h-[160px] shadow-hair">
                     <TextInput
                       placeholder="ADD A STORY OR TAGS TO YOUR SHORT..."
-                      placeholderTextColor="#94a3b8"
+                      placeholderTextColor="#8B857E"
                       value={description}
                       onChangeText={setDescription}
                       multiline
                       style={{ textAlignVertical: 'top' }}
-                      className="text-[#1e293b] font-bold text-sm leading-6"
+                      className="text-ink font-semibold text-sm leading-6"
                     />
                   </View>
                 </View>
@@ -399,33 +400,30 @@ const CreateShorts = () => {
                   onPress={handleUpload} 
                   disabled={loading}
                   activeOpacity={0.9}
-                  className="shadow-2xl shadow-orange-500/20 rounded-full"
+                  className="shadow-hair rounded-full"
                 >
-                  <LinearGradient
-                    colors={['#f97316', '#ea580c']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
+                  <View
                     className="h-16 rounded-full items-center justify-center flex-row"
-                  >
+                   style={{ backgroundColor: '#F97316' }}>
                     {loading ? (
                       <>
                         <ActivityIndicator color="white" size="small" />
                         {compressProgress > 0 && compressProgress < 1 && (
-                          <Text className="text-white font-black uppercase tracking-[2px] ml-3 text-xs">
+                          <Text className="text-white font-display uppercase ml-3 text-xs">
                             Optimising {Math.round(compressProgress * 100)}%
                           </Text>
                         )}
                       </>
                     ) : (
                       <>
-                        <Text className="text-white font-black uppercase tracking-[3px] mr-3 text-base">Post to Fync</Text>
+                        <Text className="text-white font-display uppercase mr-3 text-base">Post to Fync</Text>
                         <Ionicons name="rocket-outline" size={20} color="white" />
                       </>
                     )}
-                  </LinearGradient>
+                  </View>
                 </TouchableOpacity>
                 
-                <Text className="text-slate-300 text-center mt-2 font-black text-2xs uppercase tracking-wide px-10">
+                <Text className="font-sans text-sm text-ink-4 text-center mt-2 px-gutter">
                   By posting, you agree to Fync's community guidelines and protocol standards.
                 </Text>
               </View>

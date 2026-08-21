@@ -169,76 +169,79 @@ const DrawAndGuess = () => {
   ).current;
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: "#f8fafc" }}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: "#F5F2EC" }}>
       {/* Header */}
-      <View className="flex-row items-center justify-between px-5 pt-12 pb-4 bg-white shadow-sm z-10">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 -ml-2 rounded-full">
-          <Ionicons name="arrow-back" size={24} color="#0f172a" />
+      <View className="flex-row items-center justify-between px-5 pt-12 pb-4 bg-card shadow-hair z-10">
+        <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+          <Ionicons name="arrow-back" size={24} color="#12100E" />
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-slate-900">Draw & Guess</Text>
+        <Text className="text-xl font-display text-ink">Draw & Guess</Text>
         <TouchableOpacity onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'DrawAndGuess' })}>
-          <Ionicons name="trophy" size={24} color="#f59e0b" />
+          <Ionicons name="trophy" size={24} color="#B45309" />
         </TouchableOpacity>
       </View>
 
       {!matchData ? (
         <View className="flex-1 items-center justify-center p-6">
-          <Ionicons name="color-palette" size={80} color="#3b82f6" />
-          <Text className="text-2xl font-bold text-slate-800 mt-6 mb-2">Multiplayer Pictionary</Text>
-          <Text className="text-center text-slate-500 mb-8 px-4">
+          <Ionicons name="color-palette" size={80} color="#2563EB" />
+          <Text className="text-2xl font-display text-ink mt-6 mb-2">Multiplayer Pictionary</Text>
+          <Text className="text-center text-ink-3 mb-8 px-4">
             Compete against random students. Draw the word, or guess what your opponent is drawing!
           </Text>
           <TouchableOpacity 
             onPress={findMatch}
             disabled={isSearching}
-            className={`w-full py-4 rounded-xl items-center shadow-lg ${isSearching ? 'bg-slate-400' : 'bg-blue-500 shadow-blue-500/30'}`}
+            className={`w-full py-4 rounded-xl items-center shadow-hair ${isSearching ? 'bg-ink-4' : 'bg-fam-career '}`}
           >
-            <Text className="text-white font-bold text-lg">{isSearching ? "Searching for players..." : "Find a Match"}</Text>
+            <Text className="text-white font-display text-lg">{isSearching ? "Searching for players..." : "Find a Match"}</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <View className="flex-1">
           {/* Status Bar */}
-          <View className="bg-blue-50 p-4 border-b border-blue-100 flex-row justify-between items-center">
-            <Text className="font-bold text-slate-700">Vs: {matchData.opponent}</Text>
+          <View className="bg-fam-career/10 p-4 border-b border-fam-career/15 flex-row justify-between items-center">
+            <Text className="font-semibold text-ink-2">Vs: {matchData.opponent}</Text>
             {matchData.role === "drawer" ? (
               <View className="items-end">
-                <Text className="text-xs text-slate-500">You are drawing:</Text>
-                <Text className="font-black text-blue-600 text-lg">{matchData.word}</Text>
+                <Text className="text-xs text-ink-3">You are drawing:</Text>
+                <Text className="font-semibold text-fam-career text-lg">{matchData.word}</Text>
               </View>
             ) : (
-              <Text className="font-bold text-rose-500">You are guessing!</Text>
+              <Text className="font-semibold text-danger">You are guessing!</Text>
             )}
           </View>
 
           {/* Canvas */}
           <View 
-            className="w-full aspect-square bg-white border-b border-slate-200 overflow-hidden relative"
+            className="w-full aspect-square bg-card border-b border-line overflow-hidden relative"
             {...(matchData.role === "drawer" ? panResponder.panHandlers : {})}
           >
             <Svg width="100%" height="100%">
               {paths.map((p, i) => (
-                <Polyline key={i} points={p.join(" ")} fill="none" stroke="#0f172a" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+                <Polyline key={i} points={p.join(" ")} fill="none" stroke="#12100E" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
               ))}
               {currentPath.length > 0 && (
-                <Polyline points={currentPath.join(" ")} fill="none" stroke="#0f172a" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+                <Polyline points={currentPath.join(" ")} fill="none" stroke="#12100E" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
               )}
             </Svg>
 
             {matchData.role === "drawer" && (
-              <TouchableOpacity onPress={clearCanvas} className="absolute bottom-4 right-4 bg-slate-100 p-3 rounded-full shadow-sm">
-                <Ionicons name="trash" size={20} color="#ef4444" />
+              <TouchableOpacity onPress={clearCanvas} className="absolute bottom-4 right-4 bg-paper-2 p-3 rounded-full shadow-hair">
+                <Ionicons name="trash" size={20} color="#DC2626" />
               </TouchableOpacity>
             )}
           </View>
 
           {/* Guesses / Chat */}
-          <View className="flex-1 bg-slate-50 p-4">
+          <View className="flex-1 bg-paper p-4">
             <View className="flex-1 mb-4">
               {messages.map((m, i) => (
                 <Text key={i} className="mb-2">
-                  <Text className="font-bold text-slate-700">{m.username}: </Text>
-                  <Text className="text-slate-600">{m.text}</Text>
+                  <Text className="font-semibold text-ink-2">{m.username}: </Text>
+                  <Text className="text-ink-2">{m.text}</Text>
                 </Text>
               ))}
             </View>
@@ -249,10 +252,10 @@ const DrawAndGuess = () => {
                   value={guess}
                   onChangeText={setGuess}
                   placeholder="Type your guess..."
-                  className="flex-1 bg-white border border-slate-200 rounded-full px-5 py-3 shadow-sm mr-2"
+                  className="flex-1 bg-paper border border-line rounded-full px-5 py-3 shadow-hair mr-2"
                   onSubmitEditing={sendGuess}
                 />
-                <TouchableOpacity onPress={sendGuess} className="bg-blue-500 w-12 h-12 rounded-full items-center justify-center shadow-md shadow-blue-500/30">
+                <TouchableOpacity onPress={sendGuess} className="bg-fam-career w-12 h-12 rounded-full items-center justify-center shadow-hair">
                   <Ionicons name="send" size={20} color="white" />
                 </TouchableOpacity>
               </View>

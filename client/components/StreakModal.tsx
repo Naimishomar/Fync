@@ -66,7 +66,7 @@ const StreakModal: React.FC<StreakModalProps> = ({ visible, streakCount, onClose
     >
       <View className="flex-1 bg-black/70 justify-center items-center">
         <Animated.View 
-          className="w-[80%] rounded-4xl overflow-hidden border border-orange-500/30"
+          className="w-[80%] rounded-sheet overflow-hidden border border-brand-500/30"
           style={{ 
             transform: [{ scale: scaleAnim }],
             opacity: opacityAnim
@@ -75,21 +75,20 @@ const StreakModal: React.FC<StreakModalProps> = ({ visible, streakCount, onClose
           <BlurView intensity={80} tint="dark" className="flex-1">
             <LinearGradient
               colors={['rgba(255, 140, 0, 0.2)', 'rgba(0, 0, 0, 0.8)']}
-              className="p-8 items-center"
+              className="p-card-pad items-center"
             >
               <View className="mb-5">
-                <View className="w-[110px] h-[110px] rounded-full bg-orange-500/20 justify-center items-center p-[5px]">
-                  <LinearGradient
-                    colors={['#FFD700', '#FF8C00', '#f97316']}
-                    className="w-[100px] h-[100px] rounded-full justify-center items-center shadow-lg shadow-orange-500 elevation-10"
-                  >
-                    <Ionicons name="flame" size={60} color="white" />
-                  </LinearGradient>
+                <View className="w-[110px] h-[110px] rounded-full bg-brand-500/20 justify-center items-center p-[5px]">
+                  <View
+                    className="w-[100px] h-[100px] rounded-full justify-center items-center shadow-hair"
+                   style={{ backgroundColor: '#F5B700' }}>
+                    <Ionicons name="flame" size={60} color="#12100E" />
+                  </View>
                 </View>
               </View>
 
               <Text 
-                className="text-6xl font-black text-yellow-400"
+                className="text-6xl font-display text-warning"
                 style={{
                   textShadowColor: 'rgba(0, 0, 0, 0.5)',
                   textShadowOffset: { width: 0, height: 2 },
@@ -98,15 +97,15 @@ const StreakModal: React.FC<StreakModalProps> = ({ visible, streakCount, onClose
               >
                 {streakCount}
               </Text>
-              <Text className="text-2xl font-bold text-white -mt-1 uppercase tracking-[2px]">
+              <Text className="text-2xl font-display text-white -mt-1 uppercase">
                 Day Streak!
               </Text>
               
               <View className="mt-6 items-center">
-                <Text className="text-yellow-400 text-base font-bold tracking-[1px]">
+                <Text className="text-warning text-base font-semibold">
                   Daily Goal Achieved
                 </Text>
-                <View className="h-[1px] w-10 bg-white/20 my-2" />
+                <View className="h-[1px] w-10 bg-card/20 my-2" />
                 <Text className="text-white/60 text-xs font-medium">
                   See you tomorrow!
                 </Text>

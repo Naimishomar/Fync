@@ -2,7 +2,6 @@ import { TouchableOpacity, View, Dimensions, Text } from "react-native";
 import { Image as ExpoImage } from 'expo-image';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import RecruiterPortal from "./opportunity/RecruiterPortal";
 import RecruiterProfile from "./RecruiterProfile";
@@ -13,6 +12,9 @@ import { useAuth } from "context/auth.context";
 const { width } = Dimensions.get('window');
 const Tab = createBottomTabNavigator();
 
+// Pill bar: the radius is always half the height (mockup .tabbar, 64/32).
+const TAB_BAR_HEIGHT = 64;
+
 // Custom center button for "Post Opportunity"
 const PostOpportunityButton = ({ children, onPress }: any) => {
   const navigation = useNavigation<any>();
@@ -21,22 +23,21 @@ const PostOpportunityButton = ({ children, onPress }: any) => {
     <View className="flex-1 items-center justify-center">
       <View
         style={{
-          shadowColor: '#ec4899', shadowOffset: { width: 0, height: 5 },
+          shadowColor: '#F97316', shadowOffset: { width: 0, height: 5 },
           shadowOpacity: 0.4, shadowRadius: 10, elevation: 10
         }}
-        className="w-[72px] h-[72px] rounded-full bg-black items-center justify-center"
+        className="w-[72px] h-[72px] rounded-full bg-ink items-center justify-center"
       >
         <TouchableOpacity
           onPress={() => navigation.navigate('CreateOpportunity', { type: 'internship' })}
           activeOpacity={0.9}
           className="w-[60px] h-[60px] rounded-full overflow-hidden"
         >
-          <LinearGradient
-            colors={['#ec4899', '#8f358aff']}
+          <View
             className="flex-1 items-center justify-center"
-          >
-            <Ionicons name="add" size={32} color="#fff" />
-          </LinearGradient>
+           style={{ backgroundColor: '#F97316' }}>
+            <Ionicons name="add" size={32} color="#12100E" />
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -49,36 +50,29 @@ const PlaceholderScreen = () => <View />;
 export default function RecruiterTabLayout() {
   const { user } = useAuth();
   return (
-    <View className="flex-1 bg-black justify-center">
+    <View className="flex-1 bg-paper justify-center">
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: false,
-          tabBarLabelStyle: {
-            fontSize: 9,
-            fontWeight: '700',
-            letterSpacing: 0.5,
-            textTransform: 'uppercase',
-            marginTop: -2,
-          },
-          tabBarActiveTintColor: "#ec4899",
-          tabBarInactiveTintColor: "#ffffffff",
+          tabBarActiveTintColor: "#F97316",
+          tabBarInactiveTintColor: "rgba(245,242,236,0.55)",
           tabBarStyle: {
             position: "absolute",
             bottom: 40,
             marginHorizontal: width * 0.05,
-            backgroundColor: "rgba(20, 20, 20, 0.86)",
-            borderRadius: 40,
-            height: 65,
+            backgroundColor: "rgba(18, 16, 14, 0.94)",
+            borderRadius: TAB_BAR_HEIGHT / 2,
+            height: TAB_BAR_HEIGHT,
             borderWidth: 1,
             borderColor: "rgba(255, 255, 255, 0.12)",
-            elevation: 5,
-            shadowColor: "#000",
+            elevation: 10,
+            shadowColor: "#12100E",
             shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.3,
-            shadowRadius: 15,
-            paddingTop: 10,
-            paddingBottom: 46,
+            shadowOpacity: 0.28,
+            shadowRadius: 30,
+            paddingTop: 0,
+            paddingBottom: 0,
           },
         }}
       >
@@ -130,7 +124,7 @@ export default function RecruiterTabLayout() {
                   height: 28,
                   borderRadius: 14,
                   borderWidth: focused ? 1.5 : 0,
-                  borderColor: '#ec4899',
+                  borderColor: '#F97316',
                   justifyContent: 'center',
                   alignItems: 'center'
                 }}>

@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Image, Animated, StatusBar, TextInput } from 'react-native';
 import { fetchDriveData } from '../../utils/handleDrive';
-import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -73,14 +72,14 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
         return (
             <Animated.View
                 style={{ opacity: pulseAnim }}
-                className="flex-row items-center p-5 mx-6 mb-4 bg-white rounded-3xl border border-slate-50"
+                className="flex-row items-center p-5 mx-gutter mb-4 bg-card rounded-card border border-line"
             >
-                <View className="w-12 h-12 bg-slate-50 rounded-2xl" />
+                <View className="w-12 h-12 bg-paper-2 rounded-card" />
                 <View className="ml-4 flex-1">
-                    <View className="h-4 bg-slate-50 rounded w-3/4 mb-2" />
-                    <View className="h-3 bg-slate-50 rounded w-1/2" />
+                    <View className="h-4 bg-paper-2 rounded w-3/4 mb-2" />
+                    <View className="h-3 bg-paper-2 rounded w-1/2" />
                 </View>
-                <View className="w-4 h-4 bg-slate-50 rounded-full" />
+                <View className="w-4 h-4 bg-paper-2 rounded-full" />
             </Animated.View>
         );
     };
@@ -88,28 +87,22 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
 
 
     return (
-        <View className="flex-1 bg-[#F8FAFC]">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
             {/* HEADER DECORATION - MATCHING LEADERBOARD */}
-            <View className="absolute top-0 w-full h-80 opacity-20">
-                <LinearGradient
-                    colors={['#f97316', 'transparent']}
-                    className="w-full h-full"
-                />
-            </View>
 
             <SafeAreaView className="flex-1" edges={['top']}>
                 {loading ? (
                     <View>
-                        <View className='px-8 pt-8 bg-transparent'>
+                        <View className='px-gutter pt-8 bg-transparent'>
                             <View className="flex-row items-center justify-between mb-8">
                                 <View>
-                                    <Text className="text-slate-900 text-3xl font-black  tracking-tighter uppercase">Fync <Text className="text-orange-500">Drive</Text></Text>
-                                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Campus Resource Arena</Text>
+                                    <Text className="text-ink text-3xl font-display uppercase">Fync <Text className="text-accent-text">Drive</Text></Text>
+                                    <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Campus Resource Arena</Text>
                                 </View>
-                                <TouchableOpacity disabled className="w-12 h-12 rounded-2xl items-center justify-center border border-slate-100 bg-white shadow-sm">
-                                    <ActivityIndicator size="small" color="#f97316" />
+                                <TouchableOpacity disabled className="w-12 h-12 rounded-card items-center justify-center border border-line bg-card shadow-hair">
+                                    <ActivityIndicator size="small" color="#F97316" />
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -124,30 +117,30 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ paddingBottom: 100 }}
                         ListHeaderComponent={
-                            <View className='px-8 pt-8 bg-transparent'>
+                            <View className='px-gutter pt-8 bg-transparent'>
                                 <View className="flex-row items-center justify-between mb-8">
                                     <View>
-                                        <Text className="text-slate-900 text-3xl font-black  tracking-tighter uppercase">Fync <Text className="text-orange-500">Drive</Text></Text>
-                                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Campus Resource Arena</Text>
+                                        <Text className="text-ink text-3xl font-display uppercase">Fync <Text className="text-accent-text">Drive</Text></Text>
+                                        <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Campus Resource Arena</Text>
                                     </View>
-                                    <TouchableOpacity onPress={loadData} disabled={loading} className={`w-12 h-12 rounded-2xl items-center justify-center border shadow-sm ${loading ? 'border-orange-100 bg-orange-50' : 'border-slate-100 bg-white'}`}>
-                                        {loading ? <ActivityIndicator size="small" color="#f97316" /> : <Ionicons name="refresh" size={20} color="#18181b" />}
+                                    <TouchableOpacity onPress={loadData} disabled={loading} className={`w-12 h-12 rounded-card items-center justify-center border shadow-hair ${loading ? 'border-line bg-paper-2' : 'border-line bg-card'}`}>
+                                        {loading ? <ActivityIndicator size="small" color="#F97316" /> : <Ionicons name="refresh" size={20} color="#12100E" />}
                                     </TouchableOpacity>
                                 </View>
 
-                                <View className="flex-row items-center bg-white px-4 py-1 rounded-2xl border border-slate-100 mb-6">
-                                    <Ionicons name="search" size={20} color="#CBD5E1" />
+                                <View className="flex-row items-center bg-card px-4 py-1 border-2 border-ink mb-6 rounded-md">
+                                    <Ionicons name="search" size={20} color="#C4BEB6" />
                                     <TextInput
                                         placeholder="Search resources..."
-                                        placeholderTextColor="#CBD5E1"
+                                        placeholderTextColor="#C4BEB6"
                                         value={search}
                                         onChangeText={setSearch}
-                                        className="flex-1 text-slate-900 font-black  text-sm tracking-tight p-3"
+                                        className="flex-1 text-ink font-display text-sm p-3"
                                     />
                                 </View>
 
                                 <View className="flex-row justify-between gap-4 mb-6">
-                                    <View className="flex-1 flex-row bg-white rounded-xl p-1.5 border border-slate-100">
+                                    <View className="flex-1 flex-row bg-card rounded-xl p-1.5 border border-line">
                                         {[
                                             { id: 'all', label: 'All' },
                                             { id: 'folders', label: 'Folders' },
@@ -156,19 +149,19 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                                             <TouchableOpacity
                                                 key={chip.id}
                                                 onPress={() => setActiveFilter(chip.id as any)}
-                                                className={`flex-1 items-center py-3 rounded-md ${activeFilter === chip.id ? 'bg-slate-900' : 'bg-transparent'}`}
+                                                className={`flex-1 items-center py-3 rounded-md ${activeFilter === chip.id ? 'bg-ink' : 'bg-transparent'}`}
                                             >
-                                                <Text className={`font-black  text-2xs uppercase tracking-widest ${activeFilter === chip.id ? 'text-white' : 'text-slate-500'}`}>{chip.label}</Text>
+                                                <Text className={`font-display text-label uppercase ${activeFilter === chip.id ? 'text-white' : 'text-ink-3'}`}>{chip.label}</Text>
                                             </TouchableOpacity>
                                         ))}
                                     </View>
                                 </View>
 
                                 <View className="mb-6 flex-row items-center">
-                                    <View className="bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20 mr-2">
-                                        <Text className="text-orange-600 font-black  text-2xs uppercase tracking-tighter">Current Path</Text>
+                                    <View className="bg-brand-500/10 border border-brand-500/20 mr-2 px-2.5 py-1 rounded-full">
+                                        <Text className="text-accent-text font-display text-label uppercase">Current Path</Text>
                                     </View>
-                                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide  flex-1" numberOfLines={1}>/ {title || "Root Protocol"}</Text>
+                                    <Text className="text-ink-3 text-label font-display uppercase flex-1" numberOfLines={1}>/ {title || "Root Protocol"}</Text>
                                 </View>
                             </View>
                         }
@@ -178,10 +171,10 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                             return (
                                 <TouchableOpacity
                                     activeOpacity={0.7}
-                                    className="flex-row items-center p-5 mx-6 mb-4 bg-white rounded-3xl border border-slate-100"
+                                    className="flex-row items-center p-5 mx-gutter mb-4 bg-card rounded-card border border-line"
                                     onPress={() => handlePress(item)}
                                 >
-                                    <View className="w-14 h-14 bg-slate-50 rounded-2xl items-center justify-center p-2.5">
+                                    <View className="w-14 h-14 bg-paper-2 rounded-card items-center justify-center p-2.5">
                                         <Image
                                             source={{ uri: isFolder ? FOLDER_IMG : PDF_IMG }}
                                             className="w-full h-full"
@@ -190,26 +183,26 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                                     </View>
 
                                     <View className="ml-4 flex-1">
-                                        <Text className="text-slate-900 text-sm font-black  uppercase tracking-tight" numberOfLines={1}>
+                                        <Text className="text-ink text-sm font-display uppercase" numberOfLines={1}>
                                             {item.name}
                                         </Text>
-                                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1 ">
+                                        <Text className="text-ink-3 text-label font-display uppercase mt-1">
                                             {isFolder ? 'Folder' : 'PDF Source'}
                                         </Text>
                                     </View>
 
-                                    <View className="w-8 h-8 bg-slate-50 rounded-full items-center justify-center">
-                                        <Ionicons name="chevron-forward" size={12} color="#CBD5E1" />
+                                    <View className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center">
+                                        <Ionicons name="chevron-forward" size={12} color="#C4BEB6" />
                                     </View>
                                 </TouchableOpacity>
                             );
                         }}
                         ListEmptyComponent={
-                            <View className="items-center mt-20 px-10">
-                                <View className="w-20 h-20 bg-slate-50 rounded-4xl items-center justify-center mb-6">
-                                    <Ionicons name="document-text-outline" size={32} color="#CBD5E1" />
+                            <View className="items-center mt-20 px-gutter">
+                                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                                    <Ionicons name="document-text-outline" size={32} color="#C4BEB6" />
                                 </View>
-                                <Text className="text-slate-500 font-black  text-xs text-center uppercase tracking-wide">No resources found</Text>
+                                <Text className="font-semibold text-base text-ink text-center">No resources found</Text>
                             </View>
                         }
                     />

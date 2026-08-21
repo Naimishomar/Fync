@@ -6,9 +6,9 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import axios from '../../context/axiosConfig';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Alert } from '../ui/AlertModal';
 
+import { StampCard } from '../ui/kit';
 const { width } = Dimensions.get('window');
 
 export default function StudyAssistant() {
@@ -36,7 +36,7 @@ export default function StudyAssistant() {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
                 setPdfContent(response.data.text);
-                setChat([{ role: 'bot', text: "PDF memorized! 🧠 I've indexed your notes. Ask me for a summary, key formulas, or a practice quiz!" }]);
+                setChat([{ role: 'bot', text: "PDF memorised. I have indexed your notes. Ask me for a summary, key formulas, or a practice quiz!" }]);
             } catch (e) {
                 Alert.alert("Error", "Server-side extraction failed.");
             } finally {
@@ -69,9 +69,9 @@ export default function StudyAssistant() {
             if (mode === 'QUESTIONS') {
                 const html = `
                     <style>
-                        body { font-family: 'Helvetica', sans-serif; padding: 40px; line-height: 1.6; color: #1a1a1a; }
-                        h1 { color: #ec4899; border-bottom: 2px solid #fce7f3; padding-bottom: 10px; }
-                        .question { font-weight: bold; color: #be185d; margin-top: 20px; }
+                        body { font-family: 'Helvetica', sans-serif; padding: 40px; line-height: 1.6; color: #12100E; }
+                        h1 { color: #F97316; border-bottom: 2px solid #EDE8E0; padding-bottom: 10px; }
+                        .question { font-weight: bold; color: #DB2777; margin-top: 20px; }
                     </style>
                     <body>
                         <h1>Fync Exam Prep Guide</h1>
@@ -93,23 +93,23 @@ export default function StudyAssistant() {
     };
 
     return (
-        <View className="flex-1 bg-[#F8FAFC]">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
             <SafeAreaView className="flex-1">
                 <KeyboardAvoidingView
                     behavior="padding"
-                    className="flex-1 px-8"
+                    className="flex-1 px-gutter"
                 >
                     {/* --- CUSTOM HEADER --- */}
                     <View className="flex-row items-center justify-between py-6">
                         <View>
-                            <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase ">
-                                Study <Text className="text-pink-500">AI</Text>
+                            <Text className="text-ink text-3xl font-display uppercase">
+                                Study <Text className="text-accent-text">AI</Text>
                             </Text>
                             <View className="flex-row items-center mt-1">
-                                <View className={`w-2 h-2 rounded-full mr-2 ${pdfContent ? 'bg-green-500' : 'bg-slate-200'}`} />
-                                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">
+                                <View className={`w-2 h-2 rounded-full mr-2 ${pdfContent ? 'bg-success' : 'bg-paper-2'}`} />
+                                <Text className="text-ink-3 text-label font-display uppercase">
                                     {pdfContent ? 'Intelligence Active' : 'Waiting for Source'}
                                 </Text>
                             </View>
@@ -117,7 +117,7 @@ export default function StudyAssistant() {
                         {pdfContent && (
                             <TouchableOpacity
                                 onPress={() => { setPdfContent(''); setChat([]); }}
-                                className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm shadow-black/5"
+                                className="bg-card p-3 rounded-card border border-line shadow-hair"
                             >
                                 <Ionicons name="trash-outline" size={20} color="#ff4b4b" />
                             </TouchableOpacity>
@@ -132,18 +132,20 @@ export default function StudyAssistant() {
                                 activeOpacity={0.9}
                                 className="w-full"
                             >
-                                <View className="bg-white border border-slate-100 rounded-5xl p-12 items-center shadow-2xl shadow-black/5">
-                                    <View className="bg-pink-50 p-8 rounded-4xl mb-8 border border-pink-100">
-                                        <Ionicons name="cloud-upload" size={48} color="#ec4899" />
+                                <StampCard radius={26}>
+                                <View className="p-card-pad items-center" style={{ paddingVertical: 32 }}>
+                                    <View className="bg-paper-2 p-card-pad rounded-sheet mb-8 border border-line">
+                                        <Ionicons name="cloud-upload" size={48} color="#F97316" />
                                     </View>
-                                    <Text className="text-slate-900 text-2xl font-black  uppercase tracking-tighter text-center leading-tight">Sync <Text className="text-pink-500">Source</Text></Text>
-                                    <Text className="text-slate-500 text-center font-bold text-2xs mt-4 leading-5 px-6 uppercase tracking-wide ">
+                                    <Text className="text-ink text-2xl font-display uppercase text-center leading-tight">Sync <Text className="text-accent-text">Source</Text></Text>
+                                    <Text className="font-sans text-sm text-ink-2 text-center mt-4 px-6">
                                         Upload your lecture PDF to activate institutional AI analysis.
                                     </Text>
-                                    <View className="mt-10 bg-slate-900 px-8 py-3.5 rounded-2xl shadow-xl shadow-black/20">
-                                        <Text className="text-white text-2xs font-black uppercase tracking-wide ">Initialize Ledger</Text>
+                                    <View className="mt-10 bg-ink px-gutter py-3.5 rounded-card shadow-hair">
+                                        <Text className="font-display text-paper uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Initialize Ledger</Text>
                                     </View>
                                 </View>
+                                </StampCard>
                             </TouchableOpacity>
                         </View>
                     ) : (
@@ -155,9 +157,9 @@ export default function StudyAssistant() {
                                         <TouchableOpacity
                                             key={item}
                                             onPress={() => runAiTask('CHAT', item)}
-                                            className="bg-white border border-slate-100 px-6 py-3 rounded-2xl mr-3 shadow-sm shadow-black/5"
+                                            className="bg-card border border-line mr-3 px-2.5 py-1 rounded-full"
                                         >
-                                            <Text className="text-slate-900 font-black  text-2xs uppercase tracking-wide">{item}</Text>
+                                            <Text className="text-ink font-display text-label uppercase">{item}</Text>
                                         </TouchableOpacity>
                                     ))}
                                 </ScrollView>
@@ -165,19 +167,17 @@ export default function StudyAssistant() {
                                 <TouchableOpacity
                                     onPress={() => runAiTask('QUESTIONS')}
                                     activeOpacity={0.8}
-                                    className="mt-2 overflow-hidden rounded-3xl shadow-lg shadow-pink-500/20"
+                                    className="mt-2 overflow-hidden rounded-card shadow-hair"
                                 >
-                                    <LinearGradient
-                                        colors={['#ec4899', '#f97316']}
-                                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                                    <View
                                         className="p-6 flex-row items-center justify-between"
-                                    >
+                                     style={{ backgroundColor: '#F97316' }}>
                                         <View className="flex-row items-center">
-                                            <Ionicons name="flash" size={18} color="white" />
-                                            <Text className="text-white font-black  ml-4 text-2xs uppercase tracking-wide">Generate Protocol Guide</Text>
+                                            <Ionicons name="flash" size={18} color="#12100E" />
+                                            <Text className="text-ink font-display ml-4 text-label uppercase">Generate Protocol Guide</Text>
                                         </View>
                                         <Ionicons name="arrow-forward" size={18} color="white" />
-                                    </LinearGradient>
+                                    </View>
                                 </TouchableOpacity>
                             </View>
 
@@ -191,20 +191,17 @@ export default function StudyAssistant() {
                                 {chat.map((msg, i) => (
                                     <View
                                         key={i}
-                                        className={`p-6 rounded-4xl mb-5 max-w-[90%] shadow-sm ${msg.role === 'user'
-                                                ? 'bg-slate-900 self-end rounded-tr-none shadow-black/20'
-                                                : 'bg-white self-start border border-slate-100 rounded-tl-none shadow-black/5'
-                                            }`}
+                                        className={`p-6 rounded-sheet mb-5 max-w-[90%] shadow-hair ${msg.role === 'user' ? 'bg-ink self-end rounded-tr-none ' : 'bg-card self-start border border-line rounded-tl-none ' }`}
                                     >
-                                        <Text className={`text-xs leading-6 ${msg.role === 'user' ? 'text-white font-black  uppercase tracking-tight' : 'text-slate-600 font-medium '}`}>
+                                        <Text className={`text-sm leading-6 ${msg.role === 'user' ? 'text-white font-display uppercase ' : 'text-ink-2 font-medium '}`}>
                                             {msg.role === 'bot' ? `"${msg.text}"` : msg.text}
                                         </Text>
                                     </View>
                                 ))}
                                 {loading && (
-                                    <View className="flex-row items-center p-5 bg-white rounded-2xl border border-slate-100 self-start shadow-sm shadow-black/5">
-                                        <ActivityIndicator color="#f97316" size="small" />
-                                        <Text className="text-slate-500 text-2xs font-black  uppercase tracking-wide ml-4">Analyzing Intel...</Text>
+                                    <View className="flex-row items-center p-5 bg-card rounded-card border border-line self-start shadow-hair">
+                                        <ActivityIndicator color="#F97316" size="small" />
+                                        <Text className="text-ink-3 text-label font-display uppercase ml-4">Analyzing Intel...</Text>
                                     </View>
                                 )}
                             </ScrollView>
@@ -213,18 +210,18 @@ export default function StudyAssistant() {
 
                     {/* --- INPUT DOCK --- */}
                     {pdfContent && (
-                        <View className="flex-row items-center bg-white p-2.5 rounded-4xl border border-slate-100 mb-10 shadow-2xl shadow-black/5">
+                        <View className="flex-row items-center bg-card p-2.5 border-2 border-ink mb-10 shadow-hair rounded-md">
                             <TextInput
                                 placeholder="Query the intelligence..."
-                                placeholderTextColor="#CBD5E1"
+                                placeholderTextColor="#C4BEB6"
                                 value={inputText}
                                 onChangeText={setInputText}
-                                className="flex-1 text-slate-900 px-6 text-xs font-black  uppercase tracking-tight"
+                                className="font-semibold text-base text-ink flex-1 px-6"
                                 multiline={false}
                             />
                             <TouchableOpacity
                                 onPress={() => runAiTask('CHAT')}
-                                className="bg-slate-900 w-14 h-14 rounded-2xl items-center justify-center shadow-lg"
+                                className="bg-ink w-14 h-14 rounded-card items-center justify-center shadow-hair"
                             >
                                 <Ionicons name="send" size={18} color="white" />
                             </TouchableOpacity>

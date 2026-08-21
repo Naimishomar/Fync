@@ -14,7 +14,6 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const CATEGORIES = ['All', 'Education', 'Electronics', 'Fashion', 'Books', 'Lifestyle'];
 
@@ -79,7 +78,7 @@ const AffiliateStore = () => {
                     )}
                 </View>
                 <View style={styles.ratingRow}>
-                    <Ionicons name="star" size={12} color="#FFD700" />
+                    <Ionicons name="star" size={12} color="#F5B700" />
                     <Text style={styles.ratingText}>{item.rating || '4.5'}</Text>
                     <Text style={styles.reviewsText}>({item.reviewsCount || '100'}+)</Text>
                 </View>
@@ -89,32 +88,33 @@ const AffiliateStore = () => {
 
     return (
         <View style={styles.container}>
-            <LinearGradient
-                colors={['#1a1a1a', '#000']}
-                style={styles.header}
-            >
+            <View style={styles.header}>
                 <View style={styles.headerTop}>
-                    <TouchableOpacity onPress={() => navigation.goBack()}>
-                        <Ionicons name="arrow-back" size={24} color="#fff" />
+                    <TouchableOpacity onPress={() => navigation.goBack()}
+            className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+                        <Ionicons name="arrow-back" size={24} color="#12100E" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Fync Store</Text>
                     <TouchableOpacity>
-                        <Ionicons name="cart-outline" size={24} color="#fff" />
+                        <Ionicons name="cart-outline" size={24} color="#12100E" />
                     </TouchableOpacity>
                 </View>
 
                 <View style={styles.searchContainer}>
-                    <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+                    <Ionicons name="search" size={20} color="#8B857E" style={styles.searchIcon} />
                     <TextInput
                         style={styles.searchInput}
                         placeholder="Search for laptop, gadgets, books..."
-                        placeholderTextColor="#666"
+                        placeholderTextColor="#8B857E"
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                         onSubmitEditing={fetchProducts}
                     />
                 </View>
-            </LinearGradient>
+            </View>
 
             <View style={styles.categoriesContainer}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesScroll}>
@@ -140,7 +140,7 @@ const AffiliateStore = () => {
 
             {loading && !refreshing ? (
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#00FF9D" />
+                    <ActivityIndicator size="large" color="#F97316" />
                     <Text style={styles.loadingText}>Loading curated deals...</Text>
                 </View>
             ) : (
@@ -151,11 +151,11 @@ const AffiliateStore = () => {
                     numColumns={2}
                     contentContainerStyle={styles.productList}
                     refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00FF9D" />
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />
                     }
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
-                            <Ionicons name="bag-handle-outline" size={64} color="#333" />
+                            <Ionicons name="bag-handle-outline" size={64} color="#C4BEB6" />
                             <Text style={styles.emptyText}>No products found in this category</Text>
                         </View>
                     }
@@ -168,12 +168,15 @@ const AffiliateStore = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000',
+        backgroundColor: '#F5F2EC',
     },
     header: {
         paddingTop: 50,
         paddingHorizontal: 20,
         paddingBottom: 20,
+        backgroundColor: '#F5F2EC',
+        borderBottomWidth: 2,
+        borderBottomColor: '#12100E',
     },
     headerTop: {
         flexDirection: 'row',
@@ -183,14 +186,18 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: 22,
-        fontWeight: 'bold',
-        color: '#fff',
+        fontFamily: 'SpaceGrotesk_700Bold',
+        textTransform: 'uppercase',
+        letterSpacing: -0.5,
+        color: '#12100E',
     },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#222',
+        backgroundColor: '#FFFFFF',
         borderRadius: 12,
+        borderWidth: 2,
+        borderColor: '#12100E',
         paddingHorizontal: 15,
         height: 50,
     },
@@ -199,7 +206,7 @@ const styles = StyleSheet.create({
     },
     searchInput: {
         flex: 1,
-        color: '#fff',
+        color: '#12100E',
         fontSize: 14,
     },
     categoriesContainer: {
@@ -212,22 +219,24 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 10,
         borderRadius: 20,
-        backgroundColor: '#111',
+        backgroundColor: '#FFFFFF',
         marginRight: 10,
-        borderWidth: 1,
-        borderColor: '#333',
+        minHeight: 44,
+        justifyContent: 'center',
+        borderWidth: 2,
+        borderColor: '#12100E',
     },
     categoryButtonActive: {
-        backgroundColor: '#00FF9D',
-        borderColor: '#00FF9D',
+        backgroundColor: '#F97316',
+        borderColor: '#12100E',
     },
     categoryText: {
-        color: '#999',
+        color: '#57534E',
         fontSize: 14,
-        fontWeight: '600',
+        fontFamily: 'Inter_600SemiBold',
     },
     categoryTextActive: {
-        color: '#000',
+        color: '#12100E',
     },
     productList: {
         paddingHorizontal: 10,
@@ -235,12 +244,12 @@ const styles = StyleSheet.create({
     },
     productCard: {
         flex: 0.5,
-        backgroundColor: '#111',
-        borderRadius: 15,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
         margin: 5,
         overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: '#222',
+        borderWidth: 2,
+        borderColor: '#12100E',
     },
     imageContainer: {
         width: '100%',
@@ -256,30 +265,32 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 10,
         left: 10,
-        backgroundColor: '#FF3B30',
+        backgroundColor: '#DC2626',
         paddingHorizontal: 8,
         paddingVertical: 4,
-        borderRadius: 5,
+        borderRadius: 6,
+        borderWidth: 2,
+        borderColor: '#12100E',
     },
     discountText: {
-        color: '#fff',
+        color: '#FFFFFF',
         fontSize: 10,
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
     },
     productInfo: {
         padding: 12,
     },
     brandText: {
         fontSize: 10,
-        color: '#00FF9D',
-        fontWeight: 'bold',
+        color: '#EA580C',
+        fontFamily: 'Inter_700Bold',
         textTransform: 'uppercase',
         marginBottom: 4,
     },
     productName: {
         fontSize: 14,
-        fontWeight: '600',
-        color: '#fff',
+        fontFamily: 'Inter_700Bold',
+        color: '#12100E',
         marginBottom: 8,
         height: 36,
     },
@@ -290,13 +301,13 @@ const styles = StyleSheet.create({
     },
     priceText: {
         fontSize: 16,
-        fontWeight: 'bold',
-        color: '#fff',
+        fontFamily: 'Inter_700Bold',
+        color: '#12100E',
         marginRight: 8,
     },
     originalPriceText: {
         fontSize: 12,
-        color: '#666',
+        color: '#8B857E',
         textDecorationLine: 'line-through',
     },
     ratingRow: {
@@ -305,12 +316,12 @@ const styles = StyleSheet.create({
     },
     ratingText: {
         fontSize: 12,
-        color: '#999',
+        color: '#8B857E',
         marginLeft: 4,
     },
     reviewsText: {
         fontSize: 11,
-        color: '#555',
+        color: '#57534E',
         marginLeft: 4,
     },
     loadingContainer: {
@@ -319,7 +330,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     loadingText: {
-        color: '#999',
+        color: '#8B857E',
         marginTop: 15,
     },
     emptyContainer: {
@@ -329,7 +340,7 @@ const styles = StyleSheet.create({
         marginTop: 100,
     },
     emptyText: {
-        color: '#666',
+        color: '#8B857E',
         marginTop: 15,
         fontSize: 16,
     }

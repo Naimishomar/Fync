@@ -80,7 +80,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 bg-[#F3F4F6]">
+      <View className="flex-1 bg-paper">
         {/* Background Feed */}
         <ScrollView
           contentContainerStyle={{ padding: 16 }}
@@ -90,7 +90,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
           <View>
             <Image
               source={loginImage}
-              className="w-full min-h-full rounded-2xl"
+              className="w-full min-h-full rounded-card"
               resizeMode='cover'
             />
           </View>
@@ -107,22 +107,22 @@ const ForgotPassword = ({ route, navigation }: any) => {
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingBottom: 24 }}
           >
-            <View className="rounded-t-5xl bg-white px-6 pt-8 pb-10">
+            <View className="rounded-t-sheet bg-paper px-6 pt-8 pb-10">
               <Image
                 source={require('../assets/Fync.png')}
                 className="h-20 w-20 self-center rounded-full mb-4"
                 resizeMode='cover'
               />
 
-              <Text className="text-3xl font-bold mb-6 text-center">
+              <Text className="font-display mb-6 text-center text-h1">
                 {isOtpSent ? "Verify & Reset" : "Forgot Password"}
               </Text>
 
               {/* Email Input (Always Visible) */}
               <TextInput
-                className={`mb-4 rounded-xl border border-slate-300 px-4 py-4 text-base ${isOtpSent ? 'bg-slate-100 text-slate-500' : 'bg-white text-black'}`}
+                className={`mb-4 rounded-xl border border-line px-4 py-4 text-base ${isOtpSent ? 'bg-paper-2 text-ink-3' : 'bg-card text-ink'}`}
                 placeholder="Enter your email"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor="#C4BEB6"
                 value={email}
                 onChangeText={setEmail} // Allow editing if OTP not sent yet
                 keyboardType="email-address"
@@ -135,9 +135,9 @@ const ForgotPassword = ({ route, navigation }: any) => {
                 <>
                   {/* OTP Input */}
                   <TextInput
-                    className="mb-4 rounded-xl border border-slate-300 px-4 py-4 text-base text-black"
+                    className="mb-4 border-[1.5px] border-ink px-4 py-4 text-base text-ink rounded-md"
                     placeholder="Enter 6-digit OTP"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor="#C4BEB6"
                     value={otp}
                     onChangeText={setOtp}
                     keyboardType="number-pad"
@@ -146,11 +146,11 @@ const ForgotPassword = ({ route, navigation }: any) => {
                   />
 
                   {/* Password Input */}
-                  <View className="mb-6 flex-row items-center rounded-xl border border-slate-300 px-4">
+                  <View className="mb-6 flex-row items-center rounded-xl border-2 border-ink px-4">
                     <TextInput
-                      className="flex-1 py-4 text-base text-black"
+                      className="flex-1 py-4 text-base text-ink"
                       placeholder="New Password"
-                      placeholderTextColor="#9CA3AF"
+                      placeholderTextColor="#C4BEB6"
                       secureTextEntry={!passwordVisible}
                       value={password}
                       onChangeText={setPassword}
@@ -159,7 +159,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
                       <Ionicons
                         name={passwordVisible ? 'eye-off' : 'eye'}
                         size={22}
-                        color="#9CA3AF"
+                        color="#C4BEB6"
                       />
                     </Pressable>
                   </View>
@@ -168,15 +168,15 @@ const ForgotPassword = ({ route, navigation }: any) => {
 
               {/* Action Button */}
               {isLoading ? (
-                <Pressable className="rounded-full bg-black py-4 items-center">
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                <Pressable className="bg-brand-500 py-4 items-center border-2 border-ink rounded-md">
+                  <ActivityIndicator size="small" color="#12100E" />
                 </Pressable>
               ) : (
                 <Pressable
-                  className="rounded-full bg-black py-4 items-center"
+                  className="bg-brand-500 py-4 items-center border-2 border-ink rounded-md"
                   onPress={isOtpSent ? handleVerifyAndReset : handleSendOtp}
                 >
-                  <Text className="text-white text-lg font-semibold">
+                  <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>
                     {isOtpSent ? "Reset Password" : "Send OTP"}
                   </Text>
                 </Pressable>
@@ -185,7 +185,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
               {/* Back to Edit Email (Optional UX improvement) */}
               {isOtpSent && !isLoading && (
                 <Pressable onPress={() => setIsOtpSent(false)} className="mt-4 items-center">
-                  <Text className="text-slate-500 font-medium">Change Email or Resend</Text>
+                  <Text className="text-ink-3 font-medium">Change Email or Resend</Text>
                 </Pressable>
               )}
 

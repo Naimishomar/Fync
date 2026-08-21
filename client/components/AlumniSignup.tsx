@@ -96,7 +96,7 @@ export default function AlumniSignup() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 bg-[#F3F4F6]">
+      <View className="flex-1 bg-paper">
         <ScrollView
           contentContainerStyle={{ padding: 0 }}
           showsVerticalScrollIndicator={false}
@@ -112,14 +112,14 @@ export default function AlumniSignup() {
 
         <View className="absolute bottom-0 w-full">
           <ScrollView keyboardShouldPersistTaps="handled">
-            <View className="rounded-t-5xl bg-white px-6 pt-8 pb-12">
+            <View className="rounded-t-sheet bg-paper px-6 pt-8 pb-12">
               <Image source={require('../assets/Fync.png')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
-              <Text className="text-slate-500 mb-2">Join the exclusive professional network</Text>
+              <Text className="text-ink-3 mb-2">Join the exclusive professional network</Text>
 
               {!otpSent ? (
                 <>
                   <TextInput
-                    className="mb-4 rounded-xl border border-slate-300 px-4 py-4 text-black"
+                    className="mb-4 border-[1.5px] border-ink px-4 py-4 text-ink rounded-md"
                     placeholder="Work Email"
                     value={email}
                     onChangeText={setEmail}
@@ -128,7 +128,7 @@ export default function AlumniSignup() {
                   />
 
                   <TextInput
-                    className="mb-4 rounded-xl border border-slate-300 px-4 py-4 text-black"
+                    className="mb-4 border-[1.5px] border-ink px-4 py-4 text-ink rounded-md"
                     placeholder="Mobile Number"
                     keyboardType="phone-pad"
                     value={phoneNumber}
@@ -136,29 +136,29 @@ export default function AlumniSignup() {
                   />
 
                   <View className="mb-6 flex-row items-center">
-                    <Checkbox value={agreeTerms} onValueChange={setAgreeTerms} />
-                    <Text className="ml-2 text-slate-600">
+                    <Checkbox value={agreeTerms} onValueChange={setAgreeTerms} color="#12100E" />
+                    <Text className="ml-2 text-ink-2">
                       I agree to the Terms & Conditions
                     </Text>
                   </View>
 
                   <Pressable
-                    className="rounded-full bg-black py-4 items-center"
+                    className="bg-brand-500 py-4 items-center border-2 border-ink rounded-md"
                     onPress={sendOtpToWorkEmail}
                     disabled={isLoading || !agreeTerms}
                   >
                     {isLoading ? (
-                      <ActivityIndicator color="white" />
+                      <ActivityIndicator color="#12100E" />
                     ) : (
-                      <Text className="text-white text-lg font-semibold">Send OTP</Text>
+                      <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Send OTP</Text>
                     )}
                   </Pressable>
                 </>
               ) : (
                 <>
-                  <Text className="text-slate-600 mb-4">We've sent an OTP to {email}</Text>
+                  <Text className="text-ink-2 mb-4">We've sent an OTP to {email}</Text>
                   <TextInput
-                    className="mb-6 rounded-xl border border-slate-300 px-4 py-4 text-black"
+                    className="mb-6 border-[1.5px] border-ink px-4 py-4 text-ink rounded-md"
                     placeholder="Enter OTP"
                     value={otp}
                     onChangeText={setOtp}
@@ -166,30 +166,30 @@ export default function AlumniSignup() {
                   />
 
                   <Pressable
-                    className="rounded-full bg-black py-4 items-center"
+                    className="bg-brand-500 py-4 items-center border-2 border-ink rounded-md"
                     onPress={verifyOtpAndProceed}
                     disabled={isLoading}
                   >
                     {isLoading ? (
-                      <ActivityIndicator color="white" />
+                      <ActivityIndicator color="#12100E" />
                     ) : (
-                      <Text className="text-white text-lg font-semibold">Verify & Continue</Text>
+                      <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Verify & Continue</Text>
                     )}
                   </Pressable>
 
                   <Pressable className="mt-4 items-center" onPress={() => setOtpSent(false)}>
-                    <Text className="text-slate-500">Back to details</Text>
+                    <Text className="text-ink-3">Back to details</Text>
                   </Pressable>
                 </>
               )}
 
               <View className="mt-3 flex-row justify-center">
-                <Text className="text-slate-600">Already have an account? </Text>
+                <Text className="text-ink-2">Already have an account? </Text>
                 <Pressable onPress={() => navigation.navigate('Login')}>
-                  <Text className="font-semibold text-black">Login</Text>
+                  <Text className="font-semibold text-ink">Login</Text>
                 </Pressable>
               </View>
-              <Text className="mt-5 text-center text-slate-500">Step 1 of 3</Text>
+              <Text className="mt-5 text-center text-ink-3">Step 1 of 3</Text>
             </View>
           </ScrollView>
         </View>

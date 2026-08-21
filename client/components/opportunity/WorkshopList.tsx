@@ -17,7 +17,6 @@ import axios from 'axios';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 
 // --- 🌌 BACKGROUND IMAGE ---
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
@@ -43,11 +42,11 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
   const orgName = item.organisation?.name || "Global Organisation";
 
   return (
-    <View className="bg-white rounded-xl mb-6 mx-6 p-6 border border-slate-100 shadow-sm shadow-black/5">
+    <View className="bg-card rounded-xl mb-6 mx-gutter p-6 border border-line shadow-hair">
 
       <View className="flex-row gap-4 items-center">
         {/* Organisation Logo */}
-        <View className="w-16 h-16 rounded-2xl border border-slate-100 overflow-hidden bg-slate-50 items-center justify-center p-2 shadow-inner">
+        <View className="w-16 h-16 rounded-card border border-line overflow-hidden bg-paper-2 items-center justify-center p-2">
           <Image
             source={{ uri: imageUrl }}
             className="w-12 h-12 rounded-xl"
@@ -57,10 +56,10 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
 
         {/* Title & Organisation */}
         <View className="flex-1">
-          <Text className="text-slate-900 text-base font-black  tracking-tighter uppercase leading-5" numberOfLines={2}>
+          <Text className="text-ink text-base font-display uppercase leading-5" numberOfLines={2}>
             {item.title}
           </Text>
-          <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">
+          <Text className="text-ink-3 text-label font-display uppercase mt-1">
             {orgName}
           </Text>
         </View>
@@ -68,7 +67,7 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
 
       {/* Optional Banner */}
       {bannerUrl && (
-        <View className="mt-5 w-full h-32 rounded-2xl overflow-hidden border border-slate-100">
+        <View className="mt-5 w-full h-32 rounded-card overflow-hidden border border-line">
           <Image source={{ uri: bannerUrl }} className="w-full h-full" resizeMode="cover" />
         </View>
       )}
@@ -76,33 +75,36 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
       {/* Tags Row */}
       <View className="mt-5 flex-row flex-wrap gap-2">
         {/* Start Date */}
-        <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-          <Ionicons name="calendar" size={14} color="#94a3b8" />
-          <Text className="text-2xs font-black uppercase tracking-wide text-slate-500 ml-2">
+        <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
+          <Ionicons name="calendar" size={14} color="#8B857E" />
+          <Text className="text-label font-display uppercase text-ink-3 ml-2">
             {item.start_date ? new Date(item.start_date).toLocaleDateString() : 'Active Session'}
           </Text>
         </View>
 
         {/* Location */}
-        <View className="flex-row items-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-          <Ionicons name="location-sharp" size={14} color="#94a3b8" />
-          <Text className="text-2xs font-black uppercase tracking-wide text-slate-500 ml-2">
+        <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
+          <Ionicons name="location-sharp" size={14} color="#8B857E" />
+          <Text className="text-label font-display uppercase text-ink-3 ml-2">
             {item.filters?.location || "Remote Hub"}
           </Text>
         </View>
 
-        <View className="flex-row items-center bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-100">
-          <Text className="text-2xs text-orange-500 font-black uppercase tracking-wide">
+        <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
+          <Text className="text-label text-accent-text font-display uppercase">
             Workshop
           </Text>
         </View>
       </View>
 
       {/* Footer / CTA */}
-      <View className="mt-6 flex-row items-center justify-between border-t border-slate-50 pt-5">
+      <View className="mt-6 flex-row items-center justify-between border-t border-line pt-5">
         <View>
-          <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide mb-1">Registration Ends</Text>
-          <Text className="text-slate-900 text-sm font-black  mt-0.5 tracking-tighter uppercase">
+          <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
+            <Text className="text-ink-3 font-display uppercase text-label">Registration Ends</Text>
+            <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+          </View>
+          <Text className="text-ink text-sm font-display mt-0.5 uppercase">
             {item.regn_deadline ? new Date(item.regn_deadline).toLocaleDateString() : "Open Registry"}
           </Text>
         </View>
@@ -110,9 +112,9 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={() => onPress(item.seo_url)}
-          className="bg-slate-900 px-8 py-3.5 rounded-xl shadow-sm shadow-black/10"
+          className="bg-ink px-gutter py-3.5 rounded-xl shadow-hair"
         >
-          <Text className="text-white font-black  uppercase tracking-wide text-2xs">Access Portal</Text>
+          <Text className="text-white font-display uppercase text-label">Access Portal</Text>
         </TouchableOpacity>
       </View>
 
@@ -207,53 +209,47 @@ export default function WorkshopList() {
     if (!loading && !loadingMore) return <View className="h-12" />;
     return (
       <View className="py-10 items-center">
-        <ActivityIndicator size="small" color="#f97316" />
+        <ActivityIndicator size="small" color="#F97316" />
       </View>
     );
   };
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
       {/* HEADER DECORATION */}
-      <View className="absolute top-0 w-full h-80 opacity-20">
-        <LinearGradient
-          colors={['#f97316', 'transparent']}
-          className="w-full h-full"
-        />
-      </View>
 
       <SafeAreaView className="flex-1" edges={['top']}>
 
         {/* Arena Header */}
-        <View className="px-8 pt-2">
+        <View className="px-gutter pt-2">
           <View className="flex-row items-center justify-between mb-3">
             <View className="flex-1">
               <View className="flex-row items-center">
-                <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase leading-tight">
-                  Workshop <Text className="text-orange-500">Hub</Text>
+                <Text className="text-ink text-3xl font-display uppercase leading-tight">
+                  Workshop <Text className="text-accent-text">Hub</Text>
                 </Text>
               </View>
-              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Industry Masterclass Archive</Text>
+              <Text className="text-ink-3 text-label font-display uppercase">Industry Masterclass Archive</Text>
             </View>
           </View>
         </View>
 
         {/* 🔍 Arena Search Dock */}
-        <View className="px-8 mb-3">
-          <View className="flex-row items-center bg-white rounded-2xl px-5 h-14 border border-slate-100 shadow-xl shadow-black/5">
-            <Ionicons name="search" size={20} color="#f97316" />
+        <View className="px-gutter mb-3">
+          <View className="flex-row items-center bg-card px-5 h-14 border-2 border-ink shadow-hair rounded-md">
+            <Ionicons name="search" size={20} color="#F97316" />
             <TextInput
               placeholder="Search labs, workshops, skills..."
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor="#8B857E"
               value={searchQuery}
               onChangeText={setSearchQuery}
-              className="flex-1 ml-3 text-slate-900 text-sm font-black  uppercase tracking-tighter"
+              className="flex-1 ml-3 text-ink text-sm font-display uppercase"
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-slate-50 p-1.5 rounded-xl">
-                <Ionicons name="close" size={16} color="#94a3b8" />
+              <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-paper-2 p-1.5 rounded-xl">
+                <Ionicons name="close" size={16} color="#8B857E" />
               </TouchableOpacity>
             )}
           </View>
@@ -269,17 +265,17 @@ export default function WorkshopList() {
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />
           }
           ListFooterComponent={renderFooter}
           ListEmptyComponent={
             !loading ? (
-              <View className="items-center mt-20 px-10">
-                <View className="w-20 h-20 bg-slate-50 rounded-4xl items-center justify-center mb-6">
-                  <Ionicons name="construct" size={40} color="#CBD5E1" />
+              <View className="items-center mt-20 px-gutter">
+                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                  <Ionicons name="construct" size={40} color="#C4BEB6" />
                 </View>
-                <Text className="text-slate-900 font-black text-xl tracking-tight text-center uppercase">Zero Signals</Text>
-                <Text className="text-slate-500 text-center font-bold text-xs mt-2 uppercase tracking-wide">
+                <Text className="text-ink font-display text-xl text-center uppercase">Zero Signals</Text>
+                <Text className="font-sans text-sm text-ink-3 text-center mt-2">
                   {searchQuery ? "No skill modules matched your search protocol." : "The global workshop registry is currently clear."}
                 </Text>
               </View>

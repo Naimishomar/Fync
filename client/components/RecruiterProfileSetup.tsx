@@ -137,89 +137,92 @@ export default function RecruiterProfileSetup() {
 
   return (
     <KeyboardAvoidingView 
-      className="flex-1 bg-white" 
+      className="flex-1 bg-paper" 
       behavior="padding"
     >
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 50 }}>
-        <View className="px-6 pt-16 pb-6 bg-[#F3F4F6]">
+        <View className="px-6 pt-16 pb-6 bg-paper">
             <View className="flex-row items-center justify-between mb-4">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="h-10 w-10 bg-white rounded-full items-center justify-center shadow-sm">
+                <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
                     <Ionicons name="arrow-back" size={20} color="black" />
                 </TouchableOpacity>
-                <Text className="text-slate-500 font-bold text-xs uppercase tracking-wide">Step 2 of 2</Text>
+                <Text className="text-ink-3 font-semibold text-xs uppercase">Step 2 of 2</Text>
             </View>
-            <Text className="text-2xl font-black text-slate-900 mb-1">Company Profile</Text>
-            <Text className="text-slate-500 text-sm font-medium">Complete your recruiter profile.</Text>
+            <Text className="text-2xl font-display text-ink mb-1">Company Profile</Text>
+            <Text className="text-ink-3 text-sm font-medium">Complete your recruiter profile.</Text>
         </View>
 
-        <View className="px-6 py-6 border-b border-slate-100">
+        <View className="px-6 py-6 border-b border-line">
           <View className="items-center mb-6">
             <Pressable onPress={pickImage} className="relative">
               {avatarUri ? (
                 <Image source={{ uri: avatarUri }} className="h-24 w-24 rounded-full" />
               ) : (
-                <View className="h-24 w-24 rounded-full bg-slate-100 items-center justify-center border-4 border-white shadow-sm">
-                  <Ionicons name="business" size={40} color="#9ca3af" />
+                <View className="h-24 w-24 rounded-full bg-paper-2 items-center justify-center border-4 border-paper shadow-hair">
+                  <Ionicons name="business" size={40} color="#C4BEB6" />
                 </View>
               )}
-              <View className="absolute bottom-0 right-0 bg-black h-8 w-8 rounded-full items-center justify-center border-2 border-white">
-                <Ionicons name="camera" size={14} color="white" />
+              <View className="absolute bottom-0 right-0 bg-brand-500 border-2 border-ink h-8 w-8 items-center justify-center border-paper rounded-md">
+                <Ionicons name="camera" size={14} color="#12100E" />
               </View>
             </Pressable>
-            <Text className="text-slate-500 font-medium text-xs mt-3">Upload Profile Picture</Text>
+            <Text className="text-ink-3 font-medium text-xs mt-3">Upload Profile Picture</Text>
           </View>
 
-          <Text className="text-sm font-bold text-slate-800 mb-2 mt-4">Personal Details</Text>
+          <Text className="text-sm font-semibold text-ink mb-2 mt-4">Personal Details</Text>
           <TextInput
-            className="mb-4 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3.5 font-medium"
+            className="mb-4 bg-card border-[1.5px] border-ink px-4 py-3.5 font-medium rounded-md"
             placeholder="Full Name"
             value={name}
             onChangeText={setName}
           />
           <TextInput
-            className="mb-4 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3.5 font-medium"
+            className="mb-4 bg-card border-[1.5px] border-ink px-4 py-3.5 font-medium rounded-md"
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
 
-          <Text className="text-sm font-bold text-slate-800 mb-2 mt-4">Company Verification</Text>
+          <Text className="text-sm font-semibold text-ink mb-2 mt-4">Company Verification</Text>
           <TextInput
-            className="mb-4 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3.5 font-medium"
+            className="mb-4 bg-card border-[1.5px] border-ink px-4 py-3.5 font-medium rounded-md"
             placeholder="Company Name"
             value={company}
             onChangeText={setCompany}
           />
           <TextInput
-            className="mb-4 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3.5 font-medium"
+            className="mb-4 bg-card border-[1.5px] border-ink px-4 py-3.5 font-medium rounded-md"
             placeholder="Designation / Role"
             value={role}
             onChangeText={setRole}
           />
           <TextInput
-            className="mb-4 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3.5 font-medium"
+            className="mb-4 bg-card border-[1.5px] border-ink px-4 py-3.5 font-medium rounded-md"
             placeholder="Company Website URL (Optional)"
             value={companyWebsite}
             autoCapitalize="none"
             onChangeText={setCompanyWebsite}
           />
           <TextInput
-            className="mb-4 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3.5 font-medium"
+            className="mb-4 bg-card border-[1.5px] border-ink px-4 py-3.5 font-medium rounded-md"
             placeholder="Industry (e.g. IT, Finance) (Optional)"
             value={industry}
             onChangeText={setIndustry}
           />
           <TextInput
-            className="mb-4 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3.5 font-medium"
+            className="mb-4 bg-card border-[1.5px] border-ink px-4 py-3.5 font-medium rounded-md"
             placeholder="Number of Employees (Optional)"
             value={companySize}
             keyboardType="number-pad"
             onChangeText={setCompanySize}
           />
-          <Text className="text-sm font-bold text-slate-800 mb-2 mt-4">Professional Link</Text>
+          <Text className="text-sm font-semibold text-ink mb-2 mt-4">Professional Link</Text>
           <TextInput
-            className="mb-8 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3.5 font-medium"
+            className="mb-8 bg-card border-[1.5px] border-ink px-4 py-3.5 font-medium rounded-md"
             placeholder="LinkedIn Profile URL (Optional)"
             value={linkedIn}
             autoCapitalize="none"
@@ -227,14 +230,14 @@ export default function RecruiterProfileSetup() {
           />
 
           <Pressable
-            className={`rounded-full py-4 items-center ${isLoading ? 'bg-slate-300' : 'bg-black'}`}
+            className={`rounded-full py-4 items-center ${isLoading ? 'bg-paper-2' : 'bg-ink'}`}
             onPress={handleRegister}
             disabled={isLoading}
           >
             {isLoading ? (
               <ActivityIndicator color="white" />
             ) : (
-              <Text className="text-white text-base font-bold">Complete Setup</Text>
+              <Text className="text-white text-base font-semibold">Complete Setup</Text>
             )}
           </Pressable>
         </View>

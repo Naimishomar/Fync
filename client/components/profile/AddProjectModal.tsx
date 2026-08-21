@@ -120,24 +120,24 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
         <Pressable className="absolute inset-0" onPress={onClose} />
         <KeyboardAvoidingView
           behavior="padding"
-          className="bg-white rounded-t-5xl overflow-hidden"
+          className="bg-paper rounded-t-sheet overflow-hidden"
           style={{ height: screenHeight * 0.85 }}
         >
           {/* Drag Handle */}
           <View className="items-center py-4">
-            <View className="w-12 h-1.5 bg-slate-200 rounded-full" />
+            <View className="w-12 h-1.5 bg-ink-4 rounded-full" />
           </View>
 
           {/* Header */}
-          <View className="flex-row items-center justify-between px-6 pb-4 border-b border-slate-50">
+          <View className="flex-row items-center justify-between px-gutter pb-3 border-b border-line">
             <View>
-              <Text className="text-slate-900 font-black uppercase text-xl tracking-tighter">
-                {isEdit ? 'Upgrade' : 'Deploy'} <Text className="text-orange-500">Project</Text>
+              <Text className="text-ink font-display uppercase text-h1">
+                {isEdit ? 'Upgrade' : 'Deploy'} <Text className="text-accent-text">Project</Text>
               </Text>
-              <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wide mt-0.5">Ecosystem Contribution</Text>
+              <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Ecosystem Contribution</Text>
             </View>
-            <Pressable onPress={onClose} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
-              <Ionicons name="close" size={20} color="#18181b" />
+            <Pressable onPress={onClose} className="w-11 h-11 rounded-xl items-center justify-center" hitSlop={2}>
+              <Ionicons name="close" size={20} color="#12100E" />
             </Pressable>
           </View>
 
@@ -145,14 +145,14 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
             {/* Status Selector */}
             <View className="mb-6">
               <View className="flex-row items-center gap-2 mb-3">
-                <Feather name="activity" size={12} color="#94A3B8" />
-                <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">Project Lifecycle</Text>
+                <Feather name="activity" size={12} color="#8B857E" />
+                <Text className="text-ink-3 font-display uppercase text-label">Project Lifecycle</Text>
               </View>
               <View className="flex-row gap-2">
                 {STATUSES.map(s => (
                   <Pressable key={s} onPress={() => setForm(p => ({ ...p, status: s }))}
-                    className={`flex-1 py-3 rounded-xl border items-center shadow-sm ${form.status === s ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-100'}`}>
-                    <Text className={`text-2xs font-black uppercase tracking-widest ${form.status === s ? 'text-white' : 'text-slate-500'}`}>{s.replace('-', ' ')}</Text>
+                    className={`flex-1 py-3 rounded-xl border items-center shadow-hair ${form.status === s ? 'bg-ink border-ink' : 'bg-card border-line'}`}>
+                    <Text className={`text-label font-display uppercase ${form.status === s ? 'text-white' : 'text-ink-3'}`}>{s.replace('-', ' ')}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -168,13 +168,13 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
             ].map(f => (
               <View key={f.key} className="mb-6">
                 <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name={f.icon as any} size={12} color="#94A3B8" />
-                  <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">{f.label}</Text>
+                  <Feather name={f.icon as any} size={12} color="#8B857E" />
+                  <Text className="text-ink-3 font-display uppercase text-label">{f.label}</Text>
                 </View>
                 <TextInput
-                  className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-slate-900 text-sm font-semibold"
-                  style={f.multi ? { height: 100, textAlignVertical: 'top' } : {}}
-                  placeholder={f.ph} placeholderTextColor="#94A3B8"
+                  className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
+                  style={[{ minHeight: 50 }, f.multi ? { height: 100, textAlignVertical: 'top' } : null]}
+                  placeholder={f.ph} placeholderTextColor="#8B857E"
                   value={form[f.key as keyof typeof form]}
                   onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
                   multiline={!!f.multi}
@@ -186,19 +186,19 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
             <View className="mb-12">
               <View className="flex-row items-center justify-between mb-4">
                 <View className="flex-row items-center gap-2">
-                  <Feather name="image" size={12} color="#94A3B8" />
-                  <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">Visual Evidence ({existingImages.length + images.length}/5)</Text>
+                  <Feather name="image" size={12} color="#8B857E" />
+                  <Text className="text-ink-3 font-display uppercase text-label">Visual Evidence ({existingImages.length + images.length}/5)</Text>
                 </View>
                 {existingImages.length + images.length < 5 && (
-                  <Pressable onPress={pickImages} className="bg-orange-500/10 px-3 py-1.5 rounded-xl border border-orange-500/20">
-                    <Text className="text-orange-600 font-black uppercase text-2xs tracking-wide">Add Media</Text>
+                  <Pressable onPress={pickImages} className="bg-brand-500/10 border border-brand-500/20 px-2.5 py-1 rounded-full">
+                    <Text className="text-accent-text font-display uppercase text-label">Add Media</Text>
                   </Pressable>
                 )}
               </View>
 
               <View className="flex-row flex-wrap gap-3">
                 {existingImages.map((img, i) => (
-                  <View key={`ex-${i}`} className="w-[30%] aspect-square rounded-2xl overflow-hidden border border-slate-100 shadow-sm">
+                  <View key={`ex-${i}`} className="w-[30%] aspect-square rounded-card overflow-hidden border border-line shadow-hair">
                     <Image source={{ uri: img }} className="w-full h-full" />
                     <Pressable onPress={() => removeImage(i, true)} className="absolute top-1 right-1 bg-black/60 rounded-full p-1 border border-white/20">
                       <Ionicons name="close" size={12} color="white" />
@@ -206,7 +206,7 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
                   </View>
                 ))}
                 {images.map((img, i) => (
-                  <View key={`new-${i}`} className="w-[30%] aspect-square rounded-2xl overflow-hidden border border-slate-100 shadow-sm">
+                  <View key={`new-${i}`} className="w-[30%] aspect-square rounded-card overflow-hidden border border-line shadow-hair">
                     <Image source={{ uri: img.uri }} className="w-full h-full" />
                     <Pressable onPress={() => removeImage(i, false)} className="absolute top-1 right-1 bg-black/60 rounded-full p-1 border border-white/20">
                       <Ionicons name="close" size={12} color="white" />
@@ -214,11 +214,11 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
                   </View>
                 ))}
                 {existingImages.length + images.length === 0 && (
-                  <Pressable onPress={pickImages} className="w-full h-32 border-2 border-dashed border-slate-200 rounded-4xl items-center justify-center bg-slate-50/50">
-                    <View className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm mb-2">
-                      <Feather name="upload-cloud" size={18} color="#f97316" />
+                  <Pressable onPress={pickImages} className="w-full h-32 border-2 border-dashed border-line rounded-sheet items-center justify-center bg-paper-2/50">
+                    <View className="w-10 h-10 bg-card rounded-full items-center justify-center shadow-hair mb-2">
+                      <Feather name="upload-cloud" size={18} color="#F97316" />
                     </View>
-                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Initialize Media Manifest</Text>
+                    <Text className="text-ink-3 text-label font-display uppercase">Initialize Media Manifest</Text>
                   </Pressable>
                 )}
               </View>
@@ -227,14 +227,14 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
           </ScrollView>
 
           {/* Footer Action */}
-          <View className="p-6 border-t border-slate-50 bg-white shadow-2xl shadow-black">
+          <View className="p-card-pad border-t border-line bg-paper">
             <Pressable onPress={save} disabled={saving}
-              className="bg-slate-900 py-5 rounded-2xl flex-row items-center justify-center shadow-xl shadow-black/20">
-              {saving ? <ActivityIndicator size="small" color="#f97316" />
+              className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md">
+              {saving ? <ActivityIndicator size="small" color="#F97316" />
                 : (
                   <>
                     <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />
-                    <Text className="text-white font-black uppercase text-xs tracking-wide ml-2">
+                    <Text className="text-white font-display uppercase text-xs ml-2">
                       {isEdit ? 'Update Artifact' : 'Commit Deployment'}
                     </Text>
                   </>

@@ -127,17 +127,20 @@ const FlappyBird = () => {
 
   return (
     <TouchableWithoutFeedback onPress={jump}>
-      <View className="flex-1 bg-cyan-400 overflow-hidden relative">
+      <View className="flex-1 bg-fam-social overflow-hidden relative">
         {/* Header */}
         <View className="absolute top-12 left-5 z-10">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="bg-white/30 p-2 rounded-full">
+          <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
         </View>
 
         {/* Score */}
         <View className="absolute top-20 w-full items-center z-10">
-          <Text className="text-white text-5xl font-black shadow-sm">{score}</Text>
+          <Text className="text-white text-5xl font-display shadow-hair">{score}</Text>
         </View>
 
         {/* Bird */}
@@ -148,7 +151,7 @@ const FlappyBird = () => {
             top: birdY,
             width: BIRD_SIZE,
             height: BIRD_SIZE,
-            backgroundColor: '#fbbf24', // Yellow bird
+            backgroundColor: '#B45309', // Yellow bird
             borderRadius: BIRD_SIZE / 2,
             borderWidth: 2,
             borderColor: '#b45309',
@@ -157,8 +160,8 @@ const FlappyBird = () => {
             transform: [{ rotate: `${Math.min(Math.max(velocity * 3, -30), 90)}deg` }]
           }}
         >
-           <View className="w-2 h-2 bg-white rounded-full absolute right-2 top-2">
-             <View className="w-1 h-1 bg-black rounded-full absolute right-0 top-0" />
+           <View className="w-2 h-2 bg-card rounded-full absolute right-2 top-2">
+             <View className="w-1 h-1 bg-ink rounded-full absolute right-0 top-0" />
            </View>
         </View>
 
@@ -173,9 +176,9 @@ const FlappyBird = () => {
                 top: 0,
                 width: PIPE_WIDTH,
                 height: pipe.gapY,
-                backgroundColor: '#22c55e',
+                backgroundColor: '#047857',
                 borderWidth: 2,
-                borderColor: '#14532d',
+                borderColor: '#047857',
                 borderBottomWidth: 5,
               }}
             />
@@ -187,9 +190,9 @@ const FlappyBird = () => {
                 top: pipe.gapY + GAP_SIZE,
                 width: PIPE_WIDTH,
                 height: SCREEN_HEIGHT - (pipe.gapY + GAP_SIZE),
-                backgroundColor: '#22c55e',
+                backgroundColor: '#047857',
                 borderWidth: 2,
-                borderColor: '#14532d',
+                borderColor: '#047857',
                 borderTopWidth: 5,
               }}
             />
@@ -200,20 +203,20 @@ const FlappyBird = () => {
         {!isPlaying && (
           <View className="absolute inset-0 bg-black/40 justify-center items-center">
             {isGameOver ? (
-              <View className="bg-white p-6 rounded-3xl items-center shadow-xl">
-                <Text className="text-3xl font-black text-rose-500 mb-2">GAME OVER</Text>
-                <Text className="text-lg text-slate-500 mb-6">Score: {score}</Text>
-                <TouchableOpacity onPress={resetGame} className="bg-cyan-500 px-8 py-3 rounded-full">
-                  <Text className="text-white font-bold text-lg">Play Again</Text>
+              <View className="bg-card p-6 rounded-card items-center shadow-hair">
+                <Text className="text-3xl font-display text-danger mb-2">GAME OVER</Text>
+                <Text className="text-lg text-ink-3 mb-6">Score: {score}</Text>
+                <TouchableOpacity onPress={resetGame} className="bg-fam-social px-gutter py-3 rounded-full">
+                  <Text className="text-white font-display text-lg">Play Again</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'FlappyBird' })} className="mt-4">
-                  <Text className="text-cyan-600 font-semibold">View Leaderboard</Text>
+                  <Text className="text-fam-social font-semibold">View Leaderboard</Text>
                 </TouchableOpacity>
               </View>
             ) : (
               <View className="items-center">
                 <Ionicons name="hand-right" size={48} color="white" />
-                <Text className="text-white text-2xl font-bold mt-4">Tap to flap</Text>
+                <Text className="text-white text-2xl font-display mt-4">Tap to flap</Text>
               </View>
             )}
           </View>

@@ -107,7 +107,7 @@ export default function CreateFundingFeed() {
         Toast.show({ type: 'success', text1: 'Project updated successfully' });
       } else {
         await axios.post("/funding/create", formData, { headers: { "Content-Type": "multipart/form-data" } });
-        Toast.show({ type: 'success', text1: 'Project posted successfully 🎉' });
+        Toast.show({ type: 'success', text1: 'Project posted successfully' });
       }
 
       navigation.goBack();
@@ -140,7 +140,7 @@ export default function CreateFundingFeed() {
 
         const content = `
         <html>
-        <body style="background-color: #F5F7FA;">
+        <body style="background-color: #F5F2EC;">
             <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
             <script>
             var options = {
@@ -155,7 +155,7 @@ export default function CreateFundingFeed() {
                     email: "${user?.email || ''}",
                     contact: "${user?.mobileNumber || ''}"
                 },
-                theme: { color: "#ec4899" },
+                theme: { color: "#F97316" },
                 handler: function (response) {
                     window.ReactNativeWebView.postMessage(JSON.stringify({
                         event: "SUCCESS",
@@ -203,27 +203,30 @@ export default function CreateFundingFeed() {
 
 
   return (
-    <SafeAreaView className='flex-1 bg-[#F0F4F8]'>
+    <SafeAreaView className='flex-1 bg-paper-2'>
       <View className='flex-row items-center px-5 py-3'>
-        <Pressable onPress={() => navigation.goBack()} className="bg-white w-10 h-10 items-center justify-center rounded-full shadow-sm shadow-black/5">
-          <Ionicons name="arrow-back-outline" size={20} color="#1A1A1A" />
+        <Pressable onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+          <Ionicons name="arrow-back-outline" size={20} color="#12100E" />
         </Pressable>
         <View className="flex-1 items-center pr-10">
-          <Text className='text-2xl font-bold text-slate-900'>{isEditing ? 'Edit' : 'Post'} <Text className="text-pink-500">Project</Text></Text>
+          <Text className='text-2xl font-display text-ink'>{isEditing ? 'Edit' : 'Post'} <Text className="text-accent-text">Project</Text></Text>
         </View>
       </View>
 
       <ScrollView className="flex-1 px-5 mt-2" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Basic Info */}
-        <View className="bg-white rounded-2xl p-5 shadow-sm shadow-black/5 mb-5 relative z-50">
-          <Text className="text-base font-bold text-slate-900 mb-4">Project Overview</Text>
+        <View className="bg-card rounded-card p-5 shadow-hair mb-5 relative z-50">
+          <Text className="text-base font-semibold text-ink mb-4">Project Overview</Text>
           <TextInput
             placeholder="Project Title"
             placeholderTextColor="#808080ff"
             value={title}
             multiline
             onChangeText={setTitle}
-            className="text-slate-800 text-base font-semibold pb-4 border-b border-slate-100"
+            className="text-ink text-base font-semibold pb-4 border-b border-[1.5px] border-ink"
           />
           <TextInput
             placeholder="Tell everyone about your project..."
@@ -232,41 +235,41 @@ export default function CreateFundingFeed() {
             onChangeText={setDescription}
             multiline
             textAlignVertical="top"
-            className="text-slate-800 text-base min-h-[150px]"
+            className="text-ink text-base min-h-[150px]"
           />
         </View>
 
         {/* Links Card */}
-        <View className="bg-white rounded-2xl p-5 shadow-sm shadow-black/5 mb-5">
-          <Text className="text-base font-bold text-slate-900 mb-4">Live Links</Text>
-          <View className="flex-row items-center border-b border-slate-100 pb-2 mb-4">
-            <Ionicons name="link-outline" size={20} color="#ec4899" />
+        <View className="bg-card rounded-card p-5 shadow-hair mb-5">
+          <Text className="text-base font-semibold text-ink mb-4">Live Links</Text>
+          <View className="flex-row items-center border-b border-line pb-2 mb-4">
+            <Ionicons name="link-outline" size={20} color="#F97316" />
             <TextInput
               placeholder="Deployed URL (Required)"
-              placeholderTextColor="#cbd5e1"
+              placeholderTextColor="#C4BEB6"
               value={deployedUrl}
               onChangeText={setDeployedUrl}
-              className="text-slate-800 font-bold flex-1 ml-3"
+              className="text-ink font-semibold flex-1 ml-3"
               autoCapitalize="none"
             />
           </View>
           <View className="flex-row items-center">
-            <Ionicons name="logo-github" size={20} color="#1A1A1A" />
+            <Ionicons name="logo-github" size={20} color="#12100E" />
             <TextInput
               placeholder="Github URL (Optional)"
-              placeholderTextColor="#cbd5e1"
+              placeholderTextColor="#C4BEB6"
               value={githubUrl}
               onChangeText={setGithubUrl}
-              className="text-slate-800 font-bold flex-1 ml-3"
+              className="text-ink font-semibold flex-1 ml-3"
               autoCapitalize="none"
             />
           </View>
         </View>
 
         {/* Media Card */}
-        <View className="bg-white rounded-2xl p-5 shadow-sm shadow-black/5 mb-5">
-          <Text className="text-base font-bold text-slate-900 mb-1">Showcase Media</Text>
-          <Text className="text-slate-500 text-xs mb-4 font-medium ">High quality media helps you stand out!</Text>
+        <View className="bg-card rounded-card p-5 shadow-hair mb-5">
+          <Text className="text-base font-semibold text-ink mb-1">Showcase Media</Text>
+          <Text className="text-ink-3 text-xs mb-4 font-medium">High quality media helps you stand out!</Text>
 
           {(images.length > 0 || video || oldImages.length > 0 || oldVideo) && (
             <View className="mb-4">
@@ -274,12 +277,12 @@ export default function CreateFundingFeed() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2 flex-grow-0">
                   {images.map((img, index) => (
                     <View key={index} className="mr-3 relative">
-                      <Image source={{ uri: img.uri }} className="h-20 w-20 rounded-xl bg-slate-100" />
+                      <Image source={{ uri: img.uri }} className="h-20 w-20 rounded-xl bg-paper-2" />
                       <Pressable
                         onPress={() => removeImage(index)}
                         className="absolute top-1 right-1 bg-black/70 h-6 w-6 rounded-full items-center justify-center"
                       >
-                        <Text className="text-white text-xs font-bold">✕</Text>
+                        <Text className="text-white text-xs font-semibold"></Text>
                       </Pressable>
                     </View>
                   ))}
@@ -287,7 +290,7 @@ export default function CreateFundingFeed() {
               )}
 
               {video && (
-                <View className="mb-4 relative w-full h-40 shadow-sm rounded-xl overflow-hidden bg-slate-900 border border-slate-800">
+                <View className="mb-4 relative w-full h-40 shadow-hair rounded-xl overflow-hidden bg-ink border border-ink">
                   <Video source={{ uri: video.uri }} style={{ width: '100%', height: '100%' }} resizeMode={ResizeMode.COVER} isMuted />
                   <TouchableOpacity onPress={() => setVideo(null)} className="absolute top-2 right-2 bg-black/70 rounded-full h-8 w-8 items-center justify-center z-10">
                     <Ionicons name="close" size={18} color="white" />
@@ -297,16 +300,16 @@ export default function CreateFundingFeed() {
 
               {images.length === 0 && oldImages.length > 0 && (
                 <View className="mb-4">
-                  <Text className="text-slate-900 text-2xs font-bold mb-2 uppercase tracking-tight">Active Images:</Text>
+                  <Text className="text-ink text-label font-semibold mb-2 uppercase">Active Images:</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     {oldImages.map((uri, idx) => (
-                      <Image key={idx} source={{ uri: uri.replace(/^http:\/\//i, 'https://') }} className="h-20 w-20 rounded-xl bg-slate-100 mr-2 border border-slate-200" />
+                      <Image key={idx} source={{ uri: uri.replace(/^http:\/\//i, 'https://') }} className="h-20 w-20 rounded-card bg-paper-2 mr-2 border border-line" />
                     ))}
                   </ScrollView>
                 </View>
               )}
               {!video && oldVideo && (
-                <View className="mb-4 relative w-full h-40 shadow-sm rounded-xl overflow-hidden bg-slate-900 border border-slate-800">
+                <View className="mb-4 relative w-full h-40 shadow-hair rounded-xl overflow-hidden bg-ink border border-ink">
                   <Text className="text-white absolute top-2 left-2 z-10 bg-black/50 px-2 py-1 rounded">Active Video</Text>
                   <Video source={{ uri: oldVideo.replace(/^http:\/\//i, 'https://') }} style={{ width: '100%', height: '100%' }} resizeMode={ResizeMode.COVER} isMuted />
                 </View>
@@ -315,37 +318,37 @@ export default function CreateFundingFeed() {
           )}
 
           <View className="flex-row items-center justify-start gap-4 mt-2">
-            <Pressable onPress={pickImages} className="flex-row items-center gap-2 px-4 py-2 rounded-full border border-slate-200 bg-slate-50/50">
-              <Ionicons name="images-outline" size={18} color="#ec4899" />
-              <Text className="text-slate-500 text-xs font-bold">Add Images</Text>
+            <Pressable onPress={pickImages} className="flex-row items-center gap-2 px-4 py-2 rounded-full border border-line bg-paper-2/50">
+              <Ionicons name="images-outline" size={18} color="#F97316" />
+              <Text className="text-ink-3 text-xs font-semibold">Add Images</Text>
             </Pressable>
-            <Pressable onPress={pickVideo} className="flex-row items-center gap-2 px-4 py-2 rounded-full border border-slate-200 bg-slate-50/50">
-              <Ionicons name="videocam-outline" size={18} color="#ec4899" />
-              <Text className="text-slate-500 text-xs font-bold">Add Video</Text>
+            <Pressable onPress={pickVideo} className="flex-row items-center gap-2 px-4 py-2 rounded-full border border-line bg-paper-2/50">
+              <Ionicons name="videocam-outline" size={18} color="#F97316" />
+              <Text className="text-ink-3 text-xs font-semibold">Add Video</Text>
             </Pressable>
           </View>
         </View>
 
       </ScrollView>
 
-      <View className="px-5 py-4 bg-[#F0F4F8]">
+      <View className="px-5 py-4 bg-paper-2">
         <TouchableOpacity
           onPress={handleInitiateProjectPost}
           disabled={submitting}
-          className={`py-4 rounded-full items-center shadow-lg shadow-black/30 ${submitting ? 'bg-black' : 'bg-black/90'}`}
+          className={`py-4 rounded-full items-center shadow-hair ${submitting ? 'bg-ink' : 'bg-black/90'}`}
         >
-          {submitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-black text-lg  tracking-tighter uppercase">{isEditing ? "Update Project" : "Post Project • ₹249"}</Text>}
+          {submitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-display text-lg uppercase">{isEditing ? "Update Project" : "Post Project • ₹249"}</Text>}
         </TouchableOpacity>
       </View>
 
       {/* PAYMENT MODAL */}
       <Modal visible={!!showPaymentParams} animationType="slide" transparent={false} onRequestClose={() => setShowPaymentParams(null)}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F7FA' }}>
-          <View className="flex-row items-center px-4 py-3 bg-white border-b border-slate-100">
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F2EC' }}>
+          <View className="flex-row items-center px-4 py-3 bg-card border-b border-line">
             <TouchableOpacity onPress={() => setShowPaymentParams(null)} className="p-2">
-              <Ionicons name="close" size={24} color="#000" />
+              <Ionicons name="close" size={24} color="#12100E" />
             </TouchableOpacity>
-            <Text className="ml-4 font-black  tracking-tighter text-lg">Secure Gateway</Text>
+            <Text className="ml-4 font-semibold text-lg">Secure Gateway</Text>
           </View>
           <WebView
             source={showPaymentParams}
@@ -353,7 +356,7 @@ export default function CreateFundingFeed() {
             javaScriptEnabled={true}
             domStorageEnabled={true}
             startInLoadingState={true}
-            renderLoading={() => <ActivityIndicator color="#f97316" size="large" style={{ position: 'absolute', top: '50%', left: '45%' }} />}
+            renderLoading={() => <ActivityIndicator color="#F97316" size="large" style={{ position: 'absolute', top: '50%', left: '45%' }} />}
           />
         </SafeAreaView>
       </Modal>

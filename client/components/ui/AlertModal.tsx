@@ -72,19 +72,19 @@ export const Alert = {
 
 const styleFor = (style: AlertButton['style']) => {
   if (style === 'destructive') {
-    return { bg: 'bg-red-500', text: 'text-white', border: 'border-red-500' };
+    return { bg: 'bg-danger', text: 'text-white', border: 'border-danger' };
   }
   if (style === 'cancel') {
-    return { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200' };
+    return { bg: 'bg-paper-2', text: 'text-ink-2', border: 'border-line' };
   }
-  return { bg: 'bg-orange-500', text: 'text-white', border: 'border-orange-500' };
+  return { bg: 'bg-brand-500', text: 'text-ink', border: 'border-brand-500' };
 };
 
 const iconFor = (buttons: AlertButton[]) => {
   if (buttons.some((b) => b.style === 'destructive')) {
-    return { name: 'warning' as const, color: '#ef4444', bg: 'bg-red-50', border: 'border-red-100' };
+    return { name: 'warning' as const, color: '#DC2626', bg: 'bg-danger/10', border: 'border-danger/25' };
   }
-  return { name: 'information-circle' as const, color: '#f97316', bg: 'bg-orange-50', border: 'border-orange-100' };
+  return { name: 'information-circle' as const, color: '#F97316', bg: 'bg-paper-2', border: 'border-line' };
 };
 
 export const AlertHost = () => {
@@ -165,23 +165,23 @@ export const AlertHost = () => {
     <Modal transparent visible animationType="none" onRequestClose={dismiss} statusBarTranslucent>
       <Pressable
         onPress={dismiss}
-        className="flex-1 items-center justify-center px-8"
-        style={{ backgroundColor: 'rgba(15,23,42,0.55)' }}
+        className="flex-1 items-center justify-center px-gutter"
+        style={{ backgroundColor: 'rgba(18, 16, 14,0.55)' }}
       >
         <Animated.View
           style={{ opacity, transform: [{ scale }], width: '100%', maxWidth: 400 }}
         >
           {/* Stops a tap inside the card from reaching the dismiss backdrop. */}
-          <Pressable onPress={() => {}} className="bg-white rounded-3xl overflow-hidden">
+          <Pressable onPress={() => {}} className="bg-card rounded-card overflow-hidden">
             <View className="items-center pt-7 px-6">
               <View
-                className={`w-14 h-14 rounded-2xl items-center justify-center border mb-4 ${icon.bg} ${icon.border}`}
+                className={`w-14 h-14 rounded-card items-center justify-center border mb-4 ${icon.bg} ${icon.border}`}
               >
                 <Ionicons name={icon.name} size={28} color={icon.color} />
               </View>
 
               {!!request.title && (
-                <Text className="text-slate-900 text-base font-black uppercase tracking-tight text-center">
+                <Text className="text-ink text-base font-display uppercase text-center">
                   {request.title}
                 </Text>
               )}
@@ -192,7 +192,7 @@ export const AlertHost = () => {
                   showsVerticalScrollIndicator={false}
                   className="mt-2 w-full"
                 >
-                  <Text className="text-slate-500 text-sm font-semibold leading-5 text-center">
+                  <Text className="text-ink-3 text-sm font-semibold leading-5 text-center">
                     {request.message}
                   </Text>
                 </ScrollView>
@@ -206,10 +206,10 @@ export const AlertHost = () => {
                   <Pressable
                     key={`${button.text ?? 'button'}-${index}`}
                     onPress={() => close(button)}
-                    className={`${s.bg} border ${s.border} rounded-2xl py-3.5 items-center justify-center active:opacity-70 ${stacked ? '' : 'flex-1'}`}
+                    className={`${s.bg} border ${s.border} rounded-card py-3.5 items-center justify-center active:opacity-70 ${stacked ? '' : 'flex-1'}`}
                     accessibilityRole="button"
                   >
-                    <Text className={`${s.text} text-xs font-black uppercase tracking-wide`}>
+                    <Text className={`${s.text} text-xs font-display uppercase`}>
                       {button.text ?? 'OK'}
                     </Text>
                   </Pressable>

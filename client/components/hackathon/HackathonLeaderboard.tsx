@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
@@ -32,10 +31,10 @@ interface LeaderboardEntry {
 // ─── Rank podium ──────────────────────────────────────────────────────────────
 // Medal metals are the one place a non-brand hue is meaningful: gold, silver and
 // bronze are the content, not decoration.
-const RANK_META: Record<number, { medal: string; ring: string }> = {
-  1: { medal: '🥇', ring: '#f59e0b' },
-  2: { medal: '🥈', ring: '#94a3b8' },
-  3: { medal: '🥉', ring: '#b45309' },
+const RANK_META: Record<number, { ring: string }> = {
+  1: { ring: '#B45309' },
+  2: { ring: '#8B857E' },
+  3: { ring: '#B45309' },
 };
 
 // ─── Podium Card (top 3) ──────────────────────────────────────────────────────
@@ -57,19 +56,17 @@ const PodiumCard = memo(({ entry }: { entry: LeaderboardEntry }) => {
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
       <View
-        className="rounded-card mb-3 overflow-hidden border border-slate-100"
+        className="rounded-card mb-3 overflow-hidden border border-line"
         style={{
-          shadowColor: '#0f172a',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.06,
-          shadowRadius: 12,
-          elevation: 2,
+          shadowColor: '#12100E',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.05,
+          shadowRadius: 2,
+          elevation: 1,
         }}
       >
-        <LinearGradient
-          colors={first ? ['#1e293b', '#0f172a'] : ['#ffffff', '#f8fafc']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+        <View
+          style={{ backgroundColor: first ? '#12100E' : '#FFFFFF' }}
           className="px-4 py-4"
         >
           <View className="flex-row items-center justify-between mb-3">
@@ -80,27 +77,27 @@ const PodiumCard = memo(({ entry }: { entry: LeaderboardEntry }) => {
                 borderColor: meta.ring,
               }}
             >
-              <Text className="text-xl">{meta.medal}</Text>
+              <Text className="text-xl"></Text>
             </View>
             <View className="items-end">
-              <Text className={`text-2xs font-semibold ${first ? 'text-white/60' : 'text-slate-500'}`}>
+              <Text className={`text-label font-semibold ${first ? 'text-white/60' : 'text-ink-3'}`}>
                 Score
               </Text>
-              <Text className={`text-2xl font-extrabold ${first ? 'text-white' : 'text-slate-900'}`}>
+              <Text className={`text-2xl font-display ${first ? 'text-white' : 'text-ink'}`}>
                 {entry.score.toFixed(1)}
               </Text>
             </View>
           </View>
 
           <Text
-            className={`text-base font-extrabold leading-5 ${first ? 'text-white' : 'text-slate-900'}`}
+            className={`text-base font-semibold leading-5 ${first ? 'text-white' : 'text-ink'}`}
             numberOfLines={1}
           >
             {entry.projectName}
           </Text>
           {entry.tagline ? (
             <Text
-              className={`text-2xs font-semibold mt-0.5 ${first ? 'text-white/60' : 'text-slate-500'}`}
+              className={`text-label font-semibold mt-0.5 ${first ? 'text-white/60' : 'text-ink-3'}`}
               numberOfLines={1}
             >
               {entry.tagline}
@@ -110,11 +107,11 @@ const PodiumCard = memo(({ entry }: { entry: LeaderboardEntry }) => {
           <View className="flex-row items-center justify-between mt-3">
             <View
               className="flex-row items-center px-2 py-1 rounded-md"
-              style={{ backgroundColor: first ? 'rgba(255,255,255,0.08)' : '#f1f5f9' }}
+              style={{ backgroundColor: first ? 'rgba(255,255,255,0.08)' : '#EDE8E0' }}
             >
-              <Ionicons name="people" size={11} color={first ? '#fdba74' : '#f97316'} />
+              <Ionicons name="people" size={11} color={first ? '#F97316' : '#F97316'} />
               <Text
-                className={`text-2xs font-semibold ml-1.5 ${first ? 'text-white/80' : 'text-slate-600'}`}
+                className={`text-label font-semibold ml-1.5 ${first ? 'text-white/80' : 'text-ink-2'}`}
                 numberOfLines={1}
               >
                 {entry.teamName}
@@ -126,16 +123,16 @@ const PodiumCard = memo(({ entry }: { entry: LeaderboardEntry }) => {
                 <View
                   key={`${t}-${i}`}
                   className="px-2 py-1 rounded-md"
-                  style={{ backgroundColor: first ? 'rgba(255,255,255,0.08)' : '#f1f5f9' }}
+                  style={{ backgroundColor: first ? 'rgba(255,255,255,0.08)' : '#EDE8E0' }}
                 >
-                  <Text className={`text-2xs font-semibold ${first ? 'text-white/70' : 'text-slate-500'}`}>
+                  <Text className={`text-label font-semibold ${first ? 'text-white/70' : 'text-ink-3'}`}>
                     {t}
                   </Text>
                 </View>
               ))}
             </View>
           </View>
-        </LinearGradient>
+        </View>
       </View>
     </Animated.View>
   );
@@ -156,23 +153,23 @@ const LeaderboardRow = memo(({ entry, index }: { entry: LeaderboardEntry; index:
 
   return (
     <Animated.View style={{ transform: [{ translateX }], opacity }}>
-      <View className="bg-white rounded-xl px-3.5 py-3 mb-2 flex-row items-center border border-slate-100">
-        <View className="w-9 h-9 rounded-lg bg-slate-900 items-center justify-center mr-3">
-          <Text className="text-white font-extrabold text-2xs">#{entry.rank}</Text>
+      <View className="bg-card rounded-xl px-3.5 py-3 mb-2 flex-row items-center border border-line">
+        <View className="w-9 h-9 rounded-lg bg-ink items-center justify-center mr-3">
+          <Text className="text-white font-semibold text-label">#{entry.rank}</Text>
         </View>
 
         <View className="flex-1 mr-3">
-          <Text className="text-slate-900 font-bold text-sm leading-5" numberOfLines={1}>
+          <Text className="text-ink font-semibold text-sm leading-5" numberOfLines={1}>
             {entry.projectName}
           </Text>
-          <Text className="text-slate-500 text-2xs font-semibold mt-0.5" numberOfLines={1}>
+          <Text className="text-ink-3 text-label font-semibold mt-0.5" numberOfLines={1}>
             {entry.teamName}
           </Text>
         </View>
 
         <View className="items-end">
-          <Text className="text-slate-900 font-extrabold text-base">{entry.score.toFixed(1)}</Text>
-          <Text className="text-slate-400 text-2xs font-semibold">pts</Text>
+          <Text className="text-ink font-semibold text-base">{entry.score.toFixed(1)}</Text>
+          <Text className="text-ink-3 text-label font-semibold">pts</Text>
         </View>
       </View>
     </Animated.View>
@@ -191,9 +188,9 @@ const PodiumHeader = memo(({ podium, hasRest }: { podium: LeaderboardEntry[]; ha
     ))}
     {hasRest ? (
       <View className="flex-row items-center mt-4 mb-2">
-        <View className="flex-1 h-px bg-slate-200" />
-        <Text className="text-slate-400 text-2xs font-bold mx-3">All rankings</Text>
-        <View className="flex-1 h-px bg-slate-200" />
+        <View className="flex-1 h-px bg-paper-2" />
+        <Text className="text-ink-3 text-label font-semibold mx-3">All rankings</Text>
+        <View className="flex-1 h-px bg-paper-2" />
       </View>
     ) : null}
   </View>
@@ -245,32 +242,35 @@ const HackathonLeaderboard = () => {
   const rest = leaderboard.filter((e) => e.rank > 3);
 
   return (
-    <View className="flex-1 bg-slate-50">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <SafeAreaView className="flex-1" edges={['top']}>
         {/* Header */}
-        <View className="bg-white border-b border-slate-100 px-4 pt-2 pb-4">
+        <View className="bg-card border-b border-line px-4 pt-2 pb-4">
           <View className="flex-row items-center justify-between mb-3">
             <TouchableOpacity
               onPress={() => navigation.goBack()}
-              className="w-9 h-9 rounded-lg bg-slate-100 items-center justify-center"
+              className="w-11 h-11 items-center justify-center rounded-xl"
               hitSlop={8}
               activeOpacity={0.7}
-            >
-              <Ionicons name="arrow-back" size={18} color="#0f172a" />
+            
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+              <Ionicons name="arrow-back" size={18} color="#12100E" />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={onRefresh}
-              className="w-9 h-9 rounded-lg bg-slate-100 items-center justify-center"
+              className="w-9 h-9 rounded-lg bg-paper-2 items-center justify-center"
               hitSlop={8}
               activeOpacity={0.7}
             >
-              <Ionicons name="refresh" size={16} color="#f97316" />
+              <Ionicons name="refresh" size={16} color="#F97316" />
             </TouchableOpacity>
           </View>
 
-          <Text className="text-slate-900 text-2xl font-extrabold">Leaderboard</Text>
-          <Text className="text-slate-500 text-2xs font-semibold mt-0.5" numberOfLines={1}>
+          <Text className="text-ink text-2xl font-display">Leaderboard</Text>
+          <Text className="text-ink-3 text-label font-semibold mt-0.5" numberOfLines={1}>
             {hackathonTitle ?? 'Live rankings'}
           </Text>
 
@@ -279,12 +279,12 @@ const HackathonLeaderboard = () => {
               { label: 'Projects', val: String(leaderboard.length), icon: 'people-outline' },
               { label: 'Top score', val: leaderboard[0]?.score?.toFixed(1) ?? '—', icon: 'flash-outline' },
             ].map((s) => (
-              <View key={s.label} className="flex-1 bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-100">
+              <View key={s.label} className="flex-1 bg-paper rounded-xl px-3 py-2.5 border border-line">
                 <View className="flex-row items-center">
-                  <Ionicons name={s.icon as any} size={12} color="#f97316" />
-                  <Text className="text-slate-500 text-2xs font-semibold ml-1.5">{s.label}</Text>
+                  <Ionicons name={s.icon as any} size={12} color="#F97316" />
+                  <Text className="text-ink-3 text-label font-semibold ml-1.5">{s.label}</Text>
                 </View>
-                <Text className="text-slate-900 font-extrabold text-lg mt-0.5">{s.val}</Text>
+                <Text className="text-ink font-display text-lg mt-0.5">{s.val}</Text>
               </View>
             ))}
           </View>
@@ -292,15 +292,15 @@ const HackathonLeaderboard = () => {
 
         {loading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#f97316" />
+            <ActivityIndicator size="large" color="#F97316" />
           </View>
         ) : leaderboard.length === 0 ? (
-          <View className="flex-1 items-center justify-center px-8">
-            <View className="w-16 h-16 rounded-2xl bg-white border border-slate-100 items-center justify-center mb-4">
-              <Ionicons name="trophy-outline" size={28} color="#cbd5e1" />
+          <View className="flex-1 items-center justify-center px-gutter">
+            <View className="w-16 h-16 rounded-card bg-card border border-line items-center justify-center mb-4">
+              <Ionicons name="trophy-outline" size={28} color="#C4BEB6" />
             </View>
-            <Text className="text-slate-900 text-base font-bold text-center mb-1">No scores yet</Text>
-            <Text className="text-slate-500 text-2xs font-semibold text-center leading-4">
+            <Text className="text-ink text-base font-semibold text-center mb-1">No scores yet</Text>
+            <Text className="text-ink-3 text-label font-semibold text-center leading-4">
               Rankings appear once judges start scoring submissions.
             </Text>
           </View>
@@ -311,7 +311,7 @@ const HackathonLeaderboard = () => {
             contentContainerStyle={{ padding: 16, paddingBottom: 96 }}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#f97316']} tintColor="#f97316" />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#F97316']} tintColor="#F97316" />
             }
             ListHeaderComponent={<PodiumHeader podium={podium} hasRest={rest.length > 0} />}
             renderItem={({ item, index }) => <LeaderboardRow entry={item} index={index} />}

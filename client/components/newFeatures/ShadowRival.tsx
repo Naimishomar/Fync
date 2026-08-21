@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {View, Text, ScrollView, ActivityIndicator, RefreshControl, StatusBar, Image, TouchableOpacity, Switch, Dimensions} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from '@react-navigation/native';
 import Svg, { Polyline, Circle } from 'react-native-svg';
@@ -10,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 
+import { StampCard } from '../ui/kit';
 type Metrics = { solved: number; commits: number; streak: number; total: number };
 type HistoryPoint = { d: string; me: number; rival: number };
 type Rivalry = {
@@ -42,9 +42,9 @@ const daysLeft = (iso?: string) => {
 // Two bars share the row, scaled against whichever side is ahead. A 0-0 metric
 // draws two empty bars rather than dividing by zero.
 const Bar = ({ value, max, mine }: { value: number; max: number; mine: boolean }) => (
-    <View className="h-3 bg-slate-100 rounded-full overflow-hidden">
+    <View className="h-3 bg-paper-2 rounded-full overflow-hidden">
         <View
-            className={`h-full rounded-full ${mine ? 'bg-orange-500' : 'bg-slate-900'}`}
+            className={`h-full rounded-full ${mine ? 'bg-brand-500' : 'bg-ink'}`}
             style={{ width: `${max > 0 ? (value / max) * 100 : 0}%` }}
         />
     </View>
@@ -62,10 +62,10 @@ const RaceChart = ({ history, width }: { history: HistoryPoint[]; width: number 
 
     return (
         <Svg width={width} height={CHART_HEIGHT}>
-            <Polyline points={toPoints((p) => p.rival)} fill="none" stroke="#0f172a" strokeWidth={2} />
-            <Polyline points={toPoints((p) => p.me)} fill="none" stroke="#f97316" strokeWidth={2.5} />
-            <Circle cx={(history.length - 1) * stepX} cy={CHART_HEIGHT - (last.rival / peak) * CHART_HEIGHT} r={3.5} fill="#0f172a" />
-            <Circle cx={(history.length - 1) * stepX} cy={CHART_HEIGHT - (last.me / peak) * CHART_HEIGHT} r={4} fill="#f97316" />
+            <Polyline points={toPoints((p) => p.rival)} fill="none" stroke="#12100E" strokeWidth={2} />
+            <Polyline points={toPoints((p) => p.me)} fill="none" stroke="#F97316" strokeWidth={2.5} />
+            <Circle cx={(history.length - 1) * stepX} cy={CHART_HEIGHT - (last.rival / peak) * CHART_HEIGHT} r={3.5} fill="#12100E" />
+            <Circle cx={(history.length - 1) * stepX} cy={CHART_HEIGHT - (last.me / peak) * CHART_HEIGHT} r={4} fill="#F97316" />
         </Svg>
     );
 };
@@ -144,8 +144,8 @@ export default function ShadowRival() {
 
     if (loading) {
         return (
-            <View className="flex-1 bg-[#F8FAFC] items-center justify-center">
-                <ActivityIndicator size="large" color="#f97316" />
+            <View className="flex-1 bg-paper items-center justify-center">
+                <ActivityIndicator size="large" color="#F97316" />
             </View>
         );
     }
@@ -153,97 +153,96 @@ export default function ShadowRival() {
     const active = data?.status === 'active' || data?.status === 'revealed';
     const revealed = data?.status === 'revealed';
     const won = revealed && (data?.me?.total ?? 0) >= (data?.rival?.total ?? 0);
+    // The brand fill is LIGHT — white on it is 2.1:1. Ink on it is 8.9:1.
+    const aheadFill = revealed ? won : !!data?.leading;
 
     return (
-        <View className="flex-1 bg-[#F8FAFC]">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            <View className="absolute top-0 w-full h-80 opacity-20">
-                <LinearGradient colors={['#0f172a', 'transparent']} className="w-full h-full" />
-            </View>
 
             <SafeAreaView className="flex-1" edges={['top']}>
                 <ScrollView
                     contentContainerStyle={{ paddingBottom: 40 }}
                     showsVerticalScrollIndicator={false}
                     refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchRival(); }} tintColor="#f97316" />
+                        <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchRival(); }} tintColor="#F97316" />
                     }
                 >
-                    <View className="px-8 pt-2 mb-6">
-                        <Text className="text-slate-900 text-3xl font-black tracking-tighter leading-tight">
-                            Shadow<Text className="text-orange-500">Rival</Text>
+                    <View className="px-gutter pt-2 mb-6">
+                        <Text className="text-ink text-3xl font-display leading-tight">
+                            Shadow<Text className="text-accent-text">Rival</Text>
                         </Text>
-                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">
+                        <Text className="text-ink-3 text-label font-display uppercase">
                             One anonymous match. Revealed at semester end.
                         </Text>
                     </View>
 
                     {!active && (
-                        <View className="mx-8 bg-white p-8 rounded-xl border border-slate-100 shadow-xl shadow-black/5 items-center">
+                        <View className="mx-gutter bg-card p-card-pad rounded-xl border border-line shadow-hair items-center">
                             <Ionicons
                                 name={data?.status === 'waiting' ? 'hourglass-outline' : data?.status === 'opted_out' ? 'moon-outline' : 'link-outline'}
                                 size={40}
-                                color="#94a3b8"
+                                color="#8B857E"
                             />
-                            <Text className="text-slate-900 text-lg font-black tracking-tighter mt-4 text-center">
+                            <Text className="text-ink text-lg font-display mt-4 text-center">
                                 {data?.status === 'waiting' ? 'Matching In Progress'
                                     : data?.status === 'opted_out' ? 'You Are Out'
                                         : 'Nothing To Measure Yet'}
                             </Text>
-                            <Text className="text-slate-500 text-center mt-2 text-sm">{data?.message}</Text>
+                            <Text className="text-ink-3 text-center mt-2 text-sm">{data?.message}</Text>
                         </View>
                     )}
 
                     {active && data?.me && data?.rival && (
                         <>
                             {/* Standing */}
-                            <View className="mx-8 rounded-xl overflow-hidden shadow-xl shadow-black/10">
-                                <LinearGradient
-                                    colors={revealed
-                                        ? (won ? ['#f97316', '#ea580c'] : ['#334155', '#1e293b'])
-                                        : (data.leading ? ['#f97316', '#ea580c'] : ['#0f172a', '#1e293b'])}
-                                    className="p-8 items-center"
+                            <StampCard style={{ marginHorizontal: 20 }}>
+                                <View
+                                    style={{ backgroundColor: revealed
+                                        ? (won ? '#F97316' : '#57534E')
+                                        : (data.leading ? '#F97316' : '#12100E') }}
+                                    className="p-card-pad items-center"
                                 >
-                                    <Text className="text-white/70 text-2xs font-black uppercase tracking-wide">
+                                    <Text className={`text-label font-display uppercase ${aheadFill ? 'text-ink/70' : 'text-white/70'}`}>
                                         {revealed
                                             ? (won ? 'Season won' : 'Season lost')
                                             : data.leading === null ? 'Neck and neck' : data.leading ? "You're ahead" : 'Your Shadow is ahead'}
                                     </Text>
-                                    <Text className="text-white text-5xl font-black tracking-tighter mt-2">
-                                        {data.me.total} <Text className="text-white/50 text-2xl">vs</Text> {data.rival.total}
+                                    <Text className={`text-5xl font-display mt-2 ${aheadFill ? 'text-ink' : 'text-white'}`}>
+                                        {data.me.total} <Text className={`text-2xl ${aheadFill ? 'text-ink/50' : 'text-white/50'}`}>vs</Text> {data.rival.total}
                                     </Text>
-                                    <Text className="text-white/70 text-2xs font-black uppercase tracking-wide mt-2">
+                                    <Text className={`text-label font-display uppercase mt-2 ${aheadFill ? 'text-ink/70' : 'text-white/70'}`}>
                                         {revealed ? 'Final' : `${daysLeft(data.revealAt)} days to reveal`}
                                     </Text>
-                                </LinearGradient>
-                            </View>
+                                </View>
+                            </StampCard>
 
                             {/* The race */}
                             {(data.history?.length ?? 0) > 1 && (
-                                <View className="mx-8 mt-6 bg-white p-6 rounded-xl border border-slate-100 shadow-xl shadow-black/5">
+                                <View className="mx-gutter mt-6 bg-card p-6 rounded-xl border border-line shadow-hair">
                                     <View className="flex-row items-center justify-between mb-4">
-                                        <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide">The Race</Text>
+                                        <Text className="text-ink-3 font-display text-label uppercase">The Race</Text>
                                         <View className="flex-row items-center gap-4">
                                             <View className="flex-row items-center">
-                                                <View className="w-3 h-1 bg-orange-500 rounded-full mr-1.5" />
-                                                <Text className="text-slate-500 font-black text-2xs uppercase">You</Text>
+                                                <View className="w-3 h-1 bg-brand-500 rounded-full mr-1.5" />
+                                                <Text className="text-ink-3 font-display text-label uppercase">You</Text>
                                             </View>
                                             <View className="flex-row items-center">
-                                                <View className="w-3 h-1 bg-slate-900 rounded-full mr-1.5" />
-                                                <Text className="text-slate-500 font-black text-2xs uppercase">Shadow</Text>
+                                                <View className="w-3 h-1 bg-ink rounded-full mr-1.5" />
+                                                <Text className="text-ink-3 font-display text-label uppercase">Shadow</Text>
                                             </View>
                                         </View>
                                     </View>
                                     <RaceChart history={data.history!} width={chartWidth} />
-                                    <Text className="text-slate-400 font-black text-2xs uppercase tracking-wide mt-3">
+                                    <Text className="text-ink-3 font-display text-label uppercase mt-3">
                                         {data.history!.length} days tracked
                                     </Text>
                                 </View>
                             )}
 
                             {/* Metrics */}
-                            <View className="mx-8 mt-6 bg-white p-8 rounded-xl border border-slate-100 shadow-xl shadow-black/5">
+                            <View className="mx-gutter mt-6 bg-card p-card-pad rounded-xl border border-line shadow-hair">
                                 {METRICS.map(({ key, label, icon }, i) => {
                                     const mine = data.me![key];
                                     const theirs = data.rival![key];
@@ -251,20 +250,20 @@ export default function ShadowRival() {
                                     return (
                                         <View key={key} className={i === METRICS.length - 1 ? '' : 'mb-7'}>
                                             <View className="flex-row items-center mb-3">
-                                                <Ionicons name={icon} size={16} color="#f97316" />
-                                                <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide ml-2">{label}</Text>
+                                                <Ionicons name={icon} size={16} color="#F97316" />
+                                                <Text className="text-ink-3 font-display text-label uppercase ml-2">{label}</Text>
                                             </View>
 
                                             <View className="flex-row items-center mb-2">
-                                                <Text className="text-slate-900 font-black text-2xs w-16">YOU</Text>
+                                                <Text className="text-ink font-display text-label w-16">YOU</Text>
                                                 <View className="flex-1"><Bar value={mine} max={max} mine /></View>
-                                                <Text className="text-slate-900 font-black text-sm w-12 text-right">{mine}</Text>
+                                                <Text className="text-ink font-display text-sm w-12 text-right">{mine}</Text>
                                             </View>
 
                                             <View className="flex-row items-center">
-                                                <Text className="text-slate-400 font-black text-2xs w-16">SHADOW</Text>
+                                                <Text className="text-ink-3 font-display text-label w-16">SHADOW</Text>
                                                 <View className="flex-1"><Bar value={theirs} max={max} mine={false} /></View>
-                                                <Text className="text-slate-500 font-black text-sm w-12 text-right">{theirs}</Text>
+                                                <Text className="text-ink-3 font-display text-sm w-12 text-right">{theirs}</Text>
                                             </View>
                                         </View>
                                     );
@@ -272,25 +271,25 @@ export default function ShadowRival() {
                             </View>
 
                             {/* Identity */}
-                            <View className="mx-8 mt-6 bg-white p-8 rounded-xl border border-slate-100 items-center">
+                            <View className="mx-gutter mt-6 bg-card p-card-pad rounded-xl border border-line items-center">
                                 {data.identity ? (
                                     <>
                                         {!!data.identity.avatar && (
                                             <Image source={{ uri: data.identity.avatar }} className="w-16 h-16 rounded-full mb-3" />
                                         )}
-                                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Your Shadow was</Text>
-                                        <Text className="text-slate-900 text-2xl font-black tracking-tighter mt-1">{data.identity.name}</Text>
-                                        <Text className="text-slate-500 text-sm text-center">
+                                        <Text className="text-ink-3 text-label font-display uppercase">Your Shadow was</Text>
+                                        <Text className="text-ink text-2xl font-display mt-1">{data.identity.name}</Text>
+                                        <Text className="text-ink-3 text-sm text-center">
                                             @{data.identity.username} · {data.identity.major} · Year {data.identity.year}
                                         </Text>
-                                        <Text className="text-slate-400 text-2xs font-black uppercase tracking-wide mt-1">
+                                        <Text className="text-ink-3 text-label font-display uppercase mt-1">
                                             {data.identity.college}
                                         </Text>
                                     </>
                                 ) : (
                                     <>
-                                        <Ionicons name="eye-off-outline" size={28} color="#94a3b8" />
-                                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-3 text-center">
+                                        <Ionicons name="eye-off-outline" size={28} color="#8B857E" />
+                                        <Text className="font-sans text-sm text-ink-3 mt-3 text-center">
                                             Identity locked until {new Date(data.revealAt!).toDateString()}
                                         </Text>
                                     </>
@@ -300,34 +299,34 @@ export default function ShadowRival() {
                     )}
 
                     {/* Controls */}
-                    <View className="mx-8 mt-6 bg-white rounded-xl border border-slate-100 overflow-hidden">
+                    <View className="mx-gutter mt-6 bg-card rounded-xl border border-line overflow-hidden">
                         {data?.status === 'active' && (
                             <TouchableOpacity
                                 onPress={confirmRematch}
                                 disabled={busy || (data.rematchesLeft ?? 0) < 1}
-                                className="flex-row items-center px-6 py-5 border-b border-slate-100"
+                                className="flex-row items-center px-6 py-5 border-b border-line"
                             >
-                                <Ionicons name="shuffle" size={18} color={(data.rematchesLeft ?? 0) < 1 ? '#cbd5e1' : '#f97316'} />
-                                <Text className={`font-black uppercase text-2xs tracking-wide ml-4 flex-1 ${(data.rematchesLeft ?? 0) < 1 ? 'text-slate-300' : 'text-slate-900'}`}>
+                                <Ionicons name="shuffle" size={18} color={(data.rematchesLeft ?? 0) < 1 ? '#C4BEB6' : '#F97316'} />
+                                <Text className={`font-display uppercase text-label ml-4 flex-1 ${(data.rematchesLeft ?? 0) < 1 ? 'text-ink-4' : 'text-ink'}`}>
                                     Reroll Shadow
                                 </Text>
-                                <Text className="text-slate-400 font-black text-2xs uppercase tracking-wide">
+                                <Text className="text-ink-3 font-display text-label uppercase">
                                     {data.rematchesLeft ?? 0} left
                                 </Text>
                             </TouchableOpacity>
                         )}
 
                         <View className="flex-row items-center px-6 py-5">
-                            <Ionicons name="moon-outline" size={18} color="#94a3b8" />
+                            <Ionicons name="moon-outline" size={18} color="#8B857E" />
                             <View className="flex-1 ml-4">
-                                <Text className="text-slate-900 font-black uppercase text-2xs tracking-wide">Opt Out</Text>
-                                <Text className="text-slate-400 text-2xs mt-0.5">No rival, no notifications</Text>
+                                <Text className="text-ink font-display uppercase text-label">Opt Out</Text>
+                                <Text className="text-ink-3 text-label mt-0.5">No rival, no notifications</Text>
                             </View>
                             <Switch
                                 value={!!data?.optOut}
                                 onValueChange={toggleOptOut}
                                 disabled={busy}
-                                trackColor={{ true: '#f97316', false: '#e2e8f0' }}
+                                trackColor={{ true: '#F97316', false: '#E3DDD3' }}
                                 thumbColor="#fff"
                             />
                         </View>

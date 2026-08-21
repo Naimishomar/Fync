@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import {View, Text, FlatList, Image, Pressable, ActivityIndicator, TouchableOpacity, Animated, Easing, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { RootStackParamList } from '../../App';
 import axios from '../../context/axiosConfig';
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -87,12 +86,12 @@ const LeaderboardScreen = () => {
     try {
       const tableRows = leaders.map((item, index) => `
         <tr>
-          <td style="text-align: center; color: #374151; font-weight: bold;">${index + 1}</td>
+          <td style="text-align: center; color: #57534E; font-weight: bold;">${index + 1}</td>
           <td>
-             <div style="font-weight: bold; color: #111827;">${item.user?.name || "Unknown"}</div>
-             <div style="font-size: 11px; color: #6b7280;">@${item.user?.username || "unknown"}</div>
+             <div style="font-weight: bold; color: #12100E;">${item.user?.name || "Unknown"}</div>
+             <div style="font-size: 11px; color: #8B857E;">@${item.user?.username || "unknown"}</div>
           </td>
-          <td style="text-align: center; font-weight: 900; font-size: 16px; color: #ec4899;">${item.score}</td>
+          <td style="text-align: center; font-weight: 900; font-size: 16px; color: #F97316;">${item.score}</td>
         </tr>
       `).join('');
 
@@ -103,13 +102,13 @@ const LeaderboardScreen = () => {
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
             <style>
               body { font-family: 'Helvetica', sans-serif; padding: 40px; background: #ffffff; }
-              h1 { text-align: center; color: #ec4899; margin-bottom: 5px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px;}
-              h3 { text-align: center; color: #6b7280; font-weight: normal; margin-top: 0; }
+              h1 { text-align: center; color: #F97316; margin-bottom: 5px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px;}
+              h3 { text-align: center; color: #8B857E; font-weight: normal; margin-top: 0; }
               table { width: 100%; border-collapse: collapse; margin-top: 30px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-              th, td { border-bottom: 1px solid #e5e7eb; padding: 16px 20px; text-align: left; }
-              th { background-color: #111827; color: #ffffff; font-weight: bold; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;}
+              th, td { border-bottom: 1px solid #E3DDD3; padding: 16px 20px; text-align: left; }
+              th { background-color: #12100E; color: #ffffff; font-weight: bold; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;}
               tr:last-child td { border-bottom: none; }
-              .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #9ca3af; }
+              .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #C4BEB6; }
             </style>
           </head>
           <body>
@@ -149,45 +148,45 @@ const LeaderboardScreen = () => {
 
   const renderItem = ({ item, index }: { item: any; index: number }) => {
     // Styling for Top 3 Ranks
-    let rankColor = 'text-slate-500';
-    let iconColor = '#94a3b8';
-    let cardBg = 'bg-white';
-    if (index === 0) { rankColor = 'text-yellow-600'; iconColor = '#d97706'; cardBg = 'bg-amber-50/50'; } // Gold
-    else if (index === 1) { rankColor = 'text-slate-500'; iconColor = '#64748b'; cardBg = 'bg-slate-50/50'; } // Silver
-    else if (index === 2) { rankColor = 'text-orange-600'; iconColor = '#c2410c'; cardBg = 'bg-orange-50/50'; } // Bronze
+    let rankColor = 'text-ink-3';
+    let iconColor = '#8B857E';
+    let cardBg = 'bg-card';
+    if (index === 0) { rankColor = 'text-warning'; iconColor = '#B45309'; cardBg = 'bg-warning/10'; } // Gold
+    else if (index === 1) { rankColor = 'text-ink-3'; iconColor = '#8B857E'; cardBg = 'bg-paper-2/50'; } // Silver
+    else if (index === 2) { rankColor = 'text-accent-text'; iconColor = '#EA580C'; cardBg = 'bg-brand-50/50'; } // Bronze
 
     return (
-      <View className={`flex-row items-center ${cardBg} p-5 mb-4 mx-6 rounded-3xl border border-slate-100 shadow-sm shadow-black/5`}>
+      <View className={`flex-row items-center ${cardBg} p-5 mb-4 mx-gutter rounded-card border border-line shadow-hair`}>
         {/* Rank */}
         <View className="w-10 items-center justify-center mr-3">
           {index < 3 ? (
             <Ionicons name="trophy" size={28} color={iconColor} />
           ) : (
-            <Text className={`text-xl font-black  ${rankColor}`}>#{index + 1}</Text>
+            <Text className={`text-xl font-display ${rankColor}`}>#{index + 1}</Text>
           )}
         </View>
 
         {/* Avatar */}
-        <View className="w-14 h-14 bg-white rounded-2xl mr-4 border border-slate-100 justify-center items-center shadow-sm overflow-hidden p-1">
+        <View className="w-14 h-14 bg-card rounded-card mr-4 border border-line justify-center items-center shadow-hair overflow-hidden p-1">
           {item.user?.avatar ? (
             <Image source={{ uri: item.user.avatar }} className="w-full h-full rounded-xl" />
           ) : (
-            <Text className="font-black  text-slate-300 text-xl">{item.user?.username?.[0]?.toUpperCase()}</Text>
+            <Text className="font-display text-ink-4 text-xl">{item.user?.username?.[0]?.toUpperCase()}</Text>
           )}
         </View>
 
         {/* User Info */}
         <View className="flex-1">
-          <Text className="font-black  text-slate-900 text-base uppercase tracking-tight" numberOfLines={1}>
+          <Text className="font-display text-ink text-base uppercase" numberOfLines={1}>
             {item.user?.name || item.user?.username || "Global User"}
           </Text>
-          <Text className="text-2xs text-slate-500 font-bold uppercase tracking-wide mt-0.5">@{item.user?.username || "unknown"}</Text>
+          <Text className="text-label text-ink-3 font-semibold uppercase mt-0.5">@{item.user?.username || "unknown"}</Text>
         </View>
 
         {/* Score Badge */}
-        <View className="bg-pink-50 px-4 py-2 rounded-2xl shadow-sm border border-pink-100 transform rotate-2">
-          <Text className="font-black  text-pink-500 text-base">
-            {item.score} <Text className="text-2xs uppercase tracking-tighter">Pts</Text>
+        <View className="bg-paper-2 px-4 py-2 rounded-card shadow-hair border border-line transform rotate-2">
+          <Text className="font-display text-accent-text text-base">
+            {item.score} <Text className="text-label uppercase">Pts</Text>
           </Text>
         </View>
       </View>
@@ -195,38 +194,38 @@ const LeaderboardScreen = () => {
   };
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
       <SafeAreaView className="flex-1">
         {/* HEADER */}
-        <View className="flex-row items-center justify-between px-8 pt-8 mb-4">
+        <View className="flex-row items-center justify-between px-gutter pt-8 mb-4">
           <TouchableOpacity
             onPress={() => navigation.navigate("Tabs")}
-            className="w-12 h-12 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm shadow-black/5"
+            className="w-12 h-12 bg-card rounded-card items-center justify-center border border-line shadow-hair"
           >
-            <Ionicons name="home" size={20} color="#18181b" />
+            <Ionicons name="home" size={20} color="#12100E" />
           </TouchableOpacity>
 
-          <Text className="text-3xl font-black  text-slate-900 tracking-tighter uppercase">
-            Leader<Text className="text-pink-500">Board</Text>
+          <Text className="text-3xl font-display text-ink uppercase">
+            Leader<Text className="text-accent-text">Board</Text>
           </Text>
 
           {/* ACTION BUTTONS */}
           <View className="flex-row items-center gap-3">
             {/* Animated Refresh Button */}
-            <TouchableOpacity onPress={handleManualRefresh} className="w-12 h-12 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm shadow-black/5">
+            <TouchableOpacity onPress={handleManualRefresh} className="w-12 h-12 bg-card rounded-card items-center justify-center border border-line shadow-hair">
               <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                <Ionicons name="refresh" size={20} color="#18181b" />
+                <Ionicons name="refresh" size={20} color="#12100E" />
               </Animated.View>
             </TouchableOpacity>
 
             {/* Download Button */}
-            <TouchableOpacity onPress={downloadPDF} disabled={downloading} className="w-12 h-12 bg-pink-500 rounded-2xl items-center justify-center shadow-lg shadow-pink-500/20">
+            <TouchableOpacity onPress={downloadPDF} disabled={downloading} className="w-12 h-12 bg-brand-500 items-center justify-center border-2 border-ink rounded-md">
               {downloading ? (
-                <ActivityIndicator size="small" color="white" />
+                <ActivityIndicator size="small" color="#12100E" />
               ) : (
-                <Ionicons name="download" size={20} color="white" />
+                <Ionicons name="download" size={20} color="#12100E" />
               )}
             </TouchableOpacity>
           </View>
@@ -234,24 +233,27 @@ const LeaderboardScreen = () => {
 
         {/* Room ID Badge */}
         <View className="items-center mb-8">
-          <View className="bg-white px-6 py-2 rounded-full border border-slate-100 shadow-sm shadow-black/5">
-            <Text className="text-2xs font-black  text-slate-500 tracking-wide uppercase">Node: <Text className="text-slate-900">{roomId}</Text></Text>
+          <View className="bg-card border border-line px-2.5 py-1 rounded-full">
+            <Text className="text-label font-display text-ink-3 uppercase">Node: <Text className="text-ink">{roomId}</Text></Text>
           </View>
         </View>
 
         {/* User's Own Score Card (If played) */}
         {myScore !== undefined && (
-          <View className="mx-8 bg-white p-8 rounded-5xl mb-8 shadow-2xl shadow-black/5 items-center overflow-hidden border border-slate-100">
-            <View className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-full -mr-16 -mt-16" />
-            <Text className="text-pink-500 font-black  text-2xs uppercase tracking-wide mb-2">My Final Ranking</Text>
-            <Text className="text-slate-900 text-6xl font-black  tracking-tighter">{myScore}</Text>
-            <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide mt-2">Points Verified</Text>
+          <View className="mx-gutter bg-card p-card-pad rounded-sheet mb-8 shadow-hair items-center overflow-hidden border border-line">
+            <View className="absolute top-0 right-0 w-32 h-32 bg-brand-500/5 rounded-full -mr-16 -mt-16" />
+            <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
+              <Text className="text-accent-text font-display text-label uppercase">My Final Ranking</Text>
+              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+            </View>
+            <Text className="text-ink text-6xl font-display">{myScore}</Text>
+            <Text className="text-ink-3 font-display text-label uppercase mt-2">Points Verified</Text>
           </View>
         )}
 
         {/* Leaderboard List */}
         {loading ? (
-          <ActivityIndicator size="large" color="#f97316" className="mt-20" />
+          <ActivityIndicator size="large" color="#F97316" className="mt-20" />
         ) : (
           <FlatList
             data={leaders}
@@ -260,12 +262,12 @@ const LeaderboardScreen = () => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 40 }}
             ListEmptyComponent={
-              <View className="items-center justify-center mt-20 px-10">
-                <View className="w-20 h-20 bg-slate-50 rounded-4xl items-center justify-center mb-6">
-                  <Ionicons name="people" size={40} color="#CBD5E1" />
+              <View className="items-center justify-center mt-20 px-gutter">
+                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                  <Ionicons name="people" size={40} color="#C4BEB6" />
                 </View>
-                <Text className="text-slate-900 font-black  text-xl tracking-tight text-center uppercase">Dev Void</Text>
-                <Text className="text-slate-500 text-center font-bold text-xs mt-2 uppercase tracking-wide">
+                <Text className="text-ink font-display text-xl text-center uppercase">Dev Void</Text>
+                <Text className="font-sans text-sm text-ink-3 text-center mt-2">
                   Awaiting entry from challengers.
                 </Text>
               </View>

@@ -6,7 +6,6 @@ import { navigate, goBack } from '../../utils/navigation';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../context/auth.context';
 import * as ImagePicker from 'expo-image-picker';
 import { collegesInIndia } from '../../data/college';
@@ -83,7 +82,7 @@ interface Registration {
 }
 
 // --- 1. SESSION CARD ---
-const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSession, onEditSpeaker, isRegistered, onViewAttendees, onOpenScanner, isPrimaryAdmin }: {
+const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSession, onEditSpeaker, isRegistered, onViewAttendees, onOpenScanner, isPrimaryAdmin, stamped}: {
     item: SpeakerSession;
     onRegister: (item: SpeakerSession) => void;
     isAdmin: boolean;
@@ -94,83 +93,88 @@ const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSessi
     onViewAttendees: (eventId: number) => void;
     onOpenScanner: () => void;
     isPrimaryAdmin?: boolean;
+    /** The featured entry carries the screen's one stamp. */
+    stamped?: boolean;
 }) => {
     const isLimitReached = !isAdmin && !isRegistered && (item.userLimit ?? 0) > 0 && (item.userLimit ?? 0) < 1000000 && (item.registrationsCount ?? 0) >= (item.userLimit ?? 0);
 
     return (
-        <View className="bg-white rounded-2xl mb-10 mx-6 overflow-hidden border border-slate-100 shadow-sm shadow-black/5">
+        <View
+            className={`bg-card rounded-card mb-10 mx-gutter overflow-hidden ${stamped ? 'border-2 border-ink' : 'border border-line'}`}
+            style={stamped ? { shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 } : undefined}
+        >
             <View className="h-48 relative">
                 {item.banner ? (
                     <Image source={{ uri: item.banner }} className="w-full h-full" resizeMode="cover" />
                 ) : (
-                    <LinearGradient colors={['#f97316', '#ea580c']} className="w-full h-full" />
+                    <View className="w-full h-full"  style={{ backgroundColor: '#F97316' }} />
                 )}
 
-                <View className="absolute top-6 left-6 bg-white/90 px-4 py-2 rounded-2xl border border-white/20 backdrop-blur-md">
-                    <Text className="text-slate-900 text-2xs font-black uppercase tracking-wide ">{item.college}</Text>
+                <View className="absolute top-6 left-6 bg-card/90 px-4 py-2 rounded-card border border-white/20 backdrop-blur-md">
+                    <Text className="text-ink text-label font-display uppercase">{item.college}</Text>
                 </View>
 
                 {isAdmin && (
                     <View className="absolute top-6 right-6 flex-row gap-2">
-                        <TouchableOpacity onPress={onOpenScanner} className="w-10 h-10 bg-orange-500 rounded-2xl items-center justify-center shadow-lg shadow-orange-500/30">
-                            <Ionicons name="scan" size={18} color="white" />
+                        <TouchableOpacity onPress={onOpenScanner} className="w-10 h-10 bg-brand-500 items-center justify-center border-2 border-ink rounded-md" hitSlop={2}>
+                            <Ionicons name="scan" size={18} color="#12100E" />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => onViewAttendees(item.eventId)} className="w-10 h-10 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm">
-                            <Ionicons name="people" size={18} color="#18181b" />
+                        <TouchableOpacity onPress={() => onViewAttendees(item.eventId)} className="w-10 h-10 bg-card rounded-card items-center justify-center border border-line shadow-hair">
+                            <Ionicons name="people" size={18} color="#12100E" />
                         </TouchableOpacity>
                         {isPrimaryAdmin && (
-                            <TouchableOpacity onPress={() => onEditSession(item)} className="w-10 h-10 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm">
-                                <Ionicons name="settings-outline" size={18} color="#18181b" />
+                            <TouchableOpacity onPress={() => onEditSession(item)} className="w-10 h-10 bg-card rounded-card items-center justify-center border border-line shadow-hair">
+                                <Ionicons name="settings-outline" size={18} color="#12100E" />
                             </TouchableOpacity>
                         )}
                     </View>
                 )}
 
-                <View className="absolute -bottom-6 left-8 w-20 h-20 bg-white rounded-2xl p-1.5 border border-slate-100 shadow-xl shadow-black/10">
+                <View className="absolute -bottom-6 left-8 w-20 h-20 bg-card rounded-card p-1.5 border border-line shadow-hair">
                     {item.logo ? (
-                        <Image source={{ uri: item.logo }} className="w-full h-full rounded-2xl" />
+                        <Image source={{ uri: item.logo }} className="w-full h-full rounded-card" />
                     ) : (
-                        <View className="w-full h-full bg-orange-50 rounded-2xl items-center justify-center">
-                            <Ionicons name="mic" size={24} color="#f97316" />
+                        <View className="w-full h-full bg-paper-2 rounded-card items-center justify-center">
+                            <Ionicons name="mic" size={24} color="#F97316" />
                         </View>
                     )}
                 </View>
             </View>
 
             <View className="mt-12 p-6">
-                <Text className="text-slate-900 text-2xl font-black  uppercase tracking-tighter leading-tight mb-2" numberOfLines={2}>{item.eventName}</Text>
+                <Text className="text-ink text-2xl font-display uppercase leading-tight mb-2" numberOfLines={2}>{item.eventName}</Text>
 
                 <View className="flex-row items-center gap-3 mb-6">
-                    <View className="flex-row items-center bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100">
-                        <Ionicons name="calendar-outline" size={14} color="#94a3b8" />
-                        <Text className="text-slate-900 text-2xs font-black  uppercase ml-2 tracking-tight">
+                    <View className="flex-row items-center bg-paper-2 px-4 py-2 rounded-card border border-line">
+                        <Ionicons name="calendar-outline" size={14} color="#8B857E" />
+                        <Text className="text-ink text-label font-display uppercase ml-2">
                             {new Date(item.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                         </Text>
                     </View>
-                    <View className="flex-row items-center bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100">
-                        <Ionicons name="time-outline" size={14} color="#94a3b8" />
-                        <Text className="text-slate-900 text-2xs font-black  uppercase ml-2 tracking-tight">{item.startTime}</Text>
+                    <View className="flex-row items-center bg-paper-2 px-4 py-2 rounded-card border border-line">
+                        <Ionicons name="time-outline" size={14} color="#8B857E" />
+                        <Text className="text-ink text-label font-display uppercase ml-2">{item.startTime}</Text>
                     </View>
                     {item.isCollegeSpecific && (
-                        <View className="flex-row items-center bg-rose-50 px-3 py-1.5 rounded-full border border-rose-100">
-                            <Ionicons name="shield-checkmark" size={12} color="#f43f5e" />
-                            <Text className="text-rose-500 text-2xs font-black uppercase tracking-wide ml-1.5 ">Internal</Text>
+                        <View className="flex-row items-center bg-danger/10 px-3 py-1.5 rounded-full border border-danger/15">
+                            <Ionicons name="shield-checkmark" size={12} color="#DB2777" />
+                            <Text className="text-danger text-label font-display uppercase ml-1.5">Internal</Text>
                         </View>
                     )}
                 </View>
 
-                <View className="flex-row items-center mb-8 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100 self-start">
-                    <Ionicons name="location-outline" size={14} color="#f97316" />
-                    <Text className="text-slate-900 text-2xs font-black  uppercase ml-2 tracking-tight" numberOfLines={1}>{item.venue}</Text>
+                <View className="flex-row items-center mb-8 bg-paper-2 px-4 py-2 rounded-card border border-line self-start">
+                    <Ionicons name="location-outline" size={14} color="#F97316" />
+                    <Text className="text-ink text-label font-display uppercase ml-2" numberOfLines={1}>{item.venue}</Text>
                 </View>
 
                 {/* Speakers Section */}
                 <View className="mb-8">
                     <View className="flex-row justify-between items-center mb-2">
-                        <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide">Speakers</Text>
+                        <Text className="text-ink-3 font-display text-label uppercase">Speakers</Text>
                         {isPrimaryAdmin && (
-                            <TouchableOpacity onPress={() => onAddSpeaker(item.eventId)} className="bg-slate-900 px-3 py-1.5 rounded-xl">
-                                <Text className="text-white text-2xs font-black  uppercase tracking-wide">+ Add Speaker</Text>
+                            <TouchableOpacity onPress={() => onAddSpeaker(item.eventId)} className="bg-ink px-2.5 py-1 rounded-full">
+                                <Text className="text-white text-label font-display uppercase">+ Add Speaker</Text>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -185,54 +189,57 @@ const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSessi
                                     <View className="relative">
                                         <Image
                                             source={{ uri: speaker.image }}
-                                            className="w-16 h-16 rounded-full bg-slate-50 border-2 border-slate-100 shadow-sm"
+                                            className="w-16 h-16 rounded-full bg-paper-2 border-2 border-line shadow-hair"
                                             resizeMode="cover"
                                         />
                                         {isPrimaryAdmin && (
-                                            <View className="absolute -top-1 -right-1 bg-slate-900 w-6 h-6 rounded-full items-center justify-center border-2 border-white">
+                                            <View className="absolute -top-1 -right-1 bg-ink w-6 h-6 rounded-full items-center justify-center border-2 border-white">
                                                 <Ionicons name="pencil" size={10} color="white" />
                                             </View>
                                         )}
                                     </View>
-                                    <Text className="text-slate-900 text-2xs font-black  uppercase mt-3 text-center tracking-tight" numberOfLines={1}>{speaker.name}</Text>
-                                    <Text className="text-slate-500 text-2xs font-black uppercase text-center tracking-wide mt-0.5" numberOfLines={1}>{speaker.designation}</Text>
+                                    <Text className="text-ink text-label font-display uppercase mt-3 text-center" numberOfLines={1}>{speaker.name}</Text>
+                                    <Text className="font-sans text-sm text-ink-3 text-center mt-0.5" numberOfLines={1}>{speaker.designation}</Text>
                                 </TouchableOpacity>
                             ))
                         ) : (
-                            <View className="w-full flex-row items-center py-4 px-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                                <Ionicons name="people-outline" size={16} color="#94a3b8" />
-                                <Text className="text-slate-500 text-2xs font-black  uppercase ml-3 tracking-wide">No speakers detected</Text>
+                            <View className="w-full flex-row items-center py-4 px-6 bg-paper-2 border border-dashed border-line rounded-md">
+                                <Ionicons name="people-outline" size={16} color="#8B857E" />
+                                <Text className="text-ink-3 text-label font-display uppercase ml-3">No speakers detected</Text>
                             </View>
                         )}
                     </ScrollView>
                 </View>
 
-                <Text className="text-slate-600 text-sm font-medium  leading-6 mb-8" numberOfLines={3}>
+                <Text className="text-ink-2 text-sm font-medium leading-6 mb-8" numberOfLines={3}>
                     "{item.description}"
                 </Text>
 
                 {item.contactDetails && item.contactDetails.length > 0 && (
-                    <View className="mb-8 bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                        <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide mb-4">Contact Protocol</Text>
+                    <View className="mb-8 bg-paper-2 p-6 rounded-card border border-line">
+                        <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
+                          <Text className="text-ink-3 font-display text-label uppercase">Contact Protocol</Text>
+                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                        </View>
                         {item.contactDetails.map((contact, idx) => (
                             <View key={idx} className="flex-row items-center justify-between mb-4 last:mb-0">
                                 <View className="flex-1">
-                                    <Text className="text-slate-900 font-black  uppercase text-2xs tracking-tight">{contact.name}</Text>
+                                    <Text className="text-ink font-display uppercase text-label">{contact.name}</Text>
                                     <View className="flex-row items-center gap-4 mt-1.5">
                                         {contact.mobile && (
                                             <TouchableOpacity onPress={() => Linking.openURL(`tel:${contact.mobile}`)} className="flex-row items-center">
-                                                <View className="w-5 h-5 bg-orange-100 rounded-lg items-center justify-center mr-2">
-                                                    <Ionicons name="call" size={8} color="#f97316" />
+                                                <View className="w-5 h-5 bg-brand-100 rounded-lg items-center justify-center mr-2">
+                                                    <Ionicons name="call" size={8} color="#F97316" />
                                                 </View>
-                                                <Text className="text-orange-600 font-black  text-2xs uppercase tracking-wide">{contact.mobile}</Text>
+                                                <Text className="text-accent-text font-display text-label uppercase">{contact.mobile}</Text>
                                             </TouchableOpacity>
                                         )}
                                         {contact.email && (
                                             <TouchableOpacity onPress={() => Linking.openURL(`mailto:${contact.email}`)} className="flex-row items-center">
-                                                <View className="w-5 h-5 bg-slate-900 rounded-lg items-center justify-center mr-2">
+                                                <View className="w-5 h-5 bg-ink rounded-lg items-center justify-center mr-2">
                                                     <Ionicons name="mail" size={8} color="white" />
                                                 </View>
-                                                <Text className="text-slate-900 font-black  text-2xs uppercase tracking-wide">Email Intel</Text>
+                                                <Text className="text-ink font-display text-label uppercase">Email Intel</Text>
                                             </TouchableOpacity>
                                         )}
                                     </View>
@@ -246,25 +253,25 @@ const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSessi
                     <TouchableOpacity
                         activeOpacity={0.8}
                         onPress={() => navigate('EventCommunityChat', { eventId: item._id, eventName: item.eventName, type: 'SpeakerSession' })}
-                        className="bg-orange-50/50 p-6 rounded-3xl flex-row items-center justify-between border border-orange-100/50 mb-4"
+                        className="bg-paper-2 p-6 rounded-card flex-row items-center justify-between border border-line mb-4"
                     >
                         <View className="flex-row items-center gap-4">
-                            <View className="w-12 h-12 bg-orange-600 rounded-2xl items-center justify-center">
+                            <View className="w-12 h-12 bg-brand-600 rounded-card items-center justify-center">
                                 <Ionicons name="chatbubbles" size={20} color="white" />
                             </View>
                             <View>
-                                <Text className="text-orange-900 font-black  uppercase text-2xs tracking-tight">Intelligence Network</Text>
-                                <Text className="text-orange-400 font-bold text-2xs uppercase tracking-wide mt-0.5">Established Community</Text>
+                                <Text className="text-brand-900 font-display uppercase text-label">Intelligence Network</Text>
+                                <Text className="text-accent-text font-semibold text-label uppercase mt-0.5">Established Community</Text>
                             </View>
                         </View>
-                        <Ionicons name="chevron-forward" size={18} color="#f97316" />
+                        <Ionicons name="chevron-forward" size={18} color="#F97316" />
                     </TouchableOpacity>
                 )}
 
-                <View className="flex-row justify-between items-center bg-slate-900 p-6 rounded-xl mt-4 shadow-xl shadow-black/20">
+                <View className="flex-row justify-between items-center bg-ink p-6 rounded-xl mt-4 shadow-hair">
                     <View>
-                        <Text className="text-white/40 font-black  uppercase text-2xs tracking-wide">Entry Protocol</Text>
-                        <Text className="text-white text-xl font-black  uppercase mt-0.5">
+                        <Text className="text-white/40 font-display uppercase text-label">Entry Protocol</Text>
+                        <Text className="text-white text-xl font-display uppercase mt-0.5">
                             {item.fee && item.fee > 0 ? `₹${item.fee}` : 'FREE ENTRY'}
                         </Text>
                     </View>
@@ -272,10 +279,10 @@ const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSessi
                     <TouchableOpacity
                         activeOpacity={0.8}
                         onPress={() => !isRegistered && item.status === 'open' && !isLimitReached && onRegister(item)}
-                        className={`px-8 py-4 rounded-xl border ${(isRegistered || item.status === 'closed' || isLimitReached) ? 'bg-slate-800 border-slate-700' : 'bg-white border-white'}`}
+                        className={`px-gutter py-4 rounded-xl border ${(isRegistered || item.status === 'closed' || isLimitReached) ? 'bg-ink border-ink' : 'bg-card border-white'}`}
                         disabled={!!isRegistered || item.status === 'closed' || isLimitReached}
                     >
-                        <Text className={`${(isRegistered || item.status === 'closed' || isLimitReached) ? 'text-slate-500' : 'text-slate-900'} font-black  text-2xs uppercase tracking-widest`}>
+                        <Text className={`${(isRegistered || item.status === 'closed' || isLimitReached) ? 'text-ink-3' : 'text-ink'} font-display text-label uppercase`}>
                             {item.status === 'closed' ? 'Archived' : isRegistered ? 'Joined' : isLimitReached ? 'FULL' : 'Join'}
                         </Text>
                     </TouchableOpacity>
@@ -291,35 +298,35 @@ const JoinedSessionCard = memo(({ item, onShowQR, onRefresh }: { item: Registrat
     if (!session || typeof session === 'string') return null;
 
     return (
-        <View className="bg-white rounded-4xl mb-6 mx-8 overflow-hidden border border-slate-100 shadow-sm shadow-black/5 border-l-4 border-l-orange-500">
+        <View className="bg-card rounded-sheet mb-6 mx-gutter overflow-hidden border border-line shadow-hair border-l-4 border-l-brand-500">
             <View className="p-6">
                 <View className="flex-row justify-between items-start mb-4">
                     <View className="flex-1 mr-4">
-                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-1">
+                        <Text className="text-ink-3 text-label font-display uppercase mb-1">
                             {(item as any).isAdmin ? 'Organizer Intel' : 'Session Archive'}
                         </Text>
-                        <Text className="text-slate-900 text-lg font-black  uppercase tracking-tighter leading-tight" numberOfLines={1}>
+                        <Text className="text-ink text-lg font-display uppercase leading-tight" numberOfLines={1}>
                             {session.eventName}
                         </Text>
                     </View>
                     <View className="flex-row gap-2">
                         {(item as any).isAdmin && (
-                            <View className="bg-orange-50 px-3 py-1 rounded-full border border-orange-100">
-                                <Text className="text-orange-600 text-2xs font-black uppercase tracking-wide">Admin</Text>
+                            <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
+                                <Text className="text-accent-text text-label font-display uppercase">Admin</Text>
                             </View>
                         )}
                         {item.isPresent && (
-                            <View className="bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 flex-row items-center">
-                                <Ionicons name="checkmark-circle" size={10} color="#10b981" />
-                                <Text className="text-emerald-600 text-2xs font-black uppercase ml-1">Present</Text>
+                            <View className="bg-success/10 px-3 py-1 rounded-full border border-success/15 flex-row items-center">
+                                <Ionicons name="checkmark-circle" size={10} color="#047857" />
+                                <Text className="text-success text-label font-display uppercase ml-1">Present</Text>
                             </View>
                         )}
                     </View>
                 </View>
 
-                <View className="flex-row items-center mb-6 bg-slate-50 self-start px-4 py-2 rounded-2xl border border-slate-100">
-                    <Ionicons name="time-outline" size={14} color="#f97316" />
-                    <Text className="text-slate-900 text-2xs font-black  uppercase ml-2 tracking-tight">
+                <View className="flex-row items-center mb-6 bg-paper-2 self-start px-4 py-2 rounded-card border border-line">
+                    <Ionicons name="time-outline" size={14} color="#F97316" />
+                    <Text className="text-ink text-label font-display uppercase ml-2">
                         {session.startTime} - {session.endTime}
                     </Text>
                 </View>
@@ -343,10 +350,10 @@ const JoinedSessionCard = memo(({ item, onShowQR, onRefresh }: { item: Registrat
                             }
                         ]
                     )}
-                    className={`flex-row items-center justify-center py-4 rounded-2xl border ${item.isPaid ? 'bg-slate-50 border-slate-100' : 'bg-slate-50 border-slate-100 opacity-50'}`}
+                    className={`flex-row items-center justify-center py-4 rounded-card border ${item.isPaid ? 'bg-paper-2 border-line' : 'bg-paper-2 border-line opacity-50'}`}
                 >
-                    <Ionicons name="qr-code" size={16} color={item.isPaid ? "#f97316" : "#9ca3af"} />
-                    <Text className={`${item.isPaid ? 'text-slate-900' : 'text-slate-500'} font-black  uppercase text-xs ml-3 tracking-widest`}>
+                    <Ionicons name="qr-code" size={16} color={item.isPaid ? "#F97316" : "#C4BEB6"} />
+                    <Text className={`${item.isPaid ? 'text-ink' : 'text-ink-3'} font-semibold text-base ml-3`}>
                         {item.isPaid
                             ? ((item as any).isAdmin ? 'Organizer Pass' : 'Access Pass')
                             : 'Locked Protocol'
@@ -981,13 +988,10 @@ export default function SpeakerSessionScreen() {
     );
 
     return (
-        <View className="flex-1 bg-[#FDFDFF]">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
             {/* Background Protocol Gradient */}
-            <View className="absolute top-0 w-full h-80 opacity-20">
-                <LinearGradient colors={['#f97316', 'transparent']} className="w-full h-full" />
-            </View>
 
             <SafeAreaView className="flex-1" edges={['top']}>
                 <FlatList
@@ -1000,36 +1004,37 @@ export default function SpeakerSessionScreen() {
                     onEndReached={loadMore}
                     onEndReachedThreshold={0.5}
                     ListHeaderComponent={
-                        <View className="px-8 pt-6">
+                        <View className="px-gutter pt-6">
                             <View className="flex-row justify-between items-center mb-10">
                                 <View>
-                                    <Text className="text-3xl font-black text-slate-900 tracking-tighter uppercase leading-tight">
-                                        Session <Text className="text-orange-500">Hub</Text>
+                                    <Text className="text-3xl font-display text-ink uppercase leading-tight">
+                                        Session <Text className="text-accent-text">Hub</Text>
                                     </Text>
-                                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Intelligence Archive</Text>
+                                    <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Intelligence Archive</Text>
                                 </View>
                                 <View className="flex-row gap-3">
                                     <TouchableOpacity
                                         onPress={() => setTicketsModalVisible(true)}
-                                        className="w-12 h-12 bg-white rounded-2xl items-center justify-center shadow-sm border border-slate-100"
+                                        className="w-12 h-12 bg-card rounded-card items-center justify-center shadow-hair border border-line"
                                     >
-                                        <Ionicons name="ticket" size={20} color="#f97316" />
+                                        <Ionicons name="ticket" size={20} color="#F97316" />
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => {
                                         setEditSessionData({ admin_email: user?._id });
                                         setEventLogo(null);
                                         setEventBanner(null);
                                         setSessionModalVisible(true);
-                                    }} className="w-12 h-12 bg-slate-900 rounded-2xl items-center justify-center shadow-lg shadow-black/20">
+                                    }} className="w-12 h-12 bg-ink rounded-card items-center justify-center shadow-hair">
                                         <Ionicons name="add" size={24} color="white" />
                                     </TouchableOpacity>
                                 </View>
                             </View>
                         </View>
                     }
-                    renderItem={({ item }: { item: SpeakerSession }) => (
+                    renderItem={({ item, index }: { item: SpeakerSession; index: number }) => (
                         <SessionCard
                             item={item}
+                            stamped={index === 0}
                             isAdmin={item.admin_email === user?._id ||
                                 (item.secondaryAdmins || []).some((a: any) => (typeof a === 'string' ? a === user?._id || a === user?.email : a._id === user?._id || a.email === user?.email))}
                             isPrimaryAdmin={item.admin_email === user?._id}
@@ -1074,15 +1079,15 @@ export default function SpeakerSessionScreen() {
                         />
                     )}
                     ListEmptyComponent={
-                        <View className="items-center justify-center mt-20 px-10">
-                            <View className="w-24 h-24 bg-white rounded-4xl items-center justify-center mb-6 border border-slate-100 shadow-sm">
-                                <Ionicons name="mic-outline" size={48} color="#cbd5e1" />
+                        <View className="items-center justify-center mt-20 px-gutter">
+                            <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                                <Ionicons name="mic-outline" size={48} color="#C4BEB6" />
                             </View>
-                            <Text className="text-slate-500 font-black  uppercase text-xs tracking-wide text-center">Archive Empty</Text>
-                            <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center">No intelligence sessions found in the registry.</Text>
+                            <Text className="font-semibold text-base text-ink text-center">Archive Empty</Text>
+                            <Text className="font-sans text-sm text-ink-4 mt-2 text-center">No intelligence sessions found in the registry.</Text>
                         </View>
                     }
-                    ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color="#f97316" className="mb-10" /> : <View className="h-20" />}
+                    ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color="#F97316" className="mb-10" /> : <View className="h-20" />}
                 />
             </SafeAreaView>
 
@@ -1090,43 +1095,43 @@ export default function SpeakerSessionScreen() {
             <Modal visible={speakerModalVisible} transparent animationType="slide" onRequestClose={() => setSpeakerModalVisible(false)}>
                 <View className="flex-1 bg-black/50 justify-end">
                     <KeyboardAvoidingView behavior="padding">
-                        <View className="bg-white rounded-t-5xl p-8">
+                        <View className="bg-paper rounded-t-sheet p-card-pad">
                             <View className="flex-row justify-between items-center mb-8">
-                                <Text className="text-slate-900 text-2xl font-black  tracking-tighter uppercase">{isEditingSpeaker ? 'Update Speaker' : 'Register Speaker'}</Text>
+                                <Text className="text-ink font-display uppercase text-h1">{isEditingSpeaker ? 'Update Speaker' : 'Register Speaker'}</Text>
                                 <View className="flex-row items-center gap-3">
                                     {isEditingSpeaker && (
-                                        <TouchableOpacity onPress={handleRemoveSpeaker} disabled={removingSpeaker} className="w-12 h-12 bg-red-50 rounded-2xl items-center justify-center border border-red-100">
-                                            {removingSpeaker ? <ActivityIndicator size="small" color="#ef4444" /> : <Ionicons name="trash-outline" size={20} color="#ef4444" />}
+                                        <TouchableOpacity onPress={handleRemoveSpeaker} disabled={removingSpeaker} className="w-12 h-12 bg-danger/10 rounded-card items-center justify-center border border-danger/15">
+                                            {removingSpeaker ? <ActivityIndicator size="small" color="#DC2626" /> : <Ionicons name="trash-outline" size={20} color="#DC2626" />}
                                         </TouchableOpacity>
                                     )}
-                                    <TouchableOpacity onPress={() => setSpeakerModalVisible(false)} className="w-12 h-12 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
+                                    <TouchableOpacity onPress={() => setSpeakerModalVisible(false)} className="w-12 h-12 bg-paper-2 rounded-card items-center justify-center border border-line">
                                         <Ionicons name="close" size={24} color="black" />
                                     </TouchableOpacity>
                                 </View>
                             </View>
 
-                            <TouchableOpacity onPress={() => pickImage(setSpeakerImage)} className="w-32 h-32 bg-slate-50 rounded-full self-center mb-10 items-center justify-center border border-dashed border-slate-200 overflow-hidden shadow-sm">
-                                {speakerImage ? <Image source={{ uri: speakerImage }} className="w-full h-full" /> : <Ionicons name="camera" size={32} color="#CBD5E1" />}
+                            <TouchableOpacity onPress={() => pickImage(setSpeakerImage)} className="w-32 h-32 bg-paper-2 rounded-full self-center mb-10 items-center justify-center border border-dashed border-line overflow-hidden shadow-hair">
+                                {speakerImage ? <Image source={{ uri: speakerImage }} className="w-full h-full" /> : <Ionicons name="camera" size={32} color="#C4BEB6" />}
                             </TouchableOpacity>
 
                             <TextInput
                                 placeholder="Personnel Name"
-                                placeholderTextColor="#94a3b8"
+                                placeholderTextColor="#8B857E"
                                 value={speakerName}
                                 onChangeText={setSpeakerName}
-                                className="bg-slate-50 rounded-2xl px-6 py-5 mb-4 font-black  text-slate-900 border border-slate-100"
+                                className="bg-card px-6 py-5 mb-4 font-display text-ink border-[1.5px] border-ink rounded-md"
                             />
 
                             <TextInput
                                 placeholder="Field / Designation"
-                                placeholderTextColor="#94a3b8"
+                                placeholderTextColor="#8B857E"
                                 value={speakerDesignation}
                                 onChangeText={setSpeakerDesignation}
-                                className="bg-slate-50 rounded-2xl px-6 py-5 mb-10 font-black  text-slate-900 border border-slate-100"
+                                className="bg-card px-6 py-5 mb-10 font-display text-ink border-[1.5px] border-ink rounded-md"
                             />
 
-                            <TouchableOpacity onPress={handleSpeakerAction} disabled={addingSpeaker} className="bg-slate-900 py-5 rounded-2xl items-center shadow-xl shadow-black/20">
-                                {addingSpeaker ? <ActivityIndicator color="white" /> : <Text className="text-white font-black  uppercase tracking-widest">Add Speaker</Text>}
+                            <TouchableOpacity onPress={handleSpeakerAction} disabled={addingSpeaker} className="bg-ink py-5 items-center border-2 border-ink rounded-md">
+                                {addingSpeaker ? <ActivityIndicator color="white" /> : <Text className="text-white font-display uppercase">Add Speaker</Text>}
                             </TouchableOpacity>
                             <View className="h-10" />
                         </View>
@@ -1136,23 +1141,23 @@ export default function SpeakerSessionScreen() {
 
             {/* College Selection Modal */}
             <Modal visible={collegeModalVisible} transparent animationType="fade" onRequestClose={() => setCollegeModalVisible(false)}>
-                <View className="flex-1 bg-black/50 items-center justify-center px-10">
-                    <View className="bg-white w-full max-h-[70%] rounded-5xl overflow-hidden">
-                        <View className="p-8 bg-slate-900">
+                <View className="flex-1 bg-black/50 items-center justify-center px-gutter">
+                    <View className="bg-card w-full max-h-[70%] rounded-sheet overflow-hidden">
+                        <View className="p-card-pad bg-ink">
                             <View className="flex-row justify-between items-center mb-6">
-                                <Text className="text-white text-xl font-black  tracking-tighter uppercase">Select College</Text>
-                                <TouchableOpacity onPress={() => setCollegeModalVisible(false)} className="w-10 h-10 bg-white/10 rounded-xl items-center justify-center">
+                                <Text className="text-white text-xl font-display uppercase">Select College</Text>
+                                <TouchableOpacity onPress={() => setCollegeModalVisible(false)} className="w-10 h-10 bg-card/10 rounded-xl items-center justify-center">
                                     <Ionicons name="close" size={20} color="white" />
                                 </TouchableOpacity>
                             </View>
-                            <View className="flex-row items-center bg-white/10 rounded-2xl px-4 border border-white/10">
-                                <Ionicons name="search" size={16} color="#94a3b8" />
+                            <View className="flex-row items-center bg-card/10 rounded-card px-4 border border-white/10">
+                                <Ionicons name="search" size={16} color="#8B857E" />
                                 <TextInput
                                     placeholder="Search protocol archive..."
-                                    placeholderTextColor="#64748b"
+                                    placeholderTextColor="#8B857E"
                                     value={collegeSearch}
                                     onChangeText={setCollegeSearch}
-                                    className="flex-1 h-12 text-white font-black  ml-3 text-xs"
+                                    className="flex-1 h-12 text-white font-display ml-3 text-xs"
                                 />
                             </View>
                         </View>
@@ -1166,16 +1171,16 @@ export default function SpeakerSessionScreen() {
                                         setCollegeModalVisible(false);
                                         setCollegeSearch('');
                                     }}
-                                    className="p-5 border-b border-slate-50 flex-row items-center"
+                                    className="p-5 border-b border-line flex-row items-center"
                                 >
-                                    <Ionicons name="business-outline" size={16} color="#f97316" />
-                                    <Text className="text-slate-900 font-black  ml-3 text-2xs uppercase">{item}</Text>
+                                    <Ionicons name="business-outline" size={16} color="#F97316" />
+                                    <Text className="text-ink font-display ml-3 text-label uppercase">{item}</Text>
                                 </TouchableOpacity>
                             )}
-                            ListEmptyComponent={<View className="p-10 items-center"><Text className="text-slate-500 font-bold uppercase text-2xs">No records found</Text></View>}
+                            ListEmptyComponent={<View className="p-card-pad items-center"><Text className="text-ink-3 font-semibold uppercase text-label">No records found</Text></View>}
                         />
                         <TouchableOpacity onPress={() => setCollegeModalVisible(false)} className="p-6 items-center">
-                            <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide">Cancel</Text>
+                            <Text className="text-ink-3 font-display text-label uppercase">Cancel</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -1184,89 +1189,92 @@ export default function SpeakerSessionScreen() {
             {sessionModalVisible && (
                 <View className="absolute top-0 left-0 right-0 bottom-0 bg-black/60 justify-end z-[1000]">
                     <KeyboardAvoidingView behavior="padding" className="h-[85%]">
-                        <View className="bg-white rounded-t-5xl p-8 h-full">
+                        <View className="bg-paper rounded-t-sheet p-card-pad h-full">
                             <ScrollView showsVerticalScrollIndicator={false}>
                                 <View className="flex-row justify-between items-center mb-8">
-                                    <Text className="text-slate-900 text-2xl font-black tracking-tighter uppercase">{isEditingSession ? 'Update Session' : 'New Session'}</Text>
+                                    <Text className="text-ink font-display uppercase text-h1">{isEditingSession ? 'Update Session' : 'New Session'}</Text>
                                     <View className="flex-row items-center gap-3">
                                         {isEditingSession && (
-                                            <TouchableOpacity onPress={handlePurgeSession} disabled={deletingSession} className="w-14 h-14 bg-red-50 rounded-3xl items-center justify-center border border-red-100">
-                                                {deletingSession ? <ActivityIndicator size="small" color="#ef4444" /> : <Ionicons name="trash-outline" size={24} color="#ef4444" />}
+                                            <TouchableOpacity onPress={handlePurgeSession} disabled={deletingSession} className="w-14 h-14 bg-danger/10 rounded-card items-center justify-center border border-danger/15">
+                                                {deletingSession ? <ActivityIndicator size="small" color="#DC2626" /> : <Ionicons name="trash-outline" size={24} color="#DC2626" />}
                                             </TouchableOpacity>
                                         )}
-                                        <TouchableOpacity onPress={() => { setSessionModalVisible(false); setIsEditingSession(false); setLocalSpeakers([]); }} className="w-14 h-14 bg-slate-50 rounded-3xl items-center justify-center border border-slate-100">
+                                        <TouchableOpacity onPress={() => { setSessionModalVisible(false); setIsEditingSession(false); setLocalSpeakers([]); }} className="w-14 h-14 bg-paper-2 rounded-card items-center justify-center border border-line">
                                             <Ionicons name="close" size={28} color="black" />
                                         </TouchableOpacity>
                                     </View>
                                 </View>
 
-                                <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide mb-2">Branding Protocol</Text>
+                                <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
+                                  <Text className="text-ink-3 font-display text-label uppercase">Branding Protocol</Text>
+                                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                                </View>
                                 <View className="flex-row gap-4 mb-8">
-                                    <TouchableOpacity onPress={pickImage.bind(null, setEventBanner)} className="flex-1 h-32 bg-slate-50 rounded-2xl items-center justify-center border border-dashed border-slate-200 overflow-hidden">
-                                        {eventBanner ? <Image source={{ uri: eventBanner }} className="w-full h-full" /> : <Text className="text-2xs font-black text-slate-500 uppercase tracking-wide">Banner</Text>}
+                                    <TouchableOpacity onPress={pickImage.bind(null, setEventBanner)} className="flex-1 h-32 bg-paper-2 items-center justify-center border border-dashed border-line overflow-hidden rounded-md">
+                                        {eventBanner ? <Image source={{ uri: eventBanner }} className="w-full h-full" /> : <Text className="text-label font-display text-ink-3 uppercase">Banner</Text>}
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={pickImage.bind(null, setEventLogo)} className="w-32 h-32 bg-slate-50 rounded-2xl items-center justify-center border border-dashed border-slate-200 overflow-hidden">
-                                        {eventLogo ? <Image source={{ uri: eventLogo }} className="w-full h-full" /> : <Text className="text-2xs font-black text-slate-500 uppercase tracking-wide">Logo</Text>}
+                                    <TouchableOpacity onPress={pickImage.bind(null, setEventLogo)} className="w-32 h-32 bg-paper-2 rounded-card items-center justify-center border border-dashed border-line overflow-hidden">
+                                        {eventLogo ? <Image source={{ uri: eventLogo }} className="w-full h-full" /> : <Text className="text-label font-display text-ink-3 uppercase">Logo</Text>}
                                     </TouchableOpacity>
                                 </View>
 
                                 <TextInput
                                     placeholder="Event Title"
-                                    placeholderTextColor="#94a3b8"
+                                    placeholderTextColor="#8B857E"
                                     value={editSessionData.eventName || ''}
                                     onChangeText={(t) => setEditSessionData({ ...editSessionData, eventName: t })}
-                                    className="bg-slate-50 rounded-2xl px-6 py-5 mb-4 font-black  text-slate-900 border border-slate-100"
+                                    className="bg-paper-2 rounded-card px-6 py-5 mb-4 font-display text-ink border border-line"
                                 />
 
                                 <TouchableOpacity
                                     onPress={() => setCollegeModalVisible(true)}
-                                    className="bg-slate-50 rounded-2xl px-6 py-5 mb-4 flex-row justify-between items-center border border-slate-100"
+                                    className="bg-paper-2 rounded-card px-6 py-5 mb-4 flex-row justify-between items-center border border-line"
                                 >
-                                    <Text className={editSessionData.college ? 'text-slate-900 font-black  text-xs uppercase' : 'text-slate-500 font-black  text-xs uppercase'}>
+                                    <Text className={editSessionData.college ? 'font-sans text-base text-ink' : 'font-sans text-base text-ink-3'}>
                                         {editSessionData.college || 'Target Campus'}
                                     </Text>
-                                    <Ionicons name="chevron-down" size={16} color="#94a3b8" />
+                                    <Ionicons name="chevron-down" size={16} color="#8B857E" />
                                 </TouchableOpacity>
 
                                 <TextInput
                                     placeholder="Detailed Description"
-                                    placeholderTextColor="#94a3b8"
+                                    placeholderTextColor="#8B857E"
                                     multiline value={editSessionData.description || ''}
                                     onChangeText={(t) => setEditSessionData({ ...editSessionData, description: t })}
-                                    className="bg-slate-50 rounded-2xl px-6 py-5 mb-4 font-black  text-slate-900 border border-slate-100 h-32"
+                                    className="bg-paper-2 rounded-card px-6 py-5 mb-4 font-display text-ink border border-line h-32"
                                 />
 
                                 {/* Local Speakers Management Section */}
                                 {!isEditingSession && (
                                     <View className="mb-8">
                                         <View className="flex-row justify-between items-center mb-6">
-                                            <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide">Personnel Archive ({localSpeakers.length})</Text>
+                                            <Text className="text-ink-3 font-display text-label uppercase">Personnel Archive ({localSpeakers.length})</Text>
                                             <TouchableOpacity
                                                 onPress={() => openSpeakerModal(undefined, undefined, true)}
-                                                className="bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-100"
+                                                className="bg-paper-2 border border-line px-2.5 py-1 rounded-full"
                                             >
-                                                <Text className="text-orange-600 text-2xs font-black  uppercase tracking-wide">+ Add Personnel</Text>
+                                                <Text className="text-accent-text text-label font-display uppercase">+ Add Personnel</Text>
                                             </TouchableOpacity>
                                         </View>
 
                                         {localSpeakers.length > 0 ? (
                                             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
                                                 {localSpeakers.map((s, i) => (
-                                                    <View key={s.id} className="bg-slate-50 p-4 rounded-3xl border border-slate-100 items-center mr-4 w-28 relative">
-                                                        <Image source={{ uri: s.image }} className="w-16 h-16 rounded-full bg-white border border-slate-100 mb-3" />
-                                                        <Text className="text-2xs font-black  text-slate-900 uppercase tracking-tighter" numberOfLines={1}>{s.name}</Text>
+                                                    <View key={s.id} className="bg-paper-2 p-4 rounded-card border border-line items-center mr-4 w-28 relative">
+                                                        <Image source={{ uri: s.image }} className="w-16 h-16 rounded-full bg-card border border-line mb-3" />
+                                                        <Text className="text-label font-display text-ink uppercase" numberOfLines={1}>{s.name}</Text>
                                                         <TouchableOpacity
                                                             onPress={() => setLocalSpeakers(localSpeakers.filter((_, idx) => idx !== i))}
-                                                            className="absolute top-2 right-2 bg-white rounded-full shadow-sm p-0.5"
+                                                            className="absolute top-2 right-2 bg-card rounded-full shadow-hair p-0.5"
                                                         >
-                                                            <Ionicons name="close-circle" size={20} color="#ef4444" />
+                                                            <Ionicons name="close-circle" size={20} color="#DC2626" />
                                                         </TouchableOpacity>
                                                     </View>
                                                 ))}
                                             </ScrollView>
                                         ) : (
-                                            <View className="bg-slate-50/50 p-8 rounded-4xl items-center border border-dashed border-slate-200">
-                                                <Text className="text-slate-300 text-2xs font-black  uppercase tracking-wide">No personnel assigned</Text>
+                                            <View className="bg-paper-2/50 p-card-pad rounded-sheet items-center border border-dashed border-line">
+                                                <Text className="text-ink-4 text-label font-display uppercase">No personnel assigned</Text>
                                             </View>
                                         )}
                                     </View>
@@ -1274,27 +1282,36 @@ export default function SpeakerSessionScreen() {
 
                                 <TextInput
                                     placeholder="Deployment Venue"
-                                    placeholderTextColor="#94a3b8"
+                                    placeholderTextColor="#8B857E"
                                     value={editSessionData.venue || ''}
                                     onChangeText={(t) => setEditSessionData({ ...editSessionData, venue: t })}
-                                    className="bg-slate-50 rounded-2xl px-6 py-5 mb-4 font-black  text-slate-900 border border-slate-100"
+                                    className="bg-paper-2 rounded-card px-6 py-5 mb-4 font-display text-ink border border-line"
                                 />
 
                                 <View className="flex-row gap-4 mb-4">
-                                    <TouchableOpacity onPress={() => setShowStartTimePicker(true)} className="flex-1 bg-slate-50 rounded-2xl px-6 py-5 border border-slate-100">
-                                        <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide mb-1">Start Phase</Text>
-                                        <Text className="text-slate-900 font-black  text-xs uppercase">{editSessionData.startTime || '--:--'}</Text>
+                                    <TouchableOpacity onPress={() => setShowStartTimePicker(true)} className="flex-1 bg-paper rounded-card px-6 py-5 border border-line">
+                                        <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
+                                          <Text className="text-ink-3 font-display text-label uppercase">Start Phase</Text>
+                                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                                        </View>
+                                        <Text className="font-semibold text-base text-ink">{editSessionData.startTime || '--:--'}</Text>
                                     </TouchableOpacity>
 
-                                    <TouchableOpacity onPress={() => setShowEndTimePicker(true)} className="flex-1 bg-slate-50 rounded-2xl px-6 py-5 border border-slate-100">
-                                        <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide mb-1">End Phase</Text>
-                                        <Text className="text-slate-900 font-black  text-xs uppercase">{editSessionData.endTime || '--:--'}</Text>
+                                    <TouchableOpacity onPress={() => setShowEndTimePicker(true)} className="flex-1 bg-paper rounded-card px-6 py-5 border border-line">
+                                        <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
+                                          <Text className="text-ink-3 font-display text-label uppercase">End Phase</Text>
+                                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                                        </View>
+                                        <Text className="font-semibold text-base text-ink">{editSessionData.endTime || '--:--'}</Text>
                                     </TouchableOpacity>
                                 </View>
 
-                                <TouchableOpacity onPress={() => setShowDatePicker(true)} className="bg-slate-50 rounded-2xl px-6 py-5 border border-slate-100 mb-8">
-                                    <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide mb-1">Event Date</Text>
-                                    <Text className="text-slate-900 font-black  text-xs uppercase">
+                                <TouchableOpacity onPress={() => setShowDatePicker(true)} className="bg-paper-2 rounded-card px-6 py-5 border border-line mb-8">
+                                    <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
+                                      <Text className="text-ink-3 font-display text-label uppercase">Event Date</Text>
+                                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                                    </View>
+                                    <Text className="font-semibold text-base text-ink">
                                         {editSessionData.date ? new Date(editSessionData.date).toLocaleDateString() : 'Select Date'}
                                     </Text>
                                 </TouchableOpacity>
@@ -1323,101 +1340,113 @@ export default function SpeakerSessionScreen() {
                                 )}
 
                                 <View className="mb-6">
-                                    <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide mb-3 px-1">Capacity Protocol</Text>
+                                    <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
+                                      <Text className="text-ink-3 font-display text-label uppercase px-1">Capacity Protocol</Text>
+                                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                                    </View>
                                     <TouchableOpacity
                                         onPress={() => setLimitType(limitType === 'unlimited' ? 'custom' : 'unlimited')}
-                                        className="flex-row justify-between items-center bg-slate-50 rounded-2xl px-6 py-5 border border-slate-100"
+                                        className="flex-row justify-between items-center bg-paper-2 rounded-card px-6 py-5 border border-line"
                                     >
-                                        <Text className="text-slate-900 font-black  text-2xs uppercase">
+                                        <Text className="text-ink font-display text-label uppercase">
                                             {limitType === 'unlimited' ? 'Unlimited Access' : 'Custom Capacity'}
                                         </Text>
-                                        <Ionicons name="chevron-down" size={16} color="#f97316" />
+                                        <Ionicons name="chevron-down" size={16} color="#F97316" />
                                     </TouchableOpacity>
                                 </View>
 
                                 {limitType === 'custom' && (
                                     <TextInput
-                                        placeholder="Max Capacity" keyboardType="numeric" placeholderTextColor="#94a3b8"
+                                        placeholder="Max Capacity" keyboardType="numeric" placeholderTextColor="#8B857E"
                                         value={editSessionData.userLimit && editSessionData.userLimit < 1000000 ? editSessionData.userLimit.toString() : ''}
                                         onChangeText={(t) => setEditSessionData({ ...editSessionData, userLimit: t === '' ? 1000000 : parseInt(t) })}
-                                        className="bg-slate-50 rounded-2xl px-6 py-5 mb-4 font-black  text-slate-900 border border-slate-100"
+                                        className="bg-paper-2 rounded-card px-6 py-5 mb-4 font-display text-ink border border-line"
                                     />
                                 )}
 
                                 <View className="mb-6">
-                                    <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide mb-3 px-1">Monetization</Text>
+                                    <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
+                                      <Text className="text-ink-3 font-display text-label uppercase px-1">Monetization</Text>
+                                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                                    </View>
                                     <TouchableOpacity
                                         onPress={() => { const newType = feeType === 'free' ? 'paid' : 'free'; setFeeType(newType); if (newType === 'free') setEditSessionData({ ...editSessionData, fee: 0 }); }}
-                                        className="flex-row justify-between items-center bg-slate-50 rounded-2xl px-6 py-5 border border-slate-100"
+                                        className="flex-row justify-between items-center bg-paper-2 rounded-card px-6 py-5 border border-line"
                                     >
-                                        <Text className="text-slate-900 font-black  text-2xs uppercase">
+                                        <Text className="text-ink font-display text-label uppercase">
                                             {feeType === 'free' ? 'Free Access' : 'Paid Protocol'}
                                         </Text>
-                                        <Ionicons name="chevron-down" size={16} color="#f97316" />
+                                        <Ionicons name="chevron-down" size={16} color="#F97316" />
                                     </TouchableOpacity>
                                 </View>
 
                                 {feeType === 'paid' && (
                                     <View className="flex-row gap-4 mb-6">
                                         <TextInput
-                                            placeholder="Fee (₹)" keyboardType="numeric" placeholderTextColor="#94a3b8"
+                                            placeholder="Fee (₹)" keyboardType="numeric" placeholderTextColor="#8B857E"
                                             value={editSessionData.fee ? editSessionData.fee.toString() : ''}
                                             onChangeText={(t) => setEditSessionData({ ...editSessionData, fee: t === '' ? 0 : parseInt(t) })}
-                                            className="w-24 bg-slate-50 rounded-2xl px-6 py-5 font-black  text-slate-900 border border-slate-100 text-center"
+                                            className="w-24 bg-paper-2 rounded-card px-6 py-5 font-display text-ink border border-line text-center"
                                         />
                                         <TextInput
-                                            placeholder="Admin UPI Address *" placeholderTextColor="#94a3b8"
+                                            placeholder="Admin UPI Address *" placeholderTextColor="#8B857E"
                                             value={editSessionData.admin_upi_id} onChangeText={(t) => setEditSessionData({ ...editSessionData, admin_upi_id: t })}
-                                            className="flex-1 bg-slate-50 rounded-2xl px-6 py-5 font-black  text-slate-900 border border-orange-100 text-xs"
+                                            className="flex-1 bg-paper rounded-card px-6 py-5 font-display text-ink border border-line text-xs"
                                         />
                                     </View>
                                 )}
 
                                 <View className="mb-10">
-                                    <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide mb-3 px-1">Session Lifecycle</Text>
+                                    <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
+                                      <Text className="text-ink-3 font-display text-label uppercase px-1">Session Lifecycle</Text>
+                                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                                    </View>
                                     <TouchableOpacity
                                         onPress={() => setEditSessionData({ ...editSessionData, status: (editSessionData.status || 'open') === 'open' ? 'closed' : 'open' })}
-                                        className="flex-row justify-between items-center bg-slate-50 rounded-2xl px-6 py-5 border border-slate-100"
+                                        className="flex-row justify-between items-center bg-paper-2 rounded-card px-6 py-5 border border-line"
                                     >
-                                        <Text className="text-slate-900 font-black  text-2xs uppercase">
+                                        <Text className="text-ink font-display text-label uppercase">
                                             {(editSessionData.status || 'open') === 'open' ? 'Accepting Intel' : 'Archive Closed'}
                                         </Text>
-                                        <Ionicons name="chevron-down" size={16} color="#f97316" />
+                                        <Ionicons name="chevron-down" size={16} color="#F97316" />
                                     </TouchableOpacity>
                                 </View>
 
                                 {isEditingSession && (
                                     <View className="mb-8">
-                                        <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide mb-4 px-1">Protocol Collaborators</Text>
+                                        <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
+                                          <Text className="text-ink-3 font-display text-label uppercase px-1">Protocol Collaborators</Text>
+                                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                                        </View>
                                         <View className="flex-row items-center gap-3 mb-6">
-                                            <View className="flex-1 bg-slate-50 rounded-2xl px-6 py-5 flex-row items-center border border-slate-100">
-                                                <Ionicons name="person-outline" size={16} color="#94a3b8" />
+                                            <View className="flex-1 bg-paper px-6 py-5 flex-row items-center border-2 border-ink rounded-md">
+                                                <Ionicons name="person-outline" size={16} color="#8B857E" />
                                                 <TextInput
-                                                    placeholder="Username / Alias..." placeholderTextColor="#94a3b8"
+                                                    placeholder="Username / Alias..." placeholderTextColor="#8B857E"
                                                     value={adminEmailInput} onChangeText={setAdminEmailInput}
-                                                    className="flex-1 ml-3 font-black  text-slate-900 text-2xs uppercase"
+                                                    className="flex-1 ml-3 font-display text-ink text-label uppercase"
                                                     autoCapitalize="none"
                                                 />
-                                                {searchingUsers && <ActivityIndicator size="small" color="#f97316" className="mr-2" />}
+                                                {searchingUsers && <ActivityIndicator size="small" color="#F97316" className="mr-2" />}
                                             </View>
-                                            <TouchableOpacity onPress={handleAddAdmin} disabled={addingAdmin} className="w-14 h-14 bg-slate-900 rounded-2xl items-center justify-center shadow-lg">
+                                            <TouchableOpacity onPress={handleAddAdmin} disabled={addingAdmin} className="w-14 h-14 bg-ink items-center justify-center border-2 border-ink rounded-md">
                                                 {addingAdmin ? <ActivityIndicator size="small" color="white" /> : <Ionicons name="person-add" size={24} color="white" />}
                                             </TouchableOpacity>
                                         </View>
 
                                         {/* Suggestions List */}
                                         {userSuggestions.length > 0 && (
-                                            <View className="bg-white border border-slate-100 rounded-3xl mb-6 p-2 shadow-sm">
+                                            <View className="bg-card border border-line rounded-card mb-6 p-2 shadow-hair">
                                                 {userSuggestions.map(u => (
                                                     <TouchableOpacity
                                                         key={u._id}
                                                         onPress={() => { setAdminEmailInput(u.username); setUserSuggestions([]); }}
-                                                        className="flex-row items-center p-4 border-b border-slate-50 last:border-0"
+                                                        className="flex-row items-center p-4 border-b border-line last:border-0"
                                                     >
-                                                        <Image source={{ uri: u.avatar || 'https://via.placeholder.com/150' }} className="w-10 h-10 rounded-full bg-slate-100" />
+                                                        <Image source={{ uri: u.avatar || 'https://via.placeholder.com/150' }} className="w-10 h-10 rounded-full bg-paper-2" />
                                                         <View className="ml-4">
-                                                            <Text className="text-slate-900 font-black  uppercase text-2xs">{u.name}</Text>
-                                                            <Text className="text-orange-500 font-bold text-2xs uppercase mt-0.5">@{u.username}</Text>
+                                                            <Text className="text-ink font-display uppercase text-label">{u.name}</Text>
+                                                            <Text className="text-accent-text font-semibold text-label uppercase mt-0.5">@{u.username}</Text>
                                                         </View>
                                                     </TouchableOpacity>
                                                 ))}
@@ -1429,11 +1458,11 @@ export default function SpeakerSessionScreen() {
                                                 const adminId = typeof admin === 'string' ? admin : admin._id;
                                                 const adminDisplay = typeof admin === 'string' ? admin : admin.username || admin.name;
                                                 return (
-                                                    <View key={adminId} className="bg-slate-50 flex-row items-center py-2 px-4 rounded-xl border border-slate-100">
-                                                        <Text className="text-slate-600 font-black  text-2xs uppercase mr-2 tracking-tight">{adminDisplay}</Text>
+                                                    <View key={adminId} className="bg-paper-2 flex-row items-center py-2 px-4 rounded-xl border border-line">
+                                                        <Text className="text-ink-2 font-display text-label uppercase mr-2">{adminDisplay}</Text>
                                                         {(editSessionData.admin_email === user?._id) && (
                                                             <TouchableOpacity onPress={() => handleRemoveAdmin(adminId)}>
-                                                                <Ionicons name="close-circle" size={16} color="#ef4444" />
+                                                                <Ionicons name="close-circle" size={16} color="#DC2626" />
                                                             </TouchableOpacity>
                                                         )}
                                                     </View>
@@ -1444,16 +1473,19 @@ export default function SpeakerSessionScreen() {
                                 )}
 
                                 <View className="mb-6">
-                                    <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide mb-4 px-1">Network Hub</Text>
+                                    <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
+                                      <Text className="text-ink-3 font-display text-label uppercase px-1">Network Hub</Text>
+                                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                                    </View>
                                     <TouchableOpacity
                                         onPress={() => setEditSessionData({ ...editSessionData, isCommunityActive: !editSessionData.isCommunityActive })}
-                                        className={`flex-row items-center gap-4 p-6 rounded-4xl border ${editSessionData.isCommunityActive !== false ? 'bg-orange-50 border-orange-100' : 'bg-slate-50 border-slate-100'}`}
+                                        className={`flex-row items-center gap-4 p-6 rounded-sheet border ${editSessionData.isCommunityActive !== false ? 'bg-paper-2 border-line' : 'bg-paper-2 border-line'}`}
                                     >
-                                        <View className={`w-12 h-12 rounded-2xl items-center justify-center ${editSessionData.isCommunityActive !== false ? 'bg-orange-600' : 'bg-slate-200'}`}>
+                                        <View className={`w-12 h-12 rounded-card items-center justify-center ${editSessionData.isCommunityActive !== false ? 'bg-brand-600' : 'bg-paper-2'}`}>
                                             <Ionicons name="chatbubbles" size={24} color="white" />
                                         </View>
                                         <View className="flex-1">
-                                            <Text className={`font-black  uppercase text-2xs tracking-tight ${editSessionData.isCommunityActive !== false ? 'text-orange-600' : 'text-slate-500'}`}>
+                                            <Text className={`font-display uppercase text-label ${editSessionData.isCommunityActive !== false ? 'text-accent-text' : 'text-ink-3'}`}>
                                                 {editSessionData.isCommunityActive !== false ? "Community Hub Established" : "Hub Offline"}
                                             </Text>
                                         </View>
@@ -1461,16 +1493,19 @@ export default function SpeakerSessionScreen() {
                                 </View>
 
                                 <View className="mb-6">
-                                    <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide mb-4 px-1">Security Archive</Text>
+                                    <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
+                                      <Text className="text-ink-3 font-display text-label uppercase px-1">Security Archive</Text>
+                                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                                    </View>
                                     <TouchableOpacity
                                         onPress={() => setEditSessionData({ ...editSessionData, isCollegeSpecific: !editSessionData.isCollegeSpecific })}
-                                        className={`flex-row items-center gap-4 p-6 rounded-4xl border ${editSessionData.isCollegeSpecific ? 'bg-orange-50 border-orange-100' : 'bg-slate-50 border-slate-100'}`}
+                                        className={`flex-row items-center gap-4 p-6 rounded-sheet border ${editSessionData.isCollegeSpecific ? 'bg-paper-2 border-line' : 'bg-paper-2 border-line'}`}
                                     >
-                                        <View className={`w-12 h-12 rounded-2xl items-center justify-center ${editSessionData.isCollegeSpecific ? 'bg-orange-600' : 'bg-slate-200'}`}>
+                                        <View className={`w-12 h-12 rounded-card items-center justify-center ${editSessionData.isCollegeSpecific ? 'bg-brand-600' : 'bg-paper-2'}`}>
                                             <Ionicons name={editSessionData.isCollegeSpecific ? "shield-checkmark" : "globe-outline"} size={24} color="white" />
                                         </View>
                                         <View className="flex-1">
-                                            <Text className={`font-black  uppercase text-2xs tracking-tight ${editSessionData.isCollegeSpecific ? 'text-orange-600' : 'text-slate-500'}`}>
+                                            <Text className={`font-display uppercase text-label ${editSessionData.isCollegeSpecific ? 'text-accent-text' : 'text-ink-3'}`}>
                                                 {editSessionData.isCollegeSpecific ? "Campus Restricted Access" : "Global Public Access"}
                                             </Text>
                                         </View>
@@ -1479,39 +1514,39 @@ export default function SpeakerSessionScreen() {
 
                                 <View className="mb-12">
                                     <View className="flex-row justify-between items-center mb-6 px-1">
-                                        <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide">Connect Personnel</Text>
+                                        <Text className="text-ink-3 font-display text-label uppercase">Connect Personnel</Text>
                                         <TouchableOpacity
                                             onPress={() => { const contacts = [...(editSessionData.contactDetails || []), { name: '', mobile: '', email: '' }]; setEditSessionData({ ...editSessionData, contactDetails: contacts }); }}
-                                            className="bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-100"
+                                            className="bg-paper-2 border border-line px-2.5 py-1 rounded-full"
                                         >
-                                            <Text className="text-orange-600 font-black  text-2xs uppercase tracking-wide">+ Add Personnel</Text>
+                                            <Text className="text-accent-text font-display text-label uppercase">+ Add Personnel</Text>
                                         </TouchableOpacity>
                                     </View>
 
                                     {(editSessionData.contactDetails || []).map((contact, idx) => (
-                                        <View key={idx} className="bg-slate-50 p-6 rounded-4xl mb-4 border border-slate-100 relative">
+                                        <View key={idx} className="bg-paper-2 p-6 rounded-sheet mb-4 border border-line relative">
                                             <TouchableOpacity onPress={() => { const contacts = (editSessionData.contactDetails || []).filter((_, i) => i !== idx); setEditSessionData({ ...editSessionData, contactDetails: contacts }); }} className="absolute top-4 right-4 z-10">
-                                                <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                                                <Ionicons name="trash-outline" size={18} color="#DC2626" />
                                             </TouchableOpacity>
 
                                             <TextInput
-                                                placeholder="Organizer Alias" placeholderTextColor="#94a3b8" value={contact.name}
+                                                placeholder="Organizer Alias" placeholderTextColor="#8B857E" value={contact.name}
                                                 onChangeText={(t) => { const contacts = [...(editSessionData.contactDetails || [])]; contacts[idx].name = t; setEditSessionData({ ...editSessionData, contactDetails: contacts }); }}
-                                                className="bg-white p-4 rounded-xl mb-4 font-black  text-slate-900 text-2xs uppercase border border-slate-100"
+                                                className="bg-card p-4 rounded-xl mb-4 font-display text-ink text-label uppercase border border-line"
                                             />
                                             <View className="flex-row gap-4">
                                                 <View className="flex-1">
                                                     <TextInput
-                                                        placeholder="Mobile" placeholderTextColor="#94a3b8" value={contact.mobile}
+                                                        placeholder="Mobile" placeholderTextColor="#8B857E" value={contact.mobile}
                                                         onChangeText={(t) => { const contacts = [...(editSessionData.contactDetails || [])]; contacts[idx].mobile = t; setEditSessionData({ ...editSessionData, contactDetails: contacts }); }}
-                                                        keyboardType="phone-pad" className="bg-white p-4 rounded-xl font-black  text-slate-900 text-2xs uppercase border border-slate-100"
+                                                        keyboardType="phone-pad" className="bg-card p-4 rounded-xl font-display text-ink text-label uppercase border border-line"
                                                     />
                                                 </View>
                                                 <View className="flex-1">
                                                     <TextInput
-                                                        placeholder="Email" placeholderTextColor="#94a3b8" value={contact.email}
+                                                        placeholder="Email" placeholderTextColor="#8B857E" value={contact.email}
                                                         onChangeText={(t) => { const contacts = [...(editSessionData.contactDetails || [])]; contacts[idx].email = t; setEditSessionData({ ...editSessionData, contactDetails: contacts }); }}
-                                                        autoCapitalize="none" keyboardType="email-address" className="bg-white p-4 rounded-xl font-black  text-slate-900 text-2xs uppercase border border-slate-100"
+                                                        autoCapitalize="none" keyboardType="email-address" className="bg-card p-4 rounded-xl font-display text-ink text-label uppercase border border-line"
                                                     />
                                                 </View>
                                             </View>
@@ -1519,8 +1554,8 @@ export default function SpeakerSessionScreen() {
                                     ))}
                                 </View>
 
-                                <TouchableOpacity onPress={handleSessionAction} disabled={savingSession} className="bg-slate-900 py-6 rounded-4xl items-center mb-12 shadow-xl shadow-black/20">
-                                    {savingSession ? <ActivityIndicator color="white" /> : <Text className="text-white font-black  uppercase tracking-widest">Initialize Protocol</Text>}
+                                <TouchableOpacity onPress={handleSessionAction} disabled={savingSession} className="bg-ink py-6 items-center mb-12 border-2 border-ink rounded-md">
+                                    {savingSession ? <ActivityIndicator color="white" /> : <Text className="text-white font-display uppercase">Initialize Protocol</Text>}
                                 </TouchableOpacity>
                             </ScrollView>
                         </View>
@@ -1531,33 +1566,33 @@ export default function SpeakerSessionScreen() {
             {/* Attendee List Dashboard */}
             <Modal visible={attendeeModalVisible} transparent animationType="slide" onRequestClose={() => setAttendeeModalVisible(false)}>
                 <View className="flex-1 bg-black/50 justify-end">
-                    <View className="bg-white h-[90%] rounded-t-5xl overflow-hidden">
-                        <View className="p-8 bg-slate-900 flex-row justify-between items-center shadow-lg">
+                    <View className="bg-paper h-[90%] rounded-t-sheet overflow-hidden">
+                        <View className="p-card-pad bg-ink flex-row justify-between items-center shadow-hair">
                             <View className="flex-1 mr-4">
-                                <Text className="text-white text-2xl font-black  tracking-tighter uppercase mb-1" numberOfLines={1}>{currentEventForAttendees?.eventName || 'Archive'}</Text>
-                                <Text className="text-white/40 text-2xs uppercase tracking-wide font-black">{attendees.length} Verified Personnel</Text>
+                                <Text className="text-white font-display uppercase mb-1 text-h1" numberOfLines={1}>{currentEventForAttendees?.eventName || 'Archive'}</Text>
+                                <Text className="text-white/40 text-label uppercase font-display">{attendees.length} Verified Personnel</Text>
                             </View>
                             <View className="flex-row items-center gap-3">
-                                <TouchableOpacity onPress={() => exportToExcel(currentEventForAttendees?.eventName || 'Event')} disabled={exporting || loadingAttendees} className="w-12 h-12 bg-white/10 rounded-2xl items-center justify-center border border-white/10">
-                                    {exporting ? <ActivityIndicator size="small" color="#f97316" /> : <MaterialIcons name="file-download" size={24} color="white" />}
+                                <TouchableOpacity onPress={() => exportToExcel(currentEventForAttendees?.eventName || 'Event')} disabled={exporting || loadingAttendees} className="w-12 h-12 bg-card/10 rounded-card items-center justify-center border border-white/10">
+                                    {exporting ? <ActivityIndicator size="small" color="#F97316" /> : <MaterialIcons name="file-download" size={24} color="white" />}
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={() => setAttendeeModalVisible(false)} className="w-12 h-12 bg-white rounded-2xl items-center justify-center">
-                                    <Ionicons name="close" size={24} color="#18181b" />
+                                <TouchableOpacity onPress={() => setAttendeeModalVisible(false)} className="w-12 h-12 bg-card rounded-card items-center justify-center">
+                                    <Ionicons name="close" size={24} color="#12100E" />
                                 </TouchableOpacity>
                             </View>
                         </View>
 
-                        <View className="bg-orange-50 px-8 py-4 border-b border-orange-100 flex-row items-center gap-3">
-                            <Ionicons name="shield-checkmark" size={18} color="#f97316" />
-                            <Text className="text-orange-900 text-2xs font-black uppercase tracking-tight flex-1 ">
+                        <View className="bg-paper-2 px-gutter py-4 border-b border-line flex-row items-center gap-3">
+                            <Ionicons name="shield-checkmark" size={18} color="#F97316" />
+                            <Text className="text-brand-900 text-label font-display uppercase flex-1">
                                 Archive integrity notice: Attendee data will be purged 7 days after session completion.
                             </Text>
                         </View>
 
                         {loadingAttendees ? (
                             <View className="flex-1 items-center justify-center">
-                                <ActivityIndicator size="large" color="#f97316" />
-                                <Text className="mt-4 text-slate-500 font-black  uppercase text-2xs">Syncing records...</Text>
+                                <ActivityIndicator size="large" color="#F97316" />
+                                <Text className="mt-4 text-ink-3 font-display uppercase text-label">Syncing records...</Text>
                             </View>
                         ) : (
                             <FlatList
@@ -1565,37 +1600,37 @@ export default function SpeakerSessionScreen() {
                                 renderItem={({ item, index }) => {
                                     const u = item.userId as User;
                                     return (
-                                        <View className="p-6 border-b border-slate-50 bg-white">
+                                        <View className="p-6 border-b border-line bg-card">
                                             <View className="flex-row justify-between items-start mb-4">
                                                 <View className="flex-1">
                                                     <View className="flex-row items-center gap-2 mb-1">
-                                                        <Text className="text-slate-900 font-black  uppercase text-lg tracking-tight">{u.name}</Text>
+                                                        <Text className="text-ink font-display uppercase text-lg">{u.name}</Text>
                                                         {item.isPaid && (
-                                                            <View className="bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                                                                <Text className="text-emerald-600 text-2xs font-black uppercase">Verified</Text>
+                                                            <View className="bg-success/10 border border-success/15 px-2.5 py-1 rounded-full">
+                                                                <Text className="text-success text-label font-display uppercase">Verified</Text>
                                                             </View>
                                                         )}
                                                         {item.isPresent && (
-                                                            <View className="bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100 flex-row items-center">
-                                                                <Ionicons name="checkmark" size={10} color="#f97316" />
-                                                                <Text className="text-orange-600 text-2xs font-black uppercase ml-1">Present</Text>
+                                                            <View className="bg-paper-2 px-2 py-0.5 rounded-full border border-line flex-row items-center">
+                                                                <Ionicons name="checkmark" size={10} color="#F97316" />
+                                                                <Text className="text-accent-text text-label font-display uppercase ml-1">Present</Text>
                                                             </View>
                                                         )}
                                                     </View>
-                                                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">{u.email}</Text>
+                                                    <Text className="text-ink-3 text-label font-display uppercase">{u.email}</Text>
                                                 </View>
-                                                <Text className="text-slate-200 font-black  text-xs">#{index + 1}</Text>
+                                                <Text className="text-ink-4 font-display text-xs">#{index + 1}</Text>
                                             </View>
 
-                                            <View className="flex-row items-center justify-between mt-4 border-t border-slate-50 pt-4">
+                                            <View className="flex-row items-center justify-between mt-4 border-t border-line pt-4">
                                                 <View className="flex-row flex-wrap gap-2 flex-1 mr-4">
-                                                    {u.college && <View className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100"><Text className="text-slate-600 text-2xs font-black uppercase">{u.college}</Text></View>}
-                                                    {u.mobileNumber && <View className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100"><Text className="text-slate-600 text-2xs font-black uppercase">{u.mobileNumber}</Text></View>}
-                                                    {u.department && <View className="bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-100"><Text className="text-orange-600 text-2xs font-black uppercase">{u.department}</Text></View>}
+                                                    {u.college && <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full"><Text className="text-ink-2 text-label font-display uppercase">{u.college}</Text></View>}
+                                                    {u.mobileNumber && <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full"><Text className="text-ink-2 text-label font-display uppercase">{u.mobileNumber}</Text></View>}
+                                                    {u.department && <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full"><Text className="text-accent-text text-label font-display uppercase">{u.department}</Text></View>}
                                                 </View>
                                                 {item.isPresent && (
-                                                    <View className="bg-orange-600 px-6 py-2 rounded-2xl shadow-sm">
-                                                        <Text className="text-2xs font-black  uppercase text-white">Confirmed</Text>
+                                                    <View className="bg-brand-600 px-2.5 py-1 rounded-full">
+                                                        <Text className="text-label font-display uppercase text-white">Confirmed</Text>
                                                     </View>
                                                 )}
                                             </View>
@@ -1603,17 +1638,17 @@ export default function SpeakerSessionScreen() {
                                     );
                                 }}
                                 ListEmptyComponent={
-                                    <View className="flex-1 items-center mt-20 p-10">
-                                        <Ionicons name="people-outline" size={64} color="#f1f5f9" />
-                                        <Text className="mt-6 text-slate-300 font-black  uppercase text-center text-xs tracking-wide">No verified personnel found.</Text>
+                                    <View className="flex-1 items-center mt-20 p-card-pad">
+                                        <Ionicons name="people-outline" size={64} color="#EDE8E0" />
+                                        <Text className="font-semibold text-base text-ink mt-6 text-center">No verified personnel found.</Text>
                                     </View>
                                 }
                                 contentContainerStyle={{ paddingBottom: 50 }}
                             />
                         )}
 
-                        <TouchableOpacity onPress={() => setAttendeeModalVisible(false)} className="p-10 items-center bg-slate-50 border-t border-slate-100">
-                            <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide">Close Protocol Dashboard</Text>
+                        <TouchableOpacity onPress={() => setAttendeeModalVisible(false)} className="p-card-pad items-center bg-paper-2 border-t border-line">
+                            <Text className="text-ink-3 font-display text-label uppercase">Close Protocol Dashboard</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -1622,15 +1657,15 @@ export default function SpeakerSessionScreen() {
             {/* Ticket Dashboard Modal */}
             <Modal visible={ticketsModalVisible} transparent animationType="slide" onRequestClose={() => setTicketsModalVisible(false)}>
                 <View className="flex-1 bg-black/50 justify-end">
-                    <View className="bg-white h-[75%] rounded-t-5xl overflow-hidden">
+                    <View className="bg-paper h-[75%] rounded-t-sheet overflow-hidden">
                         <View className="flex-1 pt-12">
-                            <View className="flex-row justify-between items-center mb-10 px-8">
+                            <View className="flex-row justify-between items-center mb-10 px-gutter">
                                 <View>
-                                    <Text className="text-slate-900 text-3xl font-black  uppercase tracking-tighter leading-tight">My <Text className="text-orange-500">Tickets</Text></Text>
-                                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">{myRegistrations.length} Verified Entries</Text>
+                                    <Text className="text-ink font-display uppercase text-h1">My <Text className="text-accent-text">Tickets</Text></Text>
+                                    <Text className="text-ink-3 text-label font-display uppercase mt-1">{myRegistrations.length} Verified Entries</Text>
                                 </View>
-                                <TouchableOpacity onPress={() => setTicketsModalVisible(false)} className="w-12 h-12 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
-                                    <Ionicons name="close" size={24} color="#18181b" />
+                                <TouchableOpacity onPress={() => setTicketsModalVisible(false)} className="w-12 h-12 bg-paper-2 rounded-card items-center justify-center border border-line">
+                                    <Ionicons name="close" size={24} color="#12100E" />
                                 </TouchableOpacity>
                             </View>
 
@@ -1640,11 +1675,11 @@ export default function SpeakerSessionScreen() {
                                     <JoinedSessionCard item={item} onShowQR={(reg) => { setSelectedReg(reg); setQrModalVisible(true); }} onRefresh={onRefresh} />
                                 )}
                                 ListEmptyComponent={
-                                    <View className="items-center mt-20 px-10">
-                                        <View className="w-24 h-24 bg-slate-50 rounded-4xl items-center justify-center mb-6 border border-slate-100">
-                                            <Ionicons name="ticket-outline" size={40} color="#cbd5e1" />
+                                    <View className="items-center mt-20 px-gutter">
+                                        <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                                            <Ionicons name="ticket-outline" size={40} color="#C4BEB6" />
                                         </View>
-                                        <Text className="text-slate-500 font-black  uppercase text-center tracking-wide text-2xs">No active passes detected in local storage.</Text>
+                                        <Text className="font-sans text-sm text-ink-3 text-center">No active passes detected in local storage.</Text>
                                     </View>
                                 }
                                 contentContainerStyle={{ paddingBottom: 100 }}
@@ -1656,26 +1691,29 @@ export default function SpeakerSessionScreen() {
 
             {/* QR Access Pass Modal */}
             <Modal visible={qrModalVisible} transparent animationType="fade" onRequestClose={() => setQrModalVisible(false)}>
-                <View className="flex-1 bg-black/60 items-center justify-center p-10">
-                    <View className="bg-white w-full rounded-5xl overflow-hidden shadow-2xl">
-                        <View className="p-8 items-center border-b border-slate-50">
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-2">Access Protocol</Text>
-                            <Text className="text-slate-900 text-xl font-black  uppercase text-center tracking-tighter" numberOfLines={1}>{(selectedReg?.eventId as any)?.eventName}</Text>
+                <View className="flex-1 bg-black/60 items-center justify-center p-card-pad">
+                    <View className="bg-card w-full rounded-sheet overflow-hidden shadow-hair">
+                        <View className="p-card-pad items-center border-b border-line">
+                            <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
+                              <Text className="text-ink-3 text-label font-display uppercase">Access Protocol</Text>
+                              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                            </View>
+                            <Text className="text-ink text-xl font-display uppercase text-center" numberOfLines={1}>{(selectedReg?.eventId as any)?.eventName}</Text>
                         </View>
-                        <View className="p-10 items-center bg-slate-50/50">
-                            <View className="p-8 bg-white rounded-5xl shadow-xl shadow-black/10 border border-slate-100">
+                        <View className="p-card-pad items-center bg-paper-2/50">
+                            <View className="p-card-pad bg-card rounded-sheet shadow-hair border border-line">
                                 {selectedReg?.qrCode ? (
                                     <Image source={{ uri: selectedReg.qrCode }} className="w-56 h-56" />
                                 ) : (
-                                    <ActivityIndicator size="large" color="#f97316" />
+                                    <ActivityIndicator size="large" color="#F97316" />
                                 )}
                             </View>
-                            <View className="mt-8 bg-slate-900 px-6 py-3 rounded-2xl">
-                                <Text className="text-white font-black  uppercase text-2xs tracking-wide">Entry ID: {selectedReg?._id?.slice(-8).toUpperCase()}</Text>
+                            <View className="mt-8 bg-ink px-6 py-3 rounded-card">
+                                <Text className="text-white font-display uppercase text-label">Entry ID: {selectedReg?._id?.slice(-8).toUpperCase()}</Text>
                             </View>
                         </View>
-                        <TouchableOpacity onPress={() => setQrModalVisible(false)} className="p-10 items-center bg-white border-t border-slate-50">
-                            <Text className="text-slate-500 font-black  text-2xs uppercase tracking-wide">Close Pass</Text>
+                        <TouchableOpacity onPress={() => setQrModalVisible(false)} className="p-card-pad items-center bg-card border-t border-line">
+                            <Text className="text-ink-3 font-display text-label uppercase">Close Pass</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -1683,27 +1721,30 @@ export default function SpeakerSessionScreen() {
 
             {/* QR Scanner Modal */}
             <Modal visible={scannerVisible} transparent animationType="fade" onRequestClose={() => setScannerVisible(false)}>
-                <View className="flex-1 bg-black">
+                <View className="flex-1 bg-ink">
                     <CameraView
                         style={{ flex: 1 }}
                         onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
                         barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
                     >
-                        <View className="flex-1 justify-between items-center py-20 px-10">
+                        <View className="flex-1 justify-between items-center py-20 px-gutter">
                             <View className="w-full h-12 flex-row justify-end absolute top-10 right-10">
-                                <TouchableOpacity onPress={() => setScannerVisible(false)} className="w-12 h-12 bg-white/10 rounded-2xl items-center justify-center border border-white/20">
+                                <TouchableOpacity onPress={() => setScannerVisible(false)} className="w-12 h-12 bg-card/10 rounded-card items-center justify-center border border-white/20">
                                     <Ionicons name="close" size={24} color="white" />
                                 </TouchableOpacity>
                             </View>
                             <View className="items-center">
-                                <Text className="text-white text-2xl font-black  tracking-tighter uppercase mb-2">Protocol Scanner</Text>
-                                <Text className="text-white/60 text-xs font-bold uppercase tracking-wide ">Aim at Personnel QR Pass</Text>
+                                <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
+                                  <Text className="text-white text-2xl font-display uppercase">Protocol Scanner</Text>
+                                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                                </View>
+                                <Text className="text-white/60 text-xs font-semibold uppercase">Aim at Personnel QR Pass</Text>
                             </View>
-                            <View className="w-72 h-72 border-2 border-white/30 rounded-5xl items-center justify-center">
-                                <View className="w-64 h-64 border-2 border-orange-500 rounded-4xl border-dashed" />
+                            <View className="w-72 h-72 border-2 border-white/30 rounded-sheet items-center justify-center">
+                                <View className="w-64 h-64 border-2 border-brand-500 rounded-sheet border-dashed" />
                             </View>
-                            <TouchableOpacity onPress={() => setScannerVisible(false)} className="bg-white/10 px-10 py-5 rounded-4xl border border-white/20">
-                                <Text className="text-white text-xs font-black  uppercase tracking-wide">Abort Scan</Text>
+                            <TouchableOpacity onPress={() => setScannerVisible(false)} className="bg-card/10 px-gutter py-5 rounded-sheet border border-white/20">
+                                <Text className="text-white text-xs font-display uppercase">Abort Scan</Text>
                             </TouchableOpacity>
                         </View>
                     </CameraView>

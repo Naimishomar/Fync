@@ -70,14 +70,18 @@ const MovieList = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
+    <SafeAreaView className="flex-1 bg-ink">
       {/* Header */}
       <View className="px-4 py-4 flex-row items-center justify-between">
         <View className="flex-row items-center gap-4">
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => navigation.goBack()}
+            className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          <Text className="text-white text-xl font-bold">{title}</Text>
+          <Text className="text-white text-xl font-display">{title}</Text>
         </View>
         <TouchableOpacity onPress={() => navigation.navigate('MovieSearch')}>
           <Ionicons name="search" size={24} color="white" />
@@ -95,15 +99,9 @@ const MovieList = () => {
             <TouchableOpacity
               key={genre.id}
               onPress={() => setSelectedGenre(genre.id)}
-              className={`mr-3 px-6 py-2 rounded-full border ${
-                selectedGenre === genre.id 
-                  ? 'bg-rose-600 border-rose-600' 
-                  : 'bg-slate-900 border-slate-800'
-              }`}
+              className={`mr-3 px-6 py-2 rounded-full border ${ selectedGenre === genre.id ? 'bg-danger border-danger' : 'bg-ink border-ink' }`}
             >
-              <Text className={`font-bold ${
-                selectedGenre === genre.id ? 'text-white' : 'text-slate-500'
-              }`}>
+              <Text className={`font-semibold ${ selectedGenre === genre.id ? 'text-white' : 'text-ink-3' }`}>
                 {genre.name}
               </Text>
             </TouchableOpacity>
@@ -113,7 +111,7 @@ const MovieList = () => {
 
       {loading ? (
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#e11d48" />
+          <ActivityIndicator size="large" color="#DB2777" />
         </View>
       ) : (
         <View className="flex-1">
@@ -134,8 +132,8 @@ const MovieList = () => {
             )}
             ListEmptyComponent={
               <View className="flex-1 items-center mt-20">
-                <Ionicons name="film-outline" size={64} color="#1f2937" />
-                <Text className="text-slate-500 mt-4 text-lg">No movies found in this category</Text>
+                <Ionicons name="film-outline" size={64} color="#57534E" />
+                <Text className="text-ink-3 mt-4 text-lg">No movies found in this category</Text>
               </View>
             }
           />

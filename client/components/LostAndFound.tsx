@@ -5,7 +5,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import socket from '../utils/socket';
 import { Alert } from './ui/AlertModal';
@@ -173,22 +172,25 @@ const LostAndFound = () => {
         }
     };
 
-    const renderItem = ({ item }: { item: LostAndFoundItem }) => {
+    const renderItem = ({ item, index }: { item: LostAndFoundItem; index: number }) => {
         const isOwner = item.found_or_lost_by?._id === user?._id;
         const isResolved = activeTab === 'lost' ? item.is_lost_item_found : item.is_found_item_claimed;
 
         return (
-            <View className={`mx-8 mb-6 bg-white rounded-4xl overflow-hidden border border-slate-100 shadow-sm shadow-black/5 ${isResolved ? 'opacity-50' : ''}`}>
+            <View
+                className={`mx-gutter mb-6 bg-card rounded-card overflow-hidden ${index === 0 ? 'border-2 border-ink' : 'border border-line'} ${isResolved ? 'opacity-50' : ''}`}
+                style={index === 0 ? { shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 } : undefined}
+            >
                 <View className="p-6 flex-row">
-                    <View className="w-24 h-24 bg-slate-50 rounded-3xl mr-6 overflow-hidden border border-slate-100 items-center justify-center relative">
+                    <View className="w-24 h-24 bg-paper-2 rounded-card mr-6 overflow-hidden border border-line items-center justify-center relative">
                         {item.image ? (
                             <Image source={{ uri: item.image }} className="w-full h-full" resizeMode="cover" />
                         ) : (
-                            <Ionicons name="cube-outline" size={28} color="#CBD5E1" />
+                            <Ionicons name="cube-outline" size={28} color="#C4BEB6" />
                         )}
                         {isResolved && (
-                            <View className="absolute inset-0 bg-white/40 items-center justify-center">
-                                <Ionicons name="checkmark-circle" size={32} color="#f97316" />
+                            <View className="absolute inset-0 bg-card/40 items-center justify-center">
+                                <Ionicons name="checkmark-circle" size={32} color="#F97316" />
                             </View>
                         )}
                     </View>
@@ -196,36 +198,36 @@ const LostAndFound = () => {
                     <View className="flex-1 justify-between py-1">
                         <View>
                             <View className="flex-row justify-between items-start mb-1">
-                                <Text className="text-slate-900 text-lg font-black  uppercase tracking-tighter flex-1 mr-2" numberOfLines={1}>
+                                <Text className="text-ink text-lg font-display uppercase flex-1 mr-2" numberOfLines={1}>
                                     {item.item}
                                 </Text>
-                                <View className={`px-3 py-1 rounded-full ${activeTab === 'lost' ? 'bg-rose-50' : 'bg-emerald-50'}`}>
-                                    <Text className={`text-2xs font-black uppercase tracking-widest ${activeTab === 'lost' ? 'text-rose-500' : 'text-emerald-600'}`}>
+                                <View className={`px-3 py-1 rounded-full ${activeTab === 'lost' ? 'bg-danger/10' : 'bg-success/10'}`}>
+                                    <Text className={`text-label font-display uppercase ${activeTab === 'lost' ? 'text-danger' : 'text-success'}`}>
                                         {activeTab === 'lost' ? 'Lost' : 'Found'}
                                     </Text>
                                 </View>
                             </View>
 
                             <View className="flex-row items-center">
-                                <Ionicons name="location" size={10} color="#CBD5E1" />
-                                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide  ml-1.5" numberOfLines={1}>{item.place}</Text>
+                                <Ionicons name="location" size={10} color="#C4BEB6" />
+                                <Text className="text-ink-3 text-label font-display uppercase ml-1.5" numberOfLines={1}>{item.place}</Text>
                             </View>
                         </View>
 
-                        <View className="flex-row items-center justify-between pt-4 mt-2 border-t border-slate-50">
+                        <View className="flex-row items-center justify-between pt-4 mt-2 border-t border-line">
                             <View className="flex-row items-center">
                                 <Image
                                     source={{ uri: item.found_or_lost_by.avatar || `https://ui-avatars.com/api/?name=${item.found_or_lost_by.username}` }}
-                                    className="w-5 h-5 rounded-full bg-slate-50 border border-slate-200 mr-2"
+                                    className="w-5 h-5 rounded-full bg-paper-2 border border-line mr-2"
                                 />
-                                <Text className="text-slate-500 text-2xs font-black  uppercase tracking-tighter">
+                                <Text className="text-ink-3 text-label font-display uppercase">
                                     @{item.found_or_lost_by.username}
                                 </Text>
                             </View>
 
                             {isResolved ? (
-                                <View className="bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
-                                    <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide">
+                                <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
+                                    <Text className="text-ink-3 font-display text-label uppercase">
                                         Resolved
                                     </Text>
                                 </View>
@@ -233,18 +235,18 @@ const LostAndFound = () => {
                                 isOwner ? (
                                     <TouchableOpacity
                                         onPress={() => handleClaimItem(item._id)}
-                                        className="bg-slate-900 px-4 py-2.5 rounded-2xl shadow-lg shadow-black/10"
+                                        className="bg-ink px-2.5 py-1 rounded-full"
                                     >
-                                        <Text className="text-white font-black  text-2xs uppercase tracking-wide">
+                                        <Text className="text-white font-display text-label uppercase">
                                             Update Status
                                         </Text>
                                     </TouchableOpacity>
                                 ) : (
                                     <TouchableOpacity
                                         onPress={() => handleMessage(item.found_or_lost_by)}
-                                        className="bg-orange-500 px-4 py-2.5 rounded-2xl shadow-lg shadow-orange-500/20"
+                                        className="bg-brand-500 px-2.5 py-1 rounded-full"
                                     >
-                                        <Text className="text-white font-black  text-2xs uppercase tracking-wide">
+                                        <Text className="text-ink font-display text-label uppercase">
                                             Contact Owner
                                         </Text>
                                     </TouchableOpacity>
@@ -269,51 +271,48 @@ const LostAndFound = () => {
         }, []);
 
         return (
-            <Animated.View style={{ opacity: pulseAnim }} className="bg-white rounded-4xl mb-6 border border-slate-100 p-6 flex-row mx-8">
-                <View className="w-24 h-24 bg-slate-50 rounded-3xl mr-5" />
+            <Animated.View style={{ opacity: pulseAnim }} className="bg-card rounded-sheet mb-6 border border-line p-6 flex-row mx-gutter">
+                <View className="w-24 h-24 bg-paper-2 rounded-card mr-5" />
                 <View className="flex-1 justify-center">
-                    <View className="h-4 bg-slate-50 rounded w-3/4 mb-3" />
-                    <View className="h-3 bg-slate-50 rounded w-1/2 mb-2" />
-                    <View className="h-6 bg-slate-50 rounded-xl w-1/3 mt-2" />
+                    <View className="h-4 bg-paper-2 rounded w-3/4 mb-3" />
+                    <View className="h-3 bg-paper-2 rounded w-1/2 mb-2" />
+                    <View className="h-6 bg-paper-2 rounded-xl w-1/3 mt-2" />
                 </View>
             </Animated.View>
         );
     };
 
     return (
-        <View className="flex-1 bg-[#F8FAFC]">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
-            <View className="absolute top-0 w-full h-80 opacity-20">
-                <LinearGradient colors={['#f97316', 'transparent']} className="w-full h-full" />
-            </View>
 
             <SafeAreaView className="flex-1" edges={['top']}>
-                <View className="px-8 pt-6">
+                <View className="px-gutter pt-6">
                     <View className="flex-row items-center justify-between mb-8">
                         <View>
-                            <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase leading-tight">Lost & <Text className="text-orange-500">Found</Text></Text>
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Asset Recovery Protocol</Text>
+                            <Text className="text-ink text-3xl font-display uppercase leading-tight">Lost & <Text className="text-accent-text">Found</Text></Text>
+                            <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Asset Recovery Protocol</Text>
                         </View>
                         <TouchableOpacity
                             onPress={() => setModalVisible(true)}
-                            className="w-14 h-14 rounded-2xl items-center justify-center bg-slate-900 shadow-2xl shadow-black/40"
+                            className="w-14 h-14 rounded-card items-center justify-center bg-ink shadow-hair"
                         >
                             <Ionicons name="add" size={28} color="white" />
                         </TouchableOpacity>
                     </View>
 
-                    <View className="flex-row bg-white p-1.5 rounded-2xl mb-8 border border-slate-100 shadow-sm">
+                    <View className="flex-row bg-card p-1.5 rounded-card mb-8 border border-line shadow-hair">
                         <TouchableOpacity
                             onPress={() => setActiveTab('lost')}
-                            className={`flex-1 py-3.5 rounded-xl items-center ${activeTab === 'lost' ? 'bg-slate-900' : 'bg-transparent'}`}
+                            className={`flex-1 py-3.5 rounded-xl items-center ${activeTab === 'lost' ? 'bg-ink' : 'bg-transparent'}`}
                         >
-                            <Text className={`font-black text-2xs uppercase tracking-widest ${activeTab === 'lost' ? 'text-white' : 'text-slate-500'}`}>Lost Assets</Text>
+                            <Text className={`font-display text-label uppercase ${activeTab === 'lost' ? 'text-white' : 'text-ink-3'}`}>Lost Assets</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => setActiveTab('found')}
-                            className={`flex-1 py-3.5 rounded-xl items-center ${activeTab === 'found' ? 'bg-orange-500' : 'bg-transparent'}`}
+                            className={`flex-1 py-3.5 rounded-xl items-center ${activeTab === 'found' ? 'bg-brand-500' : 'bg-transparent'}`}
                         >
-                            <Text className={`font-black text-2xs uppercase tracking-widest ${activeTab === 'found' ? 'text-white' : 'text-slate-500'}`}>Found Units</Text>
+                            <Text className={`font-display text-label uppercase ${activeTab === 'found' ? 'text-ink' : 'text-ink-3'}`}>Found Units</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -327,14 +326,14 @@ const LostAndFound = () => {
                         renderItem={renderItem}
                         contentContainerStyle={{ paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchItems(); }} tintColor="#f97316" />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchItems(); }} tintColor="#F97316" />}
                         ListEmptyComponent={
-                            <View className="items-center justify-center mt-20 px-10">
-                                <View className="w-20 h-20 bg-white rounded-4xl items-center justify-center mb-6 border border-slate-100 shadow-sm">
-                                    <Ionicons name="search" size={32} color="#CBD5E1" />
+                            <View className="items-center justify-center mt-20 px-gutter">
+                                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                                    <Ionicons name="search" size={32} color="#C4BEB6" />
                                 </View>
-                                <Text className="text-slate-500 font-black  uppercase text-xs tracking-wide text-center">No Active Signals</Text>
-                                <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center">Scanning campus for artifacts...</Text>
+                                <Text className="font-semibold text-base text-ink text-center">No Active Signals</Text>
+                                <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Scanning campus for artifacts...</Text>
                             </View>
                         }
                     />
@@ -342,48 +341,51 @@ const LostAndFound = () => {
             </SafeAreaView>
 
             <Modal visible={modalVisible} animationType="slide" transparent>
-                <View className="flex-1 bg-slate-900/60 justify-end">
+                <View className="flex-1 bg-ink/60 justify-end">
                     <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={() => setModalVisible(false)} />
-                    <View className="bg-white rounded-t-5xl h-[80%] shadow-2xl overflow-hidden">
-                        <View className="w-12 h-1.5 bg-slate-100 rounded-full self-center mt-4 mb-2" />
+                    <View className="bg-paper rounded-t-sheet h-[80%] shadow-hair overflow-hidden">
+                        <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
 
-                        <View className="px-8 py-6 border-b border-slate-50 flex-row justify-between items-center bg-white">
+                        <View className="px-gutter py-6 border-b border-line flex-row justify-between items-center bg-card">
                             <View>
-                                <Text className="text-slate-900 text-2xl font-black uppercase tracking-tight">Report <Text className="text-orange-500">Incident</Text></Text>
-                                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Campus Recovery Protocol</Text>
+                                <Text className="text-ink font-display uppercase text-h1">Report <Text className="text-accent-text">Incident</Text></Text>
+                                <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Campus Recovery Protocol</Text>
                             </View>
-                            <TouchableOpacity onPress={() => setModalVisible(false)} className="bg-slate-50 w-10 h-10 rounded-2xl items-center justify-center border border-slate-100">
-                                <Ionicons name="close" size={20} color="#18181b" />
+                            <TouchableOpacity onPress={() => setModalVisible(false)} className="bg-paper-2 w-10 h-10 rounded-card items-center justify-center border border-line">
+                                <Ionicons name="close" size={20} color="#12100E" />
                             </TouchableOpacity>
                         </View>
 
-                        <ScrollView className="p-8" showsVerticalScrollIndicator={false}>
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Identification</Text>
+                        <ScrollView className="p-card-pad" showsVerticalScrollIndicator={false}>
+                            <Text className="text-ink-3 text-label font-display uppercase mb-4">Identification</Text>
                             <TextInput
                                 value={newItemName}
                                 onChangeText={setNewItemName}
                                 placeholder="e.g. TITAN v2 Pro (Blue Frame)"
-                                placeholderTextColor="#CBD5E1"
-                                className="bg-white text-slate-900 p-5 rounded-3xl mb-6 border border-slate-100 shadow-sm font-black  uppercase text-xs"
+                                placeholderTextColor="#C4BEB6"
+                                className="font-semibold text-base text-ink bg-card p-5 mb-6 border-[1.5px] border-ink shadow-hair rounded-md"
                             />
 
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Location Coordinates</Text>
+                            <Text className="text-ink-3 text-label font-display uppercase mb-4">Location Coordinates</Text>
                             <TextInput
                                 value={newItemPlace}
                                 onChangeText={setNewItemPlace}
                                 placeholder={activeTab === 'lost' ? "Last seen at..." : "Discovered at..."}
-                                placeholderTextColor="#CBD5E1"
-                                className="bg-white text-slate-900 p-5 rounded-3xl mb-8 border border-slate-100 shadow-sm font-black  uppercase text-xs"
+                                placeholderTextColor="#C4BEB6"
+                                className="font-semibold text-base text-ink bg-card p-5 mb-8 border-[1.5px] border-ink shadow-hair rounded-md"
                             />
 
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4">Visual Evidence</Text>
-                            <TouchableOpacity onPress={pickImage} className="flex-row items-center justify-center bg-slate-50 p-8 rounded-3xl mb-10 border border-dashed border-slate-200">
+                            <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
+                              <Text className="text-ink-3 text-label font-display uppercase">Visual Evidence</Text>
+                              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                            </View>
+                            <TouchableOpacity onPress={pickImage} className="flex-row items-center justify-center bg-paper-2 p-card-pad rounded-card mb-10 border border-dashed border-line">
                                 {newItemImage ? (
-                                    <Image source={{ uri: newItemImage.uri }} className="w-full h-40 rounded-2xl" resizeMode="cover" />
+                                    <Image source={{ uri: newItemImage.uri }} className="w-full h-40 rounded-card" resizeMode="cover" />
                                 ) : (
                                     <View className="items-center">
-                                        <Ionicons name="camera-outline" size={28} color="#CBD5E1" />
-                                        <Text className="text-slate-500 font-black  uppercase text-2xs mt-2">Capture Asset Image</Text>
+                                        <Ionicons name="camera-outline" size={28} color="#C4BEB6" />
+                                        <Text className="text-ink-3 font-display uppercase text-label mt-2">Capture Asset Image</Text>
                                     </View>
                                 )}
                             </TouchableOpacity>
@@ -391,9 +393,9 @@ const LostAndFound = () => {
                             <TouchableOpacity
                                 onPress={handleCreateItem}
                                 disabled={submitting}
-                                className={`p-5 rounded-2xl items-center mb-20 shadow-2xl ${activeTab === 'lost' ? 'bg-slate-900 shadow-black/40' : 'bg-orange-500 shadow-orange-500/20'}`}
+                                className={`p-5 rounded-card items-center mb-20 shadow-hair ${activeTab === 'lost' ? 'bg-ink ' : 'bg-brand-500 '}`}
                             >
-                                {submitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-black  uppercase tracking-wide text-xs">Deploy Report to HQ</Text>}
+                                {submitting ? <ActivityIndicator color="#12100E" /> : <Text className="text-ink font-display uppercase text-sm">Deploy Report to HQ</Text>}
                             </TouchableOpacity>
                         </ScrollView>
                     </View>

@@ -12,7 +12,7 @@ import { Alert } from '../ui/AlertModal';
 
 const { width } = Dimensions.get('window');
 
-const CommunityItem = ({ item, userId, handleJoin, navigation }: any) => {
+const CommunityItem = ({ item, userId, handleJoin, navigation, stamped }: any) => {
     const isMember = item.members?.includes(userId);
     const isCreator = item.creator?._id === userId;
     const isSuspended = item.subscription?.status === 'suspended';
@@ -21,7 +21,8 @@ const CommunityItem = ({ item, userId, handleJoin, navigation }: any) => {
         <TouchableOpacity 
             activeOpacity={0.8}
             onPress={() => navigation.navigate('CommunityHub', { communityId: item._id })}
-            className={`mx-8 mb-6 bg-white rounded-4xl overflow-hidden border border-slate-100 shadow-sm shadow-black/5 ${isSuspended ? 'opacity-50' : ''}`}
+            className={`mx-gutter mb-6 bg-card rounded-card overflow-hidden ${stamped ? 'border-2 border-ink' : 'border border-line'} ${isSuspended ? 'opacity-50' : ''}`}
+            style={stamped ? { shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 } : undefined}
         >
             {/* Cinematic Expansion Banner */}
             <View className="h-44 w-full relative">
@@ -36,53 +37,53 @@ const CommunityItem = ({ item, userId, handleJoin, navigation }: any) => {
                 />
                 
                 {isSuspended && (
-                    <View className="absolute top-4 right-4 bg-rose-500 px-3 py-1 rounded-full border border-rose-400">
-                        <Text className="text-white font-black uppercase text-2xs tracking-wide">Suspended</Text>
+                    <View className="absolute top-4 right-4 bg-danger px-3 py-1 rounded-full border border-danger">
+                        <Text className="text-white font-display uppercase text-label">Suspended</Text>
                     </View>
                 )}
 
                 <View className="absolute bottom-4 left-6 flex-row items-center gap-4">
-                    <View className="w-12 h-12 rounded-2xl border-2 border-white overflow-hidden bg-slate-900 shadow-xl">
+                    <View className="w-12 h-12 rounded-card border-2 border-white overflow-hidden bg-ink shadow-hair">
                         <Image 
                             source={{ uri: item.logo || 'https://via.placeholder.com/150' }} 
                             className="w-full h-full"
                         />
                     </View>
                     <View className="flex-1">
-                        <Text className="text-white text-lg font-black uppercase tracking-tighter leading-tight" numberOfLines={1}>{item.name}</Text>
-                        <Text className="text-white/60 text-2xs uppercase font-black tracking-wide">By {item.creator?.username || item.creator?.name}</Text>
+                        <Text className="text-white text-lg font-display uppercase leading-tight" numberOfLines={1}>{item.name}</Text>
+                        <Text className="text-white/60 text-label uppercase font-display">By {item.creator?.username || item.creator?.name}</Text>
                     </View>
                 </View>
             </View>
 
             {/* Content Area */}
             <View className="p-6">
-                <Text className="text-slate-500 text-2xs font-medium leading-4 mb-4" numberOfLines={2}>
+                <Text className="text-ink-3 text-label font-medium leading-4 mb-4" numberOfLines={2}>
                     {item.description || "The ultimate creator ecosystem built for high-velocity growth and achievement."}
                 </Text>
 
-                <View className="flex-row justify-between items-center pt-4 border-t border-slate-50">
-                    <View className="flex-row items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-xl border border-slate-100">
-                        <Ionicons name="people" size={12} color="#94a3b8" />
-                        <Text className="text-slate-500 font-black text-2xs uppercase tracking-tighter">{item.members?.length || 0} Sparks</Text>
+                <View className="flex-row justify-between items-center pt-4 border-t border-line">
+                    <View className="flex-row items-center gap-1.5 px-3 py-1.5 bg-paper-2 rounded-card border border-line">
+                        <Ionicons name="people" size={12} color="#8B857E" />
+                        <Text className="text-ink-3 font-display text-label uppercase">{item.members?.length || 0} Sparks</Text>
                     </View>
 
                     {isCreator ? (
-                        <View className="flex-row items-center gap-1.5 py-1.5 px-3 bg-slate-900 rounded-xl">
+                        <View className="flex-row items-center gap-1.5 py-1.5 px-3 bg-ink rounded-xl">
                             <Feather name="shield" size={10} color="white" />
-                            <Text className="text-white font-black uppercase text-2xs tracking-wide">Guardian</Text>
+                            <Text className="text-white font-display uppercase text-label">Guardian</Text>
                         </View>
                     ) : isMember ? (
-                        <View className="flex-row items-center gap-1.5 py-1.5 px-3 bg-orange-50 rounded-xl border border-orange-100">
-                            <Feather name="check" size={10} color="#f97316" />
-                            <Text className="text-orange-600 font-black uppercase text-2xs tracking-wide">Subscribed</Text>
+                        <View className="flex-row items-center gap-1.5 py-1.5 px-3 bg-paper-2 rounded-xl border border-line">
+                            <Feather name="check" size={10} color="#F97316" />
+                            <Text className="text-accent-text font-display uppercase text-label">Subscribed</Text>
                         </View>
                     ) : (
                         <TouchableOpacity 
                             onPress={() => handleJoin(item._id)}
-                            className="bg-orange-500 px-6 py-2.5 rounded-2xl shadow-lg shadow-orange-500/20"
+                            className="bg-brand-500 px-2.5 py-1 rounded-full"
                         >
-                            <Text className="text-white font-black uppercase text-2xs tracking-wide">Subscribe</Text>
+                            <Text className="text-ink font-display uppercase text-label">Subscribe</Text>
                         </TouchableOpacity>
                     )}
                 </View>
@@ -160,63 +161,60 @@ const CommunityListScreen = () => {
         }, []);
 
         return (
-            <Animated.View style={{ opacity: pulseAnim }} className="mx-8 mb-6 bg-white rounded-4xl border border-slate-100 h-64 shadow-sm" />
+            <Animated.View style={{ opacity: pulseAnim }} className="mx-gutter mb-6 bg-card rounded-sheet border border-line h-64 shadow-hair" />
         );
     };
 
     return (
-        <View className="flex-1 bg-[#F8FAFC]">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
             
-            <View className="absolute top-0 w-full h-80 opacity-20">
-                <LinearGradient colors={['#f97316', 'transparent']} className="w-full h-full" />
-            </View>
 
             <SafeAreaView className="flex-1" edges={['top']}>
-                <View className="px-8 pt-6 pb-2 flex-row justify-between items-center">
+                <View className="px-gutter pt-6 pb-2 flex-row justify-between items-center">
                     <View>
-                        <Text className="text-slate-900 text-3xl font-black uppercase tracking-tighter leading-tight">
-                            Community <Text className="text-orange-500">Hub</Text>
+                        <Text className="text-ink text-3xl font-display uppercase leading-tight">
+                            Community <Text className="text-accent-text">Hub</Text>
                         </Text>
-                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">High-Velocity Network</Text>
+                        <Text className="text-ink-3 text-label font-display uppercase">High-Velocity Network</Text>
                     </View>
                     <TouchableOpacity 
                         onPress={() => navigation.navigate('CreateCommunity')}
-                        className="w-14 h-14 bg-slate-900 rounded-2xl items-center justify-center shadow-2xl shadow-black/40"
+                        className="w-14 h-14 bg-ink rounded-card items-center justify-center shadow-hair"
                     >
                         <Ionicons name="add" size={28} color="white" />
                     </TouchableOpacity>
                 </View>
 
                 {/* Tabs & Search */}
-                <View className="px-8 mt-6">
-                    <View className="flex-row bg-white p-1.5 rounded-2xl mb-6 border border-slate-100 shadow-sm">
+                <View className="px-gutter mt-6">
+                    <View className="flex-row bg-card p-1.5 rounded-card mb-6 border border-line shadow-hair">
                         <TouchableOpacity
                             onPress={() => setFilter('all')}
-                            className={`flex-1 py-3.5 items-center rounded-xl ${filter === 'all' ? 'bg-slate-900' : 'bg-transparent'}`}
+                            className={`flex-1 py-3.5 items-center rounded-xl ${filter === 'all' ? 'bg-ink' : 'bg-transparent'}`}
                         >
-                            <Text className={`font-black tracking-widest text-2xs uppercase ${filter === 'all' ? 'text-white' : 'text-slate-500'}`}>All</Text>
+                            <Text className={`font-display text-label uppercase ${filter === 'all' ? 'text-white' : 'text-ink-3'}`}>All</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => setFilter('joined')}
-                            className={`flex-1 py-3.5 items-center rounded-xl ${filter === 'joined' ? 'bg-orange-500' : 'bg-transparent'}`}
+                            className={`flex-1 py-3.5 items-center rounded-xl ${filter === 'joined' ? 'bg-brand-500' : 'bg-transparent'}`}
                         >
-                            <Text className={`font-black tracking-widest text-2xs uppercase ${filter === 'joined' ? 'text-white' : 'text-slate-500'}`}>Joined</Text>
+                            <Text className={`font-display text-label uppercase ${filter === 'joined' ? 'text-ink' : 'text-ink-3'}`}>Joined</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => setFilter('created')}
-                            className={`flex-1 py-3.5 items-center rounded-xl ${filter === 'created' ? 'bg-black' : 'bg-transparent'}`}
+                            className={`flex-1 py-3.5 items-center rounded-xl ${filter === 'created' ? 'bg-ink' : 'bg-transparent'}`}
                         >
-                            <Text className={`font-black tracking-widest text-2xs uppercase ${filter === 'created' ? 'text-white' : 'text-slate-500'}`}>Created</Text>
+                            <Text className={`font-display text-label uppercase ${filter === 'created' ? 'text-white' : 'text-ink-3'}`}>Created</Text>
                         </TouchableOpacity>
                     </View>
 
-                    <View className="bg-white rounded-xl px-5 h-12 flex-row items-center border border-slate-100 shadow-sm mb-6">
-                        <Feather name="search" size={16} color="#94a3b8" />
+                    <View className="bg-card px-5 h-12 flex-row items-center border-2 border-ink shadow-hair mb-6 rounded-md">
+                        <Feather name="search" size={16} color="#8B857E" />
                         <TextInput 
                             placeholder="Find a specialized hub..." 
-                            placeholderTextColor="#94a3b8"
-                            className="flex-1 ml-4 font-black uppercase text-2xs text-slate-900"
+                            placeholderTextColor="#8B857E"
+                            className="flex-1 ml-4 font-display uppercase text-label text-ink"
                             value={searchQuery}
                             onChangeText={setSearchQuery}
                         />
@@ -229,9 +227,11 @@ const CommunityListScreen = () => {
                     <FlatList 
                         data={filtered}
                         keyExtractor={(item) => item._id}
-                        renderItem={({ item }) => (
+                        renderItem={({ item, index }) => (
                             <CommunityItem 
                                 item={item} 
+                                stamped={index === 0}
+                                
                                 userId={user?._id} 
                                 handleJoin={handleJoin}
                                 navigation={navigation}
@@ -239,14 +239,14 @@ const CommunityListScreen = () => {
                         )}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ paddingBottom: 150 }}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />}
                         ListEmptyComponent={
-                            <View className="items-center mt-20 px-10">
-                                <View className="w-24 h-24 bg-white rounded-5xl items-center justify-center mb-6 border border-slate-100 shadow-sm">
-                                    <Feather name="compass" size={48} color="#cbd5e1" />
+                            <View className="items-center mt-20 px-gutter">
+                                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                                    <Feather name="compass" size={48} color="#C4BEB6" />
                                 </View>
-                                <Text className="text-slate-500 font-black uppercase text-xs tracking-wide text-center">No Active Signals</Text>
-                                <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center leading-5">
+                                <Text className="font-semibold text-base text-ink text-center">No Active Signals</Text>
+                                <Text className="font-sans text-sm text-ink-4 mt-2 text-center">
                                     Scanning the ecosystem...{"\n"}No communities found in this sector.
                                 </Text>
                             </View>

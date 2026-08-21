@@ -68,18 +68,18 @@ const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: Codin
             {logo ? (
             <Image source={{ uri: logo }} className="w-5 h-5" resizeMode="contain" />
             ) : (
-            <Feather name={icon} size={14} color="#f97316" />
+            <Feather name={icon} size={14} color="#F97316" />
             )}
         </View>
-        <Text className="text-slate-500 font-black uppercase text-2xs tracking-wide">{label}</Text>
+        <Text className="text-ink-3 font-display uppercase text-label">{label}</Text>
       </View>
-      <View className="flex-row items-center bg-slate-50 rounded-2xl px-5 border border-slate-100 shadow-sm">
+      <View className="flex-row items-center bg-paper-2 px-5 border-2 border-ink shadow-hair rounded-md">
         <TextInput
           value={value}
           onChangeText={onChange}
           placeholder={`${label} identifier`}
-          placeholderTextColor="#94A3B8"
-          className="flex-1 text-slate-900 py-4 text-sm font-semibold"
+          placeholderTextColor="#8B857E"
+          className="flex-1 text-ink py-4 text-sm font-semibold"
           autoCapitalize="none"
         />
       </View>
@@ -92,28 +92,28 @@ const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: Codin
         <Pressable className="absolute inset-0" onPress={onClose} />
         <KeyboardAvoidingView 
           behavior="padding"
-          className="bg-white rounded-t-5xl overflow-hidden"
+          className="bg-paper rounded-t-sheet overflow-hidden"
           style={{ height: screenHeight * 0.80 }}
         >
           {/* Handle */}
           <View className="items-center py-4">
-            <View className="w-12 h-1.5 bg-slate-200 rounded-full" />
+            <View className="w-12 h-1.5 bg-ink-4 rounded-full" />
           </View>
 
           {/* Header */}
-          <View className="flex-row items-center justify-between px-8 pb-4 border-b border-slate-50">
+          <View className="flex-row items-center justify-between px-gutter pb-4 border-b border-line">
             <View>
-              <Text className="text-slate-900 font-black uppercase text-xl tracking-tighter">
-                Coding <Text className="text-orange-500">Profiles</Text>
+              <Text className="text-ink font-display uppercase text-h1">
+                Coding <Text className="text-accent-text">Profiles</Text>
               </Text>
-              <Text className="text-slate-500 font-bold text-2xs uppercase tracking-wide mt-0.5">Competitive Protocol</Text>
+              <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Competitive Protocol</Text>
             </View>
-            <Pressable onPress={onClose} className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center border border-slate-100">
-              <Ionicons name="close" size={20} color="#18181b" />
+            <Pressable onPress={onClose} className="w-11 h-11 rounded-xl items-center justify-center" hitSlop={2}>
+              <Ionicons name="close" size={20} color="#12100E" />
             </Pressable>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-8 pt-6">
+          <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-gutter pt-6">
             <ProfileInput 
               label="LeetCode" 
               value={leetcode} 
@@ -148,18 +148,18 @@ const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: Codin
           </ScrollView>
 
           {/* Footer Action */}
-          <View className="p-8 border-t border-slate-50 bg-white shadow-2xl shadow-black">
+          <View className="p-card-pad border-t border-line bg-card shadow-hair">
             <Pressable
               onPress={handleSave}
               disabled={loading}
-              className="bg-slate-900 py-5 rounded-2xl flex-row items-center justify-center shadow-xl shadow-black/20"
+              className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md"
             >
               {loading ? (
-                <ActivityIndicator color="#f97316" />
+                <ActivityIndicator color="#F97316" />
               ) : (
                 <>
                   <Feather name="save" size={16} color="white" className="mr-2" />
-                  <Text className="text-white font-black uppercase text-xs tracking-wide ml-2">Sync Ecosystem</Text>
+                  <Text className="text-white font-display uppercase text-xs ml-2">Sync Ecosystem</Text>
                 </>
               )}
             </Pressable>

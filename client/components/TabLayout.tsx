@@ -2,7 +2,6 @@ import { TouchableOpacity, View, Dimensions, Animated, Pressable, Text, Platform
 import { Image as ExpoImage } from 'expo-image';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import Shorts from "./Shorts";
 import ExploreHub from "./ExploreHub";
@@ -103,25 +102,25 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
 
       {/* Sub Button 2 (e.g., Create Post) */}
       <Animated.View style={[item1Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-slate-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => navigation.navigate('CreatePost')}>
-          <Ionicons name="aperture-outline" size={20} color="#f97316" />
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-ink items-center justify-center border border-white/10 shadow-hair" onPress={() => navigation.navigate('CreatePost')}>
+          <Ionicons name="aperture-outline" size={20} color="#F97316" />
         </TouchableOpacity>
-        <Text className="text-white text-2xs font-bold mt-1 uppercase tracking-tighter shadow-black">Add Post</Text>
+        <Text className="text-white text-label font-display mt-1 uppercase">Add Post</Text>
       </Animated.View>
 
       {/* Sub Button 1 (e.g., Create Video) */}
       <Animated.View style={[item2Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-slate-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => navigation.navigate('CreateShorts')}>
-          <Ionicons name="videocam" size={20} color="#f97316" />
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-ink items-center justify-center border border-white/10 shadow-hair" onPress={() => navigation.navigate('CreateShorts')}>
+          <Ionicons name="videocam" size={20} color="#F97316" />
         </TouchableOpacity>
-        <Text className="text-white text-2xs whitespace-nowrap font-bold mt-1 uppercase tracking-tighter shadow-black">Add Shorts</Text>
+        <Text className="text-white text-label whitespace-nowrap font-display mt-1 uppercase">Add Shorts</Text>
       </Animated.View>
 
       <Animated.View style={[item3Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-slate-800 items-center justify-center border border-white/10 shadow-lg" onPress={() => { toggleMenu(); navigation.navigate('CreateFundingFeed'); }}>
-          <Ionicons name="bulb-outline" size={20} color="#fb923c" />
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-ink items-center justify-center border border-white/10 shadow-hair" onPress={() => { toggleMenu(); navigation.navigate('CreateFundingFeed'); }}>
+          <Ionicons name="bulb-outline" size={20} color="#F97316" />
         </TouchableOpacity>
-        <Text className="text-white text-2xs font-bold mt-1 uppercase tracking-tighter shadow-black">Add Startup</Text>
+        <Text className="text-white text-label font-display mt-1 uppercase">Add Startup</Text>
       </Animated.View>
 
 
@@ -129,24 +128,23 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
       {/* Main Center Button */}
       <View
         style={{
-          shadowColor: '#f97316', shadowOffset: { width: 0, height: 5 },
+          shadowColor: '#F97316', shadowOffset: { width: 0, height: 5 },
           shadowOpacity: 0.4, shadowRadius: 10, elevation: 10
         }}
-        className="w-[72px] h-[72px] rounded-full bg-black items-center justify-center"
+        className="w-[72px] h-[72px] rounded-full bg-ink items-center justify-center"
       >
         <TouchableOpacity
           onPress={toggleMenu}
           activeOpacity={0.9}
           className="w-[60px] h-[60px] rounded-full overflow-hidden"
         >
-          <LinearGradient
-            colors={['#f97316', '#fb923c']}
+          <View
             className="flex-1 items-center justify-center"
-          >
+           style={{ backgroundColor: '#F97316' }}>
             <Animated.View style={{ transform: [{ rotate: rotation }] }}>
-              <Ionicons name="add" size={32} color="#fff" />
+              <Ionicons name="add" size={32} color="#12100E" />
             </Animated.View>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -161,13 +159,13 @@ export default function TabLayout() {
   const bottomOffset = useTabBarOffset();
 
   return (
-    <View className="flex-1 bg-white justify-center">
+    <View className="flex-1 bg-paper justify-center">
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: false,
-          tabBarActiveTintColor: "#f97316",
-          tabBarInactiveTintColor: "#ffffffff",
+          tabBarActiveTintColor: "#F97316",
+          tabBarInactiveTintColor: "rgba(245,242,236,0.55)",
           tabBarItemStyle: {
             // Let each item fill the pill and centre its own icon. Without this
             // the navigator's default item padding fights the bar's height.
@@ -178,16 +176,16 @@ export default function TabLayout() {
             position: "absolute",
             bottom: bottomOffset,
             marginHorizontal: width * 0.05,
-            backgroundColor: "rgba(20, 20, 20, 0.86)",
+            backgroundColor: "rgba(18, 16, 14, 0.94)",
             borderRadius: TAB_BAR_HEIGHT / 2,
             height: TAB_BAR_HEIGHT,
             borderWidth: 1,
             borderColor: "rgba(255, 255, 255, 0.12)",
             elevation: 10,
-            shadowColor: "#000",
+            shadowColor: "#12100E",
             shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.3,
-            shadowRadius: 15,
+            shadowOpacity: 0.28,
+            shadowRadius: 30,
             // The old bar was 60px tall with 10px top + 46px bottom padding,
             // leaving 4px of usable space for 24px icons — which is why they
             // rendered spilling out above the pill.
@@ -222,7 +220,7 @@ export default function TabLayout() {
                   height: 28, 
                   borderRadius: 14, 
                   borderWidth: focused ? 1.5 : 0, 
-                  borderColor: '#ec4899',
+                  borderColor: '#F97316',
                   justifyContent: 'center',
                   alignItems: 'center'
                 }}>

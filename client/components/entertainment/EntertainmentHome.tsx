@@ -64,8 +64,8 @@ const EntertainmentHome = () => {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-black justify-center items-center">
-        <ActivityIndicator size="large" color="#e11d48" />
+      <View className="flex-1 bg-ink justify-center items-center">
+        <ActivityIndicator size="large" color="#DB2777" />
       </View>
     );
   }
@@ -73,9 +73,9 @@ const EntertainmentHome = () => {
   const renderSection = (title: string, data: any[], type: 'trending' | 'popular' | 'upcoming' | 'bollywood') => (
     <View className="mb-6">
       <View className="flex-row justify-between items-center px-4 mb-3">
-        <Text className="text-white text-lg font-bold">{title}</Text>
+        <Text className="text-white text-lg font-display">{title}</Text>
         <TouchableOpacity onPress={() => navigation.navigate('MovieList', { title, type })}>
-          <Text className="text-rose-500 font-medium">See All</Text>
+          <Text className="text-danger font-medium">See All</Text>
         </TouchableOpacity>
       </View>
       <FlatList
@@ -95,17 +95,20 @@ const EntertainmentHome = () => {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-black" edges={['top', 'bottom']}>
+    <SafeAreaView className="flex-1 bg-ink" edges={['top', 'bottom']}>
       <StatusBar barStyle="light-content" />
 
       <ScrollView showsVerticalScrollIndicator={false} stickyHeaderIndices={[0]}>
         {/* Header */}
-        <View className="flex-row justify-between items-center px-4 py-3 bg-black">
+        <View className="flex-row justify-between items-center px-4 py-3 bg-ink">
           <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
+            <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
               <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
-            <Text className="text-white text-2xl font-bold tracking-tighter">Fync <Text className="text-rose-600">Cinema</Text></Text>
+            <Text className="text-white text-2xl font-display">Fync <Text className="text-danger">Cinema</Text></Text>
           </View>
           <View className="flex-row items-center gap-4">
             <TouchableOpacity onPress={() => navigation.navigate('MovieSearch')}>
@@ -131,28 +134,35 @@ const EntertainmentHome = () => {
               className="absolute bottom-0 w-full h-1/2 justify-end px-6 pb-6"
             >
               <View className="items-center mb-4">
-                <Text className="text-white text-3xl font-bold text-center mb-2" numberOfLines={2}>
+                <Text className="text-white text-3xl font-display text-center mb-2" numberOfLines={2}>
                   {featuredMovie.title}
                 </Text>
                 <View className="flex-row items-center gap-2">
-                  <View className="bg-rose-600 px-2 py-0.5 rounded">
-                    <Text className="text-white text-2xs font-bold">TRENDING</Text>
+                  <View
+                    className="bg-danger px-2.5 py-1 border-2 border-ink"
+                    style={{
+                      borderRadius: 4, transform: [{ rotate: '-1.6deg' }],
+                      shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0,
+                      shadowOffset: { width: 2, height: 2 }, elevation: 0,
+                    }}
+                  >
+                    <Text className="font-display text-white uppercase" style={{ fontSize: 10, letterSpacing: 1 }}>Trending</Text>
                   </View>
                   <View className="flex-row items-center">
-                    <Ionicons name="star" size={14} color="#fbbf24" />
-                    <Text className="text-white text-xs ml-1 font-bold">{featuredMovie.vote_average.toFixed(1)}</Text>
+                    <Ionicons name="star" size={14} color="#B45309" />
+                    <Text className="text-white text-xs ml-1 font-semibold">{featuredMovie.vote_average.toFixed(1)}</Text>
                   </View>
-                  <Text className="text-slate-500 text-xs">Movie</Text>
+                  <Text className="font-sans text-sm text-night-3">Movie</Text>
                 </View>
               </View>
 
               <View className="flex-row gap-3">
                 <TouchableOpacity
                   onPress={() => navigation.navigate('TrailerReels', { movies: trending, initialIndex: 0 })}
-                  className="flex-1 bg-white flex-row items-center justify-center py-3 rounded-lg"
+                  className="flex-1 bg-paper flex-row items-center justify-center py-3 rounded-lg"
                 >
                   <Ionicons name="play" size={20} color="black" />
-                  <Text className="text-black font-bold ml-2">Watch Trailers</Text>
+                  <Text className="text-ink font-semibold ml-2">Watch Trailers</Text>
                 </TouchableOpacity>
               </View>
             </LinearGradient>
@@ -170,7 +180,7 @@ const EntertainmentHome = () => {
             <TouchableOpacity
               key={cat}
               onPress={() => navigation.navigate('MovieList', { title: cat, type: 'trending' })}
-              className="bg-slate-800 px-6 py-2.5 rounded-full border border-slate-700"
+              className="bg-ink px-6 py-2.5 rounded-full border border-ink"
             >
               <Text className="text-white font-medium text-sm">{cat}</Text>
             </TouchableOpacity>

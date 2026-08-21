@@ -16,7 +16,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { NotificationSkeleton } from './Skeleton';
 
 // --- TYPES ---
@@ -153,97 +152,94 @@ const Notification = () => {
     let message = '';
     let iconName: any = 'notifications';
     let iconColor = '#fff';
-    let iconBg = '#333';
+    let iconBg = '#EDE8E0';
 
     switch (item.type) {
       case 'follow':
         message = 'started following you.';
         iconName = 'person-add';
-        iconColor = '#60a5fa'; // blue-400
+        iconColor = '#2563EB'; // blue-400
         iconBg = 'rgba(96, 165, 250, 0.2)';
         break;
       case 'tag':
         message = 'tagged you in a post.';
         iconName = 'at';
-        iconColor = '#a855f7'; // purple-500
+        iconColor = '#7C3AED'; // purple-500
         iconBg = 'rgba(168, 85, 247, 0.2)';
         break;
       case 'like':
         message = 'liked your post.';
         iconName = 'heart';
-        iconColor = '#f43f5e'; // rose-500
+        iconColor = '#DB2777'; // rose-500
         iconBg = 'rgba(244, 63, 94, 0.2)';
         break;
       case 'comment':
         message = `commented: "${item.commentText || 'Nice!'}"`;
         iconName = 'chatbubble';
-        iconColor = '#34d399'; // emerald-400
+        iconColor = '#047857'; // emerald-400
         iconBg = 'rgba(52, 211, 153, 0.2)';
         break;
       case 'story_comment':
         message = `commented: "${item.commentText || 'Nice!'} on your shorts"`;
         iconName = 'chatbubble';
-        iconColor = '#34d399'; // emerald-400
+        iconColor = '#047857'; // emerald-400
         iconBg = 'rgba(52, 211, 153, 0.2)';
         break;
       case 'story_like':
         message = 'liked your shorts.';
         iconName = 'heart-circle';
-        iconColor = '#fbbf24'; // amber-400
+        iconColor = '#B45309'; // amber-400
         iconBg = 'rgba(251, 191, 36, 0.2)';
         break;
       case 'split_request':
         message = item.commentText || 'requested a split payment.';
         iconName = 'wallet';
-        iconColor = '#facc15'; // yellow-400
+        iconColor = '#F5B700'; // yellow-400
         iconBg = 'rgba(250, 204, 21, 0.2)';
         break;
       case 'split_paid':
         message = item.commentText || 'paid their debt.';
         iconName = 'cash';
-        iconColor = '#34d399'; // emerald-400
+        iconColor = '#047857'; // emerald-400
         iconBg = 'rgba(52, 211, 153, 0.2)';
         break;
       case 'broadcast':
         message = item.message || 'sent an announcement.';
         iconName = 'megaphone';
-        iconColor = '#f97316';
+        iconColor = '#F97316';
         iconBg = 'rgba(249, 115, 22, 0.15)';
         break;
       case 'hackathon_announcement':
         message = item.message || 'posted a hackathon announcement.';
         iconName = 'megaphone';
-        iconColor = '#f97316';
+        iconColor = '#F97316';
         iconBg = 'rgba(249, 115, 22, 0.15)';
         break;
       case 'reply':
       case 'college_reply':
         message = item.commentText ? `replied: "${item.commentText}"` : 'replied to you.';
         iconName = 'return-down-forward';
-        iconColor = '#38bdf8';
+        iconColor = '#0891B2';
         iconBg = 'rgba(56, 189, 248, 0.2)';
         break;
       case 'opportunity':
         message = item.message || 'sent you an opportunity update.';
         iconName = 'briefcase';
-        iconColor = '#ec4899'; // pink-500
+        iconColor = '#F97316';
         iconBg = 'rgba(236, 72, 153, 0.15)';
         break;
       default:
         // Fallback: always show backend message if available
         message = item.message || item.commentText || 'sent you a notification.';
         iconName = 'notifications';
-        iconColor = '#a855f7';
+        iconColor = '#7C3AED';
         iconBg = 'rgba(168, 85, 247, 0.15)';
         break;
     }
 
     return (
       <Pressable
-        className={`flex-row items-center p-3 mb-2 rounded-xl border ${!item.isRead
-          ? 'bg-white border-orange-100 shadow-sm'
-          : 'bg-white/80 border-slate-50'
-          }`}
+        className={`flex-row items-center p-3 mb-2 rounded-xl border ${!item.isRead ? 'bg-card border-brand-100 shadow-hair' : 'bg-card/80 border-line' }`}
         onPress={() => handlePress(item)}
       >
         {/* Avatar Section */}
@@ -252,47 +248,47 @@ const Notification = () => {
             source={{
               uri: item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}`
             }}
-            className="w-10 h-10 rounded-full border border-slate-100"
+            className="w-10 h-10 rounded-full border border-line"
           />
           {!item.isRead && (
-            <View className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-white" />
+            <View className="absolute -top-1 -right-1 w-3 h-3 bg-brand-500 rounded-full border-2 border-card" />
           )}
         </View>
 
         {/* Text Section */}
         <View className="flex-1">
-          <Text className="text-slate-600 text-xs leading-5">
+          <Text className="font-sans text-sm text-ink-2">
             {item.type === 'opportunity' || item.type === 'hackathon_announcement' || item.type === 'broadcast' ? (
               // Opportunity notifications: show full message without username prefix
-              <Text className="text-slate-800 font-bold text-xs uppercase ">{message}</Text>
+              <Text className="font-semibold text-base text-ink">{message}</Text>
             ) : (
               <>
-                <Text className="font-black text-slate-900 text-xs uppercase  tracking-tighter">
+                <Text className="font-semibold text-base text-ink">
                   {item.sender?.username || item.sender?.name || 'Fync'}
                 </Text>{' '}{message}
               </>
             )}
           </Text>
-          <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">
+          <Text className="font-display text-label text-ink-3 uppercase">
             {getTimeAgo(item.createdAt)}
           </Text>
         </View>
 
         {/* Right Side: Post Image / Follow Button / Opportunity Icon */}
         {item.type === 'broadcast' && item.imageUrl ? (
-          <Image source={{ uri: item.imageUrl }} className="w-12 h-12 rounded-xl border border-slate-100 ml-2" />
+          <Image source={{ uri: item.imageUrl }} className="w-12 h-12 rounded-xl border border-line ml-2" />
         ) : item.type === 'opportunity' || item.type === 'hackathon_announcement' || item.type === 'broadcast' ? (
           <View style={{ backgroundColor: 'rgba(249,115,22,0.12)', borderRadius: 12, padding: 8 }}>
-            <Ionicons name={item.type === 'broadcast' ? 'megaphone' : 'briefcase'} size={18} color="#f97316" />
+            <Ionicons name={item.type === 'broadcast' ? 'megaphone' : 'briefcase'} size={18} color="#F97316" />
           </View>
         ) : item.type !== 'follow' && item.post?.image && item.post.image.length > 0 ? (
           <Image
             source={{ uri: item.post.image[0] }}
-            className="w-12 h-12 rounded-xl border border-slate-100 ml-2"
+            className="w-12 h-12 rounded-xl border border-line ml-2"
           />
         ) : item.type === 'follow' ? (
-          <View className="bg-slate-900 px-4 py-2 rounded-xl ml-2 shadow-sm">
-            <Text className="text-white text-2xs font-black uppercase tracking-wide">Profile</Text>
+          <View className="bg-ink ml-2 px-2.5 py-1 rounded-full">
+            <Text className="text-white text-label font-display uppercase">Profile</Text>
           </View>
         ) : null}
       </Pressable>
@@ -300,28 +296,22 @@ const Notification = () => {
   };
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
       {/* HEADER DECORATION */}
-      <View className="absolute top-0 w-full h-80 opacity-20">
-        <LinearGradient
-          colors={['#f97316', 'transparent']}
-          className="w-full h-full"
-        />
-      </View>
 
       <SafeAreaView className="flex-1" edges={['top']}>
         {/* Arena Header */}
-        <View className="px-8 pt-2 bg-transparent">
+        <View className="px-gutter pt-4 bg-transparent">
           <View className="flex-row items-center justify-between mb-5">
             <View className="flex-1">
               <View className="flex-row items-center">
-                <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase leading-tight">
-                  Updates <Text className="text-orange-500">Center</Text>
+                <Text className="font-display text-ink uppercase" style={{ fontSize: 38, lineHeight: 39, letterSpacing: -1.4 }}>
+                  Updates <Text className="text-accent-text">Center</Text>
                 </Text>
               </View>
-              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">System & Social Logs</Text>
+              <Text className="font-display text-label text-ink-3 uppercase">System & Social Logs</Text>
             </View>
           </View>
         </View>
@@ -343,30 +333,33 @@ const Notification = () => {
             windowSize={5}
             removeClippedSubviews={Platform.OS === 'android'}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />
             }
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.5}
             ListHeaderComponent={() => (
-              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-3">Recent transmissions</Text>
+              <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
+                <Text className="text-ink-3 text-label font-display uppercase">Recent transmissions</Text>
+                <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+              </View>
             )}
             ListFooterComponent={() => (
               loadingMore ? (
                 <View className="py-6 items-center">
-                  <ActivityIndicator size="small" color="#f97316" />
+                  <ActivityIndicator size="small" color="#F97316" />
                 </View>
               ) : <View className="h-20" />
             )}
             ListEmptyComponent={
-              <View className="items-center justify-center mt-20 px-10">
-                <View className="w-20 h-20 bg-white rounded-4xl items-center justify-center mb-6 border border-slate-100 shadow-sm">
-                  <Ionicons name="notifications-off-outline" size={32} color="#CBD5E1" />
+              <View className="items-center justify-center mt-20 px-gutter">
+                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                  <Ionicons name="notifications-off-outline" size={32} color="#C4BEB6" />
                 </View>
-                <Text className="text-slate-500 font-black  uppercase text-xs tracking-wide text-center">Sync Complete</Text>
-                <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center">No active signals found in the registry.</Text>
+                <Text className="font-semibold text-base text-ink text-center">Sync Complete</Text>
+                <Text className="font-sans text-sm text-ink-4 mt-2 text-center">No active signals found in the registry.</Text>
               </View>
             }
-            contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 10 }}
+            contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10 }}
             showsVerticalScrollIndicator={false}
           />
         )}

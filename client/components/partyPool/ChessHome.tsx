@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import {View, Text, TouchableOpacity, ActivityIndicator, Dimensions, Image} from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../context/auth.context';
 import socket from '../../utils/socket';
 import ChessGame from './ChessGame';
@@ -97,36 +96,35 @@ const ChessHome = () => {
 
     return (
         <View className="flex-1 w-full mt-4">
-            <LinearGradient 
-                colors={['#ffffff', '#f8fafc']} 
-                className="rounded-4xl p-8 shadow-2xl border border-slate-100 overflow-hidden"
-            >
+            <View 
+                className="rounded-sheet p-card-pad shadow-hair border border-line overflow-hidden"
+             style={{ backgroundColor: '#ffffff' }}>
                 {/* Decorative background elements */}
-                <View className="absolute top-[-50px] right-[-50px] w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl" />
-                <View className="absolute bottom-[-50px] left-[-50px] w-40 h-40 bg-orange-500/10 rounded-full blur-3xl" />
+                <View className="absolute top-[-50px] right-[-50px] w-40 h-40 bg-recruiter/10 rounded-full blur-3xl" />
+                <View className="absolute bottom-[-50px] left-[-50px] w-40 h-40 bg-brand-500/10 rounded-full blur-3xl" />
 
                 <View className="items-center mb-10 mt-4">
-                    <View className="w-24 h-24 bg-slate-900 rounded-4xl justify-center items-center mb-6 shadow-2xl shadow-black border-2 border-indigo-500/20">
-                        <FontAwesome5 name="chess-knight" size={44} color="#818cf8" />
+                    <View className="w-24 h-24 bg-ink rounded-sheet justify-center items-center mb-6 shadow-hair border-2 border-recruiter/20">
+                        <FontAwesome5 name="chess-knight" size={44} color="#4F46E5" />
                     </View>
-                    <Text className="text-2xl font-black text-slate-900 tracking-tighter uppercase text-center leading-8">Fync Chess Arena</Text>
-                    <View className="bg-indigo-50 px-3 py-1 rounded-full mt-3 border border-indigo-100">
-                        <Text className="text-2xs font-black text-indigo-500 tracking-wide uppercase">Global Multiplayer</Text>
+                    <Text className="text-2xl font-display text-ink uppercase text-center leading-8">Fync Chess Arena</Text>
+                    <View className="bg-recruiter/10 mt-3 border border-recruiter/15 px-2.5 py-1 rounded-full">
+                        <Text className="text-label font-display text-recruiter uppercase">Global Multiplayer</Text>
                     </View>
                 </View>
 
                 {status === 'searching' ? (
-                    <View className="items-center py-10 bg-slate-50/50 rounded-3xl border border-slate-100">
-                        <ActivityIndicator size="large" color="#4f46e5" />
-                        <Text className="mt-6 font-black text-slate-600 tracking-wide text-xs">SEARCHING FOR OPPONENT...</Text>
+                    <View className="items-center py-10 bg-paper-2/50 rounded-card border border-line">
+                        <ActivityIndicator size="large" color="#4F46E5" />
+                        <Text className="mt-6 font-display text-ink-2 text-xs">SEARCHING FOR OPPONENT...</Text>
                         <TouchableOpacity 
                             onPress={() => {
                                 socket?.emit('leave_chess', { userId: user?._id });
                                 setStatus('lobby');
                             }}
-                            className="mt-8 px-8 py-4 bg-red-50 rounded-2xl border border-red-100"
+                            className="mt-8 px-gutter py-4 bg-danger/10 rounded-card border border-danger/15"
                         >
-                            <Text className="text-red-500 font-black text-xs tracking-wide">CANCEL SEARCH</Text>
+                            <Text className="text-danger font-display text-xs">CANCEL SEARCH</Text>
                         </TouchableOpacity>
                     </View>
                 ) : (
@@ -134,50 +132,49 @@ const ChessHome = () => {
                         <TouchableOpacity 
                             onPress={findMatch}
                             activeOpacity={0.9}
-                            className="h-20 rounded-2xl overflow-hidden shadow-xl shadow-indigo-500/20 border border-indigo-500/20"
+                            className="h-20 rounded-card overflow-hidden shadow-hair border border-recruiter/20"
                         >
-                            <LinearGradient 
-                                colors={['#312e81', '#1e1b4b']} 
+                            <View 
                                 className="flex-1 flex-row items-center justify-between px-6"
-                            >
+                             style={{ backgroundColor: '#171320' }}>
                                 <View className="flex-row items-center">
-                                    <View className="w-12 h-12 bg-white/10 rounded-full items-center justify-center border border-white/10">
-                                        <Ionicons name="globe" size={24} color="#818cf8" />
+                                    <View className="w-12 h-12 bg-card/10 rounded-full items-center justify-center border border-white/10">
+                                        <Ionicons name="globe" size={24} color="#4F46E5" />
                                     </View>
                                     <View className="ml-4">
-                                        <Text className="text-white font-black tracking-widest text-sm uppercase">Play Online</Text>
-                                        <Text className="text-indigo-200 font-bold tracking-wide text-2xs mt-0.5 uppercase">1v1 Matchmaking</Text>
+                                        <Text className="text-white font-display text-sm uppercase">Play Online</Text>
+                                        <Text className="text-recruiter font-semibold text-label mt-0.5 uppercase">1v1 Matchmaking</Text>
                                     </View>
                                 </View>
-                                <View className="w-8 h-8 bg-white/10 rounded-full items-center justify-center">
-                                    <Ionicons name="chevron-forward" size={16} color="#818cf8" />
+                                <View className="w-8 h-8 bg-card/10 rounded-full items-center justify-center">
+                                    <Ionicons name="chevron-forward" size={16} color="#4F46E5" />
                                 </View>
-                            </LinearGradient>
+                            </View>
                         </TouchableOpacity>
 
                         <TouchableOpacity 
                             onPress={playBot}
                             activeOpacity={0.9}
-                            className="h-20 rounded-2xl overflow-hidden border border-slate-200"
+                            className="h-20 rounded-card overflow-hidden border border-line"
                         >
-                            <View className="flex-1 bg-white flex-row items-center justify-between px-6">
+                            <View className="flex-1 bg-paper flex-row items-center justify-between px-6">
                                 <View className="flex-row items-center">
-                                    <View className="w-12 h-12 bg-slate-50 rounded-full items-center justify-center border border-slate-100">
-                                        <FontAwesome5 name="robot" size={20} color="#64748B" />
+                                    <View className="w-12 h-12 bg-paper-2 rounded-full items-center justify-center border border-line">
+                                        <FontAwesome5 name="robot" size={20} color="#8B857E" />
                                     </View>
                                     <View className="ml-4">
-                                        <Text className="text-slate-900 font-black tracking-widest text-sm uppercase">Play VS AI</Text>
-                                        <Text className="text-slate-500 font-bold tracking-wide text-2xs mt-0.5 uppercase">Win 5 Coins</Text>
+                                        <Text className="text-ink font-display text-sm uppercase">Play VS AI</Text>
+                                        <Text className="text-ink-3 font-semibold text-label mt-0.5 uppercase">Win 5 Coins</Text>
                                     </View>
                                 </View>
-                                <View className="w-8 h-8 bg-slate-50 rounded-full items-center justify-center">
-                                    <Ionicons name="chevron-forward" size={16} color="#64748B" />
+                                <View className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center">
+                                    <Ionicons name="chevron-forward" size={16} color="#8B857E" />
                                 </View>
                             </View>
                         </TouchableOpacity>
                     </View>
                 )}
-            </LinearGradient>
+            </View>
         </View>
     );
 };

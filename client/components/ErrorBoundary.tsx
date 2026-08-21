@@ -34,25 +34,28 @@ class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
-          <StatusBar barStyle="light-content" />
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F2EC' }}>
+          <StatusBar barStyle="dark-content" />
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
             <View style={{ 
               width: 80, 
               height: 80, 
-              backgroundColor: 'rgba(239, 68, 68, 0.1)', 
-              borderRadius: 40, 
+              backgroundColor: '#EDE8E0', 
+              borderRadius: 16, 
+              borderWidth: 2,
+              borderColor: '#12100E', 
               alignItems: 'center', 
               justifyContent: 'center',
               marginBottom: 24
             }}>
-              <AlertTriangle size={40} color="#ef4444" />
+              <AlertTriangle size={40} color="#DC2626" />
             </View>
             
             <Text style={{ 
-              color: '#fff', 
-              fontSize: 24, 
-              fontWeight: 'bold', 
+              color: '#12100E', 
+              fontSize: 26, 
+              fontFamily: 'SpaceGrotesk_700Bold', 
+              letterSpacing: -0.6, 
               textAlign: 'center',
               marginBottom: 12
             }}>
@@ -60,8 +63,9 @@ class ErrorBoundary extends Component<Props, State> {
             </Text>
             
             <Text style={{ 
-              color: '#94a3b8', 
-              fontSize: 16, 
+              color: '#57534E', 
+              fontSize: 15, 
+              fontFamily: 'Inter_400Regular', 
               textAlign: 'center',
               lineHeight: 24,
               marginBottom: 32
@@ -75,26 +79,24 @@ class ErrorBoundary extends Component<Props, State> {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                backgroundColor: '#ec4899',
+                backgroundColor: '#F97316',
                 paddingVertical: 14,
                 paddingHorizontal: 28,
-                borderRadius: 999,
-                shadowColor: "#ec4899",
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 12,
-                elevation: 8
+                borderRadius: 12,
+                borderWidth: 2,
+                borderColor: '#12100E',
+                minHeight: 48
               }}
             >
-              <RefreshCcw size={20} color="#fff" style={{ marginRight: 10 }} />
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Reload App</Text>
+              <RefreshCcw size={18} color="#12100E" style={{ marginRight: 8 }} />
+              <Text style={{ color: '#12100E', fontFamily: 'SpaceGrotesk_700Bold', fontSize: 14, letterSpacing: 0.3, textTransform: 'uppercase' }}>Reload App</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
               onPress={() => this.setState({ hasError: false, error: null })}
               style={{ marginTop: 20 }}
             >
-              <Text style={{ color: '#64748b', fontSize: 14 }}>Try to ignore</Text>
+              <Text style={{ color: '#57534E', fontSize: 13, fontFamily: 'Inter_600SemiBold' }}>Try to ignore</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>

@@ -96,7 +96,7 @@ const AffiliateWebView = () => {
                 />
                 {loading && (
                     <View style={styles.loadingOverlay}>
-                        <ActivityIndicator size="large" color="#00FF9D" />
+                        <ActivityIndicator size="large" color="#F97316" />
                         <Text style={styles.loadingText}>Loading Secure Checkout...</Text>
                     </View>
                 )}
@@ -105,10 +105,10 @@ const AffiliateWebView = () => {
             <View style={styles.footer}>
                 <View style={styles.navControls}>
                     <TouchableOpacity onPress={handleBack} disabled={!canGoBack} style={styles.footerIcon}>
-                        <Ionicons name="chevron-back" size={24} color={canGoBack ? "#fff" : "#333"} />
+                        <Ionicons name="chevron-back" size={24} color={canGoBack ? "#fff" : "#8B857E"} />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={handleForward} disabled={!canGoForward} style={styles.footerIcon}>
-                        <Ionicons name="chevron-forward" size={24} color={canGoForward ? "#fff" : "#333"} />
+                        <Ionicons name="chevron-forward" size={24} color={canGoForward ? "#fff" : "#8B857E"} />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={handleReload} style={styles.footerIcon}>
                         <Ionicons name="refresh" size={24} color="#fff" />
@@ -126,7 +126,7 @@ const AffiliateWebView = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000',
+        backgroundColor: '#F5F2EC',
     },
     header: {
         height: 60,
@@ -134,8 +134,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 15,
         borderBottomWidth: 1,
-        borderBottomColor: '#222',
-        backgroundColor: '#111',
+        borderBottomColor: '#E3DDD3',
+        backgroundColor: '#FFFFFF',
     },
     headerIcon: {
         padding: 5,
@@ -146,12 +146,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     headerTitle: {
-        color: '#fff',
+        color: '#12100E',
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
     },
     headerSubtitle: {
-        color: '#666',
+        color: '#8B857E',
         fontSize: 10,
     },
     webViewContainer: {
@@ -160,16 +160,16 @@ const styles = StyleSheet.create({
     },
     webview: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#12100E',
     },
     loadingOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: '#000',
+        backgroundColor: '#F5F2EC',
         justifyContent: 'center',
         alignItems: 'center',
     },
     loadingText: {
-        color: '#999',
+        color: '#8B857E',
         marginTop: 15,
         fontSize: 14,
     },
@@ -179,8 +179,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 15,
         borderTopWidth: 1,
-        borderTopColor: '#222',
-        backgroundColor: '#111',
+        borderTopColor: '#E3DDD3',
+        backgroundColor: '#FFFFFF',
         paddingBottom: Platform.OS === 'ios' ? 20 : 10,
     },
     navControls: {
@@ -192,14 +192,14 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
     },
     doneButton: {
-        backgroundColor: '#00FF9D',
+        backgroundColor: '#EA580C',
         paddingHorizontal: 20,
         paddingVertical: 10,
         borderRadius: 10,
     },
     doneButtonText: {
-        color: '#000',
-        fontWeight: 'bold',
+        color: '#12100E',
+        fontFamily: 'Inter_700Bold',
         fontSize: 14,
     }
 });

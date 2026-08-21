@@ -1,0 +1,57 @@
+<!doctype html>
+<meta charset="utf-8"><title>Fync — BunkOMeter</title>
+<link rel="stylesheet" href="../css/tokens.css"><link rel="stylesheet" href="../css/ui.css">
+<body class="screen">
+<div class="statusbar"><span>9:41</span><span class="sb-right"><span class="sb-bar" style="height:7px"></span><span class="sb-bar" style="height:9px"></span><span class="sb-bar" style="height:11px"></span><span class="sb-batt"><i></i></span></span></div>
+
+<div class="appbar">
+  <a class="iconbtn back"><i class="ic ic-left"></i></a>
+  <div class="grow"><div class="h2">Meter</div><div class="meta trunc">Attendance Prediction Engine</div></div>
+  
+</div>
+<div class="scroll pad">
+  <div class="card pad-in mt2">
+    <div class="label">Attended</div>
+    <div class="search mt2" style="border-width:1.5px"><span class="num" style="color:var(--ink);font-size:17px">34</span></div>
+    <div class="label mt4">Total Held</div>
+    <div class="search mt2" style="border-width:1.5px"><span class="num" style="color:var(--ink);font-size:17px">44</span></div>
+    <div class="label mt4">Target Percentage (%)</div>
+    <div class="search mt2" style="border-width:1.5px">
+      <span class="num" style="color:var(--ink);font-size:17px">75</span>
+      <span style="flex:1"></span><span class="meta">75 (Threshold)</span>
+    </div>
+    <a class="btn primary sm block mt5">Execute Analysis</a>
+  </div>
+
+  <div class="rule"><span class="label">Attendance Score</span><span class="line"></span></div>
+  <div class="card stamp pad-in">
+    <div class="between gap3">
+      <div style="padding-right:4px">
+        <div class="label">Current</div>
+        <div class="display mt2" style="font-size:44px">77.3%</div>
+        <div class="sm mt2">Above the 75% threshold.</div>
+      </div>
+      <div class="stampnum"><b>4</b><span>safe</span></div>
+    </div>
+    <div style="position:relative;padding:5px 0" class="mt4">
+      <div style="height:10px;border-radius:5px;background:var(--paper-2);overflow:hidden"><i style="display:block;height:100%;width:77.3%;background:var(--success)"></i></div>
+      <i style="position:absolute;left:75%;top:0;bottom:0;width:2px;background:var(--ink)"></i>
+    </div>
+    <div class="between mt2"><span class="meta">0%</span><span class="label" style="color:var(--ink)">75% target</span><span class="meta">100%</span></div>
+  </div>
+
+  <div class="rule"><span class="label">Technical Advisory</span><span class="line"></span></div>
+  <div class="card pad-in row flush gap3">
+    <i class="ic l ic-check" style="color:var(--success)"></i>
+    <div class="grow"><b style="font-size:14px">You can skip 4 more</b><div class="sm mt2">Missing a 5th drops you to 74.5% and below target.</div></div>
+  </div>
+  <div class="card pad-in row flush gap3 mt3">
+    <i class="ic l ic-warn" style="color:var(--warning)"></i>
+    <div class="grow"><b style="font-size:14px">To reach 80%</b><div class="sm mt2">Attend the next 10 classes without a miss.</div></div>
+  </div>
+
+  <div class="clear"></div>
+</div>
+
+
+<nav class="tabbar"><a class="t"><i class="ic ic-home"></i><em>Home</em></a><a class="t"><i class="ic ic-play"></i><em>Shorts</em></a><div class="fab"><i class="ic l ic-plus"></i></div><a class="t on"><i class="ic ic-compass"></i><em>Explore</em></a><a class="t"><i class="ic ic-user"></i><em>You</em></a></nav>

@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../context/auth.context';
 import { webRTCManager } from '../../services/WebRTCService';
 import { callSignaling, type CallUser, type CallerInfo } from '../../services/CallSignalingService';
@@ -282,32 +281,28 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
   const renderUser = ({ item }: { item: CallUser }) => {
     const busy = item.status === 'busy';
     return (
-      <View className="flex-row items-center p-5 mb-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+      <View className="flex-row items-center p-5 mb-4 bg-card rounded-card border border-line shadow-hair">
         <View className="relative">
           <Avatar user={item as any} size={44} />
           <View
-            className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white ${
-              busy ? 'bg-orange-500' : 'bg-green-500'
-            }`}
+            className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white ${ busy ? 'bg-brand-500' : 'bg-success' }`}
           />
         </View>
 
         <View className="ml-4 flex-1 pr-3">
-          <Text className="font-bold text-base text-slate-900" numberOfLines={1}>
+          <Text className="font-semibold text-base text-ink" numberOfLines={1}>
             {item.name}
           </Text>
           {!!item.college && (
             <Text
-              className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-0.5"
+              className="text-ink-3 text-label font-semibold uppercase mt-0.5"
               numberOfLines={1}
             >
               {item.college}
             </Text>
           )}
           <Text
-            className={`text-2xs font-black uppercase tracking-wide mt-1 ${
-              busy ? 'text-orange-500' : 'text-green-500'
-            }`}
+            className={`text-label font-display uppercase mt-1 ${ busy ? 'text-accent-text' : 'text-success' }`}
           >
             {busy ? 'In a call' : 'Available'}
           </Text>
@@ -316,16 +311,14 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
         <Pressable
           onPress={() => startCall(item)}
           disabled={busy}
-          className={`w-12 h-12 rounded-2xl items-center justify-center ${
-            busy ? 'bg-slate-100 border border-slate-200' : 'bg-orange-500'
-          } active:opacity-70`}
+          className={`w-12 h-12 rounded-card items-center justify-center ${ busy ? 'bg-paper-2 border border-line' : 'bg-brand-500' } active:opacity-70`}
           accessibilityRole="button"
           accessibilityLabel={`${busy ? 'Busy' : 'Call'} ${item.name}`}
         >
           <Ionicons
             name={isVideo ? 'videocam' : 'call'}
             size={20}
-            color={busy ? '#CBD5E1' : '#FFFFFF'}
+            color={busy ? '#C4BEB6' : '#FFFFFF'}
           />
         </Pressable>
       </View>
@@ -335,67 +328,65 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
   const caller = incomingCall?.callerInfo;
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
-      <View className="absolute top-0 w-full h-80 opacity-20">
-        <LinearGradient colors={['#f97316', 'transparent']} className="w-full h-full" />
-      </View>
 
       <SafeAreaView className="flex-1" edges={['top']}>
-        <View className="px-8 pt-2">
+        <View className="px-gutter pt-2">
           <View className="flex-row items-start justify-between mb-5">
             <View className="flex-1">
-              <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase leading-tight">
-                {label} <Text className="text-orange-500">Rooms</Text>
+              <Text className="text-ink text-3xl font-display uppercase leading-tight">
+                {label} <Text className="text-accent-text">Rooms</Text>
               </Text>
-              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">
+              <Text className="text-ink-3 text-label font-display uppercase">
                 {socketReady ? `${onlineUsers.length} people online` : 'Connecting…'}
               </Text>
             </View>
             <Pressable
               onPress={() => navigation.goBack()}
-              className="w-10 h-10 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm active:opacity-70"
+              className="w-11 h-11 items-center justify-center rounded-xl active:opacity-70"
               accessibilityRole="button"
               accessibilityLabel="Go back"
-            >
-              <Ionicons name="close" size={18} color="#0f172a" />
+            
+            style={{ marginLeft: -11 }}>
+              <Ionicons name="close" size={18} color="#12100E" />
             </Pressable>
           </View>
         </View>
 
         {loading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#f97316" />
+            <ActivityIndicator size="large" color="#F97316" />
           </View>
         ) : (
           <FlatList
             data={onlineUsers}
             keyExtractor={(item) => item._id}
             renderItem={renderUser}
-            contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: bottomInset + 24 }}
+            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: bottomInset + 24 }}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={() => loadUsers(true)} tintColor="#f97316" />
+              <RefreshControl refreshing={refreshing} onRefresh={() => loadUsers(true)} tintColor="#F97316" />
             }
             ListHeaderComponent={
-              <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-4 ml-2">
+              <Text className="text-ink-3 text-label font-display uppercase mb-4 ml-2">
                 Online now
               </Text>
             }
             ListEmptyComponent={
-              <View className="items-center justify-center mt-20 px-10">
-                <View className="w-20 h-20 bg-white rounded-3xl items-center justify-center mb-6 border border-slate-100 shadow-sm">
+              <View className="items-center justify-center mt-20 px-gutter">
+                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
                   <Ionicons
                     name={isVideo ? 'videocam-off-outline' : 'call-outline'}
                     size={32}
-                    color="#CBD5E1"
+                    color="#C4BEB6"
                   />
                 </View>
-                <Text className="text-slate-500 font-black uppercase text-xs tracking-wide text-center">
+                <Text className="font-semibold text-base text-ink text-center">
                   Nobody online
                 </Text>
-                <Text className="text-slate-300 text-2xs font-bold uppercase mt-2 text-center">
+                <Text className="font-sans text-sm text-ink-4 mt-2 text-center">
                   Pull down to refresh.
                 </Text>
               </View>
@@ -407,22 +398,22 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
       {/* Dialling overlay — the caller needs to see who is ringing and be able
           to cancel before the callee picks up. */}
       <Modal visible={isDialling && !!activeCallUser} transparent animationType="fade">
-        <View className="flex-1 items-center justify-center px-10" style={{ backgroundColor: 'rgba(15,23,42,0.85)' }}>
+        <View className="flex-1 items-center justify-center px-gutter" style={{ backgroundColor: 'rgba(18, 16, 14,0.85)' }}>
           <Avatar user={activeCallUser as any} size={96} />
-          <Text className="text-white text-xl font-black uppercase tracking-tight mt-6" numberOfLines={1}>
+          <Text className="text-white text-xl font-display uppercase mt-6" numberOfLines={1}>
             {activeCallUser?.name}
           </Text>
           {!!activeCallUser?.college && (
-            <Text className="text-white/60 text-2xs font-bold uppercase tracking-wide mt-1">
+            <Text className="text-white/60 text-label font-semibold uppercase mt-1">
               {activeCallUser.college}
             </Text>
           )}
-          <Text className="text-orange-400 text-2xs font-black uppercase tracking-[3px] mt-4">
+          <Text className="font-display text-label text-brand-400 uppercase mt-4">
             Ringing…
           </Text>
           <Pressable
             onPress={() => endCall(true)}
-            className="w-16 h-16 rounded-full bg-red-500 items-center justify-center mt-12 active:opacity-70"
+            className="w-16 h-16 rounded-full bg-danger items-center justify-center mt-12 active:opacity-70"
             accessibilityRole="button"
             accessibilityLabel="Cancel call"
           >
@@ -433,19 +424,19 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
 
       {/* Incoming call — accept or decline. */}
       <Modal visible={!!incomingCall} transparent animationType="slide" onRequestClose={rejectCall}>
-        <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(15,23,42,0.6)' }}>
-          <View className="bg-white rounded-t-4xl px-8 pt-8" style={{ paddingBottom: bottomInset + 24 }}>
+        <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(18, 16, 14,0.6)' }}>
+          <View className="bg-paper rounded-t-sheet px-gutter pt-8" style={{ paddingBottom: bottomInset + 24 }}>
             <View className="items-center">
               <Avatar user={caller as any} size={88} />
-              <Text className="text-slate-900 text-xl font-black uppercase tracking-tight mt-5" numberOfLines={1}>
+              <Text className="text-ink font-display uppercase mt-5 text-h1" numberOfLines={1}>
                 {caller?.name || 'Fync user'}
               </Text>
               {!!caller?.college && (
-                <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-1" numberOfLines={1}>
+                <Text className="text-ink-3 text-label font-semibold uppercase mt-1" numberOfLines={1}>
                   {caller.college}
                 </Text>
               )}
-              <Text className="text-orange-500 text-2xs font-black uppercase tracking-[3px] mt-3">
+              <Text className="text-accent-text text-label font-display uppercase mt-3">
                 Incoming {label} Call
               </Text>
             </View>
@@ -454,25 +445,25 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
               <View className="items-center">
                 <Pressable
                   onPress={rejectCall}
-                  className="w-16 h-16 rounded-full bg-red-500 items-center justify-center active:opacity-70"
+                  className="w-16 h-16 rounded-full bg-danger items-center justify-center active:opacity-70"
                   accessibilityRole="button"
                   accessibilityLabel="Decline call"
                 >
                   <Ionicons name="call" size={26} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
                 </Pressable>
-                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-3">Decline</Text>
+                <Text className="text-ink-3 text-label font-display uppercase mt-3">Decline</Text>
               </View>
 
               <View className="items-center">
                 <Pressable
                   onPress={acceptCall}
-                  className="w-16 h-16 rounded-full bg-green-500 items-center justify-center active:opacity-70"
+                  className="w-16 h-16 rounded-full bg-success items-center justify-center active:opacity-70"
                   accessibilityRole="button"
                   accessibilityLabel="Accept call"
                 >
                   <Ionicons name={isVideo ? 'videocam' : 'call'} size={26} color="#fff" />
                 </Pressable>
-                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-3">Accept</Text>
+                <Text className="text-ink-3 text-label font-display uppercase mt-3">Accept</Text>
               </View>
             </View>
           </View>

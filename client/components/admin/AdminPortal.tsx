@@ -6,7 +6,6 @@ import axios from '../../context/axiosConfig';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/auth.context';
 import Toast from 'react-native-toast-message';
-import { LinearGradient } from 'expo-linear-gradient';
 import { AdItem, RedemptionItem, MarketPlaceItem, ReportItem, ContactMessageItem, UserItem, MediaItem } from './AdminComponents';
 import { Alert } from '../ui/AlertModal';
 
@@ -634,109 +633,112 @@ const AdminPortal = ({ navigation }: any) => {
     const HubButton = ({ title, tab, icon, color, description }: { title: string, tab: any, icon: any, color: string, description: string }) => (
         <TouchableOpacity
             onPress={() => { setActiveTab(tab); setView('feature'); }}
-            className="mb-4 rounded-4xl overflow-hidden border border-[#F1F5F9] shadow-sm bg-white"
+            className="mb-4 rounded-sheet overflow-hidden border border-paper-2 shadow-hair bg-card"
             activeOpacity={0.9}
         >
-            <LinearGradient colors={[`${color}10`, '#fff']} className="flex-1 flex-row items-center p-6">
-                <View className="w-14 h-14 rounded-2xl items-center justify-center mr-4" style={{ backgroundColor: `${color}20` }}>
+            <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: '`${color}10`' }}>
+                <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: `${color}20` }}>
                     <Ionicons name={icon} size={24} color={color} />
                 </View>
                 <View className="flex-1">
-                    <Text className="text-sm font-black text-[#1A1A1A] uppercase tracking-[0.5px] mb-1">{title}</Text>
-                    <Text className="text-2xs text-[#64748B] leading-[14px] font-medium">{description}</Text>
+                    <Text className="text-sm font-display text-ink uppercase mb-1">{title}</Text>
+                    <Text className="text-label text-ink-3 leading-[14px] font-medium">{description}</Text>
                 </View>
-                <View className="w-8 h-8 rounded-xl bg-[#F8FAFC] justify-center items-center ml-2 border border-[#F1F5F9]">
-                    <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
+                <View className="w-8 h-8 rounded-xl bg-paper justify-center items-center ml-2 border border-paper-2">
+                    <Ionicons name="chevron-forward" size={16} color="#8B857E" />
                 </View>
-            </LinearGradient>
+            </View>
         </TouchableOpacity>
     );
 
     const HubView = () => (
         <ScrollView 
-            className="flex-1 px-8 pt-4"
+            className="flex-1 px-gutter pt-4"
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 100 }}
         >
-            <Text className="text-[#94A3B8] text-2xs font-black uppercase tracking-wide mb-6">Management Systems</Text>
+            <View className="flex-row items-center mt-6 mb-6" style={{ gap: 12 }}>
+              <Text className="text-ink-3 text-label font-display uppercase">Management Systems</Text>
+              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+            </View>
             
             <HubButton 
                 title="Banner Ads" 
                 tab="ads" 
                 icon="megaphone" 
-                color="#f97316" 
+                color="#F97316" 
                 description="Manage campus-wide banner advertisements and promotion campaigns." 
             />
             <HubButton 
                 title="User Management" 
                 tab="users"  
                 icon="people" 
-                color="#10b981" 
+                color="#047857" 
                 description="Oversee student profiles, moderation status, and account access." 
             />
             <HubButton 
                 title="Fync Media" 
                 tab="media" 
                 icon="play-circle" 
-                color="#0ea5e9" 
+                color="#0891B2" 
                 description="Manage educational content, campus videos, and digital media." 
             />
             <HubButton 
                 title="Reported Content" 
                 tab="reports" 
                 icon="flag" 
-                color="#ef4444" 
+                color="#DC2626" 
                 description="Review flagged posts and enforce community safety protocols." 
             />
             <HubButton 
                 title="Reward Items" 
                 tab="marketplace" 
                 icon="cart" 
-                color="#6366f1" 
+                color="#4F46E5" 
                 description="Update the Fync store inventory and redemption items." 
             />
             <HubButton 
                 title="Redemptions" 
                 tab="rewards" 
                 icon="gift" 
-                color="#a855f7" 
+                color="#7C3AED" 
                 description="Process student reward claims and inventory payouts." 
             />
             <HubButton 
                 title="Contact Messages" 
                 tab="messages" 
                 icon="mail" 
-                color="#64748b" 
+                color="#8B857E" 
                 description="Review and respond to official support and inquiry messages." 
             />
             <HubButton 
                 title="Global Broadcast" 
                 tab="broadcast" 
                 icon="notifications" 
-                color="#06b6d4" 
+                color="#0891B2" 
                 description="Send an instant push notification to all users." 
             />
             <HubButton 
                 title="Subscription Pricing" 
                 tab="subscription" 
                 icon="pricetag" 
-                color="#eab308" 
+                color="#B45309" 
                 description="Dynamically adjust the platform's premium subscription fee." 
             />
 
-            <View className="mt-8 p-6 bg-slate-900 rounded-4xl shadow-xl shadow-slate-900/20">
+            <View className="mt-8 p-6 bg-ink rounded-sheet shadow-hair">
                 <View className="flex-row items-center mb-4">
-                    <Ionicons name="stats-chart" size={18} color="#ec4899" />
-                    <Text className="text-white font-black text-2xs uppercase tracking-wide ml-3">System Health</Text>
+                    <Ionicons name="stats-chart" size={18} color="#F97316" />
+                    <Text className="text-white font-display text-label uppercase ml-3">System Health</Text>
                 </View>
                 <View className="flex-row justify-between">
                     <View>
-                        <Text className="text-slate-500 text-2xs font-black uppercase">Pending Reports</Text>
-                        <Text className="text-white text-xl font-black mt-1">{reports.length}</Text>
+                        <Text className="text-ink-3 text-label font-display uppercase">Pending Reports</Text>
+                        <Text className="text-white text-xl font-display mt-1">{reports.length}</Text>
                     </View>
                     <View className="items-end">
-                        <Text className="text-slate-500 text-2xs font-black uppercase">Total Redemptions</Text>
-                        <Text className="text-white text-xl font-black mt-1">{redemptions.length}</Text>
+                        <Text className="text-ink-3 text-label font-display uppercase">Total Redemptions</Text>
+                        <Text className="text-white text-xl font-display mt-1">{redemptions.length}</Text>
                     </View>
                 </View>
             </View>
@@ -745,25 +747,20 @@ const AdminPortal = ({ navigation }: any) => {
 
     if (!isAuthenticated) {
         return (
-            <View className="flex-1 bg-[#F8FAFC]">
+            <View className="flex-1 bg-paper">
                 <StatusBar barStyle="dark-content" />
-                <LinearGradient 
-                    colors={['rgba(249, 115, 22, 0.35)', 'rgba(249, 115, 22, 0)']} 
-                    style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 400, zIndex: 0 }} 
-                    pointerEvents="none"
-                />
                 
-                <SafeAreaView className="flex-1 justify-center px-8" edges={['top', 'bottom']}>
-                    <View className="bg-white p-8 rounded-4xl border border-slate-100 shadow-xl shadow-orange-500/10">
-                        <View className="w-16 h-16 bg-orange-50 rounded-2xl items-center justify-center mb-6 border border-orange-100">
-                            <Ionicons name="shield-checkmark" size={32} color="#f97316" />
+                <SafeAreaView className="flex-1 justify-center px-gutter" edges={['top', 'bottom']}>
+                    <View className="bg-card p-card-pad rounded-sheet border border-line shadow-hair">
+                        <View className="w-16 h-16 bg-paper-2 rounded-card items-center justify-center mb-6 border border-line">
+                            <Ionicons name="shield-checkmark" size={32} color="#F97316" />
                         </View>
                         
                         <View className="mb-8">
-                            <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase leading-tight">
-                                ADMIN <Text className="text-orange-500">CHECK</Text>
+                            <Text className="text-ink text-3xl font-display uppercase leading-tight">
+                                ADMIN <Text className="text-accent-text">CHECK</Text>
                             </Text>
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1 leading-4">
+                            <Text className="text-ink-3 text-label font-display uppercase mt-1 leading-4">
                                 Admin protocol password required to access operational core.
                             </Text>
                         </View>
@@ -771,30 +768,38 @@ const AdminPortal = ({ navigation }: any) => {
                         <TextInput
                             value={adminPassword}
                             onChangeText={setAdminPassword}
-                            placeholder="ENTER ADMIN PASSWORD"
-                            placeholderTextColor="#94A3B8"
+                            placeholder="Enter admin password"
+                            placeholderTextColor="#8B857E"
                             secureTextEntry
-                            className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-5 text-slate-900 font-black tracking-wide text-2xs shadow-sm mb-6"
+                            className="bg-card border-2 border-ink rounded-card px-5 text-ink font-sans text-base mb-6"
+                            style={{
+                              minHeight: 50,
+                              shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0,
+                              shadowOffset: { width: 4, height: 4 }, elevation: 0,
+                            }}
                             onSubmitEditing={handleVerifyPassword}
                         />
                         
                         <TouchableOpacity 
                             onPress={handleVerifyPassword}
                             disabled={verifyingPassword}
-                            className="bg-slate-900 h-14 rounded-2xl items-center justify-center flex-row shadow-2xl shadow-black/40"
+                            className="bg-ink h-14 items-center justify-center flex-row border-2 border-ink rounded-md"
                         >
                             {verifyingPassword ? (
                                 <ActivityIndicator color="white" />
                             ) : (
                                 <>
                                     <Ionicons name="key" size={16} color="white" />
-                                    <Text className="text-white font-black text-2xs uppercase tracking-wide ml-3">Authorize Access</Text>
+                                    <Text className="text-white font-display text-label uppercase ml-3">Authorize Access</Text>
                                 </>
                             )}
                         </TouchableOpacity>
 
-                        <TouchableOpacity onPress={() => navigation.goBack()} className="mt-6 items-center">
-                            <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide">Cancel Initialization</Text>
+                        <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl mt-6"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+                            <Text className="text-ink-3 font-display text-label uppercase">Cancel Initialization</Text>
                         </TouchableOpacity>
                     </View>
                 </SafeAreaView>
@@ -803,26 +808,20 @@ const AdminPortal = ({ navigation }: any) => {
     }
 
     return (
-        <View className="flex-1 bg-[#F8FAFC]">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
             
-            {/* Background Gradient */}
-            <LinearGradient 
-                colors={['rgba(249, 115, 22, 0.35)', 'rgba(249, 115, 22, 0)']} 
-                style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 300, zIndex: 0 }} 
-                pointerEvents="none"
-            />
 
             <SafeAreaView className="flex-1" edges={['top']}>
                 {/* Header */}
-                <View className="px-8 pt-6">
+                <View className="px-gutter pt-6">
                     <View className="flex-row items-center justify-between mb-8">
                         <View className="flex-row items-center gap-4">
                             <View>
-                                <Text className="text-slate-900 text-3xl font-black tracking-tighter uppercase leading-tight">
-                                    {view === 'hub' ? 'ADMIN PANEL' : activeTab === 'marketplace' ? 'Store' : activeTab === 'subscription' ? 'Config' : activeTab.toUpperCase()} <Text className="text-orange-500">{view === 'hub' ? 'PORTAL' : 'CORE'}</Text>
+                                <Text className="text-ink text-3xl font-display uppercase leading-tight">
+                                    {view === 'hub' ? 'ADMIN PANEL' : activeTab === 'marketplace' ? 'Store' : activeTab === 'subscription' ? 'Config' : activeTab.toUpperCase()} <Text className="text-accent-text">{view === 'hub' ? 'PORTAL' : 'CORE'}</Text>
                                 </Text>
-                                <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">
+                                <Text className="text-ink-3 text-label font-display uppercase mt-0.5">
                                     {view === 'hub' ? 'Control Center v2.0' : 'Operational Protocol'}
                                 </Text>
                             </View>
@@ -830,7 +829,7 @@ const AdminPortal = ({ navigation }: any) => {
                         {view === 'feature' && activeTab !== 'rewards' && activeTab !== 'messages' && activeTab !== 'reports' && activeTab !== 'users' && activeTab !== 'subscription' && (
                             <TouchableOpacity
                                 onPress={() => { resetForm(); setModalVisible(true); }}
-                                className="w-14 h-14 bg-slate-900 rounded-2xl items-center justify-center shadow-2xl shadow-black/40"
+                                className="w-14 h-14 bg-ink rounded-card items-center justify-center shadow-hair"
                             >
                                 <Ionicons name="add" size={28} color="white" />
                             </TouchableOpacity>
@@ -838,13 +837,13 @@ const AdminPortal = ({ navigation }: any) => {
                     </View>
 
                     {view === 'feature' && activeTab === 'users' && (
-                        <View className="flex-row items-center bg-white p-1.5 rounded-2xl mb-8 border border-slate-100 shadow-sm">
+                        <View className="flex-row items-center bg-card p-1.5 mb-8 border-2 border-ink shadow-hair rounded-md">
                             <View className="flex-row items-center flex-1 px-4 py-2.5">
-                                <Ionicons name="search" size={18} color="#64748B" />
+                                <Ionicons name="search" size={18} color="#8B857E" />
                                 <TextInput 
-                                    className="flex-1 ml-3 text-xs font-black text-[#1A1A1A] uppercase tracking-wide"
+                                    className="flex-1 ml-3 text-xs font-display text-ink uppercase"
                                     placeholder="Search student signals..."
-                                    placeholderTextColor="#CBD5E1"
+                                    placeholderTextColor="#C4BEB6"
                                     value={userSearch}
                                     onChangeText={setUserSearch}
                                     onSubmitEditing={() => {
@@ -855,7 +854,7 @@ const AdminPortal = ({ navigation }: any) => {
                                 />
                                 {userSearch ? (
                                     <TouchableOpacity onPress={() => { setUserSearch(''); setUsers([]); }}>
-                                        <Ionicons name="close-circle" size={18} color="#94A3B8" />
+                                        <Ionicons name="close-circle" size={18} color="#8B857E" />
                                     </TouchableOpacity>
                                 ) : null}
                             </View>
@@ -864,46 +863,46 @@ const AdminPortal = ({ navigation }: any) => {
                                     if (userSearch.trim()) fetchAdminUsers(userSearch);
                                     else setUsers([]);
                                 }}
-                                className="bg-[#1A1A1A] px-5 py-3 rounded-xl ml-2"
+                                className="bg-ink ml-2 px-2.5 py-1 rounded-full"
                             >
-                                <Text className="text-white font-black text-2xs uppercase tracking-wide">Search</Text>
+                                <Text className="text-white font-display text-label uppercase">Search</Text>
                             </TouchableOpacity>
                         </View>
                     )}
                 </View>
 
                 {activeTab === 'subscription' && view === 'feature' && (
-                    <View className="bg-white p-6 rounded-3xl mx-8 border border-slate-100 shadow-sm mt-4">
+                    <View className="bg-card p-6 rounded-card mx-gutter border border-line shadow-hair mt-4">
                         <View className="flex-row items-center mb-6">
-                            <View className="w-12 h-12 bg-yellow-100 rounded-2xl items-center justify-center mr-4">
-                                <Ionicons name="pricetag" size={24} color="#eab308" />
+                            <View className="w-12 h-12 bg-warning/15 rounded-card items-center justify-center mr-4">
+                                <Ionicons name="pricetag" size={24} color="#B45309" />
                             </View>
                             <View>
-                                <Text className="text-slate-900 text-lg font-black uppercase tracking-tight">Global Price Engine</Text>
-                                <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-0.5">Live Active Rate: ₹{currentSubscriptionPrice}/mo</Text>
-                                <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-0.5">Status: {currentIsSubscriptionEnabled ? 'Enabled' : 'Disabled'}</Text>
+                                <Text className="text-ink text-lg font-display uppercase">Global Price Engine</Text>
+                                <Text className="text-ink-3 text-label font-semibold uppercase mt-0.5">Live Active Rate: ₹{currentSubscriptionPrice}/mo</Text>
+                                <Text className="text-ink-3 text-label font-semibold uppercase mt-0.5">Status: {currentIsSubscriptionEnabled ? 'Enabled' : 'Disabled'}</Text>
                             </View>
                         </View>
                         
-                        <View className="flex-row justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-4">
+                        <View className="flex-row justify-between items-center bg-paper-2 p-4 rounded-card border border-line mb-4">
                             <View className="flex-1">
-                                <Text className="text-slate-900 font-bold text-sm">Enable Subscriptions</Text>
-                                <Text className="text-slate-500 text-2xs mt-1">If disabled, the app is free and all users instantly bypass the paywall.</Text>
+                                <Text className="text-ink font-semibold text-sm">Enable Subscriptions</Text>
+                                <Text className="text-ink-3 text-label mt-1">If disabled, the app is free and all users instantly bypass the paywall.</Text>
                             </View>
                             <Switch
                                 value={isSubscriptionEnabled}
                                 onValueChange={setIsSubscriptionEnabled}
-                                trackColor={{ false: "#e4e4e7", true: "#fbcfe8" }}
-                                thumbColor={isSubscriptionEnabled ? "#ec4899" : "#a1a1aa"}
+                                trackColor={{ false: "#E3DDD3", true: "#EDE8E0" }}
+                                thumbColor={isSubscriptionEnabled ? "#F97316" : "#8B857E"}
                             />
                         </View>
                         
-                        <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6">
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-2">Configure New Rate (INR)</Text>
+                        <View className="bg-paper-2 p-4 rounded-card border border-line mb-6">
+                            <Text className="text-ink-3 text-label font-display uppercase mb-2">Configure New Rate (INR)</Text>
                             <View className="flex-row items-center">
-                                <Text className="text-slate-900 text-2xl font-black mr-2">₹</Text>
+                                <Text className="text-ink text-2xl font-display mr-2">₹</Text>
                                 <TextInput 
-                                    className="flex-1 text-3xl font-black text-slate-900"
+                                    className="flex-1 text-3xl font-display text-ink"
                                     value={subscriptionPrice}
                                     onChangeText={setSubscriptionPrice}
                                     keyboardType="numeric"
@@ -915,14 +914,14 @@ const AdminPortal = ({ navigation }: any) => {
                         <TouchableOpacity 
                             onPress={handleUpdateSubscription}
                             disabled={submitting}
-                            className="bg-slate-900 h-14 rounded-2xl items-center justify-center flex-row shadow-lg shadow-black/20"
+                            className="bg-ink h-14 items-center justify-center flex-row border-2 border-ink rounded-md"
                         >
                             {submitting ? (
                                 <ActivityIndicator color="white" />
                             ) : (
                                 <>
                                     <Ionicons name="save" size={18} color="white" />
-                                    <Text className="text-white font-black text-xs uppercase tracking-wide ml-2">Deploy New Pricing</Text>
+                                    <Text className="text-white font-display text-xs uppercase ml-2">Deploy New Pricing</Text>
                                 </>
                             )}
                         </TouchableOpacity>
@@ -935,31 +934,31 @@ const AdminPortal = ({ navigation }: any) => {
                 // Subscription view is rendered above, so we render nothing here to prevent the FlatList fallback
                 null
             ) : activeTab === 'broadcast' ? (
-                <View className="bg-white p-6 rounded-3xl mx-8 border border-slate-100 shadow-sm mt-4">
+                <View className="bg-card p-6 rounded-card mx-gutter border border-line shadow-hair mt-4">
                     <View className="flex-row items-center mb-6">
-                        <View className="w-12 h-12 bg-cyan-100 rounded-2xl items-center justify-center mr-4">
-                            <Ionicons name="notifications" size={24} color="#06b6d4" />
+                        <View className="w-12 h-12 bg-fam-social/15 rounded-card items-center justify-center mr-4">
+                            <Ionicons name="notifications" size={24} color="#0891B2" />
                         </View>
                         <View>
-                            <Text className="text-slate-900 text-lg font-black uppercase tracking-tight">Global Broadcast</Text>
-                            <Text className="text-slate-500 text-2xs font-bold uppercase tracking-wide mt-0.5">Send alert to all users</Text>
+                            <Text className="text-ink text-lg font-display uppercase">Global Broadcast</Text>
+                            <Text className="text-ink-3 text-label font-semibold uppercase mt-0.5">Send alert to all users</Text>
                         </View>
                     </View>
 
-                    <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-4">
-                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-2">Notification Title</Text>
+                    <View className="bg-paper-2 p-4 rounded-card border border-line mb-4">
+                        <Text className="text-ink-3 text-label font-display uppercase mb-2">Notification Title</Text>
                         <TextInput 
-                            className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-bold"
+                            className="bg-card border-[1.5px] border-ink px-4 py-3 text-ink font-semibold rounded-md"
                             value={broadcastTitle}
                             onChangeText={setBroadcastTitle}
                             placeholder="e.g., Server Maintenance"
                         />
                     </View>
 
-                    <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6">
-                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-2">Message Body</Text>
+                    <View className="bg-paper-2 p-4 rounded-card border border-line mb-6">
+                        <Text className="text-ink-3 text-label font-display uppercase mb-2">Message Body</Text>
                         <TextInput 
-                            className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 min-h-[100px]"
+                            className="bg-card border-[1.5px] border-ink px-4 py-3 text-ink min-h-[100px] rounded-md"
                             value={broadcastBody}
                             onChangeText={setBroadcastBody}
                             placeholder="Enter the broadcast message here..."
@@ -968,10 +967,10 @@ const AdminPortal = ({ navigation }: any) => {
                         />
                     </View>
 
-                    <View className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6">
-                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-2">Image URL (optional)</Text>
+                    <View className="bg-paper-2 p-4 rounded-card border border-line mb-6">
+                        <Text className="text-ink-3 text-label font-display uppercase mb-2">Image URL (optional)</Text>
                         <TextInput
-                            className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-bold"
+                            className="bg-card border-[1.5px] border-ink px-4 py-3 text-ink font-semibold rounded-md"
                             value={broadcastImage}
                             onChangeText={setBroadcastImage}
                             placeholder="https://..."
@@ -979,27 +978,30 @@ const AdminPortal = ({ navigation }: any) => {
                             autoCorrect={false}
                             keyboardType="url"
                         />
-                        <Text className="text-slate-400 text-2xs font-bold mt-2">Shown as the expandable picture in the phone notification.</Text>
+                        <Text className="text-ink-3 text-label font-semibold mt-2">Shown as the expandable picture in the phone notification.</Text>
                     </View>
 
                     {/* What the notification will actually look like on a phone. */}
-                    <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mb-2">Preview</Text>
-                    <View className="bg-white rounded-2xl border border-slate-200 p-3 mb-6 shadow-sm">
+                    <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
+                      <Text className="text-ink-3 text-label font-display uppercase">Preview</Text>
+                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                    </View>
+                    <View className="bg-card rounded-card border border-line p-3 mb-6 shadow-hair">
                         <View className="flex-row items-center mb-2">
                             <Image source={require('../../assets/Fync.png')} className="w-5 h-5 rounded" />
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide ml-2">Fync</Text>
-                            <Text className="text-slate-300 text-2xs font-bold ml-2">now</Text>
+                            <Text className="text-ink-3 text-label font-display uppercase ml-2">Fync</Text>
+                            <Text className="text-ink-4 text-label font-semibold ml-2">now</Text>
                         </View>
-                        <Text className="text-slate-900 font-black text-sm" numberOfLines={1}>
+                        <Text className="text-ink font-display text-sm" numberOfLines={1}>
                             {broadcastTitle.trim() || 'Notification title'}
                         </Text>
-                        <Text className="text-slate-600 text-xs font-semibold mt-0.5" numberOfLines={3}>
+                        <Text className="text-ink-2 text-xs font-semibold mt-0.5" numberOfLines={3}>
                             {broadcastBody.trim() || 'Your message will appear here.'}
                         </Text>
                         {!!broadcastImage.trim() && (
                             <Image
                                 source={{ uri: broadcastImage.trim() }}
-                                className="w-full h-32 rounded-xl mt-2 bg-slate-100"
+                                className="w-full h-32 rounded-xl mt-2 bg-paper-2"
                                 resizeMode="cover"
                             />
                         )}
@@ -1008,14 +1010,14 @@ const AdminPortal = ({ navigation }: any) => {
                     <TouchableOpacity 
                         onPress={handleBroadcast}
                         disabled={sendingBroadcast}
-                        className="bg-slate-900 h-14 rounded-2xl items-center justify-center flex-row shadow-lg shadow-black/20"
+                        className="bg-ink h-14 items-center justify-center flex-row border-2 border-ink rounded-md"
                     >
                         {sendingBroadcast ? (
                             <ActivityIndicator color="white" />
                         ) : (
                             <>
                                 <Ionicons name="send" size={18} color="white" />
-                                <Text className="text-white font-black text-xs uppercase tracking-wide ml-2">Send Broadcast</Text>
+                                <Text className="text-white font-display text-xs uppercase ml-2">Send Broadcast</Text>
                             </>
                         )}
                     </TouchableOpacity>
@@ -1023,7 +1025,7 @@ const AdminPortal = ({ navigation }: any) => {
             ) : (
                 loading ? (
                     <View className="flex-1 items-center justify-center">
-                        <ActivityIndicator color="#f97316" size="large" />
+                        <ActivityIndicator color="#F97316" size="large" />
                     </View>
                 ) : (
                     <FlatList
@@ -1055,7 +1057,7 @@ const AdminPortal = ({ navigation }: any) => {
                         showsVerticalScrollIndicator={false}
                         ListEmptyComponent={
                             <View className="flex-1 items-center justify-center py-20">
-                                <Text className="text-slate-500 font-bold text-sm">
+                                <Text className="text-ink-3 font-semibold text-sm">
                                     {activeTab === 'ads' ? 'No ads found' :
                                         activeTab === 'marketplace' ? 'No reward items found' :
                                             activeTab === 'rewards' ? 'No reward applications found' :
@@ -1072,24 +1074,24 @@ const AdminPortal = ({ navigation }: any) => {
             <Modal visible={modalVisible} animationType="slide" transparent>
                 <View className="flex-1 bg-black/50 justify-end">
                     <KeyboardAvoidingView behavior="padding">
-                        <View className="bg-white rounded-t-4xl p-6 pb-10 border-t border-slate-200">
+                        <View className="bg-paper rounded-t-sheet p-6 pb-10 border-t border-line">
                             <View className="flex-row justify-between items-center mb-6">
-                                <Text className="text-slate-900 text-xl font-black">{editingAd || editingProduct ? 'Edit Item' : activeTab === 'ads' ? 'New Ad Banner' : activeTab === 'media' ? 'Publish Fync Media' : 'New Reward Item'}</Text>
-                                <TouchableOpacity onPress={() => { setModalVisible(false); resetForm(); }} className="w-8 h-8 bg-slate-100 rounded-full items-center justify-center">
-                                    <Ionicons name="close" size={18} color="#1A1A1A" />
+                                <Text className="text-ink font-display text-h1">{editingAd || editingProduct ? 'Edit Item' : activeTab === 'ads' ? 'New Ad Banner' : activeTab === 'media' ? 'Publish Fync Media' : 'New Reward Item'}</Text>
+                                <TouchableOpacity onPress={() => { setModalVisible(false); resetForm(); }} className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center">
+                                    <Ionicons name="close" size={18} color="#12100E" />
                                 </TouchableOpacity>
                             </View>
 
                             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
                                 <TouchableOpacity
                                     onPress={pickImage}
-                                    className={`w-full ${activeTab === 'marketplace' || activeTab === 'media' ? '' : 'h-40'} bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 items-center justify-center mb-4 overflow-hidden`}
+                                    className={`w-full ${activeTab === 'marketplace' || activeTab === 'media' ? '' : 'h-40'} bg-paper-2 rounded-card border-2 border-dashed border-line items-center justify-center mb-4 overflow-hidden`}
                                     style={activeTab === 'marketplace' || activeTab === 'media' ? { aspectRatio: 16 / 9 } : {}}
                                 >
                                     {imageUri ? <Image source={{ uri: imageUri }} className="w-full h-full" resizeMode={activeTab === 'marketplace' ? "contain" : "cover"} /> : imageUrl ? <Image source={{ uri: imageUrl }} className="w-full h-full" resizeMode={activeTab === 'marketplace' ? "contain" : "cover"} /> : (
                                         <View className="items-center">
-                                            <Ionicons name="image-outline" size={36} color="#9ca3af" />
-                                            <Text className="text-slate-500 font-medium text-sm mt-2">Pick {activeTab === 'marketplace' ? 'item' : activeTab === 'media' ? 'thumbnail' : 'banner'} image</Text>
+                                            <Ionicons name="image-outline" size={36} color="#C4BEB6" />
+                                            <Text className="text-ink-3 font-medium text-sm mt-2">Pick {activeTab === 'marketplace' ? 'item' : activeTab === 'media' ? 'thumbnail' : 'banner'} image</Text>
                                         </View>
                                     )}
                                 </TouchableOpacity>
@@ -1097,17 +1099,17 @@ const AdminPortal = ({ navigation }: any) => {
                                 {activeTab === 'media' && (
                                     <TouchableOpacity
                                         onPress={pickVideo}
-                                        className="w-full aspect-video bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 items-center justify-center mb-4 overflow-hidden"
+                                        className="w-full aspect-video bg-paper-2 border-2 border-dashed border-line items-center justify-center mb-4 overflow-hidden rounded-md"
                                     >
                                         {videoUri ? (
                                             <View className="items-center">
-                                                <Ionicons name="videocam" size={36} color="#6366f1" />
-                                                <Text className="text-indigo-600 font-black text-xs mt-2 uppercase">Video Ready</Text>
+                                                <Ionicons name="videocam" size={36} color="#4F46E5" />
+                                                <Text className="text-recruiter font-display text-xs mt-2 uppercase">Video Ready</Text>
                                             </View>
                                         ) : (
                                             <View className="items-center">
-                                                <Ionicons name="videocam-outline" size={36} color="#9ca3af" />
-                                                <Text className="text-slate-500 font-medium text-sm mt-2">Pick Video File</Text>
+                                                <Ionicons name="videocam-outline" size={36} color="#C4BEB6" />
+                                                <Text className="text-ink-3 font-medium text-sm mt-2">Pick Video File</Text>
                                             </View>
                                         )}
                                     </TouchableOpacity>
@@ -1117,13 +1119,13 @@ const AdminPortal = ({ navigation }: any) => {
                                     value={imageUrl}
                                     onChangeText={t => { setImageUrl(t); setImageUri(null); }}
                                     placeholder="Or paste image URL"
-                                    className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mb-4"
+                                    className="bg-paper-2 border border-line rounded-xl px-4 py-3 mb-4"
                                 />
                                 <TextInput
                                     value={title}
                                     onChangeText={setTitle}
                                     placeholder={activeTab === 'ads' ? "Ad Title" : activeTab === 'media' ? "Video Title" : "Product Name"}
-                                    className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mb-4"
+                                    className="bg-card border-[1.5px] border-ink px-4 py-3 mb-4 rounded-md"
                                 />
 
                                 {activeTab === 'marketplace' && (
@@ -1133,7 +1135,7 @@ const AdminPortal = ({ navigation }: any) => {
                                             onChangeText={setDescription}
                                             placeholder="Product Description"
                                             multiline
-                                            className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mb-4 min-h-[100px]"
+                                            className="bg-card border-[1.5px] border-ink px-4 py-3 mb-4 min-h-[100px] rounded-md"
                                             textAlignVertical="top"
                                         />
                                         <TextInput
@@ -1141,7 +1143,7 @@ const AdminPortal = ({ navigation }: any) => {
                                             onChangeText={setCoins}
                                             placeholder="Coins Required"
                                             keyboardType="numeric"
-                                            className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mb-4"
+                                            className="bg-card border-[1.5px] border-ink px-4 py-3 mb-4 rounded-md"
                                         />
                                     </>
                                 )}
@@ -1153,14 +1155,14 @@ const AdminPortal = ({ navigation }: any) => {
                                             onChangeText={setDescription}
                                             placeholder="Video Description"
                                             multiline
-                                            className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mb-4 min-h-[100px]"
+                                            className="bg-card border-[1.5px] border-ink px-4 py-3 mb-4 min-h-[100px] rounded-md"
                                             textAlignVertical="top"
                                         />
                                         <TextInput
                                             value={tags}
                                             onChangeText={setTags}
                                             placeholder="Tags (comma separated)"
-                                            className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mb-4"
+                                            className="bg-card border-[1.5px] border-ink px-4 py-3 mb-4 rounded-md"
                                         />
                                     </>
                                 )}
@@ -1170,21 +1172,21 @@ const AdminPortal = ({ navigation }: any) => {
                                         value={linkUrl}
                                         onChangeText={setLinkUrl}
                                         placeholder="Link URL"
-                                        className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 mb-4"
+                                        className="bg-card border-[1.5px] border-ink px-4 py-3 mb-4 rounded-md"
                                     />
                                 )}
 
                                 {activeTab !== 'media' && (
-                                    <View className="flex-row justify-between items-center bg-slate-50 p-4 rounded-xl mb-6">
+                                    <View className="flex-row justify-between items-center bg-paper-2 p-4 rounded-xl mb-6">
                                         <View>
-                                            <Text className="text-slate-900 font-bold text-sm">{activeTab === 'ads' ? 'Ad Visible' : 'Item Available'}</Text>
-                                            <Text className="text-slate-500 text-2xs">Toggling this will hide/show the item</Text>
+                                            <Text className="text-ink font-semibold text-sm">{activeTab === 'ads' ? 'Ad Visible' : 'Item Available'}</Text>
+                                            <Text className="text-ink-3 text-label">Toggling this will hide/show the item</Text>
                                         </View>
                                         <Switch
                                             value={isActive}
                                             onValueChange={setIsActive}
-                                            trackColor={{ false: "#e4e4e7", true: "#fbcfe8" }}
-                                            thumbColor={isActive ? "#ec4899" : "#a1a1aa"}
+                                            trackColor={{ false: "#E3DDD3", true: "#EDE8E0" }}
+                                            thumbColor={isActive ? "#F97316" : "#8B857E"}
                                         />
                                     </View>
                                 )}
@@ -1192,9 +1194,9 @@ const AdminPortal = ({ navigation }: any) => {
                                 <TouchableOpacity
                                     onPress={handleSubmit}
                                     disabled={submitting}
-                                    className={`py-4 rounded-xl items-center flex-row justify-center ${submitting ? 'bg-pink-300' : 'bg-pink-500'}`}
+                                    className={`py-4 rounded-xl items-center flex-row justify-center ${submitting ? 'bg-brand-300' : 'bg-brand-500'}`}
                                 >
-                                    {submitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-black uppercase tracking-wide text-xs">{editingAd || editingProduct ? 'Save Changes' : activeTab === 'ads' ? 'Publish Ad' : 'Add to Store'}</Text>}
+                                    {submitting ? <ActivityIndicator color="#12100E" /> : <Text className="text-ink font-display uppercase text-sm">{editingAd || editingProduct ? 'Save Changes' : activeTab === 'ads' ? 'Publish Ad' : 'Add to Store'}</Text>}
                                 </TouchableOpacity>
                             </ScrollView>
                         </View>
@@ -1204,18 +1206,18 @@ const AdminPortal = ({ navigation }: any) => {
             </SafeAreaView>
             {/* Subscription Confirmation Modal */}
             <Modal visible={subConfirmModalVisible} animationType="fade" transparent>
-                <View className="flex-1 bg-slate-950/80 justify-center px-6">
+                <View className="flex-1 bg-ink/80 justify-center px-6">
                     <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={() => setSubConfirmModalVisible(false)} />
-                    <View className="bg-white rounded-4xl p-8 shadow-2xl overflow-hidden border border-slate-100">
-                        <View className="w-16 h-16 bg-red-50 rounded-2xl items-center justify-center mb-6 border border-red-100">
-                            <Ionicons name="warning" size={32} color="#ef4444" />
+                    <View className="bg-card rounded-sheet p-card-pad shadow-hair overflow-hidden border border-line">
+                        <View className="w-16 h-16 bg-danger/10 rounded-card items-center justify-center mb-6 border border-danger/15">
+                            <Ionicons name="warning" size={32} color="#DC2626" />
                         </View>
                         
                         <View className="mb-8">
-                            <Text className="text-slate-900 text-2xl font-black tracking-tighter uppercase leading-tight">
-                                CONFIRM <Text className="text-red-500">CHANGE</Text>
+                            <Text className="text-ink text-2xl font-display uppercase leading-tight">
+                                CONFIRM <Text className="text-danger">CHANGE</Text>
                             </Text>
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-2 leading-4">
+                            <Text className="text-ink-3 text-label font-display uppercase mt-2 leading-4">
                                 You are about to change the global subscription price to ₹{subscriptionPrice}. Please re-authenticate.
                             </Text>
                         </View>
@@ -1224,9 +1226,9 @@ const AdminPortal = ({ navigation }: any) => {
                             value={subConfirmPassword}
                             onChangeText={setSubConfirmPassword}
                             placeholder="ENTER MASTER PASSWORD"
-                            placeholderTextColor="#94A3B8"
+                            placeholderTextColor="#8B857E"
                             secureTextEntry
-                            className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-5 text-slate-900 font-black tracking-wide text-2xs shadow-sm mb-6"
+                            className="bg-card border-[1.5px] border-ink px-6 py-5 text-ink font-display text-label shadow-hair mb-6 rounded-md"
                             onSubmitEditing={confirmAndDeploySubscriptionPrice}
                         />
 
@@ -1234,20 +1236,20 @@ const AdminPortal = ({ navigation }: any) => {
                             <TouchableOpacity 
                                 onPress={() => setSubConfirmModalVisible(false)}
                                 disabled={submittingPrice}
-                                className="flex-1 bg-slate-100 h-14 rounded-2xl items-center justify-center border border-slate-200"
+                                className="flex-1 bg-paper-2 h-14 items-center justify-center border border-line rounded-md"
                             >
-                                <Text className="text-slate-500 font-black text-2xs uppercase tracking-wide">Cancel</Text>
+                                <Text className="text-ink-3 font-display text-label uppercase">Cancel</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity 
                                 onPress={confirmAndDeploySubscriptionPrice}
                                 disabled={submittingPrice}
-                                className="flex-1 bg-red-500 h-14 rounded-2xl items-center justify-center shadow-lg shadow-red-500/30"
+                                className="flex-1 bg-danger h-14 rounded-card items-center justify-center shadow-hair"
                             >
                                 {submittingPrice ? (
                                     <ActivityIndicator color="white" />
                                 ) : (
-                                    <Text className="text-white font-black text-2xs uppercase tracking-wide">Deploy Price</Text>
+                                    <Text className="text-white font-display text-label uppercase">Deploy Price</Text>
                                 )}
                             </TouchableOpacity>
                         </View>

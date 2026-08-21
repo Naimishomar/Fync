@@ -38,7 +38,7 @@ export default function TwelveAMLockScreen() {
   };
 
   return (
-    <View className="flex-1 bg-black">
+    <View className="flex-1 bg-ink">
       <StatusBar barStyle="light-content" />
       
       {/* 1. Background Image (Full Screen) */}
@@ -59,22 +59,23 @@ export default function TwelveAMLockScreen() {
         className="absolute w-full h-full"
       />
 
-      <SafeAreaView className="flex-1 justify-between mx-6 my-4">
+      <SafeAreaView className="flex-1 justify-between mx-gutter my-4">
         
         {/* --- HEADER --- */}
         <View className="flex-row justify-between items-center mt-2">
             <TouchableOpacity 
                 onPress={() => navigation.goBack()}
-                className="w-10 h-10 rounded-full bg-white/10 items-center justify-center border border-white/10"
-            >
+                className="w-11 h-11 items-center justify-center rounded-xl"
+            
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
                 <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
 
-            <View className={`px-4 py-2 rounded-full border flex-row items-center ${
-                isOpen ? 'bg-green-500/20 border-green-500' : 'bg-white/10 border-white/10'
-            }`}>
-              <View key={isOpen ? "live" : "offline"} className={`w-2 h-2 rounded-full mr-2 ${isOpen ? 'bg-green-400 animate-pulse' : 'bg-slate-400'}`} />
-                <Text className={`text-xs font-bold tracking-widest ${isOpen ? 'text-green-400' : 'text-slate-300'}`}>
+            <View className={`px-4 py-2 rounded-full border flex-row items-center ${ isOpen ? 'bg-success/20 border-success' : 'bg-card/10 border-white/10' }`}>
+              <View key={isOpen ? "live" : "offline"} className={`w-2 h-2 rounded-full mr-2 ${isOpen ? 'bg-success animate-pulse' : 'bg-ink-4'}`} />
+                <Text className={`text-xs font-semibold ${isOpen ? 'text-violet' : 'text-night-3'}`}>
                     {isOpen ? 'LIVE' : 'OFFLINE'}
                 </Text>
             </View>
@@ -83,28 +84,24 @@ export default function TwelveAMLockScreen() {
         {/* --- CENTER CONTENT (Timer) --- */}
         <View className="items-center">
             {/* Logo/Icon */}
-            <View className={`mb-6 p-6 rounded-full border shadow-lg ${
-                isOpen ? 'bg-pink-500/20 border-pink-500/30 shadow-pink-500/50' : 'bg-white/10 border-white/10'
-            }`}>
-                <MaterialCommunityIcons name="moon-waning-crescent" size={64} color={isOpen ? "#f472b6" : "#6b7280"} />
+            <View className={`mb-6 p-6 rounded-full border shadow-hair ${ isOpen ? 'bg-brand-500/20 border-brand-500/30 ' : 'bg-card/10 border-white/10' }`}>
+                <MaterialCommunityIcons name="moon-waning-crescent" size={64} color={isOpen ? "#DB2777" : "#8B857E"} />
             </View>
 
-            <Text className="text-pink-300 font-bold tracking-[6px] text-sm uppercase mb-2">
+            <Text className="text-brand-300 font-semibold text-sm uppercase mb-2">
                 The 12 AM Club
             </Text>
             
-            <Text className="text-white font-black text-5xl text-center leading-tight shadow-black shadow-lg">
+            <Text className="text-white font-display text-5xl text-center leading-tight shadow-hair">
                 {isOpen ? "NO RULES.\nNO HISTORY." : "SLEEP TIGHT.\nSEE YOU SOON."}
             </Text>
 
             {/* THE BIG CLOCK */}
             <View className="mt-10 items-center">
-                <Text className="text-slate-500 text-xs font-bold tracking-wide mb-2">
+                <Text className="text-night-3 text-xs font-semibold mb-2">
                     {statusText}
                 </Text>
-                <Text className={`text-6xl font-mono font-bold tracking-tighter ${
-                    isOpen ? 'text-white text-shadow-glow' : 'text-slate-500'
-                }`}>
+                <Text className={`text-6xl font-display ${ isOpen ? 'text-white' : 'text-night-3' }`}>
                     {timerString}
                 </Text>
             </View>
@@ -112,7 +109,7 @@ export default function TwelveAMLockScreen() {
 
         {/* --- FOOTER (Action Button) --- */}
         <View className="mb-6">
-            <Text className="text-slate-500 text-center text-xs mb-6 px-8 leading-5">
+            <Text className="text-night-3 text-center text-xs mb-6 px-gutter leading-5">
                 {isOpen 
                     ? "Messages are encrypted and ephemeral. Everything is deleted at 6:00 AM." 
                     : "The club is currently closed. Come back at midnight to join the anonymous chat."
@@ -121,14 +118,14 @@ export default function TwelveAMLockScreen() {
 
             <TouchableOpacity disabled={!isOpen} onPress={handleEnter} activeOpacity={0.8}>
                 {isOpen ? (
-                    <Pressable className="flex-row items-center justify-center rounded-full bg-pink-500 py-3" onPress={handleEnter}>
-                        <Text className="text-white font-bold text-lg mr-2">ENTER CLUB</Text>
-                        <Ionicons name="arrow-forward" size={20} color="white" />
+                    <Pressable className="flex-row items-center justify-center rounded-full bg-brand-500 py-3" onPress={handleEnter}>
+                        <Text className="text-ink font-display text-lg mr-2">ENTER CLUB</Text>
+                        <Ionicons name="arrow-forward" size={20} color="#12100E" />
                     </Pressable>
                 ) : (
-                    <View className="flex-row items-center justify-center bg-pink-500/20 py-3 rounded-full">
-                        <Ionicons name="lock-closed" size={20} color="#6b7280" style={{ marginRight: 8 }} />
-                        <Text className="text-slate-500 font-bold text-lg">LOCKED</Text>
+                    <View className="flex-row items-center justify-center bg-brand-500/20 py-3 rounded-full">
+                        <Ionicons name="lock-closed" size={20} color="#8B857E" style={{ marginRight: 8 }} />
+                        <Text className="text-night-3 font-display text-lg">LOCKED</Text>
                     </View>
                 )}
             </TouchableOpacity>

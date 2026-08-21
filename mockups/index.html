@@ -1,0 +1,277 @@
+<!doctype html>
+<meta charset="utf-8"><title>Fync — mockups</title>
+<link rel="stylesheet" href="css/tokens.css"><link rel="stylesheet" href="css/ui.css">
+<style>
+  body{background:var(--paper);margin:0;padding:44px 40px 80px;font-family:var(--font-body);color:var(--ink)}
+  .wrap{max-width:1318px;margin:0 auto}
+  .sec{margin-top:64px}
+  .sec:first-of-type{margin-top:40px}
+  .board{display:grid;grid-template-columns:repeat(auto-fit,410px);justify-content:center;gap:44px;margin-top:28px}
+  .frame{width:410px}
+  .frame .phone{width:410px;height:864px;border:10px solid var(--ink);border-radius:46px;overflow:hidden;background:#000;box-shadow:10px 10px 0 rgba(18,16,14,.14)}
+  .frame iframe{width:390px;height:844px;border:0;display:block;margin:0}
+  .frame .cap{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+  .frame .cap b{font-family:var(--font-display);font-size:15px;letter-spacing:-.3px}
+  .frame .cap span{font-family:var(--font-display);font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--ink-3)}
+  .frame .note{font-size:13px;color:var(--ink-2);margin-top:12px;line-height:1.5;max-width:390px}
+  .frame .note code{font-family:var(--font-display);font-size:12px}
+  a.plain{color:var(--brand-600);text-decoration:none;border-bottom:2px solid var(--brand-200)}
+  .facts{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+  .facts .card{padding:12px 16px;min-width:150px}
+  .facts .card b{font-family:var(--font-display);font-size:22px;display:block;letter-spacing:-.6px}
+</style>
+<div class="wrap">
+  <div style="display:flex;gap:10px;align-items:center"><span class="sticker">Mockups</span>
+    <span class="sticker alt tilt-r">390 &times; 844</span>
+</div>
+  <div class="display mt4" style="font-size:52px">Fync client<br><span class="brandtext">Campus Press</span></div>
+  <p class="body mt4" style="max-width:680px">Every screen here is built from what <code>client/components/**</code> actually renders &mdash;
+    the fields, tabs, states and labels that exist today, and nothing that doesn't.
+    The audit behind it is <a class="plain" href="FUNCTIONALITY.md">FUNCTIONALITY.md</a>;
+    tokens and components are in <a class="plain" href="00-system.html">the design system sheet</a>.</p>
+  <p class="body mt3" style="max-width:680px"><b>Rule for this folder:</b> if a control is not in
+    <code>FUNCTIONALITY.md</code>, it does not go in a screen. That is why there is no Google sign-in,
+    no third home tab, and why the Utility Hub has three tools rather than twelve.</p>
+  <div class="facts">
+    <div class="card"><b>60</b><span class="label">screens</span></div>
+    <div class="card"><b>43</b><span class="label">services covered</span></div>
+    <div class="card"><b>0</b><span class="label">invented features</span></div>
+    <div class="card"><b>44px</b><span class="label">tap-target floor</span></div>
+  </div>
+
+  <div class="sec">
+    <div class="rule"><span class="label">App shell</span><span class="line"></span><span class="count">10</span></div>
+    <p class="body" style="max-width:640px;margin:4px 0 0">The five tabs, the feed, identity and auth. The FAB expands to exactly three: Add Post, Add Shorts, Add Startup.</p>
+  </div>
+  <div class="board">
+    <div class="frame"><div class="cap"><b>Home</b><span>01</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/01-home.html"></iframe></div>
+      <p class="note">Real header: streak pill, <b>search</b>, heart, chat. Tabs are <b>For You / Following</b> only. The 4-wide quick-grid with <code>View More</code> is on Home, and post actions are the Reddit-style <b>vote pill</b> (reads <code>Vote</code> at zero), comment count and a <code>Share</code> pill.</p></div>
+    <div class="frame"><div class="cap"><b>Explore</b><span>02</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/02-explore.html"></iframe></div>
+      <p class="note"><code>Fync</code> / <i>Everything the app can do</i>, driven by <code>constants/features.ts</code>.</p></div>
+    <div class="frame"><div class="cap"><b>Shorts</b><span>03</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/03-shorts.html"></iframe></div>
+      <p class="note">Vertical video with like, comment, share and <b>Tip</b>.</p></div>
+    <div class="frame"><div class="cap"><b>Profile</b><span>04</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/04-profile.html"></iframe></div>
+      <p class="note">Score, Portfolio, Education, and <b>manually entered</b> coding stats for LeetCode, GFG and CodeChef. Subscription state, Payments, Clear Cache, Logout.</p></div>
+    <div class="frame"><div class="cap"><b>Notifications</b><span>05</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/05-notifications.html"></iframe></div>
+      <p class="note"><i>System &amp; Social Logs</i> · Recent transmissions.</p></div>
+    <div class="frame"><div class="cap"><b>Chats</b><span>06</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/06-chat-list.html"></iframe></div>
+      <p class="note"><b>Dedicated Channels</b> — Student-Alumni Chat and the <b>PRO</b> Professional Hub — above recent DMs.</p></div>
+    <div class="frame"><div class="cap"><b>Search</b><span>07</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/07-search.html"></iframe></div>
+      <p class="note"><i>Global Campus Directory</i>. People only, with Recent Registry Lookups.</p></div>
+    <div class="frame"><div class="cap"><b>Log in</b><span>08</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/08-login.html"></iframe></div>
+      <p class="note">Email or username + password, Forgot Password, then <b>Join as Alumni / Join as Recruiter</b>. <b>No OAuth</b> — the app has none.</p></div>
+    <div class="frame"><div class="cap"><b>Signup</b><span>09</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/09-signup.html"></iframe></div>
+      <p class="note">Email, Username, Phone, Password, T&amp;C → <b>Send OTP</b> → verify. The OTP comes <i>after</i> the password, not instead of it.</p></div>
+    <div class="frame"><div class="cap"><b>Profile Setup</b><span>10</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/10-profile-setup.html"></iframe></div>
+      <p class="note">Full Name, Birthday, then Gender / College Name / Your Major / Passout Year, with the searchable college picker.</p></div>
+  </div>
+
+  <div class="sec">
+    <div class="rule"><span class="label">Study</span><span class="line"></span><span class="count">6</span></div>
+    <p class="body" style="max-width:640px;margin:4px 0 0">Six services.</p>
+  </div>
+  <div class="board">
+    <div class="frame"><div class="cap"><b>Study Assistant</b><span>11</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/11-study-assistant.html"></iframe></div>
+      <p class="note">Cited <b>Source</b> chips and <code>Generate Protocol Guide</code>.</p></div>
+    <div class="frame"><div class="cap"><b>Study Material</b><span>12</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/12-study-material.html"></iframe></div>
+      <p class="note">Drive browser: Current Path, All / Folders / PDFs.</p></div>
+    <div class="frame"><div class="cap"><b>Fync Academy</b><span>13</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/13-academy.html"></iframe></div>
+      <p class="note">Fync Search + <b>PDF Only</b> toggle. Tracks: Interview Prep, FAANG Prep, DSA Prep.</p></div>
+    <div class="frame"><div class="cap"><b>Focus Forest</b><span>14</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/14-focus.html"></iframe></div>
+      <p class="note">A <b>Forest</b>, not a Pomodoro: Plant a Tree, Lockdown Active, Claim Tree / Give Up, and Trees Grown / Total Mins / <b>Withered</b>.</p></div>
+    <div class="frame"><div class="cap"><b>BunkOMeter</b><span>15</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/15-bunkometer.html"></iframe></div>
+      <p class="note"><b>One calculator</b>: Attended, Total Held, Target % → Execute Analysis. Not a per-subject list.</p></div>
+    <div class="frame"><div class="cap"><b>Utility Hub</b><span>16</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/16-utility-hub.html"></iframe></div>
+      <p class="note"><b>Exactly three tools</b> — Image to PDF, Image Compressor, QR Generator.</p></div>
+  </div>
+
+  <div class="sec">
+    <div class="rule"><span class="label">Career</span><span class="line"></span><span class="count">8</span></div>
+    <p class="body" style="max-width:640px;margin:4px 0 0">Eight services, including the two the first cut missed entirely.</p>
+  </div>
+  <div class="board">
+    <div class="frame"><div class="cap"><b>Internships</b><span>17</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/17-internships.html"></iframe></div>
+      <p class="note"><i>Professional Opportunity Archive</i>. Market Registry / Shortlisted, <b>Monthly Stipend</b>, and the real apply flow: Review Application → Candidate Verification → Confirm.</p></div>
+    <div class="frame"><div class="cap"><b>Jobs</b><span>18</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/18-jobs.html"></iframe></div>
+      <p class="note">Same archive, <b>Capital Package</b> instead of stipend.</p></div>
+    <div class="frame"><div class="cap"><b>Workshops</b><span>19</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/19-workshops.html"></iframe></div>
+      <p class="note"><i>Industry Masterclass Archive</i> · Registration Ends · Access Portal.</p></div>
+    <div class="frame"><div class="cap"><b>Paid Gigs</b><span>20</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/20-paid-gigs.html"></iframe></div>
+      <p class="note">Tabs College / Global / Mine. Stipend Allocation and Visible Radius.</p></div>
+    <div class="frame"><div class="cap"><b>Placement Hub</b><span>21</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/21-placement-hub.html"></iframe></div>
+      <p class="note">Predictor, AI Resume Scan, Mock Sync, Strategic Targets, plus the crowd-sourced interview intel ledger by company.</p></div>
+    <div class="frame"><div class="cap"><b>Placement Predictor</b><span>22</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/22-placement-predictor.html"></iframe></div>
+      <p class="note">CGPA + resume → Placement Probability, ATS Friendliness, Est. Market Value, Roadmap.</p></div>
+    <div class="frame"><div class="cap"><b>Profile Builder</b><span>23</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/23-profile-builder.html"></iframe></div>
+      <p class="note">Overview / Projects / Work / Certs, Profile Completeness, Boost Score.</p></div>
+    <div class="frame"><div class="cap"><b>Fync AI Interview</b><span>24</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/24-ai-interview.html"></iframe></div>
+      <p class="note">Role, experience, duration &amp; price, resume → paid round with <b>Laura AI</b>, scored Technical and Soft Skills.</p></div>
+  </div>
+
+  <div class="sec">
+    <div class="rule"><span class="label">Events &amp; contests</span><span class="line"></span><span class="count">12</span></div>
+    <p class="body" style="max-width:640px;margin:4px 0 0">Twelve screens — the hackathon system alone is six.</p>
+  </div>
+  <div class="board">
+    <div class="frame"><div class="cap"><b>Hackathon Hub</b><span>25</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/25-hackathon-hub.html"></iframe></div>
+      <p class="note">Discover / My Hackathons, filters All · Live · Upcoming · Judging · Ended · Draft.</p></div>
+    <div class="frame"><div class="cap"><b>Hackathon</b><span>26</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/26-hackathon-detail.html"></iframe></div>
+      <p class="note">My Team, Organiser, Prize Pool, Rules, Colleges, Judges, Announcements, Discord.</p></div>
+    <div class="frame"><div class="cap"><b>Teams</b><span>27</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/27-hackathon-team.html"></iframe></div>
+      <p class="note">Create Team, Request to Join, Open / Closed, incoming requests.</p></div>
+    <div class="frame"><div class="cap"><b>Submission</b><span>28</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/28-hackathon-submission.html"></iframe></div>
+      <p class="note">Tagline, Tech Stack, GitHub, Demo, Attachments, Save Draft / Next.</p></div>
+    <div class="frame"><div class="cap"><b>Bootcamps</b><span>29</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/29-bootcamps.html"></iframe></div>
+      <p class="note">Multi-day with a <b>QR ticket</b>, attendance tracker and My Passes.</p></div>
+    <div class="frame"><div class="cap"><b>Speaker Sessions</b><span>30</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/30-speakers.html"></iframe></div>
+      <p class="note">Entry Protocol, Capacity, Monetization, Network Hub.</p></div>
+    <div class="frame"><div class="cap"><b>Contests</b><span>31</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/31-contests.html"></iframe></div>
+      <p class="note">Problem view with Input/Output samples, Run Code, Submit, global leaderboard.</p></div>
+    <div class="frame"><div class="cap"><b>1v1 Battle</b><span>32</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/32-battle-1v1.html"></iframe></div>
+      <p class="note">The six real domains: DSA, Frontend, Backend, System Design, DevOps, Cyber Security.</p></div>
+    <div class="frame"><div class="cap"><b>Create Quiz Room</b><span>33</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/33-create-room.html"></iframe></div>
+      <p class="note">Specialization, Capacity, Duration, Execution Time, Finalize Node.</p></div>
+    <div class="frame"><div class="cap"><b>Join Quiz Room</b><span>34</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/34-join-room.html"></iframe></div>
+      <p class="note"><b>Six-digit</b> room node, lobby, final ranking.</p></div>
+    <div class="frame"><div class="cap"><b>Coding Leaderboard</b><span>35</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/35-coding-leaderboard.html"></iframe></div>
+      <p class="note"><b>LeetCode only</b>, and gated behind Link Profile &amp; Enter. Total / Easy / Med / Hard, Contest Rating.</p></div>
+    <div class="frame"><div class="cap"><b>Shadow Rival</b><span>36</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/36-shadow-rival.html"></iframe></div>
+      <p class="note"><b>One</b> anonymous match revealed at semester end. Problems Solved, Commits Pushed, Day Streak. Reroll / Opt Out.</p></div>
+  </div>
+
+  <div class="sec">
+    <div class="rule"><span class="label">Social</span><span class="line"></span><span class="count">8</span></div>
+    <p class="body" style="max-width:640px;margin:4px 0 0">Eight services.</p>
+  </div>
+  <div class="board">
+    <div class="frame"><div class="cap"><b>Campus Alumni</b><span>37</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/37-alumni.html"></iframe></div>
+      <p class="note"><i>Professional Alumni Registry</i> with the Batches filter sheet.</p></div>
+    <div class="frame"><div class="cap"><b>Alumni Connect</b><span>38</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/38-alumni-connect.html"></iframe></div>
+      <p class="note">Batch-only room. Alumni access only.</p></div>
+    <div class="frame"><div class="cap"><b>Professional Hub</b><span>39</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/39-professional-hub.html"></iframe></div>
+      <p class="note">STUDENT-ALUMNI, marked PRO, with 5 MB mentorship uploads.</p></div>
+    <div class="frame"><div class="cap"><b>Find Teammate</b><span>40</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/40-find-teammate.html"></iframe></div>
+      <p class="note">Global / Campus, search by skill, Chat.</p></div>
+    <div class="frame"><div class="cap"><b>Community Hubs</b><span>41</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/41-communities.html"></iframe></div>
+      <p class="note">Paid hubs: Spark ₹99 / Eternal ₹999, Guardian role, Linked Sectors, Hot / New / Top.</p></div>
+    <div class="frame"><div class="cap"><b>College Clubs</b><span>42</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/42-clubs.html"></iframe></div>
+      <p class="note">Six-digit join code, sub-rooms, announcement-only mode, pending clearance.</p></div>
+    <div class="frame"><div class="cap"><b>Startup Feed</b><span>43</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/43-startup-feed.html"></iframe></div>
+      <p class="note"><i>Innovation Hub</i> — Connect and a discussion thread. Posted from the FAB.</p></div>
+    <div class="frame"><div class="cap"><b>Fync Media</b><span>44</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/44-fync-media.html"></iframe></div>
+      <p class="note"><i>Broadcast Archive &amp; News</i> — video, thumbnail, tags, threaded comments.</p></div>
+  </div>
+
+  <div class="sec">
+    <div class="rule"><span class="label">Campus</span><span class="line"></span><span class="count">5</span></div>
+    <p class="body" style="max-width:640px;margin:4px 0 0">Five services.</p>
+  </div>
+  <div class="board">
+    <div class="frame"><div class="cap"><b>College Chat</b><span>45</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/45-college-chat.html"></iframe></div>
+      <p class="note"><b>Vanish every 24h • Keep it real</b>, with the Expires In counter.</p></div>
+    <div class="frame"><div class="cap"><b>Notice Board</b><span>46</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/46-notice-board.html"></iframe></div>
+      <p class="note">Campus / Global, official posts with attachments and a discussion log.</p></div>
+    <div class="frame"><div class="cap"><b>Campus OLX</b><span>47</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/47-campus-olx.html"></iframe></div>
+      <p class="note">Artifacts with Valuation, In Stock, Seller Information, Chat with Seller.</p></div>
+    <div class="frame"><div class="cap"><b>Lost &amp; Found</b><span>48</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/48-lost-found.html"></iframe></div>
+      <p class="note">Lost Assets / Found Units, Location Coordinates, Deploy Report to HQ.</p></div>
+    <div class="frame"><div class="cap"><b>Rewards Store</b><span>49</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/49-rewards-store.html"></iframe></div>
+      <p class="note"><b>Fync Coins</b> balance, Stock Out, and the real checkout: Shipping Destination, Mobile Comms, Zip, Delivery Node.</p></div>
+  </div>
+
+  <div class="sec">
+    <div class="rule"><span class="label">Fun</span><span class="line"></span><span class="count">5</span></div>
+    <p class="body" style="max-width:640px;margin:4px 0 0">Five services.</p>
+  </div>
+  <div class="board">
+    <div class="frame"><div class="cap"><b>Party Pool</b><span>50</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/50-party-pool.html"></iframe></div>
+      <p class="note">The <b>eight</b> real games, including Fync Chess vs FyncBot.</p></div>
+    <div class="frame"><div class="cap"><b>12 AM Club</b><span>51</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/51-nightclub.html"></iframe></div>
+      <p class="note"><b>Random 1-to-1 stranger chat</b> — not a feed. Locked until midnight, Unknown Soul, Next →.</p></div>
+    <div class="frame"><div class="cap"><b>Confessions</b><span>52</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/52-confessions.html"></iframe></div>
+      <p class="note">Anonymous feed plus encrypted comment threads. Separate from the 12 AM Club.</p></div>
+    <div class="frame"><div class="cap"><b>Audio &amp; Video Rooms</b><span>53</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/53-calls.html"></iframe></div>
+      <p class="note">One shared lobby: Online now, Ringing… with Accept / Decline.</p></div>
+    <div class="frame"><div class="cap"><b>Entertainment</b><span>54</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/54-entertainment.html"></iframe></div>
+      <p class="note">Trending, categories, Trailer Reels, Watchlist.</p></div>
+  </div>
+
+  <div class="sec">
+    <div class="rule"><span class="label">Account</span><span class="line"></span><span class="count">6</span></div>
+    <p class="body" style="max-width:640px;margin:4px 0 0">Six screens, two of them role-gated.</p>
+  </div>
+  <div class="board">
+    <div class="frame"><div class="cap"><b>Fync Premium</b><span>55</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/55-subscription.html"></iframe></div>
+      <p class="note">Pro · Full Access Pass, and the Plan Expired state.</p></div>
+    <div class="frame"><div class="cap"><b>Contact Us</b><span>56</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/56-contact-us.html"></iframe></div>
+      <p class="note">Operator Identity, Signal Frequency, Digital Ledger, Visual Evidence. HQ is KIET.</p></div>
+    <div class="frame"><div class="cap"><b>Meet Our Team</b><span>57</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/57-meet-team.html"></iframe></div>
+      <p class="note">The four real people.</p></div>
+    <div class="frame"><div class="cap"><b>Admin Portal</b><span>58</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/58-admin-portal.html"></iframe></div>
+      <p class="note">Password gate, reports queue, Global Price Engine, Global Broadcast.</p></div>
+    <div class="frame"><div class="cap"><b>Recruiter Portal</b><span>59</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/59-recruiter-portal.html"></iframe></div>
+      <p class="note">Applicant tracking with the GitHub Stats Preview, Shortlist / Approve / Remove.</p></div>
+    <div class="frame"><div class="cap"><b>Fync Store</b><span>60</span></div>
+      <div class="phone"><iframe loading="lazy" src="screens/60-fync-store.html"></iframe></div>
+      <p class="note">Affiliate products → secure webview checkout → I've Purchased.</p></div>
+  </div>
+</div>

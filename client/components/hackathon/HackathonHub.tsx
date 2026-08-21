@@ -60,11 +60,11 @@ interface Hackathon {
 // The accent (brand-500) is reserved for interactive affordances, so it is
 // deliberately not used as a status colour here.
 const STATUS_META: Record<string, { label: string; chip: string; text: string; dot: string }> = {
-  active: { label: 'Live', chip: 'bg-emerald-50 border-emerald-100', text: 'text-emerald-600', dot: '#10b981' },
-  upcoming: { label: 'Upcoming', chip: 'bg-blue-50 border-blue-100', text: 'text-blue-600', dot: '#3b82f6' },
-  judging: { label: 'Judging', chip: 'bg-amber-50 border-amber-100', text: 'text-amber-600', dot: '#f59e0b' },
-  completed: { label: 'Ended', chip: 'bg-slate-100 border-slate-200', text: 'text-slate-500', dot: '#94a3b8' },
-  draft: { label: 'Draft', chip: 'bg-slate-100 border-slate-200', text: 'text-slate-500', dot: '#cbd5e1' },
+  active: { label: 'Live', chip: 'bg-success/10 border-success/25', text: 'text-success', dot: '#047857' },
+  upcoming: { label: 'Upcoming', chip: 'bg-fam-career/10 border-fam-career/25', text: 'text-fam-career', dot: '#2563EB' },
+  judging: { label: 'Judging', chip: 'bg-warning/10 border-warning/25', text: 'text-warning', dot: '#B45309' },
+  completed: { label: 'Ended', chip: 'bg-paper-2 border-line', text: 'text-ink-3', dot: '#8B857E' },
+  draft: { label: 'Draft', chip: 'bg-paper-2 border-line', text: 'text-ink-3', dot: '#C4BEB6' },
 };
 
 const FILTERS = [
@@ -98,10 +98,13 @@ const HackathonCard = memo(
     isOrganiser,
     onOpen,
     onConsole,
+    stamped,
   }: {
     item: Hackathon;
     width: number;
     isOrganiser: boolean;
+    /** The one live hackathon carries the screen's stamp. */
+    stamped?: boolean;
     onOpen: (id: string) => void;
     onConsole: (h: Hackathon) => void;
   }) => {
@@ -110,60 +113,59 @@ const HackathonCard = memo(
 
     return (
       <View
-        className="bg-white rounded-card overflow-hidden border border-slate-100"
+        className={`bg-card rounded-card overflow-hidden ${stamped ? 'border-2 border-ink' : 'border border-line'}`}
         style={{
           width,
           marginBottom: CARD_GAP,
-          shadowColor: '#0f172a',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.06,
-          shadowRadius: 12,
+          shadowColor: '#12100E',
+          shadowOffset: stamped ? { width: 4, height: 4 } : { width: 0, height: 4 },
+          shadowOpacity: stamped ? 1 : 0.06,
+          shadowRadius: stamped ? 0 : 12,
           elevation: 2,
         }}
       >
         <Pressable
           onPress={() => onOpen(item._id)}
-          android_ripple={{ color: 'rgba(15,23,42,0.06)' }}
+          android_ripple={{ color: 'rgba(18, 16, 14,0.06)' }}
           style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }]}
         >
           {/* Banner */}
-          <View style={{ height: BANNER_H }} className="bg-slate-900">
+          <View style={{ height: BANNER_H }} className="bg-ink">
             {item.bannerImage ? (
               <Image source={{ uri: item.bannerImage }} className="w-full h-full" resizeMode="cover" />
             ) : (
-              <LinearGradient
-                colors={['#1e293b', '#0f172a']}
+              <View
                 className="w-full h-full items-center justify-center"
-              >
+               style={{ backgroundColor: '#12100E' }}>
                 <MaterialCommunityIcons name="code-braces" size={40} color="rgba(255,255,255,0.12)" />
-              </LinearGradient>
+              </View>
             )}
 
             {/* Legibility scrim under the pills */}
             <LinearGradient
-              colors={['rgba(15,23,42,0.55)', 'transparent', 'rgba(15,23,42,0.65)']}
+              colors={['rgba(18, 16, 14,0.55)', 'transparent', 'rgba(18, 16, 14,0.65)']}
               className="absolute inset-0"
             />
 
             {/* Status pill */}
-            <View className="absolute top-3 left-3 flex-row items-center bg-white/95 px-2.5 py-1.5 rounded-lg">
+            <View className="absolute top-3 left-3 flex-row items-center bg-card/95 px-2.5 py-1.5 rounded-lg">
               <View className="w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: status.dot }} />
-              <Text className={`text-2xs font-bold ${status.text}`}>{status.label}</Text>
+              <Text className={`text-label font-semibold ${status.text}`}>{status.label}</Text>
             </View>
 
             {/* My role, when this is one of mine */}
             {item.myRole ? (
-              <View className="absolute top-3 right-3 bg-slate-900/80 px-2.5 py-1.5 rounded-lg">
-                <Text className="text-2xs font-bold text-white">{ROLE_LABEL[item.myRole] ?? item.myRole}</Text>
+              <View className="absolute top-3 right-3 bg-ink/80 px-2.5 py-1.5 rounded-lg">
+                <Text className="text-label font-semibold text-white">{ROLE_LABEL[item.myRole] ?? item.myRole}</Text>
               </View>
             ) : null}
 
             {/* Prize pool */}
             {item.prizepool ? (
               <View className="absolute bottom-3 left-3 flex-row items-center">
-                <Ionicons name="trophy" size={13} color="#fdba74" />
-                <Text className="text-white text-sm font-bold ml-1.5">{item.prizepool}</Text>
-                <Text className="text-white/60 text-2xs font-semibold ml-1.5">prize pool</Text>
+                <Ionicons name="trophy" size={13} color="#F97316" />
+                <Text className="text-white text-sm font-semibold ml-1.5">{item.prizepool}</Text>
+                <Text className="text-white/60 text-label font-semibold ml-1.5">prize pool</Text>
               </View>
             ) : null}
           </View>
@@ -173,40 +175,40 @@ const HackathonCard = memo(
             {/* Organiser + dates */}
             <View className="flex-row items-center justify-between mb-2.5">
               <View className="flex-row items-center flex-1 mr-3">
-                <View className="w-7 h-7 rounded-lg bg-slate-50 border border-slate-100 items-center justify-center overflow-hidden mr-2">
+                <View className="w-7 h-7 rounded-lg bg-paper-2 border border-line items-center justify-center overflow-hidden mr-2">
                   {item.logo ? (
                     <Image source={{ uri: item.logo }} className="w-full h-full" resizeMode="contain" />
                   ) : (
-                    <MaterialCommunityIcons name="domain" size={14} color="#94a3b8" />
+                    <MaterialCommunityIcons name="domain" size={14} color="#8B857E" />
                   )}
                 </View>
-                <Text className="text-slate-500 text-2xs font-semibold flex-1" numberOfLines={1}>
+                <Text className="text-ink-3 text-label font-semibold flex-1" numberOfLines={1}>
                   {item.organiser?.name || 'Fync'}
                 </Text>
               </View>
-              <View className="flex-row items-center bg-slate-50 px-2 py-1 rounded-md">
-                <Feather name="calendar" size={11} color="#64748b" />
-                <Text className="text-slate-600 text-2xs font-semibold ml-1">
+              <View className="flex-row items-center bg-paper-2 px-2 py-1 rounded-md">
+                <Feather name="calendar" size={11} color="#8B857E" />
+                <Text className="text-ink-2 text-label font-semibold ml-1">
                   {fmtDate(item.hackathonstarts)} – {fmtDate(item.hackathonends)}
                 </Text>
               </View>
             </View>
 
             {/* Title */}
-            <Text className="text-slate-900 text-lg font-extrabold leading-6 mb-2.5" numberOfLines={2}>
+            <Text className="text-ink text-lg font-display leading-6 mb-2.5" numberOfLines={2}>
               {item.title}
             </Text>
 
             {/* Meta */}
             <View className="flex-row items-center mb-3">
-              <Feather name="users" size={12} color="#94a3b8" />
-              <Text className="text-slate-500 text-2xs font-semibold ml-1.5">
+              <Feather name="users" size={12} color="#8B857E" />
+              <Text className="text-ink-3 text-label font-semibold ml-1.5">
                 {participants} registered
               </Text>
               {item.MaxTeamSize ? (
                 <>
-                  <View className="w-1 h-1 rounded-full bg-slate-300 mx-2" />
-                  <Text className="text-slate-500 text-2xs font-semibold">
+                  <View className="w-1 h-1 rounded-full bg-paper-2 mx-2" />
+                  <Text className="text-ink-3 text-label font-semibold">
                     Teams of {item.MaxTeamSize}
                   </Text>
                 </>
@@ -217,13 +219,13 @@ const HackathonCard = memo(
             {item.tags?.length ? (
               <View className="flex-row flex-wrap" style={{ gap: 6 }}>
                 {item.tags.slice(0, 3).map((tag, i) => (
-                  <View key={`${tag}-${i}`} className="bg-slate-50 border border-slate-100 px-2 py-1 rounded-md">
-                    <Text className="text-2xs text-slate-500 font-semibold">{tag}</Text>
+                  <View key={`${tag}-${i}`} className="bg-paper-2 border border-line px-2 py-1 rounded-md">
+                    <Text className="text-label text-ink-3 font-semibold">{tag}</Text>
                   </View>
                 ))}
                 {item.tags.length > 3 ? (
                   <View className="px-2 py-1">
-                    <Text className="text-2xs text-slate-400 font-semibold">+{item.tags.length - 3}</Text>
+                    <Text className="text-label text-ink-3 font-semibold">+{item.tags.length - 3}</Text>
                   </View>
                 ) : null}
               </View>
@@ -236,11 +238,11 @@ const HackathonCard = memo(
         {isOrganiser ? (
           <TouchableOpacity
             onPress={() => onConsole(item)}
-            className="flex-row items-center justify-center border-t border-slate-100 py-3"
+            className="flex-row items-center justify-center border-t border-line py-3"
             activeOpacity={0.7}
           >
-            <MaterialCommunityIcons name="view-dashboard-outline" size={15} color="#f97316" />
-            <Text className="text-brand-600 text-2xs font-bold ml-2">Open organiser console</Text>
+            <MaterialCommunityIcons name="view-dashboard-outline" size={15} color="#F97316" />
+            <Text className="text-brand-600 text-label font-semibold ml-2">Open organiser console</Text>
           </TouchableOpacity>
         ) : null}
       </View>
@@ -276,56 +278,56 @@ const ListHeader = memo(
       {/* Title row */}
       <View className="flex-row items-start justify-between mb-4">
         <View className="flex-1 mr-3">
-          <Text className="text-slate-900 text-2xl font-extrabold">
+          <Text className="text-ink text-2xl font-display">
             Hackathon <Text className="text-brand-500">Hub</Text>
           </Text>
-          <Text className="text-slate-500 text-2xs font-semibold mt-0.5">
+          <Text className="text-ink-3 text-label font-semibold mt-0.5">
             Build, team up and ship
           </Text>
         </View>
         <TouchableOpacity
           onPress={onCreate}
-          className="flex-row items-center bg-slate-900 px-3.5 py-2.5 rounded-xl"
+          className="flex-row items-center bg-ink px-3.5 py-2.5 border-2 border-ink rounded-md"
           activeOpacity={0.85}
         >
-          <MaterialCommunityIcons name="plus" size={15} color="#f97316" />
-          <Text className="text-white text-2xs font-bold ml-1">Host</Text>
+          <MaterialCommunityIcons name="plus" size={15} color="#F97316" />
+          <Text className="text-white text-label font-semibold ml-1">Host</Text>
         </TouchableOpacity>
       </View>
 
       {/* Search */}
-      <View className="flex-row items-center bg-white rounded-xl border border-slate-200 px-3 mb-3" style={{ height: 44 }}>
-        <Feather name="search" size={16} color="#94a3b8" />
+      <View className="flex-row items-center bg-card border-2 border-ink px-3 mb-3 rounded-md" style={{ height: 44 }}>
+        <Feather name="search" size={16} color="#8B857E" />
         <TextInput
           placeholder="Search hackathons or tags"
-          placeholderTextColor="#94a3b8"
+          placeholderTextColor="#8B857E"
           value={search}
           onChangeText={onSearch}
           returnKeyType="search"
           autoCorrect={false}
-          className="flex-1 ml-2 text-slate-900 text-sm"
+          className="flex-1 ml-2 text-ink text-sm"
           style={{ paddingVertical: 0 }}
         />
         {search.length > 0 ? (
           <TouchableOpacity onPress={() => onSearch('')} hitSlop={8}>
-            <Ionicons name="close-circle" size={17} color="#cbd5e1" />
+            <Ionicons name="close-circle" size={17} color="#C4BEB6" />
           </TouchableOpacity>
         ) : null}
       </View>
 
       {/* Discover / Mine */}
-      <View className="flex-row bg-slate-100 rounded-xl p-1 mb-3">
+      <View className="flex-row bg-paper-2 rounded-xl p-1 mb-3">
         {TABS.map((t) => {
           const on = view === t.value;
           return (
             <TouchableOpacity
               key={t.value}
               onPress={() => onView(t.value as 'discover' | 'mine')}
-              className={`flex-1 flex-row items-center justify-center py-2.5 rounded-lg ${on ? 'bg-white' : ''}`}
+              className={`flex-1 flex-row items-center justify-center py-2.5 rounded-lg ${on ? 'bg-card' : ''}`}
               activeOpacity={0.8}
             >
-              <Ionicons name={t.icon as any} size={14} color={on ? '#f97316' : '#94a3b8'} />
-              <Text className={`ml-1.5 text-2xs font-bold ${on ? 'text-slate-900' : 'text-slate-500'}`}>
+              <Ionicons name={t.icon as any} size={14} color={on ? '#F97316' : '#8B857E'} />
+              <Text className={`ml-1.5 text-label font-semibold ${on ? 'text-ink' : 'text-ink-3'}`}>
                 {t.label}
               </Text>
             </TouchableOpacity>
@@ -347,12 +349,10 @@ const ListHeader = memo(
               <TouchableOpacity
                 key={f.value || 'all'}
                 onPress={() => onFilter(f.value)}
-                className={`px-3.5 py-2 rounded-lg border ${
- on ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-200'
- }`}
+                className={`px-3.5 py-2 rounded-lg border ${ on ? 'bg-ink border-ink' : 'bg-card border-line' }`}
                 activeOpacity={0.8}
               >
-                <Text className={`text-2xs font-bold ${on ? 'text-white' : 'text-slate-600'}`}>
+                <Text className={`text-label font-semibold ${on ? 'text-white' : 'text-ink-2'}`}>
                   {f.label}
                 </Text>
               </TouchableOpacity>
@@ -480,16 +480,17 @@ const HackathonHub = () => {
     h.myRole === 'organiser' || (!!user?._id && h.organiser?._id === user._id);
 
   return (
-    <View className="flex-1 bg-slate-50">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <SafeAreaView className="flex-1" edges={['top']}>
         <FlatList
           data={filtered}
           keyExtractor={(item) => item._id}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <HackathonCard
               item={item}
               width={cardWidth}
+              stamped={index === 0 && item.status === 'active'}
               isOrganiser={isOrganiserOf(item)}
               onOpen={openDetail}
               onConsole={openConsole}
@@ -499,7 +500,7 @@ const HackathonHub = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f97316" colors={['#f97316']} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" colors={['#F97316']} />
           }
           onEndReached={onEndReached}
           onEndReachedThreshold={0.6}
@@ -517,7 +518,7 @@ const HackathonHub = () => {
           ListFooterComponent={
             loadingMore ? (
               <View className="py-6 items-center">
-                <ActivityIndicator size="small" color="#f97316" />
+                <ActivityIndicator size="small" color="#F97316" />
               </View>
             ) : (
               <View style={{ height: 8 }} />
@@ -526,21 +527,21 @@ const HackathonHub = () => {
           ListEmptyComponent={
             loading ? (
               <View className="py-20 items-center">
-                <ActivityIndicator size="large" color="#f97316" />
+                <ActivityIndicator size="large" color="#F97316" />
               </View>
             ) : (
-              <View className="items-center px-8" style={{ paddingTop: 56 }}>
-                <View className="w-16 h-16 rounded-2xl bg-white border border-slate-100 items-center justify-center mb-4">
-                  <MaterialCommunityIcons name="rocket-launch-outline" size={28} color="#cbd5e1" />
+              <View className="items-center px-gutter" style={{ paddingTop: 56 }}>
+                <View className="w-16 h-16 rounded-card bg-card border border-line items-center justify-center mb-4">
+                  <MaterialCommunityIcons name="rocket-launch-outline" size={28} color="#C4BEB6" />
                 </View>
-                <Text className="text-slate-900 text-base font-bold text-center mb-1">
+                <Text className="text-ink text-base font-semibold text-center mb-1">
                   {search
                     ? 'No matches'
                     : view === 'mine'
                     ? 'Nothing here yet'
                     : 'No hackathons yet'}
                 </Text>
-                <Text className="text-slate-500 text-2xs font-semibold text-center leading-4">
+                <Text className="text-ink-3 text-label font-semibold text-center leading-4">
                   {search
                     ? `Nothing matches “${search}”.`
                     : view === 'mine'
@@ -550,11 +551,11 @@ const HackathonHub = () => {
                 {!search && view === 'discover' ? (
                   <TouchableOpacity
                     onPress={openCreate}
-                    className="flex-row items-center bg-slate-900 px-4 py-3 rounded-xl mt-5"
+                    className="flex-row items-center bg-ink px-4 py-3 mt-5 border-2 border-ink rounded-md"
                     activeOpacity={0.85}
                   >
-                    <MaterialCommunityIcons name="plus" size={15} color="#f97316" />
-                    <Text className="text-white text-2xs font-bold ml-1.5">Host a hackathon</Text>
+                    <MaterialCommunityIcons name="plus" size={15} color="#F97316" />
+                    <Text className="text-white text-label font-semibold ml-1.5">Host a hackathon</Text>
                   </TouchableOpacity>
                 ) : null}
               </View>

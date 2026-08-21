@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {View, TextInput, Text, TouchableOpacity, ActivityIndicator, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -35,41 +34,44 @@ const JoinRoomInput = () => {
   };
 
   return (
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
       <SafeAreaView className="flex-1">
 
         {/* Header with Back Button */}
-        <View className="flex-row items-center px-8 pt-8 mb-4">
+        <View className="flex-row items-center px-gutter pt-8 mb-4">
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             activeOpacity={0.9}
-            className="w-12 h-12 bg-white rounded-2xl items-center justify-center border border-slate-100 shadow-sm shadow-black/5 mr-4"
+            className="w-11 h-11 items-center justify-center rounded-xl"
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name="arrow-back" size={24} color="#18181b" />
+          
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
+            <Ionicons name="arrow-back" size={24} color="#12100E" />
           </TouchableOpacity>
           <View>
-            <Text className="text-slate-900 text-3xl font-black  tracking-tighter uppercase">
-              Join <Text className="text-pink-500">Room</Text>
+            <Text className="text-ink text-3xl font-display uppercase">
+              Join <Text className="text-accent-text">Room</Text>
             </Text>
-            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-0.5">Initialize Remote Sync</Text>
+            <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Initialize Remote Sync</Text>
           </View>
         </View>
 
         {/* Centered Content */}
-        <View className="flex-1 justify-center px-8 pb-24">
+        <View className="flex-1 justify-center px-gutter pb-24">
 
           {/* Main Card */}
-          <View className="bg-white p-10 rounded-5xl border border-slate-100 items-center shadow-2xl shadow-black/5">
+          <View className="bg-card p-card-pad rounded-sheet border border-line items-center shadow-hair">
 
-            <View className="bg-slate-50 w-24 h-24 rounded-4xl items-center justify-center mb-8 border border-slate-100">
-              <Ionicons name="keypad" size={40} color="#ec4899" />
+            <View className="bg-paper-2 w-24 h-24 rounded-sheet items-center justify-center mb-8 border border-line">
+              <Ionicons name="keypad" size={40} color="#F97316" />
             </View>
 
-            <Text className="text-2xl font-black  text-slate-900 mb-3 text-center uppercase tracking-tight">Enter Room Node</Text>
-            <Text className="text-slate-500 text-center mb-12 text-2xs font-black uppercase tracking-wider leading-5 px-4">
+            <Text className="text-2xl font-display text-ink mb-3 text-center uppercase">Enter Room Node</Text>
+            <Text className="font-sans text-sm text-ink-3 text-center mb-12 px-4">
               Establish connection by entering the 6-character room identifier provided by the host.
             </Text>
 
@@ -78,8 +80,9 @@ const JoinRoomInput = () => {
               value={roomId}
               onChangeText={setRoomId}
               placeholder="000000"
-              placeholderTextColor="#CBD5E1"
-              className="w-full bg-slate-50 border border-slate-100 p-6 rounded-3xl mb-10 text-center text-slate-900 text-4xl font-black  tracking-[12px] uppercase"
+              placeholderTextColor="#C4BEB6"
+              className="w-full bg-card border-2 border-ink p-6 rounded-card mb-10 text-center text-ink text-4xl font-display uppercase"
+              style={{ letterSpacing: 12, shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 }}
               autoCapitalize="characters"
               maxLength={6}
               autoCorrect={false}
@@ -90,15 +93,14 @@ const JoinRoomInput = () => {
               onPress={handleJoin}
               disabled={loading}
               activeOpacity={0.9}
-              className={`w-full py-6 rounded-4xl shadow-2xl flex-row justify-center items-center ${loading ? 'bg-pink-400' : 'bg-pink-500 shadow-pink-500/20'
-                }`}
+              className={`w-full py-5 rounded-card border-2 border-ink flex-row justify-center items-center ${loading ? 'bg-brand-200' : 'bg-brand-500'}`}
             >
               {loading ? (
-                <ActivityIndicator color="white" size="small" />
+                <ActivityIndicator color="#12100E" size="small" />
               ) : (
                 <>
-                  <Text className="text-white text-center font-black  text-lg mr-3 tracking-[3px] uppercase">Initialize</Text>
-                  <Ionicons name="rocket" size={20} color="white" />
+                  <Text className="font-display text-ink uppercase mr-2" style={{ fontSize: 14, letterSpacing: 0.3 }}>Initialize</Text>
+                  <Ionicons name="rocket" size={20} color="#12100E" />
                 </>
               )}
             </TouchableOpacity>

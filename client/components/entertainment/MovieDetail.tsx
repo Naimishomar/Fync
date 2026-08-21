@@ -52,8 +52,8 @@ const MovieDetail = () => {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-black justify-center items-center">
-        <ActivityIndicator size="large" color="#e11d48" />
+      <View className="flex-1 bg-ink justify-center items-center">
+        <ActivityIndicator size="large" color="#DB2777" />
       </View>
     );
   }
@@ -62,7 +62,7 @@ const MovieDetail = () => {
   const runtime = movie.runtime ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m` : 'N/A';
 
   return (
-    <View className="flex-1 bg-black">
+    <View className="flex-1 bg-ink">
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
         {/* Banner Section */}
         <View className="h-[450px] relative">
@@ -80,39 +80,42 @@ const MovieDetail = () => {
           <SafeAreaView className="absolute top-0 w-full flex-row justify-between items-center px-4" edges={['top']}>
             <TouchableOpacity 
               onPress={() => navigation.goBack()}
-              className="w-10 h-10 bg-black/40 rounded-full items-center justify-center border border-white/10"
-            >
+              className="w-11 h-11 items-center justify-center rounded-xl"
+            
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={{ marginLeft: -11 }}>
               <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
             <TouchableOpacity 
               onPress={handleShare}
               className="w-10 h-10 bg-black/40 rounded-full items-center justify-center border border-white/10"
-            >
+             hitSlop={2}>
               <Ionicons name="share-outline" size={24} color="white" />
             </TouchableOpacity>
           </SafeAreaView>
 
           {/* Action Buttons Overlay */}
           <View className="absolute bottom-6 w-full px-6">
-            <Text className="text-white text-3xl font-bold mb-2 shadow-lg">{movie.title}</Text>
+            <Text className="text-white text-3xl font-display mb-2 shadow-hair">{movie.title}</Text>
             <View className="flex-row items-center gap-3 mb-6">
               <View className="flex-row items-center">
-                <Ionicons name="star" size={16} color="#fbbf24" />
-                <Text className="text-white text-sm ml-1 font-bold">{movie.vote_average.toFixed(1)}</Text>
+                <Ionicons name="star" size={16} color="#B45309" />
+                <Text className="text-white text-sm ml-1 font-semibold">{movie.vote_average.toFixed(1)}</Text>
               </View>
-              <Text className="text-slate-500">•</Text>
-              <Text className="text-slate-500 text-sm font-medium">{releaseYear}</Text>
-              <Text className="text-slate-500">•</Text>
-              <Text className="text-slate-500 text-sm font-medium">{runtime}</Text>
+              <Text className="text-ink-3">•</Text>
+              <Text className="text-ink-3 text-sm font-medium">{releaseYear}</Text>
+              <Text className="text-ink-3">•</Text>
+              <Text className="text-ink-3 text-sm font-medium">{runtime}</Text>
             </View>
 
             <View className="flex-row gap-4">
               <TouchableOpacity 
                 onPress={() => navigation.navigate('TrailerReels', { movies: [movie] })}
-                className="flex-1 bg-rose-600 flex-row items-center justify-center py-4 rounded-xl shadow-lg shadow-rose-600/50"
+                className="flex-1 bg-danger flex-row items-center justify-center py-4 rounded-xl shadow-hair"
               >
                 <Ionicons name="play" size={20} color="white" />
-                <Text className="text-white font-bold ml-2 text-lg">Play Trailer</Text>
+                <Text className="text-white font-display ml-2 text-lg">Play Trailer</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -120,14 +123,14 @@ const MovieDetail = () => {
 
         {/* Details Section */}
         <View className="px-6 py-6">
-          <Text className="text-white text-xl font-bold mb-3">Overview</Text>
-          <Text className="text-slate-500 leading-6 text-base mb-8">
+          <Text className="text-white text-xl font-display mb-3">Overview</Text>
+          <Text className="text-ink-3 leading-6 text-base mb-8">
             {movie.overview}
           </Text>
 
           {/* More Like This */}
           <View className="mb-10">
-            <Text className="text-white text-xl font-bold mb-4">More Like This</Text>
+            <Text className="text-white text-xl font-display mb-4">More Like This</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {movie.similar?.results?.map((item: any) => (
                 <MovieCard

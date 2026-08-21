@@ -71,7 +71,7 @@ const RecruiterProfile = () => {
     };
 
     const renderHeader = () => (
-        <View className="bg-white">
+        <View className="bg-card">
             {/* Banner */}
             <View className="h-44 w-full relative">
                 <ExpoImage
@@ -85,15 +85,15 @@ const RecruiterProfile = () => {
                 <View className="absolute top-12 right-4 flex-row gap-3">
                     <TouchableOpacity
                         onPress={() => navigation.navigate('EditProfile')}
-                        className="bg-white/90 p-2.5 rounded-2xl shadow-sm"
+                        className="bg-card/90 p-2.5 rounded-card shadow-hair"
                     >
-                        <Ionicons name="settings-outline" size={20} color="#1f2937" />
+                        <Ionicons name="settings-outline" size={20} color="#57534E" />
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={handleLogout}
-                        className="bg-white/90 p-2.5 rounded-2xl shadow-sm"
+                        className="bg-card/90 p-2.5 rounded-card shadow-hair"
                     >
-                        <Ionicons name="log-out-outline" size={20} color="#ef4444" />
+                        <Ionicons name="log-out-outline" size={20} color="#DC2626" />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -101,56 +101,56 @@ const RecruiterProfile = () => {
             {/* Profile Info Overlay */}
             <View className="px-5 -mt-12 pb-6">
                 <View className="flex-row items-end justify-between">
-                    <View className="p-1.5 bg-white rounded-full shadow-xl">
+                    <View className="p-1.5 bg-card rounded-full shadow-hair">
                         <Avatar user={user as any} size={100} />
                     </View>
                 </View>
 
                 <View className="mt-4">
                     <View className="flex-row items-center gap-2">
-                        <Text className="text-2xl font-black text-slate-900  uppercase">
+                        <Text className="text-2xl font-display text-ink uppercase">
                             {user?.company || user?.name}
                         </Text>
-                        <MaterialCommunityIcons name="check-decagram" size={20} color="#6366f1" />
+                        <MaterialCommunityIcons name="check-decagram" size={20} color="#4F46E5" />
                     </View>
-                    <Text className="text-slate-500 font-bold text-xs uppercase tracking-wide mt-1">
+                    <Text className="text-ink-3 font-semibold text-xs uppercase mt-1">
                         {user?.industry || 'Corporate Partner'} • {user?.companySize || 'Growing Team'}
                     </Text>
 
                     <View className="flex-row items-center gap-4 mt-4">
-                        <View className="flex-row items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-full">
-                            <Ionicons name="business-outline" size={14} color="#64748b" />
-                            <Text className="text-slate-600 text-2xs font-bold uppercase tracking-tight">{user?.role || 'Hiring Manager'}</Text>
+                        <View className="flex-row items-center gap-1.5 bg-paper-2 px-3 py-1.5 rounded-full">
+                            <Ionicons name="business-outline" size={14} color="#8B857E" />
+                            <Text className="text-ink-2 text-label font-semibold uppercase">{user?.role || 'Hiring Manager'}</Text>
                         </View>
                         {user?.companyWebsite && (
                             <TouchableOpacity
                                 onPress={() => Linking.openURL(user.companyWebsite)}
-                                className="flex-row items-center gap-1.5 bg-indigo-50 px-3 py-1.5 rounded-full"
+                                className="flex-row items-center gap-1.5 bg-recruiter/10 px-3 py-1.5 rounded-full"
                             >
-                                <Ionicons name="globe-outline" size={14} color="#6366f1" />
-                                <Text className="text-indigo-600 text-2xs font-bold uppercase tracking-tight">Visit Website</Text>
+                                <Ionicons name="globe-outline" size={14} color="#4F46E5" />
+                                <Text className="text-recruiter text-label font-semibold uppercase">Visit Website</Text>
                             </TouchableOpacity>
                         )}
                     </View>
 
-                    <Text className="text-slate-500 text-xs mt-4 leading-5 ">
+                    <Text className="text-ink-3 text-xs mt-4 leading-5">
                         {user?.about || "We're committed to finding the best talent and building the future of innovation."}
                     </Text>
                 </View>
 
                 {/* Corporate Stats Card */}
-                <View className="flex-row bg-slate-900 rounded-2xl p-5 mt-6 shadow-xl border border-slate-800">
-                    <View className="flex-1 items-center border-r border-slate-800">
-                        <Text className="text-white text-xl font-black ">{stats.activePosts}</Text>
-                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">Active Roles</Text>
+                <View className="flex-row bg-ink rounded-card p-5 mt-6 shadow-hair border border-ink">
+                    <View className="flex-1 items-center border-r border-ink">
+                        <Text className="text-white text-xl font-display">{stats.activePosts}</Text>
+                        <Text className="text-ink-3 text-label font-display uppercase mt-1">Active Roles</Text>
                     </View>
-                    <View className="flex-1 items-center border-r border-slate-800">
-                        <Text className="text-white text-xl font-black ">{stats.totalApplicants}</Text>
-                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">Total Applicants</Text>
+                    <View className="flex-1 items-center border-r border-ink">
+                        <Text className="text-white text-xl font-display">{stats.totalApplicants}</Text>
+                        <Text className="text-ink-3 text-label font-display uppercase mt-1">Total Applicants</Text>
                     </View>
                     <View className="flex-1 items-center">
-                        <Text className="text-white text-xl font-black ">{stats.totalPosts}</Text>
-                        <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide mt-1">Total Posts</Text>
+                        <Text className="text-white text-xl font-display">{stats.totalPosts}</Text>
+                        <Text className="text-ink-3 text-label font-display uppercase mt-1">Total Posts</Text>
                     </View>
                 </View>
             </View>
@@ -160,94 +160,94 @@ const RecruiterProfile = () => {
     const renderAboutTab = () => (
         <View className="p-5">
             {/* Company Highlights */}
-            <View className="bg-white rounded-4xl p-6 border border-slate-100 shadow-sm mb-4">
+            <View className="bg-card rounded-sheet p-6 border border-line shadow-hair mb-4">
                 <View className="flex-row items-center gap-2 mb-4">
-                    <View className="w-1 h-5 rounded-full bg-indigo-500" />
-                    <Text className="text-slate-900 font-black  uppercase text-xs tracking-wide">Company Overview</Text>
+                    <View className="w-1 h-5 rounded-full bg-recruiter" />
+                    <Text className="font-semibold text-base text-ink">Company Overview</Text>
                 </View>
 
                 <View className="gap-4">
                     <View className="flex-row items-center gap-4">
-                        <View className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center">
-                            <Ionicons name="briefcase-outline" size={20} color="#6366f1" />
+                        <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center">
+                            <Ionicons name="briefcase-outline" size={20} color="#4F46E5" />
                         </View>
                         <View>
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Industry</Text>
-                            <Text className="text-slate-900 font-bold text-sm tracking-tight">{user?.industry || 'Technology & Services'}</Text>
+                            <Text className="text-ink-3 text-label font-display uppercase">Industry</Text>
+                            <Text className="text-ink font-semibold text-sm">{user?.industry || 'Technology & Services'}</Text>
                         </View>
                     </View>
 
                     <View className="flex-row items-center gap-4">
-                        <View className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center">
-                            <Ionicons name="people-outline" size={20} color="#10b981" />
+                        <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center">
+                            <Ionicons name="people-outline" size={20} color="#047857" />
                         </View>
                         <View>
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Company Size</Text>
-                            <Text className="text-slate-900 font-bold text-sm tracking-tight">{user?.companySize || '50-200 Employees'}</Text>
+                            <Text className="text-ink-3 text-label font-display uppercase">Company Size</Text>
+                            <Text className="text-ink font-semibold text-sm">{user?.companySize || '50-200 Employees'}</Text>
                         </View>
                     </View>
 
                     <View className="flex-row items-center gap-4">
-                        <View className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center">
-                            <Ionicons name="location-outline" size={20} color="#ef4444" />
+                        <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center">
+                            <Ionicons name="location-outline" size={20} color="#DC2626" />
                         </View>
                         <View>
-                            <Text className="text-slate-500 text-2xs font-black uppercase tracking-wide">Headquarters</Text>
-                            <Text className="text-slate-900 font-bold text-sm tracking-tight">{user?.college || 'India (Remote)'}</Text>
+                            <Text className="text-ink-3 text-label font-display uppercase">Headquarters</Text>
+                            <Text className="text-ink font-semibold text-sm">{user?.college || 'India (Remote)'}</Text>
                         </View>
                     </View>
                 </View>
             </View>
 
             {/* Recruiter Details */}
-            <View className="bg-white rounded-4xl p-6 border border-slate-100 shadow-sm">
+            <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
                 <View className="flex-row items-center gap-2 mb-4">
-                    <View className="w-1 h-5 rounded-full bg-pink-500" />
-                    <Text className="text-slate-900 font-black  uppercase text-xs tracking-wide">Contact Information</Text>
+                    <View className="w-1 h-5 rounded-full bg-brand-500" />
+                    <Text className="font-semibold text-base text-ink">Contact Information</Text>
                 </View>
 
                 <View className="gap-3">
-                    <View className="flex-row items-center justify-between py-3 border-b border-slate-50">
-                        <Text className="text-slate-500 text-2xs font-black uppercase">Professional Email</Text>
-                        <Text className="text-slate-900 font-bold text-sm">{user?.email}</Text>
+                    <View className="flex-row items-center justify-between py-3 border-b border-line">
+                        <Text className="text-ink-3 text-label font-display uppercase">Professional Email</Text>
+                        <Text className="text-ink font-semibold text-sm">{user?.email}</Text>
                     </View>
                     <View className="flex-row items-center justify-between py-3">
-                        <Text className="text-slate-500 text-2xs font-black uppercase">LinkedIn Profile</Text>
+                        <Text className="text-ink-3 text-label font-display uppercase">LinkedIn Profile</Text>
                         <TouchableOpacity onPress={() => user?.linkedIn_id && Linking.openURL(user.linkedIn_id)}>
-                            <Text className="text-indigo-600 font-bold text-sm">View Profile</Text>
+                            <Text className="text-recruiter font-semibold text-sm">View Profile</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
             </View>
 
             {/* Help & Support Section */}
-            <View className="bg-white rounded-4xl p-6 border border-slate-100 shadow-sm mt-4">
+            <View className="bg-card rounded-sheet p-6 border border-line shadow-hair mt-4">
                 <View className="flex-row items-center gap-2 mb-4">
-                    <View className="w-1 h-5 rounded-full bg-emerald-500" />
-                    <Text className="text-slate-900 font-black  uppercase text-xs tracking-wide">Support & Feedback</Text>
+                    <View className="w-1 h-5 rounded-full bg-success" />
+                    <Text className="font-semibold text-base text-ink">Support & Feedback</Text>
                 </View>
 
-                <Text className="text-slate-500 text-2xs leading-4 mb-4 font-bold">
+                <Text className="text-ink-3 text-label leading-4 mb-4 font-semibold">
                     Need help? Our team is available for assistance.
                 </Text>
 
                 <TouchableOpacity
                     onPress={() => navigation.navigate('ContactUs')}
-                    className="flex-row items-center justify-center gap-2 bg-slate-900 py-4 rounded-2xl"
+                    className="flex-row items-center justify-center gap-2 bg-ink py-4 rounded-card"
                 >
                     <Ionicons name="chatbubbles-outline" size={18} color="white" />
-                    <Text className="text-white font-black  uppercase text-2xs tracking-wide">Contact Support</Text>
+                    <Text className="text-white font-display uppercase text-label">Contact Support</Text>
                 </TouchableOpacity>
             </View>
         </View>
     );
 
     return (
-        <SafeAreaView className="flex-1 bg-slate-50" edges={['bottom']}>
+        <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
             <StatusBar style="dark" />
             <ScrollView
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366f1" />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4F46E5" />
                 }
             >
                 {renderHeader()}
@@ -256,15 +256,15 @@ const RecruiterProfile = () => {
                 <View className="flex-row px-5 mt-4">
                     <TouchableOpacity
                         onPress={() => setActiveTab('about')}
-                        className={`flex-1 py-4 items-center border-b-2 ${activeTab === 'about' ? 'border-indigo-600' : 'border-transparent'}`}
+                        className={`flex-1 py-4 items-center border-b-2 ${activeTab === 'about' ? 'border-recruiter' : 'border-transparent'}`}
                     >
-                        <Text className={`font-black uppercase text-2xs tracking-widest ${activeTab === 'about' ? 'text-indigo-600' : 'text-slate-500'}`}>Company Info</Text>
+                        <Text className={`font-display uppercase text-label ${activeTab === 'about' ? 'text-recruiter' : 'text-ink-3'}`}>Company Info</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => navigation.navigate('Dashboard')}
                         className={`flex-1 py-4 items-center border-b-2 border-transparent`}
                     >
-                        <Text className={`font-black uppercase text-2xs tracking-widest text-slate-500`}>Manage Roles</Text>
+                        <Text className={`font-display uppercase text-label text-ink-3`}>Manage Roles</Text>
                     </TouchableOpacity>
                 </View>
 
