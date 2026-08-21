@@ -33,15 +33,23 @@ export const addAffiliateProduct = async (req, res) => {
 // Get all affiliate products
 export const getAffiliateProducts = async (req, res) => {
     try {
-        const { category, search } = req.query;
-        let query = { isAvailable: true };
+        const { category, search, includeDelisted } = req.query;
+
+        // Shoppers only ever see live products. An admin managing the catalogue
+        // has to see delisted ones too, or a product could be hidden with no way
+        // left in the UI to bring it back.
+        const isAdminRequest = req.user?.user_access === 'admin' && includeDelisted === 'true';
+        let query = isAdminRequest ? {} : { isAvailable: true };
 
         if (category) {
             query.category = category;
         }
 
         if (search) {
-            query.name = { $regex: search, $options: 'i' };
+            // A user-supplied string goes straight into a regex otherwise, so
+            // characters like ( or * make it throw or scan pathologically.
+            const safe = String(search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            query.name = { $regex: safe, $options: 'i' };
         }
 
         const products = await AffiliateProduct.find(query).sort({ createdAt: -1 });
@@ -114,6 +122,64 @@ export const completeAffiliateSale = async (req, res) => {
         res.status(200).json({ success: true, message: "Sale completed", sale });
     } catch (error) {
         console.error("Error completing affiliate sale:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+/**
+ * Delist rather than delete: an AffiliateSale references the product, so removing
+ * the row would orphan every commission record that points at it. Hidden products
+ * stop appearing in the store but their sales history stays intact.
+ */
+export const setAffiliateProductAvailability = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { isAvailable } = req.body;
+        if (typeof isAvailable !== 'boolean') {
+            return res.status(400).json({ success: false, message: "isAvailable must be true or false" });
+        }
+
+        const product = await AffiliateProduct.findByIdAndUpdate(
+            id,
+            { isAvailable },
+            { new: true }
+        );
+        if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+
+        return res.status(200).json({
+            success: true,
+            message: isAvailable ? "Product is live again" : "Product delisted",
+            product
+        });
+    } catch (error) {
+        console.error("Error updating affiliate product:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+/**
+ * Permanent removal, refused while sales exist so commission history cannot be
+ * silently destroyed — the caller is told to delist instead.
+ */
+export const deleteAffiliateProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const salesCount = await AffiliateSale.countDocuments({ productId: id });
+        if (salesCount > 0) {
+            return res.status(409).json({
+                success: false,
+                message: `This product has ${salesCount} recorded sale${salesCount === 1 ? '' : 's'}. Delist it instead so the commission history is kept.`,
+                salesCount
+            });
+        }
+
+        const product = await AffiliateProduct.findByIdAndDelete(id);
+        if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+
+        return res.status(200).json({ success: true, message: "Product deleted" });
+    } catch (error) {
+        console.error("Error deleting affiliate product:", error);
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };

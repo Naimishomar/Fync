@@ -207,6 +207,7 @@ import AffiliateProductDetail from './components/affiliate/AffiliateProductDetai
 import AffiliateWebView from './components/affiliate/AffiliateWebView';
 import AffiliateAdminScreen from './components/affiliate/AffiliateAdminScreen';
 import TechPulseScreen from './components/news/TechPulseScreen';
+import ArticleScreen from './components/news/ArticleScreen';
 import MergePdfScreen from './components/utility/pdf/MergePdfScreen';
 import SplitPdfScreen from './components/utility/pdf/SplitPdfScreen';
 import ExtractPagesScreen from './components/utility/pdf/ExtractPagesScreen';
@@ -401,6 +402,7 @@ export type RootStackParamList = {
   AffiliateWebView: { url: string; productId: string; saleId?: string };
   AffiliateAdminScreen: undefined;
   TechPulseScreen: undefined;
+  ArticleScreen: { url: string; title?: string; source?: string };
   MergePdfScreen: undefined;
   SplitPdfScreen: undefined;
   ExtractPagesScreen: undefined;
@@ -558,6 +560,7 @@ function AppStack() {
       <Stack.Screen name="AffiliateWebView" component={AffiliateWebView} />
       <Stack.Screen name="AffiliateAdminScreen" component={AffiliateAdminScreen} />
       <Stack.Screen name="TechPulseScreen" component={TechPulseScreen} />
+      <Stack.Screen name="ArticleScreen" component={ArticleScreen} />
       <Stack.Screen name="MergePdfScreen" component={MergePdfScreen} />
       <Stack.Screen name="SplitPdfScreen" component={SplitPdfScreen} />
       <Stack.Screen name="ExtractPagesScreen" component={ExtractPagesScreen} />

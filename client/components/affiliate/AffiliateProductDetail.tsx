@@ -122,7 +122,7 @@ const AffiliateProductDetail = () => {
                 <View style={styles.content}>
                     <View style={styles.headerInfo}>
                         <Text style={styles.categoryBadge}>{product.category}</Text>
-                        <Text style={styles.brandText}>{product.brand || 'Premium Brand'}</Text>
+                        {!!product.brand && <Text style={styles.brandText}>{product.brand}</Text>}
                         <Text style={styles.productTitle}>{product.name}</Text>
                         
                         <View style={styles.priceRow}>
@@ -139,20 +139,24 @@ const AffiliateProductDetail = () => {
                             )}
                         </View>
 
-                        <View style={styles.ratingSection}>
-                            <View style={styles.starsContainer}>
-                                {[1, 2, 3, 4, 5].map((s) => (
-                                    <Ionicons 
-                                        key={s} 
-                                        name={s <= (product.rating || 4.5) ? "star" : "star-half"} 
-                                        size={18} 
-                                        color="#F5B700" 
-                                    />
-                                ))}
+                        {product.rating > 0 && (
+                            <View style={styles.ratingSection}>
+                                <View style={styles.starsContainer}>
+                                    {[1, 2, 3, 4, 5].map((s) => (
+                                        <Ionicons
+                                            key={s}
+                                            name={s <= Math.round(product.rating) ? 'star' : 'star-outline'}
+                                            size={18}
+                                            color="#F5B700"
+                                        />
+                                    ))}
+                                </View>
+                                <Text style={styles.ratingText}>{product.rating}</Text>
+                                {product.reviewsCount > 0 && (
+                                    <Text style={styles.reviewsText}>({product.reviewsCount} reviews)</Text>
+                                )}
                             </View>
-                            <Text style={styles.ratingText}>{product.rating || '4.5'} Rating</Text>
-                            <Text style={styles.reviewsText}>({product.reviewsCount || '128'} Reviews)</Text>
-                        </View>
+                        )}
                     </View>
 
                     <View style={styles.divider} />
@@ -162,24 +166,14 @@ const AffiliateProductDetail = () => {
                         <Text style={styles.descriptionText}>{product.description}</Text>
                     </View>
 
-                    <View style={styles.infoCards}>
-                        <View style={styles.infoCard}>
-                            <Ionicons name="shield-checkmark-outline" size={24} color="#F97316" />
-                            <Text style={styles.infoCardTitle}>Authentic</Text>
-                            <Text style={styles.infoCardSub}>100% Genuine</Text>
-                        </View>
-                        <View style={styles.infoCard}>
-                            <Ionicons name="return-up-back-outline" size={24} color="#F97316" />
-                            <Text style={styles.infoCardTitle}>7 Days</Text>
-                            <Text style={styles.infoCardSub}>Easy Return</Text>
-                        </View>
-                        <View style={styles.infoCard}>
-                            <Ionicons name="flash-outline" size={24} color="#F97316" />
-                            <Text style={styles.infoCardTitle}>Fast</Text>
-                            <Text style={styles.infoCardSub}>Delivery</Text>
-                        </View>
+                    <View style={styles.disclosure}>
+                        <Ionicons name="information-circle-outline" size={18} color="#57534E" />
+                        <Text style={styles.disclosureText}>
+                            You will complete this purchase on the retailer&apos;s own site. Fync may earn a
+                            commission at no extra cost to you.
+                        </Text>
                     </View>
-                    
+
                     <View style={{ height: 100 }} />
                 </View>
             </ScrollView>
@@ -361,9 +355,19 @@ const styles = StyleSheet.create({
         color: '#57534E',
         lineHeight: 24,
     },
-    infoCards: {
+    disclosure: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        gap: 10,
+        backgroundColor: '#EDE8E0',
+        borderRadius: 14,
+        padding: 14,
+    },
+    disclosureText: {
+        flex: 1,
+        color: '#57534E',
+        fontSize: 12,
+        lineHeight: 18,
     },
     infoCard: {
         backgroundColor: '#FFFFFF',

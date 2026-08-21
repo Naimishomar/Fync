@@ -38,7 +38,7 @@ const ago = (iso: string) => {
 const open = (url: string) =>
   Linking.openURL(url).catch(() => Alert.alert('Could not open', 'That link would not open.'));
 
-const StoryRow = ({ item, index, ranked }: { item: Story; index: number; ranked: boolean }) => (
+const StoryRow = ({ item, index, ranked, onRead }: { item: Story; index: number; ranked: boolean; onRead: (s: Story) => void }) => (
   <View style={{ position: 'relative', marginBottom: index === 0 ? 20 : 12 }}>
     {index === 0 && (
       <View
@@ -47,7 +47,7 @@ const StoryRow = ({ item, index, ranked }: { item: Story; index: number; ranked:
       />
     )}
     <TouchableOpacity
-      onPress={() => open(item.url)}
+      onPress={() => onRead(item)}
       activeOpacity={0.9}
       accessibilityRole="button"
       accessibilityLabel={`${item.title}. ${item.points} points on ${item.source}`}
@@ -110,6 +110,11 @@ export default function TechPulseScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [failed, setFailed] = useState(false);
   const [feed, setFeed] = useState<Feed>('global');
+
+  const read = useCallback(
+    (s: Story) => navigation.navigate('ArticleScreen', { url: s.url, title: s.title, source: s.source }),
+    [navigation],
+  );
 
   const load = useCallback(async () => {
     try {
@@ -176,7 +181,7 @@ export default function TechPulseScreen() {
           <FlatList
             data={stories}
             keyExtractor={(s) => s.id}
-            renderItem={({ item, index }) => <StoryRow item={item} index={index} ranked={feed === 'global'} />}
+            renderItem={({ item, index }) => <StoryRow item={item} index={index} ranked={feed === 'global'} onRead={read} />}
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60 }}
             showsVerticalScrollIndicator={false}
             refreshControl={

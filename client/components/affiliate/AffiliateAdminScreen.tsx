@@ -39,7 +39,8 @@ export default function AffiliateAdminScreen() {
 
   const load = useCallback(async () => {
     try {
-      const res = await axios.get('/affiliate/products');
+      // delisted ones too, so they can be brought back
+      const res = await axios.get('/affiliate/products', { params: { includeDelisted: true } });
       setProducts(res.data.products ?? []);
     } catch {
       // an empty catalogue and an unreachable server look the same to the user
@@ -80,7 +81,40 @@ export default function AffiliateAdminScreen() {
     } finally { setSaving(false); }
   };
 
-  const projected = products.reduce((sum, p) => sum + (p.price * (p.commissionRate || 0)) / 100, 0);
+  const live = products.filter((p) => p.isAvailable);
+  const projected = live.reduce((sum, p) => sum + (p.price * (p.commissionRate || 0)) / 100, 0);
+
+  const toggle = async (p: any) => {
+    try {
+      await axios.patch(`/affiliate/products/${p._id}/availability`, { isAvailable: !p.isAvailable });
+      load();
+    } catch (e: any) {
+      Alert.alert('Could not update', e?.response?.data?.message ?? 'Please try again.');
+    }
+  };
+
+  const remove = (p: any) =>
+    Alert.alert(
+      'Delete product',
+      `Remove "${p.name}" permanently? Delisting hides it from the store but keeps its sales history.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await axios.delete(`/affiliate/products/${p._id}`);
+              load();
+            } catch (e: any) {
+              // 409 means the product has recorded sales; the server refuses so
+              // commission history is never destroyed silently.
+              Alert.alert('Not deleted', e?.response?.data?.message ?? 'Please try again.');
+            }
+          },
+        },
+      ],
+    );
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
@@ -105,7 +139,7 @@ export default function AffiliateAdminScreen() {
                 ₹{projected.toFixed(0)}
               </Text>
               <Text className="text-ink-2 text-sm mt-1">
-                If one of each of the {products.length} listed products sells.
+                If one of each of the {live.length} live products sells.
               </Text>
             </View>
           </View>
@@ -164,14 +198,45 @@ export default function AffiliateAdminScreen() {
               <Text className="text-ink-2 text-sm">Nothing listed yet.</Text>
             </View>
           ) : products.map((p) => (
-            <View key={p._id} className="flex-row items-center bg-card rounded-card p-4 border border-line mb-2">
-              <View className="flex-1">
-                <Text className="text-ink text-sm" numberOfLines={1}>{p.name}</Text>
-                <Text className="text-ink-3 text-label mt-0.5">
-                  ₹{p.price} · {p.commissionRate || 0}% · ₹{((p.price * (p.commissionRate || 0)) / 100).toFixed(0)} per sale
-                </Text>
+            <View key={p._id} className={`bg-card rounded-card p-4 border mb-2 ${p.isAvailable ? 'border-line' : 'border-ink-4'}`}>
+              <View className="flex-row items-center">
+                <View className="flex-1">
+                  <Text className={`text-sm ${p.isAvailable ? 'text-ink' : 'text-ink-3'}`} numberOfLines={1}>{p.name}</Text>
+                  <Text className="text-ink-3 text-label mt-0.5">
+                    ₹{p.price} · {p.commissionRate || 0}% · ₹{((p.price * (p.commissionRate || 0)) / 100).toFixed(0)} per sale
+                  </Text>
+                </View>
+                {!p.isAvailable && (
+                  <View className="bg-paper-2 px-2.5 py-1 rounded-full">
+                    <Text className="text-ink-2 text-label font-display uppercase">Delisted</Text>
+                  </View>
+                )}
               </View>
-              <Ionicons name={p.isAvailable ? 'checkmark-circle' : 'pause-circle'} size={20} color={p.isAvailable ? '#047857' : '#8B857E'} />
+
+              <View className="flex-row mt-3" style={{ gap: 10 }}>
+                <TouchableOpacity
+                  onPress={() => toggle(p)}
+                  className="flex-1 flex-row items-center justify-center bg-card border-[1.5px] border-line rounded-md"
+                  style={{ minHeight: 44 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={p.isAvailable ? `Delist ${p.name}` : `Relist ${p.name}`}
+                >
+                  <Ionicons name={p.isAvailable ? 'eye-off-outline' : 'eye-outline'} size={16} color="#12100E" style={{ marginRight: 7 }} />
+                  <Text className="font-display text-ink uppercase" style={{ fontSize: 12 }}>
+                    {p.isAvailable ? 'Delist' : 'Relist'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => remove(p)}
+                  className="flex-1 flex-row items-center justify-center bg-danger border-2 border-ink rounded-md"
+                  style={{ minHeight: 44 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Delete ${p.name}`}
+                >
+                  <Ionicons name="trash-outline" size={16} color="#FFFFFF" style={{ marginRight: 7 }} />
+                  <Text className="font-display text-white uppercase" style={{ fontSize: 12 }}>Delete</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ))}
           <View style={{ height: 40 }} />

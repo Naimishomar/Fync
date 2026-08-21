@@ -69,7 +69,7 @@ const AffiliateStore = () => {
                 )}
             </View>
             <View style={styles.productInfo}>
-                <Text style={styles.brandText}>{item.brand || 'Premium'}</Text>
+                {!!item.brand && <Text style={styles.brandText}>{item.brand}</Text>}
                 <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
                 <View style={styles.priceRow}>
                     <Text style={styles.priceText}>₹{item.price}</Text>
@@ -77,11 +77,15 @@ const AffiliateStore = () => {
                         <Text style={styles.originalPriceText}>₹{item.originalPrice}</Text>
                     )}
                 </View>
-                <View style={styles.ratingRow}>
-                    <Ionicons name="star" size={12} color="#F5B700" />
-                    <Text style={styles.ratingText}>{item.rating || '4.5'}</Text>
-                    <Text style={styles.reviewsText}>({item.reviewsCount || '100'}+)</Text>
-                </View>
+                {item.rating > 0 && (
+                    <View style={styles.ratingRow}>
+                        <Ionicons name="star" size={12} color="#F5B700" />
+                        <Text style={styles.ratingText}>{item.rating}</Text>
+                        {item.reviewsCount > 0 && (
+                            <Text style={styles.reviewsText}>({item.reviewsCount})</Text>
+                        )}
+                    </View>
+                )}
             </View>
         </TouchableOpacity>
     );

@@ -12,21 +12,32 @@
 import { XMLParser } from 'fast-xml-parser';
 
 const HN_ENDPOINT = 'https://hn.algolia.com/api/v1/search';
-const GNEWS = 'https://news.google.com/rss/search';
 const WINDOW_SECONDS = 24 * 60 * 60;
 const UA = 'Mozilla/5.0 (compatible; FyncBot/1.0)';
 
-// Tuned by hand against live results. Broad "campus placement" wording returned
-// police recruitment and fresher welcome parties; naming the IT employers is what
-// makes this feed about tech placements.
-const QUERIES = {
-  india:
-    '(startup OR "deep tech" OR funding OR AI OR IT) India technology when:2d',
-  placement:
-    '(hiring OR onboarding OR "campus placement" OR recruitment) ' +
-    '(freshers OR graduates OR campus) ' +
-    '(TCS OR Infosys OR Wipro OR Accenture OR Cognizant OR HCL OR Capgemini OR "IT sector") when:7d',
+// India and placement used to come from Google News RSS. Its links are
+// news.google.com redirect tokens, not publisher URLs — the target is an opaque
+// id that cannot be decoded, and the page behind it is a 590KB JavaScript
+// redirect. Nothing can be extracted from that, so in-app reading was
+// impossible. Publisher feeds give real article URLs instead.
+//
+// YourStory is deliberately absent: its feed is fine but its articles are
+// client-rendered, so extraction returns an empty document.
+const FEEDS = {
+  india: [
+    { source: 'Inc42', url: 'https://inc42.com/feed/' },
+    { source: 'ET Tech', url: 'https://economictimes.indiatimes.com/tech/rssfeeds/13357270.cms' },
+    { source: 'Mint', url: 'https://www.livemint.com/rss/technology' },
+  ],
+  placement: [
+    { source: 'ETHRWorld', url: 'https://hr.economictimes.indiatimes.com/rss/topstories' },
+    { source: 'ET Tech', url: 'https://economictimes.indiatimes.com/tech/rssfeeds/13357270.cms' },
+  ],
 };
+
+// Placement is a subset of a broader HR/tech feed, so it is filtered rather than
+// queried — these feeds take no search parameter.
+const PLACEMENT_TERMS = /fresher|campus|placement|hiring|recruit|onboard|graduate|intern|job|layoff|salary|package/i;
 
 const parser = new XMLParser({ ignoreAttributes: false });
 
@@ -77,44 +88,54 @@ async function fetchHackerNews(limit) {
     }));
 }
 
-async function fetchGoogleNews(query, limit) {
-  const url = `${GNEWS}?q=${encodeURIComponent(query)}&hl=en-IN&gl=IN&ceid=IN:en`;
+async function fetchRss(source, url) {
   const res = await fetch(url, {
     headers: { 'User-Agent': UA },
-    signal: AbortSignal.timeout(8000),
+    signal: AbortSignal.timeout(9000),
   });
-  if (!res.ok) throw new Error(`Google News responded ${res.status}`);
+  if (!res.ok) throw new Error(`${source} responded ${res.status}`);
 
   const doc = parser.parse(await res.text());
   const raw = doc?.rss?.channel?.item ?? [];
   const items = Array.isArray(raw) ? raw : [raw];
 
-  const seen = new Set();
-  const out = [];
-  for (const it of items) {
-    if (!it?.title || !it?.link) continue;
-    // Google appends " - Publisher" to every headline; the publisher is already
-    // carried separately in <source>, so the suffix is duplicate noise.
-    const publisher = typeof it.source === 'object' ? it.source['#text'] : it.source;
-    const title = String(it.title).replace(new RegExp(`\\s*-\\s*${publisher}$`), '').trim();
-
-    const key = title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-    if (!key || seen.has(key)) continue;   // syndicated copies share a headline
-    seen.add(key);
-
-    out.push({
+  return items
+    .filter((it) => it?.title && it?.link)
+    .map((it) => ({
       id: String(it.guid?.['#text'] ?? it.guid ?? it.link),
-      title,
-      url: String(it.link),
-      source: publisher || hostOf(String(it.link)),
+      title: String(it.title).trim(),
+      url: String(it.link).trim(),
+      source,
       points: 0,
       comments: 0,
       createdAt: it.pubDate ? new Date(it.pubDate).toISOString() : new Date().toISOString(),
-      discussionUrl: String(it.link),
-    });
-    if (out.length >= limit) break;
+      discussionUrl: String(it.link).trim(),
+    }));
+}
+
+async function fetchPublishers(feed, limit) {
+  // One slow or dead publisher must not empty the whole tab.
+  const settled = await Promise.allSettled(
+    FEEDS[feed].map((f) => fetchRss(f.source, f.url)),
+  );
+  const failures = settled.filter((r) => r.status === 'rejected');
+  if (failures.length === FEEDS[feed].length) {
+    throw new Error(failures[0].reason?.message ?? 'every source failed');
   }
-  return out;
+
+  let all = settled.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
+  if (feed === 'placement') all = all.filter((s) => PLACEMENT_TERMS.test(s.title));
+
+  const seen = new Set();
+  return all
+    .filter((s) => {
+      const key = s.title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+      if (seen.has(key)) return false;   // the same wire story runs on several sites
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, limit);
 }
 
 export const getTrendingTechNews = async (req, res) => {
@@ -127,7 +148,7 @@ export const getTrendingTechNews = async (req, res) => {
     const stories =
       feed === 'global'
         ? await fetchHackerNews(limit)
-        : await fetchGoogleNews(QUERIES[feed], limit);
+        : await fetchPublishers(feed, limit);
 
     return res.status(200).json({ success: true, feed, count: stories.length, stories });
   } catch (error) {
