@@ -6,7 +6,11 @@
  * this is the extraction people already trust rather than hand-rolled scraping.
  */
 import { Readability } from '@mozilla/readability';
-import { JSDOM } from 'jsdom';
+// linkedom, not jsdom: jsdom bundles a build of undici that calls
+// webidl.util.markAsUncloneable, which only exists on Node 22+. CI runs Node 20,
+// so importing jsdom crashed the smoke suite outright. linkedom has no undici
+// dependency, is a tenth of the size, and Readability produces identical output.
+import { parseHTML } from 'linkedom';
 import dns from 'node:dns/promises';
 import net from 'node:net';
 
@@ -80,8 +84,20 @@ async function fetchArticleHtml(startUrl) {
 
 /** Readability returns HTML; the app renders native views, so it becomes blocks. */
 function toBlocks(contentHtml, baseUrl) {
-  const { window } = new JSDOM(`<body>${contentHtml}</body>`, { url: baseUrl });
+  // A bare fragment, or one wrapped in only <body>, leaves document.body with no
+  // children in linkedom — the walker found nothing and every image disappeared.
+  // A complete document is what populates the tree.
+  const { document } = parseHTML(
+    `<!DOCTYPE html><html><body>${contentHtml}</body></html>`,
+  );
   const blocks = [];
+
+  // linkedom has no base-URL notion, so a relative src stays relative. Resolve
+  // it here or every such image renders as a broken box in the app.
+  const absolute = (src) => {
+    if (!src) return null;
+    try { return new URL(src, baseUrl).href; } catch { return null; }
+  };
   const push = (b) => { if (blocks.length < MAX_BLOCKS) blocks.push(b); };
 
   // Recurse into ANY unrecognised element rather than a fixed list of containers:
@@ -93,7 +109,7 @@ function toBlocks(contentHtml, baseUrl) {
       const tag = el.tagName.toLowerCase();
 
       if (tag === 'img') {
-        const src = el.getAttribute('src');
+        const src = absolute(el.getAttribute('src'));
         if (src && /^https?:/i.test(src)) push({ type: 'image', src });
       } else if (/^h[1-6]$/.test(tag)) {
         const text = el.textContent.trim();
@@ -108,8 +124,7 @@ function toBlocks(contentHtml, baseUrl) {
         const text = el.textContent.replace(/\s+$/, '');
         if (text.trim()) push({ type: 'code', text });
       } else if (tag === 'p') {
-        const img = el.querySelector('img');
-        const src = img?.getAttribute('src');
+        const src = absolute(el.querySelector('img')?.getAttribute('src'));
         if (src && /^https?:/i.test(src)) push({ type: 'image', src });
         const text = el.textContent.trim();
         if (text.length > 1) push({ type: 'paragraph', text });
@@ -121,7 +136,7 @@ function toBlocks(contentHtml, baseUrl) {
       }
     }
   };
-  walk(window.document.body);
+  walk(document.body);
   return blocks;
 }
 
@@ -141,14 +156,16 @@ export const getArticle = async (req, res) => {
 
   try {
     const { html, finalUrl } = await fetchArticleHtml(target);
-    const dom = new JSDOM(html, { url: finalUrl });
+    const { document } = parseHTML(html);
 
     // Readability mutates the document it is given, so the lead image is read first.
     const meta = (p) =>
-      dom.window.document.querySelector(`meta[property="${p}"], meta[name="${p}"]`)?.getAttribute('content') || null;
-    const leadImage = meta('og:image') || meta('twitter:image');
+      document.querySelector(`meta[property="${p}"], meta[name="${p}"]`)?.getAttribute('content') || null;
+    const rawLead = meta('og:image') || meta('twitter:image');
+    let leadImage = null;
+    try { leadImage = rawLead ? new URL(rawLead, finalUrl).href : null; } catch { leadImage = null; }
 
-    const article = new Readability(dom.window.document).parse();
+    const article = new Readability(document).parse();
     let blocks = article ? toBlocks(article.content, finalUrl) : [];
     const text = article?.textContent?.trim() ?? '';
     if (!blocks.length && text) blocks = blocksFromText(text);
