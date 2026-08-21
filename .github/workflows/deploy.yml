@@ -131,9 +131,19 @@ jobs:
               # By process name, not by config file: the old commit may predate
               # ecosystem.config.cjs, and `pm2 ... ecosystem.config.cjs` then dies
               # with "File not found" without ever restarting anything.
-              pm2 reload fync-backend --update-env
+              #
+              # The name must match `name` in ecosystem.config.cjs. It said
+              # fync-backend while the process has always been fync-api, so the
+              # rollback restarted nothing and printed no logs — the recovery
+              # path was broken in exactly the situation it exists for.
+              #
+              # restart, not reload: reload waits for the new process to send
+              # 'ready' (wait_ready is on, listen_timeout 20s). During a rollback
+              # the app is already known to be unhealthy, and a reload that times
+              # out leaves the broken process serving.
+              pm2 restart fync-api --update-env || pm2 start ecosystem.config.cjs --env production
               pm2 save
-              pm2 logs fync-backend --lines 40 --nostream
+              pm2 logs fync-api --lines 40 --nostream
               exit 1
             }
             trap rollback ERR

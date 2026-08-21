@@ -2,8 +2,6 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, View, Text, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-let animationStarted = false;
-
 /**
  * Backdrop is set type rather than imagery: a dozen fragments of campus life at
  * a few percent opacity, rotated off-axis so the page reads as printed matter
@@ -15,59 +13,54 @@ type Phrase = {
 };
 
 const PHRASES: Phrase[] = [
-  { t: 'ATTENDANCE IS 74.6%',        x: -0.06, y: 0.04, size: 20, angle: -8,  op: 0.07, delay: 0 },
-  { t: 'placement season begins',    x: 0.46,  y: 0.07, size: 15, angle: 6,   op: 0.05, delay: 40 },
-  { t: 'HACKATHON',                  x: 0.08,  y: 0.11, size: 24, angle: 12,  op: 0.08, delay: 80 },
-  { t: 'find your team by friday',   x: 0.44,  y: 0.14, size: 14, angle: -14, op: 0.05, delay: 120 },
-  { t: 'NOTES · PYQs · SYLLABUS',    x: -0.04, y: 0.18, size: 18, angle: 4,   op: 0.06, delay: 160 },
-  { t: 'INTERNSHIP',                 x: 0.55,  y: 0.21, size: 22, angle: 9,   op: 0.06, delay: 200 },
-  { t: 'ask an alumnus anything',    x: 0.04,  y: 0.25, size: 15, angle: -6,  op: 0.05, delay: 240 },
-  { t: 'ALUMNI NETWORK',             x: 0.42,  y: 0.28, size: 19, angle: 11,  op: 0.06, delay: 280 },
-  { t: 'submit before midnight',     x: -0.03, y: 0.32, size: 16, angle: 7,   op: 0.05, delay: 320 },
-  { t: 'CONTESTS',                   x: 0.60,  y: 0.35, size: 21, angle: -10, op: 0.07, delay: 360 },
-  { t: 'one more commit',            x: 0.10,  y: 0.55, size: 15, angle: -5,  op: 0.05, delay: 400 },
-  { t: '12 AM CLUB',                 x: 0.52,  y: 0.57, size: 23, angle: 13,  op: 0.07, delay: 440 },
-  { t: 'sell your old cycle',        x: -0.05, y: 0.61, size: 16, angle: 8,   op: 0.05, delay: 480 },
-  { t: 'DEADLINES',                  x: 0.46,  y: 0.64, size: 20, angle: -12, op: 0.06, delay: 520 },
-  { t: 'lost your id card again',    x: 0.06,  y: 0.68, size: 14, angle: 5,   op: 0.05, delay: 560 },
-  { t: 'SEMESTER 6',                 x: 0.56,  y: 0.71, size: 22, angle: -7,  op: 0.06, delay: 600 },
-  { t: 'CAMPUS OLX',                 x: -0.02, y: 0.75, size: 19, angle: 10,  op: 0.06, delay: 640 },
-  { t: 'build something this week',  x: 0.38,  y: 0.78, size: 15, angle: -9,  op: 0.05, delay: 680 },
-  { t: 'STUDY GROUP',                x: 0.02,  y: 0.82, size: 21, angle: 6,   op: 0.06, delay: 720 },
-  { t: 'referrals open now',         x: 0.54,  y: 0.85, size: 16, angle: 12,  op: 0.05, delay: 760 },
-  { t: 'PAID GIGS',                  x: 0.12,  y: 0.89, size: 20, angle: -11, op: 0.06, delay: 800 },
-  { t: 'coffee then class',          x: 0.50,  y: 0.92, size: 15, angle: 4,   op: 0.05, delay: 840 },
+  { t: 'ATTENDANCE IS 74.6%',        x: -0.06, y: 0.04, size: 20, angle: -8,  op: 0.119, delay: 0 },
+  { t: 'placement season begins',    x: 0.46,  y: 0.07, size: 15, angle: 6,   op: 0.085, delay: 40 },
+  { t: 'HACKATHON',                  x: 0.08,  y: 0.11, size: 24, angle: 12,  op: 0.136, delay: 80 },
+  { t: 'find your team by friday',   x: 0.44,  y: 0.14, size: 14, angle: -14, op: 0.085, delay: 120 },
+  { t: 'NOTES · PYQs · SYLLABUS',    x: -0.04, y: 0.18, size: 18, angle: 4,   op: 0.102, delay: 160 },
+  { t: 'INTERNSHIP',                 x: 0.55,  y: 0.21, size: 22, angle: 9,   op: 0.102, delay: 200 },
+  { t: 'ask an alumnus anything',    x: 0.04,  y: 0.25, size: 15, angle: -6,  op: 0.085, delay: 240 },
+  { t: 'ALUMNI NETWORK',             x: 0.42,  y: 0.28, size: 19, angle: 11,  op: 0.102, delay: 280 },
+  { t: 'submit before midnight',     x: -0.03, y: 0.32, size: 16, angle: 7,   op: 0.085, delay: 320 },
+  { t: 'CONTESTS',                   x: 0.60,  y: 0.35, size: 21, angle: -10, op: 0.119, delay: 360 },
+  { t: 'one more commit',            x: 0.10,  y: 0.55, size: 15, angle: -5,  op: 0.085, delay: 400 },
+  { t: '12 AM CLUB',                 x: 0.52,  y: 0.57, size: 23, angle: 13,  op: 0.119, delay: 440 },
+  { t: 'sell your old cycle',        x: -0.05, y: 0.61, size: 16, angle: 8,   op: 0.085, delay: 480 },
+  { t: 'DEADLINES',                  x: 0.46,  y: 0.64, size: 20, angle: -12, op: 0.102, delay: 520 },
+  { t: 'lost your id card again',    x: 0.06,  y: 0.68, size: 14, angle: 5,   op: 0.085, delay: 560 },
+  { t: 'SEMESTER 6',                 x: 0.56,  y: 0.71, size: 22, angle: -7,  op: 0.102, delay: 600 },
+  { t: 'CAMPUS OLX',                 x: -0.02, y: 0.75, size: 19, angle: 10,  op: 0.102, delay: 640 },
+  { t: 'build something this week',  x: 0.38,  y: 0.78, size: 15, angle: -9,  op: 0.085, delay: 680 },
+  { t: 'STUDY GROUP',                x: 0.02,  y: 0.82, size: 21, angle: 6,   op: 0.102, delay: 720 },
+  { t: 'referrals open now',         x: 0.54,  y: 0.85, size: 16, angle: 12,  op: 0.085, delay: 760 },
+  { t: 'PAID GIGS',                  x: 0.12,  y: 0.89, size: 20, angle: -11, op: 0.102, delay: 800 },
+  { t: 'coffee then class',          x: 0.50,  y: 0.92, size: 15, angle: 4,   op: 0.085, delay: 840 },
 ];
 
 export default function SplashScreen({ navigation }: any) {
   const { width, height } = useWindowDimensions();
-  const skip = animationStarted;
-
-  const logo = useRef(new Animated.Value(skip ? 1 : 0)).current;
-  const title = useRef(new Animated.Value(skip ? 1 : 0)).current;
-  const progress = useRef(new Animated.Value(skip ? 1 : 0)).current;
+  const logo = useRef(new Animated.Value(0)).current;
+  const title = useRef(new Animated.Value(0)).current;
+  const progress = useRef(new Animated.Value(0)).current;
   // one entrance value per phrase, plus a single shared drift
-  const entries = useMemo(() => PHRASES.map(() => new Animated.Value(skip ? 1 : 0)), [skip]);
+  const entries = useMemo(() => PHRASES.map(() => new Animated.Value(0)), []);
   const drift = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (!animationStarted) {
-      animationStarted = true;
-      Animated.parallel([
-        Animated.spring(logo, { toValue: 1, friction: 6, tension: 60, useNativeDriver: true }),
-        Animated.timing(title, { toValue: 1, duration: 520, delay: 160, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-        Animated.timing(progress, { toValue: 1, duration: 1900, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
-        ...entries.map((v, i) =>
-          Animated.timing(v, { toValue: 1, duration: 700, delay: PHRASES[i].delay, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-        ),
-      ]).start();
-    }
+    Animated.parallel([
+      Animated.spring(logo, { toValue: 1, friction: 6, tension: 60, useNativeDriver: true }),
+      Animated.timing(title, { toValue: 1, duration: 520, delay: 0, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(progress, { toValue: 1, duration: 1900, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      ...entries.map((v, i) =>
+        Animated.timing(v, { toValue: 1, duration: 700, delay: 0, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      ),
+    ]).start();
 
     // One very slow shared drift: the whole field breathes together rather than
-    // fourteen separate loops competing for frames.
+    // twenty-two separate loops competing for frames.
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(drift, { toValue: 1, duration: 5200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      Animated.timing(drift, { toValue: 1, duration: 5200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
         Animated.timing(drift, { toValue: 0, duration: 5200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
       ]),
     );
