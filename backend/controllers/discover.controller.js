@@ -14,15 +14,25 @@ import { collectYouTubeCandidates, youtubeConfigured } from "../utils/youtubeSou
 import redisClient from "../utils/redis.js";
 
 const CACHE_KEY = "discover:youtube:v1";
-// Eight hours, not minutes: a refresh costs roughly 1,820 of the free tier's
-// 10,000 daily quota units (18 searches at 100 each, plus about 16 language
-// lookups at 1). Three refreshes a day is ~5,500, leaving real headroom. This
-// is a spend decision rather than a freshness one — the pool is Creative
-// Commons back-catalogue, so nothing in it goes stale in eight hours.
-const CACHE_TTL_SECONDS = 28800;
+// Twenty-four hours: a refresh costs roughly 6,550 of the free tier's 10,000
+// daily quota units (65 searches at 100 each, plus about 50 language lookups at
+// 1). One refresh a day leaves ~3,450 spare, enough to absorb an unscheduled
+// rebuild if the cache is ever flushed.
+//
+// This is a spend decision rather than a freshness one. Widening the search
+// terms and refreshing often are the same budget: the terms buy variety, which
+// matters here, and the pool is evergreen tutorial content that does not go
+// stale in twelve hours.
+const CACHE_TTL_SECONDS = 86400;
 // A partial pool is worth reusing for a few minutes so a quota wall does not
-// hammer the API, but not for eight hours.
+// hammer the API, but not for a day.
 const DEGRADED_TTL_SECONDS = 900;
+// The last complete pool, kept well beyond the refresh cycle purely as a
+// fallback. A full rebuild costs most of the daily quota, so if the cache is
+// flushed after that has been spent the rebuild comes back partial — and a
+// week-old complete pool is better viewing than a third of a fresh one.
+const LAST_GOOD_KEY = "discover:youtube:lastgood";
+const LAST_GOOD_TTL_SECONDS = 604800;
 const MAX_LIMIT = 20;
 
 /**
@@ -42,6 +52,26 @@ async function getPool() {
   }
 
   const { items, degraded } = await collectYouTubeCandidates();
+
+  if (degraded) {
+    // Prefer the last complete pool over a partial one. Only fall through to
+    // the partial result if there is no fallback, or the fallback is somehow
+    // the thinner of the two.
+    try {
+      const raw = await redisClient.get(LAST_GOOD_KEY);
+      const fallback = raw ? JSON.parse(raw) : null;
+      if (fallback?.length > items.length) {
+        console.warn(
+          `Discover: partial rebuild (${items.length}); serving last good pool (${fallback.length}).`,
+        );
+        await redisClient.setEx(CACHE_KEY, DEGRADED_TTL_SECONDS, JSON.stringify(fallback));
+        return fallback;
+      }
+    } catch (err) {
+      console.error("Last-good pool read failed:", err.message);
+    }
+  }
+
   if (!items.length) return [];
 
   try {
@@ -50,6 +80,10 @@ async function getPool() {
       degraded ? DEGRADED_TTL_SECONDS : CACHE_TTL_SECONDS,
       JSON.stringify(items),
     );
+    // Only a complete collection earns the right to become the fallback.
+    if (!degraded) {
+      await redisClient.setEx(LAST_GOOD_KEY, LAST_GOOD_TTL_SECONDS, JSON.stringify(items));
+    }
   } catch (err) {
     console.error("Discover cache write failed:", err.message);
   }

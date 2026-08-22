@@ -42,11 +42,24 @@ const playerHtml = (videoId: string, width: number, height: number) => `<!DOCTYP
       height: '${Math.round(height)}',
       playerVars: {
         controls: 0, playsinline: 1, rel: 0, fs: 0,
-        disablekb: 1, iv_load_policy: 3, modestbranding: 1
+        disablekb: 1, iv_load_policy: 3, modestbranding: 1,
+        // Muted autoplay is the only kind every platform permits without a
+        // user gesture — and this player can never receive one, because the
+        // WebView is pointerEvents="none" so swipes reach the feed instead.
+        // Sound is restored in onStateChange once playback is actually running.
+        autoplay: 1, mute: 1,
+        enablejsapi: 1, origin: 'https://www.youtube.com'
       },
       events: {
         onReady: function () { send({ type: 'ready' }); },
-        onStateChange: function (e) { send({ type: 'state', state: e.data }); },
+        onStateChange: function (e) {
+          // 1 is PLAYING. Unmuting only once playback has begun keeps the
+          // autoplay policy satisfied; unmuting earlier gets the video paused.
+          if (e.data === 1 && player.isMuted && player.isMuted()) {
+            try { player.unMute(); player.setVolume(100); } catch (err) {}
+          }
+          send({ type: 'state', state: e.data });
+        },
         // A CC video can still be blocked for embedding in some regions, and
         // that arrives here rather than as a failed request.
         onError: function (e) { send({ type: 'error', code: e.data }); }
@@ -70,8 +83,7 @@ export default function YouTubeShort({
 }) {
   const ref = useRef<WebView>(null);
   const [ready, setReady] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const [ended, setEnded] = useState(false);
+  const [failed, setFailed] = useState<number | null>(null);
 
   // 16:9 centred in the screen, matching how the PeerTube cards letterbox, so
   // the two sources look like one feed rather than two.
@@ -83,6 +95,14 @@ export default function YouTubeShort({
     ref.current?.injectJavaScript(`window.${isActive ? 'play' : 'pause'}(); true;`);
   }, [isActive, ready]);
 
+  // Without this a player that never signals ready spins forever with nothing
+  // to explain it. Ten seconds is far past a normal start on a slow connection.
+  useEffect(() => {
+    if (ready || !isActive) return;
+    const t = setTimeout(() => setFailed((f) => (f === null ? -3 : f)), 10000);
+    return () => clearTimeout(t);
+  }, [ready, isActive]);
+
   const onMessage = (e: any) => {
     let msg: any;
     try { msg = JSON.parse(e.nativeEvent.data); } catch { return; }
@@ -91,21 +111,36 @@ export default function YouTubeShort({
       setReady(true);
       if (isActive) ref.current?.injectJavaScript('window.play(); true;');
     }
-    if (msg.type === 'error') setFailed(true);
+    if (msg.type === 'error') setFailed(msg.code ?? 0);
     // 0 is ENDED. Looping keeps the feed continuous instead of stopping dead on
     // a black frame until the user swipes.
     if (msg.type === 'state' && msg.state === 0) {
-      setEnded(true);
       ref.current?.injectJavaScript('window.play(); true;');
     }
   };
 
-  if (failed) {
+  if (failed !== null) {
+    // YouTube's own error codes, named. 101 and 150 both mean the owner
+    // disallowed embedding — which videoEmbeddable=true is supposed to exclude,
+    // but region restrictions still produce it at playback time.
+    const reason =
+      failed === 101 || failed === 150 ? 'The owner does not allow this one off YouTube.'
+      : failed === 100 ? 'This video was removed.'
+      : failed === 2 ? 'Bad video reference.'
+      : failed === 5 ? 'The player could not start.'
+      : failed === -1 ? 'The player page failed to load.'
+      : failed === -2 ? 'The player page was refused.'
+      : failed === -3 ? 'The player never finished loading.'
+      : 'This one would not play.';
+
     return (
       <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }} className="bg-ink items-center justify-center px-10">
         <Ionicons name="cloud-offline-outline" size={48} color="#8B857E" />
         <Text className="font-sans text-sm text-night-3 mt-3 text-center">
-          This one wouldn&apos;t play. Swipe on.
+          {reason} Swipe on.
+        </Text>
+        <Text className="font-sans text-night-3 mt-2" style={{ fontSize: 10, opacity: 0.6 }}>
+          code {failed}
         </Text>
       </View>
     );
@@ -141,8 +176,8 @@ export default function YouTubeShort({
           bounces={false}
           setSupportMultipleWindows={false}
           androidLayerType="hardware"
-          onError={() => setFailed(true)}
-          onHttpError={() => setFailed(true)}
+          onError={() => setFailed(-1)}
+          onHttpError={() => setFailed(-2)}
         />
       </View>
 

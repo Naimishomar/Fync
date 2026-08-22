@@ -42,9 +42,18 @@ const stableId = (videoId) =>
  * comfortably inside the free tier with room for the rest of the app.
  */
 const YT_TERMS = [
+  // General
   "programming tutorial", "web development", "python", "javascript",
-  "linux", "devops", "react", "data structures",
-  "system design", "machine learning", "cybersecurity", "computer science",
+  "linux", "devops", "react", "computer science", "system design", "cybersecurity",
+  // DSA, broken into the topics students search for individually rather than
+  // one "data structures" query that only ever returns introductory videos
+  "data structures", "dynamic programming", "graph algorithms", "binary tree",
+  "sorting algorithms", "recursion programming", "leetcode solution",
+  "time complexity big o", "linked list", "backtracking algorithm",
+  // AI, likewise split — "machine learning" alone misses most of the field
+  "machine learning", "deep learning", "neural networks",
+  "large language models", "prompt engineering", "generative ai",
+  "computer vision", "natural language processing", "ai agents", "data science",
 ];
 
 /**
@@ -55,10 +64,36 @@ const YT_TERMS = [
  * not work — "कोडिंग" returned 0 Hindi videos out of 50 and "प्रोग्रामिंग"
  * returned 1, because Hindi tech channels title and tag their videos in Latin
  * script. "computer science hindi" returns 34.
+ *
+ * Every term costs 100 quota units per refresh, so this list is the main lever
+ * on daily spend — see CACHE_TTL_SECONDS in the controller, which was widened
+ * to keep the two in balance. Adding a term means either paying for it or
+ * refreshing less often.
  */
 const YT_TERMS_HI = [
-  "computer science hindi", "javascript hindi", "programming hindi",
-  "coding tutorial hindi", "web development hindi", "python hindi",
+  // Languages
+  "python hindi", "javascript hindi", "java tutorial hindi",
+  "c++ tutorial hindi", "c programming hindi",
+  // Web and mobile
+  "web development hindi", "html css hindi", "react js hindi",
+  "node js hindi", "android app development hindi",
+  // Fundamentals and placement — what students here are actually studying for
+  "computer science hindi", "dsa hindi", "data structures hindi",
+  "coding interview questions hindi", "placement preparation hindi",
+  "competitive programming hindi",
+  // Data, infrastructure and security
+  "sql database hindi", "cyber security hindi", "linux tutorial hindi",
+  "git github hindi", "cloud computing hindi", "devops hindi",
+  // DSA varieties
+  "dynamic programming hindi", "graph algorithm hindi", "binary tree hindi",
+  "sorting algorithm hindi", "recursion hindi", "leetcode hindi",
+  "array problems hindi", "time complexity hindi",
+  // AI varieties
+  "machine learning hindi", "artificial intelligence hindi",
+  "deep learning hindi", "neural network hindi", "chatgpt tutorial hindi",
+  "generative ai hindi", "prompt engineering hindi", "data science hindi",
+  // General
+  "programming hindi", "coding tutorial hindi",
 ];
 
 async function searchTerm(term, key, relevanceLanguage = "en") {
@@ -111,7 +146,7 @@ async function searchTerm(term, key, relevanceLanguage = "en") {
 }
 
 /**
- * Keep only Hindi and English.
+ * Keep only Hindi and English, and only videos that will actually play.
  *
  * The search endpoint does not report language, so this costs one extra call
  * per 50 videos — 1 quota unit each, against 100 for a search, so verifying the
@@ -131,7 +166,7 @@ async function filterToHindiAndEnglish(candidates, key) {
 
   const settled = await Promise.allSettled(
     batches.map(async (batch) => {
-      const url = `${API}/videos?part=snippet&id=${batch.join(",")}&key=${key}`;
+      const url = `${API}/videos?part=snippet,status&id=${batch.join(",")}&key=${key}`;
       const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
       if (!res.ok) throw new Error(`videos.list ${res.status}`);
       return (await res.json()).items ?? [];
@@ -144,6 +179,13 @@ async function filterToHindiAndEnglish(candidates, key) {
   for (const r of settled) {
     if (r.status !== "fulfilled") continue;
     for (const v of r.value) {
+      // The search index lags reality: videoEmbeddable=true still returns
+      // videos whose owner has since disabled embedding, and those reach the
+      // player as error 101/150 — a dead card the user has to swipe past.
+      // Checking here costs nothing, since this call was already being made.
+      if (v.status?.embeddable !== true) continue;
+      if (v.status?.privacyStatus !== "public") continue;
+
       const lang = v.snippet?.defaultAudioLanguage || v.snippet?.defaultLanguage;
       if (!lang) continue;
       // Region variants count: en-IN, en-GB and hi-IN are all wanted. "zxx"
@@ -195,10 +237,18 @@ export async function collectYouTubeCandidates({
   const key = process.env.YOUTUBE_API_KEY;
   if (!key) return [];
 
-  const settled = await Promise.allSettled([
-    ...terms.map((t) => searchTerm(t, key, "en")),
-    ...hindiTerms.map((t) => searchTerm(t, key, "hi")),
-  ]);
+  const jobs = [
+    ...terms.map((t) => () => searchTerm(t, key, "en")),
+    ...hindiTerms.map((t) => () => searchTerm(t, key, "hi")),
+  ];
+
+  // Run in batches rather than firing every search at once. The daily quota is
+  // not the only limit — there is a per-100-second one too, and sixty-odd
+  // simultaneous searches is exactly the shape that trips it.
+  const settled = [];
+  for (let i = 0; i < jobs.length; i += 15) {
+    settled.push(...(await Promise.allSettled(jobs.slice(i, i + 15).map((run) => run()))));
+  }
 
   const failures = settled.filter((r) => r.status === "rejected");
   if (failures.length === settled.length) {
