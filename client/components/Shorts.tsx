@@ -20,6 +20,7 @@ import {
 } from "../utils/feedSession";
 import { useTabBarClearance } from '../constants/layout';
 import { Alert } from './ui/AlertModal';
+import YouTubeShort from './YouTubeShort';
 
 
 /* ---------------- CONSTANTS ---------------- */
@@ -50,10 +51,10 @@ interface ShortItem {
   /* Discover items: aggregated tech content that fills the feed once the campus
      shorts run out. They live only in this array — nothing is stored. */
   discover?: boolean;
+  videoId?: string;
   url?: string;
   source?: string;
   thumbnail?: string;
-  licence?: string;
   account?: string;
 }
 
@@ -278,105 +279,72 @@ const SingleShort = React.memo(({
 
 /* ---------------- DISCOVER CARD ---------------- */
 /**
- * Aggregated tech video, played in the same full-screen rhythm as a short.
+ * Creative Commons video from YouTube, shown once students' own shorts run out.
  *
- * The file streams from the source instance and is never copied to our storage.
- * There is no like/comment/tip rail: those belong to content students actually
- * posted, and this is somebody else's work under a Creative Commons licence.
+ * Playback is YouTube's player with its chrome switched off; everything the
+ * user touches is ours. See YouTubeShort for why it never receives a gesture.
  */
 const DiscoverCard = React.memo(({
   item,
   isActive,
+  isNear,
 }: {
   item: ShortItem;
   isActive: boolean;
+  isNear: boolean;
 }) => {
-  const videoRef = useRef<Video>(null);
-  const isFocused = useIsFocused();
-  const [buffering, setBuffering] = useState(true);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    if (isActive && isFocused) videoRef.current?.playAsync();
-    else videoRef.current?.pauseAsync();
-  }, [isActive, isFocused]);
+  // A WebView is expensive in a way a native view is not, so one is created
+  // only for the video on screen and its immediate neighbours. The thumbnail
+  // stands in for the rest, which is all the user ever sees of them.
+  if (!isNear) {
+    return (
+      <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }} className="bg-ink">
+        {!!item.thumbnail && (
+          <Image
+            source={{ uri: item.thumbnail }}
+            style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
+            resizeMode="cover"
+            blurRadius={6}
+          />
+        )}
+      </View>
+    );
+  }
 
   return (
-    <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }} className="bg-ink">
-      {/* The thumbnail holds the frame while the stream opens, so the feed never
-          shows a black rectangle between videos. */}
-      {buffering && !!item.thumbnail && (
-        <Image
-          source={{ uri: item.thumbnail }}
-          style={{ position: 'absolute', width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
-          resizeMode="cover"
-          blurRadius={6}
-        />
-      )}
-
-      <Pressable
-        onPress={async () => {
-          const st = await videoRef.current?.getStatusAsync();
-          if (st?.isLoaded) {
-            st.isPlaying ? videoRef.current?.pauseAsync() : videoRef.current?.playAsync();
-          }
-        }}
-        style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
-      >
-        <Video
-          ref={videoRef}
-          source={{ uri: item.video }}
-          style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
-          resizeMode={ResizeMode.CONTAIN}
-          isLooping
-          shouldPlay={false}
-          useNativeControls={false}
-          // Pre-buffering the next video is what makes the swipe feel instant.
-          onLoadStart={() => setBuffering(true)}
-          onReadyForDisplay={() => setBuffering(false)}
-          onError={() => { setFailed(true); setBuffering(false); }}
-          progressUpdateIntervalMillis={1000}
-        />
-      </Pressable>
-
-      {buffering && !failed && (
-        <View className="absolute inset-0 items-center justify-center">
-          <ActivityIndicator size="large" color="#F97316" />
-        </View>
-      )}
-
-      {failed && (
-        <View className="absolute inset-0 items-center justify-center px-10">
-          <Ionicons name="cloud-offline-outline" size={48} color="#8B857E" />
-          <Text className="font-sans text-sm text-night-3 mt-3 text-center">
-            This one wouldn&apos;t load. Swipe on.
-          </Text>
-        </View>
-      )}
-
-      {/* Attribution is a condition of the Creative Commons licence these
-          videos carry, so the creator and licence ship with every frame. */}
-      <View className="absolute bottom-32 left-4 right-4">
-        <View className="flex-row items-center mb-2">
-          <View className="bg-brand-500 px-2 py-1 rounded-sm">
-            <Text className="font-display text-label text-ink uppercase">Tech</Text>
-          </View>
-          <Text className="font-sans text-sm text-white ml-2" numberOfLines={1}>
-            {item.source}
-          </Text>
-        </View>
-
-        <Text className="font-display text-base text-white mb-1" numberOfLines={2}>
-          {item.title}
-        </Text>
-
-        <Text className="font-sans text-night-3" style={{ fontSize: 11 }} numberOfLines={1}>
-          {item.account ? `${item.account} · ` : ''}{item.licence}
-        </Text>
-      </View>
+    <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }}>
+      <YouTubeShort
+        videoId={item.videoId!}
+        isActive={isActive}
+        thumbnail={item.thumbnail}
+      />
+      <DiscoverAttribution item={item} />
     </View>
   );
 });
+
+/**
+ * Channel credit. Not a licence condition any more, but the viewer should still
+ * be able to see whose video they are watching without leaving the feed.
+ */
+const DiscoverAttribution = ({ item }: { item: ShortItem }) => (
+  <View className="absolute bottom-32 left-4 right-4" pointerEvents="none">
+    <View className="flex-row items-center mb-2">
+      <View className="bg-brand-500 px-2 py-1 rounded-sm">
+        <Text className="font-display text-label text-ink uppercase">Tech</Text>
+      </View>
+      <Text className="font-sans text-sm text-white ml-2" numberOfLines={1}>
+        {item.source}
+      </Text>
+    </View>
+    <Text className="font-display text-base text-white mb-1" numberOfLines={2}>
+      {item.title}
+    </Text>
+    <Text className="font-sans text-night-3" style={{ fontSize: 11 }} numberOfLines={1}>
+      YouTube
+    </Text>
+  </View>
+);
 
 export default function Shorts() {
   const tabBarClearance = useTabBarClearance();
@@ -494,7 +462,7 @@ export default function Shorts() {
 
       const mapped: ShortItem[] = res.data.items.map((i: any) => ({
         _id: i.id,
-        video: i.streamUrl || '',
+        video: '',
         title: i.title,
         description: i.description || '',
         likes: 0,
@@ -502,10 +470,10 @@ export default function Shorts() {
         views: 0,
         user: { _id: i.id, name: i.source, username: i.source },
         discover: true,
+        videoId: i.videoId,
         url: i.url,
         source: i.source,
         thumbnail: i.thumbnail,
-        licence: i.licence,
         account: i.account,
       }));
 
@@ -651,6 +619,7 @@ export default function Shorts() {
         <DiscoverCard
           item={item}
           isActive={item._id === activeVideoId}
+          isNear={Math.abs(index - shorts.findIndex(s => s._id === activeVideoId)) <= 1}
         />
       );
     }

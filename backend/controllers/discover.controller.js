@@ -1,86 +1,59 @@
 /**
- * The Discover feed: endless technical video, stored nowhere.
+ * The Discover feed: Creative Commons technical video from YouTube.
  *
- * Two stages on purpose. Finding candidates is cheap and shared, so it is done
- * once and cached for everyone. Resolving a playable stream costs one HTTP call
- * per video, so it happens only for the handful of videos actually being sent —
- * resolving the whole pool would take minutes and most of it would never be
- * watched.
+ * This exists so the shorts feed never runs dry in the early days, when few
+ * students have posted. Students' own shorts come first and are served from
+ * /shorts/smart; the client falls through to here only once those are
+ * exhausted.
+ *
+ * Nothing is stored. Playback happens in YouTube's own player, so no video is
+ * downloaded, proxied or written to our database — the only state is a Redis
+ * string holding search results, and it expires.
  */
-import { collectVideoCandidates, resolvePlayable } from "../utils/discoverSources.js";
+import { collectYouTubeCandidates, youtubeConfigured } from "../utils/youtubeSource.js";
 import redisClient from "../utils/redis.js";
 
-const CACHE_KEY = "discover:videos:v2";
-const CACHE_TTL_SECONDS = 1800;
-const STREAM_TTL_SECONDS = 3600;
+const CACHE_KEY = "discover:youtube:v1";
+// Eight hours, not minutes: a refresh costs roughly 1,820 of the free tier's
+// 10,000 daily quota units (18 searches at 100 each, plus about 16 language
+// lookups at 1). Three refreshes a day is ~5,500, leaving real headroom. This
+// is a spend decision rather than a freshness one — the pool is Creative
+// Commons back-catalogue, so nothing in it goes stale in eight hours.
+const CACHE_TTL_SECONDS = 28800;
+// A partial pool is worth reusing for a few minutes so a quota wall does not
+// hammer the API, but not for eight hours.
+const DEGRADED_TTL_SECONDS = 900;
 const MAX_LIMIT = 20;
-
-/**
- * Resolved stream URLs, cached per video.
- *
- * The pool is ranked identically for everyone, so the first page every user
- * sees is the same handful of videos. Without this, each of them pays the same
- * ~1.2s of detail calls to rediscover URLs that have not changed. PeerTube
- * serves HLS from static paths rather than signed URLs, so caching them is safe.
- */
-async function resolveCached(candidates) {
-  if (!candidates.length) return [];
-
-  let cached = [];
-  try {
-    cached = await redisClient.mGet(candidates.map((v) => `discover:stream:${v.id}`));
-  } catch (err) {
-    console.error("Stream cache read failed:", err.message);
-    cached = [];
-  }
-
-  const hits = [];
-  const misses = [];
-  candidates.forEach((v, i) => {
-    const raw = cached[i];
-    if (raw) {
-      try { hits.push({ ...v, streamUrl: JSON.parse(raw), uuid: undefined, instance: undefined }); return; }
-      catch { /* fall through to a fresh resolve */ }
-    }
-    misses.push(v);
-  });
-
-  const resolved = await resolvePlayable(misses);
-  for (const v of resolved) {
-    // Best effort: a failed write costs a slower request next time, nothing more.
-    redisClient
-      .setEx(`discover:stream:${v.id}`, STREAM_TTL_SECONDS, JSON.stringify(v.streamUrl))
-      .catch(() => {});
-  }
-
-  // Preserve pool order: the ranking is the product, and cache hits must not
-  // float to the top just because they were quicker to fetch.
-  const byId = new Map([...hits, ...resolved].map((v) => [v.id, v]));
-  return candidates.map((v) => byId.get(v.id)).filter(Boolean);
-}
 
 /**
  * The candidate pool, shared by every user.
  *
- * This is the whole storage story: one Redis string, expiring every half hour.
- * Nothing is written to Mongo.
+ * Cached hard because it costs quota, not time. A cache failure degrades to a
+ * slower request rather than a failed one.
  */
-async function getPoolCached() {
+async function getPool() {
+  if (!youtubeConfigured()) return [];
+
   try {
     const hit = await redisClient.get(CACHE_KEY);
     if (hit) return JSON.parse(hit);
   } catch (err) {
-    // A cache read failure means a slow request, never a failed one.
     console.error("Discover cache read failed:", err.message);
   }
 
-  const pool = await collectVideoCandidates();
+  const { items, degraded } = await collectYouTubeCandidates();
+  if (!items.length) return [];
+
   try {
-    await redisClient.setEx(CACHE_KEY, CACHE_TTL_SECONDS, JSON.stringify(pool));
+    await redisClient.setEx(
+      CACHE_KEY,
+      degraded ? DEGRADED_TTL_SECONDS : CACHE_TTL_SECONDS,
+      JSON.stringify(items),
+    );
   } catch (err) {
     console.error("Discover cache write failed:", err.message);
   }
-  return pool;
+  return items;
 }
 
 export const getDiscoverFeed = async (req, res) => {
@@ -97,35 +70,42 @@ export const getDiscoverFeed = async (req, res) => {
   );
 
   try {
-    const pool = await getPoolCached();
+    const pool = await getPool();
+
+    if (!pool.length) {
+      // An empty pool is a configuration state, not a failure. Saying so plainly
+      // beats a 502 that looks like an outage when the API key is simply absent.
+      return res.status(200).json({
+        success: true,
+        items: [],
+        nextCursor: cursor,
+        hasMore: false,
+        total: 0,
+        recycled: false,
+        configured: youtubeConfigured(),
+      });
+    }
+
     const fresh = seen.size ? pool.filter((v) => !seen.has(v.id)) : pool;
 
-    // Running out is the normal case for a bounded upstream, not an error.
-    // Falling back to the full pool means the user keeps scrolling instead of
-    // hitting a wall; the client is told so it can clear its history.
-    const recycled = fresh.length === 0 && pool.length > 0;
+    // Running out is the normal case for a bounded pool, not an error. Falling
+    // back to the whole pool keeps the user scrolling instead of hitting a wall;
+    // the client is told so it can clear its history.
+    const recycled = fresh.length === 0;
     const usable = recycled ? pool : fresh;
-
-    // Over-fetch slightly: some candidates will fail to resolve a stream, and a
-    // short page is better handled here than as a gap in the feed.
-    const slice = usable.slice(cursor, cursor + limit + 4);
-    const items = (await resolveCached(slice)).slice(0, limit);
-
-    // Advance past everything examined, not just what resolved — otherwise the
-    // dead entries are retried on every request and the cursor stalls.
-    const consumed = Math.min(slice.length, limit + 4);
+    const items = usable.slice(cursor, cursor + limit);
 
     return res.status(200).json({
       success: true,
       items,
-      nextCursor: cursor + consumed,
-      hasMore: cursor + consumed < usable.length,
+      nextCursor: cursor + items.length,
+      hasMore: cursor + items.length < usable.length,
       total: usable.length,
       recycled,
+      configured: true,
     });
   } catch (error) {
     console.error("Discover feed failed:", error?.message);
-    // Upstream being down is not this service's fault, so it says so.
-    return res.status(502).json({ success: false, message: "Could not reach the video sources." });
+    return res.status(502).json({ success: false, message: "Could not reach YouTube." });
   }
 };
