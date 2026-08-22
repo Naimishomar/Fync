@@ -174,13 +174,15 @@ export default function RecruiterProfileSetup() {
 
           <Text className="text-sm font-semibold text-ink mb-2 mt-4">Personal Details</Text>
           <TextInput
-            className="mb-4 bg-card border-[1.5px] border-ink px-4 py-3.5 font-medium rounded-md"
+            className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
+            placeholderTextColor="#8B857E"
             placeholder="Full Name"
             value={name}
             onChangeText={setName}
           />
           <TextInput
-            className="mb-4 bg-card border-[1.5px] border-ink px-4 py-3.5 font-medium rounded-md"
+            className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
+            placeholderTextColor="#8B857E"
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
@@ -189,32 +191,37 @@ export default function RecruiterProfileSetup() {
 
           <Text className="text-sm font-semibold text-ink mb-2 mt-4">Company Verification</Text>
           <TextInput
-            className="mb-4 bg-card border-[1.5px] border-ink px-4 py-3.5 font-medium rounded-md"
+            className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
+            placeholderTextColor="#8B857E"
             placeholder="Company Name"
             value={company}
             onChangeText={setCompany}
           />
           <TextInput
-            className="mb-4 bg-card border-[1.5px] border-ink px-4 py-3.5 font-medium rounded-md"
+            className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
+            placeholderTextColor="#8B857E"
             placeholder="Designation / Role"
             value={role}
             onChangeText={setRole}
           />
           <TextInput
-            className="mb-4 bg-card border-[1.5px] border-ink px-4 py-3.5 font-medium rounded-md"
+            className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
+            placeholderTextColor="#8B857E"
             placeholder="Company Website URL (Optional)"
             value={companyWebsite}
             autoCapitalize="none"
             onChangeText={setCompanyWebsite}
           />
           <TextInput
-            className="mb-4 bg-card border-[1.5px] border-ink px-4 py-3.5 font-medium rounded-md"
+            className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
+            placeholderTextColor="#8B857E"
             placeholder="Industry (e.g. IT, Finance) (Optional)"
             value={industry}
             onChangeText={setIndustry}
           />
           <TextInput
-            className="mb-4 bg-card border-[1.5px] border-ink px-4 py-3.5 font-medium rounded-md"
+            className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
+            placeholderTextColor="#8B857E"
             placeholder="Number of Employees (Optional)"
             value={companySize}
             keyboardType="number-pad"
@@ -222,7 +229,8 @@ export default function RecruiterProfileSetup() {
           />
           <Text className="text-sm font-semibold text-ink mb-2 mt-4">Professional Link</Text>
           <TextInput
-            className="mb-8 bg-card border-[1.5px] border-ink px-4 py-3.5 font-medium rounded-md"
+            className="mb-8 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
+            placeholderTextColor="#8B857E"
             placeholder="LinkedIn Profile URL (Optional)"
             value={linkedIn}
             autoCapitalize="none"

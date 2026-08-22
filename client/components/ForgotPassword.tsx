@@ -1,10 +1,10 @@
-import {ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, TouchableWithoutFeedback, View} from 'react-native'
+import {ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Pressable, Text, TextInput, TouchableWithoutFeedback, View} from 'react-native'
 import React, { useCallback, useState } from 'react';
 import { ScrollView } from 'react-native';
+import AuthPoster from './ui/AuthPoster';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../context/axiosConfig';
 //@ts-ignore
-import loginImage from '../assets/loginImage.png';
 import { Alert } from './ui/AlertModal';
 
 const ForgotPassword = ({ route, navigation }: any) => {
@@ -80,100 +80,126 @@ const ForgotPassword = ({ route, navigation }: any) => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 bg-paper">
-        {/* Background Feed */}
+      {/* Same shell as login and sign-up. The form used to sit in a View
+          pinned with absolute bottom-0 wrapping an unbounded ScrollView, so it
+          could not scroll and its lower fields were unreachable once the OTP
+          and password inputs appeared. */}
+      <KeyboardAvoidingView
+        behavior="padding"
+        style={{ flex: 1 }}
+        className="bg-paper"
+      >
         <ScrollView
-          contentContainerStyle={{ padding: 16 }}
-          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1, backgroundColor: '#F5F2EC' }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <View>
-            <Image
-              source={loginImage}
-              className="w-full min-h-full rounded-card"
-              resizeMode='cover'
-            />
-          </View>
-          <View className="h-48" />
-        </ScrollView>
+          <View className="flex-1 bg-ink">
 
-        {/* Action Sheet */}
-        <KeyboardAvoidingView
-          behavior="padding"
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-          className="absolute bottom-0 w-full"
-        >
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ paddingBottom: 24 }}
-          >
-            <View className="rounded-t-sheet bg-paper px-6 pt-8 pb-10">
-              <Image
-                source={require('../assets/Fync.png')}
-                className="h-20 w-20 self-center rounded-full mb-4"
-                resizeMode='cover'
-              />
+            <AuthPoster mode="login" grow />
 
-              <Text className="font-display mb-6 text-center text-h1">
-                {isOtpSent ? "Verify & Reset" : "Forgot Password"}
-              </Text>
-
-              {/* Email Input (Always Visible) */}
-              <TextInput
-                className={`mb-4 rounded-xl border border-line px-4 py-4 text-base ${isOtpSent ? 'bg-paper-2 text-ink-3' : 'bg-card text-ink'}`}
-                placeholder="Enter your email"
-                placeholderTextColor="#C4BEB6"
-                value={email}
-                onChangeText={setEmail} // Allow editing if OTP not sent yet
-                keyboardType="email-address"
-                autoCapitalize="none"
-                editable={!isOtpSent} // Disable after OTP is sent
-              />
-
-              {/* CONDITIONAL RENDERING: Show OTP & Password only after OTP is sent */}
-              {isOtpSent && (
-                <>
-                  {/* OTP Input */}
-                  <TextInput
-                    className="mb-4 border-[1.5px] border-ink px-4 py-4 text-base text-ink rounded-md"
-                    placeholder="Enter 6-digit OTP"
-                    placeholderTextColor="#C4BEB6"
-                    value={otp}
-                    onChangeText={setOtp}
-                    keyboardType="number-pad"
-                    autoCapitalize="none"
-                    maxLength={6}
+            <View
+              className="bg-paper rounded-t-sheet"
+              style={{ marginTop: -22, paddingTop: 8, paddingBottom: 16 }}
+            >
+              <View className="px-6 pt-6 pb-2">
+                <View style={{ width: 72, height: 72, alignSelf: 'center' }}>
+                  <View
+                    pointerEvents="none"
+                    className="absolute bg-ink rounded-full"
+                    style={{ left: 4, top: 4, width: 72, height: 72 }}
                   />
+                  <Image
+                    source={require('../assets/fync-logo.jpg')}
+                    style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: '#12100E' }}
+                    resizeMode="cover"
+                    accessibilityLabel="Fync"
+                  />
+                </View>
 
-                  {/* Password Input */}
-                  <View className="mb-6 flex-row items-center rounded-xl border-2 border-ink px-4">
+                <Text className="font-display text-ink text-center mt-4" style={{ fontSize: 22 }}>
+                  {isOtpSent ? "Verify and reset" : "Forgot password"}
+                </Text>
+                <Text className="font-sans text-ink-2 text-center mt-2" style={{ fontSize: 13 }}>
+                  {isOtpSent
+                    ? "Enter the code we sent and choose a new password."
+                    : "We will email you a code to reset it."}
+                </Text>
+              </View>
+
+              <View className="px-6 pt-4">
+
+              {/* One stamped card holding the whole flow, so the screen does
+                  not change shape when the OTP and password fields appear. */}
+              <View className="relative mb-6">
+                <View pointerEvents="none" className="absolute left-1 top-1 -right-1 -bottom-1 bg-ink rounded-card" />
+                <View className="bg-card border-2 border-ink rounded-card p-card-pad">
+
+                  <Text className="font-display text-label text-ink-3 uppercase" style={{ letterSpacing: 1.4 }}>Email</Text>
+                  <View
+                    className={`mt-2 flex-row items-center border-[1.5px] px-4 rounded-md ${isOtpSent ? 'border-line bg-paper-2' : 'border-ink bg-card'}`}
+                    style={{ minHeight: 50 }}
+                  >
                     <TextInput
-                      className="flex-1 py-4 text-base text-ink"
-                      placeholder="New Password"
-                      placeholderTextColor="#C4BEB6"
-                      secureTextEntry={!passwordVisible}
-                      value={password}
-                      onChangeText={setPassword}
+                      className={`flex-1 font-sans text-base ${isOtpSent ? 'text-ink-2' : 'text-ink'}`}
+                      placeholder="you@college.ac.in"
+                      placeholderTextColor="#8B857E"
+                      value={email}
+                      onChangeText={setEmail}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      editable={!isOtpSent}
                     />
-                    <Pressable onPress={togglePassword}>
-                      <Ionicons
-                        name={passwordVisible ? 'eye-off' : 'eye'}
-                        size={22}
-                        color="#C4BEB6"
-                      />
-                    </Pressable>
                   </View>
-                </>
-              )}
+
+                  {isOtpSent && (
+                    <>
+                      <Text className="font-display text-label text-ink-3 uppercase mt-4" style={{ letterSpacing: 1.4 }}>Verification code</Text>
+                      <View className="mt-2 border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 54, justifyContent: 'center' }}>
+                        <TextInput
+                          className="font-display text-lg text-ink text-center"
+                          placeholder="6-digit code"
+                          placeholderTextColor="#8B857E"
+                          value={otp}
+                          onChangeText={setOtp}
+                          keyboardType="number-pad"
+                          autoCapitalize="none"
+                          maxLength={6}
+                        />
+                      </View>
+
+                      <Text className="font-display text-label text-ink-3 uppercase mt-4" style={{ letterSpacing: 1.4 }}>New password</Text>
+                      <View className="mt-2 flex-row items-center border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50 }}>
+                        <TextInput
+                          className="flex-1 font-sans text-base text-ink"
+                          placeholder="At least 8 characters"
+                          placeholderTextColor="#8B857E"
+                          secureTextEntry={!passwordVisible}
+                          value={password}
+                          onChangeText={setPassword}
+                        />
+                        <Pressable onPress={togglePassword} hitSlop={10}>
+                          <Ionicons
+                            name={passwordVisible ? 'eye-off' : 'eye'}
+                            size={22}
+                            color="#8B857E"
+                          />
+                        </Pressable>
+                      </View>
+                    </>
+                  )}
+                </View>
+              </View>
 
               {/* Action Button */}
               {isLoading ? (
-                <Pressable className="bg-brand-500 py-4 items-center border-2 border-ink rounded-md">
+                <Pressable className="bg-brand-500 py-4 items-center justify-center border-2 border-ink rounded-xl" style={{ minHeight: 52 }}>
                   <ActivityIndicator size="small" color="#12100E" />
                 </Pressable>
               ) : (
                 <Pressable
-                  className="bg-brand-500 py-4 items-center border-2 border-ink rounded-md"
+                  className="bg-brand-500 py-4 items-center justify-center border-2 border-ink rounded-xl"
+                  style={{ minHeight: 52 }}
                   onPress={isOtpSent ? handleVerifyAndReset : handleSendOtp}
                 >
                   <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>
@@ -185,14 +211,15 @@ const ForgotPassword = ({ route, navigation }: any) => {
               {/* Back to Edit Email (Optional UX improvement) */}
               {isOtpSent && !isLoading && (
                 <Pressable onPress={() => setIsOtpSent(false)} className="mt-4 items-center">
-                  <Text className="text-ink-3 font-medium">Change Email or Resend</Text>
+                  <Text className="text-ink-2 font-semibold">Change email or resend</Text>
                 </Pressable>
               )}
 
+              </View>
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 };

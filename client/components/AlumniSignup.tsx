@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  KeyboardAvoidingView,
   View,
   Text,
   TextInput,
@@ -17,6 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
 // @ts-ignore
 import loginImage from '../assets/loginImage.png';
+import AuthPoster from './ui/AuthPoster';
 
 export default function AlumniSignup() {
   const navigation = useNavigation<any>();
@@ -96,44 +98,80 @@ export default function AlumniSignup() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 bg-paper">
+      {/* Same shell as the other auth screens. This one had no
+          KeyboardAvoidingView at all, and its form sat in an absolutely
+          positioned View wrapping an unbounded ScrollView — so it could not
+          scroll and the keyboard simply covered the fields. */}
+      <KeyboardAvoidingView
+        behavior="padding"
+        style={{ flex: 1 }}
+        className="bg-paper"
+      >
         <ScrollView
-          contentContainerStyle={{ padding: 0 }}
+          contentContainerStyle={{ flexGrow: 1, backgroundColor: '#F5F2EC' }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Image
-            source={{ uri: 'https://i.pinimg.com/1200x/14/84/57/1484572a0fbeab4c170c7a5b9da9fed8.jpg' }}
-            style={{ width: '100%', height: 580 }}
-            resizeMode="cover"
-          />
-          <View className="h-56" />
-        </ScrollView>
+          <View className="flex-1 bg-ink">
 
-        <View className="absolute bottom-0 w-full">
-          <ScrollView keyboardShouldPersistTaps="handled">
-            <View className="rounded-t-sheet bg-paper px-6 pt-8 pb-12">
-              <Image source={require('../assets/Fync.png')} className="h-20 w-20 self-center rounded-full mb-4" resizeMode='cover' />
-              <Text className="text-ink-3 mb-2">Join the exclusive professional network</Text>
+            <AuthPoster mode="alumni" grow />
+
+            <View
+              className="bg-paper rounded-t-sheet px-6"
+              style={{ marginTop: -22, paddingTop: 8, paddingBottom: 16 }}
+            >
+              <View style={{ width: 72, height: 72, alignSelf: 'center', marginTop: 18 }}>
+                <View
+                  pointerEvents="none"
+                  className="absolute bg-ink rounded-full"
+                  style={{ left: 4, top: 4, width: 72, height: 72 }}
+                />
+                <Image
+                  source={require('../assets/fync-logo.jpg')}
+                  style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: '#12100E' }}
+                  resizeMode="cover"
+                  accessibilityLabel="Fync"
+                />
+              </View>
+
+              <Text className="font-display text-ink text-center mt-4" style={{ fontSize: 22 }}>Join as alumni</Text>
+              <Text className="font-sans text-ink-2 text-center mt-2 mb-6" style={{ fontSize: 13 }}>
+                Mentor the juniors who are where you were.
+              </Text>
 
               {!otpSent ? (
                 <>
-                  <TextInput
-                    className="mb-4 border-[1.5px] border-ink px-4 py-4 text-ink rounded-md"
-                    placeholder="Work Email"
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
+                  {/* Same stamped card as login and recruiter. */}
+                  <View className="relative mb-6">
+                    <View pointerEvents="none" className="absolute left-1 top-1 -right-1 -bottom-1 bg-ink rounded-card" />
+                    <View className="bg-card border-2 border-ink rounded-card p-card-pad">
 
-                  <TextInput
-                    className="mb-4 border-[1.5px] border-ink px-4 py-4 text-ink rounded-md"
-                    placeholder="Mobile Number"
-                    keyboardType="phone-pad"
-                    value={phoneNumber}
-                    onChangeText={setPhoneNumber}
-                  />
+                      <Text className="font-display text-label text-ink-3 uppercase" style={{ letterSpacing: 1.4 }}>Work email</Text>
+                      <View className="mt-2 flex-row items-center border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50 }}>
+                        <TextInput
+                          className="flex-1 font-sans text-base text-ink"
+                          placeholderTextColor="#8B857E"
+                          placeholder="you@company.com"
+                          value={email}
+                          onChangeText={setEmail}
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                        />
+                      </View>
+
+                      <Text className="font-display text-label text-ink-3 uppercase mt-4" style={{ letterSpacing: 1.4 }}>Mobile number</Text>
+                      <View className="mt-2 flex-row items-center border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50 }}>
+                        <TextInput
+                          className="flex-1 font-sans text-base text-ink"
+                          placeholderTextColor="#8B857E"
+                          placeholder="10-digit number"
+                          keyboardType="phone-pad"
+                          value={phoneNumber}
+                          onChangeText={setPhoneNumber}
+                        />
+                      </View>
+                    </View>
+                  </View>
 
                   <View className="mb-6 flex-row items-center">
                     <Checkbox value={agreeTerms} onValueChange={setAgreeTerms} color="#12100E" />
@@ -143,7 +181,8 @@ export default function AlumniSignup() {
                   </View>
 
                   <Pressable
-                    className="bg-brand-500 py-4 items-center border-2 border-ink rounded-md"
+                    className="bg-brand-500 py-4 items-center justify-center border-2 border-ink rounded-xl"
+                    style={{ minHeight: 52 }}
                     onPress={sendOtpToWorkEmail}
                     disabled={isLoading || !agreeTerms}
                   >
@@ -156,17 +195,28 @@ export default function AlumniSignup() {
                 </>
               ) : (
                 <>
-                  <Text className="text-ink-2 mb-4">We've sent an OTP to {email}</Text>
-                  <TextInput
-                    className="mb-6 border-[1.5px] border-ink px-4 py-4 text-ink rounded-md"
-                    placeholder="Enter OTP"
-                    value={otp}
-                    onChangeText={setOtp}
-                    keyboardType="number-pad"
-                  />
+                  <View className="relative mb-6">
+                    <View pointerEvents="none" className="absolute left-1 top-1 -right-1 -bottom-1 bg-ink rounded-card" />
+                    <View className="bg-card border-2 border-ink rounded-card p-card-pad">
+                      <Text className="font-display text-label text-ink-3 uppercase" style={{ letterSpacing: 1.4 }}>Verification code</Text>
+                      <Text className="font-sans text-ink-2 mt-1" style={{ fontSize: 12 }}>Sent to {email || 'your inbox'}</Text>
+                      <View className="mt-3 border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 54, justifyContent: 'center' }}>
+                        <TextInput
+                          className="font-display text-lg text-ink text-center"
+                          placeholderTextColor="#8B857E"
+                          placeholder="6-digit code"
+                          value={otp}
+                          onChangeText={setOtp}
+                          keyboardType="number-pad"
+                          maxLength={6}
+                        />
+                      </View>
+                    </View>
+                  </View>
 
                   <Pressable
-                    className="bg-brand-500 py-4 items-center border-2 border-ink rounded-md"
+                    className="bg-brand-500 py-4 items-center justify-center border-2 border-ink rounded-xl"
+                    style={{ minHeight: 52 }}
                     onPress={verifyOtpAndProceed}
                     disabled={isLoading}
                   >
@@ -189,11 +239,11 @@ export default function AlumniSignup() {
                   <Text className="font-semibold text-ink">Login</Text>
                 </Pressable>
               </View>
-              <Text className="mt-5 text-center text-ink-3">Step 1 of 3</Text>
+              <Text className="mt-5 text-center text-ink-2">Step 1 of 3</Text>
             </View>
-          </ScrollView>
-        </View>
-      </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 }

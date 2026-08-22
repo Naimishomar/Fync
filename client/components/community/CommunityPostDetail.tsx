@@ -159,7 +159,7 @@ export default function CommunityPostDetail() {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top']}>
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+                <KeyboardAvoidingView behavior="padding" className="flex-1">
                     <View className="px-5 py-2 flex-row items-center">
                         <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
             accessibilityRole="button"

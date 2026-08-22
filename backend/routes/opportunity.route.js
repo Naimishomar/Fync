@@ -7,6 +7,7 @@ import {
     getRecruiterApplications,
     updateApplicationStatus,
     notifyShortlistedCandidates,
+    emailCandidatesByStatus,
     updateOpportunity,
     getStudentShortlisted
 } from "../controllers/opportunity.controller.js";
@@ -30,5 +31,8 @@ router.get("/recruiter/posts", authMiddleware, getRecruiterPosts);
 router.get("/recruiter/applications", authMiddleware, getRecruiterApplications);
 router.patch("/recruiter/application-status/:id", authMiddleware, updateApplicationStatus);
 router.post("/recruiter/notify-shortlisted", authMiddleware, notifyShortlistedCandidates);
+// Scoped to one status, so a message meant for the shortlist can never reach
+// candidates who were rejected.
+router.post("/recruiter/email-candidates", authMiddleware, emailCandidatesByStatus);
 
 export default router;

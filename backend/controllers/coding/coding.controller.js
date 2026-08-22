@@ -16,7 +16,15 @@ export const getProblems = async (req, res) => {
     if (difficulty) filter.difficulty = difficulty;
     if (tags) filter.tags = { $in: tags.split(',') };
 
-    const problems = await Problem.find(filter).select('-testCases.isHidden');
+    // Test cases are excluded entirely from the listing, not just their
+    // isHidden flag. Selecting '-testCases.isHidden' removed the flag but kept
+    // the inputs and expected outputs, so the problem list was handing out the
+    // answers to every hidden case — the exact thing hiding them prevents.
+    const problems = await Problem.find(filter)
+      .select('-testCases')
+      .sort({ difficulty: 1, createdAt: -1 })
+      .lean();
+
     res.json({ success: true, problems });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

@@ -132,67 +132,81 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
         }
     };
 
+    const confirmLogout = () => {
+        Alert.alert(
+            "Log out",
+            "You will need to sign in again to use Fync.",
+            [
+                { text: "Cancel", style: "cancel" },
+                { text: "Log out", style: "destructive", onPress: () => logout() },
+            ],
+        );
+    };
+
+    const PERKS = [
+        { icon: "infinite", text: "Unlimited app services" },
+        { icon: "wifi", text: "Smart WiFi manager" },
+        { icon: "wallet", text: "Split and pay ecosystem" },
+        { icon: "rocket", text: "Priority feature access" },
+    ];
+
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            <SafeAreaView className="flex-1">
-                {/* Header */}
-                <View className="px-gutter py-4 flex-row items-center justify-between">
-                    {navigation.canGoBack() ? (
-                        <Pressable onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                            <Ionicons name="arrow-back" size={20} color="#12100E" />
+            <SafeAreaView className="flex-1" edges={['top']}>
+                <View className="px-5 pt-2">
+                    {navigation.canGoBack() && (
+                        <Pressable
+                            onPress={() => navigation.goBack()}
+                            className="w-11 h-11 items-center justify-center rounded-xl"
+                            style={{ marginLeft: -11 }}
+                            accessibilityRole="button"
+                            accessibilityLabel="Go back"
+                        >
+                            <Ionicons name="arrow-back" size={24} color="#12100E" />
                         </Pressable>
-                    ) : (
-                        <View className="w-10" />
                     )}
-                    <Text className="text-ink font-display uppercase text-label">Premium Plan</Text>
-                    <View className='w-10'></View>
+
+                    {/* The two-line display headline every other screen uses. */}
+                    <Text className="font-display text-display text-ink uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Fync</Text>
+                    <Text className="font-display text-display text-brand-600 uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Pro</Text>
+                    <Text className="font-display text-ink-3 uppercase mt-3 mb-5" style={{ fontSize: 11, letterSpacing: 1.4 }}>
+                        {user?.is_subscribed ? "Active — extend any time" : "Everything, unlocked"}
+                    </Text>
                 </View>
 
-                <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingBottom: 50 }}>
-                    <View className="items-center mt-8 mb-10">
-                        <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-8">
-                            <Ionicons name="flash" size={48} color="#F97316" />
-                        </View>
-
-                        <Text className="text-ink text-4xl font-display uppercase text-center">Fync<Text className="text-accent-text"> Pro</Text></Text>
-                        <Text className="font-sans text-sm text-ink-3 text-center mt-4 px-6">
-                            {user?.is_subscribed ? "Your mission is active. Extend to maintain your elite status." : "Unlock the full potential of your campus experience."}
-                        </Text>
-                    </View>
-
-                    {/* Plan Card */}
-                    <StampCard radius={26} style={{ width: '100%' }}>
-                    <View className="w-full bg-ink p-card-pad overflow-hidden">
-                        <View className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full -mr-16 -mt-16" />
-                        
-                        <View className="flex-row justify-between items-start mb-10">
-                            <View>
-                                <Text className="text-ink font-display uppercase text-sm">Full Access Pass</Text>
-                                <Text className="text-accent-text text-label font-display uppercase mt-1">Limited Time Offer</Text>
+                <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+                    <StampCard radius={20} style={{ width: '100%' }}>
+                    <View className="w-full bg-ink p-5 overflow-hidden rounded-card">
+                        <View className="flex-row justify-between items-start mb-6">
+                            <View className="flex-1 pr-3">
+                                {/* This heading was text-ink on bg-ink — a contrast ratio of
+                                    1.00, meaning the same colour as its own background. It
+                                    was not faint, it was invisible. */}
+                                <Text className="text-white font-display uppercase" style={{ fontSize: 15 }}>Full Access Pass</Text>
+                                <Text className="text-brand-400 font-display uppercase mt-1" style={{ fontSize: 10, letterSpacing: 1.2 }}>
+                                    Limited time offer
+                                </Text>
                             </View>
                             <View className="items-end">
-                                <Text className="text-white font-display text-3xl">₹{subscriptionAmount}</Text>
-                                <Text className="text-ink-3 font-display uppercase text-label">/ Month</Text>
+                                <Text className="text-white font-display" style={{ fontSize: 30 }}>₹{subscriptionAmount}</Text>
+                                <Text className="text-night-3 font-display uppercase" style={{ fontSize: 10 }}>/ month</Text>
                             </View>
                         </View>
 
-                        <View className="gap-y-5 mb-10">
-                            {[
-                                { icon: "infinite", text: "UNLIMITED APP SERVICES", color: "#F97316" },
-                                { icon: "wifi", text: "SMART WIFI MANAGER", color: "#0891B2" },
-                                { icon: "wallet", text: "SPLIT & PAY ECOSYSTEM", color: "#047857" },
-                                { icon: "rocket", text: "PRIORITY FEATURE ACCESS", color: "#DB2777" },
-                            ].map((item, index) => (
-                                <View key={index} className="flex-row items-center">
-                                    <View className="w-8 h-8 rounded-xl bg-card/5 items-center justify-center mr-4 border border-white/10">
-                                        <Ionicons name={item.icon as any} size={16} color={item.color} />
+                        <View className="h-[2px] bg-white/15 mb-5" />
+
+                        <View className="mb-6">
+                            {PERKS.map((item, index) => (
+                                <View key={index} className="flex-row items-center mb-3">
+                                    {/* One accent, not four. The old list used cyan, green
+                                        and pink alongside brand — none of them from the
+                                        palette, and none carrying any meaning. */}
+                                    <View className="w-8 h-8 rounded-xl items-center justify-center mr-3 border-2 border-brand-500">
+                                        <Ionicons name={item.icon as any} size={15} color="#F97316" />
                                     </View>
-                                    <Text className="text-ink-4 font-display uppercase text-label">{item.text}</Text>
+                                    <Text className="text-white font-sans flex-1" style={{ fontSize: 13 }}>{item.text}</Text>
                                 </View>
                             ))}
                         </View>
@@ -200,30 +214,62 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                         <TouchableOpacity
                             onPress={handleSubscribe}
                             disabled={loading}
-                            activeOpacity={0.8}
-                            className="bg-card py-5 rounded-card items-center"
+                            activeOpacity={0.85}
+                            className="bg-brand-500 py-4 rounded-xl items-center border-2 border-brand-500"
+                            style={{ minHeight: 52, justifyContent: 'center' }}
+                            accessibilityRole="button"
+                            accessibilityLabel={user?.is_subscribed ? "Extend subscription" : "Unlock premium"}
                         >
                             {loading ? (
                                 <ActivityIndicator size="small" color="#12100E" />
                             ) : (
                                 <View className="flex-row items-center">
-                                    <Text className="text-ink font-display uppercase text-label mr-2">
-                                        {user?.is_subscribed ? "Extend Subscription" : "Unlock Premium Now"}
+                                    {/* Ink on brand-500 measures 6.77:1; white on it is 2.80
+                                        and would fail, which is why this is not white. */}
+                                    <Text className="text-ink font-display uppercase mr-2" style={{ fontSize: 13 }}>
+                                        {user?.is_subscribed ? "Extend subscription" : "Unlock premium"}
                                     </Text>
-                                    <Ionicons name="chevron-forward" size={16} color="#12100E" />
+                                    <Ionicons name="chevron-forward" size={15} color="#12100E" />
                                 </View>
                             )}
                         </TouchableOpacity>
                     </View>
                     </StampCard>
 
-                    <View className="mt-12 items-center flex-row justify-center gap-3">
-                        <View className="w-8 h-8 rounded-xl bg-paper-2 items-center justify-center border border-line">
-                            <Ionicons name="shield-checkmark" size={16} color="#8B857E" />
-                        </View>
-                        <Text className="font-sans text-sm text-ink-4 text-center max-w-[200px]">
-                            Secure 256-bit encrypted payment processed by Razorpay.
+                    <View className="mt-6 flex-row items-center justify-center">
+                        <Ionicons name="shield-checkmark" size={15} color="#8B857E" />
+                        <Text className="font-sans text-ink-2 ml-2 text-center" style={{ fontSize: 12 }}>
+                            Secure payment via Razorpay
                         </Text>
+                    </View>
+
+                    {/* Account actions, kept well clear of the pay button so a
+                        mis-tap cannot log someone out mid-purchase. */}
+                    <View className="mt-12">
+                        <Text className="font-display text-ink uppercase mb-1" style={{ fontSize: 12 }}>Account</Text>
+                        <View className="h-[2px] bg-ink mb-3" style={{ width: 36 }} />
+
+                        <TouchableOpacity
+                            onPress={confirmLogout}
+                            className="flex-row items-center bg-white border-2 border-ink rounded-card px-4 py-3"
+                            style={{ minHeight: 56 }}
+                            accessibilityRole="button"
+                            accessibilityLabel="Log out"
+                        >
+                            <View
+                                className="items-center justify-center rounded-xl border-2 border-ink"
+                                style={{ width: 40, height: 40, backgroundColor: '#FEE2E2' }}
+                            >
+                                <Ionicons name="log-out-outline" size={20} color="#DC2626" />
+                            </View>
+                            <View className="ml-3 flex-1">
+                                <Text className="font-display text-danger" style={{ fontSize: 15 }}>Log out</Text>
+                                <Text className="font-sans text-ink-2 mt-[2px]" style={{ fontSize: 11 }}>
+                                    {user?.email ?? "Sign out of this account"}
+                                </Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={18} color="#8B857E" />
+                        </TouchableOpacity>
                     </View>
                 </ScrollView>
             </SafeAreaView>

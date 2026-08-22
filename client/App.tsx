@@ -163,7 +163,6 @@ import FyncMediaFeed from './components/FyncMediaFeed';
 import FocusProductivity from './components/focus/FocusProductivity';
 import SubscriptionGuard from './components/newFeatures/SubscriptionGuard';
 import PlacementPredictor from './components/newFeatures/PlacementPredictor';
-import DSAAndDevelopmentContest from './components/contest/DSAAndDevelopmentContest';
 
 // Profile Builder
 import FyncProfileBuilder from './components/profile/FyncProfileBuilder';
@@ -226,6 +225,8 @@ import PdfToImagesScreen from './components/utility/pdf/PdfToImagesScreen';
 import PdfToTextScreen from './components/utility/pdf/PdfToTextScreen';
 import NotesExchange from './components/notes/NotesExchange';
 import ArenaAdminScreen from './components/admin/ArenaAdminScreen';
+import CodingArena from './components/arena/CodingArena';
+import SolveProblem from './components/arena/SolveProblem';
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -373,7 +374,6 @@ export type RootStackParamList = {
   CreateFundingFeed: { project?: any } | undefined;
   FundingFeed: undefined;
   AdminPortal: undefined;
-  DSAAndDevelopmentContest: undefined;
   ContactUs: undefined;
   MeetOurTeam: undefined;
   // Hackathon Ecosystem
@@ -410,6 +410,8 @@ export type RootStackParamList = {
   ArticleScreen: { url: string; title?: string; source?: string };
   NotesExchange: undefined;
   ArenaAdminScreen: undefined;
+  CodingArena: undefined;
+  SolveProblem: { problemId: string; title?: string };
   SettingsScreen: undefined;
   MySharesScreen: undefined;
   ShareLinkResolver: { code: string };
@@ -573,6 +575,8 @@ function AppStack() {
       <Stack.Screen name="ArticleScreen" component={ArticleScreen} />
       <Stack.Screen name="NotesExchange" component={NotesExchange} />
       <Stack.Screen name="ArenaAdminScreen" component={ArenaAdminScreen} />
+      <Stack.Screen name="CodingArena" component={CodingArena} />
+      <Stack.Screen name="SolveProblem" component={SolveProblem} />
       <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
       <Stack.Screen name="MySharesScreen" component={MySharesScreen} />
       <Stack.Screen name="ShareLinkResolver" component={ShareLinkResolver} />
@@ -610,7 +614,6 @@ function AppStack() {
       <Stack.Screen name="CreateFundingFeed" component={CreateFundingFeed} />
       <Stack.Screen name="FundingFeed" component={FundingFeed} />
       <Stack.Screen name="AdminPortal" component={AdminPortal} />
-      <Stack.Screen name="DSAAndDevelopmentContest" component={DSAAndDevelopmentContest} />
       <Stack.Screen name="ContactUs" component={ContactUs} />
       <Stack.Screen name="MeetOurTeam" component={MeetOurTeam} />
       

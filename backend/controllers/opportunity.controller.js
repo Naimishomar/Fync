@@ -5,6 +5,7 @@ import Application from "../models/application.model.js";
 import Notification from "../models/notification.model.js";
 import { sendPushNotification } from "../utils/notification.js";
 import sendMail from "../utils/emailOtp.js";
+import { sendShortlistedEmail, sendRejectedEmail, sendBulkCandidateEmail } from "../utils/applicationEmails.js";
 
 export const createOpportunity = async (req, res) => {
     try {
@@ -254,6 +255,18 @@ export const updateApplicationStatus = async (req, res) => {
         const { id } = req.params;
         const { status } = req.body || {};
 
+        // Checked here rather than left to the schema. An unknown status made
+        // save() throw, which surfaced as a 500 — indistinguishable from the
+        // server being broken, when the real problem is a value the client
+        // should never have sent.
+        const ALLOWED = ["applied", "reviewing", "shortlisted", "rejected", "accepted"];
+        if (!ALLOWED.includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: `Unknown status "${status}". Expected one of: ${ALLOWED.join(", ")}.`,
+            });
+        }
+
         const application = await Application.findById(id);
         if (!application) {
             return res.status(404).json({ success: false, message: "Application not found" });
@@ -270,7 +283,30 @@ export const updateApplicationStatus = async (req, res) => {
         await application.populate("opportunity");
 
         // ── Notify candidate based on status change ───────────────────────
+        // Email is sent alongside the push and the in-app notification because
+        // it is the only one that survives the student uninstalling the app or
+        // having notifications off — and it is the record they can forward.
+        const decisionEmail = async (send) => {
+            try {
+                const [candidate, recruiter] = await Promise.all([
+                    User.findById(application.candidate).select('name email'),
+                    User.findById(req.user.id).select('name company'),
+                ]);
+                await send({
+                    email: candidate?.email,
+                    name: candidate?.name,
+                    role: application.opportunity?.title ?? 'the role',
+                    company: recruiter?.company || recruiter?.name || 'The company',
+                });
+            } catch (err) {
+                // A mail failure must not fail the status change: the recruiter
+                // has already made the decision and the app has already recorded it.
+                console.error('Decision email failed:', err.message);
+            }
+        };
+
         if (status === 'shortlisted') {
+            await decisionEmail(sendShortlistedEmail);
             const candidate = await User.findById(application.candidate);
             if (candidate?.expoPushToken) {
                 await sendPushNotification(
@@ -288,6 +324,7 @@ export const updateApplicationStatus = async (req, res) => {
         }
 
         if (status === 'rejected') {
+            await decisionEmail(sendRejectedEmail);
             const candidate = await User.findById(application.candidate);
             const recruiter = await User.findById(req.user.id).select('name company');
             const companyName = recruiter?.company || recruiter?.name || 'the company';
@@ -311,6 +348,80 @@ export const updateApplicationStatus = async (req, res) => {
     } catch (error) {
         console.error("Error updating status:", error);
         res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+/**
+ * Send one message to every candidate at a given stage.
+ *
+ * Scoped to a single status on purpose. The old flow gathered "everyone" into
+ * one mail action, which meant a recruiter writing an interview invite could
+ * send it to people they had rejected — the kind of mistake that is impossible
+ * to take back and lands on a student who is already disappointed.
+ */
+export const emailCandidatesByStatus = async (req, res) => {
+    try {
+        const { opportunityId, status, subject, message } = req.body || {};
+
+        const ALLOWED = ["shortlisted", "rejected", "applied", "reviewing", "accepted"];
+        if (!ALLOWED.includes(status)) {
+            return res.status(400).json({ success: false, message: `Unknown status "${status}".` });
+        }
+        if (!opportunityId || !subject?.trim() || !message?.trim()) {
+            return res.status(400).json({ success: false, message: "Opportunity, subject and message are all required." });
+        }
+
+        const opportunity = await Opportunity.findById(opportunityId);
+        if (!opportunity) return res.status(404).json({ success: false, message: "Opportunity not found" });
+
+        if (opportunity.postedBy.toString() !== req.user.id && req.user.user_access !== 'admin') {
+            return res.status(403).json({ success: false, message: "Unauthorized" });
+        }
+
+        const applications = await Application.find({ opportunity: opportunityId, status })
+            .populate("candidate", "name email");
+
+        const recipients = applications
+            .map((a) => a.candidate)
+            .filter((c) => c?.email);
+
+        if (!recipients.length) {
+            return res.status(200).json({ success: true, sent: 0, message: `No ${status} candidates with an email address.` });
+        }
+
+        const recruiter = await User.findById(req.user.id).select("name company");
+        const from = recruiter?.company || recruiter?.name || "The company";
+
+        // Settled, not awaited in series: one bad address must not stop the rest
+        // of the batch, and the recruiter needs to know how many actually went.
+        const results = await Promise.allSettled(
+            recipients.map((c) =>
+                sendBulkCandidateEmail({
+                    email: c.email,
+                    name: c.name,
+                    role: opportunity.title,
+                    company: from,
+                    subject: subject.trim(),
+                    message: message.trim(),
+                }),
+            ),
+        );
+
+        const sent = results.filter((r) => r.status === "fulfilled").length;
+        const failed = results.length - sent;
+        if (failed) console.error(`Bulk email: ${failed}/${results.length} failed for ${opportunityId}`);
+
+        return res.status(200).json({
+            success: true,
+            sent,
+            failed,
+            message: failed
+                ? `Sent to ${sent} of ${results.length}. ${failed} could not be delivered.`
+                : `Sent to ${sent} ${status} candidate${sent === 1 ? "" : "s"}.`,
+        });
+    } catch (error) {
+        console.error("Bulk candidate email failed:", error);
+        return res.status(500).json({ success: false, message: "Could not send those emails." });
     }
 };
 

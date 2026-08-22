@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator, ScrollView, RefreshControl, Linking, TextInput} from 'react-native'
+import {View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator, ScrollView, RefreshControl, Linking, TextInput, Modal, Pressable, KeyboardAvoidingView} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
-import * as Clipboard from 'expo-clipboard';
 import { Alert } from '../ui/AlertModal';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
+import { Buffer } from 'buffer';
+import Toast from 'react-native-toast-message';
 
 /**
  * view: 'posts'        → My Posts list (default)
@@ -26,6 +29,64 @@ const RecruiterPortal = () => {
     const [selectedPost, setSelectedPost] = useState<any>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [expandedPosts, setExpandedPosts] = useState<{ [key: string]: boolean }>({});
+    const [portfolioLoading, setPortfolioLoading] = useState<string | null>(null);
+    // Status is a filter over one list, not a separate screen. Shortlisted used
+    // to be its own view reached from the post card, so comparing a shortlisted
+    // candidate against the rest of the pile meant navigating back and forth.
+    const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'shortlisted' | 'rejected'>('all');
+    // Applications arrive newest-first from the server. That is the right
+    // default, but it is not the order a recruiter wants when the pile is large
+    // — then the question is who is strongest, not who is most recent.
+    const [sortBy, setSortBy] = useState<'recent' | 'activity'>('recent');
+    // Composing is scoped to one group at a time. The old single "Email all"
+    // could reach anyone in the list, so an interview invite could land on a
+    // candidate who had been rejected.
+    const [mailTo, setMailTo] = useState<'shortlisted' | 'rejected' | null>(null);
+    const [mailSubject, setMailSubject] = useState('');
+    const [mailBody, setMailBody] = useState('');
+    const [mailSending, setMailSending] = useState(false);
+
+    /**
+     * Fetch the candidate's portfolio PDF and open it locally.
+     *
+     * This used to hand the URL to Linking.openURL, which opens the system
+     * browser — and the browser carries none of the app's auth, so the endpoint
+     * answered "No token provided" every time. The PDF is behind verifyToken
+     * and has to be fetched by the app itself.
+     */
+    const openPortfolio = async (candidate: any) => {
+        const id = candidate?._id;
+        if (!id) return;
+
+        setPortfolioLoading(id);
+        try {
+            // arraybuffer, not the default JSON parse — this response is binary.
+            const res = await axios.get(`/profile/resume/${id}/pdf`, { responseType: 'arraybuffer' });
+
+            const base64 = Buffer.from(res.data, 'binary').toString('base64');
+            const safeName = String(candidate?.name ?? 'portfolio').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+            const uri = `${FileSystem.cacheDirectory}${safeName}-portfolio.pdf`;
+
+            await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
+
+            if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
+            } else {
+                await Linking.openURL(uri);
+            }
+        } catch (err: any) {
+            const status = err?.response?.status;
+            Alert.alert(
+                'Could not open portfolio',
+                status === 404
+                    ? 'This candidate has not built a portfolio yet.'
+                    : 'Something went wrong fetching it. Try again in a moment.',
+                [{ text: 'Okay' }],
+            );
+        } finally {
+            setPortfolioLoading(null);
+        }
+    };
 
     // ─── Data fetching ────────────────────────────────────────────────────
     const fetchData = useCallback(async () => {
@@ -47,9 +108,10 @@ const RecruiterPortal = () => {
     useEffect(() => { fetchData(); }, [fetchData]);
 
     // ─── Helpers ────────────────────────────────────────────────────────
-    const openView = (post: any, target: PortalView) => {
+    const openView = (post: any, target: PortalView, filter: 'all' | 'new' | 'shortlisted' | 'rejected' = 'all') => {
         setSelectedPost(post);
         setSearchQuery('');
+        setStatusFilter(filter);
         setView(target);
     };
 
@@ -61,16 +123,92 @@ const RecruiterPortal = () => {
         setView('posts');
         setSelectedPost(null);
         setSearchQuery('');
+        setStatusFilter('all');
     };
 
-    const handleUpdateStatus = async (appId: string, status: string) => {
+    /**
+     * Acknowledge a triage decision.
+     *
+     * Deliberately NOT tappable. This used to make the whole toast an undo
+     * target, which silently reversed decisions: the toast covers the list, so
+     * the recruiter's next tap — on the card that just moved up into that space
+     * — landed on the toast instead and restored the candidate. It looked like
+     * the removal had failed, because on reload the person really was back.
+     *
+     * Reversal lives on the card itself, under the Rejected filter, where it
+     * cannot be hit by accident.
+     */
+    const confirmTriage = (status: string, name?: string) => {
+        const who = name ? name.split(' ')[0] : 'Candidate';
+        Toast.show({
+            type: status === 'shortlisted' ? 'success' : 'info',
+            text1: status === 'shortlisted' ? `${who} shortlisted` : `${who} rejected`,
+            text2: status === 'shortlisted'
+                ? 'Find them under Shortlisted'
+                : 'Undo from the Rejected filter',
+            visibilityTime: 2500,
+        });
+    };
+
+    /** Sensible starting text, so the recruiter edits rather than starts blank. */
+    const openMail = (group: 'shortlisted' | 'rejected') => {
+        const role = selectedPost?.title ?? 'the role';
+        setMailTo(group);
+        setMailSubject(
+            group === 'shortlisted'
+                ? `Next steps for ${role}`
+                : `Update on your application for ${role}`,
+        );
+        setMailBody(
+            group === 'shortlisted'
+                ? `You've been shortlisted for ${role}.\n\nWe'd like to take this forward — we'll follow up shortly with times and details.`
+                : `Thank you for applying for ${role}.\n\nAfter reviewing every application we won't be moving forward this time. We'd genuinely encourage you to apply again for future roles.`,
+        );
+    };
+
+    const sendMail = async () => {
+        if (!mailTo || !mailSubject.trim() || !mailBody.trim()) return;
+        setMailSending(true);
+        try {
+            const res = await axios.post('/opportunity/recruiter/email-candidates', {
+                opportunityId: selectedPost?._id,
+                status: mailTo,
+                subject: mailSubject,
+                message: mailBody,
+            });
+            setMailTo(null);
+            Toast.show({
+                type: res.data.failed ? 'info' : 'success',
+                text1: res.data.message,
+                visibilityTime: 3500,
+            });
+        } catch (err: any) {
+            Alert.alert('Could not send', err?.response?.data?.message ?? 'Try again in a moment.', [{ text: 'Okay' }]);
+        } finally {
+            setMailSending(false);
+        }
+    };
+
+    const handleUpdateStatus = async (appId: string, status: string, name?: string) => {
+        // Applied first, confirmed after. Triage is a rapid, repeated action —
+        // waiting on a round trip before the card changes makes every tap feel
+        // like it missed, and recruiters tap again. The previous status is kept
+        // so a failed request puts the card back rather than leaving the list
+        // showing something the server never accepted.
+        let previous: string | undefined;
+        setApplications(prev => prev.map(a => {
+            if (a._id !== appId) return a;
+            previous = a.status;
+            return { ...a, status };
+        }));
+
         try {
             const res = await axios.patch(`/opportunity/recruiter/application-status/${appId}`, { status });
-            if (res.data.success) {
-                setApplications(prev => prev.map(a => a._id === appId ? { ...a, status } : a));
-            }
+            if (!res.data.success) throw new Error('rejected');
+            confirmTriage(status, name);
         } catch {
-            Alert.alert('Error', 'Failed to update status.');
+            setApplications(prev => prev.map(a => (a._id === appId ? { ...a, status: previous ?? a.status } : a)));
+            Alert.alert('Could not update', 'That change did not save. Check your connection and try again.', [{ text: 'Okay' }]);
         }
     };
 
@@ -116,74 +254,59 @@ const RecruiterPortal = () => {
         );
     };
 
-    const handleCopyEmails = async () => {
-        const emails = visibleApplications
-            .map(a => a.candidate?.email)
-            .filter(Boolean)
-            .join(', ');
-        if (!emails) return Alert.alert('No Emails', 'No candidates with email addresses found.');
-        await Clipboard.setStringAsync(emails);
-        Alert.alert('Copied!', 'All emails copied to clipboard.');
-    };
 
-    const handleOpenGmail = () => {
-        const bccEmails = visibleApplications
-            .map(a => a.candidate?.email)
-            .filter(Boolean)
-            .join(',');
-        if (!bccEmails) return Alert.alert('No Emails', 'No shortlisted candidates with email addresses found.');
-        const subject = encodeURIComponent(`Next Steps — ${selectedPost?.title || 'Your Application'}`);
-        const body = encodeURIComponent(
-            `Dear Candidate,\n\nCongratulations! You have been shortlisted for the role of ${selectedPost?.title || 'the position'}.\n\nWe will reach out shortly with further details.\n\nBest regards,\n${user?.name || user?.company || 'The Recruiter'}`
-        );
-        const mailtoUrl = `mailto:?bcc=${encodeURIComponent(bccEmails)}&subject=${subject}&body=${body}`;
-        Linking.openURL(mailtoUrl).catch(() =>
-            Alert.alert('Error', 'Could not open mail app. Please make sure a mail app is installed.')
-        );
-    };
 
-    const handleNotifyShortlisted = () => {
-        const count = visibleApplications.length;
-        if (count === 0) return Alert.alert('No Candidates', 'No shortlisted candidates for this post yet.');
-        Alert.alert(
-            'Bulk Notify',
-            `Send an in-app notification to all ${count} shortlisted candidates for this post?`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Send Notification',
-                    onPress: () => performNotify('Your application is moving to the next stage. We will contact you soon.'),
-                },
-            ]
-        );
-    };
 
-    const performNotify = async (message: string) => {
-        try {
-            await axios.post('/opportunity/recruiter/notify-shortlisted', {
-                opportunityId: selectedPost?._id,
-                message,
-            });
-            Alert.alert('Success', 'In-app notifications sent!');
-        } catch {
-            Alert.alert('Error', 'Failed to send notifications.');
-        }
-    };
 
     // ─── Derived data ────────────────────────────────────────────────────
+    const activeFilter = view === 'shortlisted' ? 'shortlisted' : statusFilter;
+
     const visibleApplications = applications
         .filter(a => a.opportunity?._id === selectedPost?._id)
-        .filter(a => view === 'shortlisted' ? a.status === 'shortlisted' : true)
-        .filter(a =>
-            !searchQuery ||
-            a.candidate?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            a.candidate?.username?.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        .filter(a => {
+            if (activeFilter === 'all') return true;
+            // "New" is anything not yet decided on, whatever the backend called
+            // it — pending, reviewing, or a status added later.
+            if (activeFilter === 'new') return a.status !== 'shortlisted' && a.status !== 'rejected';
+            return a.status === activeFilter;
+        })
+        .filter(a => {
+            if (!searchQuery) return true;
+            const q = searchQuery.toLowerCase();
+            // Searching only names was too narrow: recruiters filter by course
+            // and college far more often than by a name they do not know yet.
+            return [
+                a.candidate?.name,
+                a.candidate?.username,
+                a.candidate?.college,
+                a.candidate?.major,
+                a.candidate?.email,
+            ].some(v => String(v ?? '').toLowerCase().includes(q));
+        })
+        .sort((a, b) => {
+            if (sortBy === 'recent') return 0;   // already newest-first from the server
+            // Commits and stars are the only proficiency signal in this payload.
+            // Stars are weighted higher because they reflect other people's
+            // judgement rather than sheer volume of activity.
+            const score = (x: any) =>
+                (x.candidate?.githubStats?.totalCommits ?? 0) +
+                (x.candidate?.githubStats?.totalStars ?? 0) * 10;
+            return score(b) - score(a);
+        });
+
+    const postApplications = applications.filter(a => a.opportunity?._id === selectedPost?._id);
+    const counts = {
+        all: postApplications.length,
+        new: postApplications.filter(a => a.status !== 'shortlisted' && a.status !== 'rejected').length,
+        shortlisted: postApplications.filter(a => a.status === 'shortlisted').length,
+        rejected: postApplications.filter(a => a.status === 'rejected').length,
+    };
 
     // ─── Renderers – Post card ───────────────────────────────────────────
     const renderPostCard = ({ item }: { item: any }) => {
         const appliedCount = applications.filter(a => a.opportunity?._id === item._id).length;
         const shortlistCount = applications.filter(a => a.opportunity?._id === item._id && a.status === 'shortlisted').length;
+        const pendingCount = applications.filter(a => a.opportunity?._id === item._id && a.status !== 'shortlisted' && a.status !== 'rejected').length;
         const isActive = item.isActive !== false; // default true if undefined
 
         return (
@@ -273,20 +396,42 @@ const RecruiterPortal = () => {
                 )}
 
                 {/* Action buttons */}
+                {/* The primary button names the outstanding work rather than a
+                    destination. "Applicants" told a recruiter nothing about
+                    whether anything needed doing; "Review 12" does. */}
                 <View className="flex-row gap-2">
+                    {pendingCount > 0 ? (
+                        <TouchableOpacity
+                            onPress={() => openView(item, 'applicants', 'new')}
+                            className="flex-1 flex-row items-center justify-center gap-2 bg-brand-500 border-2 border-ink h-12 rounded-card"
+                            accessibilityRole="button"
+                            accessibilityLabel={`Review ${pendingCount} new applicants`}
+                        >
+                            <Ionicons name="eye-outline" size={15} color="#12100E" />
+                            <Text className="text-ink font-display uppercase text-label">Review {pendingCount}</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity
+                            onPress={() => openView(item, 'applicants', 'all')}
+                            className="flex-1 flex-row items-center justify-center gap-2 bg-ink h-12 rounded-card"
+                            accessibilityRole="button"
+                            accessibilityLabel={`View all ${appliedCount} applicants`}
+                        >
+                            <Ionicons name="people-outline" size={15} color="white" />
+                            <Text className="text-white font-display uppercase text-label">Applicants</Text>
+                        </TouchableOpacity>
+                    )}
                     <TouchableOpacity
-                        onPress={() => openView(item, 'applicants')}
-                        className="flex-1 flex-row items-center justify-center gap-2 bg-ink h-12 rounded-card"
+                        onPress={() => openView(item, 'applicants', 'shortlisted')}
+                        disabled={shortlistCount === 0}
+                        className={`flex-1 flex-row items-center justify-center gap-2 h-12 rounded-card border-2 border-ink ${shortlistCount === 0 ? 'bg-paper-2' : 'bg-card'}`}
+                        accessibilityRole="button"
+                        accessibilityLabel={`View ${shortlistCount} shortlisted`}
                     >
-                        <Ionicons name="people-outline" size={15} color="white" />
-                        <Text className="text-white font-display uppercase text-label">Applicants</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => openView(item, 'shortlisted')}
-                        className="flex-1 flex-row items-center justify-center gap-2 bg-fam-career h-12 rounded-card"
-                    >
-                        <Ionicons name="star-outline" size={15} color="white" />
-                        <Text className="text-white font-display uppercase text-label">Shortlist</Text>
+                        <Ionicons name="star" size={15} color={shortlistCount === 0 ? '#C4BEB6' : '#12100E'} />
+                        <Text className={`font-display uppercase text-label ${shortlistCount === 0 ? 'text-ink-4' : 'text-ink'}`}>
+                            Shortlist {shortlistCount > 0 ? shortlistCount : ''}
+                        </Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -315,6 +460,12 @@ const RecruiterPortal = () => {
                     {item.candidate?.year && (
                         <Text className="text-ink-3 text-label">Year {item.candidate.year}</Text>
                     )}
+                    {/* The handle is the student's identifier on Fync — it is
+                        what a recruiter quotes when following an application up,
+                        and it was being fetched and thrown away. */}
+                    {!!item.candidate?.username && (
+                        <Text className="text-recruiter text-label font-semibold">@{item.candidate.username}</Text>
+                    )}
                 </View>
                 <View className={`px-3 py-1.5 rounded-full ${statusColors[item.status]?.bg || 'bg-paper-2'}`}>
                     <Text className={`text-label font-display uppercase ${statusColors[item.status]?.text || 'text-ink-3'}`}>
@@ -323,6 +474,55 @@ const RecruiterPortal = () => {
                 </View>
             </View>
             
+            {/* Identity and contact. Every field here was already arriving in
+                the payload and being discarded, so a recruiter had no way to
+                reach an applicant without leaving the app to guess. */}
+            <View className="mb-4 bg-paper-2 p-4 rounded-card border border-line">
+                <Text className="text-ink-3 font-display uppercase text-label mb-2">Candidate details</Text>
+
+                {!!item.candidate?.email && (
+                    <TouchableOpacity
+                        onPress={() => Linking.openURL(`mailto:${item.candidate.email}`)}
+                        className="flex-row items-center mb-2"
+                        style={{ minHeight: 32 }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Email ${item.candidate.email}`}
+                    >
+                        <Ionicons name="mail-outline" size={14} color="#4F46E5" />
+                        <Text className="text-ink ml-2 flex-1" style={{ fontSize: 12 }} numberOfLines={1}>
+                            {item.candidate.email}
+                        </Text>
+                    </TouchableOpacity>
+                )}
+
+                {!!item.candidate?.mobileNumber && (
+                    <TouchableOpacity
+                        onPress={() => Linking.openURL(`tel:${item.candidate.mobileNumber}`)}
+                        className="flex-row items-center mb-2"
+                        style={{ minHeight: 32 }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Call ${item.candidate.mobileNumber}`}
+                    >
+                        <Ionicons name="call-outline" size={14} color="#4F46E5" />
+                        <Text className="text-ink ml-2" style={{ fontSize: 12 }}>{item.candidate.mobileNumber}</Text>
+                    </TouchableOpacity>
+                )}
+
+                <View className="flex-row items-center">
+                    <Ionicons name="finger-print-outline" size={14} color="#8B857E" />
+                    <Text className="text-ink-2 ml-2" style={{ fontSize: 11, fontFamily: 'monospace' }} selectable>
+                        {item.candidate?._id}
+                    </Text>
+                </View>
+
+                {(!!item.candidate?.major || !!item.candidate?.graduationYear) && (
+                    <Text className="text-ink-2 mt-2" style={{ fontSize: 12 }}>
+                        {[item.candidate?.major, item.candidate?.graduationYear && `Class of ${item.candidate.graduationYear}`]
+                            .filter(Boolean).join(' · ')}
+                    </Text>
+                )}
+            </View>
+
             {/* GitHub Stats Preview (NEW) */}
             {item.candidate?.githubUsername && (
                 <View className="mb-4 bg-paper-2 p-4 rounded-card border border-line">
@@ -385,60 +585,70 @@ const RecruiterPortal = () => {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    onPress={() => {
-                        const pdfUrl = `${axios.defaults.baseURL}/profile/resume/${item.candidate?._id}/pdf`;
-                        Linking.openURL(pdfUrl);
-                    }}
+                    onPress={() => openPortfolio(item.candidate)}
+                    disabled={portfolioLoading === item.candidate?._id}
                     className="flex-1 bg-recruiter/10 h-12 rounded-card items-center justify-center flex-row gap-2"
+                    accessibilityRole="button"
+                    accessibilityLabel={`Open portfolio for ${item.candidate?.name ?? 'candidate'}`}
                 >
-                    <Ionicons name="person-outline" size={15} color="#4F46E5" />
-                    <Text className="text-recruiter font-display uppercase text-label">Portfolio</Text>
+                    {portfolioLoading === item.candidate?._id ? (
+                        <ActivityIndicator size="small" color="#4F46E5" />
+                    ) : (
+                        <>
+                            <Ionicons name="person-outline" size={15} color="#4F46E5" />
+                            <Text className="text-recruiter font-display uppercase text-label">Portfolio</Text>
+                        </>
+                    )}
                 </TouchableOpacity>
 
-                {/* Status action */}
-                {view === 'applicants' ? (
-                    item.status === 'rejected' ? (
-                        // Rejected → show Approve to re-shortlist
-                        <TouchableOpacity
-                            onPress={() =>
-                                Alert.alert('Re-approve Candidate', 'Move this candidate back to shortlisted?', [
-                                    { text: 'Cancel', style: 'cancel' },
-                                    { text: 'Shortlist', onPress: () => handleUpdateStatus(item._id, 'shortlisted') },
-                                ])
-                            }
-                            className="flex-1 bg-success h-12 rounded-card items-center justify-center flex-row gap-1"
-                        >
-                            <Ionicons name="checkmark-circle-outline" size={15} color="white" />
-                            <Text className="text-white font-display uppercase text-label">Approve</Text>
-                        </TouchableOpacity>
-                    ) : item.status !== 'shortlisted' ? (
-                        // Pending / reviewing → Shortlist or Reject
-                        <TouchableOpacity
-                            onPress={() =>
-                                Alert.alert('Update Status', 'Move candidate to:', [
-                                    { text: 'Shortlist', onPress: () => handleUpdateStatus(item._id, 'shortlisted') },
-                                    { text: 'Reject', style: 'destructive', onPress: () => handleUpdateStatus(item._id, 'rejected') },
-                                    { text: 'Close', style: 'cancel' },
-                                ])
-                            }
-                            className="flex-1 bg-brand-500 h-12 rounded-card items-center justify-center"
-                        >
-                            <Text className="text-ink font-display uppercase text-label">Action</Text>
-                        </TouchableOpacity>
-                    ) : null
-                ) : view === 'shortlisted' ? (
+                {/* Triage, one tap per decision.
+                    This used to be a single button labelled "Action" that opened
+                    a dialog to choose Shortlist or Reject — three taps and a
+                    modal for the most repeated action in the product. Reviewing
+                    a hundred applicants meant three hundred taps. Both outcomes
+                    are reversible from the card, so a confirm step buys nothing. */}
+                {item.status === 'shortlisted' ? (
                     <TouchableOpacity
-                        onPress={() =>
-                            Alert.alert('Remove from Shortlist', 'Reject this candidate?', [
-                                { text: 'Reject / Remove', style: 'destructive', onPress: () => handleUpdateStatus(item._id, 'rejected') },
-                                { text: 'Keep', style: 'cancel' },
-                            ])
-                        }
-                        className="flex-1 bg-ink h-12 rounded-card items-center justify-center"
+                        onPress={() => handleUpdateStatus(item._id, 'rejected', item.candidate?.name)}
+                        className="flex-1 h-12 rounded-card items-center justify-center flex-row gap-1 border-2 border-ink bg-card"
+                        accessibilityRole="button"
+                        accessibilityLabel={`Remove ${item.candidate?.name ?? 'candidate'} from shortlist`}
                     >
-                        <Text className="text-white font-display uppercase text-label">Remove</Text>
+                        <Ionicons name="close" size={15} color="#12100E" />
+                        <Text className="text-ink font-display uppercase text-label">Remove</Text>
                     </TouchableOpacity>
-                ) : null}
+                ) : item.status === 'rejected' ? (
+                    <TouchableOpacity
+                        onPress={() => handleUpdateStatus(item._id, 'shortlisted', item.candidate?.name)}
+                        className="flex-1 h-12 rounded-card items-center justify-center flex-row gap-1 bg-success"
+                        accessibilityRole="button"
+                        accessibilityLabel={`Shortlist ${item.candidate?.name ?? 'candidate'} again`}
+                    >
+                        <Ionicons name="arrow-undo-outline" size={15} color="white" />
+                        <Text className="text-white font-display uppercase text-label">Undo</Text>
+                    </TouchableOpacity>
+                ) : (
+                    <>
+                        <TouchableOpacity
+                            onPress={() => handleUpdateStatus(item._id, 'rejected', item.candidate?.name)}
+                            className="flex-1 h-12 rounded-card items-center justify-center flex-row gap-1 border-2 border-ink bg-card"
+                            accessibilityRole="button"
+                            accessibilityLabel={`Reject ${item.candidate?.name ?? 'candidate'}`}
+                        >
+                            <Ionicons name="close" size={15} color="#12100E" />
+                            <Text className="text-ink font-display uppercase text-label">Reject</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => handleUpdateStatus(item._id, 'shortlisted', item.candidate?.name)}
+                            className="flex-1 h-12 rounded-card items-center justify-center flex-row gap-1 bg-brand-500 border-2 border-ink"
+                            accessibilityRole="button"
+                            accessibilityLabel={`Shortlist ${item.candidate?.name ?? 'candidate'}`}
+                        >
+                            <Ionicons name="star" size={15} color="#12100E" />
+                            <Text className="text-ink font-display uppercase text-label">Shortlist</Text>
+                        </TouchableOpacity>
+                    </>
+                )}
             </View>
         </View>
     );
@@ -446,77 +656,125 @@ const RecruiterPortal = () => {
     // ─── Sub-view header (Applicants / Shortlisted) ───────────────────────
     const renderSubHeader = () => (
         <View className="bg-card border-b border-line">
-            {/* Back + title */}
+            {/* Back + title. The subtitle states the one thing a recruiter
+                needs on arrival: how much is left to do. */}
             <View className="px-4 pt-3 pb-3 flex-row items-center gap-3">
                 <TouchableOpacity
                     onPress={goBack}
-                    className="w-9 h-9 bg-paper-2 rounded-full items-center justify-center"
-                 hitSlop={4}>
-                    <Ionicons name="arrow-back" size={18} color="#12100E" />
+                    className="w-11 h-11 bg-paper-2 rounded-full items-center justify-center"
+                    hitSlop={6}
+                    accessibilityRole="button"
+                    accessibilityLabel="Back to posts"
+                >
+                    <Ionicons name="arrow-back" size={20} color="#12100E" />
                 </TouchableOpacity>
+
                 <View className="flex-1">
                     <Text className="text-ink text-sm font-display uppercase" numberOfLines={1}>
                         {selectedPost?.title}
                     </Text>
-                    <Text className="text-accent-text text-label font-display uppercase">
-                        {view === 'shortlisted' ? 'Shortlisted Candidates' : ' All Applicants'}
+                    <Text className="text-ink-2 text-label font-display uppercase">
+                        {counts.new > 0 ? `${counts.new} left to review` : 'All reviewed'}
                     </Text>
                 </View>
-                {view === 'shortlisted' && (
+
+                {/* One optional action, not three. Copy-emails and email-all are
+                    gone: shortlisting and rejecting now email the student
+                    automatically, so those buttons duplicated work already done
+                    and left the recruiter unsure whether mail had been sent. */}
+                {/* The mail action names the group currently in view, so it is
+                    never ambiguous who is about to receive it. It only appears
+                    on Shortlisted and Rejected — the two groups a recruiter
+                    actually writes to. */}
+                {(activeFilter === 'shortlisted' || activeFilter === 'rejected') && counts[activeFilter] > 0 && (
                     <TouchableOpacity
-                        onPress={handleCopyEmails}
-                        className="flex-row items-center gap-1.5 bg-recruiter px-3 py-2 rounded-xl"
+                        onPress={() => openMail(activeFilter as 'shortlisted' | 'rejected')}
+                        className={`flex-row items-center gap-1.5 px-3 border-2 border-ink rounded-xl ${activeFilter === 'shortlisted' ? 'bg-brand-500' : 'bg-card'}`}
+                        style={{ minHeight: 44 }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Email all ${counts[activeFilter]} ${activeFilter} candidates`}
                     >
-                        <Ionicons name="copy-outline" size={13} color="white" />
-                        <Text className="text-white font-display uppercase text-label">Copy</Text>
-                    </TouchableOpacity>
-                )}
-                {view === 'shortlisted' && (
-                    <TouchableOpacity
-                        onPress={handleOpenGmail}
-                        className="flex-row items-center gap-1.5 bg-danger px-3 py-2 rounded-xl"
-                    >
-                        <Ionicons name="mail-outline" size={13} color="white" />
-                        <Text className="text-white font-display uppercase text-label">Gmail</Text>
-                    </TouchableOpacity>
-                )}
-                {view === 'shortlisted' && (
-                    <TouchableOpacity
-                        onPress={handleNotifyShortlisted}
-                        className="flex-row items-center gap-1.5 bg-brand-500 px-3 py-2 border-2 border-ink rounded-md"
-                    >
-                        <Ionicons name="notifications-outline" size={13} color="#12100E" />
-                        <Text className="text-ink font-display uppercase text-label">Notify</Text>
+                        <Ionicons name="mail-outline" size={14} color="#12100E" />
+                        <Text className="text-ink font-display uppercase" style={{ fontSize: 10 }}>
+                            Email {counts[activeFilter]}
+                        </Text>
                     </TouchableOpacity>
                 )}
             </View>
 
-            {/* Count badge */}
+            {/* Status filter. This is the screen's real navigation, so it gets
+                its own row and carries the counts — no need to switch to find
+                out how many are in each pile. */}
+            <View className="pb-2">
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
+                    {([
+                        { key: 'new',         label: 'To review' },
+                        { key: 'shortlisted', label: 'Shortlisted' },
+                        { key: 'rejected',    label: 'Rejected' },
+                        { key: 'all',         label: 'Everyone' },
+                    ] as const).map(f => {
+                        const on = activeFilter === f.key;
+                        return (
+                            <TouchableOpacity
+                                key={f.key}
+                                onPress={() => { setView('applicants'); setStatusFilter(f.key); }}
+                                className={`flex-row items-center px-3 mr-2 rounded-xl border-2 border-ink ${on ? 'bg-brand-500' : 'bg-card'}`}
+                                style={{ minHeight: 42 }}
+                                accessibilityRole="button"
+                                accessibilityState={{ selected: on }}
+                                accessibilityLabel={`${f.label}, ${counts[f.key]}`}
+                            >
+                                <Text className="text-ink font-display uppercase text-label">{f.label}</Text>
+                                <View className={`ml-2 px-1.5 rounded-full ${on ? 'bg-ink' : 'bg-paper-2'}`}>
+                                    <Text className={`font-display ${on ? 'text-white' : 'text-ink-2'}`} style={{ fontSize: 10 }}>
+                                        {counts[f.key]}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </ScrollView>
+            </View>
+
+            {/* Search and sort share one row. They were two, which pushed the
+                first candidate below the fold on a normal phone. */}
             <View className="flex-row items-center gap-2 px-4 pb-3">
-                <View className={`px-3 py-1 rounded-full ${view === 'shortlisted' ? 'bg-success/15' : 'bg-paper-2'}`}>
-                    <Text className={`text-label font-display uppercase ${view === 'shortlisted' ? 'text-success' : 'text-ink-2'}`}>
-                        {visibleApplications.length} {view === 'shortlisted' ? 'shortlisted' : 'applicant(s)'}
-                    </Text>
-                </View>
-            </View>
-
-            {/* Search */}
-            <View className="px-4 pb-3">
-                <View className="flex-row items-center bg-paper-2 px-4 py-2.5 border-2 border-ink rounded-md">
-                    <Ionicons name="search" size={15} color="#F97316" />
+                <View className="flex-1 flex-row items-center bg-card px-3 border-2 border-ink rounded-xl" style={{ minHeight: 44 }}>
+                    <Ionicons name="search" size={16} color="#8B857E" />
                     <TextInput
-                        placeholder="Search by name..."
+                        placeholder="Name, college or course"
                         placeholderTextColor="#8B857E"
                         value={searchQuery}
                         onChangeText={setSearchQuery}
-                        className="flex-1 ml-2 text-ink font-semibold text-xs"
+                        className="flex-1 ml-2 text-ink"
+                        style={{ fontSize: 14 }}
                     />
                     {searchQuery.length > 0 && (
-                        <TouchableOpacity onPress={() => setSearchQuery('')} className="bg-paper-2 p-1 rounded-full">
-                            <Ionicons name="close" size={12} color="#8B857E" />
+                        <TouchableOpacity
+                            onPress={() => setSearchQuery('')}
+                            hitSlop={8}
+                            accessibilityRole="button"
+                            accessibilityLabel="Clear search"
+                        >
+                            <Ionicons name="close-circle" size={18} color="#8B857E" />
                         </TouchableOpacity>
                     )}
                 </View>
+
+                {/* A toggle, not a pair of buttons — there are only two orders,
+                    so the control shows the one you would switch to. */}
+                <TouchableOpacity
+                    onPress={() => setSortBy(sortBy === 'recent' ? 'activity' : 'recent')}
+                    className="flex-row items-center gap-1 px-3 bg-card border-2 border-ink rounded-xl"
+                    style={{ minHeight: 44 }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Sorted by ${sortBy === 'recent' ? 'newest first' : 'most active first'}. Tap to change.`}
+                >
+                    <Ionicons name="swap-vertical" size={14} color="#12100E" />
+                    <Text className="text-ink font-display uppercase" style={{ fontSize: 10 }}>
+                        {sortBy === 'recent' ? 'Newest' : 'Active'}
+                    </Text>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -525,7 +783,7 @@ const RecruiterPortal = () => {
     const renderMainHeader = () => (
         <>
             {/* Top bar */}
-            <View className="px-6 pb-4 flex-row items-center justify-between border-b border-line">
+            <View className="px-6 pt-4 pb-4 flex-row items-center justify-between border-b border-line">
                 <View>
                     <Text className="text-2xl font-display uppercase">
                         Recruiter <Text className="text-accent-text">Portal</Text>
@@ -537,12 +795,20 @@ const RecruiterPortal = () => {
                 <View className="flex-row items-center gap-3">
                     <TouchableOpacity
                         onPress={() => navigation.navigate('Notification')}
-                        className="w-10 h-10 items-center justify-center"
+                        className="w-11 h-11 items-center justify-center"
+                        accessibilityRole="button"
+                        accessibilityLabel="Notifications"
                     >
-                        <Ionicons name="notifications-outline" size={25} color="#12100E" />
+                        <Ionicons name="notifications-outline" size={24} color="#12100E" />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={fetchData} className="w-10 h-10 items-center justify-center" hitSlop={2}>
-                        <Ionicons name="refresh" size={25} color="#12100E" />
+                    <TouchableOpacity
+                        onPress={fetchData}
+                        className="w-11 h-11 items-center justify-center"
+                        hitSlop={6}
+                        accessibilityRole="button"
+                        accessibilityLabel="Refresh"
+                    >
+                        <Ionicons name="refresh" size={24} color="#12100E" />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -630,14 +896,24 @@ const RecruiterPortal = () => {
                             contentContainerStyle={{ paddingTop: 8, paddingBottom: 120 }}
                             refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} />}
                             ListEmptyComponent={
-                                <View className="items-center justify-center py-24 px-gutter">
+                                <View className="items-center justify-center py-20 px-gutter">
                                     <Ionicons name="file-tray-outline" size={60} color="#C4BEB6" />
                                     <Text className="text-ink-3 font-display uppercase text-center mt-4">
                                         No posts yet
                                     </Text>
-                                    <Text className="text-ink-4 text-label text-center mt-2">
-                                        Tap "Post New Opportunity" above to create your first listing.
+                                    <Text className="text-ink-2 text-label text-center mt-2">
+                                        Post a role and students can start applying today.
                                     </Text>
+                                    <TouchableOpacity
+                                        onPress={() => navigation.navigate('CreateOpportunity')}
+                                        className="flex-row items-center justify-center gap-2 mt-5 px-6 bg-brand-500 border-2 border-ink rounded-card"
+                                        style={{ minHeight: 48 }}
+                                        accessibilityRole="button"
+                                        accessibilityLabel="Post your first opportunity"
+                                    >
+                                        <Ionicons name="add" size={18} color="#12100E" />
+                                        <Text className="text-ink font-display uppercase text-label">Post your first role</Text>
+                                    </TouchableOpacity>
                                 </View>
                             }
                         />
@@ -653,25 +929,130 @@ const RecruiterPortal = () => {
                         contentContainerStyle={{ paddingTop: 12, paddingBottom: 120 }}
                         refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} />}
                         ListEmptyComponent={
+                            // The empty state has to distinguish "nobody applied"
+                            // from "your filter hid everyone" — the old one said
+                            // "No applicants yet" even when a search was active,
+                            // which reads as the post having failed.
                             <View className="items-center justify-center py-24 px-gutter">
-                                <Ionicons
-                                    name={view === 'shortlisted' ? 'star-outline' : 'people-outline'}
-                                    size={60}
-                                    color="#C4BEB6"
-                                />
-                                <Text className="text-ink-3 font-display uppercase text-center mt-4">
-                                    {view === 'shortlisted' ? 'No shortlisted candidates' : 'No applicants yet'}
-                                </Text>
-                                <Text className="text-ink-4 text-label text-center mt-2">
-                                    {view === 'shortlisted'
-                                        ? 'Shortlist candidates from the Applicants view.'
-                                        : 'Applications will appear here once students apply.'}
-                                </Text>
+                                {(() => {
+                                    const searching = !!searchQuery;
+                                    const filtered = !searching && activeFilter !== 'all' && counts.all > 0;
+                                    const icon = searching ? 'search-outline'
+                                        : activeFilter === 'shortlisted' ? 'star-outline'
+                                        : activeFilter === 'rejected' ? 'close-circle-outline'
+                                        : activeFilter === 'new' ? 'checkmark-done-outline'
+                                        : 'people-outline';
+                                    const title = searching ? 'No matches'
+                                        : filtered && activeFilter === 'new' ? 'All caught up'
+                                        : filtered && activeFilter === 'shortlisted' ? 'Nobody shortlisted yet'
+                                        : filtered ? 'Nobody rejected'
+                                        : 'No applicants yet';
+                                    const body = searching ? `Nothing matches "${searchQuery}". Try a college or course instead.`
+                                        : filtered && activeFilter === 'new' ? 'Every applicant for this post has been reviewed.'
+                                        : filtered && activeFilter === 'shortlisted' ? 'Tap Shortlist on a candidate to add them here.'
+                                        : filtered ? 'You have not rejected anyone for this post.'
+                                        : 'Applications will appear here once students apply.';
+                                    return (
+                                        <>
+                                            <Ionicons name={icon as any} size={60} color="#C4BEB6" />
+                                            <Text className="text-ink-3 font-display uppercase text-center mt-4">{title}</Text>
+                                            <Text className="text-ink-2 text-label text-center mt-2">{body}</Text>
+                                            {(searching || filtered) && (
+                                                <TouchableOpacity
+                                                    onPress={() => { setSearchQuery(''); setStatusFilter('all'); setView('applicants'); }}
+                                                    className="mt-5 px-5 bg-card border-2 border-ink rounded-xl items-center justify-center"
+                                                    style={{ minHeight: 44 }}
+                                                    accessibilityRole="button"
+                                                    accessibilityLabel="Show all applicants"
+                                                >
+                                                    <Text className="text-ink font-display uppercase text-label">Show all</Text>
+                                                </TouchableOpacity>
+                                            )}
+                                        </>
+                                    );
+                                })()}
                             </View>
                         }
                     />
                 </>
             )}
+            {/* Compose sheet. The recipient group is stated in the header and
+                cannot be changed from here — switching audience mid-draft is
+                how the wrong message reaches the wrong people. */}
+            <Modal visible={!!mailTo} transparent animationType="slide" onRequestClose={() => setMailTo(null)}>
+                <KeyboardAvoidingView behavior="padding" className="flex-1 justify-end" style={{ backgroundColor: 'rgba(18,16,14,0.45)' }}>
+                    <Pressable className="flex-1" onPress={() => setMailTo(null)} />
+
+                    <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4 pb-6">
+                        <View className="items-center mb-3">
+                            <View className="h-1 w-10 bg-ink-3 rounded-full" />
+                        </View>
+
+                        <View className="flex-row items-center mb-1">
+                            <Text className="font-display text-xl text-ink">Email candidates</Text>
+                            <View className="flex-1" />
+                            <TouchableOpacity onPress={() => setMailTo(null)} hitSlop={10} accessibilityLabel="Close">
+                                <Ionicons name="close" size={24} color="#12100E" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <View
+                            className="self-start flex-row items-center px-3 py-1.5 rounded-sm mb-4"
+                            style={{ backgroundColor: mailTo === 'shortlisted' ? '#FFEDD5' : '#EDE8E0' }}
+                        >
+                            <Ionicons
+                                name={mailTo === 'shortlisted' ? 'star' : 'close-circle'}
+                                size={12}
+                                color={mailTo === 'shortlisted' ? '#C2410C' : '#57534E'}
+                            />
+                            <Text className="font-display uppercase ml-1.5" style={{ fontSize: 10, color: mailTo === 'shortlisted' ? '#C2410C' : '#57534E' }}>
+                                To {mailTo ? counts[mailTo] : 0} {mailTo} candidate{mailTo && counts[mailTo] === 1 ? '' : 's'}
+                            </Text>
+                        </View>
+
+                        <Text className="font-display text-label text-ink-3 uppercase" style={{ letterSpacing: 1.4 }}>Subject</Text>
+                        <View className="mt-2 mb-4 border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 48, justifyContent: 'center' }}>
+                            <TextInput
+                                value={mailSubject}
+                                onChangeText={setMailSubject}
+                                placeholder="Subject line"
+                                placeholderTextColor="#8B857E"
+                                className="font-sans text-base text-ink"
+                            />
+                        </View>
+
+                        <Text className="font-display text-label text-ink-3 uppercase" style={{ letterSpacing: 1.4 }}>Message</Text>
+                        <View className="mt-2 mb-2 border-[1.5px] border-ink bg-card px-4 py-3 rounded-md">
+                            <TextInput
+                                value={mailBody}
+                                onChangeText={setMailBody}
+                                placeholder="What do you want to tell them?"
+                                placeholderTextColor="#8B857E"
+                                multiline
+                                className="font-sans text-base text-ink"
+                                style={{ minHeight: 120, textAlignVertical: 'top' }}
+                            />
+                        </View>
+
+                        <Text className="font-sans text-ink-2 mb-4" style={{ fontSize: 11 }}>
+                            Each person gets their own email addressed to them by name. Nobody sees the other recipients.
+                        </Text>
+
+                        <TouchableOpacity
+                            onPress={sendMail}
+                            disabled={mailSending || !mailSubject.trim() || !mailBody.trim()}
+                            className="bg-brand-500 border-2 border-ink rounded-xl items-center justify-center"
+                            style={{ height: 54, opacity: mailSending || !mailSubject.trim() || !mailBody.trim() ? 0.5 : 1 }}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Send to ${mailTo ? counts[mailTo] : 0} candidates`}
+                        >
+                            {mailSending
+                                ? <ActivityIndicator color="#12100E" />
+                                : <Text className="font-display text-ink uppercase">Send to {mailTo ? counts[mailTo] : 0}</Text>}
+                        </TouchableOpacity>
+                    </View>
+                </KeyboardAvoidingView>
+            </Modal>
         </SafeAreaView>
     );
 };

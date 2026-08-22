@@ -6,13 +6,14 @@ import {
   Pressable,
   ScrollView,
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
+import AuthPoster from './ui/AuthPoster';
 
 
 export default function LoginScreen() {
@@ -50,25 +51,63 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    // 'padding' on both platforms, not undefined on Android. targetSdkVersion
+    // 35 puts the app in Android 15's enforced edge-to-edge mode, where the
+    // window no longer resizes for the keyboard — so softwareKeyboardLayoutMode
+    // "resize" in app.json stops having any effect, and an undefined behavior
+    // meant no avoidance at all.
+    <KeyboardAvoidingView
+      behavior="padding"
       style={{ flex: 1 }}
+      className="bg-paper"
     >
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1 }} 
+        contentContainerStyle={{ flexGrow: 1, backgroundColor: '#F5F2EC' }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <View className="flex-1 bg-paper">
+        <View className="flex-1 bg-ink">
 
-          {/* A poster, not a photo. The old stock image said nothing about the
-              product; the wordmark and the promise do. */}
-          <View className="px-gutter pt-16 pb-2">
-            <Text className="font-display text-5xl text-ink uppercase" style={{ letterSpacing: -1.6 }}>Fync</Text>
-            <Text className="font-sans text-base text-ink-2 mt-3">Login to the exclusive student network</Text>
+          <AuthPoster mode="login" grow />
+
+          {/* The paper sheet. Rounded at the top and pulled up over the
+              masthead so the content curves away from it, rather than the two
+              meeting on a hard horizontal seam. */}
+          <View
+            className="bg-paper rounded-t-sheet"
+            style={{ marginTop: -22, paddingTop: 8, paddingBottom: 16 }}
+          >
+
+          <View className="px-gutter pt-6 pb-2 mb-5">
+            {/* The logo carries its own stamp: an ink circle offset down and
+                right behind it, which is the same device the cards on this
+                screen use. It sits behind in source order so it renders under
+                the mark without needing zIndex. */}
+            <View style={{ width: 72, height: 72, alignSelf: 'center' }}>
+              <View
+                pointerEvents="none"
+                className="absolute bg-ink rounded-full"
+                style={{ left: 4, top: 4, width: 72, height: 72 }}
+              />
+              <Image
+                source={require('../assets/fync-logo.jpg')}
+                style={{
+                  width: 72,
+                  height: 72,
+                  borderRadius: 36,
+                  borderWidth: 2,
+                  borderColor: '#12100E',
+                }}
+                resizeMode="cover"
+                accessibilityLabel="Fync"
+              />
+            </View>
+
+            {/* <Text className="font-sans text-base text-ink-2 mt-4 text-center">Sign in to continue</Text> */}
           </View>
 
           {/* The one stamped card on this screen. */}
-          <View className="px-gutter mt-6">
+          <View className="px-gutter">
             <View className="relative">
               <View pointerEvents="none" className="absolute left-1 top-1 -right-1 -bottom-1 bg-ink rounded-card" />
               <View className="bg-card border-2 border-ink rounded-card p-card-pad">
@@ -134,8 +173,8 @@ export default function LoginScreen() {
           </View>
 
           {/* Section rule: eyebrow, 2px hard rule to the edge. */}
-          <View className="px-gutter">
-            <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
+          <View className="px-gutter" style={{ paddingTop: 24 }}>
+            <View className="flex-row items-center mb-3" style={{ gap: 12 }}>
               <Text className="font-display text-label text-ink uppercase" style={{ letterSpacing: 1.4 }}>Other ways to join</Text>
               <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
             </View>
@@ -160,10 +199,7 @@ export default function LoginScreen() {
                 <Text className="font-display text-paper uppercase" style={{ fontSize: 12, letterSpacing: 0.3 }}>Join as Recruiter</Text>
               </Pressable>
             </View>
-
-            <Text className="font-sans text-sm text-ink-3 mt-4">
-              Alumni and recruiter accounts are verified separately and see a different app.
-            </Text>
+          </View>
           </View>
         </View>
       </ScrollView>

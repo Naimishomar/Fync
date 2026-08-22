@@ -91,13 +91,15 @@ export default function AlumniProfileSetup() {
 
           <Text className="text-ink-2 font-semibold mb-2">Basic Details</Text>
           <TextInput
-            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md"
+            placeholderTextColor="#8B857E"
+            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
             placeholder="Full Name"
             value={name}
             onChangeText={setName}
           />
           <TextInput
-            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md"
+            placeholderTextColor="#8B857E"
+            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
             placeholder="Username"
             value={username}
             onChangeText={setUsername}
@@ -105,7 +107,8 @@ export default function AlumniProfileSetup() {
           />
           <View className="mb-4 flex-row items-center rounded-xl border-2 border-ink px-4">
             <TextInput
-              className="flex-1 py-4"
+            placeholderTextColor="#8B857E"
+              className="flex-1 py-4 text-ink"
               placeholder="Password"
               secureTextEntry={!passwordVisible}
               value={password}
@@ -131,14 +134,16 @@ export default function AlumniProfileSetup() {
             <Ionicons name="chevron-down" size={20} color="#C4BEB6" />
           </Pressable>
           <TextInput
-            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md"
+            placeholderTextColor="#8B857E"
+            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
             placeholder="Graduation Year"
             keyboardType="number-pad"
             value={graduationYear}
             onChangeText={setGraduationYear}
           />
           <TextInput
-            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md"
+            placeholderTextColor="#8B857E"
+            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
             placeholder="Department / Major (e.g. CSE, MBA)"
             value={major}
             onChangeText={setMajor}
@@ -161,13 +166,15 @@ export default function AlumniProfileSetup() {
 
           <Text className="text-ink-2 font-semibold mb-2 mt-2">Work Experience</Text>
           <TextInput
-            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md"
+            placeholderTextColor="#8B857E"
+            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
             placeholder="Current Company / Startup"
             value={company}
             onChangeText={setCompany}
           />
           <TextInput
-            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md"
+            placeholderTextColor="#8B857E"
+            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
             placeholder="Your Role (e.g. SDE-2, Founder)"
             value={role}
             onChangeText={setRole}
@@ -190,7 +197,8 @@ export default function AlumniProfileSetup() {
 
           <Text className="text-ink-2 font-semibold mb-2">Domains (comma separated)</Text>
           <TextInput
-            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md"
+            placeholderTextColor="#8B857E"
+            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
             placeholder="e.g. Backend, AI, Fintech"
             value={domains}
             onChangeText={setDomains}
@@ -198,7 +206,8 @@ export default function AlumniProfileSetup() {
 
           <Text className="text-ink-2 font-semibold mb-2">LinkedIn URL (Optional)</Text>
           <TextInput
-            className="mb-8 border-[1.5px] border-ink px-4 py-4 rounded-md"
+            placeholderTextColor="#8B857E"
+            className="mb-8 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
             placeholder="https://linkedin.com/in/username"
             value={linkedIn}
             onChangeText={setLinkedIn}
@@ -234,7 +243,8 @@ export default function AlumniProfileSetup() {
             <View className="flex-row items-center bg-paper-2 rounded-card px-4 mb-6">
               <Ionicons name="search" size={20} color="#C4BEB6" />
               <TextInput
-                className="flex-1 py-4 ml-2"
+            placeholderTextColor="#8B857E"
+                className="flex-1 py-4 ml-2 text-ink"
                 placeholder="Search your college..."
                 value={collegeSearch}
                 onChangeText={setCollegeSearch}

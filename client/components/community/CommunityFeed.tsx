@@ -245,7 +245,7 @@ export default function CommunityFeed() {
 
             <Modal visible={composerOpen} animationType="slide" onRequestClose={() => setComposerOpen(false)}>
                 <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+                    <KeyboardAvoidingView behavior="padding" className="flex-1">
                         <View className="flex-row items-center px-5 py-3 border-b border-line">
                             <TouchableOpacity onPress={() => setComposerOpen(false)}>
                                 <Ionicons name="close" size={24} color="#12100E" />

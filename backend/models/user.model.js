@@ -15,7 +15,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        sparse: true
+        sparse: true,
+        // Enforced on the schema, not just in the controllers. A stored address
+        // with a trailing newline never matches a clean lookup, so the account
+        // silently stops being able to log in — and every controller that
+        // remembers to trim is one write path away from the next one that does
+        // not.
+        trim: true,
+        lowercase: true
     },
     mobileNumber: {
         type: String,

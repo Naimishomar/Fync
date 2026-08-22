@@ -5,9 +5,9 @@ import {
   TextInput,
   Pressable,
   ScrollView,
+  Image,
   KeyboardAvoidingView,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -15,6 +15,7 @@ import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 // @ts-ignore
 import axios from '../context/axiosConfig';
+import AuthPoster from './ui/AuthPoster';
 
 export default function SignUpScreen() {
   const navigation = useNavigation<any>();
@@ -110,23 +111,60 @@ export default function SignUpScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    // 'padding' on both platforms, not undefined on Android. targetSdkVersion
+    // 35 puts the app in Android 15's enforced edge-to-edge mode, where the
+    // window no longer resizes for the keyboard — so softwareKeyboardLayoutMode
+    // "resize" in app.json stops having any effect, and an undefined behavior
+    // meant no avoidance at all.
+    <KeyboardAvoidingView
+      behavior="padding"
       style={{ flex: 1 }}
+      className="bg-paper"
     >
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1 }} 
-        scrollEnabled={false} 
+        contentContainerStyle={{ flexGrow: 1, backgroundColor: '#F5F2EC' }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <View className="flex-1 bg-paper">
+        <View className="flex-1 bg-ink">
 
-          <View className="px-gutter pt-14 pb-2">
-            <Text className="font-display text-5xl text-ink uppercase" style={{ letterSpacing: -1.6 }}>Fync</Text>
-            <Text className="font-sans text-base text-ink-2 mt-3">Join the exclusive student network</Text>
+          <AuthPoster mode="signup" grow />
+
+          {/* The paper sheet. Rounded at the top and pulled up over the
+              masthead so the content curves away from it, rather than the two
+              meeting on a hard horizontal seam. */}
+          <View
+            className="bg-paper rounded-t-sheet"
+            style={{ marginTop: -22, paddingTop: 8, paddingBottom: 16 }}
+          >
+
+          <View className="px-gutter pt-6 pb-2">
+            {/* The logo carries its own stamp: an ink circle offset down and
+                right behind it, which is the same device the cards on this
+                screen use. It sits behind in source order so it renders under
+                the mark without needing zIndex. */}
+            <View style={{ width: 72, height: 72, alignSelf: 'center' }}>
+              <View
+                pointerEvents="none"
+                className="absolute bg-ink rounded-full"
+                style={{ left: 4, top: 4, width: 72, height: 72 }}
+              />
+              <Image
+                source={require('../assets/fync-logo.jpg')}
+                style={{
+                  width: 72,
+                  height: 72,
+                  borderRadius: 36,
+                  borderWidth: 2,
+                  borderColor: '#12100E',
+                }}
+                resizeMode="cover"
+                accessibilityLabel="Fync"
+              />
+            </View>
           </View>
 
-          <View className="px-gutter mt-5 pb-10">
+          <View className="px-gutter mt-5">
             <View className="relative">
               <View pointerEvents="none" className="absolute left-1 top-1 -right-1 -bottom-1 bg-ink rounded-card" />
               <View className="bg-card border-2 border-ink rounded-card p-card-pad">
@@ -222,6 +260,7 @@ export default function SignUpScreen() {
                 <Text className="font-semibold text-sm text-ink">Login</Text>
               </Pressable>
             </View>
+          </View>
           </View>
         </View>
       </ScrollView>
