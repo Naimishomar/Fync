@@ -50,10 +50,11 @@ interface ShortItem {
   /* Discover items: aggregated tech content that fills the feed once the campus
      shorts run out. They live only in this array — nothing is stored. */
   discover?: boolean;
-  kind?: 'video' | 'article';
   url?: string;
   source?: string;
   thumbnail?: string;
+  licence?: string;
+  account?: string;
 }
 
 /* ---------------- GLOBAL CACHE ---------------- */
@@ -277,41 +278,51 @@ const SingleShort = React.memo(({
 
 /* ---------------- DISCOVER CARD ---------------- */
 /**
- * Aggregated tech content, rendered in the same full-screen rhythm as a short.
+ * Aggregated tech video, played in the same full-screen rhythm as a short.
  *
- * A video streams straight from its source; an article becomes a readable card
- * that opens in our own reader. Neither is stored, and neither carries the
- * like/comment/tip rail — those belong to content students actually posted.
+ * The file streams from the source instance and is never copied to our storage.
+ * There is no like/comment/tip rail: those belong to content students actually
+ * posted, and this is somebody else's work under a Creative Commons licence.
  */
 const DiscoverCard = React.memo(({
   item,
   isActive,
-  navigation,
 }: {
   item: ShortItem;
   isActive: boolean;
-  navigation: any;
 }) => {
   const videoRef = useRef<Video>(null);
   const isFocused = useIsFocused();
-  const isVideo = item.kind === 'video' && !!item.video;
+  const [buffering, setBuffering] = useState(true);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (isActive && isFocused) videoRef.current?.playAsync();
     else videoRef.current?.pauseAsync();
   }, [isActive, isFocused]);
 
-  const openSource = () => {
-    navigation.navigate('ArticleScreen', {
-      url: item.url,
-      title: item.title,
-      source: item.source,
-    });
-  };
-
   return (
     <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }} className="bg-ink">
-      {isVideo ? (
+      {/* The thumbnail holds the frame while the stream opens, so the feed never
+          shows a black rectangle between videos. */}
+      {buffering && !!item.thumbnail && (
+        <Image
+          source={{ uri: item.thumbnail }}
+          style={{ position: 'absolute', width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
+          resizeMode="cover"
+          blurRadius={6}
+        />
+      )}
+
+      <Pressable
+        onPress={async () => {
+          const st = await videoRef.current?.getStatusAsync();
+          if (st?.isLoaded) {
+            st.isPlaying ? videoRef.current?.pauseAsync() : videoRef.current?.playAsync();
+          }
+        }}
+        style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
+      >
         <Video
           ref={videoRef}
           source={{ uri: item.video }}
@@ -320,59 +331,48 @@ const DiscoverCard = React.memo(({
           isLooping
           shouldPlay={false}
           useNativeControls={false}
+          // Pre-buffering the next video is what makes the swipe feel instant.
+          onLoadStart={() => setBuffering(true)}
+          onReadyForDisplay={() => setBuffering(false)}
+          onError={() => { setFailed(true); setBuffering(false); }}
+          progressUpdateIntervalMillis={1000}
         />
-      ) : (
-        <View className="flex-1 px-6 justify-center">
-          {!!item.thumbnail && (
-            <Image
-              source={{ uri: item.thumbnail }}
-              style={{ width: '100%', height: SCREEN_HEIGHT * 0.28 }}
-              className="rounded-card mb-6"
-              resizeMode="cover"
-            />
-          )}
-          <Text className="font-display text-2xl text-white leading-8 mb-4">
-            {item.title}
-          </Text>
-          {!!item.description && (
-            <Text className="font-sans text-base text-night-3 leading-6" numberOfLines={6}>
-              {item.description}
-            </Text>
-          )}
+      </Pressable>
+
+      {buffering && !failed && (
+        <View className="absolute inset-0 items-center justify-center">
+          <ActivityIndicator size="large" color="#F97316" />
         </View>
       )}
 
-      {/* Source strip: says plainly this came from elsewhere, so an aggregated
-          item is never mistaken for something a classmate posted. */}
-      <View className="absolute bottom-32 left-4 right-4 flex-row items-end justify-between">
-        <View className="flex-1 pr-4">
-          <View className="flex-row items-center mb-2">
-            <View className="bg-brand-500 px-2 py-1 rounded-sm">
-              <Text className="font-display text-label text-ink uppercase">Tech</Text>
-            </View>
-            <Text className="font-sans text-sm text-night-3 ml-2">{item.source}</Text>
+      {failed && (
+        <View className="absolute inset-0 items-center justify-center px-10">
+          <Ionicons name="cloud-offline-outline" size={48} color="#8B857E" />
+          <Text className="font-sans text-sm text-night-3 mt-3 text-center">
+            This one wouldn&apos;t load. Swipe on.
+          </Text>
+        </View>
+      )}
+
+      {/* Attribution is a condition of the Creative Commons licence these
+          videos carry, so the creator and licence ship with every frame. */}
+      <View className="absolute bottom-32 left-4 right-4">
+        <View className="flex-row items-center mb-2">
+          <View className="bg-brand-500 px-2 py-1 rounded-sm">
+            <Text className="font-display text-label text-ink uppercase">Tech</Text>
           </View>
-          {isVideo && (
-            <Text className="font-display text-base text-white" numberOfLines={2}>
-              {item.title}
-            </Text>
-          )}
+          <Text className="font-sans text-sm text-white ml-2" numberOfLines={1}>
+            {item.source}
+          </Text>
         </View>
 
-        <View className="items-center">
-          <Pressable onPress={openSource} className="items-center mb-4">
-            <View className="bg-brand-500/20 p-2 rounded-full border border-brand-500/40">
-              <Ionicons name="book-outline" size={26} color="#F97316" />
-            </View>
-            <Text className="font-display text-label text-brand-400 mt-1 uppercase">Read</Text>
-          </Pressable>
+        <Text className="font-display text-base text-white mb-1" numberOfLines={2}>
+          {item.title}
+        </Text>
 
-          <Pressable
-            onPress={() => Share.share({ message: `${item.title}\n\n${item.url}` })}
-          >
-            <Ionicons name="paper-plane-outline" size={28} color="white" />
-          </Pressable>
-        </View>
+        <Text className="font-sans text-night-3" style={{ fontSize: 11 }} numberOfLines={1}>
+          {item.account ? `${item.account} · ` : ''}{item.licence}
+        </Text>
       </View>
     </View>
   );
@@ -502,10 +502,11 @@ export default function Shorts() {
         views: 0,
         user: { _id: i.id, name: i.source, username: i.source },
         discover: true,
-        kind: i.kind,
         url: i.url,
         source: i.source,
         thumbnail: i.thumbnail,
+        licence: i.licence,
+        account: i.account,
       }));
 
       globalShortsCache = [
@@ -650,7 +651,6 @@ export default function Shorts() {
         <DiscoverCard
           item={item}
           isActive={item._id === activeVideoId}
-          navigation={navigation}
         />
       );
     }
