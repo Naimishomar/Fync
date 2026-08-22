@@ -578,7 +578,17 @@ export default function FyncProfileBuilder() {
           <View className="flex-row items-center justify-between mb-8">
             <View className="flex-row items-center gap-4">
               <View>
-                <Text className="text-ink text-3xl font-display uppercase leading-tight">Fync <Text className="text-accent-text">Portfolio</Text></Text>
+                <Pressable
+                  onPress={() => navigation.goBack()}
+                  className="w-11 h-11 items-center justify-center rounded-xl"
+                  accessibilityRole="button"
+                  accessibilityLabel="Go back"
+                  style={{ marginLeft: -11 }}
+                >
+                  <Ionicons name="arrow-back" size={24} color="#12100E" />
+                </Pressable>
+                <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
+                <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Portfolio</Text>
                 <View className="flex-row items-center">
                   <Text className="text-ink-3 text-label font-display uppercase">Core Interface</Text>
                 </View>

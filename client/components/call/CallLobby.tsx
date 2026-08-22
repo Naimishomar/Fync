@@ -68,7 +68,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
 
   const loadUsers = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
-    const users = await callSignaling.getOnlineUsers();
+    const users = await callSignaling.getOnlineUsers(mode);
     setOnlineUsers(users);
     setLoading(false);
     setRefreshing(false);
@@ -185,16 +185,26 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
     setSocketReady(callSignaling.isConnected());
     loadUsers();
 
+    // Claim a place in THIS lobby. Announcing it after the socket connects, and
+    // retrying while it is still coming up, keeps the room list honest — a user
+    // who is not standing here should not appear here.
+    const announce = () => { if (callSignaling.isConnected()) { callSignaling.joinLobby(mode); return true; } return false; };
+    if (!announce()) {
+      const t = setInterval(() => { if (announce()) clearInterval(t); }, 1000);
+      setTimeout(() => clearInterval(t), 15000);
+    }
+
     const readyPoll = setInterval(() => setSocketReady(callSignaling.isConnected()), 2000);
 
     return () => {
       clearInterval(readyPoll);
+      callSignaling.leaveLobby();
       if (activeCallUserRef.current) callSignaling.endCall(activeCallUserRef.current._id);
       callSignaling.disconnect();
       webRTCManager.cleanup();
       if (ringTimeoutRef.current) clearTimeout(ringTimeoutRef.current);
     };
-  }, [user?._id, clearCall, loadUsers]);
+  }, [user?._id, clearCall, loadUsers, mode]);
 
   // ── Actions ───────────────────────────────────────────────────────────────
   const startCall = useCallback(
@@ -336,9 +346,8 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
         <View className="px-gutter pt-2">
           <View className="flex-row items-start justify-between mb-5">
             <View className="flex-1">
-              <Text className="text-ink text-3xl font-display uppercase leading-tight">
-                {label} <Text className="text-accent-text">Rooms</Text>
-              </Text>
+              <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>{label}</Text>
+              <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Rooms</Text>
               <Text className="text-ink-3 text-label font-display uppercase">
                 {socketReady ? `${onlineUsers.length} people online` : 'Connecting…'}
               </Text>

@@ -85,10 +85,18 @@ export default function AffiliateAdminScreen() {
   const projected = live.reduce((sum, p) => sum + (p.price * (p.commissionRate || 0)) / 100, 0);
 
   const toggle = async (p: any) => {
+    const next = !p.isAvailable;
+    // Flip the row immediately; waiting on a refetch made the list look frozen.
+    setProducts((prev) => prev.map((x) => (x._id === p._id ? { ...x, isAvailable: next } : x)));
     try {
-      await axios.patch(`/affiliate/products/${p._id}/availability`, { isAvailable: !p.isAvailable });
-      load();
+      await axios.patch(`/affiliate/products/${p._id}/availability`, { isAvailable: next });
+      Alert.alert(
+        next ? 'Back in the store' : 'Delisted',
+        `"${p.name}" is ${next ? 'visible to students again' : 'hidden from the store'}.`,
+      );
     } catch (e: any) {
+      // Put it back: the server is the source of truth, not the optimistic flip.
+      setProducts((prev) => prev.map((x) => (x._id === p._id ? { ...x, isAvailable: !next } : x)));
       Alert.alert('Could not update', e?.response?.data?.message ?? 'Please try again.');
     }
   };
@@ -96,19 +104,21 @@ export default function AffiliateAdminScreen() {
   const remove = (p: any) =>
     Alert.alert(
       'Delete product',
-      `Remove "${p.name}" permanently? Delisting hides it from the store but keeps its sales history.`,
+      `Remove "${p.name}" from Fync Store permanently? Any commission already recorded for it is kept.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
+            const snapshot = products;
+            // Drop the row on tap rather than after a refetch round trip.
+            setProducts((prev) => prev.filter((x) => x._id !== p._id));
             try {
-              await axios.delete(`/affiliate/products/${p._id}`);
-              load();
+              const res = await axios.delete(`/affiliate/products/${p._id}`);
+              Alert.alert('Deleted', res.data?.message ?? `"${p.name}" was removed.`);
             } catch (e: any) {
-              // 409 means the product has recorded sales; the server refuses so
-              // commission history is never destroyed silently.
+              setProducts(snapshot);
               Alert.alert('Not deleted', e?.response?.data?.message ?? 'Please try again.');
             }
           },

@@ -43,6 +43,7 @@ interface NoticeType {
 }
 
 const NoticeBoard = () => {
+  const navigation = useNavigation<any>();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'college' | 'global'>('college');
   const [notices, setNotices] = useState<NoticeType[]>([]);
@@ -467,9 +468,17 @@ const NoticeBoard = () => {
         <View className="px-gutter pt-6">
           <View className="flex-row justify-between items-center mb-8">
             <View>
-              <Text className="text-3xl font-display text-ink uppercase leading-tight">
-                Fync <Text className="text-accent-text">Board</Text>
-              </Text>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                className="w-11 h-11 items-center justify-center rounded-xl"
+                accessibilityRole="button"
+                accessibilityLabel="Go back"
+                style={{ marginLeft: -11 }}
+              >
+                <Ionicons name="arrow-back" size={24} color="#12100E" />
+              </TouchableOpacity>
+              <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
+              <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Board</Text>
               <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Announcement Protocol</Text>
             </View>
           </View>

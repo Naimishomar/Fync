@@ -1,4 +1,5 @@
 import Message from "../models/chat.model.js";
+import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import Conversation from "../models/conversation.model.js";
 import { uploadToR2 } from "../utils/r2.js";
@@ -241,15 +242,23 @@ export const deleteMessage = async (req, res) => {
 export const getUnreadCount = async (req, res) => {
     try {
         const userId = req.user.id;
-        const conversations = await Conversation.find({ participants: userId });
-        let total = 0;
-        conversations.forEach(c => {
-            if (c.unreadCount) {
-                const count = (typeof c.unreadCount.get === 'function') ? c.unreadCount.get(userId) : c.unreadCount[userId];
-                total += (count || 0);
- }
- });
- res.json({ success: true, count: total });
+
+        // Summed in the database rather than in Node.
+        //
+        // This used to load every conversation document the user has ever had —
+        // full documents, no select, no lean — purely to add up one number, and
+        // it runs on every app open for the unread badge. The pipeline transfers
+        // a single integer instead of the whole chat history.
+        const [row] = await Conversation.aggregate([
+            { $match: { participants: new mongoose.Types.ObjectId(userId) } },
+            // unreadCount is a Map, so it is a subdocument keyed by user id.
+            { $project: { counts: { $objectToArray: { $ifNull: ["$unreadCount", {}] } } } },
+            { $unwind: "$counts" },
+            { $match: { "counts.k": String(userId) } },
+            { $group: { _id: null, total: { $sum: "$counts.v" } } },
+        ]);
+
+        res.json({ success: true, count: row?.total ?? 0 });
  } catch (error) {
  res.status(500).json({ success: false });
  }

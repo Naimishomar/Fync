@@ -316,6 +316,29 @@ const startServer = async (retries = 5) => {
       }, 60000).unref();
     }
 
+    // Presence is rebuilt from scratch on boot.
+    //
+    // `global_online_users` is only ever cleaned by a socket 'disconnect' event.
+    // A restart, a crash or a killed process never fires one, so the set kept
+    // people "online" forever — the call lobby listed users who had not opened
+    // the app in days. Redis persists, so this survived every restart.
+    //
+    // Safe because ecosystem.config.cjs runs a single instance: at the moment
+    // this process starts listening, nobody is connected to it.
+    try {
+      const stale = await redisClient.sMembers('global_online_users');
+      if (stale.length) {
+        await Promise.all(stale.map((id) => redisClient.del(`user_sockets:${id}`)));
+        await redisClient.del('global_online_users');
+        await redisClient.del('call_lobby:audio');
+        await redisClient.del('call_lobby:video');
+        console.log(`🧹 Cleared ${stale.length} stale presence entries`);
+      }
+    } catch (err) {
+      // Presence is a nicety; failing to clear it must not stop the server.
+      console.error('Presence reset failed:', err.message);
+    }
+
     // 5. Start Listening
     server.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT}`);

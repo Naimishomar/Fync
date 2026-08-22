@@ -232,3 +232,34 @@ export const broadcastNotification = async (req, res) => {
         }
     }
 };
+
+/**
+ * How many devices a broadcast would actually reach.
+ *
+ * Without this the admin has no way to tell "delivered to nobody" from
+ * "delivered fine": the send is asynchronous and answers 202 either way. A
+ * reach of zero means no device has registered a token, which is a very
+ * different problem from a delivery failure.
+ */
+export const getBroadcastReach = async (req, res) => {
+    try {
+        const [devices, users] = await Promise.all([
+            User.aggregate([
+                { $match: { fcmTokens: { $exists: true, $ne: [] } } },
+                { $project: { count: { $size: "$fcmTokens" } } },
+                { $group: { _id: null, total: { $sum: "$count" } } },
+            ]),
+            User.countDocuments({ fcmTokens: { $exists: true, $ne: [] } }),
+        ]);
+
+        return res.status(200).json({
+            success: true,
+            devices: devices[0]?.total ?? 0,
+            users,
+            totalUsers: await User.estimatedDocumentCount(),
+        });
+    } catch (error) {
+        console.error("Broadcast reach failed:", error.message);
+        return res.status(500).json({ success: false, message: "Could not read broadcast reach." });
+    }
+};

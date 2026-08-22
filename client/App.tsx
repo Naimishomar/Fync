@@ -208,6 +208,9 @@ import AffiliateWebView from './components/affiliate/AffiliateWebView';
 import AffiliateAdminScreen from './components/affiliate/AffiliateAdminScreen';
 import TechPulseScreen from './components/news/TechPulseScreen';
 import ArticleScreen from './components/news/ArticleScreen';
+import SettingsScreen from './components/SettingsScreen';
+import MySharesScreen from './components/affiliate/MySharesScreen';
+import ShareLinkResolver from './components/affiliate/ShareLinkResolver';
 import MergePdfScreen from './components/utility/pdf/MergePdfScreen';
 import SplitPdfScreen from './components/utility/pdf/SplitPdfScreen';
 import ExtractPagesScreen from './components/utility/pdf/ExtractPagesScreen';
@@ -403,6 +406,9 @@ export type RootStackParamList = {
   AffiliateAdminScreen: undefined;
   TechPulseScreen: undefined;
   ArticleScreen: { url: string; title?: string; source?: string };
+  SettingsScreen: undefined;
+  MySharesScreen: undefined;
+  ShareLinkResolver: { code: string };
   MergePdfScreen: undefined;
   SplitPdfScreen: undefined;
   ExtractPagesScreen: undefined;
@@ -561,6 +567,9 @@ function AppStack() {
       <Stack.Screen name="AffiliateAdminScreen" component={AffiliateAdminScreen} />
       <Stack.Screen name="TechPulseScreen" component={TechPulseScreen} />
       <Stack.Screen name="ArticleScreen" component={ArticleScreen} />
+      <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
+      <Stack.Screen name="MySharesScreen" component={MySharesScreen} />
+      <Stack.Screen name="ShareLinkResolver" component={ShareLinkResolver} />
       <Stack.Screen name="MergePdfScreen" component={MergePdfScreen} />
       <Stack.Screen name="SplitPdfScreen" component={SplitPdfScreen} />
       <Stack.Screen name="ExtractPagesScreen" component={ExtractPagesScreen} />
@@ -666,6 +675,9 @@ const linking = {
       },
       FyncProfileBuilder: {
         path: 'github-connected',
+      },
+      ShareLinkResolver: {
+        path: 's/:code',
       },
     },
   },

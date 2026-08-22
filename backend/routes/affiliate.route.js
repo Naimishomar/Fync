@@ -6,7 +6,10 @@ import {
     trackAffiliateClick, 
     completeAffiliateSale,
     setAffiliateProductAvailability,
-    deleteAffiliateProduct
+    deleteAffiliateProduct,
+    createShareLink,
+    resolveShareLink,
+    getMyShares
 } from '../controllers/affiliate.controller.js';
 import { authMiddleware, isAdmin } from '../middlewares/auth.middleware.js'; // Assuming this exists based on common backend structure
 
@@ -19,8 +22,14 @@ router.get('/products/:id', authMiddleware, getAffiliateProductDetails);
 // Tracking clicks
 router.post('/track', authMiddleware, trackAffiliateClick);
 
-// Completing sales (mock for demo)
+// Sale confirmation. The controller requires either an admin caller or a valid
+// HMAC signature; authMiddleware alone let any logged-in user settle any sale.
 router.post('/complete', authMiddleware, completeAffiliateSale);
+
+// Share & Earn — attribution only for now; no money is computed or paid here.
+router.post('/share', authMiddleware, createShareLink);
+router.get('/share/:code', authMiddleware, resolveShareLink);
+router.get('/my-shares', authMiddleware, getMyShares);
 
 // Managing products (admin authorized)
 router.post('/add-product', authMiddleware, isAdmin, addAffiliateProduct);

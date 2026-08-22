@@ -28,19 +28,28 @@ export const githubOAuthCallback = async (req, res) => {
         // Get GitHub user info
         const ghUser = await getGitHubUser(tokenData.access_token);
 
-        // Fetch full stats
-        const stats = await fetchGitHubStats(ghUser.login, tokenData.access_token);
-
-        // Save to User
+        // Save the connection FIRST.
+        //
+        // This used to fetch stats before saving anything, so any failure in the
+        // stats call — a GraphQL error, a rate limit, a slow response — threw the
+        // whole callback into its 500 handler and the token was never stored. The
+        // account ended up not connected at all, and Dev Analytics stayed empty
+        // with no way to retry, because Sync needs the token that was never saved.
         await User.findByIdAndUpdate(userId, {
             githubUsername: ghUser.login,
             githubAccessToken: tokenData.access_token, // consider encrypting in prod
             github_id: `https://github.com/${ghUser.login}`,
-            githubStats: stats
         });
 
-        // Recalculate score with fresh GitHub data
-        await calculateFyncScore(userId);
+        // Stats are best-effort: the user is connected either way and the Sync
+        // button can fill them in.
+        try {
+            const stats = await fetchGitHubStats(ghUser.login, tokenData.access_token);
+            await User.findByIdAndUpdate(userId, { githubStats: stats });
+            await calculateFyncScore(userId);
+        } catch (statsError) {
+            console.error("GitHub stats fetch failed after connect:", statsError.message);
+        }
 
         // Redirect back to app deep link (adjust scheme to your Expo app)
         return res.redirect(`${process.env.APP_DEEP_LINK_SCHEME}://github-connected?username=${ghUser.login}`);
@@ -77,7 +86,23 @@ export const syncGitHub = async (req, res) => {
         return res.json({ success: true, message: "GitHub stats synced!", stats });
     } catch (error) {
         console.error("syncGitHub error:", error.message);
-        return res.status(500).json({ success: false, message: "Sync failed", error: error.message });
+        // "Sync failed" told the user nothing. The two failures that actually
+        // happen are a revoked token and GitHub's hourly rate limit, and they
+        // need different actions from the user.
+        const status = error?.response?.status;
+        if (status === 401) {
+            return res.status(401).json({
+                success: false,
+                message: "Your GitHub connection expired. Disconnect and connect again.",
+            });
+        }
+        if (status === 403 || status === 429) {
+            return res.status(429).json({
+                success: false,
+                message: "GitHub is rate limiting this account. Try again in an hour.",
+            });
+        }
+        return res.status(502).json({ success: false, message: "GitHub did not respond. Try again shortly." });
     }
 };
 

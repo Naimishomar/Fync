@@ -1,4 +1,5 @@
 import redisClient from "../../utils/redis.js";
+import { escapeRegExp } from "../../utils/escapeRegExp.js";
 import { nanoid } from "nanoid";
 import Problem from "../../models/coding/problem.model.js";
 import Judge0Service from "../../services/judge0.service.js";
@@ -42,7 +43,7 @@ const codingBattleSockets = (io) => {
       opponentSocket.join(matchRoomId);
 
       // Fetch a random problem of that difficulty
-      const problems = await Problem.find({ difficulty: { $regex: new RegExp(difficulty, "i") } });
+      const problems = await Problem.find({ difficulty: { $regex: new RegExp(escapeRegExp(difficulty), "i") } });
       const problem = problems[Math.floor(Math.random() * problems.length)];
 
       const battleData = {

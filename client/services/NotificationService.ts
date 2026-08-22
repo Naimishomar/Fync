@@ -1,20 +1,31 @@
-import { Platform } from 'react-native';
+import { Platform, PermissionsAndroid } from 'react-native';
 import axios from '../context/axiosConfig';
 import messaging from '@react-native-firebase/messaging';
 
 export const requestUserPermission = async () => {
   if (Platform.OS === 'ios') {
     const authStatus = await messaging().requestPermission();
-    const enabled =
+    return (
       authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-    if (enabled) {
-      console.log('Authorization status:', authStatus);
-      return true;
-    }
-    return false;
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL
+    );
   }
+
+  // Android 13 (API 33) made notifications a runtime permission. This used to
+  // return true without asking for anything: the token was fetched and stored,
+  // FCM accepted every send, and the phone silently dropped the notification.
+  // Nothing in the logs said so — delivery looked successful end to end.
+  if (Platform.OS === 'android' && Number(Platform.Version) >= 33) {
+    const already = await PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+    );
+    if (already) return true;
+    const result = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+    );
+    return result === PermissionsAndroid.RESULTS.GRANTED;
+  }
+
   return true;
 };
 

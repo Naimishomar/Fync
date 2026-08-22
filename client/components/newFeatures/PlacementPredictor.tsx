@@ -185,7 +185,8 @@ const PlacementPredictor = () => {
                         <Ionicons name="arrow-back" size={24} color="#12100E" />
                     </TouchableOpacity>
                     <View>
-                        <Text className="text-3xl font-display uppercase">Placement <Text className="text-accent-text">Predictor</Text></Text>
+                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Placement</Text>
+                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Predictor</Text>
                         <Text className="text-label font-display uppercase text-ink-3">AI Career Analysis</Text>
                     </View>
                 </View>

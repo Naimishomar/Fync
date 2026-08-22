@@ -1,4 +1,5 @@
 import PlacementQuestion from "../models/newFeatures/placementHub.model.js";
+import { escapeRegExp } from "../utils/escapeRegExp.js";
 import User from "../models/user.model.js";
 import Comment from "../models/comment.model.js";
 import Notification from "../models/notification.model.js";
@@ -36,15 +37,15 @@ export const getQuestions = async (req, res) => {
     try {
         const { company, role, type, difficulty, search } = req.query;
         let filter = {};
-        if (company) filter.company = new RegExp(company, 'i');
-        if (role) filter.role = new RegExp(role, 'i');
+        if (company) filter.company = new RegExp(escapeRegExp(company), 'i');
+        if (role) filter.role = new RegExp(escapeRegExp(role), 'i');
         if (type) filter.type = type;
         if (difficulty) filter.difficulty = difficulty;
         if (search) {
             filter.$or = [
-                { question: new RegExp(search, 'i') },
-                { company: new RegExp(search, 'i') },
-                { description: new RegExp(search, 'i') }
+                { question: new RegExp(escapeRegExp(search), 'i') },
+                { company: new RegExp(escapeRegExp(search), 'i') },
+                { description: new RegExp(escapeRegExp(search), 'i') }
             ];
         }
 

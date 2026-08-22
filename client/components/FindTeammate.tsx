@@ -291,7 +291,8 @@ export default function FindTeammate() {
                 {/* HEADER */}
                 <View className="px-gutter pt-8 pb-4 flex-row justify-between items-center">
                     <View>
-                        <Text className="text-ink text-3xl font-display uppercase">Squad <Text className="text-accent-text">Builder</Text></Text>
+                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Squad</Text>
+                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Builder</Text>
                         <Text className="text-ink-3 text-label font-display uppercase mt-0.5">
                             Build your dream team today.
                         </Text>

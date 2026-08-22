@@ -73,5 +73,10 @@ const opportunitySchema = new mongoose.Schema({
     }
 });
 
+// Covers the list query's filter AND its sort; without it the sort was done
+// in memory over every matching document.
+opportunitySchema.index({ isActive: 1, type: 1, createdAt: -1 });
+opportunitySchema.index({ postedBy: 1, createdAt: -1 });
+
 const Opportunity = mongoose.model("Opportunity", opportunitySchema);
 export default Opportunity;

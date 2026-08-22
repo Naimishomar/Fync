@@ -122,6 +122,9 @@ const AdminPortal = ({ navigation }: any) => {
     const [broadcastTitle, setBroadcastTitle] = useState('');
     const [broadcastBody, setBroadcastBody] = useState('');
     const [broadcastImage, setBroadcastImage] = useState('');
+    // A broadcast answers 202 whether it reached ten thousand phones or none,
+    // so the admin is shown the device count before sending.
+    const [reach, setReach] = useState<{ devices: number; users: number; totalUsers: number } | null>(null);
     const [sendingBroadcast, setSendingBroadcast] = useState(false);
 
     const fetchAds = async () => {
@@ -280,6 +283,17 @@ const AdminPortal = ({ navigation }: any) => {
         }
     };
 
+    const loadReach = async () => {
+        try {
+            const res = await axios.get('/notifications/broadcast/reach');
+            if (res.data.success) setReach(res.data);
+        } catch { setReach(null); }
+    };
+
+    useEffect(() => {
+        if (activeTab === 'broadcast') loadReach();
+    }, [activeTab]);
+
     const sendBroadcast = async () => {
         setSendingBroadcast(true);
         try {
@@ -289,7 +303,11 @@ const AdminPortal = ({ navigation }: any) => {
                 imageUrl: broadcastImage.trim() || undefined,
             });
             if (res.data.success) {
-                Toast.show({ type: 'success', text1: 'Broadcast Sent!', text2: res.data.message });
+                Toast.show({
+                    type: 'success',
+                    text1: 'Broadcast started',
+                    text2: reach ? `Delivering to ${reach.devices} device${reach.devices === 1 ? '' : 's'}.` : res.data.message,
+                });
                 setBroadcastTitle('');
                 setBroadcastBody('');
                 setBroadcastImage('');
@@ -771,9 +789,8 @@ const AdminPortal = ({ navigation }: any) => {
                         </View>
                         
                         <View className="mb-8">
-                            <Text className="text-ink text-3xl font-display uppercase leading-tight">
-                                ADMIN <Text className="text-accent-text">CHECK</Text>
-                            </Text>
+                            <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>ADMIN</Text>
+                            <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>CHECK</Text>
                             <Text className="text-ink-3 text-label font-display uppercase mt-1 leading-4">
                                 Admin protocol password required to access operational core.
                             </Text>
@@ -832,9 +849,8 @@ const AdminPortal = ({ navigation }: any) => {
                     <View className="flex-row items-center justify-between mb-8">
                         <View className="flex-row items-center gap-4">
                             <View>
-                                <Text className="text-ink text-3xl font-display uppercase leading-tight">
-                                    {view === 'hub' ? 'ADMIN PANEL' : activeTab === 'marketplace' ? 'Store' : activeTab === 'subscription' ? 'Config' : activeTab.toUpperCase()} <Text className="text-accent-text">{view === 'hub' ? 'PORTAL' : 'CORE'}</Text>
-                                </Text>
+                                <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>{view === 'hub' ? 'ADMIN PANEL' : activeTab === 'marketplace' ? 'Store' : activeTab === 'subscription' ? 'Config' : activeTab.toUpperCase()}</Text>
+                                <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>{view === 'hub' ? 'PORTAL' : 'CORE'}</Text>
                                 <Text className="text-ink-3 text-label font-display uppercase mt-0.5">
                                     {view === 'hub' ? 'Control Center v2.0' : 'Operational Protocol'}
                                 </Text>
@@ -957,6 +973,23 @@ const AdminPortal = ({ navigation }: any) => {
                             <Text className="text-ink text-lg font-display uppercase">Global Broadcast</Text>
                             <Text className="text-ink-3 text-label font-semibold uppercase mt-0.5">Send alert to all users</Text>
                         </View>
+                    </View>
+
+                    {/* Zero devices is the usual reason a broadcast appears to do
+                        nothing, and it is invisible without this. */}
+                    <View className={`flex-row items-center p-4 rounded-card border mb-4 ${reach && reach.devices === 0 ? 'bg-danger/10 border-danger/30' : 'bg-paper-2 border-line'}`}>
+                        <Ionicons
+                            name={reach && reach.devices === 0 ? 'warning-outline' : 'phone-portrait-outline'}
+                            size={18}
+                            color={reach && reach.devices === 0 ? '#DC2626' : '#57534E'}
+                        />
+                        <Text className="text-ink-2 text-sm ml-3 flex-1">
+                            {reach === null
+                                ? 'Checking how many devices are registered…'
+                                : reach.devices === 0
+                                    ? 'No devices are registered. Nobody will receive a push notification.'
+                                    : `Will reach ${reach.devices} device${reach.devices === 1 ? '' : 's'} across ${reach.users} of ${reach.totalUsers} users.`}
+                        </Text>
                     </View>
 
                     <View className="bg-paper-2 p-4 rounded-card border border-line mb-4">

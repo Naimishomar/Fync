@@ -366,7 +366,7 @@ const ChatList = () => {
           <View className="flex-row items-center justify-between mb-5">
             <View className="flex-1">
               <View className="flex-row items-center">
-                <Text className="font-display text-ink uppercase" style={{ fontSize: 38, lineHeight: 39, letterSpacing: -1.4 }}>
+                <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>
                   Inbox <Text className="text-accent-text">Center</Text>
                 </Text>
               </View>

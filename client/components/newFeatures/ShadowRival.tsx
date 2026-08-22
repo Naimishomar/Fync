@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {View, Text, ScrollView, ActivityIndicator, RefreshControl, StatusBar, Image, TouchableOpacity, Switch, Dimensions} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Svg, { Polyline, Circle } from 'react-native-svg';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -71,6 +71,7 @@ const RaceChart = ({ history, width }: { history: HistoryPoint[]; width: number 
 };
 
 export default function ShadowRival() {
+  const navigation = useNavigation<any>();
     const [data, setData] = useState<Rivalry | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -170,9 +171,17 @@ export default function ShadowRival() {
                     }
                 >
                     <View className="px-gutter pt-2 mb-6">
-                        <Text className="text-ink text-3xl font-display leading-tight">
-                            Shadow<Text className="text-accent-text">Rival</Text>
-                        </Text>
+                        <TouchableOpacity
+                          onPress={() => navigation.goBack()}
+                          className="w-11 h-11 items-center justify-center rounded-xl"
+                          accessibilityRole="button"
+                          accessibilityLabel="Go back"
+                          style={{ marginLeft: -11 }}
+                        >
+                          <Ionicons name="arrow-back" size={24} color="#12100E" />
+                        </TouchableOpacity>
+                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Shadow</Text>
+                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Rival</Text>
                         <Text className="text-ink-3 text-label font-display uppercase">
                             One anonymous match. Revealed at semester end.
                         </Text>

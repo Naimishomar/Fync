@@ -73,9 +73,17 @@ const QuizHome = () => {
                                 <Ionicons name="trophy" size={24} color="#12100E" />
                             </View>
                             <View>
-                                <Text className="text-ink text-4xl font-display">
-                                    QUIZ <Text className="text-accent-text">ARENA</Text>
-                                </Text>
+                                <Pressable
+                                  onPress={() => navigation.goBack()}
+                                  className="w-11 h-11 items-center justify-center rounded-xl"
+                                  accessibilityRole="button"
+                                  accessibilityLabel="Go back"
+                                  style={{ marginLeft: -11 }}
+                                >
+                                  <Ionicons name="arrow-back" size={24} color="#12100E" />
+                                </Pressable>
+                                <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>QUIZ</Text>
+                                <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>ARENA</Text>
                                 <Text className="text-ink-3 text-label font-display uppercase mt-0.5">
                                     GLOBAL BATTLEGROUND SITE
                                 </Text>

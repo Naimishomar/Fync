@@ -47,12 +47,23 @@ interface ShortItem {
   liked_by: string[];
   views: number;
   user: User;
+  /* Discover items: aggregated tech content that fills the feed once the campus
+     shorts run out. They live only in this array — nothing is stored. */
+  discover?: boolean;
+  kind?: 'video' | 'article';
+  url?: string;
+  source?: string;
+  thumbnail?: string;
 }
 
 /* ---------------- GLOBAL CACHE ---------------- */
 let globalShortsCache: ShortItem[] = [];
 let globalShortsPage = 0;
 let globalHasMore = true;
+// Discover takes over when the campus feed is exhausted, so the scroll never
+// dead-ends in the early days when few students have posted.
+let globalDiscoverCursor = 0;
+let globalDiscoverExhausted = false;
 
 /* ---------------- COMPONENT ---------------- */
 
@@ -263,6 +274,110 @@ const SingleShort = React.memo(({
   );
 });
 
+
+/* ---------------- DISCOVER CARD ---------------- */
+/**
+ * Aggregated tech content, rendered in the same full-screen rhythm as a short.
+ *
+ * A video streams straight from its source; an article becomes a readable card
+ * that opens in our own reader. Neither is stored, and neither carries the
+ * like/comment/tip rail — those belong to content students actually posted.
+ */
+const DiscoverCard = React.memo(({
+  item,
+  isActive,
+  navigation,
+}: {
+  item: ShortItem;
+  isActive: boolean;
+  navigation: any;
+}) => {
+  const videoRef = useRef<Video>(null);
+  const isFocused = useIsFocused();
+  const isVideo = item.kind === 'video' && !!item.video;
+
+  useEffect(() => {
+    if (isActive && isFocused) videoRef.current?.playAsync();
+    else videoRef.current?.pauseAsync();
+  }, [isActive, isFocused]);
+
+  const openSource = () => {
+    navigation.navigate('ArticleScreen', {
+      url: item.url,
+      title: item.title,
+      source: item.source,
+    });
+  };
+
+  return (
+    <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }} className="bg-ink">
+      {isVideo ? (
+        <Video
+          ref={videoRef}
+          source={{ uri: item.video }}
+          style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
+          resizeMode={ResizeMode.CONTAIN}
+          isLooping
+          shouldPlay={false}
+          useNativeControls={false}
+        />
+      ) : (
+        <View className="flex-1 px-6 justify-center">
+          {!!item.thumbnail && (
+            <Image
+              source={{ uri: item.thumbnail }}
+              style={{ width: '100%', height: SCREEN_HEIGHT * 0.28 }}
+              className="rounded-card mb-6"
+              resizeMode="cover"
+            />
+          )}
+          <Text className="font-display text-2xl text-white leading-8 mb-4">
+            {item.title}
+          </Text>
+          {!!item.description && (
+            <Text className="font-sans text-base text-night-3 leading-6" numberOfLines={6}>
+              {item.description}
+            </Text>
+          )}
+        </View>
+      )}
+
+      {/* Source strip: says plainly this came from elsewhere, so an aggregated
+          item is never mistaken for something a classmate posted. */}
+      <View className="absolute bottom-32 left-4 right-4 flex-row items-end justify-between">
+        <View className="flex-1 pr-4">
+          <View className="flex-row items-center mb-2">
+            <View className="bg-brand-500 px-2 py-1 rounded-sm">
+              <Text className="font-display text-label text-ink uppercase">Tech</Text>
+            </View>
+            <Text className="font-sans text-sm text-night-3 ml-2">{item.source}</Text>
+          </View>
+          {isVideo && (
+            <Text className="font-display text-base text-white" numberOfLines={2}>
+              {item.title}
+            </Text>
+          )}
+        </View>
+
+        <View className="items-center">
+          <Pressable onPress={openSource} className="items-center mb-4">
+            <View className="bg-brand-500/20 p-2 rounded-full border border-brand-500/40">
+              <Ionicons name="book-outline" size={26} color="#F97316" />
+            </View>
+            <Text className="font-display text-label text-brand-400 mt-1 uppercase">Read</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => Share.share({ message: `${item.title}\n\n${item.url}` })}
+          >
+            <Ionicons name="paper-plane-outline" size={28} color="white" />
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  );
+});
+
 export default function Shorts() {
   const tabBarClearance = useTabBarClearance();
   const { user } = useAuth();
@@ -290,6 +405,13 @@ export default function Shorts() {
   const fetchShorts = async (page = 0, shouldRefresh = false) => {
     const isFirstPage = page <= 1;
     if (!globalHasMore && !shouldRefresh && !isFirstPage) return;
+    // A refresh rebuilds the cache from scratch, so the discover cursor has to
+    // go back with it — otherwise it stays parked past the end and the feed
+    // never refills after the first pull-to-refresh.
+    if (shouldRefresh || isFirstPage) {
+      globalDiscoverCursor = 0;
+      globalDiscoverExhausted = false;
+    }
     if (isFirstPage) setLoading(true);
     else setLoadingMore(true);
 
@@ -358,10 +480,51 @@ export default function Shorts() {
     }, [])
   );
 
+  /* Campus shorts are finite; this is what keeps scrolling. Items are fetched
+     live from the backend aggregator and appended in place — they are never
+     written to our database, so the feed costs storage nothing. */
+  const fetchDiscover = async () => {
+    setLoadingMore(true);
+    try {
+      const seen = globalShortsCache.filter(s => s.discover).map(s => s._id).slice(-120);
+      const res = await axios.get('/shorts/discover', {
+        params: { cursor: globalDiscoverCursor, limit: 10, seen: seen.join(',') },
+      });
+      if (!res.data.success) return;
+
+      const mapped: ShortItem[] = res.data.items.map((i: any) => ({
+        _id: i.id,
+        video: i.streamUrl || '',
+        title: i.title,
+        description: i.description || '',
+        likes: 0,
+        liked_by: [],
+        views: 0,
+        user: { _id: i.id, name: i.source, username: i.source },
+        discover: true,
+        kind: i.kind,
+        url: i.url,
+        source: i.source,
+        thumbnail: i.thumbnail,
+      }));
+
+      globalShortsCache = [
+        ...globalShortsCache,
+        ...mapped.filter(m => !globalShortsCache.find(x => x._id === m._id)),
+      ];
+      setShorts(globalShortsCache);
+      globalDiscoverCursor = res.data.nextCursor;
+      globalDiscoverExhausted = !res.data.hasMore && !res.data.recycled;
+    } catch { /* a dead source must not break the campus feed above it */ }
+    finally { setLoadingMore(false); }
+  };
+
   const loadMore = () => {
-    if (!loadingMore && globalHasMore) {
-      console.log(`🌀 Pre-fetching Shorts page: ${globalShortsPage + 1}`);
+    if (loadingMore) return;
+    if (globalHasMore) {
       fetchShorts(globalShortsPage + 1);
+    } else if (!globalDiscoverExhausted) {
+      fetchDiscover();
     }
   };
 
@@ -481,7 +644,17 @@ export default function Shorts() {
   const renderItem = useCallback(({ item, index }: { item: ShortItem, index: number }) => {
     // 🚀 Look-Ahead Buffer: We play the active one, and PRE-BUFFER the next one
     const isNext = index === shorts.findIndex(s => s._id === activeVideoId) + 1;
-    
+
+    if (item.discover) {
+      return (
+        <DiscoverCard
+          item={item}
+          isActive={item._id === activeVideoId}
+          navigation={navigation}
+        />
+      );
+    }
+
     return (
       <SingleShort
         item={item}

@@ -143,7 +143,16 @@ const SearchScreen = () => {
           <View className="flex-row items-center justify-between mb-5">
             <View className="flex-1">
               <View className="flex-row items-center">
-                <Text className="font-display text-ink uppercase" style={{ fontSize: 38, lineHeight: 39, letterSpacing: -1.4 }}>
+                <TouchableOpacity
+                  onPress={() => navigation.goBack()}
+                  className="w-11 h-11 items-center justify-center rounded-xl"
+                  accessibilityRole="button"
+                  accessibilityLabel="Go back"
+                  style={{ marginLeft: -11 }}
+                >
+                  <Ionicons name="arrow-back" size={24} color="#12100E" />
+                </TouchableOpacity>
+                <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>
                   Find <Text className="text-accent-text">Friends</Text>
                 </Text>
               </View>

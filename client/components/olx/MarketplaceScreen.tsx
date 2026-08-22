@@ -373,7 +373,17 @@ const MarketplaceScreen = () => {
                 <View className='px-gutter pt-6 bg-transparent'>
                     <View className="flex-row items-center justify-between mb-8">
                         <View>
-                            <Text className="text-ink text-4xl font-display uppercase leading-tight">Fync <Text className="text-accent-text">Market</Text></Text>
+                            <TouchableOpacity
+                              onPress={() => navigation.goBack()}
+                              className="w-11 h-11 items-center justify-center rounded-xl"
+                              accessibilityRole="button"
+                              accessibilityLabel="Go back"
+                              style={{ marginLeft: -11 }}
+                            >
+                              <Ionicons name="arrow-back" size={24} color="#12100E" />
+                            </TouchableOpacity>
+                            <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
+                            <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Market</Text>
                             <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Campus Asset exchange</Text>
                         </View>
                         <TouchableOpacity

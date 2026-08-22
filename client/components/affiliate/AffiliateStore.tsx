@@ -188,9 +188,9 @@ const styles = StyleSheet.create({
         marginBottom: 6,
     },
     display: {
-        fontSize: 38,
-        lineHeight: 39,
-        letterSpacing: -1.4,
+        fontSize: 34,
+        lineHeight: 35,
+        letterSpacing: -1.2,
         fontFamily: 'SpaceGrotesk_700Bold',
         textTransform: 'uppercase',
         color: '#12100E',

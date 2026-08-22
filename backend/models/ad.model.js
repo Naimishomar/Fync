@@ -24,5 +24,9 @@ const adSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
+// Covers the list query's filter AND its sort; without it the sort was done
+// in memory over every matching document.
+adSchema.index({ isActive: 1, order: 1, createdAt: -1 });
+
 const Ad = mongoose.model('Ad', adSchema);
 export default Ad;

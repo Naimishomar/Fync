@@ -173,9 +173,17 @@ const CommunityListScreen = () => {
             <SafeAreaView className="flex-1" edges={['top']}>
                 <View className="px-gutter pt-6 pb-2 flex-row justify-between items-center">
                     <View>
-                        <Text className="text-ink text-3xl font-display uppercase leading-tight">
-                            Community <Text className="text-accent-text">Hub</Text>
-                        </Text>
+                        <TouchableOpacity
+                          onPress={() => navigation.goBack()}
+                          className="w-11 h-11 items-center justify-center rounded-xl"
+                          accessibilityRole="button"
+                          accessibilityLabel="Go back"
+                          style={{ marginLeft: -11 }}
+                        >
+                          <Ionicons name="arrow-back" size={24} color="#12100E" />
+                        </TouchableOpacity>
+                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Community</Text>
+                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Hub</Text>
                         <Text className="text-ink-3 text-label font-display uppercase">High-Velocity Network</Text>
                     </View>
                     <TouchableOpacity 

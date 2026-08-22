@@ -98,7 +98,17 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                         <View className='px-gutter pt-8 bg-transparent'>
                             <View className="flex-row items-center justify-between mb-8">
                                 <View>
-                                    <Text className="text-ink text-3xl font-display uppercase">Fync <Text className="text-accent-text">Drive</Text></Text>
+                                    <TouchableOpacity
+                                      onPress={() => navigation.goBack()}
+                                      className="w-11 h-11 items-center justify-center rounded-xl"
+                                      accessibilityRole="button"
+                                      accessibilityLabel="Go back"
+                                      style={{ marginLeft: -11 }}
+                                    >
+                                      <Ionicons name="arrow-back" size={24} color="#12100E" />
+                                    </TouchableOpacity>
+                                    <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
+                                    <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Drive</Text>
                                     <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Campus Resource Arena</Text>
                                 </View>
                                 <TouchableOpacity disabled className="w-12 h-12 rounded-card items-center justify-center border border-line bg-card shadow-hair">
@@ -120,7 +130,8 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                             <View className='px-gutter pt-8 bg-transparent'>
                                 <View className="flex-row items-center justify-between mb-8">
                                     <View>
-                                        <Text className="text-ink text-3xl font-display uppercase">Fync <Text className="text-accent-text">Drive</Text></Text>
+                                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
+                                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Drive</Text>
                                         <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Campus Resource Arena</Text>
                                     </View>
                                     <TouchableOpacity onPress={loadData} disabled={loading} className={`w-12 h-12 rounded-card items-center justify-center border shadow-hair ${loading ? 'border-line bg-paper-2' : 'border-line bg-card'}`}>

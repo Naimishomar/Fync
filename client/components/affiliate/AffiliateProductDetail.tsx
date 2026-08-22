@@ -9,11 +9,11 @@ import {
     ActivityIndicator,
     Dimensions,
     Share,
-    Alert
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Alert } from '../ui/AlertModal';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
@@ -21,7 +21,7 @@ const { width } = Dimensions.get('window');
 const AffiliateProductDetail = () => {
     const route = useRoute<any>();
     const navigation = useNavigation<any>();
-    const { productId } = route.params;
+    const { productId, shareCode } = route.params;
     const [product, setProduct] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
@@ -42,7 +42,7 @@ const AffiliateProductDetail = () => {
     const handleBuyNow = async () => {
         try {
             // Track the click in our backend before opening the link
-            const response = await axios.post('/affiliate/track', { productId });
+            const response = await axios.post('/affiliate/track', { productId, shareCode });
             const { saleId } = response.data;
             
             // Navigate to WebView to stay in app
@@ -61,14 +61,25 @@ const AffiliateProductDetail = () => {
         }
     };
 
+    /**
+     * Shares the user's own referral link rather than a bare product URL, so the
+     * taps it produces are attributable to them. The link is minted once per
+     * person per product and reused after that.
+     */
     const handleShare = async () => {
         try {
-            const shareUrl = `https://fync-api.duckdns.org/product?id=${product._id}`;
+            const res = await axios.post('/affiliate/share', { productId: product._id });
+            const url = res.data?.url;
+            if (!url) throw new Error('no link');
             await Share.share({
-                message: `Check out this amazing deal on Fync: ${product.name}\n\nLink: ${shareUrl}\n\nOpen in App: fync://store/product/${product._id}`,
+                message: `${product.name} — spotted on Fync\n\n${url}`,
             });
-        } catch (error) {
-            console.error('Error sharing:', error);
+        } catch (error: any) {
+            // A delisted product cannot be shared; anything else is a network blip.
+            const msg = error?.response?.status === 409
+                ? 'This product is no longer listed.'
+                : 'Could not create your share link. Try again.';
+            Alert.alert('Not shared', msg);
         }
     };
 

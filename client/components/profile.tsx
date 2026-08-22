@@ -12,7 +12,6 @@ import { prefetchPostImages } from '../utils/imageWarm';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import Avatar from './Avatar';
-import * as FileSystem from 'expo-file-system/legacy';
 import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getFullUrl } from '../utils/imageUtils';
@@ -565,27 +564,6 @@ function Profile() {
     }
   };
 
-  const handleLogout = async () => { await logout(); };
-
-  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
-
-  const clearAppCache = async () => {
-    try {
-      if (FileSystem.cacheDirectory) {
-        const content = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory);
-        let totalFreed = 0;
-        for (const item of content) {
-          const itemPath = `${FileSystem.cacheDirectory}${item}`;
-          const info = await FileSystem.getInfoAsync(itemPath);
-          if (info.exists && !info.isDirectory) totalFreed += info.size || 0;
-          await FileSystem.deleteAsync(itemPath, { idempotent: true });
-        }
-        await ExpoImage.clearDiskCache(); await ExpoImage.clearMemoryCache();
-        Alert.alert('Cache Cleared', `Reclaimed ${(totalFreed / 1048576).toFixed(2)} MB`);
-      }
-    } catch { Toast.show({ type: 'error', text1: 'Failed to clear cache' }); }
-  };
-
   // ── Profile Header ─────────────────────────────────────────────────────
   const renderProfileInfo = () => (
     <View className="bg-card">
@@ -595,48 +573,11 @@ function Profile() {
           style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="disk" />
         <LinearGradient colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.2)']} className="absolute inset-0" />
         
-        <View className="absolute top-12 right-4 z-50">
-          <Pressable 
-            onPress={() => setShowSettingsMenu(!showSettingsMenu)} 
-            className="bg-black/30 p-2.5 rounded-full backdrop-blur-md"
-          >
-            <Ionicons name="ellipsis-vertical" size={24} color="white" />
-          </Pressable>
-
-          {showSettingsMenu && (
-            <View className="absolute top-14 right-0 bg-card rounded-card shadow-hair border border-line overflow-hidden w-48 mt-1 z-50">
-              <Pressable 
-                onPress={() => {
-                  setShowSettingsMenu(false);
-                  clearAppCache();
-                }} 
-                className="flex-row items-center px-4 py-4 border-b border-line active:bg-paper-2"
-              >
-                <Ionicons name="trash-outline" size={18} color="#DC2626" />
-                <Text className="ml-3 text-ink text-label font-display uppercase">Clear Cache</Text>
-              </Pressable>
-
-              <Pressable 
-                onPress={() => {
-                  setShowSettingsMenu(false);
-                  Alert.alert('Logout', 'Are you sure?', [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Logout', onPress: handleLogout, style: 'destructive' }
-                  ]);
-                }} 
-                className="flex-row items-center px-4 py-4 active:bg-paper-2"
-              >
-                <Ionicons name="log-out-outline" size={18} color="#DC2626" />
-                <Text className="ml-3 text-ink text-label font-display uppercase">Logout</Text>
-              </Pressable>
-            </View>
-          )}
-        </View>
       </View>
 
       <View className="items-center pb-6 px-5 bg-paper rounded-t-sheet -mt-12 shadow-hair">
         <View className="-mt-14 p-1.5 bg-card rounded-full shadow-hair">
-          <View className="rounded-full overflow-hidden border-4 border-white">
+          <View className="rounded-full overflow-hidden border-[3px] border-brand-500">
             <Avatar user={user as any} size={110} />
           </View>
         </View>

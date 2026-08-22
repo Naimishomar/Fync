@@ -28,5 +28,10 @@ const EventMessageSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+
+// Covers the list query's filter AND its sort; without it the sort ran in
+// memory over every matching document.
+EventMessageSchema.index({ eventId: 1, eventModel: 1, createdAt: 1 });
+
 const EventMessage = mongoose.model('EventMessage', EventMessageSchema);
 export default EventMessage;

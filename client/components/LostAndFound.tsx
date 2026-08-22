@@ -290,7 +290,17 @@ const LostAndFound = () => {
                 <View className="px-gutter pt-6">
                     <View className="flex-row items-center justify-between mb-8">
                         <View>
-                            <Text className="text-ink text-3xl font-display uppercase leading-tight">Lost & <Text className="text-accent-text">Found</Text></Text>
+                            <TouchableOpacity
+                              onPress={() => navigation.goBack()}
+                              className="w-11 h-11 items-center justify-center rounded-xl"
+                              accessibilityRole="button"
+                              accessibilityLabel="Go back"
+                              style={{ marginLeft: -11 }}
+                            >
+                              <Ionicons name="arrow-back" size={24} color="#12100E" />
+                            </TouchableOpacity>
+                            <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Lost &</Text>
+                            <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Found</Text>
                             <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Asset Recovery Protocol</Text>
                         </View>
                         <TouchableOpacity

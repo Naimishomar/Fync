@@ -703,6 +703,34 @@ export const socketController = (io) => {
       }
     };
 
+    /**
+     * Lobby presence, scoped to audio or video.
+     *
+     * A person is in one room or neither, never both — reading app-wide presence
+     * put every online user in both lobbies at once. Joining one lobby leaves
+     * the other, so the state cannot be inconsistent.
+     */
+    socket.on("call:lobby:join", async ({ mode }) => {
+      if (mode !== 'audio' && mode !== 'video' || !socket.userId) return;
+      const other = mode === 'audio' ? 'video' : 'audio';
+      try {
+        await redisClient.sRem(`call_lobby:${other}`, socket.userId);
+        await redisClient.sAdd(`call_lobby:${mode}`, socket.userId);
+      } catch (err) {
+        console.error("Lobby join failed:", err.message);
+      }
+    });
+
+    socket.on("call:lobby:leave", async () => {
+      if (!socket.userId) return;
+      try {
+        await redisClient.sRem('call_lobby:audio', socket.userId);
+        await redisClient.sRem('call_lobby:video', socket.userId);
+      } catch (err) {
+        console.error("Lobby leave failed:", err.message);
+      }
+    });
+
     socket.on("call:offer", async ({ targetUserId, sdp, callerInfo }) => {
       const callerId = socket.userId;
       if (!callerId || !targetUserId) return;
@@ -901,6 +929,9 @@ export const socketController = (io) => {
           
           if (remaining === 0) {
             await redisClient.sRem("global_online_users", socket.userId);
+            // Leaving the app leaves every lobby too, or the ghost comes back.
+            await redisClient.sRem("call_lobby:audio", socket.userId);
+            await redisClient.sRem("call_lobby:video", socket.userId);
             await broadcastStatus(io, socket.userId, "offline");
           }
         } catch (err) {

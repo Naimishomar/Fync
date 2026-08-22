@@ -11,6 +11,17 @@ const affiliateSaleSchema = new mongoose.Schema({
         ref: 'AffiliateProduct',
         required: true
     },
+    // Who shared the link this sale came through, if anyone. Recorded from the
+    // first tap so attribution exists before any payout logic does.
+    sharer: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
+    shareCode: {
+        type: String,
+        default: null
+    },
     orderValue: {
         type: Number,
         required: true
@@ -40,6 +51,9 @@ const affiliateSaleSchema = new mongoose.Schema({
         type: Date
     }
 }, { timestamps: true });
+
+// Phase 2 will pay against this; the index exists now so the query is ready.
+affiliateSaleSchema.index({ sharer: 1, status: 1, createdAt: -1 });
 
 const AffiliateSale = mongoose.model('AffiliateSale', affiliateSaleSchema);
 export default AffiliateSale;

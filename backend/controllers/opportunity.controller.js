@@ -1,4 +1,5 @@
 import Opportunity from "../models/opportunity.model.js";
+import { escapeRegExp } from "../utils/escapeRegExp.js";
 import User from "../models/user.model.js";
 import Application from "../models/application.model.js";
 import Notification from "../models/notification.model.js";
@@ -59,9 +60,9 @@ export const getOpportunities = async (req, res) => {
         if (recruiterId) filter.postedBy = recruiterId;
         if (search) {
             filter.$or = [
-                { title: new RegExp(search, 'i') },
-                { company: new RegExp(search, 'i') },
-                { description: new RegExp(search, 'i') }
+                { title: new RegExp(escapeRegExp(search), 'i') },
+                { company: new RegExp(escapeRegExp(search), 'i') },
+                { description: new RegExp(escapeRegExp(search), 'i') }
             ];
         }
 

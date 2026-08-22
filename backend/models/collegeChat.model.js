@@ -35,4 +35,9 @@ const collegeChatSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+
+// Covers the list query's filter AND its sort; without it the sort ran in
+// memory over every matching document.
+collegeChatSchema.index({ collegeName: 1, expiresAt: 1, createdAt: 1 });
+
 export default mongoose.model("CollegeChat", collegeChatSchema);

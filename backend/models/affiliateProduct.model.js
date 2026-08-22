@@ -51,5 +51,9 @@ const affiliateProductSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+// Covers the list query's filter AND its sort; without it the sort was done
+// in memory over every matching document.
+affiliateProductSchema.index({ isAvailable: 1, category: 1, createdAt: -1 });
+
 const AffiliateProduct = mongoose.model('AffiliateProduct', affiliateProductSchema);
 export default AffiliateProduct;

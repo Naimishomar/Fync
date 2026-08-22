@@ -149,10 +149,10 @@ const ExploreHub = () => {
 
       <SafeAreaView className="flex-1" edges={['top']}>
         <View className="px-gutter pt-4">
-          <Text className="font-display text-ink uppercase" style={{ fontSize: 38, lineHeight: 39, letterSpacing: -1.4 }}>
+          <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>
             Explore
           </Text>
-          <Text className="font-display text-accent-text uppercase" style={{ fontSize: 38, lineHeight: 39, letterSpacing: -1.4 }}>
+          <Text className="font-display text-accent-text uppercase text-display" style={{ letterSpacing: -1.2 }}>
             Fync
           </Text>
           <Text className="font-display text-label text-ink-3 uppercase mt-3" style={{ letterSpacing: 1.4 }}>

@@ -286,9 +286,17 @@ export default function AlumniJobs() {
                         <View className="px-gutter pt-6 mb-10">
                             <View className="flex-row justify-between items-center">
                                 <View>
-                                    <Text className="text-3xl font-display text-ink uppercase leading-tight">
-                                        Alumni <Text className="text-accent-text">Jobs</Text> 
-                                    </Text>
+                                    <TouchableOpacity
+                                      onPress={() => navigation.goBack()}
+                                      className="w-11 h-11 items-center justify-center rounded-xl"
+                                      accessibilityRole="button"
+                                      accessibilityLabel="Go back"
+                                      style={{ marginLeft: -11 }}
+                                    >
+                                      <Ionicons name="arrow-back" size={24} color="#12100E" />
+                                    </TouchableOpacity>
+                                    <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Alumni</Text>
+                                    <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Jobs</Text>
                                     <Text className="text-ink-3 text-label font-display uppercase">Exclusive Senior Intel</Text>
                                 </View>
                                 {isAlumni && (

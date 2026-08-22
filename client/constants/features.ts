@@ -110,6 +110,7 @@ export const FEATURES: Feature[] = [
 
   { id: 'store', art: 'assets/Shopping cart/3D/shopping_cart_3d.png', label: 'Fync Store', hint: 'Student deals, curated', icon: 'pricetags-outline', route: 'AffiliateStore', tint: '#EA580C', category: 'campus', keywords: ['shop', 'deals', 'buy', 'discount', 'affiliate'] },
   { id: 'techPulse', art: 'assets/Newspaper/3D/newspaper_3d.png', label: 'Tech Pulse', hint: "Today's biggest tech stories", icon: 'newspaper-outline', route: 'TechPulseScreen', tint: '#2563EB', category: 'career', keywords: ['news', 'industry', 'trending', 'hacker news'] },
+  { id: 'myShares', art: 'assets/Link/3D/link_3d.png', label: 'Your Shares', hint: 'Links you shared from the store', icon: 'link-outline', route: 'MySharesScreen', tint: '#EA580C', category: 'account', keywords: ['share', 'refer', 'earn', 'affiliate'] },
   // ---------- ACCOUNT ----------
   { id: 'contact', art: 'assets/Envelope/3D/envelope_3d.png', label: 'Contact Us', hint: 'Support and feedback', icon: 'headset-outline', route: 'ContactUs', tint: '#64748b', category: 'account', keywords: ['help', 'support'] },
   { id: 'team', art: 'assets/Person with bunny ears/3D/person_with_bunny_ears_3d.png', label: 'Meet Our Team', hint: 'The people behind Fync', icon: 'heart-outline', route: 'MeetOurTeam', tint: '#64748b', category: 'account' },

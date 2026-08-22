@@ -126,10 +126,22 @@ class CallSignalingService {
     this.socket?.emit('call:busy', { targetUserId });
   }
 
-  /** Online users with their real busy state, resolved server-side. */
-  async getOnlineUsers(): Promise<CallUser[]> {
+  /** Tell the server which lobby this user is standing in. */
+  joinLobby(mode: 'audio' | 'video') {
+    this.socket?.emit('call:lobby:join', { mode });
+  }
+
+  leaveLobby() {
+    this.socket?.emit('call:lobby:leave');
+  }
+
+  /**
+   * Online users in ONE lobby, with their real busy state. Without the mode the
+   * audio and video rooms both listed everyone with the app open.
+   */
+  async getOnlineUsers(mode?: 'audio' | 'video'): Promise<CallUser[]> {
     try {
-      const res = await axios.get('/user/online');
+      const res = await axios.get('/user/online', { params: mode ? { mode } : undefined });
       return Array.isArray(res.data?.users) ? res.data.users : [];
     } catch {
       return [];

@@ -440,7 +440,9 @@ const PublicProfile = () => {
                 <View className="px-5 -mt-12 pb-6">
                     <View className="flex-row items-end justify-between">
                         <View className="p-1.5 bg-card rounded-full shadow-hair">
-                            <Avatar user={profileUser as any} size={100} />
+                            <View className="rounded-full overflow-hidden border-[3px] border-brand-500">
+                                <Avatar user={profileUser as any} size={100} />
+                            </View>
                         </View>
                         <View className="flex-row gap-2 mb-2">
                             <TouchableOpacity onPress={startChat} className="bg-ink px-6 py-2.5 flex-row items-center gap-2 border-2 border-ink rounded-md">
@@ -578,7 +580,7 @@ const PublicProfile = () => {
                         {/* Top Profile Card */}
                         <View className="items-center pb-6 px-5 bg-paper rounded-t-sheet -mt-12 shadow-hair">
                             <View className="-mt-14 p-1.5 bg-card rounded-full shadow-hair">
-                                <View className="rounded-full overflow-hidden border-4 border-white">
+                                <View className="rounded-full overflow-hidden border-[3px] border-brand-500">
                                     <Avatar user={profileUser as any} size={110} />
                                 </View>
                             </View>

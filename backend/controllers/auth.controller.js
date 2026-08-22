@@ -1114,8 +1114,17 @@ export const getUserStatus = async (req, res) => {
 export const getOnlineUsers = async (req, res) => {
   try {
     const currentUserId = String(req.user?.id || "");
-    const onlineUserIds = (await redisClient.sMembers('global_online_users'))
-      .filter(id => id !== currentUserId);
+    const { mode } = req.query;   // 'audio' | 'video'
+
+    // Both lobbies used to read app-wide presence, so anyone with the app open
+    // appeared in the audio room AND the video room at the same time — which is
+    // not a state a person can actually be in. Presence is now scoped to the
+    // lobby the user is standing in.
+    const onlineUserIds = (
+      mode === 'audio' || mode === 'video'
+        ? await redisClient.sMembers(`call_lobby:${mode}`)
+        : await redisClient.sMembers('global_online_users')
+    ).filter(id => id !== currentUserId);
 
     if (onlineUserIds.length === 0) {
       return res.json({ success: true, users: [] });

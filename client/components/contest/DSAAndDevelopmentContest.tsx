@@ -19,9 +19,17 @@ const DSAAndDevelopmentContest = () => {
                     {/* Header Mockup */}
                     <View className="pb-6 flex-row items-center justify-between">
                         <View>
-                            <Text className="text-ink text-3xl font-display uppercase leading-tight">
-                                Coding <Text className="text-accent-text">Arena</Text>
-                            </Text>
+                            <TouchableOpacity
+                              onPress={() => navigation.goBack()}
+                              className="w-11 h-11 items-center justify-center rounded-xl"
+                              accessibilityRole="button"
+                              accessibilityLabel="Go back"
+                              style={{ marginLeft: -11 }}
+                            >
+                              <Ionicons name="arrow-back" size={24} color="#12100E" />
+                            </TouchableOpacity>
+                            <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Coding</Text>
+                            <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Arena</Text>
                             <Text className="text-ink-3 text-label font-display uppercase mt-1">Global Leaderboard</Text>
                         </View>
                         <View className="bg-paper-2 px-3 py-1.5 rounded-xl border border-line">

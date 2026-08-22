@@ -107,9 +107,8 @@ export default function BunkOMeter() {
                             <View className="flex-row items-center justify-between mb-6">
                                 <View className="flex-1">
                                     <View className="flex-row items-center">
-                                        <Text className="text-ink text-3xl font-display leading-tight">
-                                            BunkO<Text className="text-accent-text">Meter</Text>
-                                        </Text>
+                                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>BunkO</Text>
+                                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Meter</Text>
                                     </View>
                                     <Text className="text-ink-3 text-label font-display uppercase">Attendance Prediction Engine</Text>
                                 </View>

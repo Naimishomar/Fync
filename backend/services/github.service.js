@@ -2,6 +2,10 @@ import axios from "axios";
 
 const GITHUB_API = "https://api.github.com";
 
+// GitHub's API documents a User-Agent as required and answers 403 without one.
+// None of the calls here sent it.
+const UA = "FyncApp/1.0 (+https://fync-api.duckdns.org)";
+
 /**
  * Fetch comprehensive public GitHub stats for a given username + access token.
  * Falls back to unauthenticated requests (60 req/hr limit) if no token is provided.
@@ -48,7 +52,7 @@ export const fetchGitHubStats = async (username, accessToken = null) => {
             const { data } = await axios.post(
                 'https://api.github.com/graphql',
                 { query, variables: { login: username } },
-                { headers: { Authorization: `Bearer ${accessToken}` } }
+                { headers: { Authorization: `Bearer ${accessToken}`, "User-Agent": UA } }
             );
 
             if (data.errors) throw new Error(data.errors[0].message);
@@ -59,9 +63,11 @@ export const fetchGitHubStats = async (username, accessToken = null) => {
             let totalCommits = 0;
             try {
                 const searchRes = await axios.get(`https://api.github.com/search/commits?q=author:${username}`, {
-                    headers: { 
+                    headers: {
                         Authorization: `Bearer ${accessToken}`,
-                        Accept: 'application/vnd.github.cloak-preview' 
+            "User-Agent": UA,
+                        Accept: 'application/vnd.github.cloak-preview',
+                        "User-Agent": UA,
                     }
                 });
                 if (searchRes.data && searchRes.data.total_count !== undefined) {
@@ -128,6 +134,7 @@ export const fetchGitHubStats = async (username, accessToken = null) => {
     const headers = {
         Accept: "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": UA,
     };
     if (accessToken) {
         headers["Authorization"] = `Bearer ${accessToken}`;
@@ -218,7 +225,7 @@ export const exchangeGitHubCode = async (code) => {
             client_secret: process.env.GITHUB_CLIENT_SECRET,
             code
         },
-        { headers: { Accept: "application/json" } }
+        { headers: { Accept: "application/json", "User-Agent": UA } }
     );
     return response.data; // { access_token, scope, token_type }
 };
@@ -230,7 +237,8 @@ export const getGitHubUser = async (accessToken) => {
     const { data } = await axios.get(`${GITHUB_API}/user`, {
         headers: {
             Authorization: `Bearer ${accessToken}`,
-            Accept: "application/vnd.github+json"
+            Accept: "application/vnd.github+json",
+            "User-Agent": UA,
         }
     });
     return data; // { login, id, avatar_url, bio, ... }

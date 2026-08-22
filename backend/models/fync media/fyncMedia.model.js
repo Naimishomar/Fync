@@ -59,5 +59,10 @@ const FyncMediaSchema = new mongoose.Schema({
     }
 },{timestamps:true});
 
+
+// Covers the list query's filter AND its sort; without it the sort ran in
+// memory over every matching document.
+FyncMediaSchema.index({ createdAt: -1 });
+
 const FyncMedia = mongoose.model('FyncMedia', FyncMediaSchema);
 export default FyncMedia;

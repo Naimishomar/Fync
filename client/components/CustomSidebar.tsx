@@ -16,7 +16,13 @@ export default function CustomSidebar(props: any) {
 
     // Sourced from the same registry Explore uses, so an access-gated item such
     // as Admin Portal cannot fall out of sync between the two surfaces.
-    const accountItems = visibleFeatures(user).filter((f) => f.category === 'account');
+    // Contact, Meet the Team and Terms moved into Settings, so the drawer keeps
+    // only the access-gated tools. Store Admin is reached through the Admin
+    // Portal itself, so listing it here as well was a second door to one room.
+    const IN_ADMIN_PORTAL = ['storeAdmin'];
+    const accountItems = visibleFeatures(user).filter(
+        (f) => f.category === 'account' && f.access?.length && !IN_ADMIN_PORTAL.includes(f.id),
+    );
 
     const go = (route: string, params?: object) => {
         props.navigation.closeDrawer();
@@ -34,13 +40,13 @@ export default function CustomSidebar(props: any) {
                         >
                             <Image
                                 source={{ uri: user?.avatar?.trim() ? user.avatar : `https://ui-avatars.com/api/?name=${user?.username || 'User'}` }}
-                                className="h-14 w-14 rounded-full border-[3px] border-white/30 bg-card/10"
+                                className="h-14 w-14 rounded-full border-2 border-brand-500 bg-paper-2"
                             />
                             <View className="flex-1 justify-center">
-                                <Text className="text-white text-lg font-display leading-tight" numberOfLines={1}>
+                                <Text className="text-ink text-lg font-display leading-tight" numberOfLines={1}>
                                     {user?.name || user?.username || 'Fync User'}
                                 </Text>
-                                <Text className="text-white/80 text-label font-semibold mt-0.5">
+                                <Text className="text-ink-3 text-label font-semibold mt-0.5">
                                     @{user?.username || 'username'}
                                 </Text>
                             </View>
@@ -48,7 +54,7 @@ export default function CustomSidebar(props: any) {
 
                         <Pressable
                             onPress={() => props.navigation.closeDrawer()}
-                            className="w-9 h-9 bg-card rounded-full items-center justify-center border border-white/20 active:bg-black/20"
+                            className="w-9 h-9 bg-card rounded-full items-center justify-center border border-line active:opacity-70"
                         >
                             <Ionicons name="close" size={18} color="#F97316" />
                         </Pressable>
@@ -56,10 +62,10 @@ export default function CustomSidebar(props: any) {
 
                     <Pressable
                         onPress={() => go('FyncProfileBuilder')}
-                        className="flex-row items-center justify-between bg-card/10 border border-brand-300 px-4 py-3 rounded-card active:bg-card/20"
+                        className="flex-row items-center justify-between bg-card border border-line px-4 py-3 rounded-card active:opacity-70"
                     >
                         <View className="flex-row items-center gap-3">
-                            <View className="w-10 h-10 bg-card/20 rounded-card items-center justify-center border border-brand-300">
+                            <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line">
                                 {/* Vector, not emoji: emoji render differently on every
                                     OS version, cannot take a design token, and are the
                                     one icon rule the system states outright. */}
@@ -116,20 +122,17 @@ export default function CustomSidebar(props: any) {
                         <Text className="text-ink text-sm ml-4 font-display uppercase">Profile</Text>
                     </Pressable>
 
-                    <Pressable onPress={() => go('EditProfile')} className="flex-row items-center px-4 py-3.5 rounded-card active:bg-paper-2">
-                        <Ionicons name="create-outline" size={20} color="#F97316" />
-                        <Text className="text-ink text-sm ml-4 font-display uppercase">Edit Profile</Text>
+                    <Pressable onPress={() => go('SettingsScreen')} className="flex-row items-center px-4 py-3.5 rounded-card active:bg-paper-2">
+                        <Ionicons name="settings-outline" size={20} color="#F97316" />
+                        <Text className="text-ink text-sm ml-4 font-display uppercase">Settings</Text>
                     </Pressable>
 
-                    <Pressable onPress={() => go('SubscriptionScreen')} className="flex-row items-center px-4 py-3.5 rounded-card active:bg-paper-2">
-                        <Ionicons name="diamond-outline" size={20} color="#F97316" />
-                        <Text className="text-ink text-sm ml-4 font-display uppercase">Subscription</Text>
-                    </Pressable>
-
-                    <View className="flex-row items-center mt-5 mb-3" style={{ gap: 12 }}>
-                      <Text className="text-ink-3 text-label font-display uppercase">Support</Text>
-                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                    </View>
+                    {accountItems.length > 0 && (
+                      <View className="flex-row items-center mt-5 mb-3" style={{ gap: 12 }}>
+                        <Text className="text-ink-3 text-label font-display uppercase">Admin</Text>
+                        <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                      </View>
+                    )}
 
                     {accountItems.map((item) => (
                         <Pressable
@@ -147,10 +150,6 @@ export default function CustomSidebar(props: any) {
                         </Pressable>
                     ))}
 
-                    <Pressable onPress={() => go('TermsAndCondition')} className="flex-row items-center px-4 py-3.5 rounded-card active:bg-paper-2">
-                        <Ionicons name="document-text-outline" size={20} color="#8B857E" />
-                        <Text className="text-ink text-sm ml-4 font-display uppercase">Terms & Privacy</Text>
-                    </Pressable>
                 </View>
             </ScrollView>
         </View>

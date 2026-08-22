@@ -53,9 +53,8 @@ const JoinRoomInput = () => {
             <Ionicons name="arrow-back" size={24} color="#12100E" />
           </TouchableOpacity>
           <View>
-            <Text className="text-ink text-3xl font-display uppercase">
-              Join <Text className="text-accent-text">Room</Text>
-            </Text>
+            <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Join</Text>
+            <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Room</Text>
             <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Initialize Remote Sync</Text>
           </View>
         </View>

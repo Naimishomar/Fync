@@ -50,5 +50,11 @@ paidGigsSchema.post('save', bustGigs);
 paidGigsSchema.post(/^findOneAnd/, bustGigs);
 paidGigsSchema.post(['updateOne', 'updateMany', 'deleteOne', 'deleteMany'], bustGigs);
 
+// Covers the list query's filter AND its sort; without it the sort was done
+// in memory over every matching document.
+paidGigsSchema.index({ status: 1, visibility: 1, createdAt: -1 });
+paidGigsSchema.index({ status: 1, visibility: 1, postedUserCollege: 1, createdAt: -1 });
+paidGigsSchema.index({ postedBy: 1, createdAt: -1 });
+
 const PaidGigs = mongoose.model('PaidGigs', paidGigsSchema);
 export default PaidGigs;

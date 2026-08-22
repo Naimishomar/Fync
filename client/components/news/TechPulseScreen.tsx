@@ -145,8 +145,8 @@ export default function TechPulseScreen() {
             <Ionicons name="arrow-back" size={24} color="#12100E" />
           </TouchableOpacity>
 
-          <Text className="font-display text-ink uppercase" style={{ fontSize: 38, lineHeight: 39, letterSpacing: -1.4 }}>Tech</Text>
-          <Text className="font-display text-accent-text uppercase" style={{ fontSize: 38, lineHeight: 39, letterSpacing: -1.4 }}>Pulse</Text>
+          <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>Tech</Text>
+          <Text className="font-display text-accent-text uppercase text-display" style={{ letterSpacing: -1.2 }}>Pulse</Text>
           <Text className="font-display text-label text-ink-3 uppercase mt-3" style={{ letterSpacing: 1.4 }}>
             {FEEDS.find((f) => f.id === feed)?.blurb}
           </Text>

@@ -2,6 +2,7 @@ import User from "../../models/user.model.js";
 import { fetchLeetCodeStats, fetchFullLeetCodeProfile } from "./coding.controller.js";
 import redisClient from "../../utils/redis.js";
 import { syncUser, runSyncTick, COOLDOWN_SECONDS } from "../../utils/leetcodeSync.js";
+import { syncGfgUser } from "../../utils/gfgSync.js";
 
 // 1. UPDATE PROFILE
 export const updateCodingProfiles = async (req, res) => {
@@ -59,9 +60,25 @@ export const updateCodingProfiles = async (req, res) => {
 // Thin wrapper so callers that only hold an id still go through the same
 // per-username cooldown as the cron.
 export const refreshUserStats = async (userId) => {
-    const user = await User.findById(userId).select("codingProfiles.leetcode codingStats.lastUpdated").lean();
+    const user = await User.findById(userId)
+        .select("codingProfiles.leetcode codingProfiles.gfg codingStats.lastUpdated")
+        .lean();
     if (!user) return 'unlinked';
-    return syncUser(user);
+
+    // Both platforms, independently. GFG had no sync at all — a username could be
+    // saved but its counters never moved, which is why it looked unfetchable.
+    // They are settled rather than awaited in series so one platform being down
+    // cannot stop the other from updating.
+    const [leet, gfg] = await Promise.allSettled([
+        user.codingProfiles?.leetcode ? syncUser(user) : Promise.resolve('unlinked'),
+        user.codingProfiles?.gfg ? syncGfgUser(user) : Promise.resolve('unlinked'),
+    ]);
+
+    const results = [leet, gfg].map((r) => (r.status === 'fulfilled' ? r.value : 'failed'));
+    if (results.includes('synced')) return 'synced';
+    if (results.every((r) => r === 'unlinked')) return 'unlinked';
+    if (results.includes('skipped')) return 'skipped';
+    return 'failed';
 };
 
 // 3. GET LEADERBOARD (Strict Filter)
@@ -170,10 +187,10 @@ export const forceRefreshStats = async (req, res) => {
         const updatedUser = await User.findById(req.user.id);
 
         if (result === 'unlinked') {
-            return res.status(400).json({ success: false, message: "No LeetCode username linked." });
+            return res.status(400).json({ success: false, message: "Link a LeetCode or GeeksforGeeks username first." });
         }
         if (result === 'failed') {
-            return res.status(502).json({ success: false, message: "LeetCode did not respond. Try again shortly." });
+            return res.status(502).json({ success: false, message: "The coding site did not respond. Try again shortly." });
         }
 
         const lastUpdated = updatedUser?.codingStats?.lastUpdated;
