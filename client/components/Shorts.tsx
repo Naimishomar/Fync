@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from "react";
-import {View, Text, FlatList, Dimensions, Pressable, Image, ViewToken, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, ToastAndroid, Share} from 'react-native'
+import {View, Text, FlatList, Dimensions, Pressable, Image, ViewToken, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, ToastAndroid, Share, Linking} from 'react-native'
 import { Video, ResizeMode } from "expo-av";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -242,12 +242,27 @@ const SingleShort = React.memo(({
           </Pressable>
 
           <Pressable
-            onPress={() => {
+            onPress={async () => {
               if (item.user.upiId) {
-                navigation.navigate("EnterAmountScreen", {
-                  merchantUpiId: item.user.upiId,
-                  merchantName: item.user.name
-                });
+                // Opens the phone's UPI app with the creator's ID filled in.
+                // This used to navigate to "EnterAmountScreen", which is not
+                // registered in any navigator and has never existed — every tap
+                // threw "not handled by any navigator". The amount and the
+                // confirmation belong to the UPI app anyway; nothing is
+                // authorised here.
+                const url =
+                  `upi://pay?pa=${encodeURIComponent(item.user.upiId)}` +
+                  `&pn=${encodeURIComponent(item.user.name ?? 'Creator')}&cu=INR`;
+                const ok = await Linking.canOpenURL(url).catch(() => false);
+                if (ok) {
+                  Linking.openURL(url);
+                } else {
+                  Alert.alert(
+                    "No UPI app found",
+                    `Install a UPI app to tip ${item.user.name}, or send to ${item.user.upiId}.`,
+                    [{ text: "Okay" }]
+                  );
+                }
               } else {
                 Alert.alert(
                   "Payments Not Setup",
@@ -390,24 +405,38 @@ export default function Shorts() {
 
       if (res.data.success) {
         const newShorts = res.data.shorts;
+        // 'recycled' means the campus feed has nothing new left and is about to
+        // replay what the user has already watched. The server still reports
+        // hasMore: true, because it ranks against the refilled pool — so
+        // trusting it here is what kept the feed looping on students' shorts
+        // and never reaching Discover.
+        const campusExhausted = res.data.mode === 'recycled';
+
         if (shouldRefresh || isFirstPage) {
           globalShortsCache = newShorts;
           setShorts(newShorts);
           if (newShorts.length > 0 && !activeVideoId) setActiveVideoId(newShorts[0]._id);
+        } else if (campusExhausted) {
+          // Deliberately not appended: these are repeats, and Discover has
+          // genuinely new material to show instead.
         } else {
           globalShortsCache = [...globalShortsCache, ...newShorts.filter((s: ShortItem) => !globalShortsCache.find(x => x._id === s._id))];
           setShorts(globalShortsCache);
         }
 
         globalShortsPage = isFirstPage ? 1 : page;
-        globalHasMore = res.data.hasMore ?? newShorts.length >= 10;
+        globalHasMore = campusExhausted ? false : (res.data.hasMore ?? newShorts.length >= 10);
 
-        if (newShorts.length > 0) {
+        if (!campusExhausted && newShorts.length > 0) {
           markShortsAsSeen(newShorts.map((s: ShortItem) => s._id));
         }
 
-        if (res.data.mode === 'recycled') {
+        if (campusExhausted) {
+          // Clear the history so the next session's campus feed feels fresh
+          // again, then hand straight over rather than waiting for another
+          // scroll to trigger it.
           resetSeenShorts();
+          if (!globalDiscoverExhausted) void fetchDiscover();
         }
       }
     } catch (err) {
@@ -720,7 +749,7 @@ export default function Shorts() {
         onRequestClose={() => setCommentModalVisible(false)}
       >
         <KeyboardAvoidingView
-          behavior="padding"
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1 justify-end"
         >
           <Pressable
@@ -728,15 +757,19 @@ export default function Shorts() {
             onPress={() => setCommentModalVisible(false)}
           />
 
-          <View className="bg-ink rounded-t-sheet h-[75%] px-0 pt-4">
+          {/* Shrinkable column, not a fixed 75% box — the composer below is a
+              normal sibling so the keyboard can actually push it up. */}
+          <View className="bg-ink rounded-t-sheet px-0 pt-4" style={{ maxHeight: '85%', flexShrink: 1 }}>
             <View className="items-center mb-3">
               <View className="h-1 w-10 bg-night-3 rounded-full mb-2" />
               <Text className="text-white font-semibold text-base">Comments</Text>
             </View>
 
             <ScrollView
+              className="flex-1"
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: tabBarClearance, paddingHorizontal: 16 }}
+              contentContainerStyle={{ paddingBottom: 16, paddingHorizontal: 16 }}
+              keyboardShouldPersistTaps="handled"
             >
               {commentLoading === activeShortId ? (
                 <>
@@ -755,7 +788,7 @@ export default function Shorts() {
               )}
             </ScrollView>
 
-            <View className="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-night px-3 pt-3 pb-8">
+            <View className="border-t border-white/10 bg-night px-3 pt-3" style={{ paddingBottom: 16 }}>
               {replyingTo && (
                 <View className="flex-row items-center justify-between bg-ink px-3 py-2 mb-2 rounded-lg">
                   <Text className="text-ink-3 text-xs">Replying to <Text className="font-semibold">@{replyingTo.commentor.username}</Text></Text>

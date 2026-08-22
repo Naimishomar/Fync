@@ -9,7 +9,9 @@ import {
   View, Text, TextInput, TouchableOpacity, ScrollView, Platform,
   ActivityIndicator, RefreshControl,
 } from 'react-native';
+import { Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
@@ -22,7 +24,6 @@ const FIELDS: Field[] = [
   { key: 'name', label: 'Product name', placeholder: 'Casio FX-991EX Calculator' },
   { key: 'brand', label: 'Brand', placeholder: 'Casio' },
   { key: 'description', label: 'Description', placeholder: 'What is it, and why would a student want it?', multi: true },
-  { key: 'image', label: 'Image URL', placeholder: 'https://...' },
   { key: 'affiliateLink', label: 'Affiliate link', placeholder: 'https://amzn.to/...' },
   { key: 'price', label: 'Price (INR)', placeholder: '1099', numeric: true },
   { key: 'originalPrice', label: 'Original price (INR)', placeholder: '1499', numeric: true },
@@ -32,10 +33,28 @@ const FIELDS: Field[] = [
 export default function AffiliateAdminScreen() {
   const navigation = useNavigation<any>();
   const [form, setForm] = useState<Record<string, string>>({});
+  const [photo, setPhoto] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [category, setCategory] = useState('Education');
   const [saving, setSaving] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const pickPhoto = async () => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert('Gallery access needed', 'Allow photo access to pick a product image.');
+      return;
+    }
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+      // Product tiles are square, so cropping here is what stops the store
+      // grid from showing letterboxed photos.
+      allowsEditing: true,
+      aspect: [1, 1],
+    });
+    if (!res.canceled && res.assets?.[0]) setPhoto(res.assets[0]);
+  };
 
   const load = useCallback(async () => {
     try {
@@ -53,10 +72,14 @@ export default function AffiliateAdminScreen() {
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const submit = async () => {
-    const required = ['name', 'description', 'price', 'image', 'affiliateLink'];
+    const required = ['name', 'description', 'price', 'affiliateLink'];
     const missing = required.filter((k) => !form[k]?.trim());
     if (missing.length) {
       Alert.alert('Missing details', `Still needed: ${missing.join(', ')}.`);
+      return;
+    }
+    if (!photo) {
+      Alert.alert('Add a photo', 'Pick a product image from your gallery.');
       return;
     }
     const rate = Number(form.commissionRate ?? 0);
@@ -66,15 +89,23 @@ export default function AffiliateAdminScreen() {
     }
     setSaving(true);
     try {
-      await axios.post('/affiliate/add-product', {
-        ...form,
-        price: Number(form.price),
-        originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
-        commissionRate: rate,
-        category,
+      // multipart, because the photo is a file now rather than a URL string
+      const body = new FormData();
+      Object.entries(form).forEach(([k, v]) => { if (v?.trim()) body.append(k, v.trim()); });
+      body.append('commissionRate', String(rate));
+      body.append('category', category);
+      body.append('image', {
+        uri: photo.uri,
+        name: photo.fileName ?? 'product.jpg',
+        type: photo.mimeType ?? 'image/jpeg',
+      } as any);
+
+      await axios.post('/affiliate/add-product', body, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       Alert.alert('Listed', `${form.name} is now in Fync Store.`);
       setForm({});
+      setPhoto(null);
       load();
     } catch (e: any) {
       Alert.alert('Could not add', e?.response?.data?.message ?? 'The product could not be saved.');
@@ -160,6 +191,33 @@ export default function AffiliateAdminScreen() {
           </View>
 
           <View className="bg-card rounded-card p-5 border border-line shadow-hair mb-5">
+            <View className="mb-4">
+              <Text className="text-ink-3 font-display uppercase text-label mb-2">Product photo</Text>
+              <TouchableOpacity
+                onPress={pickPhoto}
+                className="rounded-card border border-line overflow-hidden items-center justify-center bg-paper"
+                style={{ height: 160 }}
+                accessibilityRole="button"
+                accessibilityLabel={photo ? 'Change product photo' : 'Pick product photo from gallery'}
+              >
+                {photo ? (
+                  <Image source={{ uri: photo.uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                ) : (
+                  <>
+                    <Ionicons name="image-outline" size={34} color="#8B857E" />
+                    <Text className="text-ink-3 font-sans mt-2" style={{ fontSize: 13 }}>
+                      Pick from gallery
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+              {!!photo && (
+                <TouchableOpacity onPress={pickPhoto} className="mt-2 self-start" style={{ minHeight: 32 }}>
+                  <Text className="text-brand-600 font-display uppercase text-label">Change photo</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
             {FIELDS.map((f) => (
               <View key={f.key} className="mb-4">
                 <Text className="text-ink-3 font-display uppercase text-label mb-2">{f.label}</Text>
@@ -167,7 +225,7 @@ export default function AffiliateAdminScreen() {
                   value={form[f.key] ?? ''} onChangeText={(t) => set(f.key, t)}
                   placeholder={f.placeholder} placeholderTextColor="#8B857E"
                   keyboardType={f.numeric ? 'numeric' : 'default'}
-                  autoCapitalize={f.key === 'image' || f.key === 'affiliateLink' ? 'none' : 'sentences'}
+                  autoCapitalize={f.key === 'affiliateLink' ? 'none' : 'sentences'}
                   multiline={f.multi} textAlignVertical={f.multi ? 'top' : 'center'}
                   className="bg-card p-4 text-ink border-[1.5px] border-ink rounded-md"
                   style={{ minHeight: f.multi ? 90 : 50 }}

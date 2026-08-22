@@ -686,6 +686,24 @@ const AdminPortal = ({ navigation }: any) => {
             </View>
             
             <TouchableOpacity
+                onPress={() => navigation.navigate('ArenaAdminScreen')}
+                className="mb-4 rounded-sheet overflow-hidden border border-line shadow-hair bg-card"
+                activeOpacity={0.9}
+            >
+                <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: '#EA580C10' }}>
+                    <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: '#EA580C20' }}>
+                        <Ionicons name="code-slash" size={24} color="#EA580C" />
+                    </View>
+                    <View className="flex-1">
+                        <Text className="text-sm font-display text-ink uppercase mb-1">Problem Bank</Text>
+                        <Text className="text-label text-ink-3 leading-[14px] font-medium">Import coding problems and their test cases for contests and battles.</Text>
+                    </View>
+                    <View className="w-8 h-8 rounded-xl bg-paper justify-center items-center ml-2 border border-line">
+                        <Ionicons name="chevron-forward" size={16} color="#57534E" />
+                    </View>
+                </View>
+            </TouchableOpacity>
+            <TouchableOpacity
                 onPress={() => navigation.navigate('AffiliateAdminScreen')}
                 className="mb-4 rounded-sheet overflow-hidden border border-line shadow-hair bg-card"
                 activeOpacity={0.9}

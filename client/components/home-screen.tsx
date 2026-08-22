@@ -11,6 +11,7 @@ import CreatePost from './create-post';
 import Avatar from './Avatar';
 import axios from '../context/axiosConfig';
 import { takePrefetchedFeed } from '../utils/feedPrefetch';
+import FollowSuggestions from './FollowSuggestions';
 // @ts-ignore
 import no_post from '../assets/no_post.png';
 import AdCarousel from './AdCarousel';
@@ -766,15 +767,42 @@ export default function HomeScreen() {
     }
   }, [feed]);
 
-  const renderPostItem = useCallback(({ item, index }: { item: Post, index: number }) => (
-    <PostItem
-      item={item}
-      index={index}
-      currentUser={user}
-      openComments={handleOpenComments}
-      onDeletePost={handleDeletePost}
-    />
-  ), [user, handleOpenComments, handleDeletePost]);
+  /**
+   * Suggestions are woven into the data rather than worked out inside
+   * renderItem, so the row keeps a stable key and the list does not have to
+   * reason about index arithmetic on every render.
+   *
+   * First card after 5 posts, then every 7. Injecting earlier interrupts the
+   * feed before the student has settled into it; much later and someone who
+   * follows nobody never sees one at all.
+   */
+  const feedWithSuggestions = useMemo(() => {
+    if (!feed.length) return feed as any[];
+    const out: any[] = [];
+    let injected = 0;
+    feed.forEach((post, i) => {
+      out.push(post);
+      const n = i + 1;
+      if (n >= 5 && (n - 5) % 7 === 0) {
+        out.push({ _id: `__suggestions-${injected}`, __suggestions: true, offset: injected * 4 });
+        injected += 1;
+      }
+    });
+    return out;
+  }, [feed]);
+
+  const renderPostItem = useCallback(({ item, index }: { item: any, index: number }) => {
+    if (item.__suggestions) return <FollowSuggestions offset={item.offset} />;
+    return (
+      <PostItem
+        item={item}
+        index={index}
+        currentUser={user}
+        openComments={handleOpenComments}
+        onDeletePost={handleDeletePost}
+      />
+    );
+  }, [user, handleOpenComments, handleDeletePost]);
 
 
 
@@ -960,7 +988,7 @@ export default function HomeScreen() {
       {renderHeader()}
 
       <FlatList
-        data={feed}
+        data={feedWithSuggestions}
         keyExtractor={(item) => item._id}
         renderItem={renderPostItem}
         initialNumToRender={8}

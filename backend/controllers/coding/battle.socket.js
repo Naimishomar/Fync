@@ -2,7 +2,8 @@ import redisClient from "../../utils/redis.js";
 import { escapeRegExp } from "../../utils/escapeRegExp.js";
 import { nanoid } from "nanoid";
 import Problem from "../../models/coding/problem.model.js";
-import Judge0Service from "../../services/judge0.service.js";
+import { runSubmission } from "../../services/codeRunner.service.js";
+import { languageOf } from "../../utils/codeHarness.js";
 import CodingSubmission from "../../models/coding/codingSubmission.model.js";
 import { getSocketAcrossCluster } from "../../utils/socketCluster.js";
 
@@ -97,25 +98,21 @@ const codingBattleSockets = (io) => {
         // Notify that submission is processing
         io.to(matchRoomId).emit("submission_processing", { userId });
 
-        let passedCount = 0;
-        const results = [];
+        // In a 1v1 the loser is decided by who is slower, so the old
+        // per-case submit-and-poll loop was the match: forty cases at up to ten
+        // seconds of polling each meant the result arrived long after both
+        // players had stopped caring. One batched execution settles it.
+        const verdict = await runSubmission({
+          language: languageOf(languageId),
+          code,
+          cases: problem.testCases,
+          problemId: String(problem._id),
+          timeLimitMs: problem.timeLimit || 2000,
+        });
 
-        for (const testCase of problem.testCases) {
-          const token = await Judge0Service.submitCode(code, languageId, testCase.input, testCase.expectedOutput);
-          let result;
-          let attempts = 0;
-          while (attempts < 10) {
-            result = await Judge0Service.getSubmission(token);
-            if (result.status.id > 2) break;
-            await new Promise(r => setTimeout(r, 1000));
-            attempts++;
-          }
-          if (result.status.id === 3) passedCount++;
-          results.push(result);
-        }
-
+        const passedCount = verdict.passed;
         const totalCount = problem.testCases.length;
-        const isSuccess = passedCount === totalCount;
+        const isSuccess = verdict.status === 'Accepted';
         
         // Save to DB
         await CodingSubmission.create({
@@ -123,7 +120,7 @@ const codingBattleSockets = (io) => {
           problem: problem._id,
           code,
           languageId,
-          status: isSuccess ? 'Accepted' : 'Wrong Answer',
+          status: verdict.status,
           passedCount,
           totalCount
         });
@@ -132,6 +129,7 @@ const codingBattleSockets = (io) => {
           userId, 
           passedCount, 
           totalCount,
+          status: verdict.status,
           isSuccess
         });
 

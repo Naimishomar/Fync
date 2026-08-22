@@ -1,4 +1,5 @@
 import User from "../models/user.model.js";
+import { updateStreak } from "./streak.js";
 import redisClient from "./redis.js";
 import { fetchLeetCodeStats } from "../controllers/newFeatures/coding.controller.js";
 
@@ -89,6 +90,33 @@ export const syncUser = async (user) => {
             "weeklyStats.questionsThisWeek": stats.sevenDayCount || 0,
         }
     }]);
+
+    // Solving keeps the daily streak alive, the same streak posting already
+    // feeds — one number for the student rather than two competing ones.
+    //
+    // The comparison against lastStreakCount is what makes this correct: the
+    // sync runs every few minutes regardless of activity, so calling
+    // updateStreak unconditionally would keep a streak alive for someone who
+    // has not solved anything in weeks.
+    try {
+        const fresh = await User.findById(user._id)
+            .select("codingStats.totalSolved codingStats.lastStreakCount")
+            .lean();
+
+        const total = fresh?.codingStats?.totalSolved ?? 0;
+        const previous = fresh?.codingStats?.lastStreakCount;
+
+        if (previous !== null && previous !== undefined && total > previous) {
+            await updateStreak(user._id);
+        }
+        if (previous !== total) {
+            await User.updateOne({ _id: user._id }, { $set: { "codingStats.lastStreakCount": total } });
+        }
+    } catch (err) {
+        // Stats are the primary result here; a missed streak tick self-corrects
+        // on the next sync, so this must never fail the sync itself.
+        console.error("Streak update failed:", err.message);
+    }
 
     return 'synced';
 };

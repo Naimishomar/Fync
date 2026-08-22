@@ -218,6 +218,14 @@ const userSchema = new mongoose.Schema({
         lastUpdated: {
             type: Date,
             default: Date.now
+        },
+        // Snapshot of totalSolved at the last streak check. The platforms report
+        // cumulative totals and never "what you did today", so without a
+        // previous value to compare against there is no way to tell that a
+        // student solved something — every sync would look like activity.
+        lastStreakCount: {
+            type: Number,
+            default: null
         }
     },
     weeklyStats: {

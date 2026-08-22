@@ -13,6 +13,8 @@ router.use(isAdmin);
  * @desc    Create a new coding problem
  */
 router.post('/problems', ArenaAdminController.createProblem);
+// Bulk paste — the practical way to add a problem set with its test cases.
+router.post('/problems/import', ArenaAdminController.importProblems);
 
 /**
  * @route   GET /arena/admin/problems

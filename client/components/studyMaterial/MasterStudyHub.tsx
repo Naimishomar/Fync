@@ -7,26 +7,38 @@ import {
   StatusBar,
   TextInput,
   Modal,
+  FlatList,
   ActivityIndicator
 } from 'react-native';
-import { WebView } from 'react-native-webview';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import axios from '../../context/axiosConfig';
 
 export default function MasterStudyHub() {
   const navigation = useNavigation<any>();
   const [searchQuery, setSearchQuery] = useState('');
-  const [isWebViewVisible, setIsWebViewVisible] = useState(false);
-  const [webViewLoading, setWebViewLoading] = useState(true);
-  const [currentSearchUrl, setCurrentSearchUrl] = useState('');
+  const [resultsOpen, setResultsOpen] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [results, setResults] = useState<any[]>([]);
 
-  const handleSearch = () => {
-    if (!searchQuery.trim()) return;
-    const url = `https://www.google.com/search?q=${encodeURIComponent(searchQuery.trim() + ' filetype:pdf')}`;
-    setCurrentSearchUrl(url);
-    setIsWebViewVisible(true);
-    setWebViewLoading(true);
+  const handleSearch = async () => {
+    const q = searchQuery.trim();
+    if (q.length < 3) return;
+
+    setResultsOpen(true);
+    setSearchLoading(true);
+    setResults([]);
+    try {
+      const res = await axios.get('/notes/search', { params: { q } });
+      if (res.data.success) setResults(res.data.results);
+    } catch {
+      // The empty state already says nothing was found, which is what an
+      // unreachable source looks like from here anyway.
+      setResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
   };
 
   const mainCategories = [
@@ -35,7 +47,7 @@ export default function MasterStudyHub() {
       name: 'DSA Prep', 
       description: 'Master Data Structures', 
       icon: 'infinite-outline', 
-      color: ['#7C3AED', '#7c3aed'],
+      bg: '#12100E', fg: '#FFFFFF',   // ink, white text 18.98:1
       onPress: () => navigation.navigate('DSAPrep')
     },
     { 
@@ -43,7 +55,7 @@ export default function MasterStudyHub() {
       name: 'Interview Prep', 
       description: 'Dynamic Subject Notes', 
       icon: 'briefcase-outline', 
-      color: ['#2563EB', '#2563eb'],
+      bg: '#F97316', fg: '#12100E',   // brand-500, ink text 6.77:1
       onPress: () => navigation.navigate('GitHubFolderScreen', { 
         owner: '8483', 
         repo: 'notes', 
@@ -56,7 +68,7 @@ export default function MasterStudyHub() {
       name: 'FAANG Prep', 
       description: 'Elite Placement Kit', 
       icon: 'trophy-outline', 
-      color: ['#F97316', '#db2777'],
+      bg: '#C2410C', fg: '#FFFFFF',   // brand-700, white text 5.18:1
       onPress: () => navigation.navigate('GitHubFolderScreen', { 
         owner: 'AkashSingh3031', 
         repo: 'The-Complete-FAANG-Preparation', 
@@ -98,7 +110,7 @@ export default function MasterStudyHub() {
           {/* SEARCH BAR */}
           <View className="mb-6 bg-card p-4 rounded-sheet shadow-hair border border-line">
             <View className="flex-row items-center mb-3 ml-2">
-              <Ionicons name="logo-google" size={16} color="#2563EB" />
+              <Ionicons name="search-circle" size={18} color="#EA580C" />
               <Text className="text-ink font-display text-label uppercase ml-2">Fync Search</Text>
               <View className="ml-2 bg-danger/15 px-2 py-0.5 rounded-md">
                 <Text className="text-danger font-semibold text-label uppercase">PDF Only</Text>
@@ -130,34 +142,32 @@ export default function MasterStudyHub() {
                 key={cat.id}
                 onPress={cat.onPress}
                 activeOpacity={0.8}
-                className="w-full mb-4 overflow-hidden rounded-sheet bg-card border border-line"
-                style={{
-                  shadowColor: "#12100E",
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.05,
-                  shadowRadius: 2,
-                  elevation: 1
-                }}
+                className="w-full mb-4 overflow-hidden rounded-card bg-card border-2 border-ink"
               >
                 <View
-                  style={{ backgroundColor: cat.color[0] }}
+                  style={{ backgroundColor: cat.bg }}
                   className="p-6 flex-row items-center justify-between"
                 >
                   <View className="flex-row items-center flex-1">
-                    <View className="bg-card/20 p-4 rounded-card mr-4">
-                      <Ionicons name={cat.icon as any} size={28} color="white" />
+                    {/* Outlined in the foreground colour rather than a white
+                        wash, which disappeared on the light card. */}
+                    <View
+                      className="p-4 rounded-card mr-4 border-2"
+                      style={{ borderColor: cat.fg }}
+                    >
+                      <Ionicons name={cat.icon as any} size={28} color={cat.fg} />
                     </View>
                     <View className="flex-1">
-                      <Text className="text-white font-display text-xl uppercase leading-tight">
+                      <Text className="font-display text-xl uppercase leading-tight" style={{ color: cat.fg }}>
                         {cat.name}
                       </Text>
-                      <Text className="text-white/70 text-label font-semibold uppercase mt-0.5">
+                      <Text className="text-label font-semibold uppercase mt-0.5" style={{ color: cat.fg, opacity: 0.75 }}>
                         {cat.description}
                       </Text>
                     </View>
                   </View>
-                  <View className="bg-card/10 w-10 h-10 rounded-full items-center justify-center">
-                    <Ionicons name="chevron-forward" size={18} color="white" />
+                  <View className="w-10 h-10 rounded-full items-center justify-center">
+                    <Ionicons name="chevron-forward" size={18} color={cat.fg} />
                   </View>
                 </View>
               </TouchableOpacity>
@@ -183,71 +193,78 @@ export default function MasterStudyHub() {
       </SafeAreaView>
 
       {/* WEBVIEW MODAL */}
-      <Modal visible={isWebViewVisible} animationType="slide" onRequestClose={() => setIsWebViewVisible(false)}>
+      {/* Results are drawn here, not loaded from a search engine.
+          This used to be a WebView pointed at Google with CSS injected to hide
+          its chrome — which still looked like Google, because it was. The
+          backend returns open-access PDFs as data and the list below is ours. */}
+      <Modal visible={resultsOpen} animationType="slide" onRequestClose={() => setResultsOpen(false)}>
         <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-          <View className="flex-row items-center justify-between p-4 border-b border-line bg-card">
-            <TouchableOpacity onPress={() => setIsWebViewVisible(false)} className="w-10 h-10 items-center justify-center bg-paper-2 rounded-full">
-              <Ionicons name="close" size={24} color="#12100E" />
+          <View className="px-5 pt-2 pb-3 border-b-2 border-ink bg-paper">
+            <TouchableOpacity
+              onPress={() => setResultsOpen(false)}
+              className="w-11 h-11 items-center justify-center rounded-xl"
+              style={{ marginLeft: -11 }}
+              accessibilityRole="button"
+              accessibilityLabel="Close results"
+            >
+              <Ionicons name="arrow-back" size={24} color="#12100E" />
             </TouchableOpacity>
-            <View className="items-center">
-              <Text className="text-ink font-display text-sm uppercase">{searchQuery}</Text>
-              <Text className="text-ink-3 font-semibold text-label uppercase">PDF Results</Text>
+            <Text className="font-display text-xl text-ink mt-1" numberOfLines={1}>{searchQuery}</Text>
+            <Text className="text-ink-3 font-display uppercase text-label mt-1">
+              {searchLoading ? 'Searching' : `${results.length} free PDFs`}
+            </Text>
+          </View>
+
+          {searchLoading ? (
+            <View className="flex-1 items-center justify-center">
+              <ActivityIndicator size="large" color="#F97316" />
+              <Text className="font-semibold text-base text-ink mt-4">Finding PDFs...</Text>
             </View>
-            <View className="w-10" />
-          </View>
-          
-          <View className="flex-1 relative bg-card">
-            <WebView 
-              source={{ uri: currentSearchUrl }}
-              className="flex-1 bg-paper"
-              onLoadStart={() => setWebViewLoading(true)}
-              onLoadEnd={() => setWebViewLoading(false)}
-              injectedJavaScript={`
-                var style = document.createElement('style');
-                style.innerHTML = 'header, form, footer, [role="banner"], [role="navigation"], [role="contentinfo"], #sfooter { display: none !important; } body { padding-top: 0 !important; background-color: #ffffff !important; }';
-                document.head.appendChild(style);
-                true;
-              `}
-              onShouldStartLoadWithRequest={(request) => {
-                const { url } = request;
-                
-                // 1. Intercept Google Redirects (Google Search wraps links in /url?q=...)
-                if (url.includes('/url?q=') || url.includes('/url?url=')) {
-                  const match = url.match(/[?&](q|url)=([^&]+)/);
-                  if (match) {
-                    const targetUrl = decodeURIComponent(match[2]);
-                    setIsWebViewVisible(false);
-                    navigation.navigate('PDFViewerScreen', {
-                      title: searchQuery,
-                      url: targetUrl
-                    });
-                    return false; // Prevent WebView from downloading
-                  }
-                }
+          ) : (
+            <FlatList
+              data={results}
+              keyExtractor={(r) => r.id}
+              contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => {
+                    setResultsOpen(false);
+                    navigation.navigate('PDFViewerScreen', { title: item.title, url: item.pdfUrl });
+                  }}
+                  className="bg-card border-2 border-ink rounded-card p-4 mb-3"
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Open ${item.title}`}
+                >
+                  <View className="flex-row items-center mb-2">
+                    <View className="bg-brand-500 px-2 py-1 rounded-sm">
+                      <Text className="font-display uppercase text-ink" style={{ fontSize: 9 }}>PDF</Text>
+                    </View>
+                    <Text className="font-sans text-ink-3 ml-2 flex-1" style={{ fontSize: 11 }} numberOfLines={1}>
+                      {item.source}{item.year ? ` · ${item.year}` : ''}
+                    </Text>
+                  </View>
 
-                // 2. Intercept direct external links
-                const isGoogle = url.includes('google.com') || url.includes('google.co.in');
-                if (!isGoogle && url !== 'about:blank') {
-                  setIsWebViewVisible(false);
-                  navigation.navigate('PDFViewerScreen', {
-                    title: searchQuery,
-                    url: url
-                  });
-                  return false; // Prevent WebView from downloading
-                }
+                  <Text className="font-display text-base text-ink" numberOfLines={3}>{item.title}</Text>
 
-                return true; // Allow Google Search navigation
-              }}
-              javaScriptEnabled={true}
-              domStorageEnabled={true}
+                  {item.authors?.length > 0 && (
+                    <Text className="font-sans text-ink-3 mt-1" style={{ fontSize: 11 }} numberOfLines={1}>
+                      {item.authors.join(', ')}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={
+                <View className="items-center mt-20 px-8">
+                  <Ionicons name="document-outline" size={52} color="#C4BEB6" />
+                  <Text className="font-display text-base text-ink mt-4 text-center">Nothing found</Text>
+                  <Text className="font-sans text-ink-3 mt-2 text-center" style={{ fontSize: 13 }}>
+                    Try the subject name on its own, like "operating systems".
+                  </Text>
+                </View>
+              }
             />
-            {webViewLoading && (
-              <View className="absolute inset-0 items-center justify-center bg-card z-10">
-                <ActivityIndicator size="large" color="#2563EB" />
-                <Text className="font-semibold text-base text-ink mt-4">Indexing PDFs...</Text>
-              </View>
-            )}
-          </View>
+          )}
         </SafeAreaView>
       </Modal>
     </View>

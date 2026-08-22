@@ -12,6 +12,8 @@ import {
     getMyShares
 } from '../controllers/affiliate.controller.js';
 import { authMiddleware, isAdmin } from '../middlewares/auth.middleware.js'; // Assuming this exists based on common backend structure
+import { upload } from '../utils/r2.js';
+import { r2UploadMiddleware } from '../utils/r2Upload.js';
 
 const router = express.Router();
 
@@ -32,7 +34,17 @@ router.get('/share/:code', authMiddleware, resolveShareLink);
 router.get('/my-shares', authMiddleware, getMyShares);
 
 // Managing products (admin authorized)
-router.post('/add-product', authMiddleware, isAdmin, addAffiliateProduct);
+// Accepts the product photo as a file so an admin can pick from their gallery
+// instead of hunting for a hotlinkable URL. upload.single is a no-op for a
+// plain JSON body, so posting an image URL still works.
+router.post(
+    '/add-product',
+    authMiddleware,
+    isAdmin,
+    upload.single('image'),
+    r2UploadMiddleware({ __single__: 'affiliate' }),
+    addAffiliateProduct,
+);
 router.patch('/products/:id/availability', authMiddleware, isAdmin, setAffiliateProductAvailability);
 router.delete('/products/:id', authMiddleware, isAdmin, deleteAffiliateProduct);
 

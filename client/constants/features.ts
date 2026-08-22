@@ -62,6 +62,7 @@ export const FEATURES: Feature[] = [
   { id: 'academy', art: 'assets/Graduation cap/3D/graduation_cap_3d.png', label: 'Fync Academy', hint: 'Structured learning tracks', icon: 'library-outline', route: 'MasterStudyHub', tint: '#8b5cf6', category: 'study', keywords: ['course', 'dsa', 'roadmap'] },
   { id: 'focus', art: 'assets/Hourglass done/3D/hourglass_done_3d.png', label: 'Focus Mode', hint: 'Pomodoro timer and streaks', icon: 'timer-outline', route: 'FocusProductivity', tint: '#10b981', category: 'study', keywords: ['pomodoro', 'productivity'] },
   { id: 'bunk', art: 'assets/Bar chart/3D/bar_chart_3d.png', label: 'BunkOMeter', hint: 'Attendance calculator', icon: 'flashlight-outline', route: 'BunkOMeter', tint: '#10b981', category: 'study', keywords: ['attendance', 'bunk'] },
+  { id: 'notesExchange', art: 'assets/Books/3D/books_3d.png', label: 'Notes Exchange', hint: 'Share notes, earn coins', icon: 'documents-outline', route: 'NotesExchange', tint: '#10b981', category: 'study', keywords: ['notes', 'pyq', 'papers', 'exam', 'coins', 'share'] },
   { id: 'utilities', art: 'assets/Wrench/3D/wrench_3d.png', label: 'Utility Hub', hint: 'PDF, compress, QR tools', icon: 'construct-outline', route: 'UtilityHubScreen', tint: '#10b981', category: 'study', keywords: ['tools', 'pdf', 'qr', 'compress'] },
 
   // ---------- CAREER ----------

@@ -20,10 +20,11 @@ import DesiCharades from './DesiCharades';
 import ChessHome from './ChessHome';
 import TriviaSurvival from './TriviaSurvival';
 import ReactionMaster from './ReactionMaster';
+import TrendClash from './TrendClash';
 
 const PartyPoolHub = () => {
   const navigation = useNavigation<any>();
-  const [activeGame, setActiveGame] = useState<'none' | 'bottle' | 'coin' | 'reaction' | 'charades' | 'chess' | 'trivia'>('none');
+  const [activeGame, setActiveGame] = useState<'none' | 'bottle' | 'coin' | 'reaction' | 'charades' | 'chess' | 'trivia' | 'trend'>('none');
 
   const renderGame = () => {
     switch (activeGame) {
@@ -33,6 +34,7 @@ const PartyPoolHub = () => {
       case 'charades': return <DesiCharades />;
       case 'chess': return <ChessHome />;
       case 'trivia': return <TriviaSurvival onClose={() => setActiveGame('none')} />;
+      case 'trend': return <TrendClash onClose={() => setActiveGame('none')} />;
       default: return null;
     }
   };
@@ -54,11 +56,27 @@ const PartyPoolHub = () => {
           </View>
         </View>
 
+        {activeGame !== 'none' ? (
+          /* A running game gets the whole screen: no ScrollView above it to
+             collapse a flex-1 root to nothing or to swallow its taps. */
+          <View className="flex-1 px-5 pb-6">
+            <TouchableOpacity
+              onPress={() => setActiveGame('none')}
+              className="flex-row items-center self-start mb-4 py-[10px] px-4 bg-card rounded-card border-2 border-ink"
+              accessibilityRole="button"
+              accessibilityLabel="Back to Party Pool"
+            >
+              <Ionicons name="chevron-back" size={20} color="#12100E" />
+              <Text className="text-label font-display text-ink ml-1">BACK TO HQ</Text>
+            </TouchableOpacity>
+            <View className="flex-1">{renderGame()}</View>
+          </View>
+        ) : (
         <ScrollView 
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
         >
-          {activeGame === 'none' ? (
+          <>
             <View className="gap-y-4">
               <TouchableOpacity 
                 onPress={() => setActiveGame('trivia')} 
@@ -190,6 +208,25 @@ const PartyPoolHub = () => {
                 </View>
               </TouchableOpacity>
 
+              <TouchableOpacity
+                onPress={() => setActiveGame('trend')}
+                className="h-[120px] rounded-card overflow-hidden border-2 border-ink"
+                activeOpacity={0.9}
+              >
+                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#EDE8E0' }}>
+                    <View className="w-[60px] h-[60px] rounded-card bg-brand-100 justify-center items-center mr-4">
+                        <Ionicons name="trending-up" size={28} color="#F97316" />
+                    </View>
+                    <View className="flex-1">
+                        <Text className="font-semibold text-base text-ink mb-1">Trend Clash</Text>
+                        <Text className="text-label text-ink-3 leading-[14px] font-medium">Guess which one the internet liked more.</Text>
+                    </View>
+                    <View className="w-8 h-8 rounded-xl bg-brand-100 justify-center items-center ml-2">
+                        <Ionicons name="arrow-forward" size={16} color="#EA580C" />
+                    </View>
+                </View>
+              </TouchableOpacity>
+
               <TouchableOpacity 
                 onPress={() => navigation.navigate('FlappyBird')} 
                 className="h-[120px] rounded-sheet overflow-hidden border border-paper-2 shadow-hair"
@@ -240,19 +277,9 @@ const PartyPoolHub = () => {
                 <Text className="text-label text-ink-3 font-display ml-2 uppercase">PRO TIP: Best played in your college common room or canteen!</Text>
               </View>
             </View>
-          ) : (
-            <View className="items-center">
-              <TouchableOpacity 
-                onPress={() => setActiveGame('none')}
-                className="flex-row items-center self-start mb-6 py-[10px] px-4 bg-card rounded-card border border-line shadow-hair"
-              >
-                <Ionicons name="chevron-back" size={20} color="#12100E" />
-                <Text className="text-label font-display text-ink ml-1">BACK TO HQ</Text>
-              </TouchableOpacity>
-              {renderGame()}
-            </View>
-          )}
+          </>
         </ScrollView>
+        )}
       </SafeAreaView>
     </View>
   );

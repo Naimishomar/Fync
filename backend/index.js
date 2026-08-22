@@ -61,6 +61,7 @@ import entertainmentRoute from './routes/entertainment.routes.js';
 import webrtcRoute from './routes/webrtc.route.js';
 import gameRoute from './routes/game.route.js';
 import batchRoute from './routes/batch.route.js';
+import noteRoutes from "./routes/note.route.js";
 import ContestManager from './services/contestManager.js';
 
 import { setCollegeChatIo } from './controllers/collegeChat.controller.js';
@@ -79,6 +80,7 @@ import { initEventCleanup } from './utils/eventCleanup.js';
 import { initCommunityCleanup } from './utils/communityCleanup.js';
 import { initFyncMediaCleanup } from './utils/fyncMediaCleanup.js';
 import { initChatMediaCleanup } from './utils/chatMediaCleanup.js';
+import { initNoteCleanup } from './utils/noteCleanup.js';
 import startCleanupCron from './services/cleanup.service.js';
 import { initShortViewsFlush, flushShortViews } from './utils/shortViews.js';
 import initShadowRival from './utils/shadowRival.js';
@@ -272,6 +274,7 @@ app.use('/webrtc', webrtcRoute);
 // reach must already be registered above it.
 app.use('/batch', batchRoute);
 
+app.use("/notes", noteRoutes);
 const startServer = async (retries = 5) => {
   try {
     // 1. Connect to Database First
@@ -302,6 +305,7 @@ const startServer = async (retries = 5) => {
       initCommunityCleanup();
       initFyncMediaCleanup();
       initChatMediaCleanup();
+    initNoteCleanup();
       initEventCleanup();
       startCleanupCron();
       initShortViewsFlush();

@@ -37,6 +37,7 @@ import { otpLimiter } from '../middlewares/otpLimiter.js';
 import { authMiddleware, isAdmin } from '../middlewares/auth.middleware.js';
 import { authLimiter } from '../middlewares/rateLimit.middleware.js';
 import { cacheMiddleware } from '../middlewares/cache.middleware.js';
+import { getFollowSuggestions } from '../controllers/suggestion.controller.js';
 import { upload } from '../utils/r2.js';
 import { r2UploadMiddleware } from '../utils/r2Upload.js';
 const router = express.Router();
@@ -56,6 +57,9 @@ router.post('/register-recruiter', otpLimiter, upload.single('avatar'), r2Upload
 router.post('/refresh-token', authLimiter, refreshToken);
 router.post('/login', authLimiter, login);
 router.post('/update', authMiddleware, upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'banner', maxCount: 1 }, { name: 'resume', maxCount: 1 }]), r2UploadMiddleware({ avatar: 'avatar', banner: 'banner', resume: 'resumes' }), updateUser);
+// Per-user by construction — the list excludes whoever you already follow —
+// so this is cached per user, never shared.
+router.get('/suggestions', authMiddleware, cacheMiddleware(300), getFollowSuggestions);
 router.get('/profile', authMiddleware, getProfile);
 router.get('/get-alumni', authMiddleware, cacheMiddleware(600, { tags: ['alumni'] }), getAlumniByCollege);
 router.post('/search', authMiddleware, getUserProfileByName);

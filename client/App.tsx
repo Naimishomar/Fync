@@ -224,6 +224,8 @@ import ScanToPdfScreen from './components/utility/pdf/ScanToPdfScreen';
 import UrlToPdfScreen from './components/utility/pdf/UrlToPdfScreen';
 import PdfToImagesScreen from './components/utility/pdf/PdfToImagesScreen';
 import PdfToTextScreen from './components/utility/pdf/PdfToTextScreen';
+import NotesExchange from './components/notes/NotesExchange';
+import ArenaAdminScreen from './components/admin/ArenaAdminScreen';
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -406,6 +408,8 @@ export type RootStackParamList = {
   AffiliateAdminScreen: undefined;
   TechPulseScreen: undefined;
   ArticleScreen: { url: string; title?: string; source?: string };
+  NotesExchange: undefined;
+  ArenaAdminScreen: undefined;
   SettingsScreen: undefined;
   MySharesScreen: undefined;
   ShareLinkResolver: { code: string };
@@ -567,6 +571,8 @@ function AppStack() {
       <Stack.Screen name="AffiliateAdminScreen" component={AffiliateAdminScreen} />
       <Stack.Screen name="TechPulseScreen" component={TechPulseScreen} />
       <Stack.Screen name="ArticleScreen" component={ArticleScreen} />
+      <Stack.Screen name="NotesExchange" component={NotesExchange} />
+      <Stack.Screen name="ArenaAdminScreen" component={ArenaAdminScreen} />
       <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
       <Stack.Screen name="MySharesScreen" component={MySharesScreen} />
       <Stack.Screen name="ShareLinkResolver" component={ShareLinkResolver} />

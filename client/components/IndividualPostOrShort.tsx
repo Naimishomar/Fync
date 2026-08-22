@@ -204,34 +204,60 @@ const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, on
 
     return (
         <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={onClose}>
+            {/* behavior must be set on Android too. It was undefined, which
+                means no avoidance at all — and inside a Modal the manifest's
+                adjustResize does not reach here either. */}
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                className="flex-1 justify-end bg-black/60"
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                className="flex-1 justify-end"
+                style={{ backgroundColor: 'rgba(18,16,14,0.6)' }}
             >
                 <Pressable className="flex-1" onPress={onClose} />
 
-                <View className="bg-paper rounded-t-sheet h-[75%] pt-4 border-t border-line shadow-hair">
-                    {/* Header */}
+                {/* A column that can shrink, not a fixed 75% box. The composer
+                    below is a normal sibling rather than absolutely positioned:
+                    pinned to the bottom of a fixed-height container it could
+                    never rise, whatever the keyboard did. */}
+                <View
+                    className="bg-paper rounded-t-sheet pt-4 border-t-2 border-x-2 border-ink"
+                    style={{ maxHeight: '85%', flexShrink: 1 }}
+                >
                     <View className="items-center mb-3">
-                        <View className="h-1.5 w-12 bg-ink-4 rounded-full mb-3" />
-                        <Text className="text-ink font-display text-h1 uppercase">Comments</Text>
+                        <View className="h-1 w-10 bg-ink-3 rounded-full mb-3" />
+                    </View>
+
+                    {/* Title left-aligned under a section rule, matching the rest
+                        of the app rather than the centred sheet this used to be. */}
+                    <View className="px-5 mb-3">
+                        <Text className="font-display text-xl text-ink">Comments</Text>
+                        <View className="h-[2px] bg-ink mt-1" style={{ width: 44 }} />
                     </View>
 
                     {/* List */}
                     {loading ? (
-                        <ActivityIndicator size="large" color="#F97316" className="mt-10" />
+                        <View className="flex-1 items-center justify-center" style={{ minHeight: 220 }}>
+                            <ActivityIndicator size="large" color="#F97316" />
+                        </View>
                     ) : (
                         <FlatList
                             data={comments}
                             keyExtractor={(item) => item._id}
                             showsVerticalScrollIndicator={false}
-                            contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 16 }}
+                            className="flex-1"
+                            keyboardShouldPersistTaps="handled"
+                            contentContainerStyle={{ paddingBottom: 16, paddingHorizontal: 16 }}
                             initialNumToRender={10}
                             maxToRenderPerBatch={10}
                             windowSize={5}
                             removeClippedSubviews={Platform.OS === 'android'}
                             ListEmptyComponent={
-                                <Text className="text-ink-3 text-center mt-10">No comments yet</Text>
+                                <View className="items-center mt-16 px-10">
+                                    <Ionicons name="chatbubble-ellipses-outline" size={44} color="#C4BEB6" />
+                                    <Text className="font-display text-base text-ink mt-3">No comments yet</Text>
+                                    <Text className="font-sans text-ink-3 mt-1 text-center" style={{ fontSize: 12 }}>
+                                        Say the first thing.
+                                    </Text>
+                                </View>
                             }
                             renderItem={({ item }) => (
                                 <CommentItem 
@@ -258,9 +284,9 @@ const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, on
                     )}
 
                     {/* Input */}
-                    <View className="absolute bottom-0 left-0 right-0 border-t border-line bg-card px-3 py-2 shadow-hair">
+                    <View className="border-t-2 border-ink bg-white px-3 pt-2 pb-3">
                         {replyingTo && (
-                            <View className="flex-row items-center justify-between bg-paper-2 px-3 py-2 mb-2 rounded-lg mx-2 border border-line">
+                            <View className="flex-row items-center justify-between bg-paper px-3 py-2 mb-2 rounded-xl mx-2 border-2 border-ink">
                                 <Text className="text-ink-3 text-xs">Replying to <Text className="font-semibold text-ink">@{replyingTo.commentor?.username}</Text></Text>
                                 <Pressable onPress={() => setReplyingTo(null)}>
                                     <Ionicons name="close-circle" size={18} color="#C4BEB6" />
@@ -274,12 +300,24 @@ const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, on
                                 onChangeText={setNewComment}
                                 placeholder={replyingTo ? "Add a reply..." : "Add a comment..."}
                                 placeholderTextColor="#C4BEB6"
-                                className="flex-1 text-ink bg-paper-2 border border-line rounded-full px-4 py-3 mr-2 font-medium"
+                                className="flex-1 text-ink bg-paper border-2 border-ink rounded-xl px-4 mr-2"
+                                style={{ minHeight: 46, maxHeight: 110, paddingTop: 12, paddingBottom: 12 }}
                                 multiline
                             />
-                            <Pressable onPress={handlePostComment} disabled={posting || !newComment.trim()}>
-                                {posting ? <ActivityIndicator size="small" color="#F97316" /> : <Text className={`font-semibold px-2 ${!newComment.trim() ? 'text-ink-3' : 'text-fam-career'}`}>Post</Text>}
-                            </Pressable>
+                            {/* 44x44 minimum, and a filled button rather than bare
+                                text — the old one was a ~20px tap target. */}
+                            <TouchableOpacity
+                                onPress={handlePostComment}
+                                disabled={posting || !newComment.trim()}
+                                className={`items-center justify-center rounded-xl border-2 border-ink ${!newComment.trim() ? 'bg-paper' : 'bg-brand-500'}`}
+                                style={{ width: 52, height: 46, opacity: posting ? 0.6 : 1 }}
+                                accessibilityRole="button"
+                                accessibilityLabel={replyingTo ? 'Post reply' : 'Post comment'}
+                            >
+                                {posting
+                                    ? <ActivityIndicator size="small" color="#12100E" />
+                                    : <Ionicons name="arrow-up" size={20} color={!newComment.trim() ? '#8B857E' : '#12100E'} />}
+                            </TouchableOpacity>
                         </View>
                     </View>
                 </View>
@@ -289,6 +327,44 @@ const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, on
 };
 
 // --- 2. MAIN COMPONENT ---
+/**
+ * One row in the options sheet.
+ *
+ * A hint under each label because "Make private" alone does not say what
+ * happens — the destructive and irreversible actions sit next to each other
+ * here, and the difference should not depend on the reader guessing.
+ */
+const SheetAction = ({
+  icon, label, hint, onPress, destructive = false,
+}: {
+  icon: any; label: string; hint?: string; onPress: () => void; destructive?: boolean;
+}) => (
+  <TouchableOpacity
+    onPress={onPress}
+    className="flex-row items-center bg-white border-2 border-ink rounded-card px-4 py-3 mb-3"
+    style={{ minHeight: 60 }}
+    accessibilityRole="button"
+    accessibilityLabel={label}
+    accessibilityHint={hint}
+  >
+    <View
+      className="items-center justify-center rounded-xl border-2 border-ink"
+      style={{ width: 40, height: 40, backgroundColor: destructive ? '#FEE2E2' : '#FFEDD5' }}
+    >
+      <Ionicons name={icon} size={20} color={destructive ? '#DC2626' : '#EA580C'} />
+    </View>
+    <View className="ml-3 flex-1">
+      <Text className={`font-display ${destructive ? 'text-danger' : 'text-ink'}`} style={{ fontSize: 15 }}>
+        {label}
+      </Text>
+      {!!hint && (
+        <Text className="font-sans text-ink-3 mt-[2px]" style={{ fontSize: 11 }}>{hint}</Text>
+      )}
+    </View>
+    <Ionicons name="chevron-forward" size={18} color="#8B857E" />
+  </TouchableOpacity>
+);
+
 const IndividualPostOrShort = ({ route, navigation }: any) => {
     const { postId, shortId } = route.params;
     const isShort = !!shortId;
@@ -599,7 +675,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                 </View>
             ) : (
                 /* --- POST VIEW --- */
-                <SafeAreaView className="bg-card flex-1">
+                <SafeAreaView className="bg-paper flex-1">
                     <View className="flex-row items-center justify-between px-4 py-3">
                         <View className="flex-row items-center gap-3">
                             <Pressable onPress={() => navigation.goBack()}
@@ -702,7 +778,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             <Text className="text-ink-3 text-label mt-1 uppercase font-semibold mb-4">{formatTime(data.createdAt)}</Text>
                             
                             {/* INLINE COMMENTS FOR POSTS */}
-                            <View className="border-t border-line pt-4 mt-2">
+                            <View className="border-t-2 border-ink pt-4 mt-2">
                                 <Text className="text-ink font-semibold text-sm mb-4">Comments ({commentCount})</Text>
                                 {inlineCommentsLoading ? (
                                     <ActivityIndicator size="small" color="#12100E" />
@@ -723,7 +799,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                     <Text className="text-ink-3 text-sm">No comments yet. Be the first!</Text>
                                 )}
                                 
-                                <Pressable onPress={() => setCommentModalVisible(true)} className="mt-4 bg-paper-2 py-3 rounded-xl items-center border border-line">
+                                <Pressable onPress={() => setCommentModalVisible(true)} className="mt-4 bg-white py-3 rounded-xl items-center border-2 border-ink" style={{ minHeight: 46 }}>
                                     <Text className="text-ink-2 font-semibold text-sm">Add a comment...</Text>
                                 </Pressable>
                             </View>
@@ -733,106 +809,151 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             )}
 
             {/* --- MODALS --- */}
-            <Modal visible={menuVisible} transparent animationType="slide">
-                <Pressable className="flex-1 bg-black/50 justify-end" onPress={() => setMenuVisible(false)}>
-                    <View className="px-4 pb-10" onStartShouldSetResponder={() => true}>
-                        <View className="bg-card rounded-card overflow-hidden mb-3">
-                            {currentUser?._id === data.user?._id ? (
-                                <>
-                                    <Pressable 
-                                        onPress={() => { setMenuVisible(false); setEditDescription(isShort ? data.title : data.description || ''); setIsEditing(true); }}
-                                        className="py-4 items-center border-b border-line bg-card active:bg-paper-2 flex-row justify-center gap-3"
-                                    >
-                                        <Ionicons name="create-outline" size={22} color="black" />
-                                        <Text className="text-ink font-semibold text-lg">Edit {isShort ? 'Short' : 'Post'}</Text>
-                                    </Pressable>
-                                    {!isShort && (
-                                        <Pressable 
-                                            onPress={async () => {
-                                                setMenuVisible(false);
-                                                try {
-                                                    const newStatus = !data?.isPrivate;
-                                                    const formData = new FormData();
-                                                    formData.append('isPrivate', newStatus ? 'true' : 'false');
-                                                    const res = await axios.post(`/post/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-                                                    if (res.data.success) {
-                                                        setData({ ...data, isPrivate: newStatus });
-                                                        Alert.alert("Success", `Post is now ${newStatus ? 'Private' : 'Public'}`);
-                                                    }
-                                                } catch (err) { Alert.alert("Error", "Failed to update visibility."); }
-                                            }}
-                                            className="py-4 items-center border-b border-line bg-card active:bg-paper-2 flex-row justify-center gap-3"
-                                        >
-                                            <Ionicons name={data?.isPrivate ? "lock-open-outline" : "lock-closed-outline"} size={22} color="black" />
-                                            <Text className="text-ink font-semibold text-lg">Make it {data?.isPrivate ? 'Public' : 'Private'}</Text>
-                                        </Pressable>
-                                    )}
-                                    <Pressable 
+            <Modal visible={menuVisible} transparent animationType="slide" onRequestClose={() => setMenuVisible(false)}>
+                <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(18,16,14,0.45)' }}>
+                    <Pressable className="flex-1" onPress={() => setMenuVisible(false)} />
+
+                    <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4 pb-8">
+                        <View className="items-center mb-4">
+                            <View className="h-1 w-10 bg-ink-3 rounded-full" />
+                        </View>
+
+                        <Text className="font-display text-xl text-ink mb-1">
+                            {isShort ? 'Short' : 'Post'} options
+                        </Text>
+                        <View className="h-[2px] bg-ink mb-4" style={{ width: 44 }} />
+
+                        {currentUser?._id === data.user?._id ? (
+                            <>
+                                <SheetAction
+                                    icon="create-outline"
+                                    label={`Edit ${isShort ? 'short' : 'post'}`}
+                                    hint="Change the caption or replace the media"
+                                    onPress={() => {
+                                        setMenuVisible(false);
+                                        setEditDescription(isShort ? data.title : data.description || '');
+                                        setIsEditing(true);
+                                    }}
+                                />
+
+                                {!isShort && (
+                                    <SheetAction
+                                        icon={data?.isPrivate ? 'earth-outline' : 'lock-closed-outline'}
+                                        label={data?.isPrivate ? 'Make public' : 'Make private'}
+                                        hint={data?.isPrivate
+                                            ? 'Show this in feeds again'
+                                            : 'Hide from feeds — only you can see it'}
                                         onPress={async () => {
                                             setMenuVisible(false);
-                                            Alert.alert(`Delete ${isShort ? 'Short' : 'Post'}`, "Are you sure? This cannot be undone.", [
-                                                { text: "Cancel", style: "cancel" },
-                                                { text: "Delete", style: "destructive", onPress: async () => {
-                                                    navigation.goBack();
-                                                    Toast.show({ type: 'info', text1: `Deleting ${isShort ? 'Short' : 'Post'}...` });
-                                                    try {
-                                                        const res = await axios.delete(isShort ? `/shorts/${id}` : `/post/${id}`);
-                                                        if (res.data.success) {
-                                                            Toast.show({ type: 'success', text1: `${isShort ? 'Short' : 'Post'} deleted` });
-                                                        } else {
+                                            const next = !data?.isPrivate;
+                                            // Flip first so the sheet does not sit there looking
+                                            // unresponsive while the request is in flight.
+                                            setData({ ...data, isPrivate: next });
+                                            try {
+                                                const form = new FormData();
+                                                form.append('isPrivate', next ? 'true' : 'false');
+                                                const res = await axios.post(`/post/${id}`, form, {
+                                                    headers: { 'Content-Type': 'multipart/form-data' },
+                                                });
+                                                if (!res.data.success) throw new Error('rejected');
+                                                Toast.show({
+                                                    type: 'success',
+                                                    text1: next ? 'Post is now private' : 'Post is public again',
+                                                });
+                                            } catch {
+                                                setData({ ...data, isPrivate: !next });
+                                                Toast.show({ type: 'error', text1: 'Could not change visibility' });
+                                            }
+                                        }}
+                                    />
+                                )}
+
+                                <SheetAction
+                                    icon="trash-outline"
+                                    label={`Delete ${isShort ? 'short' : 'post'}`}
+                                    hint="This cannot be undone"
+                                    destructive
+                                    onPress={() => {
+                                        setMenuVisible(false);
+                                        Alert.alert(
+                                            `Delete ${isShort ? 'short' : 'post'}`,
+                                            'This cannot be undone.',
+                                            [
+                                                { text: 'Cancel', style: 'cancel' },
+                                                {
+                                                    text: 'Delete',
+                                                    style: 'destructive',
+                                                    onPress: async () => {
+                                                        navigation.goBack();
+                                                        Toast.show({ type: 'info', text1: 'Deleting...' });
+                                                        try {
+                                                            const res = await axios.delete(isShort ? `/shorts/${id}` : `/post/${id}`);
+                                                            Toast.show(res.data.success
+                                                                ? { type: 'success', text1: `${isShort ? 'Short' : 'Post'} deleted` }
+                                                                : { type: 'error', text1: 'Delete failed' });
+                                                        } catch {
                                                             Toast.show({ type: 'error', text1: 'Delete failed' });
                                                         }
-                                                    } catch (err) { 
-                                                        console.error("Delete failed", err);
-                                                        Toast.show({ type: 'error', text1: 'Delete failed' });
-                                                    }
-                                                }}
-                                            ]);
-                                        }}
-                                        className="w-11 h-11 items-center justify-center rounded-xl active:bg-paper-2 flex-row gap-3"
-                                    
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                                        <Ionicons name="trash-outline" size={22} color="#DC2626" />
-                                        <Text className="text-danger font-semibold text-lg">Delete {isShort ? 'Short' : 'Post'}</Text>
-                                    </Pressable>
-                                </>
-                            ) : (
-                                <Pressable 
-                                    onPress={() => { setMenuVisible(false); Toast.show({ type: 'success', text1: 'Content Reported' }); }}
-                                    className="py-4 items-center bg-card active:bg-paper-2 flex-row justify-center gap-3"
-                                >
-                                    <Ionicons name="flag-outline" size={22} color="#DC2626" />
-                                    <Text className="text-danger font-semibold text-lg">Report Content</Text>
-                                </Pressable>
-                            )}
-                        </View>
-                        <Pressable 
-                            onPress={() => setMenuVisible(false)} 
-                            className="py-4 bg-card rounded-card items-center active:bg-paper-2 shadow-hair"
+                                                    },
+                                                },
+                                            ],
+                                        );
+                                    }}
+                                />
+                            </>
+                        ) : (
+                            <SheetAction
+                                icon="flag-outline"
+                                label="Report content"
+                                hint="Tell us this breaks the rules"
+                                destructive
+                                onPress={() => {
+                                    setMenuVisible(false);
+                                    Toast.show({ type: 'success', text1: 'Reported. We will take a look.' });
+                                }}
+                            />
+                        )}
+
+                        <TouchableOpacity
+                            onPress={() => setMenuVisible(false)}
+                            className="mt-3 bg-white border-2 border-ink rounded-xl items-center justify-center"
+                            style={{ height: 52 }}
+                            accessibilityRole="button"
+                            accessibilityLabel="Close options"
                         >
-                            <Text className="text-fam-career font-display text-lg">Cancel</Text>
-                        </Pressable>
+                            <Text className="font-display text-ink">CANCEL</Text>
+                        </TouchableOpacity>
                     </View>
-                </Pressable>
+                </View>
             </Modal>
 
             <Modal visible={isEditing} transparent animationType="slide">
-                <KeyboardAvoidingView behavior="padding" className="flex-1 bg-black/60">
+                <KeyboardAvoidingView behavior="padding" className="flex-1" style={{ backgroundColor: 'rgba(18,16,14,0.45)' }}>
                     <View className="flex-1" />
-                    <View className="bg-paper rounded-t-sheet p-6 shadow-hair">
-                            <View className="flex-row justify-between items-center mb-6">
-                                <Text className="text-ink font-display text-h1">Edit Content</Text>
-                                <Pressable onPress={() => { setIsEditing(false); setNewVideo(null); setNewImages([]); }}>
-                                    <Ionicons name="close" size={28} color="black" />
-                                </Pressable>
+                    <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4 pb-6">
+                            <View className="items-center mb-3">
+                                <View className="h-1 w-10 bg-ink-3 rounded-full" />
+                            </View>
+                            <View className="flex-row justify-between items-center mb-5">
+                                <View>
+                                    <Text className="font-display text-xl text-ink">Edit {isShort ? 'short' : 'post'}</Text>
+                                    <View className="h-[2px] bg-ink mt-1" style={{ width: 44 }} />
+                                </View>
+                                <TouchableOpacity
+                                    onPress={() => { setIsEditing(false); setNewVideo(null); setNewImages([]); }}
+                                    className="w-11 h-11 items-center justify-center rounded-xl"
+                                    style={{ marginRight: -11 }}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Close editor"
+                                >
+                                    <Ionicons name="close" size={26} color="#12100E" />
+                                </TouchableOpacity>
                             </View>
 
                             {/* Media Preview / Picker */}
                             <Pressable 
                                 onPress={pickMedia}
-                                className="mb-4 aspect-video w-full bg-paper-2 overflow-hidden border-2 border-dashed border-line justify-center items-center rounded-md"
+                                className="mb-4 aspect-video w-full bg-white overflow-hidden border-2 border-dashed border-ink justify-center items-center rounded-card"
                             >
                                 {isShort ? (
                                     newVideo ? (
@@ -900,9 +1021,9 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                     } catch (err) { Alert.alert("Error", "Update failed."); } finally { setIsUpdating(false); }
                                 }}
                                 disabled={isUpdating}
-                                className="bg-ink py-4 rounded-card mt-6 items-center shadow-hair"
+                                className="bg-brand-500 border-2 border-ink py-4 rounded-card mt-6 items-center"
                             >
-                                {isUpdating ? <ActivityIndicator color="white" /> : <Text className="text-white font-display text-lg">Save Changes</Text>}
+                                {isUpdating ? <ActivityIndicator color="#12100E" /> : <Text className="text-ink font-display text-lg">Save changes</Text>}
                             </Pressable>
                     </View>
                 </KeyboardAvoidingView>

@@ -2,7 +2,7 @@ import Problem from '../../models/coding/problem.model.js';
 import BugProblem from '../../models/coding/bugProblem.model.js';
 import CodingSubmission from '../../models/coding/codingSubmission.model.js';
 import Contest from '../../models/coding/contest.model.js';
-import Judge0Service from '../../services/judge0.service.js';
+import { runSubmission } from '../../services/codeRunner.service.js';
 
 /**
  * Controller for Coding Arena Problems and Submissions
@@ -126,68 +126,45 @@ export const submitSolution = async (req, res) => {
       status: 'Pending'
     });
 
-    // Run against test cases (Batch submission to Judge0)
-    let passedCount = 0;
-    const results = [];
+    // One judge request for every test case, not one per case.
+    //
+    // This used to loop the cases, submitting each and then polling for up to
+    // fifteen seconds. A forty-case problem was forty submissions and could
+    // take ten minutes of wall time; with two thousand students in a contest it
+    // was never going to finish. The runner batches them into a single
+    // execution, coalesces identical submissions and caches verdicts.
+    const language = req.body.language || 'javascript';
+    const verdict = await runSubmission({
+      language,
+      code,
+      cases: problem.testCases,
+      problemId: String(problemId),
+      timeLimitMs: problem.timeLimit || 2000,
+    });
 
-    console.log(`🚀 Starting sanitization for problem ${problemId} (Target: ${problem.testCases.length} cases)`);
+    const passedCount = verdict.passed;
+    const finalStatus = verdict.status;
 
-    for (let i = 0; i < problem.testCases.length; i++) {
-      const testCase = problem.testCases[i];
-      console.log(`📡 Dispatching Case #${i + 1} to Judge0...`);
-      
-      const token = await Judge0Service.submitCode(code, languageId, testCase.input, testCase.expectedOutput);
-      
-      // Poll for result
-      let result;
-      let attempts = 0;
-      while (attempts < 15) { 
-        console.log(`   ⏱️ Polling Case #${i + 1} (Attempt ${attempts + 1}/15)...`);
-        result = await Judge0Service.getSubmission(token);
-        if (result.status.id > 2) {
-          console.log(`   ✅ Case #${i + 1} finalized with status: ${result.status.description}`);
-          break; 
-        }
-        await new Promise(r => setTimeout(r, 1000));
-        attempts++;
-      }
-
-      if (attempts >= 15) {
-        console.warn(`   ⚠️ Case #${i + 1} timed out during polling.`);
-        result = { status: { id: 13, description: 'Internal Timeout' } };
-      }
-
-      results.push(result);
-      if (result.status.id === 3) passedCount++; 
-    }
-
-    console.log(`🏁 Sanitization complete. Passed: ${passedCount}/${problem.testCases.length}`);
-
-    // Update submission record
-    submission.passedCount = passedCount;
-    submission.totalCount = problem.testCases.length;
-    
-    // Normalize status description to fit enum
-    let finalStatus = passedCount === problem.testCases.length ? 'Accepted' : 'Wrong Answer';
-    const failedTestCase = results.find(r => r.status.id !== 3);
-    
-    if (failedTestCase) {
-      const desc = failedTestCase.status.description;
-      if (desc.includes('Runtime Error')) finalStatus = 'Runtime Error';
-      else if (desc === 'Time Limit Exceeded') finalStatus = 'Time Limit Exceeded';
-      else if (desc === 'Memory Limit Exceeded') finalStatus = 'Memory Limit Exceeded';
-      else if (desc === 'Compilation Error') finalStatus = 'Compilation Error';
-      else if (desc === 'Internal Error') finalStatus = 'Internal Error';
-      else if (desc === 'Internal Timeout') finalStatus = 'Internal Timeout';
-      else if (desc === 'Exec Format Error') finalStatus = 'Exec Format Error';
-      else finalStatus = 'Wrong Answer';
-    }
+    // Only public cases come back to the client. The runner is given every
+    // case including hidden ones, and returning its results unfiltered would
+    // hand out the hidden inputs and expected outputs mid-contest.
+    const visibleResults = (verdict.results || [])
+      .map((r, i) => ({ r, hidden: problem.testCases[i]?.isHidden }))
+      .filter((x) => !x.hidden)
+      .map((x, i) => ({
+        case: i + 1,
+        passed: x.r.passed,
+        got: x.r.got,
+        expected: x.r.expected,
+        error: x.r.error ? String(x.r.error).slice(0, 400) : null,
+      }));
 
     submission.status = finalStatus;
     
-    // Set execution metrics
-    submission.executionTime = results.length > 0 ? Math.max(...results.map(r => r.time || 0)) * 1000 : 0;
-    submission.memoryUsage = results.length > 0 ? Math.max(...results.map(r => r.memory || 0)) : 0;
+    submission.passedCount = passedCount;
+    submission.totalCount = problem.testCases.length;
+    submission.executionTime = Math.round((verdict.time || 0) * 1000);
+    submission.memoryUsage = verdict.memory || 0;
     
     await submission.save();
 
@@ -199,7 +176,10 @@ export const submitSolution = async (req, res) => {
         passedCount,
         totalCount: submission.totalCount,
         executionTime: submission.executionTime,
-        memoryUsage: submission.memoryUsage
+        memoryUsage: submission.memoryUsage,
+        results: visibleResults,
+        // Present when the program never ran: a compile error or a crash.
+        message: verdict.message ?? null,
       }
     });
 

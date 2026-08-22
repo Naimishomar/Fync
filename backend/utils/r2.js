@@ -193,6 +193,15 @@ export const resumeUpload = multer({
   },
 });
 
+/** Study notes / past papers — PDF only, 25 MB */
+export const notesUpload = multer({
+  storage: memoryStorage,
+  limits: { fileSize: 1024 * 1024 * 25 },
+  fileFilter: (_req, file, cb) => {
+    cb(null, file.mimetype === "application/pdf");
+  },
+});
+
 /** Fync Media combined — thumbnail (image) + video — 100 MB */
 export const fyncMediaCombinedUpload = multer({
   storage: memoryStorage,
