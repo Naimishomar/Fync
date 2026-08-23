@@ -20,9 +20,11 @@ import { supabase, fetchUnreadCounts } from "../utils/supabase";
 import { readCache, writeCache, userKey } from "../utils/screenCache";
 import Avatar from "./Avatar";
 import { ChatListSkeleton } from "./Skeleton";
+import { useBottomInset } from '../constants/layout';
 
 const ChatList = () => {
   const navigation = useNavigation<any>();
+  const bottomInset = useBottomInset();
   const { user } = useAuth();
 
   const [conversations, setConversations] = useState<any[]>([]);
@@ -285,7 +287,7 @@ const ChatList = () => {
             size={38}
           />
           {onlineUsers.has(otherUser?._id) && (
-            <View className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-success rounded-full border-2 border-card" />
+            <View className="absolute right-0 w-3.5 h-3.5 bg-success rounded-full border-2 border-card" style={{ bottom: bottomInset }} />
           )}
         </View>
 
@@ -338,7 +340,7 @@ const ChatList = () => {
           size={48}
         />
         {onlineUsers.has(item._id) && (
-          <View className="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-card" />
+          <View className="absolute right-0 w-3 h-3 bg-success rounded-full border-2 border-card" style={{ bottom: bottomInset }} />
         )}
       </View>
 

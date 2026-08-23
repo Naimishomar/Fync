@@ -13,9 +13,13 @@ import {
   getArchivedContests
 } from '../../controllers/coding/contest.controller.js';
 import { authMiddleware } from '../../middlewares/auth.middleware.js';
+import { getArenaProgress, getArenaLeaderboard } from '../../controllers/coding/progress.controller.js';
 
 const router = express.Router();
 
+// Read-only summary for the app. Solving lives on the web.
+router.get('/progress', authMiddleware, getArenaProgress);
+router.get('/leaderboard', authMiddleware, getArenaLeaderboard);
 router.get('/problems', authMiddleware, getProblems);
 router.get('/problems/:id', authMiddleware, getProblemById);
 router.post('/problems/submit', authMiddleware, submitSolution);

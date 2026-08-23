@@ -9,6 +9,7 @@ import Toast from 'react-native-toast-message';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
+import { useBottomInset } from '../../constants/layout';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Submission {
@@ -94,6 +95,7 @@ const Field = ({
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 const HackathonSubmission = () => {
   const navigation = useNavigation<any>();
+  const bottomInset = useBottomInset();
   const route = useRoute<any>();
   const { hackathonId } = route.params;
   const { user } = useAuth();
@@ -490,7 +492,7 @@ const HackathonSubmission = () => {
               </ScrollView>
 
               {/* Bottom Navigation */}
-              <View className="absolute bottom-0 left-0 right-0 bg-card border-t border-line px-5 pb-8 pt-4">
+              <View className="absolute left-0 right-0 bg-card border-t border-line px-5 pb-8 pt-4" style={{ bottom: bottomInset }}>
                 <View className="flex-row gap-3">
                   {step > 0 && (
                     <TouchableOpacity

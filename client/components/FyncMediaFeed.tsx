@@ -25,6 +25,7 @@ import Animated, {
 //@ts-ignore
 import FyncLogo from "../assets/Fync.png"
 import { Alert } from './ui/AlertModal';
+import { useBottomInset } from '../constants/layout';
 
 interface FyncMediaItem {
   _id: string;
@@ -89,6 +90,7 @@ const YouTubeVideoPlayer = ({
   thumbnail: string,
   onClose: () => void
 }) => {
+  const bottomInset = useBottomInset();
   const videoRef = useRef<Video>(null);
   const [status, setStatus] = useState<AVPlaybackStatusSuccess | null>(null);
   const [showControls, setShowControls] = useState(true);
@@ -347,7 +349,7 @@ const YouTubeVideoPlayer = ({
           </View>
 
           {/* Bottom Seek Bar */}
-          <View pointerEvents="box-none" className="absolute bottom-0 inset-x-0 p-4">
+          <View pointerEvents="box-none" className="absolute inset-x-0 p-4" style={{ bottom: bottomInset }}>
             <View pointerEvents="box-none" className="flex-row justify-between mb-2">
               <Text className="text-white text-label font-semibold">
                 {status ? `${Math.floor(status.positionMillis / 60000)}:${String(Math.floor((status.positionMillis % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
@@ -640,6 +642,8 @@ export default function FyncMediaFeed() {
   const commentInputRef = useRef<TextInput>(null);
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const bottomInset = useBottomInset();
 
   const isAdmin = user?.user_access === 'admin';
 

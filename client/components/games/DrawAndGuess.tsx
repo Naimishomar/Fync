@@ -8,11 +8,13 @@ import { useAuth } from '../../context/auth.context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
+import { useBottomInset } from '../../constants/layout';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const DrawAndGuess = () => {
   const navigation = useNavigation<any>();
+  const bottomInset = useBottomInset();
   const { user } = useAuth();
 
   const [isSearching, setIsSearching] = useState(false);
@@ -229,7 +231,7 @@ const DrawAndGuess = () => {
             </Svg>
 
             {matchData.role === "drawer" && (
-              <TouchableOpacity onPress={clearCanvas} className="absolute bottom-4 right-4 bg-paper-2 p-3 rounded-full shadow-hair">
+              <TouchableOpacity onPress={clearCanvas} className="absolute right-4 bg-paper-2 p-3 rounded-full shadow-hair" style={{ bottom: bottomInset + 16 }}>
                 <Ionicons name="trash" size={20} color="#DC2626" />
               </TouchableOpacity>
             )}

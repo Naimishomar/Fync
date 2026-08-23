@@ -10,6 +10,7 @@ import { useAuth } from '../../context/auth.context';
 import Toast from 'react-native-toast-message';
 import socket from '../../utils/socket';
 import { Alert } from '../ui/AlertModal';
+import { useBottomInset } from '../../constants/layout';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Announcement {
@@ -84,6 +85,7 @@ const FAQItem = ({ faq }: { faq: { question: string; answer: string } }) => {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 const HackathonDetail = () => {
   const navigation = useNavigation<any>();
+  const bottomInset = useBottomInset();
   const route = useRoute<any>();
   const { hackathonId } = route.params;
   const { user } = useAuth();
@@ -337,7 +339,7 @@ const HackathonDetail = () => {
           )}
           <LinearGradient colors={['transparent', 'rgba(0,0,0,0.9)']} className="absolute inset-0" />
 
-          <View className="absolute bottom-16 px-gutter">
+          <View className="absolute px-gutter" style={{ bottom: bottomInset + 64 }}>
             <View className="flex-row items-center mb-3">
               <View style={{ backgroundColor: statusMeta.colors[0] }} className="border-2 border-ink px-2.5 py-1 rounded-full">
                 <Text className="font-display text-label text-white uppercase">{statusMeta.label}</Text>
@@ -792,7 +794,7 @@ const HackathonDetail = () => {
       </Animated.ScrollView>
 
       {/* Professional Floating CTA Footer */}
-      <View className="absolute bottom-0 left-0 right-0 px-6 pb-10 pt-4 bg-card/95 border-t border-line backdrop-blur-xl">
+      <View className="absolute left-0 right-0 px-6 pb-10 pt-4 bg-card/95 border-t border-line backdrop-blur-xl" style={{ bottom: bottomInset }}>
         {!isParticipant ? (
           <TouchableOpacity onPress={isRegOpen ? handleJoin : undefined} disabled={joining || !isRegOpen} activeOpacity={0.9}>
             <View

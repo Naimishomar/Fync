@@ -91,6 +91,70 @@ const Row = ({ feature, onOpen }: { feature: Feature; onOpen: (f: Feature) => vo
   </Pressable>
 );
 
+/**
+ * A category, closed.
+ *
+ * The screen used to render all forty-eight tiles at once across seven open
+ * sections. Everything was reachable and nothing was findable: a student
+ * scrolling that wall has to evaluate forty-eight options before making one
+ * choice, which is the point most of them stop.
+ *
+ * Closed, the same content is seven things to read. The preview art is there so
+ * a category is recognisable without opening it — a row of icons says what
+ * "Campus" holds faster than the word does.
+ */
+const CategoryCard = ({
+  cat, items, open, onToggle, columns, onOpen,
+}: {
+  cat: { id: string; label: string; icon: any };
+  items: Feature[];
+  open: boolean;
+  onToggle: () => void;
+  columns: number;
+  onOpen: (f: Feature) => void;
+}) => (
+  <View className="mb-3">
+    <Pressable
+      onPress={onToggle}
+      className={`flex-row items-center bg-card border-2 border-ink rounded-card px-4 ${open ? 'rounded-b-none' : ''}`}
+      style={{ minHeight: 66 }}
+      accessibilityRole="button"
+      accessibilityState={{ expanded: open }}
+      accessibilityLabel={`${cat.label}, ${items.length} features`}
+    >
+      <View
+        className="items-center justify-center rounded-xl border-2 border-ink"
+        style={{ width: 42, height: 42, backgroundColor: `${FAMILY[cat.id] ?? '#F97316'}1A` }}
+      >
+        <Ionicons name={cat.icon} size={20} color={FAMILY[cat.id] ?? '#F97316'} />
+      </View>
+
+      <View className="flex-1 ml-3 min-w-0">
+        <Text className="font-display text-ink uppercase" style={{ fontSize: 14 }}>{cat.label}</Text>
+        <Text className="font-sans text-ink-2 mt-[2px]" style={{ fontSize: 11 }} numberOfLines={1}>
+          {items.slice(0, 3).map((f) => f.label).join(' · ')}
+          {items.length > 3 ? ` +${items.length - 3}` : ''}
+        </Text>
+      </View>
+
+      <View className="items-center justify-center rounded-full bg-paper-2 mr-2" style={{ width: 26, height: 26 }}>
+        <Text className="font-display text-ink" style={{ fontSize: 11 }}>{items.length}</Text>
+      </View>
+      <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color="#12100E" />
+    </Pressable>
+
+    {open && (
+      <View className="bg-card border-2 border-t-0 border-ink rounded-b-card px-3 pt-4">
+        <View className="flex-row flex-wrap" style={{ marginHorizontal: -6 }}>
+          {items.map((f) => (
+            <Tile key={f.id} feature={f} columns={columns} onOpen={onOpen} />
+          ))}
+        </View>
+      </View>
+    )}
+  </View>
+);
+
 // Eyebrow, 2px hard rule to the edge, tabular count on the right.
 const Rule = ({ label, count }: { label: string; count?: number }) => (
   <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
@@ -110,6 +174,9 @@ const ExploreHub = () => {
 
   const [query, setQuery] = useState('');
   const [recentIds, setRecentIds] = useState<string[]>([]);
+  // Nothing is open on arrival. One category at a time, so the screen never
+  // grows back into the wall this replaced.
+  const [openCat, setOpenCat] = useState<string | null>(null);
 
   const features = useMemo(() => visibleFeatures(user), [user]);
   const results = useMemo(() => searchFeatures(features, query), [features, query]);
@@ -134,6 +201,19 @@ const ExploreHub = () => {
   // Recents are stored as ids, so a feature that is removed from the registry —
   // or that this user can no longer see — drops out instead of rendering a tile
   // that navigates nowhere.
+  /**
+   * The opening move for someone with no history.
+   *
+   * Hand-picked rather than "first four in the registry": these are the things
+   * a student can get value from on day one without setting anything up.
+   */
+  const starters = useMemo(() => {
+    const wanted = ['notesExchange', 'contests', 'bunk', 'internships'];
+    return wanted
+      .map((id) => features.find((f) => f.id === id))
+      .filter(Boolean) as Feature[];
+  }, [features]);
+
   const recents = useMemo(
     () => recentIds.map((id) => features.find((f) => f.id === id)).filter(Boolean) as Feature[],
     [recentIds, features]
@@ -156,7 +236,7 @@ const ExploreHub = () => {
             Fync
           </Text>
           <Text className="font-display text-label text-ink-3 uppercase mt-3" style={{ letterSpacing: 1.4 }}>
-            Everything the app can do
+            Find what you need
           </Text>
 
           <View className="flex-row items-center bg-card px-4 border-2 border-ink mt-5 rounded-md" style={{ minHeight: 50 }}>
@@ -206,6 +286,20 @@ const ExploreHub = () => {
             )
           ) : (
             <>
+              {/* Somewhere to start. A first-time student facing seven closed
+                  categories still has to guess, so the four things most people
+                  actually open are surfaced directly. */}
+              {recents.length === 0 && starters.length > 0 && (
+                <>
+                  <Rule label="Start here" />
+                  <View className="flex-row flex-wrap" style={{ marginHorizontal: -6 }}>
+                    {starters.map((f) => (
+                      <Tile key={f.id} feature={f} columns={columns} onOpen={open} />
+                    ))}
+                  </View>
+                </>
+              )}
+
               {recents.length > 0 && (
                 <>
                   <Rule label="Jump back in" />
@@ -217,18 +311,20 @@ const ExploreHub = () => {
                 </>
               )}
 
+              <Rule label="Browse" count={features.length} />
               {CATEGORIES.map((cat) => {
                 const items = features.filter((f) => f.category === cat.id);
                 if (items.length === 0) return null;
                 return (
-                  <View key={cat.id}>
-                    <Rule label={cat.label} count={items.length} />
-                    <View className="flex-row flex-wrap" style={{ marginHorizontal: -6 }}>
-                      {items.map((f) => (
-                        <Tile key={f.id} feature={f} columns={columns} onOpen={open} />
-                      ))}
-                    </View>
-                  </View>
+                  <CategoryCard
+                    key={cat.id}
+                    cat={cat}
+                    items={items}
+                    open={openCat === cat.id}
+                    onToggle={() => setOpenCat(openCat === cat.id ? null : cat.id)}
+                    columns={columns}
+                    onOpen={open}
+                  />
                 );
               })}
             </>

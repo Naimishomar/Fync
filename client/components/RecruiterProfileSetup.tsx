@@ -19,9 +19,11 @@ import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Device from "expo-device";
+import { useBottomInset } from '../constants/layout';
 
 export default function RecruiterProfileSetup() {
   const navigation = useNavigation<any>();
+  const bottomInset = useBottomInset();
   const route = useRoute<any>();
   const { login } = useAuth();
   
@@ -165,7 +167,7 @@ export default function RecruiterProfileSetup() {
                   <Ionicons name="business" size={40} color="#C4BEB6" />
                 </View>
               )}
-              <View className="absolute bottom-0 right-0 bg-brand-500 border-2 border-ink h-8 w-8 items-center justify-center border-paper rounded-md">
+              <View className="absolute right-0 bg-brand-500 border-2 border-ink h-8 w-8 items-center justify-center border-paper rounded-md" style={{ bottom: bottomInset }}>
                 <Ionicons name="camera" size={14} color="#12100E" />
               </View>
             </Pressable>

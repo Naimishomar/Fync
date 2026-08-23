@@ -15,6 +15,22 @@ const postSchema = new mongoose.Schema({
     // No standalone index: the { user: 1, _id: -1 } compound below already
     // serves any query filtering on user alone.
   },
+  /**
+   * People tagged in this post, each with their own consent state.
+   *
+   * Separate from `mentions`, which is just @-names inside the text. A tag puts
+   * the post on someone else's profile, so it needs their agreement — nobody
+   * should be able to attach a stranger's face or name to their own post
+   * without being asked.
+   */
+  tags: [
+    {
+      user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+      status: { type: String, enum: ["pending", "accepted", "declined"], default: "pending" },
+      respondedAt: { type: Date, default: null },
+    },
+  ],
+
   mentions: {
     type: [
       {
@@ -77,6 +93,10 @@ postSchema.index({ college: 1, _id: -1 });
 // getSmartFeed's fallback and the feed engine's candidate pool both sort by
 // createdAt with no cursor; without this they collection-scan and sort in memory.
 postSchema.index({ createdAt: -1 });
+
+// The two queries tagging creates: "tags awaiting my response" and "posts that
+// appear on my profile".
+postSchema.index({ "tags.user": 1, "tags.status": 1, createdAt: -1 });
 
 const Post = mongoose.model("Post", postSchema);
 export default Post;

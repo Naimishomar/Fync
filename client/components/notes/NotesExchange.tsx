@@ -10,6 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
+import { useBottomInset } from '../../constants/layout';
 
 interface Note {
   _id: string;
@@ -39,6 +40,7 @@ const KIND_LABEL: Record<string, string> = {
 
 export default function NotesExchange() {
   const navigation = useNavigation<any>();
+  const bottomInset = useBottomInset();
   const { user, setUser } = useAuth() as any;
 
   const [notes, setNotes] = useState<Note[]>([]);
@@ -239,8 +241,8 @@ export default function NotesExchange() {
 
       <TouchableOpacity
         onPress={() => setUploadOpen(true)}
-        className="absolute bottom-8 right-6 bg-brand-500 border-2 border-ink rounded-full flex-row items-center px-5"
-        style={{ height: 56 }}
+        className="absolute right-6 bg-brand-500 border-2 border-ink rounded-full flex-row items-center px-5"
+        style={{ height: 56, bottom: bottomInset + 32 }}
         accessibilityRole="button"
         accessibilityLabel="Share notes"
       >

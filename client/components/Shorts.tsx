@@ -9,7 +9,7 @@ import { RootStackParamList } from "../App";
 import { useAuth } from "../context/auth.context";
 import axios from "../context/axiosConfig";
 import Avatar from "./Avatar";
-import { ShortsSkeleton, CommentSkeleton } from "./Skeleton";
+import { ShortsSkeleton } from "./Skeleton";
 import { getFullUrl } from "../utils/imageUtils";
 import { queueShortView, flushShortViews } from "../utils/shortViews";
 import {
@@ -20,6 +20,7 @@ import {
 } from "../utils/feedSession";
 import { useTabBarClearance } from '../constants/layout';
 import { Alert } from './ui/AlertModal';
+import CommentsSheet from './ui/CommentsSheet';
 import YouTubeShort from './YouTubeShort';
 
 
@@ -303,10 +304,12 @@ const DiscoverCard = React.memo(({
   item,
   isActive,
   isNear,
+  handleUnplayable,
 }: {
   item: ShortItem;
   isActive: boolean;
   isNear: boolean;
+  handleUnplayable: (videoId: string, code: number) => void;
 }) => {
   // A WebView is expensive in a way a native view is not, so one is created
   // only for the video on screen and its immediate neighbours. The thumbnail
@@ -332,6 +335,7 @@ const DiscoverCard = React.memo(({
         videoId={item.videoId!}
         isActive={isActive}
         thumbnail={item.thumbnail}
+        onUnplayable={handleUnplayable}
       />
       <DiscoverAttribution item={item} />
     </View>
@@ -373,12 +377,9 @@ export default function Shorts() {
 
   const [commentModalVisible, setCommentModalVisible] = useState(false);
   const [activeShortId, setActiveShortId] = useState<string | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [commentText, setCommentText] = useState("");
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
-  const [commentLoading, setCommentLoading] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -517,6 +518,18 @@ export default function Shorts() {
     finally { setLoadingMore(false); }
   };
 
+  /**
+   * Drop a dead video and tell the server.
+   *
+   * Removed from the list rather than left showing an error card: a student
+   * swiping a feed should never have to read an error code.
+   */
+  const handleUnplayable = useCallback((videoId: string, code: number) => {
+    globalShortsCache = globalShortsCache.filter(s => s.videoId !== videoId);
+    setShorts(globalShortsCache);
+    axios.post('/shorts/discover/unplayable', { videoId, code }).catch(() => {});
+  }, []);
+
   const loadMore = () => {
     if (loadingMore) return;
     if (globalHasMore) {
@@ -574,30 +587,16 @@ export default function Shorts() {
     axios.post(`/shorts/like/${short._id}`);
   };
 
-  const openComments = async (shortId: string) => {
-    const res = await axios.get(`/shorts/comments/${shortId}`);
-    if (res.data.success) setComments(res.data.comments);
-    setCommentLoading(null);
-  };
-
-
-  const [replyingTo, setReplyingTo] = useState<any>(null);
-  const commentInputRef = useRef<TextInput>(null);
-
-  const addComment = async () => {
-    if (!commentText.trim() || !activeShortId) return;
-    await axios.post(
-      `/shorts/comment/${activeShortId}`,
-      { text: commentText, parentCommentId: replyingTo?._id }
-    );
-    setCommentText("");
-    setReplyingTo(null);
-    openComments(activeShortId);
-  };
-
-  const deleteComment = async (id: string) => {
-    await axios.post(`/shorts/comment/delete/${id}`);
-    openComments(activeShortId!);
+  /**
+   * Open the comment sheet for a short.
+   *
+   * This used to fetch comments into local state and stop there — it never set
+   * the active short or made the modal visible, so the comment button did
+   * nothing at all. The sheet loads its own data, so opening it is the whole job.
+   */
+  const openComments = (shortId: string) => {
+    setActiveShortId(shortId);
+    setCommentModalVisible(true);
   };
 
   const onRefresh = async () => {
@@ -649,6 +648,7 @@ export default function Shorts() {
           item={item}
           isActive={item._id === activeVideoId}
           isNear={Math.abs(index - shorts.findIndex(s => s._id === activeVideoId)) <= 1}
+          handleUnplayable={handleUnplayable}
         />
       );
     }
@@ -667,47 +667,6 @@ export default function Shorts() {
     );
   }, [activeVideoId, currentUserId, navigation, toggleLike, deleteShort, shorts]);
 
-  const CommentItem = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => (
-    <View className={`${isReply ? 'ml-10 mt-2' : 'mb-4'}`}>
-      <View className="flex-row">
-        <Image
-          source={{ uri: getFullUrl(comment.commentor?.avatar) || `https://ui-avatars.com/api/?name=${comment.commentor?.username}` }}
-          className={`${isReply ? 'h-7 w-7' : 'h-9 w-9'} rounded-full mr-3 bg-ink`}
-        />
-        <View className="flex-1">
-          <View className="flex flex-row items-center gap-1">
-            <Text className="text-white font-semibold text-xs">{comment.commentor?.name}</Text>
-            <Text className="text-ink-3 text-label">@{comment.commentor?.username}</Text>
-          </View>
-          
-          <Text className="text-ink-4 text-xs mt-0.5">
-            {comment.replyToUser && <Text className="text-accent-text">@{comment.replyToUser.username} </Text>}
-            {comment.text}
-          </Text>
-
-          <View className="flex-row mt-1 gap-4">
-             {!isReply && (
-               <Pressable onPress={() => {
-                 setReplyingTo(comment);
-                 setCommentText(`@${comment.commentor.username} `);
-                 commentInputRef.current?.focus();
-               }}>
-                 <Text className="text-ink-3 text-label font-semibold">Reply</Text>
-               </Pressable>
-             )}
-             {comment.commentor?._id === currentUserId && (
-               <Pressable onPress={() => deleteComment(comment._id)}>
-                 <Text className="text-danger/70 text-label font-semibold">Delete</Text>
-               </Pressable>
-             )}
-          </View>
-        </View>
-      </View>
-      {comment.replies && comment.replies.map((reply: any) => (
-        <CommentItem key={reply._id} comment={reply} isReply={true} />
-      ))}
-    </View>
-  );
 
   if (loading && shorts.length === 0) {
     return <ShortsSkeleton />;
@@ -742,79 +701,14 @@ export default function Shorts() {
         onEndReachedThreshold={0.5}
       />
 
-      <Modal
+      {/* One shared sheet, not a fourth copy of it. */}
+      <CommentsSheet
         visible={commentModalVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setCommentModalVisible(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          className="flex-1 justify-end"
-        >
-          <Pressable
-            className="flex-1"
-            onPress={() => setCommentModalVisible(false)}
-          />
-
-          {/* Shrinkable column, not a fixed 75% box — the composer below is a
-              normal sibling so the keyboard can actually push it up. */}
-          <View className="bg-ink rounded-t-sheet px-0 pt-4" style={{ maxHeight: '85%', flexShrink: 1 }}>
-            <View className="items-center mb-3">
-              <View className="h-1 w-10 bg-night-3 rounded-full mb-2" />
-              <Text className="text-white font-semibold text-base">Comments</Text>
-            </View>
-
-            <ScrollView
-              className="flex-1"
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 16, paddingHorizontal: 16 }}
-              keyboardShouldPersistTaps="handled"
-            >
-              {commentLoading === activeShortId ? (
-                <>
-                  <CommentSkeleton />
-                  <CommentSkeleton />
-                  <CommentSkeleton />
-                </>
-              ) : comments.length === 0 ? (
-                <Text className="text-ink-3 text-center mt-10">
-                  No comments yet
-                </Text>
-              ) : (
-                comments.map((c: any) => (
-                  <CommentItem key={c._id} comment={c} />
-                ))
-              )}
-            </ScrollView>
-
-            <View className="border-t border-white/10 bg-night px-3 pt-3" style={{ paddingBottom: 16 }}>
-              {replyingTo && (
-                <View className="flex-row items-center justify-between bg-ink px-3 py-2 mb-2 rounded-lg">
-                  <Text className="text-ink-3 text-xs">Replying to <Text className="font-semibold">@{replyingTo.commentor.username}</Text></Text>
-                  <Pressable onPress={() => setReplyingTo(null)}>
-                    <Ionicons name="close-circle" size={18} color="#C4BEB6" />
-                  </Pressable>
-                </View>
-              )}
-              <View className="flex-row items-center">
-                <TextInput
-                  ref={commentInputRef}
-                  value={commentText}
-                  onChangeText={setCommentText}
-                  placeholder={replyingTo ? "Add a reply..." : "Add a comment..."}
-                  placeholderTextColor="#8B857E"
-                  className="flex-1 font-sans text-base text-night-ink bg-night-2 rounded-full px-4 py-3 mr-2 border border-white/10"
-                  multiline
-                />
-                <Pressable onPress={addComment} disabled={!commentText.trim()}>
-                  <Text className={`font-semibold ${!commentText.trim() ? 'text-ink-2' : 'text-brand-300'}`}>Post</Text>
-                </Pressable>
-              </View>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+        onClose={() => setCommentModalVisible(false)}
+        resource="shorts"
+        targetId={activeShortId}
+        currentUser={user}
+      />
     </>
   );
 }

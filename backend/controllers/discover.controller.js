@@ -34,6 +34,14 @@ const DEGRADED_TTL_SECONDS = 900;
 const LAST_GOOD_KEY = "discover:youtube:lastgood";
 const LAST_GOOD_TTL_SECONDS = 604800;
 const MAX_LIMIT = 20;
+// Videos that failed to play on a real device.
+//
+// videoEmbeddable and status.embeddable are checked when the pool is built, but
+// neither catches region restrictions — those only surface in the player, on
+// the student's phone, as YouTube error 150/151/152. Without this the same dead
+// video is served to everyone for the life of the cache.
+const BLOCK_KEY = "discover:unplayable";
+const BLOCK_TTL_SECONDS = 604800;
 
 /**
  * The candidate pool, shared by every user.
@@ -104,7 +112,19 @@ export const getDiscoverFeed = async (req, res) => {
   );
 
   try {
-    const pool = await getPool();
+    let pool = await getPool();
+
+    // Applied at serve time rather than at build time, so a video reported five
+    // minutes ago stops being served immediately instead of at the next refresh.
+    try {
+      const blocked = await redisClient.sMembers(BLOCK_KEY);
+      if (blocked?.length) {
+        const dead = new Set(blocked);
+        pool = pool.filter((v) => !dead.has(v.videoId));
+      }
+    } catch (err) {
+      console.error("Blocklist read failed:", err.message);
+    }
 
     if (!pool.length) {
       // An empty pool is a configuration state, not a failure. Saying so plainly
@@ -141,5 +161,32 @@ export const getDiscoverFeed = async (req, res) => {
   } catch (error) {
     console.error("Discover feed failed:", error?.message);
     return res.status(502).json({ success: false, message: "Could not reach YouTube." });
+  }
+};
+
+
+/**
+ * A device reporting that a video would not play.
+ *
+ * Trusted without verification on purpose: the cost of wrongly dropping one
+ * video from a pool of hundreds is nothing, and the cost of showing a dead card
+ * to every student is a feed that looks broken. The set expires weekly so a
+ * video that was only regionally blocked gets another chance.
+ */
+export const reportUnplayable = async (req, res) => {
+  const { videoId, code } = req.body || {};
+  if (!videoId || typeof videoId !== "string" || videoId.length > 32) {
+    return res.status(400).json({ success: false, message: "A videoId is required." });
+  }
+
+  try {
+    await redisClient.sAdd(BLOCK_KEY, videoId);
+    await redisClient.expire(BLOCK_KEY, BLOCK_TTL_SECONDS);
+    console.warn(`Discover: ${videoId} reported unplayable (code ${code ?? "?"})`);
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Blocklist write failed:", err.message);
+    // The student has already skipped past it; failing here helps nobody.
+    return res.status(200).json({ success: true });
   }
 };

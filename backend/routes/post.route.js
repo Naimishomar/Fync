@@ -5,6 +5,7 @@ import { cacheMiddleware } from '../middlewares/cache.middleware.js';
 import { createLimiter, feedLimiter } from '../middlewares/rateLimit.middleware.js';
 import { upload } from '../utils/r2.js';
 import { r2UploadMiddleware } from '../utils/r2Upload.js';
+import { tagUsers, respondToTag, getPendingTags, getTaggedPosts } from "../controllers/postTags.controller.js";
 const router = express.Router();
 
 // ── Specific named routes MUST come before wildcard /:id routes ──
@@ -30,6 +31,13 @@ router.get('/comment/:id', authMiddleware, cacheMiddleware(60, { tags: (req) => 
 
 // Report routes
 router.post('/report', authMiddleware, reportPost);
+
+// Tagging. A tag is a request until the tagged person accepts it, so responding
+// and listing are separate from creating.
+router.post('/:id/tag', authMiddleware, tagUsers);
+router.post('/:id/tag/respond', authMiddleware, respondToTag);
+router.get('/tags/pending', authMiddleware, getPendingTags);
+router.get('/tags/user/:userId', authMiddleware, getTaggedPosts);
 router.get('/admin/reports', authMiddleware, isAdmin, getReports);
 router.post('/admin/delete-post', authMiddleware, isAdmin, adminDeletePost);
 

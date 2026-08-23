@@ -20,6 +20,7 @@ import axios from '../context/axiosConfig';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/auth.context';
+import { useBottomInset } from '../constants/layout';
 
 interface UserSuggestion {
   _id: string;
@@ -36,6 +37,7 @@ function CreatePost() {
   const [isPrivate, setIsPrivate] = useState(false);
   const [mentions, setMentions] = useState<{ id: string, username: string }[]>([]);
   const navigation = useNavigation<any>();
+  const bottomInset = useBottomInset();
   
   // Tagging states
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -302,7 +304,7 @@ function CreatePost() {
           </ScrollView>
 
           {/* Action Button */}
-          <View className="absolute bottom-10 left-8 right-8">
+          <View className="absolute left-8 right-8" style={{ bottom: bottomInset + 40 }}>
               <TouchableOpacity 
                 onPress={handleSubmit}
                 disabled={isLoading}

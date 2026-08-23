@@ -12,6 +12,7 @@ import { useAuth } from '../context/auth.context';
 import { format } from 'date-fns';
 import { RAZORPAY_KEY_ID } from '../constants/keys';
 import { Alert } from './ui/AlertModal';
+import { useBottomInset } from '../constants/layout';
 
 const { width } = Dimensions.get('window');
 const ADMIN_EMAIL = "dev.fync@fync.com";
@@ -44,6 +45,7 @@ interface NoticeType {
 
 const NoticeBoard = () => {
   const navigation = useNavigation<any>();
+  const bottomInset = useBottomInset();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'college' | 'global'>('college');
   const [notices, setNotices] = useState<NoticeType[]>([]);
@@ -538,7 +540,7 @@ const NoticeBoard = () => {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => setCreateModalVisible(true)}
-          className="absolute bottom-14 right-8 w-14 h-14 rounded-card bg-ink items-center justify-center"
+          className="absolute right-8 w-14 h-14 rounded-card bg-ink items-center justify-center" style={{ bottom: bottomInset + 56 }}
         >
           <Ionicons name="pencil" size={24} color="white" />
         </TouchableOpacity>
@@ -718,7 +720,7 @@ const NoticeBoard = () => {
               <Ionicons name="close" size={24} color="white" />
             </TouchableOpacity>
             {selectedImage ? <ExpoImage source={{ uri: selectedImage }} className="w-full h-5/6" contentFit="contain" cachePolicy="disk" /> : null}
-            <View className="absolute bottom-12 items-center w-full">
+            <View className="absolute items-center w-full" style={{ bottom: bottomInset + 48 }}>
               <Text className="text-white/40 text-label font-display uppercase leading-tight">Secure Preview Protocol • Tap to Close</Text>
             </View>
           </View>

@@ -26,6 +26,7 @@ import AddEducationModal from './AddEducationModal';
 import { Alert } from '../ui/AlertModal';
 
 import { StampCard } from '../ui/kit';
+import { useBottomInset } from '../../constants/layout';
 const { width } = Dimensions.get('window');
 
 // ─── Completeness Bar ─────────────────────────────────────────────────────────
@@ -83,6 +84,7 @@ function SectionHeader({ title, icon, onAdd, addLabel }: {
 export default function FyncProfileBuilder() {
   const { user, setUser } = useAuth();
   const navigation = useNavigation<any>();
+  const bottomInset = useBottomInset();
   const route = useRoute<any>();
 
   const [skills, setSkills] = useState<string[]>(user?.skills || []);
@@ -616,7 +618,7 @@ export default function FyncProfileBuilder() {
                 {tab.label}
               </Text>
               {activeTab === tab.key && (
-                <View className="absolute bottom-0 w-12 h-1 bg-brand-500 rounded-full" />
+                <View className="absolute w-12 h-1 bg-brand-500 rounded-full" style={{ bottom: bottomInset }} />
               )}
             </Pressable>
           ))}

@@ -46,6 +46,7 @@ const DEFAULT_QUICK = ['academy', 'jobs', 'utilities', 'techPulse'];
 import { dedupedGet } from '../utils/batchRequest';
 import socket from '../utils/socket';
 import { Alert } from './ui/AlertModal';
+import CommentsSheet from './ui/CommentsSheet';
 
 const { width } = Dimensions.get('window');
 
@@ -84,183 +85,13 @@ interface Post {
 }
 
 // --- COMMENTS MODAL ---
-const CommentsModal = ({ isVisible, postId, onClose, currentUser, onCommentAdded }: any) => {
-  const commentInputInset = useBottomInset();
-  const [comments, setComments] = useState<any[]>([]);
-  const [newComment, setNewComment] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [posting, setPosting] = useState(false);
-  const [replyingTo, setReplyingTo] = useState<any>(null);
-  const inputRef = useRef<TextInput>(null);
-
-  useEffect(() => {
-    if (isVisible && postId) {
-      fetchComments();
-    }
-  }, [isVisible, postId]);
-
-  const fetchComments = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(`/post/comment/${postId}`);
-      if (res.data.success) {
-        setComments(res.data.comments);
-      }
-    } catch (error) {
-      console.log("Error loading comments", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePostComment = async () => {
-    if (!newComment.trim()) return;
-    setPosting(true);
-    try {
-      const res = await axios.post(`/post/comment/${postId}`, {
-        text: newComment,
-        parentCommentId: replyingTo?._id
-      });
-      if (res.data.success) {
-        const addedComment = res.data.comment;
-
-        if (replyingTo) {
-          // Add to replies of the parent comment
-          setComments(prev => prev.map(c => {
-            if (c._id === replyingTo._id) {
-              return { ...c, replies: [addedComment, ...(c.replies || [])] };
-            }
-            return c;
-          }));
-        } else {
-          // Add to top level comments
-          setComments([addedComment, ...comments]);
-        }
-
-        setNewComment('');
-        setReplyingTo(null);
-        if (onCommentAdded) {
-          onCommentAdded(postId, addedComment);
-        }
-      }
-    } catch (error) {
-      console.log("Error posting comment", error);
-      Alert.alert("Error", "Could not post comment");
-    } finally {
-      setPosting(false);
-    }
-  };
-
-  const handleReply = (comment: any) => {
-    setReplyingTo(comment);
-    setNewComment(`@${comment.commentor.username} `);
-    inputRef.current?.focus();
-  };
-
-  const CommentItem = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => (
-    <View className={`${isReply ? 'ml-12 mt-2' : 'px-4 py-3 border-b border-line'}`}>
-      <View className="flex-row">
-        <ExpoImage
-          source={{ uri: getFullUrl(comment.commentor?.avatar) || `https://ui-avatars.com/api/?name=${comment.commentor?.username}` }}
-          style={{ width: isReply ? 28 : 36, height: isReply ? 28 : 36, borderRadius: 999 }}
-          className="bg-paper-2"
-          cachePolicy="disk"
-        />
-        <View className="ml-3 flex-1">
-          <View className="flex-row items-baseline mb-1">
-            <Text className="font-semibold text-xs text-ink mr-2">{comment.commentor?.username}</Text>
-            <Text className="text-ink-3 text-label">{new Date(comment.createdAt).toLocaleDateString()}</Text>
-          </View>
-          <Text className="text-ink-2 text-sm leading-5">
-            {comment.replyToUser && <Text className="text-accent-text">@{comment.replyToUser.username} </Text>}
-            {comment.text}
-          </Text>
-          {!isReply && (
-            <Pressable onPress={() => handleReply(comment)} className="mt-2">
-              <Text className="font-semibold text-xs text-accent-text">Reply</Text>
-            </Pressable>
-          )}
-        </View>
-      </View>
-      {comment.replies && comment.replies.length > 0 && (
-        <View className="mt-2">
-          {comment.replies.map((reply: any) => (
-            <CommentItem key={reply._id} comment={reply} isReply={true} />
-          ))}
-        </View>
-      )}
-    </View>
-  );
-
-  return (
-    <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={onClose}>
-      <View className="flex-1 bg-black/40">
-        <Pressable className="flex-1" onPress={onClose} />
-        <KeyboardAvoidingView
-          behavior="padding"
-          className="w-full"
-        >
-          <View className="bg-paper h-[650px] rounded-t-sheet w-full overflow-hidden">
-            <View className="flex-row justify-center items-center py-4 border-b border-line">
-              <View className="w-12 h-1 bg-ink-4 rounded-full absolute top-2 self-center" />
-              <Text className="font-display text-h2 text-ink">Comments</Text>
-              <Pressable onPress={onClose} className="absolute right-4 p-1">
-                <Ionicons name="close" size={24} color="#12100E" />
-              </Pressable>
-            </View>
-            {loading ? (
-              <ActivityIndicator size="large" color="#F97316" className="mt-10" />
-            ) : (
-              <FlatList
-                data={comments}
-                renderItem={({ item }) => <CommentItem comment={item} />}
-                keyExtractor={(item) => item._id}
-                contentContainerStyle={{ paddingBottom: 150 }}
-                ListEmptyComponent={<Text className="text-ink-3 text-center mt-10">No comments yet.</Text>}
-                showsVerticalScrollIndicator={false}
-              />
-            )}
-
-            {/* Guessing 40 on iOS / 20 on Android put this input under the gesture
-                bar on tall Android devices and left a gap on older ones. */}
-            <View className="w-full bg-paper border-t border-line px-4 pt-2" style={{ paddingBottom: commentInputInset }}>
-              {replyingTo && (
-                <View className="flex-row items-center justify-between bg-paper-2 px-3 py-2 mb-2 rounded-lg">
-                  <Text className="text-ink-3 text-xs">Replying to <Text className="font-semibold text-ink">@{replyingTo.commentor.username}</Text></Text>
-                  <Pressable onPress={() => setReplyingTo(null)}>
-                    <Ionicons name="close-circle" size={18} color="#C4BEB6" />
-                  </Pressable>
-                </View>
-              )}
-              <View className="flex-row items-center gap-2">
-                <ExpoImage
-                  source={{ uri: getFullUrl(currentUser?.avatar) || `https://ui-avatars.com/api/?name=${currentUser?.username}` }}
-                  style={{ width: 32, height: 32, borderRadius: 999 }}
-                  className="rounded-full"
-                  cachePolicy="disk"
-                />
-                <TextInput
-                  ref={inputRef}
-                  value={newComment}
-                  onChangeText={setNewComment}
-                  placeholder={replyingTo ? "Add a reply..." : "Add a comment..."}
-                  placeholderTextColor="#C4BEB6"
-                  className="flex-1 font-sans text-ink bg-card rounded-full px-4 py-3 mr-3 border border-line"
-                  multiline
-                />
-                <Pressable onPress={handlePostComment} disabled={posting || !newComment.trim()}>
-                  {posting ? <ActivityIndicator size="small" color="#F97316" /> : <Text className={`font-semibold ${!newComment.trim() ? 'text-ink-4' : 'text-accent-text'}`}>Post</Text>}
-                </Pressable>
-              </View>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </View>
-    </Modal>
-  );
-};
 
 // --- POST ITEM ---
+/** Vote pill geometry. The indicator's travel is derived from these, so the
+ *  fill always lands centred on a button rather than near it. */
+const VOTE_BTN = 34;
+const VOTE_SCORE_W = 34;
+
 const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }: { item: Post, index: number, currentUser: any, openComments: (id: string) => void, onDeletePost: (id: string) => void }) => {
   const { width } = useWindowDimensions();
   const [vote, setVote] = useState<'up' | 'down' | null>(
@@ -278,10 +109,54 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
 const MAX_CHAR_LIMIT = 150;
 
   const springValue = useRef(new Animated.Value(1)).current;
+
+  /**
+   * The sliding vote indicator.
+   *
+   * `slide` is 0 at the upvote and 1 at the downvote; `fill` fades it out when
+   * there is no vote. The pill used to fill the button itself, which left a
+   * sliver of the container's own padding showing beside the circle — a white
+   * crescent on an otherwise solid orange control. Moving the fill to a layer
+   * underneath removes the padding problem entirely and gives the transition
+   * something to animate along.
+   */
+  const slide = useRef(new Animated.Value(0)).current;
+  const fill = useRef(new Animated.Value(0)).current;
+  const tint = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation<any>();
 
   const displayCommentCount = item.commentCount || item.comments?.length || 0;
   const images = item.image || [];
+
+  // Driven from `vote` rather than from the tap, so an optimistic update that
+  // gets rolled back animates back too.
+  useEffect(() => {
+    Animated.parallel([
+      // All three on the JS driver, and they have to match.
+      //
+      // backgroundColor cannot run natively, and this indicator animates its
+      // colour, its position and its opacity on one node. Mixing drivers on a
+      // single node throws: once it is attached natively for transform, the JS
+      // driver is refused for colour. The movement here is a 34px pill on tap,
+      // never during a scroll, so nothing is lost by running it in JS.
+      Animated.spring(slide, {
+        toValue: vote === 'down' ? 1 : 0,
+        friction: 7,
+        tension: 90,
+        useNativeDriver: false,
+      }),
+      Animated.timing(fill, {
+        toValue: vote ? 1 : 0,
+        duration: 140,
+        useNativeDriver: false,
+      }),
+      Animated.timing(tint, {
+        toValue: vote === 'down' ? 1 : 0,
+        duration: 200,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, [vote, slide, fill, tint]);
 
   const animatePress = () => {
     Animated.sequence([
@@ -385,34 +260,49 @@ const MAX_CHAR_LIMIT = 150;
             <Text className="text-ink-3 text-sm">{timeAgo(item.createdAt)}</Text>
           </Pressable>
         </View>
-        <Pressable onPress={() => {
-          const isOwner = item.user?._id === currentUser?._id;
-          Alert.alert("Post Options", undefined , [
-            { text: "Cancel", style: "cancel"},
-            isOwner ? { 
-              text: "Delete Post", 
-              style: "destructive", 
-              onPress: () => onDeletePost(item._id) 
-            } : { 
-              text: "Report Post", 
-              style: "destructive", 
-              onPress: () => {
-                Alert.alert("Report", "Are you sure you want to report this post?", [
-                  { text: "Cancel", style: "cancel" },
-                  { text: "Report", style: "destructive", onPress: async () => {
-                    try {
-                      await axios.post('/post/report', { postId: item._id, reason: "Inappropriate content" });
-                      Alert.alert("Success", "Post has been reported to administrators.");
-                    } catch (e) {
-                      Alert.alert("Error", "Failed to report post.");
-                    }
-                  }}
-                ]);
-              }
+        <Pressable
+          onPress={() => {
+            const isOwner = item.user?._id === currentUser?._id;
+
+            if (isOwner) {
+              Alert.alert('Post options', undefined, [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Delete post', style: 'destructive', onPress: () => onDeletePost(item._id) },
+              ]);
+              return;
             }
-          ]);
-        }} className="p-1">
-          <Ionicons name="ellipsis-horizontal" size={20} color="#8B857E" />
+
+            // Reporting used to be two nested alerts ending in a hardcoded
+            // "Inappropriate content". Asking what is wrong in the same step is
+            // both fewer taps and the only way a moderator learns anything
+            // useful from the report.
+            const report = async (reason: string) => {
+              try {
+                await axios.post('/post/report', { postId: item._id, reason });
+                Toast.show({
+                  type: 'success',
+                  text1: 'Reported',
+                  text2: 'Thanks — we will take a look.',
+                });
+              } catch {
+                Alert.alert('Could not report', 'That did not send. Try again.', [{ text: 'Okay' }]);
+              }
+            };
+
+            Alert.alert('Report this post', 'What is wrong with it?', [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Spam or scam', onPress: () => report('Spam or scam') },
+              { text: 'Harassment or abuse', onPress: () => report('Harassment or abuse') },
+              { text: 'Explicit content', style: 'destructive', onPress: () => report('Explicit content') },
+            ]);
+          }}
+          className="items-center justify-center rounded-full"
+          style={{ width: 40, height: 40 }}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Post options"
+        >
+          <Ionicons name="ellipsis-horizontal" size={20} color="#12100E" />
         </Pressable>
       </View>
 
@@ -481,35 +371,100 @@ const MAX_CHAR_LIMIT = 150;
 
       {/* Action Bar (Reddit Style Pills) */}
       <View className="flex-row items-center gap-2">
-        {/* Vote Pill */}
-        <Animated.View style={{ transform: [{ scale: springValue }] }} className="flex-row items-center bg-paper-2 border border-line rounded-full px-1 py-0.5">
-          <Pressable onPress={() => handleVote('up')} className="p-1.5">
-            <Ionicons name={vote === 'up' ? "arrow-up" : "arrow-up-outline"} size={19} color={vote === 'up' ? "#F97316" : "#57534E"} />
+        {/* The action row.
+            These were bg-paper-2 with a hairline border and ink-3 icons — 2.99:1,
+            the exact visual language of a disabled control. They are live
+            controls, so they sit on white with a 2px ink border.
+
+            The container carries no horizontal padding: that 4px was the white
+            sliver showing beside the filled button. The vote fill is a layer
+            underneath instead, which is what lets it slide between the two
+            positions and change colour on the way. */}
+        <Animated.View
+          style={{ transform: [{ scale: springValue }] }}
+          className="flex-row items-center bg-card border-2 border-ink rounded-full overflow-hidden"
+        >
+          <Animated.View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              left: 0,
+              width: VOTE_BTN,
+              height: VOTE_BTN,
+              borderRadius: VOTE_BTN / 2,
+              opacity: fill,
+              transform: [{
+                translateX: slide.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, VOTE_BTN + VOTE_SCORE_W],
+                }),
+              }],
+              backgroundColor: tint.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['#F97316', '#12100E'],
+              }) as unknown as string,
+            }}
+          />
+
+          <Pressable
+            onPress={() => handleVote('up')}
+            className="items-center justify-center"
+            style={{ width: VOTE_BTN, height: VOTE_BTN }}
+            hitSlop={4}
+            accessibilityRole="button"
+            accessibilityLabel="Upvote"
+            accessibilityState={{ selected: vote === 'up' }}
+          >
+            <Ionicons name={vote === 'up' ? 'arrow-up' : 'arrow-up-outline'} size={18} color="#12100E" />
           </Pressable>
-          <Text className={`font-semibold text-xs px-1 min-w-[20px] text-center ${vote === 'up' ? 'text-brand-500' : vote === 'down' ? 'text-fam-career' : 'text-ink-3'}`}>
-            {score === 0 ? 'Vote' : score > 999 ? formatCount(score) : score}
+
+          <Text
+            className="font-display text-ink text-center"
+            style={{ width: VOTE_SCORE_W, fontSize: 13 }}
+          >
+            {score === 0 ? '0' : score > 999 ? formatCount(score) : score}
           </Text>
-          <Pressable onPress={() => handleVote('down')} className="p-1.5">
-            <Ionicons name={vote === 'down' ? "arrow-down" : "arrow-down-outline"} size={19} color={vote === 'down' ? "#7193FF" : "#57534E"} />
+
+          <Pressable
+            onPress={() => handleVote('down')}
+            className="items-center justify-center"
+            style={{ width: VOTE_BTN, height: VOTE_BTN }}
+            hitSlop={4}
+            accessibilityRole="button"
+            accessibilityLabel="Downvote"
+            accessibilityState={{ selected: vote === 'down' }}
+          >
+            {/* White on ink once the fill arrives underneath it. */}
+            <Ionicons
+              name={vote === 'down' ? 'arrow-down' : 'arrow-down-outline'}
+              size={18}
+              color={vote === 'down' ? '#FFFFFF' : '#12100E'}
+            />
           </Pressable>
         </Animated.View>
 
-        {/* Comment Pill */}
-        <Pressable 
+        <Pressable
           onPress={() => openComments(item._id)}
-          className="flex-row items-center bg-paper-2 border border-line rounded-full px-3 py-1.5"
+          className="flex-row items-center bg-card border-2 border-ink rounded-full px-3"
+          style={{ minHeight: 38 }}
+          accessibilityRole="button"
+          accessibilityLabel={`${displayCommentCount} comments`}
         >
-          <Ionicons name="chatbubble-outline" size={17} color="#8B857E" />
-          <Text className="text-ink-3 font-semibold text-xs ml-1.5">{formatCount(displayCommentCount)}</Text>
+          <Ionicons name="chatbubble-outline" size={16} color="#12100E" />
+          <Text className="font-display text-ink ml-1.5" style={{ fontSize: 13 }}>
+            {formatCount(displayCommentCount)}
+          </Text>
         </Pressable>
 
-        {/* Share Pill */}
-        <Pressable 
+        <Pressable
           onPress={handleShare}
-          className="flex-row items-center bg-paper-2 border border-line rounded-full px-3 py-1.5"
+          className="flex-row items-center bg-card border-2 border-ink rounded-full px-3"
+          style={{ minHeight: 38 }}
+          accessibilityRole="button"
+          accessibilityLabel="Share this post"
         >
-          <Ionicons name="share-social-outline" size={17} color="#8B857E" />
-          <Text className="text-ink-3 font-semibold text-xs ml-1.5">Share</Text>
+          <Ionicons name="paper-plane-outline" size={16} color="#12100E" />
+          <Text className="font-display text-ink ml-1.5" style={{ fontSize: 13 }}>Share</Text>
         </Pressable>
 
         <View className="flex-1" />
@@ -745,6 +700,20 @@ export default function HomeScreen() {
         }
         return post;
       })
+    );
+  }, []);
+
+  /**
+   * Set a post's comment count to the number the server actually returned.
+   *
+   * Distinct from handleCommentAddedInModal, which prepends a comment and adds
+   * one. Passing a count into that path inflated the badge on every refetch.
+   */
+  const handleCommentCount = useCallback((postId: string, count: number) => {
+    setFeed((currentFeed) =>
+      currentFeed.map((post) =>
+        post._id === postId ? { ...post, commentCount: count } : post,
+      ),
     );
   }, []);
 
@@ -1036,12 +1005,13 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       />
 
-      <CommentsModal
-        isVisible={isCommentModalVisible}
-        postId={selectedPostId}
-        currentUser={user}
+      <CommentsSheet
+        visible={isCommentModalVisible}
         onClose={() => setCommentModalVisible(false)}
-        onCommentAdded={handleCommentAddedInModal}
+        resource="post"
+        targetId={selectedPostId}
+        currentUser={user}
+        onCountChange={handleCommentCount}
       />
 
       <StreakLeaderboardModal 

@@ -18,12 +18,14 @@ import { useAuth } from '../context/auth.context';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { StatusBar } from 'expo-status-bar';
+import { useBottomInset } from '../constants/layout';
 
 const { width } = Dimensions.get('window');
 
 export default function RecruiterEditProfile() {
   const { user, setUser } = useAuth();
   const navigation = useNavigation();
+  const bottomInset = useBottomInset();
   const [loading, setLoading] = useState(false);
 
   // --- Recruiter / Company Info ---
@@ -168,7 +170,7 @@ export default function RecruiterEditProfile() {
               <Text className="text-ink-3 text-label font-display uppercase mt-2">Add Banner</Text>
             </View>
           )}
-          <View className="absolute bottom-3 right-3 bg-card/90 p-2 rounded-full shadow-hair">
+          <View className="absolute right-3 bg-card/90 p-2 rounded-full shadow-hair" style={{ bottom: bottomInset + 12 }}>
             <Ionicons name="camera" size={18} color="#4F46E5" />
           </View>
         </TouchableOpacity>
@@ -180,7 +182,7 @@ export default function RecruiterEditProfile() {
               source={{ uri: avatar || 'https://ui-avatars.com/api/?name=Company' }}
               className="h-24 w-24 rounded-full bg-paper-2"
             />
-            <View className="absolute bottom-1 right-1 bg-recruiter p-1.5 rounded-full border-2 border-paper">
+            <View className="absolute right-1 bg-recruiter p-1.5 rounded-full border-2 border-paper" style={{ bottom: bottomInset + 4 }}>
               <Ionicons name="pencil" size={14} color="white" />
             </View>
           </TouchableOpacity>

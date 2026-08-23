@@ -84,10 +84,12 @@ export default function YouTubeShort({
   videoId,
   isActive,
   thumbnail,
+  onUnplayable,
 }: {
   videoId: string;
   isActive: boolean;
   thumbnail?: string;
+  onUnplayable?: (videoId: string, code: number) => void;
 }) {
   const ref = useRef<WebView>(null);
   const [loaded, setLoaded] = useState(false);
@@ -116,12 +118,19 @@ export default function YouTubeShort({
     try { msg = JSON.parse(e.nativeEvent.data); } catch { return; }
     if (msg.type === 'loaded' || msg.type === 'playing') setLoaded(true);
     // 101 and 150 both mean the owner disallows embedding.
-    if (msg.type === 'error') setFailed(msg.code ?? 5);
+    if (msg.type === 'error') {
+      const code = msg.code ?? 5;
+      setFailed(code);
+      // 101 and 150-152 all mean the owner or a region blocks embedding. The
+      // pool filters on videoEmbeddable and status.embeddable, but neither
+      // catches a regional block — it only shows up here, on the device.
+      if ([100, 101, 150, 151, 152].includes(code)) onUnplayable?.(videoId, code);
+    }
   };
 
   if (failed !== null) {
     const reason =
-      failed === 101 || failed === 150 ? 'The owner does not allow this one off YouTube.'
+      [101, 150, 151, 152].includes(failed) ? 'Not available to watch here.'
       : failed === 100 ? 'This video was removed.'
       : failed === 2 ? 'Bad video reference.'
       : failed === -1 ? 'The player page failed to load.'

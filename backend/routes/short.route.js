@@ -1,5 +1,5 @@
 import express from 'express';
-import { getDiscoverFeed } from "../controllers/discover.controller.js";
+import { getDiscoverFeed, reportUnplayable } from "../controllers/discover.controller.js";
 import { addComment, batchViewsInShorts, createShorts, deleteComment, deleteShort, fetchShorts, getAllComments, getShortByShortId, getShortsByUserId, getSmartShorts, getYourShorts, likeAndUnlikeShort, updateComment, updateShort, viewsInShort } from '../controllers/shorts.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { cacheMiddleware } from '../middlewares/cache.middleware.js';
@@ -22,6 +22,7 @@ router.post('/create', authMiddleware, createLimiter, videoUpload.single('video'
 // collection instead, so one upstream fetch serves everybody and the per-user
 // filtering happens after it.
 router.get('/discover', authMiddleware, feedLimiter, getDiscoverFeed);
+router.post('/discover/unplayable', authMiddleware, feedLimiter, reportUnplayable);
 
 router.get('/all', authMiddleware, feedLimiter, cacheMiddleware(60, { tags: ['shorts'] }), fetchShorts);
 router.get('/your', authMiddleware, cacheMiddleware(300, { tags: (req) => [`shorts:user:${req.user.id}`] }), getYourShorts);

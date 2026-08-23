@@ -15,9 +15,11 @@ import * as Sharing from 'expo-sharing';
 // package root leaves them undefined at runtime.
 import * as FileSystem from 'expo-file-system/legacy';
 import { Alert } from '../ui/AlertModal';
+import { useBottomInset } from '../../constants/layout';
 
 export default function ImageToPdfScreen() {
   const navigation = useNavigation();
+  const bottomInset = useBottomInset();
   const [images, setImages] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [generatedPdfUri, setGeneratedPdfUri] = useState<string | null>(null);
@@ -162,7 +164,7 @@ export default function ImageToPdfScreen() {
                 >
                   <Ionicons name="close" size={18} color="white" />
                 </TouchableOpacity>
-                <View className="absolute bottom-2 left-2 bg-black/50 px-2 py-1 rounded-md backdrop-blur-md">
+                <View className="absolute left-2 bg-black/50 px-2 py-1 rounded-md backdrop-blur-md" style={{ bottom: bottomInset + 8 }}>
                   <Text className="text-white text-label font-semibold">PAGE {index + 1}</Text>
                 </View>
               </View>
@@ -172,7 +174,7 @@ export default function ImageToPdfScreen() {
       </ScrollView>
 
       {images.length > 0 && (
-        <View className="absolute bottom-0 left-0 right-0 p-5 bg-card/90 backdrop-blur-xl border-t border-line">
+        <View className="absolute left-0 right-0 p-5 bg-card/90 backdrop-blur-xl border-t border-line" style={{ bottom: bottomInset }}>
           {!generatedPdfUri ? (
             <TouchableOpacity
               onPress={generatePdf}

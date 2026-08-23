@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import Skeleton, { ConfessionSkeleton } from '../Skeleton';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Alert } from '../ui/AlertModal';
+import { useBottomInset } from '../../constants/layout';
 
 const { width } = Dimensions.get('window');
 const ANONYMOUS_AVATAR = 'https://ui-avatars.com/api/?name=?&background=f1f5f9&color=64748b&bold=true';
@@ -130,6 +131,7 @@ const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navi
 const ConfessionFeed = () => {
     const { user } = useAuth();
     const navigation = useNavigation<any>();
+    const bottomInset = useBottomInset();
     const [confessions, setConfessions] = useState<any[]>(globalConfessionsCache);
     const [loading, setLoading] = useState(globalConfessionsCache.length === 0);
     const [isPostModalOpen, setIsPostModalOpen] = useState(false);
@@ -605,7 +607,7 @@ const ConfessionFeed = () => {
                                 }
                             />
 
-                            <View className="absolute bottom-10 left-8 right-8">
+                            <View className="absolute left-8 right-8" style={{ bottom: bottomInset + 40 }}>
                                 {replyTo && (
                                     <View className="bg-paper-2 p-4 rounded-t-sheet border-l-4 border-brand-500 flex-row items-center justify-between border-t border-r border-line">
                                         <Text className="text-accent-text text-label font-display uppercase">Replying to @{replyTo.commentor?.username}</Text>

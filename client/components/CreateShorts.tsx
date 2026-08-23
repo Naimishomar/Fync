@@ -14,6 +14,7 @@ import StreakModal from './StreakModal';
 import { useAuth } from "../context/auth.context";
 import { compressVideo } from "../utils/mediaUpload";
 import { Alert } from './ui/AlertModal';
+import { useBottomInset } from '../constants/layout';
 
 const { width, height } = Dimensions.get("window");
 const COLUMN_COUNT = 3;
@@ -84,6 +85,7 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
 const CreateShorts = () => {
   const { setUser } = useAuth();
   const navigation = useNavigation<any>();
+  const bottomInset = useBottomInset();
   const videoRef = useRef<Video>(null);
 
   // States
@@ -260,7 +262,7 @@ const CreateShorts = () => {
                 />
                 <TouchableOpacity 
                   onPress={() => setIsMuted(!isMuted)}
-                  className="absolute bottom-4 right-4 bg-black/40 w-10 h-10 rounded-full items-center justify-center border border-white/20"
+                  className="absolute right-4 bg-black/40 w-10 h-10 rounded-full items-center justify-center border border-white/20" style={{ bottom: bottomInset + 16 }}
                 >
                   <Ionicons name={isMuted ? "volume-mute" : "volume-high"} size={18} color="white" />
                 </TouchableOpacity>

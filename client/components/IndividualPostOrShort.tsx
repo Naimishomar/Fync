@@ -14,6 +14,8 @@ import { memo } from 'react';
 import Avatar from './Avatar';
 import { getFullUrl } from '../utils/imageUtils';
 import { Alert } from './ui/AlertModal';
+import { useBottomInset } from '../constants/layout';
+import CommentsSheet from './ui/CommentsSheet';
 
 const { width, height } = Dimensions.get('window');
 const SCREEN_WIDTH = Dimensions.get('screen').width;
@@ -120,211 +122,6 @@ const CommentItem = memo(({
 ));
 
 // --- 1. UNIFIED COMMENTS MODAL ---
-const UnifiedCommentsModal = ({ isVisible, id, isShort, onClose, currentUser, onCommentAdded }: any) => {
-    const [comments, setComments] = useState<any[]>([]);
-    const [newComment, setNewComment] = useState('');
-    const [loading, setLoading] = useState(true);
-    const [posting, setPosting] = useState(false);
-
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [editingText, setEditingText] = useState("");
-    const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
-    const [replyingTo, setReplyingTo] = useState<any>(null);
-    const commentInputRef = useRef<TextInput>(null);
-
-    const endpoints = useMemo(() => getEndpoints(isShort, id), [isShort, id]);
-
-    const fetchComments = useCallback(async () => {
-        setLoading(true);
-        try {
-            const res = await axios.get(endpoints.getComments);
-            if (res.data.success) {
-                setComments(res.data.comments);
-            }
-        } catch (error) {
-            console.log("Error loading comments", error);
-        } finally {
-            setLoading(false);
-        }
-    }, [endpoints.getComments]);
-
-    useEffect(() => {
-        if (isVisible && id) fetchComments();
-    }, [isVisible, id]);
-
-    const handlePostComment = async () => {
-        if (!newComment.trim()) return;
-        setPosting(true);
-        try {
-            const res = await axios.post(endpoints.addComment, { 
-                text: newComment,
-                parentCommentId: replyingTo?._id || null
-            });
-            if (res.data.success) {
-                fetchComments(); 
-                setNewComment('');
-                setReplyingTo(null);
-                if (onCommentAdded) onCommentAdded();
-            }
-        } catch (error) {
-            Alert.alert("Error", "Could not post comment");
-        } finally {
-            setPosting(false);
-        }
-    };
-
-    const handleUpdateComment = async (commentId: string) => {
-        if (!editingText.trim()) return;
-        setActionLoadingId(commentId);
-        try {
-            const url = `${endpoints.updateComment}/${commentId}`;
-            await axios.post(url, { text: editingText });
-            fetchComments();
-            setEditingId(null);
-            setEditingText("");
-        } catch (error) {
-            Alert.alert("Error", "Update failed");
-        } finally {
-            setActionLoadingId(null);
-        }
-    };
-
-    const handleDeleteComment = async (commentId: string) => {
-        setActionLoadingId(commentId);
-        try {
-            const url = `${endpoints.deleteComment}/${commentId}`;
-            await axios.post(url).catch(() => axios.delete(url));
-            fetchComments();
-        } catch (error) {
-            Alert.alert("Error", "Delete failed");
-        } finally {
-            setActionLoadingId(null);
-        }
-    };
-
-    return (
-        <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={onClose}>
-            {/* behavior must be set on Android too. It was undefined, which
-                means no avoidance at all — and inside a Modal the manifest's
-                adjustResize does not reach here either. */}
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                className="flex-1 justify-end"
-                style={{ backgroundColor: 'rgba(18,16,14,0.6)' }}
-            >
-                <Pressable className="flex-1" onPress={onClose} />
-
-                {/* A column that can shrink, not a fixed 75% box. The composer
-                    below is a normal sibling rather than absolutely positioned:
-                    pinned to the bottom of a fixed-height container it could
-                    never rise, whatever the keyboard did. */}
-                <View
-                    className="bg-paper rounded-t-sheet pt-4 border-t-2 border-x-2 border-ink"
-                    style={{ maxHeight: '85%', flexShrink: 1 }}
-                >
-                    <View className="items-center mb-3">
-                        <View className="h-1 w-10 bg-ink-3 rounded-full mb-3" />
-                    </View>
-
-                    {/* Title left-aligned under a section rule, matching the rest
-                        of the app rather than the centred sheet this used to be. */}
-                    <View className="px-5 mb-3">
-                        <Text className="font-display text-xl text-ink">Comments</Text>
-                        <View className="h-[2px] bg-ink mt-1" style={{ width: 44 }} />
-                    </View>
-
-                    {/* List */}
-                    {loading ? (
-                        <View className="flex-1 items-center justify-center" style={{ minHeight: 220 }}>
-                            <ActivityIndicator size="large" color="#F97316" />
-                        </View>
-                    ) : (
-                        <FlatList
-                            data={comments}
-                            keyExtractor={(item) => item._id}
-                            showsVerticalScrollIndicator={false}
-                            className="flex-1"
-                            keyboardShouldPersistTaps="handled"
-                            contentContainerStyle={{ paddingBottom: 16, paddingHorizontal: 16 }}
-                            initialNumToRender={10}
-                            maxToRenderPerBatch={10}
-                            windowSize={5}
-                            removeClippedSubviews={Platform.OS === 'android'}
-                            ListEmptyComponent={
-                                <View className="items-center mt-16 px-10">
-                                    <Ionicons name="chatbubble-ellipses-outline" size={44} color="#C4BEB6" />
-                                    <Text className="font-display text-base text-ink mt-3">No comments yet</Text>
-                                    <Text className="font-sans text-ink-3 mt-1 text-center" style={{ fontSize: 12 }}>
-                                        Say the first thing.
-                                    </Text>
-                                </View>
-                            }
-                            renderItem={({ item }) => (
-                                <CommentItem 
-                                    comment={item}
-                                    currentUser={currentUser}
-                                    onReply={(c: any) => {
-                                        setReplyingTo(c);
-                                        setNewComment(`@${c.commentor.username} `);
-                                        commentInputRef.current?.focus();
-                                    }}
-                                    onDelete={handleDeleteComment}
-                                    onEdit={(c: any) => {
-                                        setEditingId(c._id);
-                                        setEditingText(c.text);
-                                    }}
-                                    editingId={editingId}
-                                    editingText={editingText}
-                                    setEditingText={setEditingText}
-                                    handleUpdate={handleUpdateComment}
-                                    actionLoadingId={actionLoadingId}
-                                />
-                            )}
-                        />
-                    )}
-
-                    {/* Input */}
-                    <View className="border-t-2 border-ink bg-white px-3 pt-2 pb-3">
-                        {replyingTo && (
-                            <View className="flex-row items-center justify-between bg-paper px-3 py-2 mb-2 rounded-xl mx-2 border-2 border-ink">
-                                <Text className="text-ink-3 text-xs">Replying to <Text className="font-semibold text-ink">@{replyingTo.commentor?.username}</Text></Text>
-                                <Pressable onPress={() => setReplyingTo(null)}>
-                                    <Ionicons name="close-circle" size={18} color="#C4BEB6" />
-                                </Pressable>
-                            </View>
-                        )}
-                        <View className="flex-row items-center px-2">
-                            <TextInput
-                                ref={commentInputRef}
-                                value={newComment}
-                                onChangeText={setNewComment}
-                                placeholder={replyingTo ? "Add a reply..." : "Add a comment..."}
-                                placeholderTextColor="#C4BEB6"
-                                className="flex-1 text-ink bg-paper border-2 border-ink rounded-xl px-4 mr-2"
-                                style={{ minHeight: 46, maxHeight: 110, paddingTop: 12, paddingBottom: 12 }}
-                                multiline
-                            />
-                            {/* 44x44 minimum, and a filled button rather than bare
-                                text — the old one was a ~20px tap target. */}
-                            <TouchableOpacity
-                                onPress={handlePostComment}
-                                disabled={posting || !newComment.trim()}
-                                className={`items-center justify-center rounded-xl border-2 border-ink ${!newComment.trim() ? 'bg-paper' : 'bg-brand-500'}`}
-                                style={{ width: 52, height: 46, opacity: posting ? 0.6 : 1 }}
-                                accessibilityRole="button"
-                                accessibilityLabel={replyingTo ? 'Post reply' : 'Post comment'}
-                            >
-                                {posting
-                                    ? <ActivityIndicator size="small" color="#12100E" />
-                                    : <Ionicons name="arrow-up" size={20} color={!newComment.trim() ? '#8B857E' : '#12100E'} />}
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </KeyboardAvoidingView>
-        </Modal>
-    );
-};
 
 // --- 2. MAIN COMPONENT ---
 /**
@@ -366,6 +163,12 @@ const SheetAction = ({
 );
 
 const IndividualPostOrShort = ({ route, navigation }: any) => {
+    const bottomInset = useBottomInset();
+
+    /** Stable identity, so the sheet's fetch effect does not re-fire. */
+    const handleCommentCount = useCallback(() => {
+        handleCommentAdded?.();
+    }, []);
     const { postId, shortId } = route.params;
     const isShort = !!shortId;
     const id = shortId || postId;
@@ -621,7 +424,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                         pointerEvents="none"
                     />
 
-                    <View className="absolute bottom-12 left-4 right-4 flex-row justify-between items-end">
+                    <View className="absolute left-4 right-4 flex-row justify-between items-end" style={{ bottom: bottomInset + 24 }}>
                         <View className="flex-1 pr-6">
                             <Pressable onPress={() => navigation.navigate("PublicProfile", { user: data.user })} className="flex-row items-center mb-3">
                                 <Avatar user={data.user as any} size={40} />
@@ -1029,13 +832,13 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                 </KeyboardAvoidingView>
             </Modal>
 
-            <UnifiedCommentsModal
-                isVisible={isCommentModalVisible}
-                id={id}
-                isShort={isShort}
-                currentUser={currentUser}
+            <CommentsSheet
+                visible={isCommentModalVisible}
                 onClose={() => setCommentModalVisible(false)}
-                onCommentAdded={handleCommentAdded}
+                resource={isShort ? 'shorts' : 'post'}
+                targetId={id}
+                currentUser={currentUser}
+                onCountChange={handleCommentCount}
             />
         </>
     );
