@@ -102,12 +102,12 @@ const CreateProblem: React.FC = () => {
           className="flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors mb-12 group"
         >
           <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Abort Architecting / Return to Command</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">Cancel and go back</span>
         </button>
 
         <header className="mb-12">
-          <h1 className="text-5xl font-black  tracking-tighter uppercase mb-4 leading-none">Architect Challenge</h1>
-          <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.3em]">Define validation vectors for new arena missions.</p>
+          <h1 className="text-5xl font-black  tracking-tighter uppercase mb-4 leading-none">New problem</h1>
+          <p className="text-sm text-slate-500 leading-relaxed">Write the statement and the test cases students will be judged against.</p>
         </header>
 
         <form onSubmit={handleSave} className="space-y-12">
@@ -118,15 +118,15 @@ const CreateProblem: React.FC = () => {
                 <Target className="text-indigo-600" size={24} />
               </div>
               <div>
-                <h2 className="text-2xl font-black  tracking-tighter uppercase">Mission Parameters</h2>
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Primary Core Definitions</p>
+                <h2 className="text-2xl font-black  tracking-tighter uppercase">Basics</h2>
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Basics</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="space-y-8">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Challenge Title</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Title</label>
                   <input
                     required
                     value={title}
@@ -136,7 +136,7 @@ const CreateProblem: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Category Protocol</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Category</label>
                   <input
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
@@ -164,7 +164,7 @@ const CreateProblem: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex-1">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Bounty (CP)</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Points</label>
                     <input
                       type="number"
                       value={points}
@@ -174,7 +174,7 @@ const CreateProblem: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Descriptor Tags</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Tags</label>
                   <input
                     value={tags}
                     onChange={(e) => setTags(e.target.value)}
@@ -185,7 +185,7 @@ const CreateProblem: React.FC = () => {
               </div>
 
               <div className="col-span-full">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Mission Briefing (Intelligence)</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Description</label>
                 <textarea
                   required
                   value={description}
@@ -197,7 +197,7 @@ const CreateProblem: React.FC = () => {
             </div>
           </section>
 
-          {/* Section 2: Validation Vectors */}
+          {/* Section 2: Test cases */}
           <section className="bg-white border border-slate-200 rounded-[48px] p-12 shadow-xl shadow-slate-200/50">
             <div className="flex items-center justify-between mb-12">
               <div className="flex items-center gap-5">
@@ -205,8 +205,8 @@ const CreateProblem: React.FC = () => {
                   <FlaskConical className="text-rose-600" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-black  tracking-tighter uppercase">Validation Vectors</h2>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Test Case Integrity Matrix</p>
+                  <h2 className="text-2xl font-black  tracking-tighter uppercase">Test cases</h2>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Test cases</p>
                 </div>
               </div>
               <button
@@ -229,7 +229,7 @@ const CreateProblem: React.FC = () => {
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
                       <span className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-slate-900 shadow-sm border border-slate-100 ">{i + 1}</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Operational Vector</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Status</span>
                     </div>
                     <div className="flex items-center gap-8">
                       <label className="flex items-center gap-3 cursor-pointer group/toggle">
@@ -242,7 +242,7 @@ const CreateProblem: React.FC = () => {
                         <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all ${tc.isHidden ? 'bg-pink-600 border-pink-600 shadow-lg shadow-pink-600/20' : 'border-slate-300 bg-white'}`}>
                           {tc.isHidden && <Zap size={10} className="text-white" fill="white" />}
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover/toggle:text-slate-900 transition-colors">Hidden Vector</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover/toggle:text-slate-900 transition-colors">Hidden case</span>
                       </label>
                       {testCases.length > 1 && (
                         <button
@@ -258,7 +258,7 @@ const CreateProblem: React.FC = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                      <p className="text-[9px] font-black uppercase text-slate-400 mb-3 px-1">Input Stream</p>
+                      <p className="text-[9px] font-black uppercase text-slate-400 mb-3 px-1">Input</p>
                       <textarea
                         value={tc.input}
                         onChange={(e) => updateTestCase(i, 'input', e.target.value)}
@@ -267,7 +267,7 @@ const CreateProblem: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <p className="text-[9px] font-black uppercase text-slate-400 mb-3 px-1">Output Signature</p>
+                      <p className="text-[9px] font-black uppercase text-slate-400 mb-3 px-1">Expected output</p>
                       <textarea
                         value={tc.expectedOutput}
                         onChange={(e) => updateTestCase(i, 'expectedOutput', e.target.value)}
@@ -281,15 +281,15 @@ const CreateProblem: React.FC = () => {
             </div>
           </section>
 
-          {/* Section 3: Neural Scaffolding */}
+          {/* Section 3: Starter code */}
           <section className="bg-white border border-slate-200 rounded-[48px] p-12 shadow-xl shadow-slate-200/50">
             <div className="flex items-center gap-5 mb-12">
               <div className="bg-emerald-50 p-4 rounded-3xl">
                 <Code className="text-emerald-600" size={24} />
               </div>
               <div>
-                <h2 className="text-2xl font-black  tracking-tighter uppercase">Neural Scaffolding</h2>
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Starter Code Generation</p>
+                <h2 className="text-2xl font-black  tracking-tighter uppercase">Starter code</h2>
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Starter code</p>
               </div>
             </div>
 
@@ -347,8 +347,8 @@ const CreateProblem: React.FC = () => {
               <Zap size={24} className="text-white" fill="white" />
             </div>
             <div>
-              <p className="font-black uppercase text-[10px] tracking-widest text-emerald-600 mb-1">Signal Locked</p>
-              <p className="text-[11px] font-black uppercase  text-slate-900">Mission architected successfully</p>
+              <p className="font-black uppercase text-[10px] tracking-widest text-emerald-600 mb-1">You are in</p>
+              <p className="text-[11px] font-black uppercase  text-slate-900">Problem saved</p>
             </div>
             <motion.div
               initial={{ width: '0%' }}

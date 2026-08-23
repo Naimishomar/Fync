@@ -96,14 +96,14 @@ const Matchmaking: React.FC = () => {
             <div className="bg-white p-10 rounded-[56px] border border-slate-200 mb-12 mx-auto w-fit shadow-2xl shadow-indigo-500/10">
               <Swords size={80} className="text-indigo-600" />
             </div>
-            <h1 className="text-6xl font-black  tracking-tighter uppercase mb-4 leading-none">1v1 Combat Protocol</h1>
-            <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.4em] mb-14">Universal Matchmaking Service Activated</p>
+            <h1 className="text-6xl font-black  tracking-tighter uppercase mb-4 leading-none">1v1 code duel</h1>
+            <p className="text-slate-500 text-sm leading-relaxed mb-14 max-w-sm mx-auto">You and your opponent get the same problem. First correct solution wins.</p>
 
             <button
               onClick={startSearch}
               className="bg-slate-900 text-white px-16 py-6 rounded-[2.5rem] text-[11px] font-black uppercase tracking-[0.3em] shadow-2xl shadow-slate-900/20 hover:shadow-slate-900/40 transition-all hover:-translate-y-2 active:scale-95 hover:bg-black"
             >
-              Initialize Search
+              Find an opponent
             </button>
           </motion.div>
         )}
@@ -141,7 +141,7 @@ const Matchmaking: React.FC = () => {
             </div>
 
             <div className="text-center">
-              <p className="text-slate-400 font-black  uppercase text-[11px] tracking-[0.2em] mb-3">Scanning Neural Channels</p>
+              <p className="text-slate-400 font-black  uppercase text-[11px] tracking-[0.2em] mb-3">Looking for an opponent</p>
               <h2 className="text-4xl font-black  tracking-tighter uppercase mb-8 flex items-center gap-6 justify-center">
                 Searching for Rival <span className="text-pink-600 tabular-nums">/{timer}s</span>
               </h2>
@@ -181,7 +181,7 @@ const Matchmaking: React.FC = () => {
               <div className="flex flex-col items-center">
                 <Zap size={40} className="text-amber-500 mb-3 animate-bounce" />
                 <div className="px-5 py-2 bg-emerald-50 rounded-full">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 ">SIGNAL LOCKED</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 ">Locked</p>
                 </div>
               </div>
               <div className="bg-slate-50 border-2 border-pink-500/20 w-36 h-36 rounded-[48px] flex items-center justify-center shadow-xl">
@@ -213,8 +213,8 @@ const Matchmaking: React.FC = () => {
             <div className="bg-rose-50 w-24 h-24 rounded-[32px] flex items-center justify-center mx-auto mb-8 shadow-inner border border-rose-100">
               <AlertCircle size={48} className="text-rose-600" />
             </div>
-            <h2 className="text-3xl font-black  tracking-tighter uppercase mb-4 text-rose-600">Signal Corruption</h2>
-            <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-12 max-w-xs mx-auto leading-relaxed">Unable to establish secure uplink to Matchmaking HQ. Check your network nodes and retry.</p>
+            <h2 className="text-3xl font-black  tracking-tighter uppercase mb-4 text-rose-600">Connection failed</h2>
+            <p className="text-slate-500 text-sm mb-12 max-w-xs mx-auto leading-relaxed">Could not reach matchmaking. Check your connection and try again.</p>
             <button
               onClick={() => window.location.reload()}
               className="bg-slate-900 text-white px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-black transition-all"

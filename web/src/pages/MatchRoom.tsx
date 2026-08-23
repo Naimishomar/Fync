@@ -100,7 +100,7 @@ const MatchRoom: React.FC = () => {
         <div className="bg-white border border-slate-200 w-24 h-24 rounded-[32px] flex items-center justify-center mx-auto mb-8 shadow-xl">
           <ShieldAlert size={40} className="text-rose-600" />
         </div>
-        <h2 className="text-3xl font-black tracking-tighter uppercase mb-4 text-rose-600">Battle Room Unreachable</h2>
+        <h2 className="text-3xl font-black tracking-tighter uppercase mb-4 text-rose-600">Could not open that match</h2>
         <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-10">{failed}</p>
         <button onClick={() => navigate('/arena')} className="bg-slate-900 text-white px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-black transition-all">
           Return to Arena
@@ -113,7 +113,7 @@ const MatchRoom: React.FC = () => {
     <div className="flex min-h-screen items-center justify-center bg-slate-50">
       <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="flex flex-col items-center">
         <div className="w-12 h-12 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest mt-4">Establishing Battle Uplink...</p>
+        <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest mt-4">Match found — opening it now</p>
       </motion.div>
     </div>
   );
@@ -133,7 +133,7 @@ const MatchRoom: React.FC = () => {
           <h1 className="text-base font-black uppercase tracking-tighter">Live Duel</h1>
           <div className="flex items-center gap-2 px-3 py-2 bg-slate-900 rounded-xl shadow-xl">
             <div className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-            <span className="text-[8px] font-black uppercase text-slate-300">{connected ? 'Uplink Stable' : 'Uplink Lost'}</span>
+            <span className="text-[8px] font-black uppercase text-slate-300">{connected ? 'Connected' : 'Disconnected'}</span>
           </div>
         </div>
 
@@ -177,10 +177,10 @@ const MatchRoom: React.FC = () => {
               </div>
               <div className="bg-slate-50 border border-slate-100 p-6 rounded-[24px]">
                 <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Mode</p>
-                <p className="text-sm font-black uppercase text-rose-600">1v1 Combat</p>
+                <p className="text-sm font-black uppercase text-rose-600">1v1 duel</p>
               </div>
               <div className="bg-slate-50 border border-slate-100 p-6 rounded-[24px]">
-                <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Battle ID</p>
+                <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Match ID</p>
                 <p className="text-sm font-black uppercase text-slate-900">{roomId?.substring(roomId.lastIndexOf(':') + 1)}</p>
               </div>
             </div>
@@ -193,13 +193,13 @@ const MatchRoom: React.FC = () => {
             </div>
 
             <div className="space-y-8">
-              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 px-2">Intelligence Vectors</h4>
+              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 px-2">Test cases</h4>
               {problem.testCases?.filter((t: any) => !t.isHidden).map((tc: any, i: number) => (
                 <div key={i} className="bg-slate-50 rounded-[28px] p-8 border border-slate-100 shadow-sm">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6">Sanitization Case #{i + 1}</h4>
                   <div className="space-y-6">
                     <div>
-                      <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-2 px-1">Input Signal</p>
+                      <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-2 px-1">Input</p>
                       <code className="block bg-white border border-slate-200 p-4 rounded-2xl text-indigo-600 font-mono text-sm shadow-sm">{tc.input}</code>
                     </div>
                     <div>
@@ -239,7 +239,7 @@ const MatchRoom: React.FC = () => {
             <div className="flex items-center justify-between px-8 py-3 bg-white border-b border-slate-200">
               <div className="flex items-center gap-3">
                 <Terminal size={14} className="text-pink-600" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Combat Telemetry</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Match status</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock size={12} className="text-indigo-500" />
@@ -259,7 +259,7 @@ const MatchRoom: React.FC = () => {
                   </motion.div>
                 ) : opponentLeft ? (
                   <motion.div key="left" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center h-full">
-                    <p className="text-xl font-black uppercase tracking-tighter text-slate-700">Opponent has fled the arena — Victory by default</p>
+                    <p className="text-xl font-black uppercase tracking-tighter text-slate-700">Your opponent left. You win.</p>
                   </motion.div>
                 ) : (
                   <motion.div key="telemetry" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -272,7 +272,7 @@ const MatchRoom: React.FC = () => {
                     {result && (
                       <div className="flex items-center gap-10">
                         <span className="text-xs font-black text-emerald-600 uppercase tracking-tighter">{result.passedCount} / {result.totalCount} PASSED</span>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-300">Judge0 Evaluation</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-300">Judged by Judge0</span>
                       </div>
                     )}
                   </motion.div>

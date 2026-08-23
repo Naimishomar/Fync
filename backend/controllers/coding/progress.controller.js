@@ -35,7 +35,7 @@ export const getArenaProgress = async (req, res) => {
         .select("status passedCount totalCount language createdAt problem")
         .lean(),
 
-      User.findById(userId).select("streakCount highestStreak codingStats coins").lean(),
+      User.findById(userId).select("streakCount highestStreak codingStats coins codingRating contestHistory").lean(),
 
       // Full history with the student's own result, plus where they placed.
       // A contest list without your score is just a calendar.
@@ -53,6 +53,22 @@ export const getArenaProgress = async (req, res) => {
 
     const solved = Object.values(byDifficulty).reduce((a, b) => a + b, 0);
     const totals = await Problem.countDocuments({});
+
+    const rating = user?.codingRating ?? 1200;
+    const contestsPlayed = user?.contestHistory?.length ?? 0;
+
+    /**
+     * Global rank by contest rating.
+     *
+     * Standard competition ranking: one plus the number of students rated
+     * strictly higher, so everyone on the same rating shares a rank. That means
+     * a student who has never entered a contest sits tied with every other
+     * untouched account, which is not a rank worth showing — so it is withheld
+     * until they have actually played one, and the client shows a dash.
+     */
+    const rank = contestsPlayed
+      ? 1 + (await User.countDocuments({ codingRating: { $gt: rating }, isBanned: { $ne: true } }))
+      : null;
 
     // Rank is computed from the participant list already loaded rather than a
     // second query per contest.
@@ -125,6 +141,12 @@ export const getArenaProgress = async (req, res) => {
           return daySet.has(IST(d));
         }),
         coins: user?.coins ?? 0,
+        rating,
+        rank,
+        contestsPlayed,
+        // Solved on LeetCode and GFG, pulled in by the profile sync. Kept
+        // separate from `solved`, which counts problems solved in this arena —
+        // the dashboard was showing the external number under an arena label.
         externalSolved: user?.codingStats?.totalSolved ?? 0,
         recent,
         contests: contestHistory,

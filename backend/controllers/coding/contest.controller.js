@@ -1,5 +1,6 @@
 import Contest from '../../models/coding/contest.model.js';
 import Problem from '../../models/coding/problem.model.js';
+import ContestManager from '../../services/contestManager.js';
 
 export const getUpcomingContests = async (req, res) => {
   try {
@@ -130,6 +131,16 @@ export const getArchivedContests = async (req, res) => {
       ]
     }).sort({ endTime: -1 }).populate('problems', 'title difficulty');
     res.json(contests);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getContestLeaderboard = async (req, res) => {
+  try {
+    const board = await ContestManager.leaderboard(req.params.id);
+    if (!board) return res.status(404).json({ message: 'Contest not found' });
+    res.json(board);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

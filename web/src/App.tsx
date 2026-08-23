@@ -14,6 +14,8 @@ import BugFinder from './pages/BugFinder';
 import Login from './pages/Login';
 import ArenaAdminDashboard from './pages/ArenaAdminDashboard';
 import CreateProblem from './pages/CreateProblem';
+import ImportProblem from './pages/ImportProblem';
+import TeamArena from './pages/TeamArena';
 import CreateBugMission from './pages/CreateBugMission';
 import CreateContest from './pages/CreateContest';
 import ContestDetails from './pages/ContestDetails';
@@ -48,6 +50,7 @@ function App() {
             <Route path="/arena/contest/:contestId" element={<ContestDetails />} />
             <Route path="/arena/problem/:problemId" element={<CodingArena />} />
             <Route path="/arena/matchmaking" element={<Matchmaking />} />
+            <Route path="/arena/teams" element={<TeamArena />} />
             <Route path="/arena/match/:roomId" element={<MatchRoom />} />
             <Route path="/arena/bugs" element={<BugFinder />} />
             <Route path="/arena/bug/:problemId" element={<CodingArena />} />
@@ -56,6 +59,7 @@ function App() {
             {/* Arena Admin Routes */}
             <Route path="/arena/admin" element={<ArenaAdminDashboard />} />
             <Route path="/arena/admin/create-problem" element={<CreateProblem />} />
+            <Route path="/arena/admin/import" element={<ImportProblem />} />
             <Route path="/arena/admin/create-bug" element={<CreateBugMission />} />
             <Route path="/arena/admin/create-contest" element={<CreateContest />} />
             <Route path="*" element={<NotFound />} />

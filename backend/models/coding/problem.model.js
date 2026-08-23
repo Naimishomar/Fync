@@ -20,6 +20,10 @@ const problemSchema = new mongoose.Schema({
   constraints: [String],
   timeLimit: { type: Number, default: 1000 }, // ms
   memoryLimit: { type: Number, default: 256 }, // MB
+  // Where an imported problem came from. sourceUrl is the dedupe key for
+  // re-imports and the attribution link shown to solvers.
+  source: { type: String, enum: ['manual', 'leetcode', 'codeforces', 'code_contests'], default: 'manual' },
+  sourceUrl: { type: String },
   points: { type: Number, default: 100 },
   createdAt: { type: Date, default: Date.now }
 });

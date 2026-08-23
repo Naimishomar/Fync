@@ -23,6 +23,24 @@ router.post('/problems/import', ArenaAdminController.importProblems);
 router.get('/problems', ArenaAdminController.getProblems);
 
 /**
+ * @route   GET /arena/admin/external/search
+ * @desc    Search LeetCode / Codeforces for problems to import
+ */
+router.get('/external/search', ArenaAdminController.searchExternal);
+
+/**
+ * @route   GET /arena/admin/external/preview
+ * @desc    Preview what an import would create, without saving
+ */
+router.get('/external/preview', ArenaAdminController.previewExternal);
+
+/**
+ * @route   POST /arena/admin/external/import
+ * @desc    Import a source problem into the problem bank
+ */
+router.post('/external/import', ArenaAdminController.importExternal);
+
+/**
  * @route   POST /arena/admin/bug-problems
  * @desc    Create a new bug mission
  */
@@ -45,5 +63,11 @@ router.post('/contests', ArenaAdminController.createContest);
  * @desc    Get administrative dashboard stats
  */
 router.get('/stats', ArenaAdminController.getDashboardStats);
+
+/**
+ * @route   GET /arena/admin/contests
+ * @desc    All contests for the admin overview
+ */
+router.get('/contests', ArenaAdminController.getContests);
 
 export default router;

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { motion } from 'framer-motion';
 import {
   Mail,
@@ -23,6 +24,17 @@ import { useNavigate } from 'react-router-dom';
 const Profile: React.FC = () => {
   const { user, loading, token } = useAuth();
   const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const [progress, setProgress] = useState<any>(null);
+
+  // Declared before the early returns below, or the hook order changes between
+  // the loading render and the loaded one.
+  useEffect(() => {
+    if (!token) return;
+    axios.get(`${API_URL}/arena/progress`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => setProgress(r.data.progress))
+      .catch(() => void 0);
+  }, [token]);
 
   if (loading) {
     return (
@@ -38,9 +50,12 @@ const Profile: React.FC = () => {
   }
 
   const stats = [
-    { label: 'CP Points', value: user.coins || 0, icon: <Zap className="text-amber-500" /> },
-    { label: 'Arena Rating', value: user.codingRating || 1200, icon: <Target className="text-indigo-600" /> },
-    { label: 'Missions', value: user.codingStats?.totalSolved || 0, icon: <Trophy className="text-pink-600" /> },
+    { label: 'Coins', value: user.coins || 0, icon: <Zap className="text-amber-500" /> },
+    { label: 'Arena Rating', value: progress?.rating ?? user.codingRating ?? 1200, icon: <Target className="text-indigo-600" /> },
+    // Problems solved in this arena. This tile used to read the profile-sync
+    // total from codingStats, which is the LeetCode and GFG count broken out
+    // separately further down the page — not arena work.
+    { label: 'Arena Solved', value: progress?.solved ?? '—', icon: <Trophy className="text-pink-600" /> },
     { label: 'Fync Score', value: user.fyncScore || 0, icon: <Star className="text-emerald-500" /> }
   ];
 
@@ -130,7 +145,7 @@ const Profile: React.FC = () => {
 
             {/* About Node */}
             <div className="bg-white border border-slate-200 rounded-[40px] p-10 shadow-xl shadow-slate-200/50">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-8 border-b border-slate-100 pb-4">Commander Intel</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-8 border-b border-slate-100 pb-4">About</h3>
               <p className="text-slate-600 text-sm leading-relaxed font-medium mb-10">
                 {user.about || "This user has not yet initialized their orbital briefing. A mysterious entity in the Fync ecosystem."}
               </p>
@@ -153,19 +168,19 @@ const Profile: React.FC = () => {
 
             {/* Social Terminals */}
             <div className="bg-white border border-slate-200 rounded-[40px] p-10 shadow-xl shadow-slate-200/50">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-8 border-b border-slate-100 pb-4">Neural Terminals</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-8 border-b border-slate-100 pb-4">Starter code</h3>
               <div className="grid grid-cols-1 gap-4">
                 <a href={`https://github.com/${user.githubUsername || ''}`} target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-indigo-600 group transition-all">
                   <div className="flex items-center gap-4">
                     <Github className="text-slate-400 group-hover:text-slate-900 transition-colors" size={20} />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">GitHub Portal</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">GitHub</span>
                   </div>
                   <ChevronRight size={16} className="text-slate-300 group-hover:text-slate-900" />
                 </a>
                 <a href={user.linkedIn || '#'} target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-indigo-600 group transition-all">
                   <div className="flex items-center gap-4">
                     <Linkedin className="text-slate-400 group-hover:text-indigo-600 transition-colors" size={20} />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">LinkedIn Relay</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">LinkedIn</span>
                   </div>
                   <ChevronRight size={16} className="text-slate-300 group-hover:text-indigo-600" />
                 </a>
@@ -179,8 +194,8 @@ const Profile: React.FC = () => {
             <div className="bg-white border border-slate-200 rounded-[48px] p-12 shadow-xl shadow-slate-200/50">
               <div className="flex items-center justify-between mb-12">
                 <div>
-                  <h3 className="text-2xl font-black  tracking-tighter uppercase text-slate-900 mb-1">Algorithmic Telemetry</h3>
-                  <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Competitive programming matrix</p>
+                  <h3 className="text-2xl font-black  tracking-tighter uppercase text-slate-900 mb-1">Your stats</h3>
+                  <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Competitive programming</p>
                 </div>
                 <Code size={32} className="text-slate-100" />
               </div>
@@ -200,7 +215,7 @@ const Profile: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-xl font-black  tracking-tighter text-indigo-600 leading-none">{plat.rating}</p>
-                        <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mt-1">Platform Rating</p>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mt-1">Rating</p>
                       </div>
                     </div>
                   </div>
@@ -208,12 +223,12 @@ const Profile: React.FC = () => {
               </div>
             </div>
 
-            {/* Technical Arsenal & Education */}
+            {/* Skills & Education */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="bg-white border border-slate-200 rounded-[40px] p-10 shadow-xl shadow-slate-200/50">
                 <div className="flex items-center gap-4 mb-10">
                   <div className="bg-slate-900 p-2.5 rounded-xl"><Shield size={18} className="text-white" /></div>
-                  <h3 className="text-lg font-black  tracking-tighter uppercase text-slate-900">Technical Arsenal</h3>
+                  <h3 className="text-lg font-black  tracking-tighter uppercase text-slate-900">Skills</h3>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   {(user.skills && user.skills.length > 0) ? user.skills.map((skill: string, i: number) => (
@@ -221,7 +236,7 @@ const Profile: React.FC = () => {
                       {skill}
                     </span>
                   )) : (
-                    <p className="text-slate-400 text-xs ">No skills documented in the neural bank.</p>
+                    <p className="text-slate-400 text-xs ">No skills added yet.</p>
                   )}
                 </div>
               </div>
@@ -229,14 +244,14 @@ const Profile: React.FC = () => {
               <div className="bg-white border border-slate-200 rounded-[40px] p-10 shadow-xl shadow-slate-200/50">
                 <div className="flex items-center gap-4 mb-10">
                   <div className="bg-indigo-600 p-2.5 rounded-xl"><BookOpen size={18} className="text-white" /></div>
-                  <h3 className="text-lg font-black  tracking-tighter uppercase text-slate-900">Education Matrix</h3>
+                  <h3 className="text-lg font-black  tracking-tighter uppercase text-slate-900">Education</h3>
                 </div>
                 <div className="space-y-8">
                   <div className="relative pl-8 border-l-2 border-slate-100">
                     <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-indigo-600 border-4 border-white shadow-sm" />
                     <div>
                       <p className="text-slate-900 font-black uppercase leading-tight text-sm">{user.college || "Academy Institution"}</p>
-                      <p className="text-[10px] font-black uppercase tracking-tighter text-indigo-600 mt-1">{user.major || "Technical Major"} • Class of {user.graduationYear || 2026}</p>
+                      <p className="text-[10px] font-black uppercase tracking-tighter text-indigo-600 mt-1">{user.major || "Major"} • Class of {user.graduationYear || 2026}</p>
                       <p className="text-xs font-medium text-slate-500 mt-2">{user.year ? `Current Academic Year: ${user.year}` : ""}</p>
                     </div>
                   </div>
@@ -261,9 +276,9 @@ const Profile: React.FC = () => {
                   <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-md">
                     <Award size={24} className="text-indigo-400" />
                   </div>
-                  <button onClick={() => navigate('/arena')} className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-white transition-colors">Launch Arena Protocol</button>
+                  <button onClick={() => navigate('/arena')} className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-white transition-colors">Open the arena</button>
                 </div>
-                <h3 className="text-4xl font-black  tracking-tighter uppercase mb-2">Arena Dominance</h3>
+                <h3 className="text-4xl font-black  tracking-tighter uppercase mb-2">Arena rank</h3>
                 <p className="text-slate-400 text-sm max-w-lg mb-0 font-medium leading-relaxed">
                   Continue your algorithmic conquest and secure regional dominance. Your current percentile reflects elite performance in contemporary sectors.
                 </p>

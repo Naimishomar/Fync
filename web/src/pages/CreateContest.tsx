@@ -90,12 +90,12 @@ const CreateContest: React.FC = () => {
           className="flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors mb-12 group"
         >
           <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Abort Launch / Return to Command</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">Cancel and go back</span>
         </button>
 
         <header className="mb-12">
-          <h1 className="text-5xl font-black  tracking-tighter uppercase mb-4 leading-none">Initialize Mission</h1>
-          <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.3em]">Schedule a new competitive contest and define operational parameters.</p>
+          <h1 className="text-5xl font-black  tracking-tighter uppercase mb-4 leading-none">Save</h1>
+          <p className="text-sm text-slate-500 leading-relaxed">Pick problems from the bank and set when the contest runs.</p>
         </header>
 
         <form onSubmit={handleSave} className="space-y-12">
@@ -106,15 +106,15 @@ const CreateContest: React.FC = () => {
                 <Trophy className="text-amber-600" size={24} />
               </div>
               <div>
-                <h2 className="text-2xl font-black  tracking-tighter uppercase">Mission Briefing</h2>
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Tactical Deployment Parameters</p>
+                <h2 className="text-2xl font-black  tracking-tighter uppercase">Problem</h2>
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Contest settings</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="space-y-8">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Mission Title</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Title</label>
                   <input
                     required
                     value={title}
@@ -124,7 +124,7 @@ const CreateContest: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Prize Pool / Rewards</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Prize</label>
                   <input
                     value={prizePool}
                     onChange={(e) => setPrizePool(e.target.value)}
@@ -137,7 +137,7 @@ const CreateContest: React.FC = () => {
               <div className="space-y-8">
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Start Sequence</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Starts at</label>
                     <input
                       type="datetime-local"
                       required
@@ -147,7 +147,7 @@ const CreateContest: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">End Sequence</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Ends at</label>
                     <input
                       type="datetime-local"
                       required
@@ -159,15 +159,15 @@ const CreateContest: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Visibility Matrix</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Who can join</label>
                     <div className="relative">
                       <select
                         value={visibility}
                         onChange={(e) => setVisibility(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-sm focus:border-amber-500 outline-none appearance-none font-black uppercase tracking-widest cursor-pointer"
                       >
-                        <option value="Public">Public Access</option>
-                        <option value="Private">Invitation Only</option>
+                        <option value="Public">Anyone</option>
+                        <option value="Private">Invite only</option>
                       </select>
                       <Globe className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" size={16} />
                     </div>
@@ -187,7 +187,7 @@ const CreateContest: React.FC = () => {
               </div>
 
               <div className="col-span-full">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Mission Briefing (Description)</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Description</label>
                 <textarea
                   required
                   value={description}
@@ -207,8 +207,8 @@ const CreateContest: React.FC = () => {
                   <Layout className="text-indigo-600" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-black  tracking-tighter uppercase">Challenge Selection ({selectedProblems.length})</h2>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Problem Bank Integrator</p>
+                  <h2 className="text-2xl font-black  tracking-tighter uppercase">Selected problems ({selectedProblems.length})</h2>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Problems in this contest</p>
                 </div>
               </div>
             </div>
@@ -240,7 +240,7 @@ const CreateContest: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Bounty</span>
+                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Points</span>
                     <span className="text-base font-black  tracking-tighter text-indigo-600 leading-none">{prob.points} PT</span>
                   </div>
                 </div>
@@ -283,8 +283,8 @@ const CreateContest: React.FC = () => {
               <Trophy size={24} className="text-white" fill="white" />
             </div>
             <div>
-              <p className="font-black uppercase text-[10px] tracking-widest text-amber-600 mb-1">Pipeline Operational</p>
-              <p className="text-[11px] font-black uppercase  text-slate-900">Contest scheduled successfully</p>
+              <p className="font-black uppercase text-[10px] tracking-widest text-amber-600 mb-1">All tests passing</p>
+              <p className="text-[11px] font-black uppercase  text-slate-900">Contest scheduled</p>
             </div>
             <motion.div
               initial={{ width: '0%' }}

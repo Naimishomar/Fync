@@ -160,7 +160,7 @@ const CodingArena: React.FC = () => {
     <div className="flex h-screen items-center justify-center bg-slate-50">
       <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="flex flex-col items-center">
         <div className="w-12 h-12 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-slate-400 font-black  uppercase text-[10px] tracking-widest mt-4">Initializing Arena...</p>
+        <p className="text-slate-400 font-black  uppercase text-[10px] tracking-widest mt-4">Loading…</p>
       </motion.div>
     </div>
   );
@@ -191,7 +191,7 @@ const CodingArena: React.FC = () => {
             <div className="flex items-center gap-3 px-4 py-2 bg-slate-900 rounded-xl shadow-xl shadow-slate-900/10 ml-4">
               <Clock size={14} className="text-pink-500 animate-pulse" />
               <span className="text-[12px] font-black  text-white tracking-widest">{formatTime(timeLeft)}</span>
-              <span className="text-[8px] font-black uppercase text-slate-500 ml-1">Mission Clock</span>
+              <span className="text-[8px] font-black uppercase text-slate-500 ml-1">Start and end time</span>
             </div>
           )}
         </div>
@@ -266,15 +266,15 @@ const CodingArena: React.FC = () => {
                   {window.location.pathname.includes('/arena/bug/') && (
                     <div className="grid grid-cols-3 gap-6 mb-10">
                       <div className="bg-slate-50 border border-slate-100 p-6 rounded-[24px]">
-                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Anomalous Profile</p>
+                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Profile not found</p>
                         <p className="text-sm font-black  uppercase  uppercase text-rose-600">{problem.difficulty} Protocol</p>
                       </div>
                       <div className="bg-slate-50 border border-slate-100 p-6 rounded-[24px]">
-                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Language Protocol</p>
+                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Language</p>
                         <p className="text-sm font-black  uppercase text-indigo-600">{problem.language}</p>
                       </div>
                       <div className="bg-slate-50 border border-slate-100 p-6 rounded-[24px]">
-                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Corrupt Signature</p>
+                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Broken code</p>
                         <p className="text-sm font-black  uppercase text-slate-900">{problemId?.substring(0, 8)}</p>
                       </div>
                     </div>
@@ -288,7 +288,7 @@ const CodingArena: React.FC = () => {
                   </div>
 
                   <div className="space-y-8">
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 px-2">Intelligence Vectors</h4>
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 px-2">Test cases</h4>
                     {problem.testCases?.filter((t: any) => !t.isHidden).map((tc: any, i: number) => (
                       <div key={i} className="bg-slate-50 rounded-[28px] p-8 border border-slate-100 shadow-sm hover:bg-white hover:border-indigo-600/10 transition-all">
                         <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
@@ -296,7 +296,7 @@ const CodingArena: React.FC = () => {
                         </h4>
                         <div className="space-y-6">
                           <div>
-                            <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-2 px-1">Input Signal</p>
+                            <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-2 px-1">Input</p>
                             <code className="block bg-white border border-slate-200 p-4 rounded-2xl text-indigo-600 font-mono text-sm shadow-sm">{tc.input}</code>
                           </div>
                           <div>
@@ -320,17 +320,17 @@ const CodingArena: React.FC = () => {
               <div className="absolute top-0 left-0 right-0 h-10 bg-rose-900 flex items-center justify-between px-8 z-20 shadow-2xl">
                 <div className="flex items-center gap-3">
                   <ShieldAlert size={14} className="text-rose-400 animate-pulse" />
-                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-rose-100">Sanitization Progress: Diagnostic Mode</span>
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-rose-100">Run the tests to see what still fails</span>
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
-                    <span className="text-[8px] font-black uppercase text-rose-300">Corrupted Logic Signal</span>
+                    <span className="text-[8px] font-black uppercase text-rose-300">Broken code</span>
                   </div>
                   <div className="w-px h-4 bg-rose-800" />
                   <div className="flex items-center gap-2">
                     <MonitorCheck size={12} className="text-emerald-500" />
-                    <span className="text-[8px] font-black uppercase text-emerald-400">Target Stabilization</span>
+                    <span className="text-[8px] font-black uppercase text-emerald-400">Your fix</span>
                   </div>
                 </div>
               </div>
@@ -400,11 +400,11 @@ const CodingArena: React.FC = () => {
             <div className="flex items-center justify-between px-8 py-3 bg-white border-b border-slate-200">
               <div className="flex items-center gap-3">
                 <Terminal size={14} className="text-pink-600" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Analytic Telemetry</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Test results</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[9px] font-black uppercase tracking-widest text-slate-300">Operational</span>
+                <span className="text-[9px] font-black uppercase tracking-widest text-slate-300">Ready</span>
               </div>
             </div>
 
@@ -412,14 +412,14 @@ const CodingArena: React.FC = () => {
               {!results && !loading && (
                 <div className="h-full flex flex-col items-center justify-center opacity-10">
                   <Terminal size={64} className="text-slate-900 mb-4" />
-                  <p className="text-[12px] font-black uppercase tracking-[0.4em]">Awaiting Solution Stream</p>
+                  <p className="text-[12px] font-black uppercase tracking-[0.4em]">No submission yet</p>
                 </div>
               )}
 
               {loading && (
                 <div className="h-full flex flex-col items-center justify-center">
                   <div className="w-10 h-10 border-4 border-pink-600 border-t-transparent rounded-full animate-spin" />
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-6 animate-pulse">Decompiling Bytecode...</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-6 animate-pulse">Loading…</p>
                 </div>
               )}
 
@@ -435,21 +435,21 @@ const CodingArena: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-10">
                       <div className="flex flex-col">
-                        <span className="text-[8px] font-black uppercase text-slate-300 mb-1">Compute Time</span>
+                        <span className="text-[8px] font-black uppercase text-slate-300 mb-1">Runtime</span>
                         <div className="flex items-center gap-2">
                           <Clock size={14} className="text-indigo-500" />
                           <span className="text-xs font-black tracking-tighter text-slate-700">{results.executionTime}ms</span>
                         </div>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[8px] font-black uppercase text-slate-300 mb-1">Memory Matrix</span>
+                        <span className="text-[8px] font-black uppercase text-slate-300 mb-1">Memory</span>
                         <div className="flex items-center gap-2">
                           <Layout size={14} className="text-indigo-500" />
                           <span className="text-xs font-black tracking-tighter text-slate-700">{results.memoryUsage}KB</span>
                         </div>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[8px] font-black uppercase text-slate-300 mb-1">Integrity Score</span>
+                        <span className="text-[8px] font-black uppercase text-slate-300 mb-1">Score</span>
                         <span className="text-xs font-black text-pink-600 uppercase tracking-tighter">
                           {results.passedCount} / {results.totalCount} PASSED
                         </span>
@@ -459,7 +459,7 @@ const CodingArena: React.FC = () => {
 
                   {results.errorOutput && (
                     <div className="mt-4">
-                      <p className="text-[9px] font-black uppercase text-rose-500 mb-2 px-1">Error Diagnostics</p>
+                      <p className="text-[9px] font-black uppercase text-rose-500 mb-2 px-1">Errors</p>
                       <pre className="bg-rose-50 border border-rose-100 p-6 rounded-2xl text-rose-700 font-mono text-sm overflow-x-auto shadow-inner">
                         {results.errorOutput}
                       </pre>

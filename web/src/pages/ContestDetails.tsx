@@ -23,11 +23,26 @@ const ContestDetails: React.FC = () => {
    const [isRegistered, setIsRegistered] = useState(false);
    const [hasEntered, setHasEntered] = useState(false);
    const [isEntering, setIsEntering] = useState(false);
+   const [board, setBoard] = useState<any[]>([]);
 
    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
    useEffect(() => {
       fetchContestDetails();
+   }, [contestId, token]);
+
+   // Standings come from the ranked endpoint rather than the contest document:
+   // participants are stored in join order, so rendering them directly showed
+   // whoever registered first at the top regardless of what they solved.
+   useEffect(() => {
+      if (!token || !contestId) return;
+      const load = () => axios
+         .get(`${API_URL}/arena/contests/${contestId}/leaderboard`, { headers: { Authorization: `Bearer ${token}` } })
+         .then((res) => setBoard(res.data.rows ?? []))
+         .catch(() => void 0);
+      load();
+      const poll = setInterval(load, 30000);
+      return () => clearInterval(poll);
    }, [contestId, token]);
 
    useEffect(() => {
@@ -70,7 +85,7 @@ const ContestDetails: React.FC = () => {
          const diff = end - now;
          setTimeLeft(`Ends in: ${formatDiff(diff)}`);
       } else {
-         setTimeLeft('Mission Terminated');
+         setTimeLeft('Contest is over');
       }
    };
 
@@ -117,9 +132,9 @@ const ContestDetails: React.FC = () => {
    if (!contest) return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-8">
          <AlertCircle size={80} className="text-slate-100 mb-8" />
-         <h1 className="text-4xl font-black uppercase  tracking-tighter text-slate-900">Mission Signal Lost</h1>
-         <p className="text-slate-400 text-[11px] font-black uppercase tracking-widest mt-4">The requested contest could not be found in the current sector.</p>
-         <button onClick={() => navigate('/arena')} className="mt-12 bg-slate-900 text-white px-10 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all">Return to Dashboard</button>
+         <h1 className="text-4xl font-black uppercase  tracking-tighter text-slate-900">Match not found</h1>
+         <p className="text-slate-400 text-[11px] font-black uppercase tracking-widest mt-4">We could not find that contest.</p>
+         <button onClick={() => navigate('/arena')} className="mt-12 bg-slate-900 text-white px-10 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all">Back to dashboard</button>
       </div>
    );
 
@@ -134,11 +149,11 @@ const ContestDetails: React.FC = () => {
                className="flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors mb-12 group"
             >
                <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-               <span className="text-[10px] font-black uppercase tracking-widest">Back to Dashboard</span>
+               <span className="text-[10px] font-black uppercase tracking-widest">Back to dashboard</span>
             </button>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-               {/* Left Column: Mission Briefing */}
+               {/* Left Column: Problem */}
                <div className="lg:col-span-2">
                   <header className="mb-12">
                      <div className="flex items-center gap-4 mb-6">
@@ -153,11 +168,11 @@ const ContestDetails: React.FC = () => {
                         </div>
                      </div>
                      <h1 className="text-6xl font-black  tracking-tighter uppercase mb-6 leading-tight select-none">
-                        <span className="text-slate-300">MISSION:</span><br />
+                        <span className="text-slate-300">CONTEST</span><br />
                         <span className="text-slate-900">{contest.title}</span>
                      </h1>
                      <div className="bg-white border border-slate-200 rounded-[32px] p-10 shadow-xl shadow-slate-200/50">
-                        <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6">Tactical Intelligence</h2>
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6">Details</h2>
                         <p className="text-slate-600 text-lg leading-relaxed font-medium">{contest.description}</p>
                      </div>
                   </header>
@@ -167,7 +182,7 @@ const ContestDetails: React.FC = () => {
                         <h3 className="text-xl font-black  tracking-tighter uppercase flex items-center gap-3">
                            <Zap size={20} className="text-pink-600" /> Challenge Manifest
                         </h3>
-                        <span className="text-[10px] font-black uppercase text-slate-300">{contest.problems?.length || 0} Challenges Detected</span>
+                        <span className="text-[10px] font-black uppercase text-slate-300">{contest.problems?.length || 0} problems</span>
                      </div>
 
                      <div className="space-y-4">
@@ -193,7 +208,7 @@ const ContestDetails: React.FC = () => {
                                              prob.difficulty === 'Medium' ? 'text-amber-600' : 'text-rose-600'
                                           }`}>{prob.difficulty} Difficulty</span>
                                        {prob.isLocked && (
-                                          <span className="text-slate-400 text-[8px] font-black uppercase tracking-widest">SIGNAL ENCRYPTED • START MISSION TO ACCESS</span>
+                                          <span className="text-slate-400 text-[8px] font-black uppercase tracking-widest">Locked — start the contest to open this</span>
                                        )}
                                     </div>
                                  </div>
@@ -212,19 +227,19 @@ const ContestDetails: React.FC = () => {
                {/* Right Column: Mission Ops */}
                <div className="space-y-8">
                   <section className="bg-white border border-slate-200 rounded-[40px] p-10 shadow-xl shadow-slate-200/50">
-                     <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-8">Deployment Stats</h3>
+                     <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-8">Contest at a glance</h3>
                      <div className="space-y-6 mb-12">
                         <div className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100">
                            <div className="flex items-center gap-3">
                               <Users size={16} className="text-slate-400" />
-                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Users</span>
+                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Registered</span>
                            </div>
                            <span className="text-sm font-black ">{contest.participants?.length || 0}</span>
                         </div>
                         <div className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100">
                            <div className="flex items-center gap-3">
                               <Trophy size={16} className="text-slate-400" />
-                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Reward</span>
+                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Points</span>
                            </div>
                            <span className="text-sm font-black  text-pink-600">{contest.prizePool || 'Glory'}</span>
                         </div>
@@ -240,63 +255,70 @@ const ContestDetails: React.FC = () => {
                      ) : isOngoing && !hasEntered ? (
                         <div className="space-y-4">
                            <div className="p-8 bg-amber-50 border border-amber-100 rounded-[2rem] text-center">
-                              <p className="text-amber-600 font-black uppercase text-[10px] tracking-widest mb-3">Signal Detected</p>
-                              <p className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase tracking-tight">Mission is live. Initialize signal to begin challenges.</p>
+                              <p className="text-amber-600 font-black uppercase text-[10px] tracking-widest mb-3">Contest is live</p>
+                              <p className="text-sm text-slate-500 leading-relaxed">Press start to open the problems. Your time starts when you do.</p>
                            </div>
                            <button
                               onClick={handleEnter}
                               disabled={isEntering}
                               className="w-full bg-rose-600 text-white py-6 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl active:scale-95 transition-all hover:bg-rose-700 hover:-translate-y-1 animate-bounce"
                            >
-                              {isEntering ? 'Initializing...' : 'Start Mission'}
+                              {isEntering ? 'Initializing...' : 'Start contest'}
                            </button>
                         </div>
                      ) : isOngoing && hasEntered ? (
                         <div className="p-8 bg-emerald-50 border border-emerald-100 rounded-[2rem] text-center">
                            <div className="flex items-center justify-center gap-2 mb-3">
                               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                              <p className="text-emerald-600 font-black uppercase text-[10px] tracking-widest">Signal Locked</p>
+                              <p className="text-emerald-600 font-black uppercase text-[10px] tracking-widest">You are in</p>
                            </div>
-                           <p className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase tracking-tight">Deployment active. Solve challenges below to climb the leaderboard.</p>
+                           <p className="text-sm text-slate-500 leading-relaxed">Solve the problems below. Rank is by problems solved, then by total time.</p>
                         </div>
                      ) : isCompleted ? (
                         <div className="p-8 bg-slate-100 rounded-[2rem] text-center opacity-60">
-                           <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest">Mission Terminated</p>
+                           <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest">Contest is over</p>
                         </div>
                      ) : (
                         <div className="p-8 bg-indigo-50 border border-indigo-100 rounded-[2rem] text-center">
-                           <p className="text-indigo-600 font-black uppercase text-[10px] tracking-widest mb-3">Deployment Confirmed</p>
-                           <p className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase tracking-tight">Mission will commence at the scheduled sequence start.</p>
+                           <p className="text-indigo-600 font-black uppercase text-[10px] tracking-widest mb-3">You are registered</p>
+                           <p className="text-sm text-slate-500 leading-relaxed">It opens at the scheduled start time.</p>
                         </div>
                      )}
                   </section>
 
                   <section className="bg-white border border-slate-200 rounded-[40px] p-10 shadow-xl shadow-slate-200/50 overflow-hidden relative">
                      <div className="flex items-center justify-between mb-10">
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Local Leaderboard</h3>
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Leaderboard</h3>
                         <button className="text-[10px] font-black uppercase text-pink-600 border-b border-transparent hover:border-pink-600 pb-1">Archive</button>
                      </div>
                      <div className="space-y-6">
-                        {contest.participants?.slice(0, 5).map((p: any, i: number) => (
-                           <div key={i} className="flex items-center justify-between group">
+                        {board.slice(0, 10).map((row: any) => (
+                           <div key={row.rank} className="flex items-center justify-between group">
                               <div className="flex items-center gap-4">
-                                 <span className="text-[10px] font-black  text-slate-200 group-hover:text-slate-400 transition-colors">#{i + 1}</span>
+                                 <span className="text-[10px] font-black  text-slate-200 group-hover:text-slate-400 transition-colors">#{row.rank}</span>
                                  <Link to="/profile" className="w-9 h-9 rounded-full bg-slate-50 overflow-hidden border border-slate-100 shadow-sm hover:border-indigo-600 transition-all active:scale-95">
                                     <img
-                                       src={p.user?.avatar || 'https://cdn-icons-png.freepik.com/512/219/219988.png'}
+                                       src={row.user?.avatar || 'https://cdn-icons-png.freepik.com/512/219/219988.png'}
                                        alt=""
                                        className="w-full h-full object-cover"
                                     />
                                  </Link>
-                                 <Link to="/profile" className="text-xs font-black uppercase tracking-tighter text-slate-600 hover:text-slate-900 transition-all">
-                                    {p.user?.username || 'Redacted'}
-                                 </Link>
+                                 <div>
+                                    <Link to="/profile" className="text-xs font-black uppercase tracking-tighter text-slate-600 hover:text-slate-900 transition-all block">
+                                       {row.user?.username || 'Redacted'}
+                                    </Link>
+                                    {/* Penalty is the tiebreak, so it has to be visible or the
+                                        ordering looks arbitrary when scores are equal. */}
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-300">
+                                       {row.solvedCount} solved · {row.penalty} min
+                                    </p>
+                                 </div>
                               </div>
-                              <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg border border-indigo-100 uppercase tracking-tighter">{p.score || 0} CP</span>
+                              <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg border border-indigo-100 uppercase tracking-tighter">{row.score || 0} CP</span>
                            </div>
                         ))}
-                        {(!contest.participants || contest.participants.length === 0) && (
-                           <p className="text-[10px] font-bold text-slate-200 text-center py-6  uppercase tracking-widest">Awaiting deployment signals...</p>
+                        {board.length === 0 && (
+                           <p className="text-[10px] font-bold text-slate-200 text-center py-6  uppercase tracking-widest">No one has solved anything yet</p>
                         )}
                      </div>
                   </section>

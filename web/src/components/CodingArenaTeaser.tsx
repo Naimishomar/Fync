@@ -19,7 +19,7 @@ const CodingArenaTeaser = () => {
                             <div className="bg-slate-900 p-3 rounded-2xl shadow-xl shadow-slate-900/10">
                                 <Zap className="text-white w-6 h-6" fill="white" />
                             </div>
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-pink-600 font-black uppercase text-[11px] tracking-[0.4em]">Neural Combat Protocol</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-pink-600 font-black uppercase text-[11px] tracking-[0.4em]">1v1 duel</span>
                         </div>
 
                         <h2 className="text-6xl md:text-8xl font-black  tracking-tighter uppercase text-slate-900 mb-10 leading-[0.85]">

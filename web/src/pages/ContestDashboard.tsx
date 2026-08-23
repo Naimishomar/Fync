@@ -11,6 +11,7 @@ const ContestDashboard: React.FC = () => {
   const [archivedContests, setArchivedContests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showArchive, setShowArchive] = useState(false);
+  const [progress, setProgress] = useState<any>(null);
   const navigate = useNavigate();
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -27,16 +28,20 @@ const ContestDashboard: React.FC = () => {
 
   const fetchContests = async () => {
     try {
-      const [upcomingRes, archiveRes] = await Promise.all([
+      const [upcomingRes, archiveRes, progressRes] = await Promise.all([
         axios.get(`${API_URL}/arena/contests`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
         axios.get(`${API_URL}/arena/contests/archive`, {
           headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${API_URL}/arena/progress`, {
+          headers: { Authorization: `Bearer ${token}` }
         })
       ]);
       setContests(upcomingRes.data);
       setArchivedContests(archiveRes.data);
+      setProgress(progressRes.data.progress);
     } catch (err) {
       console.error('Failed to fetch contests');
     } finally {
@@ -49,10 +54,24 @@ const ContestDashboard: React.FC = () => {
       {/* Hero Stats Section */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
         {[
-          { label: 'Global Rank', value: `#${user?.codingStats?.totalSolved ? '154' : '---'}`, icon: Trophy, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-          { label: 'Elo Rating', value: user?.codingRating || '1200', icon: Star, color: 'text-pink-500', bg: 'bg-pink-500/10' },
-          { label: 'Solved Problems', value: user?.codingStats?.totalSolved || '0', icon: Target, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-          { label: 'Contests Played', value: user?.contestHistory?.length || '0', icon: Shield, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+          {
+            label: 'Global Rank',
+            // Null until the student has played a contest: before that everyone
+            // shares the starting rating and the rank is meaningless.
+            value: progress?.rank ? `#${progress.rank}` : '—',
+            hint: progress && !progress.rank ? 'Play a contest to get ranked' : null,
+            icon: Trophy, color: 'text-amber-500', bg: 'bg-amber-500/10',
+          },
+          { label: 'Rating', value: progress?.rating ?? '—', icon: Star, color: 'text-pink-500', bg: 'bg-pink-500/10' },
+          {
+            label: 'Problems Solved',
+            // Arena solves, not the LeetCode total the profile sync writes to
+            // codingStats — this tile used to show that one under this label.
+            value: progress?.solved ?? '—',
+            hint: progress?.totalProblems ? `of ${progress.totalProblems} in the bank` : null,
+            icon: Target, color: 'text-emerald-500', bg: 'bg-emerald-500/10',
+          },
+          { label: 'Contests Played', value: progress?.contestsPlayed ?? '—', icon: Shield, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
         ].map((stat, i) => (
           <motion.div
             key={i}
@@ -66,6 +85,7 @@ const ContestDashboard: React.FC = () => {
             </div>
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{stat.label}</p>
             <h3 className="text-3xl font-black  tracking-tighter uppercase">{stat.value}</h3>
+            {stat.hint && <p className="text-xs text-slate-400 mt-1">{stat.hint}</p>}
           </motion.div>
         ))}
       </div>
@@ -75,7 +95,7 @@ const ContestDashboard: React.FC = () => {
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-xl font-black  uppercase tracking-widest flex items-center gap-3">
-              <Zap size={20} className="text-pink-600" /> {showArchive ? 'Mission Archive' : 'Scheduled Missions'}
+              <Zap size={20} className="text-pink-600" /> {showArchive ? 'Mission Archive' : 'Upcomings'}
             </h2>
             <button
               onClick={() => setShowArchive(!showArchive)}
@@ -120,7 +140,7 @@ const ContestDashboard: React.FC = () => {
                         {contest.status}
                       </span>
                       {contest.status === 'Upcoming' && (
-                        <span className="text-slate-400 text-[10px] font-bold">Scheduled Mission</span>
+                        <span className="text-slate-400 text-[10px] font-bold">Upcoming</span>
                       )}
                     </div>
                     <h3 className="text-2xl font-black  tracking-tighter uppercase group-hover:text-pink-600 transition-colors">{contest.title}</h3>
@@ -158,7 +178,7 @@ const ContestDashboard: React.FC = () => {
         {/* Right Sidebar: 1v1 and Team Lobby */}
         <div className="space-y-8">
           <section>
-            <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 px-2">Instant Combat</h2>
+            <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 px-2">1v1 duel</h2>
             <div
               className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-800 rounded-3xl p-8 shadow-2xl shadow-indigo-500/20 relative overflow-hidden group cursor-pointer"
               onClick={() => navigate('/arena/matchmaking')}
@@ -171,19 +191,19 @@ const ContestDashboard: React.FC = () => {
           </section>
 
           <section>
-            <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 px-2">Squad Protocols</h2>
+            <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 px-2">Team battle</h2>
             <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
-              <h3 className="text-xl font-black  tracking-tighter uppercase mb-2">Team Contests</h3>
-              <p className="text-slate-500 text-[10px] leading-relaxed mb-6">Form a squad of 4 and dominate the shared leaderboard. Collaborative problem solving.</p>
+              <h3 className="text-xl font-black  tracking-tighter uppercase mb-2">Team battle</h3>
+              <p className="text-slate-500 text-[10px] leading-relaxed mb-6">Pair up, take on a rival squad on the same problem. First team to solve it wins.</p>
               <div className="space-y-3">
-                <button className="w-full py-3 rounded-2xl bg-slate-50 border border-slate-200 text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-colors">Create Team</button>
-                <button className="w-full py-3 rounded-2xl border border-dashed border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">Join Invitation</button>
+                <button onClick={() => navigate('/arena/teams')} className="w-full py-3 rounded-2xl bg-slate-50 border border-slate-200 text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-colors">Create Team</button>
+                <button onClick={() => navigate('/arena/teams')} className="w-full py-3 rounded-2xl border border-dashed border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">Join with a code</button>
               </div>
             </div>
           </section>
 
           <section>
-            <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 px-2">Bug Finder Protocol</h2>
+            <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 px-2">Fix the bug</h2>
             <div
               className="bg-white border border-slate-200 rounded-3xl p-6 relative group overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow"
               onClick={() => navigate('/arena/bugs')}
@@ -193,8 +213,8 @@ const ContestDashboard: React.FC = () => {
                   <Zap size={20} className="text-rose-600" />
                 </div>
                 <div>
-                  <h4 className="text-[10px] font-black uppercase tracking-widest">Sanitize Mission</h4>
-                  <p className="text-slate-500 text-[9px] font-bold">Fix 3 bugs to earn 50 CP</p>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest">Save bug mission</h4>
+                  <p className="text-slate-500 text-[9px] font-bold">Fix 3 bugs to earn 50 points</p>
                 </div>
               </div>
             </div>
@@ -202,15 +222,15 @@ const ContestDashboard: React.FC = () => {
 
           {user?.user_access === 'admin' && (
             <section>
-              <h2 className="text-[10px] font-black uppercase tracking-widest text-pink-600 mb-4 px-2">Mission Control HQ</h2>
+              <h2 className="text-[10px] font-black uppercase tracking-widest text-pink-600 mb-4 px-2">Arena admin</h2>
               <div
                 className="bg-white border border-pink-200 rounded-3xl p-8 relative group overflow-hidden cursor-pointer hover:bg-slate-50 transition-colors shadow-2xl shadow-pink-500/5"
                 onClick={() => navigate('/arena/admin')}
               >
                 <ShieldCheck size={64} className="absolute -bottom-4 -right-4 text-pink-500/10 group-hover:scale-125 transition-transform" />
-                <h3 className="text-xl font-black  tracking-tighter uppercase mb-2">Admin Command</h3>
-                <p className="text-slate-500 text-[10px] leading-relaxed mb-6">Manage problem bank, schedule contests, and monitor system telemetry.</p>
-                <button className="bg-pink-600 text-white w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-pink-600/20 active:scale-95 transition-all">Enter HQ</button>
+                <h3 className="text-xl font-black  tracking-tighter uppercase mb-2">Admin</h3>
+                <p className="text-slate-500 text-[10px] leading-relaxed mb-6">Manage problems, bug missions and contests.</p>
+                <button className="bg-pink-600 text-white w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-pink-600/20 active:scale-95 transition-all">Sign in</button>
               </div>
             </section>
           )}

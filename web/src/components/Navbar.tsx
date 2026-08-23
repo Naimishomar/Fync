@@ -104,7 +104,7 @@ const Navbar = () => {
                   className="w-16 h-16 rounded-full object-cover border-4 border-slate-50 shadow-md group-hover:scale-105 transition-transform"
                 />
                 <div className="text-center">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Tactical Commander</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Admin</p>
                   <p className="text-lg font-black  tracking-tighter uppercase text-slate-900 leading-tight">{user.name}</p>
                 </div>
               </Link>

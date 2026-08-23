@@ -1,130 +1,183 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { motion } from 'framer-motion';
-import { Bug, Hammer, CheckCircle2, AlertTriangle, Code, Sparkles, Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Bug, Lock, CheckCircle2, ChevronLeft, Loader2, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const BugFinder: React.FC = () => {
-  const { user, token, loading: authLoading } = useAuth();
-  const [bugs, setBugs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+/**
+ * Bug missions, organised as a track per language and a locked ladder inside
+ * each one. A student who opens a Hard bug first sees a screen of unfamiliar
+ * code and quits, so Medium and Hard stay shut until the level below them is
+ * cleared. The server enforces the same rule — the lock here is only the
+ * explanation of it.
+ */
 
+const LEVELS = ['Easy', 'Medium', 'Hard'] as const;
+
+const LEVEL_STYLE: Record<string, string> = {
+  Easy: 'text-emerald-700 bg-emerald-50 border-emerald-100',
+  Medium: 'text-amber-700 bg-amber-50 border-amber-100',
+  Hard: 'text-rose-700 bg-rose-50 border-rose-100',
+};
+
+const TRACK_LABEL: Record<string, string> = {
+  python: 'Python', cpp: 'C++', java: 'Java', javascript: 'JavaScript',
+  nodejs: 'Node.js', express: 'Express', react: 'React', mongodb: 'MongoDB', sql: 'SQL',
+};
+
+const BugFinder: React.FC = () => {
+  const { token, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const auth = { headers: { Authorization: `Bearer ${token}` } };
+
+  const [domains, setDomains] = useState<any[]>([]);
+  const [track, setTrack] = useState<any>(null);
+  const [level, setLevel] = useState<string>('Easy');
+  const [bugs, setBugs] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [busy, setBusy] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !token) {
-      navigate('/login');
-      return;
-    }
-    if (token) {
-      fetchBugs();
-    }
+    if (!authLoading && !token) { navigate('/login'); return; }
+    if (!token) return;
+    axios.get(`${API_URL}/arena/bug-domains`, auth)
+      .then((r) => setDomains(r.data.domains))
+      .catch(() => void 0)
+      .finally(() => setBusy(false));
   }, [token, authLoading]);
 
-  const fetchBugs = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/arena/bug-problems`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setBugs(res.data.problems);
-    } catch (err) {
-      console.error('Failed to fetch bug missions');
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    if (!track) return;
+    setBusy(true);
+    axios.get(`${API_URL}/arena/bug-problems`, { ...auth, params: { domain: track.domain, difficulty: level, page } })
+      .then((r) => { setBugs(r.data.problems); setPages(r.data.pages ?? 1); })
+      .catch(() => setBugs([]))
+      .finally(() => setBusy(false));
+  }, [track?.domain, level, page]);
+
+  const rung = (t: any, lvl: string) => t.ladder?.find((l: any) => l.level === lvl);
+
+  if (busy && !domains.length) {
+    return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><Loader2 className="animate-spin text-slate-300" size={24} /></div>;
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8 flex flex-col items-center pb-24">
-      <header className="max-w-4xl w-full text-center mb-20 pt-12">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-rose-50 w-28 h-28 rounded-[48px] flex items-center justify-center mx-auto mb-10 border border-rose-100 shadow-xl shadow-rose-200/20"
-        >
-          <Bug size={48} className="text-rose-600" />
-        </motion.div>
-        <h1 className="text-6xl font-black  tracking-tighter uppercase text-slate-900 mb-4 leading-none">Bug Finder Protocol</h1>
-        <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.4em]">Sanitation & Code Integrity Missions</p>
-      </header>
-
-      <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-3 gap-10">
-        {bugs.length === 0 && !loading && (
-          <div className="col-span-full border-2 border-dashed border-slate-200 p-24 rounded-[56px] text-center bg-white/50">
-            <Sparkles size={64} className="text-slate-200 mx-auto mb-6" />
-            <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest">Codebase sanitized. No vulnerabilities detected.</p>
-          </div>
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-6 md:p-8 pt-24 pb-20">
+      <div className="max-w-5xl mx-auto">
+        {track ? (
+          <button onClick={() => { setTrack(null); setLevel('Easy'); setPage(1); }} className="flex items-center gap-2 text-slate-400 hover:text-slate-900 mb-8 text-sm">
+            <ChevronLeft size={16} /> All tracks
+          </button>
+        ) : (
+          <header className="mb-10">
+            <h1 className="text-4xl font-black tracking-tight mb-2">Fix the bug</h1>
+            <p className="text-slate-500 text-sm max-w-lg">
+              Each mission is a real program that almost works. Find the mistake, fix it, make the tests pass.
+              Clear five at a level to open the next one.
+            </p>
+          </header>
         )}
 
-        {bugs.map((bug, i) => (
-          <motion.div
-            key={bug._id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="bg-white border border-slate-100 p-10 rounded-[48px] hover:border-rose-300 transition-all group shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-rose-500/5"
-          >
-            <div className="flex items-center justify-between mb-10">
-              <div className={`px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest ${bug.difficulty === 'Easy' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
-                }`}>
-                {bug.difficulty} Protocol
+        <AnimatePresence mode="wait">
+          {!track ? (
+            <motion.div key="tracks" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {domains.map((t) => {
+                const solved = LEVELS.reduce((n, l) => n + (t.solved?.[l] ?? 0), 0);
+                return (
+                  <button
+                    key={t.domain}
+                    onClick={() => setTrack(t)}
+                    className="text-left bg-white border border-slate-200 rounded-2xl p-6 hover:border-slate-400 transition-all active:scale-[0.99]"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="font-bold">{TRACK_LABEL[t.domain] ?? t.domain}</p>
+                      <Bug size={16} className="text-slate-300" />
+                    </div>
+                    <p className="text-xs text-slate-400 mb-4">{t.total} missions · {solved} fixed</p>
+                    <div className="flex gap-1.5">
+                      {LEVELS.map((l) => {
+                        const r = rung(t, l);
+                        return (
+                          <span key={l} className={`flex-1 text-center text-[10px] font-bold py-1.5 rounded-lg border ${r?.unlocked ? LEVEL_STYLE[l] : 'text-slate-300 bg-slate-50 border-slate-100'}`}>
+                            {r?.unlocked ? l : <Lock size={10} className="inline" />}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </button>
+                );
+              })}
+              {domains.length === 0 && (
+                <p className="col-span-full text-center py-16 text-sm text-slate-400">No bug missions yet.</p>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div key="track" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <h2 className="text-3xl font-black tracking-tight mb-6">{TRACK_LABEL[track.domain] ?? track.domain}</h2>
+
+              <div className="flex gap-2 mb-6">
+                {LEVELS.map((l) => {
+                  const r = rung(track, l);
+                  const locked = !r?.unlocked;
+                  return (
+                    <button
+                      key={l}
+                      disabled={locked}
+                      onClick={() => { setLevel(l); setPage(1); }}
+                      title={locked ? `Fix ${r?.needs} more ${r?.unlockedBy} bugs first` : undefined}
+                      className={`flex-1 py-3 rounded-xl text-sm font-bold border transition-all ${locked ? 'text-slate-300 bg-slate-50 border-slate-100 cursor-not-allowed'
+                        : level === l ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-slate-200 hover:border-slate-400'}`}
+                    >
+                      {locked ? <><Lock size={12} className="inline mr-1.5" />{l}</> : l}
+                      <span className={`block text-[10px] font-medium mt-0.5 ${level === l && !locked ? 'text-white/50' : 'text-slate-400'}`}>
+                        {locked ? `${r?.needs} more ${r?.unlockedBy} to unlock` : `${track.available?.[l] ?? 0} available · ${track.solved?.[l] ?? 0} fixed`}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-              <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">{bug.language}</span>
-            </div>
 
-            <h3 className="text-2xl font-black  tracking-tighter text-slate-900 uppercase mb-4 line-clamp-1 group-hover:text-rose-600 transition-colors">{bug.title}</h3>
-            <p className="text-slate-500 text-sm leading-relaxed mb-10 line-clamp-3 font-medium">{bug.description}</p>
-
-            <div className="bg-slate-50 p-8 rounded-[32px] mb-10 border border-slate-100 group-hover:bg-white group-hover:border-rose-100 transition-all shadow-inner group-hover:shadow-none">
-              <Code size={16} className="text-slate-300 mb-3" />
-              <pre className="text-[11px] text-slate-400 font-mono mb-0 leading-relaxed overflow-hidden">
-                {bug.buggyCode.substring(0, 100)}...
-              </pre>
-            </div>
-
-            <div className="flex items-center justify-between pt-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-amber-50 p-2 rounded-xl">
-                  <Zap size={16} className="text-amber-500" />
+              {busy ? (
+                <div className="py-16 text-center"><Loader2 className="mx-auto animate-spin text-slate-300" size={22} /></div>
+              ) : (
+                <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
+                  {bugs.map((bug, i) => (
+                    <button
+                      key={bug._id}
+                      onClick={() => navigate(`/arena/bug/${bug._id}`)}
+                      className={`w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-slate-50 transition-colors ${i ? 'border-t border-slate-100' : ''}`}
+                    >
+                      {bug.solved
+                        ? <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                        : <Bug size={16} className="text-slate-300 shrink-0" />}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{bug.title}</p>
+                        {/* How many lines are wrong is the honest difficulty
+                            signal, and it gives nothing away about where. */}
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {bug.buggyLines} line{bug.buggyLines === 1 ? '' : 's'} to fix · {bug.points} pts
+                        </p>
+                      </div>
+                      <ChevronRight size={16} className="text-slate-300 shrink-0" />
+                    </button>
+                  ))}
+                  {bugs.length === 0 && <p className="py-16 text-center text-sm text-slate-400">Nothing at this level yet.</p>}
                 </div>
-                <span className="text-[11px] font-black uppercase text-slate-900 tracking-tighter">{bug.points} CP Bounty</span>
-              </div>
-              <button
-                onClick={() => navigate(`/arena/bug/${bug._id}`)}
-                className="bg-slate-900 text-white px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2rem] hover:bg-rose-600 shadow-xl shadow-slate-900/10 active:scale-95 transition-all"
-              >
-                Engage Mission
-              </button>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+              )}
 
-      {/* Global Bounty Stats */}
-      <div className="mt-24 max-w-5xl w-full flex items-center justify-around border-t border-slate-200 pt-16">
-        <div className="text-center group">
-          <div className="bg-emerald-50 w-16 h-16 rounded-[24px] flex items-center justify-center mx-auto mb-4 border border-emerald-100 group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/5">
-            <CheckCircle2 size={28} className="text-emerald-500" />
-          </div>
-          <p className="text-4xl font-black text-slate-900  tracking-tighter leading-none mb-2">{user?.codingStats?.totalSolved || '0'}</p>
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Bugs Squashed</p>
-        </div>
-        <div className="text-center group">
-          <div className="bg-amber-50 w-16 h-16 rounded-[24px] flex items-center justify-center mx-auto mb-4 border border-amber-100 group-hover:scale-110 transition-transform shadow-lg shadow-amber-500/5">
-            <AlertTriangle size={28} className="text-amber-500" />
-          </div>
-          <p className="text-4xl font-black text-slate-900  tracking-tighter leading-none mb-2">{user?.contestHistory?.length || '0'}</p>
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Missions Logged</p>
-        </div>
-        <div className="text-center group">
-          <div className="bg-indigo-50 w-16 h-16 rounded-[24px] flex items-center justify-center mx-auto mb-4 border border-indigo-100 group-hover:scale-110 transition-transform shadow-lg shadow-indigo-500/5">
-            <Hammer size={28} className="text-indigo-500" />
-          </div>
-          <p className="text-4xl font-black text-slate-900  tracking-tighter leading-none mb-2">{(user?.codingStats?.totalSolved || 0) * 50}</p>
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">CP Distributed</p>
-        </div>
+              {pages > 1 && (
+                <div className="flex items-center justify-center gap-4 mt-6">
+                  <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="p-2 rounded-xl border border-slate-200 disabled:opacity-30 hover:bg-slate-50"><ChevronLeft size={16} /></button>
+                  <span className="text-xs text-slate-400 tabular-nums">Page {page} of {pages}</span>
+                  <button disabled={page >= pages} onClick={() => setPage((p) => p + 1)} className="p-2 rounded-xl border border-slate-200 disabled:opacity-30 hover:bg-slate-50"><ChevronRight size={16} /></button>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

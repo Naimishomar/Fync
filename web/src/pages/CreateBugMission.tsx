@@ -34,6 +34,10 @@ const CreateBugMission: React.FC = () => {
    const [description, setDescription] = useState('');
    const [difficulty, setDifficulty] = useState('Medium');
    const [language, setLanguage] = useState('javascript');
+   // The model requires a domain: it is the track students browse and progress
+   // through, and it is not always the same as the language.
+   const [domain, setDomain] = useState('javascript');
+   const [fixedCode, setFixedCode] = useState('');
    const [points, setPoints] = useState(50);
    const [buggyCode, setBuggyCode] = useState('');
 
@@ -68,6 +72,8 @@ const CreateBugMission: React.FC = () => {
             buggyCode,
             difficulty,
             language,
+            domain,
+            fixedCode,
             testCases,
             points
          }, {
@@ -90,7 +96,7 @@ const CreateBugMission: React.FC = () => {
                className="flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-colors mb-12 group"
             >
                <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-               <span className="text-[10px] font-black uppercase tracking-widest">Abort Sanitization Plan / Return to Command</span>
+               <span className="text-[10px] font-black uppercase tracking-widest">Cancel and go back</span>
             </button>
 
             <header className="mb-12">
@@ -99,35 +105,35 @@ const CreateBugMission: React.FC = () => {
                      <Bug size={32} className="text-white" />
                   </div>
                   <div>
-                     <h1 className="text-5xl font-black  tracking-tighter uppercase leading-none">Architect Bug Mission</h1>
-                     <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.3em] mt-2">Deploy code-sanitation scenarios for arena solvers.</p>
+                     <h1 className="text-5xl font-black  tracking-tighter uppercase leading-none">New bug mission</h1>
+                     <p className="text-sm text-slate-500 leading-relaxed mt-2">Add a broken program for students to find the bug in and fix.</p>
                   </div>
                </div>
             </header>
 
             <form onSubmit={handleSave} className="space-y-12">
-               {/* Section 1: Tactical Briefing */}
+               {/* Section 1: Details */}
                <section className="bg-white border border-slate-200 rounded-[48px] p-12 shadow-xl shadow-slate-200/50">
                   <div className="flex items-center gap-5 mb-12">
                      <div className="bg-indigo-50 p-4 rounded-3xl">
                         <ShieldAlert className="text-indigo-600" size={24} />
                      </div>
                      <div>
-                        <h2 className="text-2xl font-black  tracking-tighter uppercase">Tactical Briefing</h2>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Mission Core Intelligence</p>
+                        <h2 className="text-2xl font-black  tracking-tighter uppercase">Details</h2>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Problem details</p>
                      </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                      <div className="space-y-8">
                         <div>
-                           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Mission Title</label>
+                           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Title</label>
                            <input
                               required
                               value={title}
                               onChange={(e) => setTitle(e.target.value)}
                               className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/5 outline-none transition-all font-bold placeholder:text-slate-300"
-                              placeholder="e.g. Memory Leak in Neural Array"
+                              placeholder="e.g. Off-by-one in binary search"
                            />
                         </div>
                         <div className="flex gap-6">
@@ -147,7 +153,7 @@ const CreateBugMission: React.FC = () => {
                               </div>
                            </div>
                            <div className="flex-1">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Bounty (CP)</label>
+                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Points</label>
                               <input
                                  type="number"
                                  value={points}
@@ -160,11 +166,11 @@ const CreateBugMission: React.FC = () => {
 
                      <div className="space-y-8">
                         <div>
-                           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Runtime Protocol (Language)</label>
+                           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Language it runs in</label>
                            <div className="relative">
                               <select
                                  value={language}
-                                 onChange={(e) => setLanguage(e.target.value)}
+                                 onChange={(e) => { setLanguage(e.target.value); setDomain(e.target.value); }}
                                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-sm focus:border-rose-500 outline-none appearance-none font-black uppercase tracking-widest cursor-pointer"
                               >
                                  <option value="javascript">JavaScript</option>
@@ -175,16 +181,42 @@ const CreateBugMission: React.FC = () => {
                               <Code className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" size={16} />
                            </div>
                         </div>
+
+                        <div>
+                           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Track students find it under</label>
+                           <select
+                              value={domain}
+                              onChange={(e) => setDomain(e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-sm focus:border-rose-500 outline-none appearance-none font-black uppercase tracking-widest cursor-pointer"
+                           >
+                              {['python', 'cpp', 'java', 'javascript', 'nodejs', 'express', 'react', 'mongodb', 'sql'].map((d) => (
+                                 <option key={d} value={d}>{d}</option>
+                              ))}
+                           </select>
+                           <p className="text-[10px] text-slate-400 mt-2 px-1 normal-case tracking-normal font-medium">
+                              Difficulty gates per track — students clear 5 Easy here before Medium opens.
+                           </p>
+                        </div>
+
+                        <div>
+                           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Working version (optional)</label>
+                           <textarea
+                              value={fixedCode}
+                              onChange={(e) => setFixedCode(e.target.value)}
+                              className="w-full h-32 bg-slate-50 border border-slate-200 rounded-2xl px-6 py-5 text-xs font-mono focus:border-rose-500 outline-none"
+                              placeholder="Paste the fixed code. Shown to the student only after they solve it."
+                           />
+                        </div>
                      </div>
 
                      <div className="col-span-full">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Problem Statement (Intelligence)</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-3 px-1">Problem statement</label>
                         <textarea
                            required
                            value={description}
                            onChange={(e) => setDescription(e.target.value)}
                            className="w-full h-40 bg-slate-50 border border-slate-200 rounded-[32px] px-8 py-7 text-sm focus:border-rose-500 outline-none transition-all font-medium leading-relaxed placeholder:text-slate-300 shadow-inner"
-                           placeholder="Explain the buggy behavior that requires sanitization..."
+                           placeholder="What is the program supposed to do, and what goes wrong?"
                         />
                      </div>
                   </div>
@@ -198,8 +230,8 @@ const CreateBugMission: React.FC = () => {
                         <Terminal className="text-rose-400" size={24} />
                      </div>
                      <div>
-                        <h2 className="text-2xl font-black  tracking-tighter uppercase text-white">Neural Corruption (Buggy Code)</h2>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">The codebase users must sanitize</p>
+                        <h2 className="text-2xl font-black  tracking-tighter uppercase text-white">Broken code</h2>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">The code students have to fix</p>
                      </div>
                   </div>
 
@@ -209,16 +241,16 @@ const CreateBugMission: React.FC = () => {
                         value={buggyCode}
                         onChange={(e) => setBuggyCode(e.target.value)}
                         className="w-full h-80 bg-black/40 border border-white/5 rounded-[32px] p-10 text-xs font-mono text-rose-400 focus:border-rose-500/50 outline-none transition-all shadow-2xl placeholder:text-slate-700"
-                        placeholder="// Paste the corrupt code here... (e.g. a function with an off-by-one error)"
+                        placeholder="// Paste the broken code the student has to fix"
                      />
                      <div className="absolute right-8 bottom-8 flex items-center gap-3">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-600">Corrupted Logic detected</span>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-600">Bug still there</span>
                         <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
                      </div>
                   </div>
                </section>
 
-               {/* Section 3: Validation Vectors */}
+               {/* Section 3: Test cases */}
                <section className="bg-white border border-slate-200 rounded-[48px] p-12 shadow-xl shadow-slate-200/50">
                   <div className="flex items-center justify-between mb-12">
                      <div className="flex items-center gap-5">
@@ -226,8 +258,8 @@ const CreateBugMission: React.FC = () => {
                            <FlaskConical className="text-rose-600" size={24} />
                         </div>
                         <div>
-                           <h2 className="text-2xl font-black  tracking-tighter uppercase">Sanitization Vectors</h2>
-                           <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Test Case Integrity Matrix</p>
+                           <h2 className="text-2xl font-black  tracking-tighter uppercase">Test cases</h2>
+                           <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Test cases</p>
                         </div>
                      </div>
                      <button
@@ -250,7 +282,7 @@ const CreateBugMission: React.FC = () => {
                            <div className="flex items-center justify-between mb-6">
                               <div className="flex items-center gap-4">
                                  <span className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-slate-900 shadow-sm border border-slate-100 ">{i + 1}</span>
-                                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Operational Vector</span>
+                                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Status</span>
                               </div>
                               <div className="flex items-center gap-8">
                                  <label className="flex items-center gap-3 cursor-pointer group/toggle">
@@ -263,7 +295,7 @@ const CreateBugMission: React.FC = () => {
                                     <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all ${tc.isHidden ? 'bg-rose-600 border-rose-600 shadow-lg shadow-rose-600/20' : 'border-slate-300 bg-white'}`}>
                                        {tc.isHidden && <Zap size={10} className="text-white" fill="white" />}
                                     </div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover/toggle:text-slate-900 transition-colors">Hidden Vector</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover/toggle:text-slate-900 transition-colors">Hidden case</span>
                                  </label>
                                  {testCases.length > 1 && (
                                     <button
@@ -279,21 +311,21 @@ const CreateBugMission: React.FC = () => {
 
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                               <div>
-                                 <p className="text-[9px] font-black uppercase text-slate-400 mb-3 px-1">Input Stream</p>
+                                 <p className="text-[9px] font-black uppercase text-slate-400 mb-3 px-1">Input</p>
                                  <textarea
                                     value={tc.input}
                                     onChange={(e) => updateTestCase(i, 'input', e.target.value)}
                                     className="w-full bg-white border border-slate-200 rounded-3xl p-6 text-xs font-mono text-indigo-600 focus:border-rose-500 outline-none h-32 shadow-inner"
-                                    placeholder="Input stream..."
+                                    placeholder="stdin for this case"
                                  />
                               </div>
                               <div>
-                                 <p className="text-[9px] font-black uppercase text-slate-400 mb-3 px-1">Corrective Output</p>
+                                 <p className="text-[9px] font-black uppercase text-slate-400 mb-3 px-1">Expected output</p>
                                  <textarea
                                     value={tc.expectedOutput}
                                     onChange={(e) => updateTestCase(i, 'expectedOutput', e.target.value)}
                                     className="w-full bg-white border border-slate-200 rounded-3xl p-6 text-xs font-mono text-rose-600 focus:border-rose-500 outline-none h-32 shadow-inner"
-                                    placeholder="Expected output signature..."
+                                    placeholder="Expected stdout"
                                  />
                               </div>
                            </div>
@@ -337,8 +369,8 @@ const CreateBugMission: React.FC = () => {
                      <Zap size={24} className="text-white" fill="white" />
                   </div>
                   <div>
-                     <p className="font-black uppercase text-[10px] tracking-widest text-emerald-600 mb-1">Sector Cleanse Initiated</p>
-                     <p className="text-[11px] font-black uppercase  text-slate-900">Bug mission deployed successfully</p>
+                     <p className="font-black uppercase text-[10px] tracking-widest text-emerald-600 mb-1">All tests passing</p>
+                     <p className="text-[11px] font-black uppercase  text-slate-900">Bug mission saved</p>
                   </div>
                   <motion.div
                      initial={{ width: '0%' }}

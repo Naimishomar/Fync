@@ -54,14 +54,14 @@ const Login: React.FC = () => {
           >
             <Zap size={36} className="text-white" fill="white" />
           </motion.div>
-          <h1 className="text-5xl font-black  tracking-tighter uppercase text-slate-900 leading-none">Arena Auth</h1>
-          <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mt-4">Neural Link Identification Required</p>
+          <h1 className="text-5xl font-black  tracking-tighter uppercase text-slate-900 leading-none">Sign in</h1>
+          <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mt-4">Sign in to continue</p>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-[48px] p-10 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
           <form onSubmit={handleLogin} className="space-y-8">
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block px-4">Identification Node</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block px-4">Email</label>
               <div className="relative group">
                 <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors" size={20} />
                 <input
@@ -76,7 +76,7 @@ const Login: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block px-4">Access Signature</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block px-4">Password</label>
               <div className="relative group">
                 <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors" size={20} />
                 <input

@@ -3,6 +3,8 @@ import BugProblem from '../../models/coding/bugProblem.model.js';
 import CodingSubmission from '../../models/coding/codingSubmission.model.js';
 import Contest from '../../models/coding/contest.model.js';
 import { runSubmission } from '../../services/codeRunner.service.js';
+import ContestManager from '../../services/contestManager.js';
+import { canAttempt, domainOverview, ladderFor, solvedCounts } from '../../services/bugProgression.service.js';
 
 /**
  * Controller for Coding Arena Problems and Submissions
@@ -54,10 +56,23 @@ export const getProblemById = async (req, res) => {
       }
     }
 
+    // The ladder is enforced here, not only in the listing: a greyed-out card is
+    // a CSS class, and the id is guessable from any earlier response.
+    if (problem.domain) {
+      const gate = await canAttempt(req.user.id, problem);
+      if (!gate.allowed) return res.status(403).json({ success: false, locked: true, message: gate.message });
+    }
+
     // Hide hidden test cases from client
     const publicTestCases = problem.testCases.filter(tc => !tc.isHidden);
     const problemObj = problem.toObject();
     problemObj.testCases = publicTestCases;
+    // The working version is the answer. It is only revealed once the student
+    // has an accepted submission on this problem.
+    if (problemObj.fixedCode) {
+      const solved = await CodingSubmission.exists({ user: req.user.id, problem: problem._id, status: 'Accepted' });
+      if (!solved) delete problemObj.fixedCode;
+    }
 
     res.json({ success: true, problem: problemObj });
   } catch (error) {
@@ -108,6 +123,13 @@ export const submitSolution = async (req, res) => {
     }
 
     if (!problem) return res.status(404).json({ success: false, message: 'Problem not found' });
+
+    // Same ladder check as the detail endpoint. Without it a locked Hard bug is
+    // still solvable by posting its id straight to the judge.
+    if (problem.domain) {
+      const gate = await canAttempt(userId, problem);
+      if (!gate.allowed) return res.status(403).json({ success: false, locked: true, message: gate.message });
+    }
 
     // Contest Validation (Time Limit Enforcement)
     if (contestId) {
@@ -176,8 +198,19 @@ export const submitSolution = async (req, res) => {
     
     await submission.save();
 
+    // Award contest points here rather than at finalize time: the penalty is
+    // measured from the moment the solve lands, and a batch pass at the end
+    // has no way to reconstruct it.
+    const award = await ContestManager.recordSubmission({
+      contestId,
+      userId,
+      problemId,
+      accepted: finalStatus === 'Accepted',
+    });
+
     res.json({ 
       success: true, 
+      award,
       submission: {
         id: submission._id,
         status: submission.status,
@@ -200,8 +233,56 @@ export const submitSolution = async (req, res) => {
 // GET /api/bug-problems
 export const getBugProblems = async (req, res) => {
   try {
-    const problems = await BugProblem.find();
-    res.json({ success: true, problems });
+    const { domain, difficulty, page = 1, limit = 24 } = req.query;
+    const filter = {};
+    if (domain) filter.domain = domain;
+    if (difficulty) filter.difficulty = difficulty;
+
+    // The buggy code, the fix and the test cases are all withheld from the
+    // listing. A seeded bank is thousands of documents; sending each one whole
+    // would be megabytes, and `fixedCode` is the answer.
+    const size = Math.min(Number(limit) || 24, 100);
+    const skip = (Math.max(1, Number(page) || 1) - 1) * size;
+
+    const [problems, total] = await Promise.all([
+      BugProblem.find(filter)
+        .select('title difficulty domain language points buggyLines createdAt')
+        .sort({ difficulty: 1, createdAt: -1 })
+        .skip(skip)
+        .limit(size)
+        .lean(),
+      BugProblem.countDocuments(filter),
+    ]);
+
+    // Which of these the student has already fixed, so the list can mark them
+    // instead of making them remember.
+    const solvedIds = new Set(
+      (await CodingSubmission.find({
+        user: req.user.id,
+        status: 'Accepted',
+        problem: { $in: problems.map((p) => p._id) },
+      }).distinct('problem')).map(String),
+    );
+
+    const counts = domain ? (await solvedCounts(req.user.id))[domain] : null;
+
+    res.json({
+      success: true,
+      problems: problems.map((p) => ({ ...p, solved: solvedIds.has(String(p._id)) })),
+      total,
+      page: Number(page) || 1,
+      pages: Math.ceil(total / size),
+      ladder: counts !== null ? ladderFor(counts) : null,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// GET /arena/bug-domains — the picker: which tracks exist and what is open.
+export const getBugDomains = async (req, res) => {
+  try {
+    res.json({ success: true, domains: await domainOverview(req.user.id) });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

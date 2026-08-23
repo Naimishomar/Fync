@@ -81,6 +81,7 @@ import startCleanupCron from './services/cleanup.service.js';
 import { initShortViewsFlush, flushShortViews } from './utils/shortViews.js';
 import initShadowRival from './utils/shadowRival.js';
 import startCodingCron from './utils/codingCron.js';
+import startWeeklyContestCron from './utils/weeklyContest.js';
 
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
@@ -308,6 +309,7 @@ const startServer = async (retries = 5) => {
       initShortViewsFlush();
       initShadowRival();
       startCodingCron();
+      startWeeklyContestCron();
 
       // 4. Start Contest Monitor
       setInterval(() => {
