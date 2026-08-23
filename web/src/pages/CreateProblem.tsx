@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../lib/api';
 
 interface TestCase {
   input: string;
@@ -51,7 +52,6 @@ const CreateProblem: React.FC = () => {
     java: 'import java.util.*;\n\npublic class Solution {\n    public static void main(String[] args) {\n        // Your logic here\n    }\n}'
   });
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   const addTestCase = () => {
     setTestCases([...testCases, { input: '', expectedOutput: '', isHidden: false }]);

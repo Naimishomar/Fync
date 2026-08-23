@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Trophy, Users, Swords, Clock, ChevronRight, Star, Target, Shield, Zap, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../lib/api';
 
 const ContestDashboard: React.FC = () => {
   const { user, token, loading: authLoading } = useAuth();
@@ -14,7 +15,6 @@ const ContestDashboard: React.FC = () => {
   const [progress, setProgress] = useState<any>(null);
   const navigate = useNavigate();
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     if (!authLoading && !token) {

@@ -12,6 +12,7 @@ import {
    AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../lib/api';
 
 const ContestDetails: React.FC = () => {
    const { contestId } = useParams();
@@ -25,7 +26,6 @@ const ContestDetails: React.FC = () => {
    const [isEntering, setIsEntering] = useState(false);
    const [board, setBoard] = useState<any[]>([]);
 
-   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
    useEffect(() => {
       fetchContestDetails();

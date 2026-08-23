@@ -5,6 +5,7 @@ import axios from 'axios';
 import { Play, Send, Terminal, ChevronRight, Layout, Moon, Sun, Clock, Zap, Bug, ShieldAlert, MonitorCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../lib/api';
 
 const CodingArena: React.FC = () => {
   const { problemId } = useParams();
@@ -21,7 +22,6 @@ const CodingArena: React.FC = () => {
   const [theme, setTheme] = useState<'vs-dark' | 'light'>('light');
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const queryParams = new URLSearchParams(window.location.search);
   const contestId = queryParams.get('contestId');
 

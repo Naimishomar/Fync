@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Trailing slashes are stripped here so callers can always write
+// `${API_URL}/path` without knowing how the environment variable was typed.
+export const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
 
 const api = axios.create({
   baseURL: API_URL,

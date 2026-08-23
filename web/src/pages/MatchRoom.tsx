@@ -5,6 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Swords, Zap, Terminal, Clock, Skull, Send, ShieldAlert, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../lib/api';
 
 const LANGUAGE_IDS: Record<string, number> = {
   javascript: 63,
@@ -30,7 +31,6 @@ const MatchRoom: React.FC = () => {
   const [connected, setConnected] = useState(false);
   const roomJoined = useRef(false);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     // Auth is still resolving. Connecting now means disconnecting a

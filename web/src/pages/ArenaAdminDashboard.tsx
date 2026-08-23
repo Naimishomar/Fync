@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../lib/api';
 
 /**
  * Admin console for the coding arena.
@@ -39,7 +40,6 @@ const fmtDate = (d?: string) =>
 const ArenaAdminDashboard: React.FC = () => {
    const { token, loading: authLoading } = useAuth();
    const navigate = useNavigate();
-   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
    const [tab, setTab] = useState<Tab>('problems');
    const [stats, setStats] = useState<any>(null);

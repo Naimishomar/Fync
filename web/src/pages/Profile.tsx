@@ -20,11 +20,11 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../lib/api';
 
 const Profile: React.FC = () => {
   const { user, loading, token } = useAuth();
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const [progress, setProgress] = useState<any>(null);
 
   // Declared before the early returns below, or the hook order changes between

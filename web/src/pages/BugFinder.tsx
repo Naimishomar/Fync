@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bug, Lock, CheckCircle2, ChevronLeft, Loader2, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../lib/api';
 
 /**
  * Bug missions, organised as a track per language and a locked ladder inside
@@ -29,7 +30,6 @@ const TRACK_LABEL: Record<string, string> = {
 const BugFinder: React.FC = () => {
   const { token, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const auth = { headers: { Authorization: `Bearer ${token}` } };
 
   const [domains, setDomains] = useState<any[]>([]);

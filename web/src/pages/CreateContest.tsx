@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../lib/api';
 
 const CreateContest: React.FC = () => {
   const { token } = useAuth();
@@ -31,7 +32,6 @@ const CreateContest: React.FC = () => {
   const [inviteCode, setInviteCode] = useState('');
   const [penalty] = useState(5);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     fetchProblems();

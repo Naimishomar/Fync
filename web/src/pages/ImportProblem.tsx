@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Search, Download, ExternalLink, AlertTriangle, Check, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../lib/api';
 
 interface Hit {
   source: string;
@@ -42,7 +43,6 @@ const DIFF_COLOR: Record<string, string> = {
 const ImportProblem: React.FC = () => {
   const { token } = useAuth();
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const auth = { headers: { Authorization: `Bearer ${token}` } };
 
   const [source, setSource] = useState('leetcode');
