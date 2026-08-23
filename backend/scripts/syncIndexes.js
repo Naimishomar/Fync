@@ -12,7 +12,7 @@
 //   node scripts/syncIndexes.js --apply    # actually do it, off-peak
 //
 // Index builds are online in MongoDB 4.2+, but they do consume IO — do not run
-// the apply pass during a traffic spike.
+// the apply pass during a traffic spike..
 import 'dotenv/config.js';
 import mongoose from 'mongoose';
 import { readdirSync, statSync } from 'node:fs';
