@@ -25,6 +25,7 @@ import {
   sendRecruiterOTP,
   verifyRecruiterOTP,
   getUsersForAdmin,
+  getUserStatsForAdmin,
   banUser,
   verifyAdminPassword,
   updateFcmToken,
@@ -79,6 +80,7 @@ router.get('/find-team', authMiddleware, getDevelopers);
 
 // Admin Routes
 router.get('/admin/users', authMiddleware, isAdmin, getUsersForAdmin);
+router.get('/admin/stats', authMiddleware, isAdmin, getUserStatsForAdmin);
 router.post('/admin/ban/:userId', authMiddleware, isAdmin, banUser);
 router.post('/admin/verify-password', authMiddleware, isAdmin, verifyAdminPassword);
 

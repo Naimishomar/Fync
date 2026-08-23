@@ -1,6 +1,6 @@
 import Razorpay from "razorpay";
-import crypto from "crypto";
 import Subscription from "../models/subscription.model.js";
+import { verifySignature } from "../utils/redeemOrder.js";
 import User from "../models/user.model.js";
 import SystemConfig from "../models/systemConfig.model.js";
 import dotenv from "dotenv";
@@ -47,6 +47,47 @@ export const createSubscriptionOrder = async (req, res) => {
     }
 };
 
+/**
+ * Turn a pending subscription order into active time.
+ *
+ * Shared by the app's verify call and the Razorpay webhook, because the money
+ * can be captured without the app ever getting to tell us — the student's
+ * screen locks, the network drops, the process is killed. Whichever arrives
+ * first activates; the claim is atomic, so the second one is a no-op.
+ *
+ * Returns the activated document, or null if it was already claimed.
+ */
+export const activateSubscription = async (subscription, razorpayPaymentId) => {
+    const now = new Date();
+
+    // Stack onto whatever is left rather than truncating it.
+    const activeSub = await Subscription.findOne({
+        user: subscription.user,
+        status: 'active',
+    }).sort({ endDate: -1 });
+
+    const baseDate = activeSub?.endDate && activeSub.endDate > now ? new Date(activeSub.endDate) : now;
+    const endDate = new Date(baseDate);
+    endDate.setDate(endDate.getDate() + 30);
+
+    const claimed = await Subscription.findOneAndUpdate(
+        { _id: subscription._id, status: 'pending' },
+        {
+            $set: {
+                razorpayPaymentId,
+                status: 'active',
+                startDate: baseDate,
+                endDate,
+            },
+        },
+        { new: true }
+    );
+    if (!claimed) return null;
+
+    await User.findByIdAndUpdate(subscription.user, { is_subscribed: true });
+    return claimed;
+};
+
 export const verifySubscriptionPayment = async (req, res) => {
     try {
         const {
@@ -55,13 +96,11 @@ export const verifySubscriptionPayment = async (req, res) => {
             razorpay_signature
         } = req.body;
 
-        const body = razorpay_order_id + "|" + razorpay_payment_id;
-        const expectedSignature = crypto
-            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-            .update(body.toString())
-            .digest("hex");
+        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+            return res.status(400).json({ success: false, message: "Missing payment details" });
+        }
 
-        if (expectedSignature !== razorpay_signature) {
+        if (!verifySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature)) {
             return res.status(400).json({ success: false, message: "Invalid payment signature" });
         }
 
@@ -77,46 +116,21 @@ export const verifySubscriptionPayment = async (req, res) => {
             return res.status(400).json({ success: false, message: "This payment has already been processed" });
         }
 
-        // Find latest active subscription to handle stacking
-        const activeSub = await Subscription.findOne({
-            user: req.user.id,
-            status: 'active'
-        }).sort({ endDate: -1 });
-
-        const now = new Date();
-        let startDate = now;
-        let baseDate = now;
-
-        // If user has an active subscription that hasn't expired, stack on top of it
-        if (activeSub && activeSub.endDate && activeSub.endDate > now) {
-            baseDate = new Date(activeSub.endDate);
-            startDate = baseDate;
+        // The signature only proves the ids came from Razorpay. Confirm the
+        // money was actually captured, for the amount this order was created
+        // at, before handing out a month of access.
+        const payment = await razorpay.payments.fetch(razorpay_payment_id);
+        const captured = payment.status === "captured" || payment.status === "authorized";
+        const expectedPaise = Number(subscription.amount) * 100;
+        if (!captured || String(payment.order_id) !== String(razorpay_order_id) || Number(payment.amount) !== expectedPaise) {
+            return res.status(400).json({ success: false, message: "Payment not captured for the expected amount" });
         }
 
-        const endDate = new Date(baseDate);
-        endDate.setDate(endDate.getDate() + 30); // Add 30 days to baseDate (either now or current expiry)
-
-        // Atomically claim the pending order so concurrent verify calls can't double-activate.
-        const claimed = await Subscription.findOneAndUpdate(
-            { _id: subscription._id, status: 'pending' },
-            {
-                $set: {
-                    razorpayPaymentId: razorpay_payment_id,
-                    status: 'active',
-                    startDate,
-                    endDate
-                },
-            },
-            { new: true }
-        );
+        const claimed = await activateSubscription(subscription, razorpay_payment_id);
         if (!claimed) {
-            return res.status(400).json({ success: false, message: "This payment has already been processed" });
+            // The webhook beat us to it — the student is subscribed either way.
+            return res.status(200).json({ success: true, message: "Subscription already active", alreadyProcessed: true });
         }
-
-        // Update user's is_subscribed status
-        await User.findByIdAndUpdate(req.user.id, {
-            is_subscribed: true
-        });
 
         res.status(200).json({ success: true, message: "Subscription activated!", subscription: claimed });
     } catch (err) {

@@ -307,3 +307,113 @@ export const MediaItem = ({ item, onDelete }: any) => (
         </View>
     </View>
 );
+
+// ─── Payments ────────────────────────────────────────────────────────────────
+// Amounts are stored in paise, like everything else on the payment path.
+const rupees = (paise: number) =>
+    `₹${((paise ?? 0) / 100).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+
+// Razorpay's own vocabulary, in the words an admin uses when a student writes in.
+const PAYMENT_STATUS: Record<string, { label: string; text: string; chip: string; icon: string }> = {
+    paid: { label: 'Successful', text: 'text-success', chip: 'bg-success/10 border-success/25', icon: 'checkmark-circle' },
+    created: { label: 'Pending', text: 'text-warning', chip: 'bg-warning/10 border-warning/25', icon: 'time' },
+    failed: { label: 'Failed', text: 'text-danger', chip: 'bg-danger/10 border-danger/25', icon: 'close-circle' },
+};
+
+// What the student was actually buying, rather than the catalog key.
+const PURPOSE_LABEL: Record<string, string> = {
+    notice_boost: 'Global notice',
+    funding_listing: 'Funding listing',
+    interview_session: 'Mock interview',
+    community_creation: 'Community creation',
+    community_spark: 'Community spark',
+};
+
+export const PaymentItem = ({ item, onCopy }: any) => {
+    const status = PAYMENT_STATUS[item.status] ?? PAYMENT_STATUS.created;
+    return (
+        <View className="bg-card rounded-sheet mb-4 p-5 border border-line shadow-hair">
+            <View className="flex-row items-start justify-between mb-3">
+                <View className="flex-1 mr-3">
+                    <Text className="text-ink font-display text-base">{rupees(item.amount)}</Text>
+                    <Text className="text-ink-3 text-label font-semibold mt-0.5">
+                        {PURPOSE_LABEL[item.purpose] ?? item.purpose}
+                    </Text>
+                </View>
+                <View className={`flex-row items-center border px-2.5 py-1.5 rounded-md ${status.chip}`}>
+                    <Ionicons name={status.icon as any} size={12} color={
+                        item.status === 'paid' ? '#047857' : item.status === 'failed' ? '#DC2626' : '#B45309'
+                    } />
+                    <Text className={`text-label font-semibold ml-1.5 ${status.text}`}>{status.label}</Text>
+                </View>
+            </View>
+
+            {/* Who to look up when a query comes in */}
+            <View className="flex-row items-center border-t border-paper pt-3">
+                <View className="w-8 h-8 rounded-full bg-paper-2 overflow-hidden mr-2.5">
+                    <Image source={{ uri: item.user?.avatar || 'https://cdn-icons-png.freepik.com/512/219/219988.png' }} className="w-full h-full" />
+                </View>
+                <View className="flex-1">
+                    <Text className="text-ink text-sm font-semibold" numberOfLines={1}>
+                        {item.user?.name ?? 'Deleted account'}
+                    </Text>
+                    <Text className="text-ink-3 text-label font-semibold" numberOfLines={1}>
+                        {item.user?.username ? `@${item.user.username}` : ''}
+                        {item.user?.email ? ` · ${item.user.email}` : ''}
+                    </Text>
+                </View>
+            </View>
+
+            {/* The reference a student can read off their bank statement. Tap to
+                copy — retyping "pay_RkQ9x2..." from a support chat is how the
+                wrong refund gets issued. */}
+            <View className="mt-3 bg-paper-2 rounded-card border border-line p-3">
+                {[
+                    ['Order ID', item.orderId],
+                    ['Payment ID', item.paymentId],
+                ].map(([label, value]: any) => (
+                    <TouchableOpacity
+                        key={label}
+                        onPress={() => value && onCopy?.(value)}
+                        disabled={!value}
+                        className="flex-row items-center justify-between py-1"
+                        accessibilityRole="button"
+                        accessibilityLabel={value ? `Copy ${label} ${value}` : `${label} not available`}
+                    >
+                        <Text className="text-ink-3 text-label font-semibold">{label}</Text>
+                        <View className="flex-row items-center flex-1 justify-end ml-3">
+                            <Text className="text-ink text-label font-mono" numberOfLines={1}>
+                                {value ?? '—'}
+                            </Text>
+                            {value ? (
+                                <Ionicons name="copy-outline" size={12} color="#8B857E" style={{ marginLeft: 6 }} />
+                            ) : null}
+                        </View>
+                    </TouchableOpacity>
+                ))}
+            </View>
+
+            <View className="flex-row items-center justify-between mt-3">
+                <Text className="text-ink-3 text-label font-semibold">
+                    Started {new Date(item.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                </Text>
+                {item.paidAt ? (
+                    <Text className="text-success text-label font-semibold">
+                        Paid {new Date(item.paidAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                    </Text>
+                ) : null}
+            </View>
+
+            {/* Whatever the order was bound to — plan, community, duration. */}
+            {item.meta && Object.keys(item.meta).length ? (
+                <View className="flex-row flex-wrap mt-2.5" style={{ gap: 6 }}>
+                    {Object.entries(item.meta).map(([k, v]: any) => (
+                        <View key={k} className="bg-paper-2 border border-line px-2 py-1 rounded-md">
+                            <Text className="text-ink-3 text-label font-semibold">{k}: {String(v)}</Text>
+                        </View>
+                    ))}
+                </View>
+            ) : null}
+        </View>
+    );
+};

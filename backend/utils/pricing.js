@@ -23,6 +23,18 @@ export const CATALOG = {
     meta: () => ({}),
   },
 
+  interview_session: {
+    // Priced by length. The duration is echoed back in meta so the verify step
+    // reads it from the order rather than from the request.
+    price: ({ duration }) => {
+      const mins = Number(duration);
+      if (mins === 10) return RUPEES(5);
+      if (mins === 15) return RUPEES(7);
+      throw new Error("Invalid duration");
+    },
+    meta: ({ duration }) => ({ duration: Number(duration) }),
+  },
+
   community_creation: {
     price: ({ plan }) => PLAN_PRICES[plan],
     meta: ({ plan, name }) => ({ plan, name: String(name || "").slice(0, 120) }),

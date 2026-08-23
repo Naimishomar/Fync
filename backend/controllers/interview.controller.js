@@ -1,4 +1,8 @@
 import Groq from "groq-sdk";
+import { randomUUID } from "crypto";
+import PaymentOrder from "../models/paymentOrder.model.js";
+import { resolvePurchase } from "../utils/pricing.js";
+import { redeemPaidOrder, PaymentError } from "../utils/redeemOrder.js";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import InterviewSession from "../models/interview.model.js";
@@ -389,19 +393,34 @@ export const generateReportPDF = async (req, res) => {
 export const createInterviewOrder = async (req, res) => {
     try {
         const { duration } = req.body;
-        let amount = 0;
 
-        if (duration == 10) amount = 5;
-        else if (duration == 15) amount = 7;
-        else return res.status(400).json({ success: false, message: `Invalid duration` });
+        // Priced from the shared catalog, like every other purchase.
+        let priced;
+        try {
+            priced = await resolvePurchase("interview_session", { duration }, req.user.id);
+        } catch (e) {
+            return res.status(400).json({ success: false, message: e.message });
+        }
 
-        const options = {
-            amount: amount * 100,
+        const order = await razorpay.orders.create({
+            amount: priced.amount,
             currency: `INR`,
-            receipt: `interview_receipt_`,
-        };
+            // Razorpay wants this unique per order; it used to be the constant
+            // string `interview_receipt_` for every single one.
+            receipt: `interview_${randomUUID()}`,
+            notes: { purpose: "interview_session", userId: req.user.id },
+        });
 
-        const order = await razorpay.orders.create(options);
+        // Recorded so the verify step can bind the receipt to this order and
+        // spend it once, instead of trusting a bare signature.
+        await PaymentOrder.create({
+            razorpayOrderId: order.id,
+            user: req.user.id,
+            purpose: "interview_session",
+            amount: priced.amount,
+            meta: priced.meta,
+        });
+
         res.status(200).json({ success: true, order });
     } catch (err) {
         console.error(`Error creating interview order:`, err);
@@ -409,21 +428,34 @@ export const createInterviewOrder = async (req, res) => {
     }
 };
 
-export const verifyInterviewPayment = async (req, res) => {
+export const verifyInterviewPayment = async (req, res, next) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-        const body = razorpay_order_id + `|` + razorpay_payment_id;
-        const expectedSignature = crypto
-            .createHmac(`sha256`, process.env.RAZORPAY_KEY_SECRET)
-            .update(body.toString())
-            .digest(`hex`);
-
-        if (expectedSignature !== razorpay_signature) {
-            return res.status(400).json({ success: false, message: `Invalid payment signature` });
+        // This used to return success for any valid signature, so one ₹5
+        // receipt unlocked unlimited interviews — and a receipt bought for a
+        // different feature worked just as well.
+        let order;
+        try {
+            order = await redeemPaidOrder({
+                orderId: razorpay_order_id,
+                paymentId: razorpay_payment_id,
+                signature: razorpay_signature,
+                userId: req.user.id,
+                purpose: "interview_session",
+            });
+        } catch (e) {
+            if (e instanceof PaymentError) {
+                return res.status(e.status).json({ success: false, message: e.message });
+            }
+            throw e;
         }
 
-        res.status(200).json({ success: true, message: `Payment verified` });
+        res.status(200).json({
+            success: true,
+            message: `Payment verified`,
+            duration: order.meta?.duration,
+        });
     } catch (err) {
         console.error(`Error verifying payment:`, err);
         res.status(500).json({ success: false, message: `Error verifying payment` });

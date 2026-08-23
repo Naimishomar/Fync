@@ -55,6 +55,12 @@ export const validateConfig = () => {
   if (process.env.JWT_SECRET === process.env.JWT_REFRESH_SECRET) {
     warnings.push('JWT_SECRET and JWT_REFRESH_SECRET are identical — an access token would pass as a refresh token.');
   }
+  if (isLiveKey && !process.env.RAZORPAY_WEBHOOK_SECRET) {
+    warnings.push(
+      'RAZORPAY_WEBHOOK_SECRET is unset with LIVE keys — a payment captured while the ' +
+      'student\'s app is closed will never be granted, and nobody will know.'
+    );
+  }
   if (isProd && !process.env.CORS_ORIGIN) {
     warnings.push('CORS_ORIGIN is unset in production, so the API accepts any origin.');
   }

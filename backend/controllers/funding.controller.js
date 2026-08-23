@@ -1,8 +1,8 @@
 import FundingProject from "../models/funding.model.js";
+import { redeemPaidOrder, releaseOrder, PaymentError } from "../utils/redeemOrder.js";
 import User from "../models/user.model.js";
 import Comment from "../models/comment.model.js";
 import { deleteFromR2 } from "../utils/r2.js";
-import crypto from 'crypto';
 import { getCommentThread } from "../utils/comments.js";
 import { toggleLike } from "../utils/likeToggle.js";
 
@@ -14,34 +14,50 @@ export const createFundingPost = async (req, res) => {
         }
 
         // Payment verification is REQUIRED for every new project.
-        if (!paymentRefId || !razorpay_order_id || !razorpay_signature) {
-            return res.status(400).json({ success: false, message: "Payment verification failed" });
+        //
+        // Checking only the signature let one ₹49 notice receipt buy a ₹249
+        // listing, and buy it again on every replay. Redeeming the order binds
+        // the receipt to this product, to this user, and spends it once.
+        let paidOrder;
+        try {
+            paidOrder = await redeemPaidOrder({
+                orderId: razorpay_order_id,
+                paymentId: paymentRefId,
+                signature: razorpay_signature,
+                userId: req.user.id,
+                purpose: "funding_listing",
+            });
+        } catch (e) {
+            if (e instanceof PaymentError) {
+                return res.status(e.status).json({ success: false, message: e.message });
+            }
+            throw e;
         }
 
-        const body = razorpay_order_id + "|" + paymentRefId;
-        const expectedSignature = crypto
-            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-            .update(body.toString())
-            .digest("hex");
-
-        if (expectedSignature !== razorpay_signature) {
-            return res.status(400).json({ success: false, message: "Invalid payment signature" });
-        }
         let image = [];
         let video = "";
         if (req.files?.image) image = req.files.image.map(f => f.path);
         if (req.files?.video?.[0]) video = req.files.video[0].path;
 
         if (image.length === 0 && !video) {
+            await releaseOrder(paidOrder);
             return res.status(400).json({ message: "At least one image or video required" });
         }
 
-        const project = await FundingProject.create({
-            user: req.user.id,
-            title, description, image, video, deployed_url, github_url,
-            likes: 0, liked_by: [], comments: [],
-            paymentRefId: paymentRefId || null
-        });
+        let project;
+        try {
+            project = await FundingProject.create({
+                user: req.user.id,
+                title, description, image, video, deployed_url, github_url,
+                likes: 0, liked_by: [], comments: [],
+                paymentRefId: paymentRefId || null
+            });
+        } catch (e) {
+            // They paid and got nothing — return the receipt so they can retry
+            // rather than being charged twice.
+            await releaseOrder(paidOrder);
+            throw e;
+        }
         res.status(201).json({ success: true, message: "Project created", project });
     } catch (error) {
         console.error(error);

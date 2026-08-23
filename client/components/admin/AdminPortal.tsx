@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {View, Text, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Image, ScrollView, Switch, Platform, KeyboardAvoidingView, Linking, BackHandler, StatusBar} from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
+import * as Clipboard from 'expo-clipboard';
 import axios from '../../context/axiosConfig';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/auth.context';
 import Toast from 'react-native-toast-message';
-import { AdItem, RedemptionItem, MarketPlaceItem, ReportItem, ContactMessageItem, UserItem, MediaItem } from './AdminComponents';
+import { AdItem, RedemptionItem, MarketPlaceItem, ReportItem, ContactMessageItem, UserItem, MediaItem, PaymentItem } from './AdminComponents';
 import { Alert } from '../ui/AlertModal';
 
 // Using a stable key for navigation to ensure it survives re-renders
@@ -44,7 +45,7 @@ const AdminPortal = ({ navigation }: any) => {
         }
     }, [user]);
 
-    const [activeTab, setActiveTab] = useState<'ads' | 'rewards' | 'marketplace' | 'messages' | 'media' | 'reports' | 'users' | 'subscription' | 'broadcast'>('ads');
+    const [activeTab, setActiveTab] = useState<'ads' | 'rewards' | 'marketplace' | 'messages' | 'media' | 'reports' | 'users' | 'subscription' | 'broadcast' | 'payments'>('ads');
     const [view, setView] = useState<'hub' | 'feature'>('hub');
     const [subscriptionPrice, setSubscriptionPrice] = useState<string>('39');
     const [currentSubscriptionPrice, setCurrentSubscriptionPrice] = useState<string>('...');
@@ -57,6 +58,15 @@ const AdminPortal = ({ navigation }: any) => {
     const [fyncMedia, setFyncMedia] = useState<any[]>([]);
     const [reports, setReports] = useState<any[]>([]);
     const [users, setUsers] = useState<any[]>([]);
+
+    // Payments arrive while an admin scrolls, so the ledger is keyset-paged:
+    // the cursor is the last row we showed, not an offset that shifts.
+    const [payments, setPayments] = useState<any[]>([]);
+    const [paymentCursor, setPaymentCursor] = useState<string | null>(null);
+    const [paymentsLoadingMore, setPaymentsLoadingMore] = useState(false);
+    const [paymentFilter, setPaymentFilter] = useState<'' | 'paid' | 'created' | 'failed'>('');
+    const [paymentStats, setPaymentStats] = useState<any>(null);
+    const [userStats, setUserStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -221,6 +231,70 @@ const AdminPortal = ({ navigation }: any) => {
         }
     };
 
+    /**
+     * The payment ledger.
+     *
+     * `reset` starts from the top; otherwise it continues from the cursor the
+     * server handed back. A ref-free guard on `paymentsLoadingMore` keeps a
+     * fast scroll from firing the same page twice.
+     */
+    const fetchPayments = useCallback(async (opts: { reset?: boolean; status?: string; search?: string } = {}) => {
+        const { reset = false } = opts;
+        const status = opts.status ?? paymentFilter;
+
+        if (reset) setLoading(true);
+        else setPaymentsLoadingMore(true);
+
+        try {
+            const params = new URLSearchParams({ limit: '10' });
+            if (status) params.set('status', status);
+            if (opts.search) params.set('search', opts.search);
+            if (!reset && paymentCursor) params.set('cursor', paymentCursor);
+
+            const res = await axios.get(`/payment/admin/orders?${params.toString()}`);
+            if (res.data.success) {
+                setPayments((prev) => (reset ? res.data.orders : [...prev, ...res.data.orders]));
+                setPaymentCursor(res.data.nextCursor);
+            }
+        } catch (e) {
+            console.error(e);
+            Toast.show({ type: 'error', text1: 'Failed to fetch payments' });
+        } finally {
+            setLoading(false);
+            setPaymentsLoadingMore(false);
+        }
+    }, [paymentCursor, paymentFilter]);
+
+    const loadMorePayments = useCallback(() => {
+        // No cursor means the server already served the last page.
+        if (!paymentCursor || paymentsLoadingMore || loading) return;
+        fetchPayments();
+    }, [paymentCursor, paymentsLoadingMore, loading, fetchPayments]);
+
+    const fetchPaymentStats = async () => {
+        try {
+            const res = await axios.get('/payment/admin/stats');
+            if (res.data.success) setPaymentStats(res.data.stats);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    /** Headline user numbers for the hub. */
+    const fetchUserStats = async () => {
+        try {
+            const res = await axios.get('/user/admin/stats');
+            if (res.data.success) setUserStats(res.data.stats);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const copyReference = useCallback(async (value: string) => {
+        await Clipboard.setStringAsync(value);
+        Toast.show({ type: 'success', text1: 'Copied', text2: value });
+    }, []);
+
     const fetchSubscriptionConfig = async () => {
         try {
             setLoading(true);
@@ -293,6 +367,13 @@ const AdminPortal = ({ navigation }: any) => {
     useEffect(() => {
         if (activeTab === 'broadcast') loadReach();
     }, [activeTab]);
+
+    // Hub headline numbers. Loaded once the password check passes, not per tab.
+    useEffect(() => {
+        if (!isAuthenticated) return;
+        fetchUserStats();
+        fetchPaymentStats();
+    }, [isAuthenticated]);
 
     const sendBroadcast = async () => {
         setSendingBroadcast(true);
@@ -396,6 +477,14 @@ const AdminPortal = ({ navigation }: any) => {
                 break;
             case 'subscription':
                 fetchSubscriptionConfig();
+                break;
+            case 'payments':
+                // Fresh from the top each time the tab opens; the cursor from a
+                // previous visit points into a list that has since moved.
+                setPaymentCursor(null);
+                setPayments([]);
+                fetchPayments({ reset: true });
+                fetchPaymentStats();
                 break;
             case 'users':
                 if (userSearch.trim()) {
@@ -770,6 +859,12 @@ const AdminPortal = ({ navigation }: any) => {
                 color="#0891B2" 
                 description="Send an instant push notification to all users." onOpen={openHub} />
             <HubButton 
+                title="Payments" 
+                tab="payments" 
+                icon="card" 
+                color="#047857" 
+                description="Every transaction with its reference id, payer and outcome — for answering student queries." onOpen={openHub} />
+            <HubButton 
                 title="Subscription Pricing" 
                 tab="subscription" 
                 icon="pricetag" 
@@ -783,14 +878,47 @@ const AdminPortal = ({ navigation }: any) => {
                 </View>
                 <View className="flex-row justify-between">
                     <View>
-                        <Text className="text-ink-3 text-label font-display uppercase">Pending Reports</Text>
-                        <Text className="text-white text-xl font-display mt-1">{reports.length}</Text>
+                        <Text className="text-ink-3 text-label font-display uppercase">Total Users</Text>
+                        <Text className="text-white text-2xl font-display mt-1">
+                            {userStats ? userStats.total.toLocaleString('en-IN') : '—'}
+                        </Text>
+                        {userStats ? (
+                            <Text className="text-ink-3 text-label font-semibold mt-0.5">
+                                +{userStats.newThisWeek} this week
+                            </Text>
+                        ) : null}
                     </View>
                     <View className="items-end">
-                        <Text className="text-ink-3 text-label font-display uppercase">Total Redemptions</Text>
-                        <Text className="text-white text-xl font-display mt-1">{redemptions.length}</Text>
+                        <Text className="text-ink-3 text-label font-display uppercase">Collected</Text>
+                        <Text className="text-white text-2xl font-display mt-1">
+                            {paymentStats ? `₹${Math.round(paymentStats.grossCollected / 100).toLocaleString('en-IN')}` : '—'}
+                        </Text>
+                        {paymentStats ? (
+                            <Text className="text-ink-3 text-label font-semibold mt-0.5">
+                                {paymentStats.successful} payments
+                            </Text>
+                        ) : null}
                     </View>
                 </View>
+
+                {/* The breakdown an admin actually asks for: who is on the app,
+                    and what is still unresolved. */}
+                {userStats ? (
+                    <View className="flex-row flex-wrap mt-5 pt-5 border-t border-white/10" style={{ gap: 10 }}>
+                        {[
+                            ['Students', userStats.students],
+                            ['Alumni', userStats.alumni],
+                            ['Recruiters', userStats.recruiters],
+                            ['Pending payments', paymentStats?.pending ?? 0],
+                            ['Reports', reports.length],
+                        ].map(([label, value]: any) => (
+                            <View key={label} className="bg-white/5 rounded-card px-3 py-2">
+                                <Text className="text-ink-3 text-label font-display uppercase">{label}</Text>
+                                <Text className="text-white text-sm font-display mt-0.5">{value}</Text>
+                            </View>
+                        ))}
+                    </View>
+                ) : null}
             </View>
         </ScrollView>
     );
@@ -874,7 +1002,7 @@ const AdminPortal = ({ navigation }: any) => {
                                 </Text>
                             </View>
                         </View>
-                        {view === 'feature' && activeTab !== 'rewards' && activeTab !== 'messages' && activeTab !== 'reports' && activeTab !== 'users' && activeTab !== 'subscription' && (
+                        {view === 'feature' && activeTab !== 'rewards' && activeTab !== 'messages' && activeTab !== 'reports' && activeTab !== 'users' && activeTab !== 'subscription' && activeTab !== 'payments' && (
                             <TouchableOpacity
                                 onPress={() => { resetForm(); setModalVisible(true); }}
                                 className="w-14 h-14 bg-ink rounded-card items-center justify-center shadow-hair"
@@ -1100,6 +1228,7 @@ const AdminPortal = ({ navigation }: any) => {
                             activeTab === 'rewards' ? redemptions : 
                             activeTab === 'reports' ? reports :
                             activeTab === 'users' ? users :
+                            activeTab === 'payments' ? payments :
                             messages
                         }
                         keyExtractor={item => item._id}
@@ -1116,10 +1245,76 @@ const AdminPortal = ({ navigation }: any) => {
                                                 <ReportItem item={item} onDelete={handleDelete} /> :
                                                 activeTab === 'users' ?
                                                     <UserItem item={item} onToggleBan={handleToggleBan} /> :
-                                                    <ContactMessageItem item={item} onDelete={handleDelete} onToggleRead={handleToggleMessageReadStatus} />
+                                                    activeTab === 'payments' ?
+                                                        <PaymentItem item={item} onCopy={copyReference} /> :
+                                                        <ContactMessageItem item={item} onDelete={handleDelete} onToggleRead={handleToggleMessageReadStatus} />
                         }
                         contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
                         showsVerticalScrollIndicator={false}
+                        onEndReached={activeTab === 'payments' ? loadMorePayments : undefined}
+                        onEndReachedThreshold={0.5}
+                        ListHeaderComponent={
+                            activeTab === 'payments' ? (
+                                <View className="mb-4">
+                                    {/* Totals first — the question is usually
+                                        "how much came in", then a lookup. */}
+                                    {paymentStats ? (
+                                        <View className="flex-row mb-3" style={{ gap: 8 }}>
+                                            {[
+                                                ['Successful', paymentStats.successful, 'text-success'],
+                                                ['Pending', paymentStats.pending, 'text-warning'],
+                                                ['Failed', paymentStats.failed, 'text-danger'],
+                                            ].map(([label, value, tone]: any) => (
+                                                <View key={label} className="flex-1 bg-card border border-line rounded-card p-3">
+                                                    <Text className="text-ink-3 text-label font-display uppercase">{label}</Text>
+                                                    <Text className={`text-lg font-display mt-0.5 ${tone}`}>{value}</Text>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    ) : null}
+
+                                    <View className="flex-row" style={{ gap: 8 }}>
+                                        {[
+                                            { label: 'All', value: '' },
+                                            { label: 'Successful', value: 'paid' },
+                                            { label: 'Pending', value: 'created' },
+                                            { label: 'Failed', value: 'failed' },
+                                        ].map((f) => {
+                                            const on = paymentFilter === f.value;
+                                            return (
+                                                <TouchableOpacity
+                                                    key={f.value || 'all'}
+                                                    onPress={() => {
+                                                        setPaymentFilter(f.value as any);
+                                                        setPaymentCursor(null);
+                                                        setPayments([]);
+                                                        fetchPayments({ reset: true, status: f.value });
+                                                    }}
+                                                    className={`px-3 py-2 rounded-md border ${on ? 'bg-ink border-ink' : 'bg-card border-line'}`}
+                                                    accessibilityRole="button"
+                                                    accessibilityState={{ selected: on }}
+                                                >
+                                                    <Text className={`text-label font-semibold ${on ? 'text-white' : 'text-ink-2'}`}>{f.label}</Text>
+                                                </TouchableOpacity>
+                                            );
+                                        })}
+                                    </View>
+                                </View>
+                            ) : null
+                        }
+                        ListFooterComponent={
+                            activeTab === 'payments' ? (
+                                paymentsLoadingMore ? (
+                                    <View className="py-6 items-center">
+                                        <ActivityIndicator size="small" color="#F97316" />
+                                    </View>
+                                ) : payments.length && !paymentCursor ? (
+                                    <View className="py-6 items-center">
+                                        <Text className="text-ink-3 text-label font-semibold">That is every payment</Text>
+                                    </View>
+                                ) : null
+                            ) : null
+                        }
                         ListEmptyComponent={
                             <View className="flex-1 items-center justify-center py-20">
                                 <Text className="text-ink-3 font-semibold text-sm">
@@ -1128,7 +1323,8 @@ const AdminPortal = ({ navigation }: any) => {
                                             activeTab === 'rewards' ? 'No reward applications found' :
                                                 activeTab === 'reports' ? 'No reported posts' :
                                                     activeTab === 'users' ? 'No users found' :
-                                                        'No messages found'}
+                                                        activeTab === 'payments' ? 'No payments yet' :
+                                                            'No messages found'}
                                 </Text>
                             </View>
                         }

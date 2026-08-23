@@ -969,6 +969,36 @@ export const savePushToken = async (req, res) => {
   }
 };
 
+/**
+ * GET /user/admin/stats — how many people are actually on Fync.
+ *
+ * Counted per request rather than stored: countDocuments on an indexed field
+ * is cheap, and a cached total that drifts is worse than no total at all.
+ */
+export const getUserStatsForAdmin = async (req, res, next) => {
+  try {
+    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    const [total, students, alumni, recruiters, banned, newToday, newThisWeek] = await Promise.all([
+      User.countDocuments({}),
+      User.countDocuments({ user_access: 'user' }),
+      User.countDocuments({ user_access: 'alumni' }),
+      User.countDocuments({ user_access: 'recruiter' }),
+      User.countDocuments({ isBanned: true }),
+      User.countDocuments({ createdAt: { $gte: dayAgo } }),
+      User.countDocuments({ createdAt: { $gte: weekAgo } }),
+    ]);
+
+    res.json({
+      success: true,
+      stats: { total, students, alumni, recruiters, banned, newToday, newThisWeek },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getUsersForAdmin = async (req, res) => {
   try {
     if (req.user.user_access !== 'admin') {

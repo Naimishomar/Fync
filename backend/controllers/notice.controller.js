@@ -1,8 +1,8 @@
 import Notice from "../models/notice.model.js";
+import { redeemPaidOrder, releaseOrder, PaymentError } from "../utils/redeemOrder.js";
 import Comment from "../models/comment.model.js";
 import User from "../models/user.model.js";
 import { deleteFromR2 } from "../utils/r2.js";
-import crypto from 'crypto';
 import { toggleLike } from "../utils/likeToggle.js";
 
 export const createNotice = async (req, res) => {
@@ -38,19 +38,29 @@ export const createGlobalNotice = async (req, res) => {
         }
 
         const isAdmin = req.user.user_access === 'admin';
+        let paidOrder = null;
 
         if (!isAdmin) {
             if (!paymentRefId || !razorpay_order_id || !razorpay_signature) {
                 return res.status(400).json({ success: false, message: "Payment verification required for global post" });
             }
-            const body = razorpay_order_id + "|" + paymentRefId;
-            const expectedSignature = crypto
-                .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-                .update(body.toString())
-                .digest("hex");
 
-            if (expectedSignature !== razorpay_signature) {
-                return res.status(400).json({ success: false, message: "Invalid payment signature" });
+            // A signature check alone accepted any paid receipt — including one
+            // bought for a cheaper feature — and accepted it again on every
+            // replay. Redeeming binds it to notice_boost and spends it once.
+            try {
+                paidOrder = await redeemPaidOrder({
+                    orderId: razorpay_order_id,
+                    paymentId: paymentRefId,
+                    signature: razorpay_signature,
+                    userId: req.user.id,
+                    purpose: "notice_boost",
+                });
+            } catch (e) {
+                if (e instanceof PaymentError) {
+                    return res.status(e.status).json({ success: false, message: e.message });
+                }
+                throw e;
             }
         }
 
@@ -59,15 +69,23 @@ export const createGlobalNotice = async (req, res) => {
             noticeImage = req.files.map(file => file.path);
         }
 
-        const notice = await Notice.create({
-            title,
-            description,
-            link,
-            image: noticeImage,
-            user: req.user.id,
-            college: req.user.college,
-            isGlobal: true,
-        })
+        let notice;
+        try {
+            notice = await Notice.create({
+                title,
+                description,
+                link,
+                image: noticeImage,
+                user: req.user.id,
+                college: req.user.college,
+                isGlobal: true,
+            })
+        } catch (e) {
+            // They paid and got nothing — hand the receipt back so they can
+            // retry instead of being charged twice.
+            if (paidOrder) await releaseOrder(paidOrder);
+            throw e;
+        }
         return res.status(200).json({ success: true, message: "Notice created successfully", notice });
     } catch (error) {
         console.log("Internal server error", error);

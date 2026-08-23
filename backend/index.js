@@ -48,6 +48,7 @@ import marketplaceRoute from './routes/marketplace/marketplace.route.js';
 import adRoute from './routes/ad.route.js';
 import contactUsRoute from './routes/contactUs/contactUs.route.js';
 import hackathonRoute from './routes/hackathon/hackathon.route.js';
+import paymentWebhookRoute from './routes/paymentWebhook.route.js';
 import profileRoute from './routes/profile/profile.route.js';
 import opportunityRoute from './routes/opportunity.route.js';
 import arenaRoute from './routes/coding/arena.route.js';
@@ -196,6 +197,12 @@ app.use(cors({
   origin: corsOrigins === '*' ? '*' : corsOrigins,
   credentials: corsOrigins !== '*',
 }));
+
+// Mounted BEFORE express.json on purpose. Razorpay signs the exact bytes it
+// sends, and a parsed-then-re-stringified body is not those bytes, so a JSON
+// parser here would break every webhook signature. No auth middleware either —
+// the signature IS the authentication.
+app.use('/payment/webhook', express.raw({ type: 'application/json', limit: '1mb' }), paymentWebhookRoute);
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
