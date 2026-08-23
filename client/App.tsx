@@ -171,12 +171,7 @@ import FyncProfileBuilder from './components/profile/FyncProfileBuilder';
 import HackathonHub from './components/hackathon/HackathonHub';
 import HackathonCreate from './components/hackathon/HackathonCreate';
 import HackathonDetail from './components/hackathon/HackathonDetail';
-import HackathonTeamScreen from './components/hackathon/HackathonTeamScreen';
-import HackathonSubmission from './components/hackathon/HackathonSubmission';
-import HackathonLeaderboard from './components/hackathon/HackathonLeaderboard';
-import HackathonJudgePanel from './components/hackathon/HackathonJudgePanel';
-import HackathonChannel from './components/hackathon/HackathonChannel';
-import HackathonDashboard from './components/hackathon/HackathonDashboard';
+import HackathonWinners from './components/hackathon/HackathonWinners';
 
 // Entertainment Module
 import EntertainmentHome from './components/entertainment/EntertainmentHome';
@@ -380,12 +375,7 @@ export type RootStackParamList = {
   HackathonHub: undefined;
   HackathonCreate: { hackathonId?: string } | undefined;
   HackathonDetail: { hackathonId: string };
-  HackathonTeamScreen: { hackathonId: string; mode?: 'create' | 'browse' };
-  HackathonSubmission: { hackathonId: string };
-  HackathonLeaderboard: { hackathonId: string; hackathonTitle?: string };
-  HackathonJudgePanel: { hackathonId: string; judgingCriteria?: any[] };
-  HackathonChannel: { hackathonId: string; hackathonTitle?: string };
-  HackathonDashboard: { hackathonId: string; hackathonTitle?: string };
+  HackathonWinners: { hackathonId: string; hackathonTitle?: string };
   // Profile Builder
   FyncProfileBuilder: undefined;
   // Entertainment Module
@@ -626,12 +616,7 @@ function AppStack() {
       <Stack.Screen name="HackathonHub" component={HackathonHub} />
       <Stack.Screen name="HackathonCreate" component={HackathonCreate} />
       <Stack.Screen name="HackathonDetail" component={HackathonDetail} />
-      <Stack.Screen name="HackathonTeamScreen" component={HackathonTeamScreen} />
-      <Stack.Screen name="HackathonSubmission" component={HackathonSubmission} />
-      <Stack.Screen name="HackathonLeaderboard" component={HackathonLeaderboard} />
-      <Stack.Screen name="HackathonJudgePanel" component={HackathonJudgePanel} />
-      <Stack.Screen name="HackathonChannel" component={HackathonChannel} />
-      <Stack.Screen name="HackathonDashboard" component={HackathonDashboard} />
+      <Stack.Screen name="HackathonWinners" component={HackathonWinners} />
       {/* Profile Builder */}
       <Stack.Screen name="FyncProfileBuilder" component={FyncProfileBuilder} />
       

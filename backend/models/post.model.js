@@ -45,10 +45,40 @@ const postSchema = new mongoose.Schema({
     required: true,
     // Covered by the { college: 1, _id: -1 } compound below.
   },
+  /**
+   * Where the post was made, as a place name rather than coordinates.
+   *
+   * "CS Block" or "Main Gate" is what a student actually wants to read. A
+   * latitude and longitude would reverse-geocode to the campus postcode, which
+   * tells nobody anything and carries a privacy cost for no benefit.
+   */
+  location: {
+    type: String,
+    trim: true,
+    maxlength: 80,
+    default: null,
+  },
+
   isPrivate: {
     type: Boolean,
     default: false,
   },
+
+  /**
+   * Reposts, held as a reference rather than a copy.
+   *
+   * A repost surfaces the original in someone else's feed; it does not
+   * duplicate it. That way an edit or a delete by the author propagates
+   * everywhere it was shared, and the credit stays with whoever wrote it.
+   */
+  reposts: {
+    type: Number,
+    default: 0,
+  },
+  repostedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  }],
   likes: {
     type: Number,
     default: 0,
@@ -97,6 +127,8 @@ postSchema.index({ createdAt: -1 });
 // The two queries tagging creates: "tags awaiting my response" and "posts that
 // appear on my profile".
 postSchema.index({ "tags.user": 1, "tags.status": 1, createdAt: -1 });
+
+postSchema.index({ repostedBy: 1, createdAt: -1 });
 
 const Post = mongoose.model("Post", postSchema);
 export default Post;

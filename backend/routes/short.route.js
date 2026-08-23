@@ -6,6 +6,7 @@ import { cacheMiddleware } from '../middlewares/cache.middleware.js';
 import { createLimiter, feedLimiter } from '../middlewares/rateLimit.middleware.js';
 import { videoUpload } from '../utils/r2.js';
 import { r2UploadMiddleware } from '../utils/r2Upload.js';
+import { toggleRepost, getReposts } from "../controllers/repost.controller.js";
 const router = express.Router();
 
 router.use((req, res, next) => {
@@ -22,6 +23,10 @@ router.post('/create', authMiddleware, createLimiter, videoUpload.single('video'
 // collection instead, so one upstream fetch serves everybody and the per-user
 // filtering happens after it.
 router.get('/discover', authMiddleware, feedLimiter, getDiscoverFeed);
+
+// Reposting. A reference to the original, so credit and edits stay with the author.
+router.post('/repost/:id', authMiddleware, toggleRepost('shorts'));
+router.get('/reposts/:userId', authMiddleware, getReposts('shorts'));
 router.post('/discover/unplayable', authMiddleware, feedLimiter, reportUnplayable);
 
 router.get('/all', authMiddleware, feedLimiter, cacheMiddleware(60, { tags: ['shorts'] }), fetchShorts);

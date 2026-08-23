@@ -9,7 +9,7 @@ import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
 
-const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://fync-web.vercel.app';
+const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://fync-zeta.vercel.app';
 
 const LEVEL_STYLE: Record<string, { bg: string; fg: string }> = {
   Easy:   { bg: '#DCFCE7', fg: '#15803D' },

@@ -15,7 +15,7 @@ import { getCommentThread } from "../utils/comments.js";
 
 export const createPost = async (req, res) => {
     try {
-            const { description, mentions, isPrivate } = req.body;
+            const { description, mentions, isPrivate, location } = req.body;
         if (!description) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
@@ -58,6 +58,7 @@ export const createPost = async (req, res) => {
                 college: postCollege,
                 mentions: parsedMentions,
                 isPrivate: isPrivate === 'true' || isPrivate === true,
+                location: typeof location === 'string' && location.trim() ? location.trim().slice(0, 80) : null,
                 likes: 0,
                 liked_by: [],
                 comments: []

@@ -17,27 +17,23 @@ const getBadge = (score) => {
 
 const calcHackathonScore = async (userId) => {
     // Dynamically import to avoid circular deps
-    const { default: HackathonTeam } = await import("../models/hackathon/team.model.js").catch(() => ({ default: null }));
-    const { default: HackathonSubmission } = await import("../models/hackathon/submission.model.js").catch(() => ({ default: null }));
+    const { default: Hackathon } = await import("../models/hackathon/hackathons.model.js").catch(() => ({ default: null }));
+    if (!Hackathon) return { score: 0, hosted: 0, won: 0 };
 
-    let participated = 0, submitted = 0, won = 0;
+    // Fync no longer handles registration, so "participated" is not something
+    // it can honestly know — only wins the organiser tagged and hackathons the
+    // user hosted here.
+    const [won, hosted] = await Promise.all([
+        Hackathon.countDocuments({ "winners.users": userId }),
+        Hackathon.countDocuments({ organiser: userId, status: { $ne: "draft" } }),
+    ]);
 
-    if (HackathonTeam) {
-        participated = await HackathonTeam.countDocuments({
-            $or: [{ leader: userId }, { "members.user": userId }]
-        });
-    }
-    if (HackathonSubmission) {
-        submitted = await HackathonSubmission.countDocuments({ submittedBy: userId });
-    }
-
-    // Score formula: 30 per participation, 20 per submission, 50 per win (capped at 200)
-    const raw = (participated * 30) + (submitted * 20) + (won * 50);
+    // 60 per win, 40 per hackathon hosted (capped at 200)
+    const raw = (won * 60) + (hosted * 40);
     return {
         score: Math.min(raw, 200),
-        participated,
-        won,
-        submitted
+        hosted,
+        won
     };
 };
 
@@ -193,9 +189,8 @@ export const calculateFyncScore = async (userId) => {
                 totalScore,
                 badge,
                 "breakdown.hackathon.score":       hackathonResult.score,
-                "breakdown.hackathon.participated": hackathonResult.participated,
-                "breakdown.hackathon.won":          hackathonResult.won,
-                "breakdown.hackathon.submitted":    hackathonResult.submitted,
+                "breakdown.hackathon.hosted":      hackathonResult.hosted,
+                "breakdown.hackathon.won":         hackathonResult.won,
 
                 "breakdown.coding.score":           codingResult.score,
                 "breakdown.coding.leetcodeSolved":  codingResult.leetcodeSolved,

@@ -24,10 +24,11 @@ const fyncScoreSchema = new mongoose.Schema({
         hackathon: {
             score: { type: Number, default: 0 },
             maxScore: { type: Number, default: 200 },
-            // Sub-details
-            participated: { type: Number, default: 0 },
-            won: { type: Number, default: 0 },
-            submitted: { type: Number, default: 0 }
+            // Sub-details. Fync lists hackathons rather than running them,
+            // so only wins tagged by an organiser and hackathons hosted here
+            // are countable.
+            hosted: { type: Number, default: 0 },
+            won: { type: Number, default: 0 }
         },
         coding: {
             score: { type: Number, default: 0 },

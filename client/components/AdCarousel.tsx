@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, FlatList, Image, useWindowDimensions, ActivityIndicator, TouchableOpacity, Linking } from "react-native";
 import axios from "../context/axiosConfig";
 
-import { StampCard } from './ui/kit';
 const AdCarousel = () => {
   const flatListRef = useRef<FlatList>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -10,7 +9,9 @@ const AdCarousel = () => {
   const [loading, setLoading] = useState(true);
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
-  const imageHeight = isTablet ? 224 : 132;
+  // Taller now that the poster runs edge to edge: at 132 a full-width
+  // banner reads as a strip rather than a poster.
+  const imageHeight = isTablet ? 260 : 168;
 
   useEffect(() => {
     fetchAds();
@@ -73,23 +74,21 @@ const AdCarousel = () => {
         onMomentumScrollEnd={onScrollEnd}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          // Home's hero slot, so it carries the screen's one stamp. Inset to the
-          // 20px gutter rather than full-bleed, so it lines up with the feed
-          // cards and the section rules underneath it.
+          // Full-bleed. The gutter, the stamp and its 4px offset are all gone:
+          // each of those reserved horizontal space, and an inset banner with a
+          // border reads as a card rather than as the poster it is.
           <TouchableOpacity
             activeOpacity={item.linkUrl ? 0.85 : 1}
             onPress={() => handleAdPress(item)}
             accessibilityRole={item.linkUrl ? 'link' : 'image'}
             accessibilityLabel={item.title || 'Sponsored'}
-            style={{ width, paddingHorizontal: 20, paddingTop: 8 }}
+            style={{ width }}
           >
-            <StampCard>
-              <Image
-                source={{ uri: item.imageUrl }}
-                style={{ width: width - 44, height: imageHeight }}
-                resizeMode="cover"
-              />
-            </StampCard>
+            <Image
+              source={{ uri: item.imageUrl }}
+              style={{ width, height: imageHeight }}
+              resizeMode="cover"
+            />
           </TouchableOpacity>
         )}
       />

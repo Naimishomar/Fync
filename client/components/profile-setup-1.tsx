@@ -17,6 +17,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
 import { collegesInIndia } from 'data/college';
+import { PASSOUT_YEARS, MAJORS } from 'data/academics';
 //@ts-ignore
 
 type ProfileSetup1RouteProp = RouteProp<RootStackParamList, 'ProfileSetup1'>;
@@ -53,8 +54,10 @@ export default function ProfileSetup1() {
   };
 
   const genderOptions = ['Male', 'Female', 'Other'];
-  const yearOptions = ['2025', '2026', '2027', '2028', '2029', '2030'];
-  const majorOptions = ['B.Tech', 'BCA', 'MCA', 'MBA', 'Pharmacy', 'B.Sc', 'M.Tech'];
+  // Shared with hackathon eligibility — a batch a host can target has to be a
+  // batch a student can pick.
+  const yearOptions = PASSOUT_YEARS;
+  const majorOptions = MAJORS;
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

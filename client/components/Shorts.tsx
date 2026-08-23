@@ -48,6 +48,8 @@ interface ShortItem {
   likes: number;
   liked_by: string[];
   views: number;
+  reposts?: number;
+  repostedBy?: string[];
   user: User;
   /* Discover items: aggregated tech content that fills the feed once the campus
      shorts run out. They live only in this array — nothing is stored. */
@@ -77,6 +79,7 @@ const SingleShort = React.memo(({
   currentUserId,
   navigation,
   onLike,
+  onRepost,
   onComment,
   onDelete
 }: {
@@ -86,6 +89,7 @@ const SingleShort = React.memo(({
   currentUserId: string | undefined;
   navigation: any;
   onLike: (item: ShortItem) => void;
+  onRepost: (item: ShortItem) => void;
   onComment: (id: string) => void;
   onDelete: (id: string) => void;
 }) => {
@@ -279,6 +283,25 @@ const SingleShort = React.memo(({
             </View>
             <Text className="font-display text-label text-brand-400 mt-1 uppercase">Tip</Text>
           </Pressable>
+
+          {/* Not offered on your own short — the endpoint refuses it. */}
+          {item.user?._id !== currentUserId && (
+            <Pressable
+              onPress={() => onRepost(item)}
+              className="mb-4 items-center"
+              accessibilityRole="button"
+              accessibilityLabel="Repost this short"
+            >
+              <Ionicons
+                name={item.repostedBy?.some((u: any) => String(u) === String(currentUserId)) ? 'repeat' : 'repeat-outline'}
+                size={28}
+                color={item.repostedBy?.some((u: any) => String(u) === String(currentUserId)) ? '#F97316' : 'white'}
+              />
+              {!!item.reposts && (
+                <Text className="font-display text-label text-white mt-1">{item.reposts}</Text>
+              )}
+            </Pressable>
+          )}
 
           <Pressable onPress={handleShare} className="mb-4">
             <Ionicons name="paper-plane-outline" size={28} color="white" />
@@ -524,6 +547,37 @@ export default function Shorts() {
    * Removed from the list rather than left showing an error card: a student
    * swiping a feed should never have to read an error code.
    */
+  /** Reference-style: the short surfaces on your profile, credited to its author. */
+  const handleRepost = useCallback(async (short: ShortItem) => {
+    const mine = short.repostedBy?.some((u) => String(u) === String(currentUserId));
+    // Applied locally first so the icon responds to the tap, then corrected
+    // from whatever the server actually stored.
+    const apply = (reposted: boolean, count: number) => {
+      globalShortsCache = globalShortsCache.map((s) =>
+        s._id === short._id
+          ? {
+              ...s,
+              reposts: count,
+              repostedBy: reposted
+                ? [...(s.repostedBy ?? []), String(currentUserId)]
+                : (s.repostedBy ?? []).filter((u) => String(u) !== String(currentUserId)),
+            }
+          : s,
+      );
+      setShorts(globalShortsCache);
+    };
+    apply(!mine, Math.max(0, (short.reposts ?? 0) + (mine ? -1 : 1)));
+
+    try {
+      const res = await axios.post(`/shorts/repost/${short._id}`);
+      if (res.data?.success) apply(res.data.reposted, res.data.reposts);
+    } catch (err: any) {
+      apply(!!mine, short.reposts ?? 0);
+      const msg = err?.response?.data?.message;
+      if (msg) ToastAndroid?.show?.(msg, ToastAndroid.SHORT);
+    }
+  }, [currentUserId]);
+
   const handleUnplayable = useCallback((videoId: string, code: number) => {
     globalShortsCache = globalShortsCache.filter(s => s.videoId !== videoId);
     setShorts(globalShortsCache);
@@ -661,6 +715,7 @@ export default function Shorts() {
         currentUserId={currentUserId}
         navigation={navigation}
         onLike={toggleLike}
+        onRepost={handleRepost}
         onComment={openComments}
         onDelete={deleteShort}
       />

@@ -9,6 +9,36 @@ import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/d
 import * as ImagePicker from 'expo-image-picker';
 import { StatusBar } from 'expo-status-bar';
 import { Alert } from '../ui/AlertModal';
+import MultiSelectSheet from '../ui/MultiSelectSheet';
+import { collegesInIndia } from '../../data/college';
+import { PASSOUT_YEARS, BRANCHES } from '../../data/academics';
+
+const ELIGIBILITY_META = {
+  colleges: {
+    title: 'Which colleges?',
+    hint: 'Leave it open unless the hackathon is campus-restricted',
+    allLabel: 'All colleges',
+    options: collegesInIndia,
+  },
+  Year: {
+    title: 'Which batches?',
+    hint: 'By passout year — the same batches students pick at signup',
+    allLabel: 'All batches',
+    options: PASSOUT_YEARS,
+  },
+  branch: {
+    title: 'Which branches?',
+    hint: 'Descriptive only — your registration form decides who gets in',
+    allLabel: 'All branches',
+    options: BRANCHES,
+  },
+} as const;
+
+const ELIGIBILITY_PICKERS = [
+  { key: 'colleges' as const, label: 'Colleges', allLabel: 'All colleges', icon: 'business-outline' },
+  { key: 'Year' as const, label: 'Batch', allLabel: 'All batches', icon: 'calendar-outline' },
+  { key: 'branch' as const, label: 'Branches', allLabel: 'All branches', icon: 'git-branch-outline' },
+];
 
 const HackathonCreate = () => {
   const navigation = useNavigation<any>();
@@ -16,15 +46,21 @@ const HackathonCreate = () => {
 
   // Form State
   const [form, setForm] = useState({
-    hackathonId: '',
     title: '',
     description: '',
-    registrationstart: new Date(),
-    registrationends: new Date(),
+    // Fync hands students off here — the listing is a signpost, not a
+    // registration desk.
+    applyLink: '',
+    applyLabel: 'Register',
+    // Optional: the host's own form is what actually closes. This is shown for
+    // context so a student knows whether it is worth tapping through.
+    registrationends: null as Date | null,
     hackathonstarts: new Date(),
     hackathonends: new Date(),
+    mode: 'Online',
+    location: '',
+    teamSize: '',
     prizepool: '',
-    MaxTeamSize: '4',
     tags: '',
     contactEmail: '',
     discordLink: '',
@@ -32,21 +68,20 @@ const HackathonCreate = () => {
   });
 
   // Complex Nested State
-  const [eligibility, setEligibility] = useState({ Year: '', branch: '', colleges: '' });
-  const [criteria, setCriteria] = useState([{ name: '', weightage: '0', description: '' }]);
+  // Empty array means "open to all" — the same thing the API already treats
+  // as unrestricted, so there is no separate flag to keep in sync.
+  const [eligibility, setEligibility] = useState<{ Year: string[]; branch: string[]; colleges: string[] }>({
+    Year: [],
+    branch: [],
+    colleges: [],
+  });
+  const [eligibilitySheet, setEligibilitySheet] = useState<'colleges' | 'Year' | 'branch' | null>(null);
   const [prizes, setPrizes] = useState([{ rank: 1, title: '', amount: '' }]);
   const [rules, setRules] = useState(['']);
   const [tracks, setTracks] = useState([{ title: '', description: '', prizes: '' }]);
   const [timeline, setTimeline] = useState([{ label: '', date: new Date(), description: '' }]);
   const [faqs, setFaqs] = useState([{ question: '', answer: '' }]);
   const [sponsors, setSponsors] = useState([{ name: '', level: 'Partner', logo: null as string | null }]);
-  const [judges, setJudges] = useState<any[]>([]);
-  const [mentors, setMentors] = useState<any[]>([]);
-
-  // Search state
-  const [userSearch, setUserSearch] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [searching, setSearching] = useState(false);
 
   const [bannerImage, setBannerImage] = useState<string | null>(null);
   const [logo, setLogo] = useState<string | null>(null);
@@ -69,15 +104,17 @@ const HackathonCreate = () => {
       const h = res.data.hackathon;
 
       setForm({
-        hackathonId: h.hackathonId,
         title: h.title,
         description: h.description,
-        registrationstart: new Date(h.registrationstart),
-        registrationends: new Date(h.registrationends),
+        applyLink: h.applyLink || '',
+        applyLabel: h.applyLabel || 'Register',
+        registrationends: h.registrationends ? new Date(h.registrationends) : null,
         hackathonstarts: new Date(h.hackathonstarts),
         hackathonends: new Date(h.hackathonends),
+        mode: h.mode || 'Online',
+        location: h.location || '',
+        teamSize: h.teamSize || '',
         prizepool: h.prizepool || '',
-        MaxTeamSize: h.MaxTeamSize?.toString() || '4',
         tags: h.tags?.join(', ') || '',
         contactEmail: h.contactEmail || '',
         discordLink: h.discordLink || '',
@@ -85,12 +122,11 @@ const HackathonCreate = () => {
       });
 
       setEligibility({
-        Year: h.eligibility?.Year?.join(', ') || '',
-        branch: h.eligibility?.branch?.join(', ') || '',
-        colleges: h.eligibility?.colleges?.join(', ') || '',
+        Year: h.eligibility?.Year ?? [],
+        branch: h.eligibility?.branch ?? [],
+        colleges: h.eligibility?.colleges ?? [],
       });
 
-      if (h.judgingcriteria?.length) setCriteria(h.judgingcriteria);
       if (h.prizes?.length) setPrizes(h.prizes);
       if (h.rules?.length) setRules(h.rules);
       if (h.tracks?.length) setTracks(h.tracks);
@@ -99,8 +135,6 @@ const HackathonCreate = () => {
       }
       if (h.faqs?.length) setFaqs(h.faqs);
       if (h.sponsors?.length) setSponsors(h.sponsors);
-      if (h.judges?.length) setJudges(h.judges);
-      if (h.mentors?.length) setMentors(h.mentors);
 
       setForm(prev => ({
         ...prev,
@@ -152,7 +186,7 @@ const HackathonCreate = () => {
 
   const triggerPicker = (id: string | number) => {
     Keyboard?.dismiss?.();
-    const currentValue = typeof id === 'string' ? (form as any)[id] : timeline[id].date;
+    const currentValue = (typeof id === 'string' ? (form as any)[id] : timeline[id].date) ?? new Date();
     const minDate = getMinDate(id);
 
     if (Platform.OS === 'android') {
@@ -184,39 +218,46 @@ const HackathonCreate = () => {
     if (typeof id === 'number') return now;
 
     switch (id) {
-      case 'registrationstart': return now;
-      case 'registrationends': return form.registrationstart;
-      case 'hackathonstarts': return form.registrationends;
+      case 'registrationends': return now;
+      case 'hackathonstarts': return now;
       case 'hackathonends': return form.hackathonstarts;
       default: return now;
     }
   };
 
   const validateDates = () => {
-    const { registrationstart, registrationends, hackathonstarts, hackathonends } = form;
-    const now = new Date();
+    const { registrationends, hackathonstarts, hackathonends } = form;
 
-    if (registrationstart < new Date(now.getTime() - 5 * 60000)) { // 5 min grace
-      Alert.alert('Timing Error', 'Registration cannot start in the past.');
-      return false;
-    }
-    if (registrationends <= registrationstart) {
-      Alert.alert('Timing Error', 'Registration must end after it starts.');
-      return false;
-    }
-    if (hackathonstarts < registrationends) {
-      Alert.alert('Timing Error', 'Hackathon must start after registration ends (or same time).');
+    // The deadline is optional — plenty of hosts keep registration open until
+    // they fill up — but if it is set it has to precede the hackathon.
+    if (registrationends && registrationends > hackathonends) {
+      Alert.alert('Check the dates', 'Registration cannot close after the hackathon ends.');
       return false;
     }
     if (hackathonends <= hackathonstarts) {
-      Alert.alert('Timing Error', 'Hackathon must end after it starts.');
+      Alert.alert('Check the dates', 'The hackathon must end after it starts.');
       return false;
     }
     return true;
   };
 
-  const addCriteria = () => setCriteria([...criteria, { name: '', weightage: '0', description: '' }]);
-  const removeCriteria = (i: number) => setCriteria(criteria.filter((_, idx) => idx !== i));
+  /** Hosts paste "unstop.com/x" as often as a full URL; both must work. */
+  const validateApplyLink = () => {
+    const raw = form.applyLink.trim();
+    if (!raw) {
+      Alert.alert('Registration link required', 'Students tap through to your own form or site — add that link.');
+      return false;
+    }
+    const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    try {
+      const url = new URL(withScheme);
+      if (!url.hostname.includes('.')) throw new Error('bad host');
+      return true;
+    } catch {
+      Alert.alert('Check the link', "That does not look like a valid URL.");
+      return false;
+    }
+  };
 
   const addPrize = () => setPrizes([...prizes, { rank: prizes.length + 1, title: '', amount: '' }]);
   const removePrize = (i: number) => setPrizes(prizes.filter((_, idx) => idx !== i));
@@ -246,36 +287,13 @@ const HackathonCreate = () => {
     } catch { Alert.alert('Error', 'Failed to pick logo'); }
   };
 
-  const searchUsers = async (q: string) => {
-    setUserSearch(q);
-    if (q.length < 2) { setSearchResults([]); return; }
-    setSearching(true);
-    try {
-      const res = await axios.get(`/user/search?q=${q}`);
-      setSearchResults(res.data.users || []);
-    } catch {
-    } finally { setSearching(false); }
-  };
-
-  const addJudge = (user: any) => {
-    if (!judges.find(j => j._id === user._id)) setJudges([...judges, user]);
-    setUserSearch('');
-    setSearchResults([]);
-  };
-
-  const addMentor = (user: any) => {
-    if (!mentors.find(m => m._id === user._id)) setMentors([...mentors, user]);
-    setUserSearch('');
-    setSearchResults([]);
-  };
-
   const handleSubmit = async () => {
     Keyboard?.dismiss?.();
-    if (!form.hackathonId || !form.title) {
-      Alert.alert('Error', 'Please fill in Hackathon ID and Title');
+    if (!form.title.trim()) {
+      Alert.alert('Title required', 'Give the hackathon a name students will recognise.');
       return;
     }
-
+    if (!validateApplyLink()) return;
     if (!validateDates()) return;
 
     setLoading(true);
@@ -284,6 +302,9 @@ const HackathonCreate = () => {
 
       // Basic fields
       Object.entries(form).forEach(([key, val]) => {
+        // A null deadline means "no deadline" — sending "null" as a string
+        // would fail the cast and reject the whole listing.
+        if (val === null || val === undefined) return;
         if (val instanceof Date) formData.append(key, val.toISOString());
         else formData.append(key, String(val));
       });
@@ -292,19 +313,12 @@ const HackathonCreate = () => {
       formData.append('tags', JSON.stringify(form.tags.split(',').map(tag => tag.trim()).filter(t => t)));
 
       // Complex fields
-      formData.append('eligibility', JSON.stringify({
-        Year: eligibility.Year.split(',').map(s => s.trim()).filter(s => s),
-        branch: eligibility.branch.split(',').map(s => s.trim()).filter(s => s),
-        colleges: eligibility.colleges.split(',').map(s => s.trim()).filter(s => s),
-      }));
-      formData.append('judgingcriteria', JSON.stringify(criteria.filter(c => c.name)));
+      formData.append('eligibility', JSON.stringify(eligibility));
       formData.append('prizes', JSON.stringify(prizes.filter(p => p.title)));
       formData.append('rules', JSON.stringify(rules.filter(r => r.trim())));
       formData.append('tracks', JSON.stringify(tracks.filter(t => t.title || t.description)));
       formData.append('timeline', JSON.stringify(timeline.filter(t => t.label || t.description).map(t => ({ ...t, date: t.date.toISOString() }))));
       formData.append('faqs', JSON.stringify(faqs.filter(f => f.question)));
-      formData.append('judges', JSON.stringify(judges.map(j => j._id)));
-      formData.append('mentors', JSON.stringify(mentors.map(m => m._id)));
 
       // Sponsors (images are handled separately)
       const sponsorsData = sponsors.filter(s => s.name).map((s, i) => ({
@@ -376,7 +390,7 @@ const HackathonCreate = () => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color="white" />
+            <Ionicons name="arrow-back" size={24} color="#12100E" />
           </TouchableOpacity>
           <View>
             <Text className="text-ink text-3xl font-display leading-7">Host</Text>
@@ -401,40 +415,134 @@ const HackathonCreate = () => {
             {/* Basic Info */}
             {renderSectionHeader('Protocol Essentials', 'rocket')}
             <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
-              <TextInput value={form.hackathonId} onChangeText={(t) => setForm({ ...form, hackathonId: t })} placeholder="Unique id (e.g. hack-01)" placeholderTextColor="#8B857E" className="bg-paper-2 rounded-card px-6 py-4 mb-4 text-ink font-semibold text-sm border border-line" />
               <TextInput value={form.title} onChangeText={(t) => setForm({ ...form, title: t })} placeholder="Hackathon title" placeholderTextColor="#8B857E" className="bg-paper-2 rounded-card px-6 py-4 mb-4 text-ink font-semibold text-sm border border-line" />
               <TextInput value={form.description} onChangeText={(t) => setForm({ ...form, description: t })} placeholder="What is this hackathon about?" multiline numberOfLines={4} placeholderTextColor="#8B857E" className="bg-paper-2 rounded-sheet px-6 py-4 mb-4 text-ink font-semibold text-xs border border-line h-32" />
               <TextInput value={form.tags} onChangeText={(t) => setForm({ ...form, tags: t })} placeholder="Tags (ai, blockchain…)" placeholderTextColor="#8B857E" className="bg-paper-2 rounded-card px-6 py-4 mb-4 text-ink font-semibold text-sm border border-line" />
               <View className="flex-row gap-4">
                 <TextInput value={form.prizepool} onChangeText={(t) => setForm({ ...form, prizepool: t })} placeholder="Prize pool" placeholderTextColor="#8B857E" className="flex-[2] bg-paper-2 rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line" />
-                <TextInput value={form.MaxTeamSize} onChangeText={(t) => setForm({ ...form, MaxTeamSize: t })} placeholder="Max team size" placeholderTextColor="#8B857E" keyboardType="numeric" className="flex-1 bg-paper rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line" />
+                <TextInput value={form.teamSize} onChangeText={(t) => setForm({ ...form, teamSize: t })} placeholder="Team size" placeholderTextColor="#8B857E" className="flex-1 bg-paper-2 rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line" />
               </View>
+
+              {/* Mode + venue */}
+              <Text className="text-ink-3 font-semibold text-label mt-4 mb-2">How is it run?</Text>
+              <View className="flex-row gap-2 mb-4">
+                {['Online', 'Offline', 'Hybrid'].map((m) => {
+                  const on = form.mode === m;
+                  return (
+                    <TouchableOpacity
+                      key={m}
+                      onPress={() => setForm({ ...form, mode: m })}
+                      className={`flex-1 items-center py-3 rounded-card border-2 ${on ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
+                      activeOpacity={0.85}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: on }}
+                    >
+                      <Text className={`font-semibold text-label ${on ? 'text-white' : 'text-ink-2'}`}>{m}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              {form.mode !== 'Online' ? (
+                <TextInput value={form.location} onChangeText={(t) => setForm({ ...form, location: t })} placeholder="Venue or city" placeholderTextColor="#8B857E" className="bg-paper-2 rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line" />
+              ) : null}
+            </View>
+
+            {/* The hand-off. Fync lists the hackathon; the host runs it. */}
+            {renderSectionHeader('Where students register', 'open-outline')}
+            <View className="bg-card rounded-sheet p-6 border-2 border-ink shadow-hair">
+              <Text className="text-ink-2 text-label leading-4 mb-4">
+                Fync lists your hackathon and sends students straight to you. Registration,
+                teams, submissions and judging all stay on your own platform.
+              </Text>
+
+              <Text className="text-ink-3 font-semibold text-label mb-2">Registration link *</Text>
+              <TextInput
+                value={form.applyLink}
+                onChangeText={(t) => setForm({ ...form, applyLink: t })}
+                placeholder="unstop.com/… , forms.gle/… , your site"
+                placeholderTextColor="#8B857E"
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+                className="bg-paper-2 rounded-card px-6 py-4 mb-4 text-ink font-semibold text-sm border border-line"
+              />
+
+              <Text className="text-ink-3 font-semibold text-label mb-2">Button text</Text>
+              <View className="flex-row flex-wrap gap-2 mb-3">
+                {['Register', 'Apply now', 'Register on Devfolio', 'Fill the form'].map((label) => {
+                  const on = form.applyLabel === label;
+                  return (
+                    <TouchableOpacity
+                      key={label}
+                      onPress={() => setForm({ ...form, applyLabel: label })}
+                      className={`px-3.5 py-2 rounded-card border ${on ? 'bg-brand-500 border-ink' : 'bg-paper-2 border-line'}`}
+                      activeOpacity={0.85}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: on }}
+                    >
+                      <Text className={`font-semibold text-label ${on ? 'text-ink' : 'text-ink-2'}`}>{label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <TextInput
+                value={form.applyLabel}
+                onChangeText={(t) => setForm({ ...form, applyLabel: t })}
+                placeholder="Or write your own"
+                placeholderTextColor="#8B857E"
+                maxLength={28}
+                className="bg-paper-2 rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line"
+              />
             </View>
 
             {/* Targeting / Eligibility */}
-            {renderSectionHeader('Targeting & Eligibility', 'school')}
+            {renderSectionHeader('Who can apply', 'school')}
             <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
-              <TextInput
-                value={eligibility.colleges}
-                onChangeText={(t) => setEligibility({ ...eligibility, colleges: t })}
-                placeholder="Colleges (comma separated)"
-                placeholderTextColor="#8B857E"
-                className="bg-paper-2 rounded-card px-6 py-4 mb-4 text-ink font-semibold text-sm border border-line"
-              />
-              <TextInput
-                value={eligibility.Year}
-                onChangeText={(t) => setEligibility({ ...eligibility, Year: t })}
-                placeholder="Years (e.g. 1st, 2nd)"
-                placeholderTextColor="#8B857E"
-                className="bg-paper-2 rounded-card px-6 py-4 mb-4 text-ink font-semibold text-sm border border-line"
-              />
-              <TextInput
-                value={eligibility.branch}
-                onChangeText={(t) => setEligibility({ ...eligibility, branch: t })}
-                placeholder="Branches (cs, it…)"
-                placeholderTextColor="#8B857E"
-                className="bg-paper-2 rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line"
-              />
+              <Text className="text-ink-2 text-label leading-4 mb-4">
+                Open to everyone unless you narrow it. This is what students read before
+                tapping through — your own form still decides who actually gets in.
+              </Text>
+
+              {ELIGIBILITY_PICKERS.map(({ key, label, allLabel, icon }) => {
+                const chosen = eligibility[key];
+                const isAll = chosen.length === 0;
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    onPress={() => setEligibilitySheet(key)}
+                    className="bg-paper-2 rounded-card border border-line px-5 py-4 mb-3"
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${label}: ${isAll ? allLabel : chosen.join(', ')}`}
+                  >
+                    <View className="flex-row items-center">
+                      <Ionicons name={icon as any} size={15} color="#8B857E" />
+                      <Text className="text-ink-3 font-semibold text-label ml-2 flex-1">{label}</Text>
+                      <Text className="text-ink-3 font-semibold text-label mr-1">
+                        {isAll ? allLabel : `${chosen.length} selected`}
+                      </Text>
+                      <Ionicons name="chevron-down" size={15} color="#8B857E" />
+                    </View>
+
+                    {/* Show what was picked, not just a count — a host should be
+                        able to check the list without reopening the sheet. */}
+                    {!isAll ? (
+                      <View className="flex-row flex-wrap mt-3" style={{ gap: 6 }}>
+                        {chosen.slice(0, 4).map((v) => (
+                          <View key={v} className="bg-card border border-line px-2.5 py-1 rounded-md">
+                            <Text className="text-ink-2 text-label font-semibold">{v}</Text>
+                          </View>
+                        ))}
+                        {chosen.length > 4 ? (
+                          <View className="px-2 py-1">
+                            <Text className="text-ink-3 text-label font-semibold">+{chosen.length - 4} more</Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
             {/* Rules */}
@@ -474,15 +582,41 @@ const HackathonCreate = () => {
               </TouchableOpacity>
             </View>
 
-            {/* Dates (Global) */}
-            {renderSectionHeader('Base Window', 'calendar')}
+            {/* Dates */}
+            {renderSectionHeader('Dates', 'calendar')}
             <View className="bg-card rounded-sheet p-6 border border-line shadow-hair mb-8">
-              {['registrationstart', 'registrationends', 'hackathonstarts', 'hackathonends'].map((field) => (
-                <TouchableOpacity key={field} onPress={() => triggerPicker(field)} className="flex-row items-center justify-between bg-ink rounded-card px-6 py-4 mb-3 border border-ink">
-                  <Text className="text-ink-3 font-semibold text-label">{field.replace(/([A-Z])/g, ' $1')}</Text>
-                  <Text className="text-white font-semibold text-xs">{(form as any)[field].toLocaleDateString()}</Text>
+              {[
+                ['hackathonstarts', 'Starts'],
+                ['hackathonends', 'Ends'],
+              ].map(([field, label]) => (
+                <TouchableOpacity
+                  key={field}
+                  onPress={() => triggerPicker(field)}
+                  className="flex-row items-center justify-between bg-paper-2 rounded-card px-6 py-4 mb-3 border border-line"
+                  accessibilityRole="button"
+                >
+                  <Text className="text-ink-3 font-semibold text-label">{label}</Text>
+                  <Text className="text-ink font-semibold text-xs">{(form as any)[field].toLocaleDateString()}</Text>
                 </TouchableOpacity>
               ))}
+
+              {/* Optional: your own form decides when registration really
+                  closes — this only tells students whether to hurry. */}
+              <TouchableOpacity
+                onPress={() => triggerPicker('registrationends')}
+                className="flex-row items-center justify-between bg-paper-2 rounded-card px-6 py-4 border border-line"
+                accessibilityRole="button"
+              >
+                <Text className="text-ink-3 font-semibold text-label">Registration closes (optional)</Text>
+                <Text className="text-ink font-semibold text-xs">
+                  {form.registrationends ? form.registrationends.toLocaleDateString() : 'Not set'}
+                </Text>
+              </TouchableOpacity>
+              {form.registrationends ? (
+                <TouchableOpacity onPress={() => setForm({ ...form, registrationends: null })} className="self-end mt-2 py-2" accessibilityRole="button">
+                  <Text className="text-ink-3 font-semibold text-label">Clear deadline</Text>
+                </TouchableOpacity>
+              ) : null}
             </View>
 
             {/* Contact Portal */}
@@ -530,66 +664,6 @@ const HackathonCreate = () => {
               <TouchableOpacity onPress={addSponsor} className="border-2 border-dashed border-line rounded-card p-5 items-center">
                 <Text className="text-ink-3 font-semibold text-label">Onboard Sponsor +</Text>
               </TouchableOpacity>
-            </View>
-
-            {/* Judges & Mentors */}
-            {renderSectionHeader('Judges & Mentors', 'people')}
-            <View className="mb-8">
-              <View className="bg-ink rounded-sheet p-6 mb-2">
-                <Text className="text-brand-600 font-semibold text-label mb-4">Assign judges and mentors</Text>
-                <View className="flex-row items-center bg-ink rounded-card px-4 py-3 mb-4">
-                  <Ionicons name="search" size={16} color="#F97316" />
-                  <TextInput
-                    value={userSearch}
-                    onChangeText={searchUsers}
-                    placeholder="Search by email or name"
-                    placeholderTextColor="#8B857E"
-                    className="flex-1 ml-3 text-white font-semibold text-xs"
-                  />
-                  {searching && <ActivityIndicator size="small" color="#F97316" />}
-                </View>
-
-                {searchResults.length > 0 && (
-                  <View className="bg-ink rounded-card overflow-hidden mb-4 border border-ink">
-                    {searchResults.slice(0, 5).map((u, i) => (
-                      <View key={i} className="flex-row items-center justify-between p-4 border-b border-ink">
-                        <View className="flex-row items-center">
-                          {u.avatar ? <Image source={{ uri: u.avatar }} className="w-8 h-8 rounded-full" /> : <View className="w-8 h-8 rounded-full bg-ink items-center justify-center"><Ionicons name="person" size={12} color="#8B857E" /></View>}
-                          <View className="ml-3">
-                            <Text className="font-display text-label text-white uppercase">{u.name}</Text>
-                            <Text className="text-ink-3 text-label">{u.email}</Text>
-                          </View>
-                        </View>
-                        <View className="flex-row">
-                          <TouchableOpacity onPress={() => addJudge(u)} className="bg-brand-500 mr-2 px-2.5 py-1 rounded-full"><Text className="text-ink font-semibold text-label">Judge</Text></TouchableOpacity>
-                          <TouchableOpacity onPress={() => addMentor(u)} className="bg-ink px-2.5 py-1 rounded-full"><Text className="font-display text-label text-white uppercase">Mentor</Text></TouchableOpacity>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                )}
-
-                <View className="flex-row flex-wrap gap-2">
-                  {judges.map((j, idx) => (
-                    <View key={idx} className="bg-ink flex-row items-center pl-2 pr-3 py-2 rounded-xl border border-brand-500/30">
-                      <Text className="text-brand-600 font-semibold text-label mr-2">Judge:</Text>
-                      <Text className="font-display text-label text-white uppercase">{j.name}</Text>
-                      <TouchableOpacity onPress={() => setJudges(judges.filter((_, i) => i !== idx))} className="ml-2">
-                        <Ionicons name="close-circle" size={14} color="#8B857E" />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                  {mentors.map((m, idx) => (
-                    <View key={idx} className="bg-ink flex-row items-center pl-2 pr-3 py-2 rounded-xl border border-brand-500/30">
-                      <Text className="text-brand-600 font-semibold text-label mr-2">Mentor:</Text>
-                      <Text className="font-display text-label text-white uppercase">{m.name}</Text>
-                      <TouchableOpacity onPress={() => setMentors(mentors.filter((_, i) => i !== idx))} className="ml-2">
-                        <Ionicons name="close-circle" size={14} color="#8B857E" />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              </View>
             </View>
 
             {/* Tracks */}
@@ -655,6 +729,21 @@ const HackathonCreate = () => {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      {eligibilitySheet ? (
+        <MultiSelectSheet
+          visible
+          onClose={() => setEligibilitySheet(null)}
+          title={ELIGIBILITY_META[eligibilitySheet].title}
+          hint={ELIGIBILITY_META[eligibilitySheet].hint}
+          allLabel={ELIGIBILITY_META[eligibilitySheet].allLabel}
+          options={ELIGIBILITY_META[eligibilitySheet].options}
+          selected={eligibility[eligibilitySheet]}
+          onChange={(next) => setEligibility((prev) => ({ ...prev, [eligibilitySheet]: next }))}
+          searchable={eligibilitySheet === 'colleges'}
+          searchPlaceholder="Search colleges"
+        />
+      ) : null}
 
       {Platform.OS === 'ios' && showPicker !== null && (
         <DateTimePicker

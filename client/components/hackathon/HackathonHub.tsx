@@ -21,7 +21,6 @@ import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useAuth } from '../../context/auth.context';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 // Fixed pixel heights, not percentages of the screen. The banner used to be
@@ -37,7 +36,7 @@ interface Hackathon {
   title: string;
   bannerImage?: string;
   logo?: string;
-  status: 'draft' | 'upcoming' | 'active' | 'judging' | 'completed';
+  status: 'draft' | 'upcoming' | 'active' | 'completed';
   hackathonstarts: string;
   hackathonends: string;
   registrationstart: string;
@@ -45,14 +44,18 @@ interface Hackathon {
   prizepool?: string;
   prizes?: { rank: number; title: string; amount: string }[];
   tags?: string[];
-  MaxTeamSize?: number;
-  participants?: string[];
+  applyLink?: string;
+  applyLabel?: string;
+  mode?: string;
+  location?: string;
+  teamSize?: string;
+  winners?: { rank: number }[];
+  isDraft?: boolean;
   organiser?: { _id: string; name: string; avatar?: string };
   sponsors?: { name: string; logo?: string; level: string }[];
   description?: string;
-  myRole?: 'organiser' | 'participant' | 'team-member' | 'judge';
-  myTeam?: { _id?: string; name?: string };
-  mySubmission?: { _id?: string; status?: string };
+  myRole?: 'organiser' | 'winner';
+  myWin?: { rank?: number; title?: string; amount?: string } | null;
 }
 
 // ─── Status config ────────────────────────────────────────────────────────────
@@ -62,7 +65,6 @@ interface Hackathon {
 const STATUS_META: Record<string, { label: string; chip: string; text: string; dot: string }> = {
   active: { label: 'Live', chip: 'bg-success/10 border-success/25', text: 'text-success', dot: '#047857' },
   upcoming: { label: 'Upcoming', chip: 'bg-fam-career/10 border-fam-career/25', text: 'text-fam-career', dot: '#2563EB' },
-  judging: { label: 'Judging', chip: 'bg-warning/10 border-warning/25', text: 'text-warning', dot: '#B45309' },
   completed: { label: 'Ended', chip: 'bg-paper-2 border-line', text: 'text-ink-3', dot: '#8B857E' },
   draft: { label: 'Draft', chip: 'bg-paper-2 border-line', text: 'text-ink-3', dot: '#C4BEB6' },
 };
@@ -71,7 +73,6 @@ const FILTERS = [
   { label: 'All', value: '' },
   { label: 'Live', value: 'active' },
   { label: 'Upcoming', value: 'upcoming' },
-  { label: 'Judging', value: 'judging' },
   { label: 'Ended', value: 'completed' },
 ];
 
@@ -80,36 +81,76 @@ const TABS = [
   { label: 'My Hackathons', value: 'mine', icon: 'person-outline' },
 ];
 
+// Fync no longer runs registration, so the only roles it can honestly claim
+// are "you host this" and "the host tagged you as a winner".
 const ROLE_LABEL: Record<string, string> = {
-  organiser: 'Organiser',
-  participant: 'Registered',
-  'team-member': 'In a team',
-  judge: 'Judging',
+  organiser: 'Hosting',
+  winner: 'You won',
+};
+
+/** "unstop.com" — students decide partly on where a listing sends them. */
+const hostOf = (url?: string) => {
+  if (!url) return '';
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return url.replace(/^https?:\/\//, '').split('/')[0];
+  }
 };
 
 const fmtDate = (d?: string) =>
   d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—';
+
+/**
+ * The same rule the server filters by, applied at render time.
+ *
+ * Cards live in state across mounts and tab switches, so a stored label would
+ * be whatever was true when the request landed. Deriving costs two date
+ * comparisons and is right every time the row draws.
+ */
+const deriveStatus = (h: Hackathon): string => {
+  if (h.isDraft || h.status === 'draft') return 'draft';
+  const now = Date.now();
+  const starts = h.hackathonstarts ? new Date(h.hackathonstarts).getTime() : null;
+  const ends = h.hackathonends ? new Date(h.hackathonends).getTime() : null;
+  if (ends && ends < now) return 'completed';
+  if (starts && starts > now) return 'upcoming';
+  if (starts && ends) return 'active';
+  return 'upcoming';
+};
+
+/** "Starts in 3 days" / "2 days left" — the line students actually scan for. */
+const countdown = (h: Hackathon, status: string): string | null => {
+  const target = status === 'upcoming' ? h.hackathonstarts : status === 'active' ? h.hackathonends : null;
+  if (!target) return null;
+  const diff = new Date(target).getTime() - Date.now();
+  if (diff <= 0) return null;
+
+  const mins = Math.round(diff / 60000);
+  const hours = Math.round(diff / 3600000);
+  const days = Math.round(diff / 86400000);
+  const when = days >= 2 ? `${days} days` : hours >= 2 ? `${hours} hours` : `${Math.max(mins, 1)} min`;
+  return status === 'upcoming' ? `Starts in ${when}` : `${when} left`;
+};
 
 // ─── Hackathon Card ───────────────────────────────────────────────────────────
 const HackathonCard = memo(
   ({
     item,
     width,
-    isOrganiser,
     onOpen,
-    onConsole,
     stamped,
   }: {
     item: Hackathon;
     width: number;
-    isOrganiser: boolean;
     /** The one live hackathon carries the screen's stamp. */
     stamped?: boolean;
     onOpen: (id: string) => void;
-    onConsole: (h: Hackathon) => void;
   }) => {
-    const status = STATUS_META[item.status] ?? STATUS_META.upcoming;
-    const participants = item.participants?.length ?? 0;
+    const derived = deriveStatus(item);
+    const status = STATUS_META[derived] ?? STATUS_META.upcoming;
+    const hasWinners = !!item.winners?.length;
+    const remaining = countdown(item, derived);
 
     return (
       <View
@@ -151,6 +192,12 @@ const HackathonCard = memo(
             <View className="absolute top-3 left-3 flex-row items-center bg-card/95 px-2.5 py-1.5 rounded-lg">
               <View className="w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: status.dot }} />
               <Text className={`text-label font-semibold ${status.text}`}>{status.label}</Text>
+              {remaining ? (
+                <>
+                  <View className="w-1 h-1 rounded-full bg-line mx-1.5" />
+                  <Text className="text-ink-2 text-label font-semibold">{remaining}</Text>
+                </>
+              ) : null}
             </View>
 
             {/* My role, when this is one of mine */}
@@ -199,21 +246,33 @@ const HackathonCard = memo(
               {item.title}
             </Text>
 
-            {/* Meta */}
-            <View className="flex-row items-center mb-3">
-              <Feather name="users" size={12} color="#8B857E" />
+            {/* Meta — mode, team size, and where the button actually goes */}
+            <View className="flex-row items-center flex-wrap mb-3">
+              <Feather name="map-pin" size={12} color="#8B857E" />
               <Text className="text-ink-3 text-label font-semibold ml-1.5">
-                {participants} registered
+                {item.mode === 'Online' || !item.mode ? 'Online' : item.location || item.mode}
               </Text>
-              {item.MaxTeamSize ? (
+              {item.teamSize ? (
                 <>
-                  <View className="w-1 h-1 rounded-full bg-paper-2 mx-2" />
-                  <Text className="text-ink-3 text-label font-semibold">
-                    Teams of {item.MaxTeamSize}
-                  </Text>
+                  <View className="w-1 h-1 rounded-full bg-line mx-2" />
+                  <Text className="text-ink-3 text-label font-semibold">Teams of {item.teamSize}</Text>
+                </>
+              ) : null}
+              {item.applyLink ? (
+                <>
+                  <View className="w-1 h-1 rounded-full bg-line mx-2" />
+                  <Feather name="external-link" size={11} color="#8B857E" />
+                  <Text className="text-ink-3 text-label font-semibold ml-1">{hostOf(item.applyLink)}</Text>
                 </>
               ) : null}
             </View>
+
+            {hasWinners ? (
+              <View className="flex-row items-center bg-warning/10 border border-warning/25 self-start px-2.5 py-1.5 rounded-md mb-3">
+                <MaterialCommunityIcons name="trophy" size={12} color="#B45309" />
+                <Text className="text-warning text-label font-semibold ml-1.5">Winners announced</Text>
+              </View>
+            ) : null}
 
             {/* Tags */}
             {item.tags?.length ? (
@@ -233,18 +292,6 @@ const HackathonCard = memo(
           </View>
         </Pressable>
 
-        {/* Organiser console lives inside the card, as a footer action. It used
-            to be a detached sibling button floating between cards. */}
-        {isOrganiser ? (
-          <TouchableOpacity
-            onPress={() => onConsole(item)}
-            className="flex-row items-center justify-center border-t border-line py-3"
-            activeOpacity={0.7}
-          >
-            <MaterialCommunityIcons name="view-dashboard-outline" size={15} color="#F97316" />
-            <Text className="text-brand-600 text-label font-semibold ml-2">Open organiser console</Text>
-          </TouchableOpacity>
-        ) : null}
       </View>
     );
   }
@@ -282,7 +329,7 @@ const ListHeader = memo(
             Hackathon <Text className="text-brand-500">Hub</Text>
           </Text>
           <Text className="text-ink-3 text-label font-semibold mt-0.5">
-            Build, team up and ship
+            Find one, register with the host
           </Text>
         </View>
         <TouchableOpacity
@@ -372,7 +419,6 @@ const PAGE_SIZE = 10;
 
 const HackathonHub = () => {
   const navigation = useNavigation<any>();
-  const { user } = useAuth();
   const { width: screenWidth } = useWindowDimensions();
   const cardWidth = screenWidth - GUTTER * 2;
 
@@ -457,11 +503,6 @@ const HackathonHub = () => {
     (id: string) => navigation.navigate('HackathonDetail', { hackathonId: id }),
     [navigation]
   );
-  const openConsole = useCallback(
-    (h: Hackathon) =>
-      navigation.navigate('HackathonDashboard', { hackathonId: h._id, hackathonTitle: h.title }),
-    [navigation]
-  );
   const openCreate = useCallback(() => navigation.navigate('HackathonCreate'), [navigation]);
 
   const onFilter = useCallback((v: string) => setActiveFilter(v), []);
@@ -476,9 +517,6 @@ const HackathonHub = () => {
       )
     : hackathons;
 
-  const isOrganiserOf = (h: Hackathon) =>
-    h.myRole === 'organiser' || (!!user?._id && h.organiser?._id === user._id);
-
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
@@ -491,9 +529,7 @@ const HackathonHub = () => {
               item={item}
               width={cardWidth}
               stamped={index === 0 && item.status === 'active'}
-              isOrganiser={isOrganiserOf(item)}
               onOpen={openDetail}
-              onConsole={openConsole}
             />
           )}
           contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: 96 }}

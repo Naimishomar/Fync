@@ -59,6 +59,8 @@ const formatCount = (num: number) => {
 };
 
 interface Post {
+  /** A place name like "Library", never coordinates. */
+  location?: string | null;
   _id: string;
   user?: {
     _id: string;
@@ -76,7 +78,7 @@ interface Post {
   downvoted_by?: string[];
   score?: number;
   saved_by?: string[];
-  reposted_by?: string[];
+  repostedBy?: string[];
   reposts?: number;
   views?: number;
   comments: any[];
@@ -99,7 +101,7 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }:
     item.downvoted_by?.includes(currentUser?._id) ? 'down' : null
   );
   const [score, setScore] = useState(item.score || (item.likes || 0));
-  const [reposted, setReposted] = useState(item.reposted_by?.includes(currentUser?._id));
+  const [reposted, setReposted] = useState(item.repostedBy?.some((u: any) => String(u) === String(currentUser?._id)));
   const [repostCount, setRepostCount] = useState(item.reposts || 0);
   const [viewCount] = useState(item.views || 0);
   
@@ -192,22 +194,34 @@ const MAX_CHAR_LIMIT = 150;
   };
 
 
-  const handleRepost = () => {
-    Alert.alert("Repost", "Share this post on your feed?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Repost", onPress: async () => {
-        const prevReposted = reposted;
-        const prevCount = repostCount;
-        setReposted(!prevReposted);
-        setRepostCount(prevReposted ? prevCount - 1 : prevCount + 1);
-        try {
-          await axios.post(`/post/repost/${item._id}`);
-        } catch (error) {
-          setReposted(prevReposted);
-          setRepostCount(prevCount);
+  /**
+   * Repost, one tap.
+   *
+   * Optimistic, then reconciled: the server returns the count it settled on,
+   * so two devices sharing at once cannot leave this showing a number the
+   * database never held.
+   */
+  const handleRepost = async () => {
+    const prevReposted = reposted;
+    const prevCount = repostCount;
+    setReposted(!prevReposted);
+    setRepostCount(prevReposted ? Math.max(0, prevCount - 1) : prevCount + 1);
+
+    try {
+      const res = await axios.post(`/post/repost/${item._id}`);
+      if (res.data?.success) {
+        setReposted(res.data.reposted);
+        setRepostCount(res.data.reposts);
+        if (res.data.reposted) {
+          Toast.show({ type: 'success', text1: 'Reposted', text2: 'It is on your profile now.' });
         }
-      }}
-    ]);
+      }
+    } catch (err: any) {
+      setReposted(prevReposted);
+      setRepostCount(prevCount);
+      const msg = err?.response?.data?.message;
+      if (msg) Toast.show({ type: 'info', text1: msg });
+    }
   };
 
   const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -259,6 +273,12 @@ const MAX_CHAR_LIMIT = 150;
             <Text className="text-ink-3 text-sm mx-1">·</Text>
             <Text className="text-ink-3 text-sm">{timeAgo(item.createdAt)}</Text>
           </Pressable>
+          {!!item.location && (
+            <View className="flex-row items-center ml-2 min-w-0">
+              <Ionicons name="location" size={11} color="#EA580C" />
+              <Text className="text-ink-2 text-xs ml-0.5" numberOfLines={1}>{item.location}</Text>
+            </View>
+          )}
         </View>
         <Pressable
           onPress={() => {
@@ -455,6 +475,26 @@ const MAX_CHAR_LIMIT = 150;
             {formatCount(displayCommentCount)}
           </Text>
         </Pressable>
+
+        {/* Hidden on your own posts: the endpoint refuses them, so offering
+            the control would only produce an error. */}
+        {item.user?._id !== currentUser?._id && (
+          <Pressable
+            onPress={handleRepost}
+            className={`flex-row items-center rounded-full px-3 border-2 border-ink ${reposted ? 'bg-brand-500' : 'bg-card'}`}
+            style={{ minHeight: 38 }}
+            accessibilityRole="button"
+            accessibilityState={{ selected: !!reposted }}
+            accessibilityLabel={reposted ? 'Remove your repost' : 'Repost this'}
+          >
+            <Ionicons name={reposted ? 'repeat' : 'repeat-outline'} size={17} color="#12100E" />
+            {repostCount > 0 && (
+              <Text className="font-display text-ink ml-1.5" style={{ fontSize: 13 }}>
+                {formatCount(repostCount)}
+              </Text>
+            )}
+          </Pressable>
+        )}
 
         <Pressable
           onPress={handleShare}

@@ -9,6 +9,9 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_WEB_URL": "https://fync-zeta.vercel.app"
       }
     },
     "preview": {
@@ -18,7 +21,8 @@
         "buildType": "apk"
       },
       "env": {
-        "NODE_ENV": "production"
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_WEB_URL": "https://fync-zeta.vercel.app"
       }
     },
     "production": {
@@ -28,7 +32,8 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "NODE_ENV": "production"
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_WEB_URL": "https://fync-zeta.vercel.app"
       }
     }
   },

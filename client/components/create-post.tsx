@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   StatusBar,
   TouchableOpacity,
+  Modal,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -35,6 +36,13 @@ function CreatePost() {
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
+  const [location, setLocation] = useState<string | null>(null);
+  const [locationOpen, setLocationOpen] = useState(false);
+  const [customLocation, setCustomLocation] = useState('');
+  // The input only exists once "Other" is chosen. Showing it alongside the
+  // college option made the sheet look like a form when the common answer is
+  // one tap.
+  const [otherOpen, setOtherOpen] = useState(false);
   const [mentions, setMentions] = useState<{ id: string, username: string }[]>([]);
   const navigation = useNavigation<any>();
   const bottomInset = useBottomInset();
@@ -143,6 +151,7 @@ function CreatePost() {
         } as any);
       });
       formData.append('isPrivate', isPrivate ? 'true' : 'false');
+      if (location) formData.append('location', location);
       const mentionedIds = mentions.map(m => m.id);
       if (mentionedIds.length > 0) {
           formData.append('mentions', JSON.stringify(mentionedIds));
@@ -269,14 +278,42 @@ function CreatePost() {
             </View>
             
             <View className="gap-y-4">
-              <TouchableOpacity className="bg-card rounded-card flex-row items-center justify-between p-5 shadow-hair border border-line">
-                <View className="flex-row items-center">
-                  <View className="w-10 h-10 rounded-card bg-paper-2 items-center justify-center border border-line">
-                    <Ionicons name="location" size={18} color="#F97316" />
+              {/* This had no onPress at all — it looked tappable and did
+                  nothing. */}
+              <TouchableOpacity
+                onPress={() => { setOtherOpen(false); setCustomLocation(''); setLocationOpen(true); }}
+                className="bg-card rounded-card flex-row items-center justify-between p-5 border-2 border-ink"
+                accessibilityRole="button"
+                accessibilityLabel={location ? `Location: ${location}. Change it.` : 'Add a location'}
+              >
+                <View className="flex-row items-center flex-1 min-w-0">
+                  <View className="w-10 h-10 rounded-xl bg-paper items-center justify-center border-2 border-ink">
+                    <Ionicons name="location" size={18} color="#EA580C" />
                   </View>
-                  <Text className="text-ink font-display uppercase text-label ml-4">Add Location</Text>
+                  <View className="ml-4 flex-1 min-w-0">
+                    <Text className="text-ink font-display uppercase text-label">
+                      {location ? 'Location' : 'Add location'}
+                    </Text>
+                    {!!location && (
+                      <Text className="font-sans text-ink-2 mt-[2px]" style={{ fontSize: 12 }} numberOfLines={1}>
+                        {location}
+                      </Text>
+                    )}
+                  </View>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color="#C4BEB6" />
+
+                {location ? (
+                  <Pressable
+                    onPress={() => setLocation(null)}
+                    hitSlop={10}
+                    accessibilityRole="button"
+                    accessibilityLabel="Remove location"
+                  >
+                    <Ionicons name="close-circle" size={20} color="#8B857E" />
+                  </Pressable>
+                ) : (
+                  <Ionicons name="chevron-forward" size={16} color="#8B857E" />
+                )}
               </TouchableOpacity>
 
               <TouchableOpacity 
@@ -322,6 +359,113 @@ function CreatePost() {
           </View>
         </SafeAreaView>
       </KeyboardAvoidingView>
+
+      {/* Campus places, not coordinates.
+          A GPS fix reverse-geocodes to the campus postcode — "Sector 62" tells
+          a classmate nothing about where you actually are. These are the names
+          students use, with free text for everywhere else. */}
+      <Modal visible={locationOpen} transparent animationType="slide" onRequestClose={() => setLocationOpen(false)}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1 justify-end"
+          style={{ backgroundColor: 'rgba(18,16,14,0.45)' }}
+        >
+          <Pressable className="flex-1" onPress={() => { setOtherOpen(false); setLocationOpen(false); }} />
+
+          <View
+            className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4"
+            style={{ paddingBottom: bottomInset + 12 }}
+          >
+            <View className="items-center mb-3">
+              <View className="h-1 w-10 bg-ink-3 rounded-full" />
+            </View>
+
+            <Text className="font-display text-xl text-ink">Add location</Text>
+            <View className="h-[2px] bg-ink mt-1 mb-4" style={{ width: 44 }} />
+
+            <View className="flex-row" style={{ gap: 10 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (!user?.college) return;
+                  setLocation(user.college);
+                  setOtherOpen(false);
+                  setLocationOpen(false);
+                }}
+                disabled={!user?.college}
+                className={`flex-1 items-center justify-center rounded-card border-2 border-ink ${user?.college ? 'bg-card' : 'bg-paper-2'}`}
+                style={{ minHeight: 72 }}
+                accessibilityRole="button"
+                accessibilityLabel={user?.college ? `Use ${user.college}` : 'No college on your profile'}
+              >
+                <Ionicons name="school-outline" size={20} color={user?.college ? '#EA580C' : '#8B857E'} />
+                <Text className={`font-display uppercase mt-1 ${user?.college ? 'text-ink' : 'text-ink-3'}`} style={{ fontSize: 12 }}>
+                  College
+                </Text>
+                {!!user?.college && (
+                  <Text className="font-sans text-ink-2 mt-[2px] px-2 text-center" style={{ fontSize: 10 }} numberOfLines={1}>
+                    {user.college}
+                  </Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setOtherOpen(true)}
+                className={`flex-1 items-center justify-center rounded-card border-2 border-ink ${otherOpen ? 'bg-brand-500' : 'bg-card'}`}
+                style={{ minHeight: 72 }}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: otherOpen }}
+                accessibilityLabel="Enter a different location"
+              >
+                <Ionicons name="create-outline" size={20} color="#12100E" />
+                <Text className="font-display text-ink uppercase mt-1" style={{ fontSize: 12 }}>Other</Text>
+                <Text className="font-sans text-ink-2 mt-[2px]" style={{ fontSize: 10 }}>Type a place</Text>
+              </TouchableOpacity>
+            </View>
+
+            {otherOpen && (
+              <View className="flex-row items-center mt-4">
+                <View className="flex-1 border-2 border-ink bg-card px-4 rounded-xl mr-2" style={{ minHeight: 48, justifyContent: 'center' }}>
+                  <TextInput
+                    value={customLocation}
+                    onChangeText={setCustomLocation}
+                    placeholder="e.g. CS Block, Room 204"
+                    placeholderTextColor="#8B857E"
+                    maxLength={80}
+                    autoFocus
+                    returnKeyType="done"
+                    onSubmitEditing={() => {
+                      const v = customLocation.trim();
+                      if (!v) return;
+                      setLocation(v);
+                      setCustomLocation('');
+                      setOtherOpen(false);
+                      setLocationOpen(false);
+                    }}
+                    className="font-sans text-base text-ink"
+                  />
+                </View>
+                <TouchableOpacity
+                  onPress={() => {
+                    const v = customLocation.trim();
+                    if (!v) return;
+                    setLocation(v);
+                    setCustomLocation('');
+                    setOtherOpen(false);
+                    setLocationOpen(false);
+                  }}
+                  disabled={!customLocation.trim()}
+                  className={`items-center justify-center rounded-xl border-2 border-ink ${customLocation.trim() ? 'bg-brand-500' : 'bg-paper'}`}
+                  style={{ width: 56, height: 48 }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Use this location"
+                >
+                  <Ionicons name="checkmark" size={20} color={customLocation.trim() ? '#12100E' : '#8B857E'} />
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }

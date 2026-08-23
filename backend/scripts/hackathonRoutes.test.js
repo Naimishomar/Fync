@@ -1,8 +1,11 @@
-// End-to-end HTTP test of every hackathon route, against a throwaway in-memory
-// MongoDB. Walks one full hackathon lifecycle in order — create, register,
-// team up, submit, judge, rank, announce, award, tear down — because these
-// routes are not independent: a submission needs a team, a score needs a
-// judging-phase hackathon, a leaderboard needs scores.
+// End-to-end HTTP test of the hackathon listing routes, against a throwaway
+// in-memory MongoDB.
+//
+// Fync hosts the listing, not the hackathon: students are handed off to the
+// organiser's own registration link, and the only thing that comes back is the
+// winner list the organiser tags afterwards. So this walks that lifecycle —
+// create with an apply link, list, read, update, close, tag winners, delete —
+// plus the authorisation edges that keep one organiser out of another's listing.
 //
 // Redis is deliberately NOT required. Every route here must still answer when
 // Redis is unreachable, since that is exactly the outage that took the whole
@@ -22,7 +25,8 @@ const mongod = await MongoMemoryServer.create();
 await mongoose.connect(mongod.getUri('fync_hack_routes'));
 
 const { default: User } = await import('../models/user.model.js');
-const mkUser = (name, skills, n) => ({
+const { default: Notification } = await import('../models/notification.model.js');
+const mkUser = (name, n) => ({
   name,
   username: name.toLowerCase(),
   email: `${name.toLowerCase()}@test.dev`,
@@ -33,34 +37,26 @@ const mkUser = (name, skills, n) => ({
   year: '3',
   gender: 'Other',
   major: 'CSE',
-  skills,
+  skills: ['react'],
 });
-const [organiser, leader, joiner, judge] = await User.create([
-  mkUser('Organiser', ['react'], 1),
-  mkUser('Leader', ['react', 'node'], 2),
-  mkUser('Joiner', ['node'], 3),
-  mkUser('Judge', [], 4),
+const [organiser, rival, winnerA, winnerB] = await User.create([
+  mkUser('Organiser', 1),
+  mkUser('Rival', 2),
+  mkUser('WinnerA', 3),
+  mkUser('WinnerB', 4),
 ]);
 
 const tokenFor = (u) => jwt.sign({ id: u._id.toString() }, process.env.JWT_SECRET, { expiresIn: '1h' });
 const TOKENS = {
   organiser: tokenFor(organiser),
-  leader: tokenFor(leader),
-  joiner: tokenFor(joiner),
-  judge: tokenFor(judge),
+  rival: tokenFor(rival),
+  winnerA: tokenFor(winnerA),
 };
 
-// ── mount the real routers, nothing else ────────────────────────────────────
+// ── mount the real router, nothing else ─────────────────────────────────────
 const app = express();
 app.use(express.json());
-for (const [path, mod] of [
-  ['/hackathons', '../routes/hackathon/hackathon.route.js'],
-  ['/teams', '../routes/hackathon/team.route.js'],
-  ['/submissions', '../routes/hackathon/submission.route.js'],
-  ['/announcements', '../routes/hackathon/announcement.route.js'],
-  ['/scores', '../routes/hackathon/score.route.js'],
-  ['/hackathon-leaderboard', '../routes/hackathon/leaderboard.route.js'],
-]) app.use(path, (await import(mod)).default);
+app.use('/hackathons', (await import('../routes/hackathon/hackathon.route.js')).default);
 
 // Surface handler errors as 500 with the message, the way the real app does.
 app.use((err, _req, res, _next) => res.status(500).json({ success: false, message: err.message }));
@@ -70,7 +66,6 @@ const BASE = `http://127.0.0.1:${server.address().port}`;
 
 // ── runner ──────────────────────────────────────────────────────────────────
 const results = [];
-let ctx = {};
 
 const call = async (method, path, { as = 'organiser', body, expect = 200 } = {}) => {
   const res = await fetch(BASE + path, {
@@ -84,14 +79,7 @@ const call = async (method, path, { as = 'organiser', body, expect = 200 } = {})
 
   const want = Array.isArray(expect) ? expect : [expect];
   const ok = want.includes(res.status);
-  results.push({
-    ok,
-    label: `${method} ${path}`,
-    as,
-    status: res.status,
-    want: want.join('/'),
-    message: json.message,
-  });
+  results.push({ ok, label: `${method} ${path}`, as, status: res.status, want: want.join('/'), message: json.message });
   if (VERBOSE || !ok) {
     console.log(`${ok ? '  ok ' : '  FAIL'} ${method} ${path} [${as}] -> ${res.status}` +
       (ok ? '' : ` (wanted ${want.join('/')})`) + (json.message ? ` :: ${json.message}` : ''));
@@ -99,214 +87,214 @@ const call = async (method, path, { as = 'organiser', body, expect = 200 } = {})
   return json;
 };
 
+const check = (label, ok, detail = '') => {
+  results.push({ ok, label, as: '-', status: ok ? 'pass' : 'fail', want: 'pass', message: detail });
+  if (VERBOSE || !ok) console.log(`${ok ? '  ok ' : '  FAIL'} ${label}${detail ? ` :: ${detail}` : ''}`);
+};
+
 const day = 24 * 60 * 60 * 1000;
 const now = Date.now();
+const baseListing = {
+  title: 'Route Test Hack',
+  registrationends: new Date(now + day),
+  hackathonstarts: new Date(now - day),
+  hackathonends: new Date(now + 7 * day),
+  prizepool: '₹1,00,000',
+  prizes: [{ rank: 1, title: 'Winner', amount: '₹50,000' }],
+  tags: ['ai', 'web'],
+  mode: 'Hybrid',
+  location: 'Bengaluru',
+  teamSize: '2-4',
+};
 
-// ── 1. hackathon lifecycle ──────────────────────────────────────────────────
-console.log('\n[1] hackathon');
-let r = await call('POST', '/hackathons', {
+// ── 1. create ───────────────────────────────────────────────────────────────
+console.log('\n[1] create listing');
+
+// The apply link IS the product — a listing without one is a dead end.
+await call('POST', '/hackathons', { expect: 400, body: { ...baseListing } });
+await call('POST', '/hackathons', { expect: 400, body: { ...baseListing, applyLink: 'not a url' } });
+
+// A bare domain must still work: hosts paste "unstop.com/x" constantly.
+const created = await call('POST', '/hackathons', {
+  expect: 201,
+  body: { ...baseListing, applyLink: 'unstop.com/hackathon/route-test', applyLabel: 'Register on Unstop' },
+});
+const hackId = created.hackathon?._id;
+check('apply link gets an https scheme', created.hackathon?.applyLink === 'https://unstop.com/hackathon/route-test', created.hackathon?.applyLink);
+check('organiser is the caller', created.hackathon?.organiser === organiser._id.toString());
+
+// Nothing about registration state is ours to accept from the client.
+const forged = await call('POST', '/hackathons', {
+  expect: 201,
+  body: { ...baseListing, applyLink: 'https://example.com/x', status: 'completed', winners: [{ rank: 1, users: [winnerA._id] }] },
+});
+// The listing runs from yesterday to next week, so the honest answer is
+// "active" no matter what the client asked for.
+check('client cannot forge status on create', forged.hackathon?.status === 'published', forged.hackathon?.status);
+const forgedDetail = await call('GET', `/hackathons/${forged.hackathon._id}`);
+check('a forged "completed" still derives as active', forgedDetail.hackathon?.status === 'active', forgedDetail.hackathon?.status);
+check('client cannot forge winners on create', (forged.hackathon?.winners ?? []).length === 0);
+await call('DELETE', `/hackathons/${forged.hackathon._id}`);
+
+// ── 2. read ─────────────────────────────────────────────────────────────────
+console.log('\n[2] read');
+const listed = await call('POST', '/hackathons/list', { as: 'rival', body: { limit: 20 } });
+check('listing is public to other students', (listed.hackathons ?? []).some((h) => h._id === hackId));
+
+const detail = await call('GET', `/hackathons/${hackId}`, { as: 'rival' });
+check('detail carries the apply link', detail.hackathon?.applyLink?.startsWith('https://'), detail.hackathon?.applyLink);
+check('detail carries the apply label', detail.hackathon?.applyLabel === 'Register on Unstop');
+
+// Eligibility round-trip. An empty list is the "open to all" answer, so it has
+// to survive as an empty list rather than being dropped or coerced.
+const targeted = await call('POST', '/hackathons', {
   expect: 201,
   body: {
-    title: 'Route Test Hack',
-    registrationstart: new Date(now - day),
-    registrationends: new Date(now + day),
-    hackathonstarts: new Date(now - day),
-    hackathonends: new Date(now + 7 * day),
-    prizepool: '₹1,00,000',
-    prizes: [{ rank: 1, title: 'Winner', amount: '₹50,000' }],
-    tags: ['ai', 'web'],
-    MaxTeamSize: 3,
-    judgingcriteria: [
-      { name: 'Innovation', weightage: '3', description: 'novel?' },
-      { name: 'Execution', weightage: '1', description: 'does it run?' },
+    ...baseListing,
+    title: 'Targeted Hack',
+    applyLink: 'https://example.com/t',
+    eligibility: { colleges: ['KIET Group of Institutions'], Year: ['2027', '2028'], branch: [] },
+  },
+});
+const targetedDetail = await call('GET', `/hackathons/${targeted.hackathon._id}`, { as: 'rival' });
+const elig = targetedDetail.hackathon?.eligibility ?? {};
+check('selected colleges round-trip', elig.colleges?.[0] === 'KIET Group of Institutions', JSON.stringify(elig.colleges));
+check('selected batches round-trip', elig.Year?.join(',') === '2027,2028', JSON.stringify(elig.Year));
+check('"all branches" stays an empty list', Array.isArray(elig.branch) && elig.branch.length === 0, JSON.stringify(elig.branch));
+await call('DELETE', `/hackathons/${targeted.hackathon._id}`);
+
+
+// ── 2b. lifecycle filters ───────────────────────────────────────────────────
+// The Live / Upcoming / Ended filters used to read a hand-set field nobody
+// ever updated, so Live matched nothing. They are date windows now, and this
+// is the check that they actually select the right rows.
+console.log('\n[2b] lifecycle filters');
+
+const seed = async (label, starts, ends) =>
+  (await call('POST', '/hackathons', {
+    expect: 201,
+    body: { ...baseListing, title: label, applyLink: 'https://example.com/x', hackathonstarts: starts, hackathonends: ends },
+  })).hackathon;
+
+const past = await seed('Ended Hack', new Date(now - 9 * day), new Date(now - 2 * day));
+const live = await seed('Live Hack', new Date(now - day), new Date(now + day));
+const soon = await seed('Upcoming Hack', new Date(now + 3 * day), new Date(now + 5 * day));
+const later = await seed('Much Later Hack', new Date(now + 30 * day), new Date(now + 32 * day));
+
+const titlesFor = async (status) => {
+  const r = await call('POST', '/hackathons/list', { as: 'rival', body: { status, limit: 50 } });
+  return (r.hackathons ?? []).map((h) => h.title);
+};
+
+const liveTitles = await titlesFor('active');
+check('Live returns the running one', liveTitles.includes('Live Hack'), liveTitles.join(', '));
+check('Live excludes the ended one', !liveTitles.includes('Ended Hack'));
+check('Live excludes the future one', !liveTitles.includes('Upcoming Hack'));
+
+const upcomingTitles = await titlesFor('upcoming');
+check('Upcoming returns future ones', upcomingTitles.includes('Upcoming Hack') && upcomingTitles.includes('Much Later Hack'));
+check('Upcoming excludes the running one', !upcomingTitles.includes('Live Hack'));
+check('Upcoming is ordered soonest first',
+  upcomingTitles.indexOf('Upcoming Hack') < upcomingTitles.indexOf('Much Later Hack'), upcomingTitles.join(', '));
+
+const endedTitles = await titlesFor('completed');
+check('Ended returns the finished one', endedTitles.includes('Ended Hack'), endedTitles.join(', '));
+check('Ended excludes the running one', !endedTitles.includes('Live Hack'));
+
+// The derived value has to come back on the wire too — the card reads it.
+const liveRow = (await call('POST', '/hackathons/list', { as: 'rival', body: { status: 'active', limit: 50 } }))
+  .hackathons.find((h) => h.title === 'Live Hack');
+check('list carries the derived status', liveRow?.status === 'active', liveRow?.status);
+const endedDetail = await call('GET', `/hackathons/${past._id}`, { as: 'rival' });
+check('detail carries the derived status', endedDetail.hackathon?.status === 'completed', endedDetail.hackathon?.status);
+
+// Publishing is the only thing an organiser sets by hand now.
+await call('PATCH', `/hackathons/${live._id}/status`, { expect: 400, body: { status: 'completed' } });
+await call('PATCH', `/hackathons/${live._id}/status`, { body: { status: 'draft' } });
+const hiddenFrom = await titlesFor('active');
+check('a hidden listing leaves discovery', !hiddenFrom.includes('Live Hack'), hiddenFrom.join(', '));
+const draftDetail = await call('GET', `/hackathons/${live._id}`);
+check('a hidden listing reports draft', draftDetail.hackathon?.status === 'draft' && draftDetail.hackathon?.isDraft === true);
+await call('PATCH', `/hackathons/${live._id}/status`, { body: { status: 'published' } });
+const backTitles = await titlesFor('active');
+check('publishing puts it back under Live', backTitles.includes('Live Hack'), backTitles.join(', '));
+
+for (const h of [past, live, soon, later]) await call('DELETE', `/hackathons/${h._id}`);
+
+// ── 3. update — only the organiser ──────────────────────────────────────────
+console.log('\n[3] update');
+await call('PATCH', `/hackathons/${hackId}`, { as: 'rival', expect: 403, body: { title: 'Hijacked' } });
+await call('PATCH', `/hackathons/${hackId}`, { expect: 400, body: { applyLink: 'nonsense' } });
+
+const patched = await call('PATCH', `/hackathons/${hackId}`, {
+  body: { title: 'Route Test Hack v2', applyLink: 'https://forms.gle/abc123', winners: [{ rank: 1, users: [rival._id] }] },
+});
+check('title updated', patched.hackathon?.title === 'Route Test Hack v2');
+check('generic update cannot write winners', (patched.hackathon?.winners ?? []).length === 0);
+
+await call('PATCH', `/hackathons/${hackId}/status`, { expect: 400, body: { status: 'judging' } });
+await call('PATCH', `/hackathons/${hackId}/status`, { as: 'rival', expect: 403, body: { status: 'draft' } });
+
+// ── 4. winners ──────────────────────────────────────────────────────────────
+console.log('\n[4] winners');
+await call('PATCH', `/hackathons/${hackId}/winners`, { as: 'rival', expect: 403, body: { winners: [] } });
+await call('PATCH', `/hackathons/${hackId}/winners`, { expect: 400, body: { winners: 'first place' } });
+
+const announced = await call('PATCH', `/hackathons/${hackId}/winners`, {
+  body: {
+    winners: [
+      { rank: 1, title: 'Winner', amount: '₹50,000', teamName: 'Team Fync', users: [winnerA._id, winnerB._id], projectLink: 'https://github.com/x' },
+      { rank: 2, title: 'Runner up', teamName: 'Offline Team', users: [] },
     ],
   },
 });
-ctx.hack = r.hackathon?._id;
-if (!ctx.hack) { console.error('FATAL: hackathon not created, cannot continue'); process.exit(1); }
+check('two winner rows saved', (announced.winners ?? []).length === 2);
+check('tagged users are populated', !!announced.winners?.[0]?.users?.[0]?.name, JSON.stringify(announced.winners?.[0]?.users?.[0] ?? {}));
+check('a row with no Fync accounts still keeps its team name', announced.winners?.[1]?.teamName === 'Offline Team');
 
-await call('GET', `/hackathons/${ctx.hack}`);
-await call('POST', '/hackathons/list', { body: { page: 1, limit: 10 } });
-await call('POST', '/hackathons/list', { body: { page: 1, limit: 10, status: 'active', tags: ['ai'] } });
-await call('GET', '/hackathons/my');
-await call('PATCH', `/hackathons/${ctx.hack}`, { body: { description: 'updated blurb' } });
-await call('PATCH', `/hackathons/${ctx.hack}`, { as: 'joiner', body: { description: 'nope' }, expect: 403 });
-await call('PATCH', `/hackathons/${ctx.hack}/status`, { body: { status: 'active' } });
-await call('PATCH', `/hackathons/${ctx.hack}/status`, { body: { status: 'nonsense' }, expect: 400 });
-await call('POST', `/hackathons/${ctx.hack}/judge`, { body: { judgeId: judge._id } });
-await call('POST', `/hackathons/${ctx.hack}/judge`, { body: { judgeId: judge._id }, expect: 400 });
+const notified = await Notification.countDocuments({ hackathon: hackId, type: 'hackathon_announcement' });
+check('both tagged students were notified', notified === 2, `got ${notified}`);
 
-// ── 2. registration + channel ───────────────────────────────────────────────
-console.log('\n[2] registration + channel');
-for (const who of ['leader', 'joiner', 'judge']) {
-  await call('POST', `/hackathons/${ctx.hack}/join`, { as: who });
-}
-await call('GET', `/hackathons/${ctx.hack}/channel`);
-
-// ── 3. teams ────────────────────────────────────────────────────────────────
-console.log('\n[3] teams');
-r = await call('POST', '/teams', {
-  as: 'leader',
-  expect: 201,
-  body: { hackathonId: ctx.hack, name: 'Team Rocket', description: 'we build', requiredskill: ['node'] },
-});
-ctx.team = r.data?._id;
-await call('POST', '/teams', {
-  as: 'leader', expect: 400,
-  body: { hackathonId: ctx.hack, name: 'Dupe', requiredskill: [] },
-});
-await call('GET', `/teams?hackathon=${ctx.hack}`);
-await call('GET', `/teams?hackathon=${ctx.hack}&lookingforMembers=true`);
-await call('GET', `/teams/${ctx.team}`);
-await call('PATCH', `/teams/${ctx.team}`, { as: 'leader', body: { description: 'we ship' } });
-// "Matched For You" — the default tab of the team screen.
-await call('GET', `/teams/match/${ctx.hack}`, { as: 'joiner' });
-
-// join-request flow (the pair the client was calling at the wrong URLs)
-await call('POST', `/teams/${ctx.team}/request`, { as: 'joiner', body: { message: 'let me in' } });
-r = await call('GET', `/teams/${ctx.team}`, { as: 'leader' });
-ctx.request = r.team?.joinRequests?.find((x) => x.status === 'pending')?._id;
-results.push({
-  ok: !!ctx.request,
-  label: 'GET /teams/:id exposes pending joinRequests',
-  as: 'leader', status: ctx.request ? 'found' : 'missing', want: 'found',
-});
-await call('POST', `/teams/${ctx.team}/request/respond`, {
-  as: 'leader', body: { requestId: ctx.request, action: 'accept' },
-});
-
-// invite flow
-await call('POST', `/teams/${ctx.team}/invite`, { as: 'leader', body: { userId: judge._id } });
-await call('POST', `/teams/${ctx.team}/invite/respond`, { as: 'judge', body: { action: 'decline' } });
-
-// ── 4. submissions ──────────────────────────────────────────────────────────
-console.log('\n[4] submissions');
-r = await call('POST', '/submissions', {
-  as: 'leader',
-  expect: [200, 201],
+// Re-saving the same list is how an organiser fixes a typo. It must not
+// re-notify everyone who was already tagged.
+await call('PATCH', `/hackathons/${hackId}/winners`, {
   body: {
-    hackathon: ctx.hack, team: ctx.team,
-    ProjectName: 'Fync Router', TagLine: 'routes that route',
-    description: 'a thing', techStack: ['node', 'react'], category: 'web',
-    GithubUrl: 'https://github.com/x/y',
+    winners: [
+      { rank: 1, title: 'Winner', amount: '₹50,000', teamName: 'Team Fync (fixed)', users: [winnerA._id, winnerB._id] },
+    ],
   },
 });
-ctx.sub = r.submission?._id || r.data?._id || r.newsub?._id;
-if (!ctx.sub) {
-  const { default: S } = await import('../models/hackathon/submission.model.js');
-  ctx.sub = (await S.findOne({ hackathon: ctx.hack }))?._id?.toString();
-}
-await call('GET', `/submissions/my/${ctx.hack}`, { as: 'leader' });
-await call('GET', `/submissions?hackathon=${ctx.hack}`);
-await call('PATCH', `/submissions/${ctx.sub}`, { as: 'leader', body: { TagLine: 'now it routes faster' } });
-r = await call('POST', `/submissions/${ctx.sub}/files`, {
-  as: 'leader', body: { name: 'deck.pdf', Url: 'https://x/deck.pdf', type: 'pdf', size: '1mb' },
-});
-ctx.file = (r.submission?.files || r.files || []).slice(-1)[0]?._id;
-if (ctx.file) await call('DELETE', `/submissions/${ctx.sub}/files/${ctx.file}`, { as: 'leader' });
-await call('POST', `/submissions/${ctx.sub}/finalize`, { as: 'leader' });
+const afterEdit = await Notification.countDocuments({ hackathon: hackId, type: 'hackathon_announcement' });
+check('editing the list does not re-notify', afterEdit === 2, `got ${afterEdit}`);
 
-// ── 5. judging + scores ─────────────────────────────────────────────────────
-console.log('\n[5] judging + scores');
-await call('PATCH', `/hackathons/${ctx.hack}/status`, { body: { status: 'judging' } });
-r = await call('GET', `/scores/judge/pending/${ctx.hack}`, { as: 'judge' });
-results.push({
-  ok: (r.pending || []).length > 0,
-  label: 'judge pending list is non-empty after a finalized submission',
-  as: 'judge', status: `${(r.pending || []).length} pending`, want: '>0',
-});
-await call('POST', '/scores', {
-  as: 'judge',
-  body: {
-    submission: ctx.sub,
-    criteria: [{ name: 'Innovation', weightage: 3, score: 10 }, { name: 'Execution', weightage: 1, score: 2 }],
-    feedback: 'solid',
-  },
-});
-await call('POST', '/scores', {
-  as: 'leader', expect: 403,
-  body: { submission: ctx.sub, criteria: [{ name: 'Innovation', weightage: 3, score: 1 }] },
-});
-r = await call('GET', `/scores/${ctx.sub}`, { as: 'judge' });
-// weighted, not mean: (10*3 + 2*1) / 4 = 8
-results.push({
-  ok: r.averageScore === 8,
-  label: 'totalScore computed on upsert (weighted average = 8)',
-  as: 'judge', status: String(r.averageScore), want: '8',
-});
-await call('GET', `/scores/judge/scored/${ctx.hack}`, { as: 'judge' });
+// ── 5. my hackathons ────────────────────────────────────────────────────────
+console.log('\n[5] my hackathons');
+const mine = await call('GET', '/hackathons/my');
+check('organiser sees it as organiser', mine.hackathons?.find((h) => h._id === hackId)?.myRole === 'organiser');
 
-// ── 6. leaderboard (Redis is down — must still rank) ────────────────────────
-console.log('\n[6] leaderboard');
-r = await call('GET', `/hackathon-leaderboard/${ctx.hack}`);
-results.push({
-  ok: r.leaderboard?.[0]?.score === 8 && r.leaderboard?.[0]?.rank === 1,
-  label: 'leaderboard ranks the scored submission without Redis',
-  as: 'organiser',
-  status: JSON.stringify(r.leaderboard?.[0] ?? r.message ?? null).slice(0, 90),
-  want: 'rank 1, score 8',
-});
-await call('GET', `/hackathon-leaderboard/${ctx.hack}/top/3`);
-// `:n` is user input; a non-numeric value must be rejected, not forwarded to Redis.
-await call('GET', `/hackathon-leaderboard/${ctx.hack}/top/abc`, { expect: 400 });
-await call('GET', `/hackathon-leaderboard/${ctx.hack}/top/0`, { expect: 400 });
-await call('GET', `/hackathon-leaderboard/${ctx.hack}/rank/${ctx.sub}`, { expect: [200, 404] });
-// 503 when Redis is down is the correct answer here — there is no cache to rebuild.
-await call('POST', `/hackathon-leaderboard/${ctx.hack}/rebuild`, { expect: [200, 503] });
-await call('POST', `/hackathon-leaderboard/${ctx.hack}/rebuild`, { as: 'joiner', expect: 403 });
+const won = await call('GET', '/hackathons/my', { as: 'winnerA' });
+const wonRow = won.hackathons?.find((h) => h._id === hackId);
+check('a tagged winner sees it in theirs', !!wonRow, `${won.hackathons?.length ?? 0} rows`);
+check('winner row is labelled', wonRow?.myRole === 'winner' && wonRow?.myWin?.rank === 1, JSON.stringify(wonRow?.myWin ?? {}));
 
-// ── 7. announcements ────────────────────────────────────────────────────────
-console.log('\n[7] announcements');
-r = await call('POST', `/announcements/${ctx.hack}`, {
-  body: { title: 'Judging is live', body: 'Submit before midnight.', type: 'important' },
-});
-ctx.ann = r.announcement?._id;
-await call('POST', `/announcements/${ctx.hack}`, {
-  as: 'joiner', expect: 403, body: { title: 'nope', body: 'nope' },
-});
-await call('GET', `/announcements/${ctx.hack}`, { as: 'joiner' });
-await call('GET', `/announcements/${ctx.hack}?type=important&page=1&limit=5`, { as: 'joiner' });
-await call('PATCH', `/announcements/${ctx.ann}/react`, { as: 'joiner', body: { emoji: '🔥' } });
-await call('PATCH', `/announcements/${ctx.ann}/pin`, { body: { isPinned: true } });
-await call('PATCH', `/announcements/${ctx.ann}/pin`, { as: 'joiner', body: { isPinned: false }, expect: 403 });
-await call('POST', `/announcements/${ctx.ann}/read`, { as: 'joiner' });
+const rivalMine = await call('GET', '/hackathons/my', { as: 'rival' });
+check('an untagged student sees nothing', (rivalMine.hackathons ?? []).length === 0);
 
-// ── 8. organiser console + winners ──────────────────────────────────────────
-console.log('\n[8] console + winners');
-r = await call('GET', `/hackathons/${ctx.hack}/dashboard`);
-results.push({
-  ok: r.stats?.submissions >= 1 && r.stats?.judges === 1 && Array.isArray(r.recentSubmissions),
-  label: 'dashboard returns populated stats + moderation queue',
-  as: 'organiser', status: JSON.stringify(r.stats ?? r.message ?? null).slice(0, 90), want: 'populated',
-});
-await call('GET', `/hackathons/${ctx.hack}/dashboard`, { as: 'joiner', expect: 403 });
-await call('PATCH', `/hackathons/${ctx.hack}/winners`, {
-  body: { winners: [{ rank: 1, title: 'Winner', amount: '₹50,000', submissionId: ctx.sub, teamId: ctx.team }] },
-});
-await call('PATCH', `/hackathons/${ctx.hack}/winners`, { body: { winners: 'not-an-array' }, expect: 400 });
-await call('PATCH', `/hackathons/${ctx.hack}/status`, { body: { status: 'completed' } });
-
-// ── 9. teardown routes ──────────────────────────────────────────────────────
-console.log('\n[9] teardown');
-await call('DELETE', `/hackathons/${ctx.hack}/judges/${judge._id}`);
-await call('POST', `/teams/${ctx.team}/leave`, { as: 'joiner' });
-await call('DELETE', `/submissions/${ctx.sub}`, { as: 'leader', expect: [200, 400] });
-await call('DELETE', `/teams/${ctx.team}`, { as: 'leader' });
-await call('DELETE', `/hackathons/${ctx.hack}`);
-await call('GET', `/hackathons/${ctx.hack}`, { expect: 404 });
+// ── 6. delete ───────────────────────────────────────────────────────────────
+console.log('\n[6] delete');
+await call('DELETE', `/hackathons/${hackId}`, { as: 'rival', expect: 403 });
+await call('DELETE', `/hackathons/${hackId}`);
+await call('GET', `/hackathons/${hackId}`, { expect: 404 });
 
 // ── report ──────────────────────────────────────────────────────────────────
-const failed = results.filter((x) => !x.ok);
-console.log(`\n${'─'.repeat(72)}`);
-console.log(`${results.length - failed.length}/${results.length} passed`);
+const failed = results.filter((r) => !r.ok);
+console.log(`\n${results.length - failed.length}/${results.length} passed`);
 if (failed.length) {
-  console.log('\nFAILURES:');
-  for (const f of failed) {
-    console.log(`  ${f.label} [${f.as}] -> ${f.status} (wanted ${f.want})${f.message ? ` :: ${f.message}` : ''}`);
-  }
+  console.log('\nFailures:');
+  failed.forEach((f) => console.log(`  ${f.label} [${f.as}] -> ${f.status} (wanted ${f.want})${f.message ? ` :: ${f.message}` : ''}`));
 }
 
-server.close();
+await server.close();
 await mongoose.disconnect();
 await mongod.stop();
 process.exit(failed.length ? 1 : 0);

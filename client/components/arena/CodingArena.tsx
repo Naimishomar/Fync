@@ -10,7 +10,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { useBottomInset } from '../../constants/layout';
 
-const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://fync-web.vercel.app';
+const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://fync-zeta.vercel.app';
 
 /**
  * The Arena, as the app shows it: where you stand, not where you type.

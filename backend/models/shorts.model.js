@@ -12,6 +12,22 @@ const shortsSchema = new mongoose.Schema({
     description:{
         type: String,
     },
+
+    /**
+     * Reposts, held as a reference rather than a copy.
+     *
+     * A repost surfaces the original in someone else's feed; it does not
+     * duplicate it. That way an edit or a delete by the author propagates
+     * everywhere it was shared, and the credit stays with whoever wrote it.
+     */
+    reposts: {
+      type: Number,
+      default: 0,
+    },
+    repostedBy: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    }],
     likes: {
         type: Number,
         default: 0,
@@ -49,6 +65,8 @@ shortsSchema.index({ user: 1, _id: -1 });
 shortsSchema.index({ views: -1 });
 shortsSchema.index({ likes: -1 });
 shortsSchema.index({ createdAt: -1 });
+
+shortsSchema.index({ repostedBy: 1, createdAt: -1 });
 
 const Shorts = mongoose.model('Shorts', shortsSchema);
 export default Shorts;

@@ -241,22 +241,6 @@ export const socketController = (io) => {
       socket.leave(`hack:${hackathonId}`);
     });
 
-    socket.on("join:team", ({ teamId }) => {
-      if (!teamId) return;
-      socket.join(`team:${teamId}`);
-      console.log(`👥 Joined team room: team:${teamId}`);
-    });
-
-    socket.on("leave:team", ({ teamId }) => {
-      if (!teamId) return;
-      socket.leave(`team:${teamId}`);
-    });
-
-    socket.on("subscribe:leaderboard", ({ hackathonId }) => {
-      if (!hackathonId) return;
-      socket.join(`hack:${hackathonId}:leaderboard`);
-    });
-
     socket.on("typing:start", ({ roomId, userId, username }) => {
       socket.to(roomId).emit("typing:start", { userId, username });
     });
