@@ -89,6 +89,10 @@
   --color-alumni:    #B45309;
   --color-recruiter: #4F46E5;
 
+  /* The app pairs Space Grotesk for headings, numerals and labels with Inter
+     for everything a user reads. The web was running Inter for both. */
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+
   --radius-card:  20px;
   --radius-sheet: 26px;
 }

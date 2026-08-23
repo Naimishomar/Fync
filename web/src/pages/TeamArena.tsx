@@ -53,7 +53,13 @@ const TeamArena: React.FC = () => {
     s.on('battle_error', (e) => { setError(e.message); setStatus('idle'); });
 
     setSocket(s);
-    return () => { s.disconnect(); };
+    return () => {
+      // Same reason as the other two: disconnecting before the handshake lands
+      // is what the browser reports as "closed before the connection is
+      // established".
+      if (s.connected) s.disconnect();
+      else s.once('connect', () => s.disconnect());
+    };
   }, [token, team?._id, user?._id]);
 
   const act = async (fn: () => Promise<any>) => {

@@ -3,7 +3,7 @@ import logo from '../assets/Fync.jpg';
 
 const Footer = () => {
   const location = useLocation();
-  const hidePaths = ['/arena/problem/', '/arena/bug/', '/arena/matchmaking', '/arena/match/'];
+  const hidePaths = ['/login', '/arena/problem/', '/arena/bug/', '/arena/matchmaking', '/arena/match/', '/arena/teams'];
   if (hidePaths.some(path => location.pathname.startsWith(path))) {
     return null;
   }

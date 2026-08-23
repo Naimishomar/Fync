@@ -33,11 +33,15 @@ const MatchRoom: React.FC = () => {
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
-    if (!authLoading && !token) {
+    // Auth is still resolving. Connecting now means disconnecting a
+    // half-open handshake a moment later, when `authLoading` flips.
+    if (authLoading) return;
+
+    if (!token) {
       navigate('/login');
       return;
     }
-    if (!token || !roomId) return;
+    if (!roomId) return;
 
     const newSocket = io(API_URL, {
       auth: { token },
@@ -77,8 +81,14 @@ const MatchRoom: React.FC = () => {
 
     setSocket(newSocket);
     return () => {
-      newSocket.emit('leave_battle', roomId);
-      newSocket.disconnect();
+      const leave = () => {
+        newSocket.emit('leave_battle', roomId);
+        newSocket.disconnect();
+      };
+      // Closing mid-handshake logs a WebSocket error and the leave never
+      // reaches the server, so the opponent is not told the room emptied.
+      if (newSocket.connected) leave();
+      else newSocket.once('connect', leave);
     };
   }, [token, authLoading, roomId]);
 

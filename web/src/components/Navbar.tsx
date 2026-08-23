@@ -11,7 +11,7 @@ const Navbar = () => {
   const location = useLocation();
 
   // Hide navbar on coding arena pages for better visibility
-  const hidePaths = ['/arena/problem/', '/arena/bug/', '/arena/matchmaking', '/arena/match/'];
+  const hidePaths = ['/login', '/arena/problem/', '/arena/bug/', '/arena/matchmaking', '/arena/match/', '/arena/teams'];
   if (hidePaths.some(path => location.pathname.startsWith(path))) {
     return null;
   }

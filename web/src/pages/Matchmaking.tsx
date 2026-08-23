@@ -25,7 +25,11 @@ const Matchmaking: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!authLoading && !token) {
+    // Auth is still resolving. Connecting now means disconnecting a
+    // half-open handshake a moment later, when `authLoading` flips.
+    if (authLoading) return;
+
+    if (!token) {
       navigate('/login');
       return;
     }
@@ -50,13 +54,17 @@ const Matchmaking: React.FC = () => {
       newSocket.on('connect_error', () => setStatus('error'));
 
       return () => {
-        if (newSocket.connected && user) {
-          newSocket.emit('cancel_coding_match', {
-            userId: user._id,
-            difficulty: 'medium',
-          });
-        }
-        newSocket.disconnect();
+        const leaveQueue = () => {
+          if (user) {
+            newSocket.emit('cancel_coding_match', {
+              userId: user._id,
+              difficulty: 'medium',
+            });
+          }
+          newSocket.disconnect();
+        };
+        if (newSocket.connected) leaveQueue();
+        else newSocket.once('connect', leaveQueue);
       };
     }
   }, [token, authLoading]);
