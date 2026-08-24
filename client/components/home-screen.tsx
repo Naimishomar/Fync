@@ -94,8 +94,14 @@ interface Post {
 const VOTE_BTN = 34;
 const VOTE_SCORE_W = 34;
 
+/** Card chrome the media sits inside: mx-gutter (20) + px-4 (16), both sides.
+ *  Media was hardcoded to `width - 24` and overflowed by 48px, which is why the
+ *  carousel scrolled sideways instead of paging. */
+const POST_CARD_INSET = (20 + 16) * 2;
+
 const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }: { item: Post, index: number, currentUser: any, openComments: (id: string) => void, onDeletePost: (id: string) => void }) => {
   const { width } = useWindowDimensions();
+  const mediaWidth = width - POST_CARD_INSET;
   const [vote, setVote] = useState<'up' | 'down' | null>(
     item.upvoted_by?.includes(currentUser?._id) ? 'up' : 
     item.downvoted_by?.includes(currentUser?._id) ? 'down' : null
@@ -352,11 +358,11 @@ const MAX_CHAR_LIMIT = 150;
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
           renderItem={({ item: imageUrl }) => (
-            <View style={{ width: width - 24 }}>
+            <View style={{ width: mediaWidth }}>
               <Pressable onPress={() => setResizeMode(prev => !prev)}>
                 <ExpoImage
                   source={{ uri: getFullUrl(imageUrl) || '' }}
-                  style={{ width: width - 24, height: width - 24, borderRadius: 12 }}
+                  style={{ width: mediaWidth, height: mediaWidth, borderRadius: 12 }}
                   contentFit={resizeMode ? "contain" : "cover"}
                   cachePolicy="memory-disk"
                   // Tied to the URL so a recycled row never shows the previous

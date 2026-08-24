@@ -90,7 +90,7 @@ import { socketController } from './controllers/socket.controller.js';
 import codingBattleSockets from './controllers/coding/battle.socket.js';
 import compression from 'compression';
 import helmet from 'helmet';
-import { monitoringMiddleware } from './middlewares/monitoring.middleware.js';
+import { monitoringMiddleware, latencyReport, resetLatency } from './middlewares/monitoring.middleware.js';
 import { generalLimiter } from './middlewares/rateLimit.middleware.js';
 import { mongoSanitize } from './middlewares/mongoSanitize.js';
 import { validateConfig } from './utils/validateConfig.js';
@@ -364,6 +364,26 @@ const startServer = async (retries = 5) => {
 
 app.get('/', (req, res) => {
   res.send('Fync never gets down!🚀');
+});
+
+// Per-route latency percentiles. Guarded: it reveals the full route surface,
+// including admin paths, so it is off unless PERF_TOKEN is set and matches.
+app.get('/__perf', (req, res) => {
+  const expected = process.env.PERF_TOKEN;
+  if (!expected || req.get('x-perf-token') !== expected) {
+    return res.status(404).json({ success: false });
+  }
+  if (req.query.reset === '1') {
+    resetLatency();
+    return res.status(200).json({ success: true, reset: true });
+  }
+  res.status(200).json({
+    success: true,
+    ...latencyReport({
+      limit: Number(req.query.limit) || 50,
+      budgetMs: Number(req.query.budget) || 3,
+    }),
+  });
 });
 
 // PM2 Health Check — also the deploy gate, so it must fail when Redis is

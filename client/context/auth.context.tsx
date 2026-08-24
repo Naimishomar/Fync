@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "./axiosConfig";
+import axios, { setAuthToken } from "./axiosConfig";
 import * as Device from "expo-device";
 import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync, savePushTokenToBackend } from "../utils/notificationHelper";
@@ -45,6 +45,9 @@ export const AuthProvider = ({ children }: any) => {
       console.log("Logout backend error:", e);
     }
     await AsyncStorage.multiRemove(["accessToken", "refreshToken", "cachedUser"]);
+    // The request interceptor holds the token in memory now; clearing storage
+    // alone would leave the logged-out session still sending it.
+    setAuthToken(null);
     // Drop the authenticated socket too, otherwise the previous user stays in
     // their private rooms and keeps receiving messages after logout.
     untrackUser();
@@ -77,6 +80,7 @@ export const AuthProvider = ({ children }: any) => {
         ["accessToken", token],
         ["refreshToken", refreshToken],
       ]);
+      setAuthToken(token);
       setUser(user);
       AsyncStorage.setItem("cachedUser", JSON.stringify(user));
       registerToken();

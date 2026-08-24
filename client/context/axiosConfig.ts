@@ -51,6 +51,48 @@ interface CachedEntry {
   timestamp: number;
 }
 
+// ── L1: in-process cache ──────────────────────────────────────────────────────
+// AsyncStorage is SQLite behind the bridge: a read is an async hop plus a
+// JSON.parse of the whole payload, which is tens of milliseconds for a feed.
+// This Map is the same entry in JS heap — a hit costs a property lookup.
+// AsyncStorage stays underneath as the cold-start/durable tier.
+const memCache = new Map<string, CachedEntry>();
+
+// Bounded so a long session cannot grow the heap without limit. Insertion order
+// is eviction order, which is FIFO rather than LRU.
+// ponytail: FIFO eviction, switch to LRU if hit rate drops on long sessions.
+const MEM_CACHE_MAX = 300;
+
+// How long past its TTL an entry may still be handed to the caller while a
+// fresh copy is fetched behind it. This is what turns a stale read from a
+// network round-trip into a 0ms one. Beyond this the request blocks on the
+// network, so data can never be arbitrarily old.
+const SWR_GRACE_SECONDS = 600;
+
+// One revalidation per key at a time; without this, ten screens mounting on the
+// same stale key fire ten identical requests.
+const inFlight = new Map<string, Promise<any>>();
+
+// ── Auth token, held in memory ────────────────────────────────────────────────
+// This used to be an `AsyncStorage.getItem` on EVERY request — a bridge
+// round-trip in front of every call the app makes, cache hits included.
+let authToken: string | null = null;
+let authTokenLoaded = false;
+
+/** Keep the in-memory copy in step with AsyncStorage. Call on login, logout and
+ *  token refresh; passing null clears it. */
+export const setAuthToken = (token: string | null) => {
+  authToken = token;
+  authTokenLoaded = true;
+};
+
+const getAuthToken = async (): Promise<string | null> => {
+  if (authTokenLoaded) return authToken;
+  authToken = await AsyncStorage.getItem("accessToken");
+  authTokenLoaded = true;
+  return authToken;
+};
+
 function getTTL(url: string): number {
   for (const [prefix, ttl] of Object.entries(ROUTE_TTL)) {
     if (url.startsWith(prefix)) return ttl;
@@ -73,18 +115,39 @@ function isSkipCache(config: AxiosRequestConfig): boolean {
 }
 
 async function readCache(key: string): Promise<CachedEntry | null> {
+  const hot = memCache.get(key);
+  if (hot) return hot;
   try {
     const raw = await AsyncStorage.getItem(key);
     if (!raw) return null;
-    return JSON.parse(raw) as CachedEntry;
+    const entry = JSON.parse(raw) as CachedEntry;
+    rememberInMemory(key, entry);
+    return entry;
   } catch (e) {
     return null;
   }
 }
 
+function rememberInMemory(key: string, entry: CachedEntry) {
+  if (memCache.size >= MEM_CACHE_MAX && !memCache.has(key)) {
+    const oldest = memCache.keys().next().value;
+    if (oldest !== undefined) memCache.delete(oldest);
+  }
+  memCache.set(key, entry);
+}
+
+function forgetInMemory(predicate: (key: string) => boolean) {
+  for (const key of Array.from(memCache.keys())) {
+    if (predicate(key)) memCache.delete(key);
+  }
+}
+
 async function writeCache(key: string, data: any) {
+  const entry: CachedEntry = { data, timestamp: Date.now() };
+  rememberInMemory(key, entry);
   try {
-    const entry: CachedEntry = { data, timestamp: Date.now() };
+    // Not awaited by the caller's critical path: the L1 entry above is already
+    // live, and persisting is only for the next cold start.
     await AsyncStorage.setItem(key, JSON.stringify(entry));
   } catch (e) {
     // Storage full or unavailable — never block a request for caching
@@ -103,36 +166,60 @@ axios.defaults.adapter = async (config: AxiosRequestConfig): Promise<AxiosRespon
   const isGet = method === "get";
   const skipCache = isSkipCache(config);
 
-  if (isGet && !skipCache) {
-    const key = cacheKeyFor(config);
-    if (key) {
-      const entry = await readCache(key);
-      if (entry) {
-        const ageSeconds = (Date.now() - entry.timestamp) / 1000;
-        if (ageSeconds <= getTTL(url)) {
-          // Fresh — serve instantly, zero server hit
-          return {
-            data: entry.data,
-            status: 200,
-            statusText: "OK",
-            headers: { "x-cache-hit": "true" },
-            config,
-            request: {},
-          } as AxiosResponse;
-        }
-        // Stale — drop it and fetch fresh data
-        await AsyncStorage.removeItem(key).catch(() => {});
+  const cacheKey = isGet && !skipCache ? cacheKeyFor(config) : null;
+
+  const hit = (data: any, stale: boolean): AxiosResponse =>
+    ({
+      data,
+      status: 200,
+      statusText: "OK",
+      headers: stale
+        ? { "x-cache-hit": "true", "x-cache-state": "stale" }
+        : { "x-cache-hit": "true", "x-cache-state": "fresh" },
+      config,
+      request: {},
+    } as AxiosResponse);
+
+  /** Fetch and store, deduplicated per key so N callers cause one request. */
+  const fetchAndStore = (key: string | null): Promise<AxiosResponse> => {
+    if (!key) return defaultAdapter(config);
+    const existing = inFlight.get(key);
+    if (existing) return existing;
+    const promise = (async () => {
+      try {
+        const response = await defaultAdapter(config);
+        if (response.status === 200) await writeCache(key, response.data);
+        return response;
+      } finally {
+        inFlight.delete(key);
       }
+    })();
+    inFlight.set(key, promise);
+    return promise;
+  };
+
+  if (cacheKey) {
+    const entry = await readCache(cacheKey);
+    if (entry) {
+      const ageSeconds = (Date.now() - entry.timestamp) / 1000;
+      if (ageSeconds <= getTTL(url)) {
+        // Fresh — serve from memory, no network, no storage read.
+        return hit(entry.data, false);
+      }
+      if (ageSeconds <= getTTL(url) + SWR_GRACE_SECONDS) {
+        // Stale but not old. Hand back what we have now and refresh behind it,
+        // so the user waits 0ms instead of a round-trip. Past the grace window
+        // we fall through and block on the network rather than show stale data.
+        fetchAndStore(cacheKey).catch(() => {});
+        return hit(entry.data, true);
+      }
+      memCache.delete(cacheKey);
+      await AsyncStorage.removeItem(cacheKey).catch(() => {});
     }
   }
 
   try {
-    const response = await defaultAdapter(config);
-    if (isGet && response.status === 200 && !skipCache) {
-      const key = cacheKeyFor(config);
-      if (key) await writeCache(key, response.data);
-    }
-    return response;
+    return await fetchAndStore(cacheKey);
   } catch (error) {
     // Network/offline fallback: serve last cached payload if we have one
     if (isGet && !skipCache) {
@@ -194,6 +281,8 @@ async function invalidateCacheFor(mutatedUrl: string) {
       }
     }
 
+    forgetInMemory((key) => toRemove.includes(key));
+
     if (toRemove.length > 0) {
       await AsyncStorage.multiRemove(toRemove);
     }
@@ -204,7 +293,7 @@ async function invalidateCacheFor(mutatedUrl: string) {
 
 axios.interceptors.request.use(
   async (config) => {
-    const token = await AsyncStorage.getItem("accessToken");
+    const token = await getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -248,6 +337,7 @@ axios.interceptors.response.use(
         const newAccessToken = res.data.token;
 
         await AsyncStorage.setItem("accessToken", newAccessToken);
+        setAuthToken(newAccessToken);
 
         axios.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -255,6 +345,7 @@ axios.interceptors.response.use(
         return axios(originalRequest);
       } catch (refreshError) {
         await AsyncStorage.multiRemove(["accessToken", "refreshToken"]);
+        setAuthToken(null);
         return Promise.reject(refreshError);
       }
     }

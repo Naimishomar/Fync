@@ -9,9 +9,9 @@ const AdCarousel = () => {
   const [loading, setLoading] = useState(true);
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
-  // Taller now that the poster runs edge to edge: at 132 a full-width
-  // banner reads as a strip rather than a poster.
-  const imageHeight = isTablet ? 260 : 168;
+  // Edge-to-edge poster, but capped: 168 ate a third of a phone viewport
+  // before the feed started. 16:9 keeps it a banner, not a screen.
+  const imageHeight = isTablet ? 220 : Math.round(width * 0.42);
 
   useEffect(() => {
     fetchAds();
