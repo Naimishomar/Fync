@@ -91,17 +91,15 @@ interface Post {
 // --- POST ITEM ---
 /** Vote pill geometry. The indicator's travel is derived from these, so the
  *  fill always lands centred on a button rather than near it. */
-const VOTE_BTN = 34;
-const VOTE_SCORE_W = 34;
+const VOTE_BTN = 30;
+const VOTE_SCORE_W = 30;
 
-/** Card chrome the media sits inside: mx-gutter (20) + px-4 (16), both sides.
- *  Media was hardcoded to `width - 24` and overflowed by 48px, which is why the
- *  carousel scrolled sideways instead of paging. */
-const POST_CARD_INSET = (20 + 16) * 2;
+/** Instagram/LinkedIn feed: the card is edge-to-edge, so media spans the full
+ *  screen width and only the text rows carry a horizontal inset. */
 
 const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }: { item: Post, index: number, currentUser: any, openComments: (id: string) => void, onDeletePost: (id: string) => void }) => {
   const { width } = useWindowDimensions();
-  const mediaWidth = width - POST_CARD_INSET;
+  const mediaWidth = width;
   const [vote, setVote] = useState<'up' | 'down' | null>(
     item.upvoted_by?.includes(currentUser?._id) ? 'up' : 
     item.downvoted_by?.includes(currentUser?._id) ? 'down' : null
@@ -261,9 +259,9 @@ const MAX_CHAR_LIMIT = 150;
   };
 
   return (
-    <View className="bg-card border border-line rounded-card mx-gutter mb-3 py-4 px-4">
+    <View className="bg-card border-b border-line mb-2 py-3">
       {/* Top Header Row (Reddit Style) */}
-      <View className="flex-row items-center justify-between mb-3">
+      <View className="flex-row items-center justify-between mb-3 px-3">
         <View className="flex-row items-center">
           <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })}>
             {item.user?.avatar ? (
@@ -323,16 +321,16 @@ const MAX_CHAR_LIMIT = 150;
             ]);
           }}
           className="items-center justify-center rounded-full"
-          style={{ width: 40, height: 40 }}
+          style={{ width: 32, height: 32 }}
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel="Post options"
         >
-          <Ionicons name="ellipsis-horizontal" size={20} color="#12100E" />
+          <Ionicons name="ellipsis-horizontal" size={18} color="#12100E" />
         </Pressable>
       </View>
 
-      <View className="mb-3 px-1">
+      <View className="mb-3 px-3">
         <Text className="font-sans text-base text-ink-2">
           {isExpanded || (item.description?.length || 0) <= MAX_CHAR_LIMIT
             ? item.description
@@ -348,6 +346,7 @@ const MAX_CHAR_LIMIT = 150;
       </View>
 
       {/* Media (Full Width) */}
+      {!!item.image?.length && (
       <View className="relative mb-4">
         <FlatList
           data={item.image || []}
@@ -362,7 +361,7 @@ const MAX_CHAR_LIMIT = 150;
               <Pressable onPress={() => setResizeMode(prev => !prev)}>
                 <ExpoImage
                   source={{ uri: getFullUrl(imageUrl) || '' }}
-                  style={{ width: mediaWidth, height: mediaWidth, borderRadius: 12 }}
+                  style={{ width: mediaWidth, height: mediaWidth }}
                   contentFit={resizeMode ? "contain" : "cover"}
                   cachePolicy="memory-disk"
                   // Tied to the URL so a recycled row never shows the previous
@@ -394,9 +393,10 @@ const MAX_CHAR_LIMIT = 150;
           </View>
         )}
       </View>
+      )}
 
       {/* Action Bar (Reddit Style Pills) */}
-      <View className="flex-row items-center gap-2">
+      <View className="flex-row items-center gap-2 px-3">
         {/* The action row.
             These were bg-paper-2 with a hairline border and ink-3 icons — 2.99:1,
             the exact visual language of a disabled control. They are live
@@ -441,12 +441,12 @@ const MAX_CHAR_LIMIT = 150;
             accessibilityLabel="Upvote"
             accessibilityState={{ selected: vote === 'up' }}
           >
-            <Ionicons name={vote === 'up' ? 'arrow-up' : 'arrow-up-outline'} size={18} color="#12100E" />
+            <Ionicons name={vote === 'up' ? 'arrow-up' : 'arrow-up-outline'} size={16} color="#12100E" />
           </Pressable>
 
           <Text
             className="font-display text-ink text-center"
-            style={{ width: VOTE_SCORE_W, fontSize: 13 }}
+            style={{ width: VOTE_SCORE_W, fontSize: 12 }}
           >
             {score === 0 ? '0' : score > 999 ? formatCount(score) : score}
           </Text>
@@ -463,7 +463,7 @@ const MAX_CHAR_LIMIT = 150;
             {/* White on ink once the fill arrives underneath it. */}
             <Ionicons
               name={vote === 'down' ? 'arrow-down' : 'arrow-down-outline'}
-              size={18}
+              size={16}
               color={vote === 'down' ? '#FFFFFF' : '#12100E'}
             />
           </Pressable>
@@ -471,13 +471,13 @@ const MAX_CHAR_LIMIT = 150;
 
         <Pressable
           onPress={() => openComments(item._id)}
-          className="flex-row items-center bg-card border-2 border-ink rounded-full px-3"
-          style={{ minHeight: 38 }}
+          className="flex-row items-center bg-card border-2 border-ink rounded-full px-2.5"
+          style={{ minHeight: 30 }}
           accessibilityRole="button"
           accessibilityLabel={`${displayCommentCount} comments`}
         >
-          <Ionicons name="chatbubble-outline" size={16} color="#12100E" />
-          <Text className="font-display text-ink ml-1.5" style={{ fontSize: 13 }}>
+          <Ionicons name="chatbubble-outline" size={14} color="#12100E" />
+          <Text className="font-display text-ink ml-1.5" style={{ fontSize: 12 }}>
             {formatCount(displayCommentCount)}
           </Text>
         </Pressable>
@@ -487,15 +487,15 @@ const MAX_CHAR_LIMIT = 150;
         {item.user?._id !== currentUser?._id && (
           <Pressable
             onPress={handleRepost}
-            className={`flex-row items-center rounded-full px-3 border-2 border-ink ${reposted ? 'bg-brand-500' : 'bg-card'}`}
-            style={{ minHeight: 38 }}
+            className={`flex-row items-center rounded-full px-2.5 border-2 border-ink ${reposted ? 'bg-brand-500' : 'bg-card'}`}
+            style={{ minHeight: 30 }}
             accessibilityRole="button"
             accessibilityState={{ selected: !!reposted }}
             accessibilityLabel={reposted ? 'Remove your repost' : 'Repost this'}
           >
-            <Ionicons name={reposted ? 'repeat' : 'repeat-outline'} size={17} color="#12100E" />
+            <Ionicons name={reposted ? 'repeat' : 'repeat-outline'} size={15} color="#12100E" />
             {repostCount > 0 && (
-              <Text className="font-display text-ink ml-1.5" style={{ fontSize: 13 }}>
+              <Text className="font-display text-ink ml-1.5" style={{ fontSize: 12 }}>
                 {formatCount(repostCount)}
               </Text>
             )}
@@ -504,13 +504,13 @@ const MAX_CHAR_LIMIT = 150;
 
         <Pressable
           onPress={handleShare}
-          className="flex-row items-center bg-card border-2 border-ink rounded-full px-3"
-          style={{ minHeight: 38 }}
+          className="flex-row items-center bg-card border-2 border-ink rounded-full px-2.5"
+          style={{ minHeight: 30 }}
           accessibilityRole="button"
           accessibilityLabel="Share this post"
         >
-          <Ionicons name="paper-plane-outline" size={16} color="#12100E" />
-          <Text className="font-display text-ink ml-1.5" style={{ fontSize: 13 }}>Share</Text>
+          <Ionicons name="paper-plane-outline" size={14} color="#12100E" />
+          <Text className="font-display text-ink ml-1.5" style={{ fontSize: 12 }}>Share</Text>
         </Pressable>
 
         <View className="flex-1" />
