@@ -473,7 +473,7 @@ const MAX_CHAR_LIMIT = 150;
 
         <Pressable
           onPress={() => openComments(item._id)}
-          className="flex-row items-center rounded-full px-1.5"
+          className="flex-row items-center rounded-full px-1"
           style={{ minHeight: 30 }}
           accessibilityRole="button"
           accessibilityLabel={`${displayCommentCount} comments`}
@@ -489,7 +489,7 @@ const MAX_CHAR_LIMIT = 150;
         {item.user?._id !== currentUser?._id && (
           <Pressable
             onPress={handleRepost}
-            className={`flex-row items-center rounded-full px-1.5 ${reposted ? 'bg-brand-500' : ''}`}
+            className={`flex-row items-center rounded-full px-1 ${reposted ? 'bg-brand-500' : ''}`}
             style={{ minHeight: 30 }}
             accessibilityRole="button"
             accessibilityState={{ selected: !!reposted }}
@@ -506,7 +506,7 @@ const MAX_CHAR_LIMIT = 150;
 
         <Pressable
           onPress={handleShare}
-          className="flex-row items-center rounded-full px-1.5"
+          className="flex-row items-center rounded-full px-1"
           style={{ minHeight: 30 }}
           accessibilityRole="button"
           accessibilityLabel="Share this post"
