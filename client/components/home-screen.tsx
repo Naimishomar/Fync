@@ -357,7 +357,7 @@ const MAX_CHAR_LIMIT = 150;
 
       {/* Action Bar. Flat on the page like Instagram's: no chrome, ink icons
           at full strength carry the affordance. */}
-      <View className="flex-row items-center gap-1 px-3">
+      <View className="flex-row items-center gap-2.5 px-3">
         <Animated.View style={{ transform: [{ scale: springValue }] }}>
           <Pressable
             onPress={handleLike}
