@@ -92,7 +92,7 @@ const SCROLL_NOISE = 6;
  * way", so it takes a real swipe rather than the first few pixels. Showing
  * stays instant — reaching for the tabs should never need a measured gesture.
  */
-const HIDE_AFTER = 120;
+const HIDE_AFTER = 250;
 
 /**
  * Spread onto any scrollable inside the tab navigator:
