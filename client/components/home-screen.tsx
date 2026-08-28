@@ -357,7 +357,7 @@ const MAX_CHAR_LIMIT = 150;
 
       {/* Action Bar. Flat on the page like Instagram's: no chrome, ink icons
           at full strength carry the affordance. */}
-      <View className="flex-row items-center gap-2.5 px-3">
+      <View className="flex-row items-center gap-3 px-3">
         <Animated.View style={{ transform: [{ scale: springValue }] }}>
           <Pressable
             onPress={handleLike}
@@ -371,7 +371,7 @@ const MAX_CHAR_LIMIT = 150;
             <Ionicons
               name={liked ? 'thumbs-up' : 'thumbs-up-outline'}
               size={20}
-              color={liked ? C.brand[600] : C.ink}
+              color={liked ? "#ff8902" : C.ink}
             />
             {likeCount > 0 && (
               <Text
@@ -402,15 +402,15 @@ const MAX_CHAR_LIMIT = 150;
         {item.user?._id !== currentUser?._id && (
           <Pressable
             onPress={handleRepost}
-            className={`flex-row items-center rounded-full px-1 ${reposted ? 'bg-brand-500' : ''}`}
+            className={`flex-row items-center rounded-full px-1`}
             style={{ minHeight: 30 }}
             accessibilityRole="button"
             accessibilityState={{ selected: !!reposted }}
             accessibilityLabel={reposted ? 'Remove your repost' : 'Repost this'}
           >
-            <Ionicons name={reposted ? 'repeat' : 'repeat-outline'} size={20} color={C.ink} />
+            <Ionicons name={reposted ? 'repeat' : 'repeat-outline'} size={20} color={reposted ? '#ff8902' : C.ink} />
             {repostCount > 0 && (
-              <Text className="font-display text-ink ml-1.5" style={{ fontSize: 12 }}>
+              <Text className={`font-display ml-1.5 ${reposted ? 'text-[#ff8902]' : 'text-[#fff]'}`} style={{ fontSize: 12 }}>
                 {formatCount(repostCount)}
               </Text>
             )}

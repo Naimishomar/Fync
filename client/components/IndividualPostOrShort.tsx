@@ -518,7 +518,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
 
                         <View className="px-3 pt-3 flex-row items-center gap-3">
                             <TouchableOpacity onPress={handleLike} className="flex-row items-center bg-paper-2 rounded-full px-3 py-2">
-                                <Ionicons name={isLiked ? "thumbs-up" : "thumbs-up-outline"} size={20} color={isLiked ? C.brand[600] : C.ink2} />
+                                <Ionicons name={isLiked ? "thumbs-up" : "thumbs-up-outline"} size={20} color={isLiked ? "#ff8902" : C.ink2} />
                                 <Text className={`font-semibold text-xs ml-1.5 ${isLiked ? 'text-accent-text' : 'text-ink-3'}`}>{likeCount}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="flex-row items-center bg-paper-2 rounded-full px-3 py-2">
