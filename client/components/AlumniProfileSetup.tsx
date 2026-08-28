@@ -15,6 +15,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { collegesInIndia } from '../data/college';
 // @ts-ignore
 import loginImage from '../assets/loginImage.png';
+import { C } from '../constants/colors';
 
 export default function AlumniProfileSetup() {
   const navigation = useNavigation<any>();
@@ -91,14 +92,14 @@ export default function AlumniProfileSetup() {
 
           <Text className="text-ink-2 font-semibold mb-2">Basic Details</Text>
           <TextInput
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
             placeholder="Full Name"
             value={name}
             onChangeText={setName}
           />
           <TextInput
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
             placeholder="Username"
             value={username}
@@ -107,7 +108,7 @@ export default function AlumniProfileSetup() {
           />
           <View className="mb-4 flex-row items-center rounded-xl border-2 border-ink px-4">
             <TextInput
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
               className="flex-1 py-4 text-ink"
               placeholder="Password"
               secureTextEntry={!passwordVisible}
@@ -118,7 +119,7 @@ export default function AlumniProfileSetup() {
               <Ionicons
                 name={passwordVisible ? 'eye-off' : 'eye'}
                 size={22}
-                color="#C4BEB6"
+                color={C.ink4}
               />
             </Pressable>
           </View>
@@ -131,10 +132,10 @@ export default function AlumniProfileSetup() {
             <Text className={college ? "text-ink" : "text-ink-3"}>
               {college || "Select College"}
             </Text>
-            <Ionicons name="chevron-down" size={20} color="#C4BEB6" />
+            <Ionicons name="chevron-down" size={20} color={C.ink4} />
           </Pressable>
           <TextInput
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
             placeholder="Graduation Year"
             keyboardType="number-pad"
@@ -142,7 +143,7 @@ export default function AlumniProfileSetup() {
             onChangeText={setGraduationYear}
           />
           <TextInput
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
             placeholder="Department / Major (e.g. CSE, MBA)"
             value={major}
@@ -166,14 +167,14 @@ export default function AlumniProfileSetup() {
 
           <Text className="text-ink-2 font-semibold mb-2 mt-2">Work Experience</Text>
           <TextInput
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
             placeholder="Current Company / Startup"
             value={company}
             onChangeText={setCompany}
           />
           <TextInput
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
             placeholder="Your Role (e.g. SDE-2, Founder)"
             value={role}
@@ -197,7 +198,7 @@ export default function AlumniProfileSetup() {
 
           <Text className="text-ink-2 font-semibold mb-2">Domains (comma separated)</Text>
           <TextInput
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
             placeholder="e.g. Backend, AI, Fintech"
             value={domains}
@@ -206,7 +207,7 @@ export default function AlumniProfileSetup() {
 
           <Text className="text-ink-2 font-semibold mb-2">LinkedIn URL (Optional)</Text>
           <TextInput
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             className="mb-8 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
             placeholder="https://linkedin.com/in/username"
             value={linkedIn}
@@ -236,14 +237,14 @@ export default function AlumniProfileSetup() {
             <View className="flex-row justify-between items-center mb-6">
               <Text className="font-display text-h1">Select College</Text>
               <Pressable onPress={() => setShowCollegeModal(false)}>
-                <Ionicons name="close-circle" size={32} color="#12100E" />
+                <Ionicons name="close-circle" size={32} color={C.ink} />
               </Pressable>
             </View>
 
             <View className="flex-row items-center bg-paper-2 rounded-card px-4 mb-6">
-              <Ionicons name="search" size={20} color="#C4BEB6" />
+              <Ionicons name="search" size={20} color={C.ink4} />
               <TextInput
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
                 className="flex-1 py-4 ml-2 text-ink"
                 placeholder="Search your college..."
                 value={collegeSearch}

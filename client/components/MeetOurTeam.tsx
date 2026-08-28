@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import { C } from '../constants/colors';
 
 const TEAM_MEMBERS = [
     {
@@ -111,7 +112,7 @@ const MeetOurTeam = () => {
                     accessibilityRole="button" accessibilityLabel="Go back"
                     style={{ marginLeft: -11 }}
                 >
-                    <Ionicons name="arrow-back" size={24} color="#12100E" />
+                    <Ionicons name="arrow-back" size={24} color={C.ink} />
                 </TouchableOpacity>
                 <View className="flex-1 ml-1">
                     <Text className="font-display text-h2 text-ink uppercase">Meet</Text>
@@ -165,12 +166,12 @@ const MeetOurTeam = () => {
                     className="bg-card rounded-card p-card-pad flex-row items-center border border-line mb-10"
                     accessibilityRole="button" accessibilityLabel="Contact us"
                 >
-                    <Ionicons name="location-outline" size={24} color="#57534E" />
+                    <Ionicons name="location-outline" size={24} color={C.ink2} />
                     <View className="flex-1 mx-3">
                         <Text className="text-ink font-bold" style={{ fontSize: 14 }}>KIET Deemed University, UP</Text>
                         <Text className="text-sm text-ink-3 mt-0.5">Contact us any time</Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={20} color="#C4BEB6" />
+                    <Ionicons name="chevron-forward" size={20} color={C.ink4} />
                 </TouchableOpacity>
                 <View style={{ height: 40 }} />
             </ScrollView>

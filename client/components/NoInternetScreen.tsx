@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import NetInfo from '@react-native-community/netinfo';
+import { C } from '../constants/colors';
 
 const NoInternetScreen = ({ onRetry }: { onRetry: () => void }) => {
   const handleRetry = async () => {
@@ -16,7 +17,7 @@ const NoInternetScreen = ({ onRetry }: { onRetry: () => void }) => {
     <SafeAreaView className="flex-1 bg-paper justify-center items-center">
       <View className="w-[85%] items-center p-5">
         <View className="mb-10 justify-center items-center">
-          <Ionicons name="cloud-offline-outline" size={80} color="#F97316" />
+          <Ionicons name="cloud-offline-outline" size={80} color={C.brand[500]} />
           <View className="absolute w-[120px] h-[120px] rounded-sheet bg-brand-500/10 -z-10" />
         </View>
         
@@ -33,7 +34,7 @@ const NoInternetScreen = ({ onRetry }: { onRetry: () => void }) => {
           onPress={handleRetry}
         >
           <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Try Again</Text>
-          <Ionicons name="refresh-outline" size={20} color="#12100E" style={{ marginLeft: 8 }} />
+          <Ionicons name="refresh-outline" size={20} color={C.ink} style={{ marginLeft: 8 }} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>

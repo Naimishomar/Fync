@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
+import { C } from '../../constants/colors';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const BADGE_CONFIG: Record<string, { icon: any; color: string; bg: string; border: string }> = {
@@ -82,7 +83,7 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
 
   if (loading) return (
     <View className="mx-4 my-3 bg-card rounded-card p-6 border border-line items-center justify-center h-28 shadow-hair">
-      <ActivityIndicator color="#F97316" />
+      <ActivityIndicator color={C.brand[500]} />
     </View>
   );
 
@@ -119,7 +120,7 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
 
         <View className="items-end ml-4 gap-3">
           <View className="w-8 h-8 bg-paper-2 rounded-xl items-center justify-center border border-line">
-            <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={16} color="#12100E" />
+            <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={16} color={C.ink} />
           </View>
         </View>
       </Pressable>

@@ -15,6 +15,7 @@ import { WebView } from 'react-native-webview';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { fetchTrailersBatch, getMovieTrailers, fetchTrendingMovies } from '../../utils/tmdb';
+import { C } from '../../constants/colors';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -165,9 +166,9 @@ const ReelItem = ({
         ) : (
           <View className="flex-1 bg-ink justify-center items-center">
             {loading ? (
-              <ActivityIndicator size="small" color="#DB2777" />
+              <ActivityIndicator size="small" color={C.fam.fun} />
             ) : (
-              <Ionicons name="videocam-off-outline" size={40} color="#C4BEB6" />
+              <Ionicons name="videocam-off-outline" size={40} color={C.ink4} />
             )}
           </View>
         )}
@@ -192,7 +193,7 @@ const ReelItem = ({
                   <Text className="text-danger text-label font-display uppercase">TRAILER</Text>
                </View>
                <View className="flex-row items-center">
-                  <Ionicons name="star" size={14} color="#B45309" />
+                  <Ionicons name="star" size={14} color={C.warning} />
                   <Text className="text-white text-sm ml-1 font-semibold">{movie.vote_average.toFixed(1)}</Text>
                </View>
                <Text className="text-ink-3 text-xs font-semibold uppercase">
@@ -334,7 +335,7 @@ const TrailerReels = () => {
   if (loading) {
     return (
       <View className="flex-1 bg-ink justify-center items-center">
-        <ActivityIndicator size="large" color="#DB2777" />
+        <ActivityIndicator size="large" color={C.fam.fun} />
       </View>
     );
   }

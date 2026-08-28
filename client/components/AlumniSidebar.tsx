@@ -11,6 +11,7 @@ import {
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../context/auth.context';
+import { C } from '../constants/colors';
 
 // Enable LayoutAnimation for Android
 if (
@@ -60,7 +61,7 @@ export default function AlumniSidebar(props: any) {
                         onPress={() => props.navigation.navigate('FyncProfileBuilder')}
                         className="flex-row items-center justify-between bg-recruiter/10 border border-recruiter/20 px-4 py-2.5 rounded-xl mt-1">
                         <View className="flex-row items-center gap-2">
-                            <Ionicons name="star" size={16} color="#F5B700" />
+                            <Ionicons name="star" size={16} color={C.alumniLit} />
                             <View>
                                 <Text className="text-recruiter text-xs font-semibold">{user?.fyncBadge || 'Elite Alumni'}</Text>
                                 <Text className="text-white text-base font-semibold">{user?.fyncScore || 0} <Text className="text-ink-3 text-xs font-normal">/ 1000</Text></Text>
@@ -82,13 +83,13 @@ export default function AlumniSidebar(props: any) {
                         className="flex-row items-center justify-between px-4 py-4 rounded-xl active:bg-ink"
                     >
                         <View className="flex-row items-center">
-                            <Ionicons name="briefcase-outline" size={24} color="#4F46E5" />
+                            <Ionicons name="briefcase-outline" size={24} color={C.recruiter} />
                             <Text className="text-white text-lg ml-4 font-medium">Opportunities</Text>
                         </View>
                         <Ionicons
                             name={showOpportunities ? "chevron-up-outline" : "chevron-down-outline"}
                             size={20}
-                            color="#8B857E"
+                            color={C.ink3}
                         />
                     </Pressable>
 
@@ -98,21 +99,21 @@ export default function AlumniSidebar(props: any) {
                                 onPress={() => props.navigation.navigate('InternshipList')}
                                 className="flex-row items-center px-4 py-3 rounded-xl mb-1 active:bg-ink"
                             >
-                                <Ionicons name="school-outline" size={20} color="#C4BEB6" />
+                                <Ionicons name="school-outline" size={20} color={C.ink4} />
                                 <Text className="text-ink-4 text-base ml-3 font-medium">Internships</Text>
                             </Pressable>
                             <Pressable
                                 onPress={() => props.navigation.navigate('JobList')}
                                 className="flex-row items-center px-4 py-3 rounded-xl mb-1 active:bg-ink"
                             >
-                                <Ionicons name="business-outline" size={20} color="#C4BEB6" />
+                                <Ionicons name="business-outline" size={20} color={C.ink4} />
                                 <Text className="text-ink-4 text-base ml-3 font-medium">Jobs</Text>
                             </Pressable>
                             <Pressable
                                 onPress={() => props.navigation.navigate('WorkshopList')}
                                 className="flex-row items-center px-4 py-3 rounded-xl mb-1 active:bg-ink"
                             >
-                                <Ionicons name="book-outline" size={20} color="#C4BEB6" />
+                                <Ionicons name="book-outline" size={20} color={C.ink4} />
                                 <Text className="text-ink-4 text-base ml-3 font-medium">Workshops</Text>
                             </Pressable>
                         </View>
@@ -123,7 +124,7 @@ export default function AlumniSidebar(props: any) {
                         onPress={() => props.navigation.navigate('AlumniConnect')}
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
                     >
-                        <Ionicons name="chatbubbles-outline" size={24} color="#4F46E5" />
+                        <Ionicons name="chatbubbles-outline" size={24} color={C.recruiter} />
                         <Text className="text-white text-lg ml-4 font-medium">Alumni Connect</Text>
                         <View className="ml-2 bg-recruiter px-2 py-0.5 rounded-full">
                             <Text className="text-label text-white font-semibold">Exclusive</Text>
@@ -135,7 +136,7 @@ export default function AlumniSidebar(props: any) {
                         onPress={() => props.navigation.navigate('UtilityHubScreen')}
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
                     >
-                        <Ionicons name="construct-outline" size={24} color="#4F46E5" />
+                        <Ionicons name="construct-outline" size={24} color={C.recruiter} />
                         <Text className="text-white text-lg ml-4 font-medium">Utility Hub</Text>
                         <View className="ml-2 bg-recruiter px-2 py-0.5 rounded-full">
                             <Text className="text-label text-white font-semibold">New</Text>
@@ -147,7 +148,7 @@ export default function AlumniSidebar(props: any) {
                         onPress={() => props.navigation.navigate('FindAlumni')}
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
                     >
-                        <Ionicons name="people-outline" size={24} color="#4F46E5" />
+                        <Ionicons name="people-outline" size={24} color={C.recruiter} />
                         <Text className="text-white text-lg ml-4 font-medium">Campus Alumni</Text>
                     </Pressable>
 
@@ -156,7 +157,7 @@ export default function AlumniSidebar(props: any) {
                         onPress={() => props.navigation.navigate('ProfessionalHub')}
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
                     >
-                        <Ionicons name="briefcase-outline" size={24} color="#4F46E5" />
+                        <Ionicons name="briefcase-outline" size={24} color={C.recruiter} />
                         <Text className="text-white text-lg ml-4 font-medium">Professional Hub</Text>
                     </Pressable>
 
@@ -165,7 +166,7 @@ export default function AlumniSidebar(props: any) {
                         onPress={() => props.navigation.navigate('NoticeBoard')}
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
                     >
-                        <Ionicons name="chatbubble-ellipses-outline" size={24} color="#4F46E5" />
+                        <Ionicons name="chatbubble-ellipses-outline" size={24} color={C.recruiter} />
                         <Text className="text-white text-lg ml-4 font-medium">Notice Board</Text>
                     </Pressable>
 
@@ -174,7 +175,7 @@ export default function AlumniSidebar(props: any) {
                         onPress={() => props.navigation.navigate('CommunityList')}
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
                     >
-                        <Ionicons name="megaphone-outline" size={24} color="#4F46E5" />
+                        <Ionicons name="megaphone-outline" size={24} color={C.recruiter} />
                         <Text className="text-white text-lg ml-4 font-medium">Echo Hubs</Text>
                     </Pressable>
 
@@ -183,7 +184,7 @@ export default function AlumniSidebar(props: any) {
                         onPress={() => props.navigation.navigate('PaidGigs')}
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
                     >
-                        <Ionicons name="cash-outline" size={24} color="#4F46E5" />
+                        <Ionicons name="cash-outline" size={24} color={C.recruiter} />
                         <Text className="text-white text-lg ml-4 font-medium">Paid Gigs</Text>
                     </Pressable>
 
@@ -192,7 +193,7 @@ export default function AlumniSidebar(props: any) {
                         onPress={() => props.navigation.navigate('PlacementHub')}
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
                     >
-                        <Ionicons name="business-outline" size={24} color="#4F46E5" />
+                        <Ionicons name="business-outline" size={24} color={C.recruiter} />
                         <Text className="text-white text-lg ml-4 font-medium">Placement Hub</Text>
                     </Pressable>
 
@@ -201,7 +202,7 @@ export default function AlumniSidebar(props: any) {
                         onPress={() => props.navigation.navigate('ContactUs')}
                         className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
                     >
-                        <Ionicons name="people-outline" size={24} color="#4F46E5" />
+                        <Ionicons name="people-outline" size={24} color={C.recruiter} />
                         <Text className="text-white text-lg ml-4 font-medium">Contact Us</Text>
                     </Pressable>
 

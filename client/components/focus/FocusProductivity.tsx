@@ -14,6 +14,7 @@ import Toast from 'react-native-toast-message';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const { width, height } = Dimensions.get('window');
 
@@ -214,7 +215,7 @@ export default function FocusProductivity() {
                     <Text className="text-ink-3 text-label font-display uppercase mt-1">Grow your productivity</Text>
                 </View>
                 <TouchableOpacity onPress={() => setActiveTab('forest')} className="bg-success/10 w-12 h-12 rounded-card items-center justify-center border border-success/15">
-                    <Ionicons name="leaf" size={24} color="#047857" />
+                    <Ionicons name="leaf" size={24} color={C.success} />
                 </TouchableOpacity>
             </View>
 
@@ -237,11 +238,11 @@ export default function FocusProductivity() {
             <View className="mt-16 items-center">
                 <View className="flex-row items-center gap-10 mb-8">
                     <TouchableOpacity onPress={() => setSeconds(Math.max(60, seconds - 300))} className="w-14 h-14 rounded-card border border-line bg-card items-center justify-center">
-                        <Ionicons name="remove" size={24} color="#12100E" />
+                        <Ionicons name="remove" size={24} color={C.ink} />
                     </TouchableOpacity>
                     <Text className="text-ink text-6xl font-display">{Math.floor(seconds / 60)}</Text>
                     <TouchableOpacity onPress={() => setSeconds(seconds + 300)} className="w-14 h-14 rounded-card border border-line bg-card items-center justify-center">
-                        <Ionicons name="add" size={24} color="#12100E" />
+                        <Ionicons name="add" size={24} color={C.ink} />
                     </TouchableOpacity>
                 </View>
                 <Text className="text-ink-3 uppercase text-label font-display">Minutes to Focus</Text>
@@ -330,17 +331,17 @@ export default function FocusProductivity() {
 
                 <View className="flex-row justify-between mb-8">
                     <View className="bg-success/10 p-4 rounded-card flex-1 mr-2 items-center border border-success/15">
-                        <Ionicons name="leaf" size={26} color="#047857" style={{ marginBottom: 4 }} />
+                        <Ionicons name="leaf" size={26} color={C.success} style={{ marginBottom: 4 }} />
                         <Text className="font-display text-h1 text-ink">{successfulTrees}</Text>
                         <Text className="text-ink-3 text-label font-display uppercase">Trees Grown</Text>
                     </View>
                     <View className="bg-paper-2 p-4 flex-1 mx-1 items-center border border-line rounded-md">
-                        <Ionicons name="timer-outline" size={26} color="#57534E" style={{ marginBottom: 4 }} />
+                        <Ionicons name="timer-outline" size={26} color={C.ink2} style={{ marginBottom: 4 }} />
                         <Text className="font-display text-h1 text-ink">{totalMinutes}</Text>
                         <Text className="text-ink-3 text-label font-display uppercase">Total Mins</Text>
                     </View>
                     <View className="bg-danger/10 p-4 rounded-card flex-1 ml-2 items-center border border-danger/15">
-                        <Ionicons name="leaf-outline" size={26} color="#DC2626" style={{ marginBottom: 4 }} />
+                        <Ionicons name="leaf-outline" size={26} color={C.danger} style={{ marginBottom: 4 }} />
                         <Text className="font-display text-h1 text-ink">{witheredTrees}</Text>
                         <Text className="text-ink-3 text-label font-display uppercase">Withered</Text>
                     </View>
@@ -351,7 +352,7 @@ export default function FocusProductivity() {
                 <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
                     {forestHistory.length === 0 ? (
                         <View className="items-center justify-center py-10 opacity-50">
-                            <Ionicons name="leaf-outline" size={32} color="#C4BEB6" style={{ marginBottom: 12 }} />
+                            <Ionicons name="leaf-outline" size={32} color={C.ink4} style={{ marginBottom: 12 }} />
                             <Text className="font-display text-label text-ink-3 uppercase">Your forest is empty</Text>
                             <Text className="font-sans text-sm text-ink-3 mt-2">Complete a focus session to plant a tree.</Text>
                         </View>
@@ -395,7 +396,7 @@ export default function FocusProductivity() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-                            <Ionicons name={activeTab === 'forest' ? "arrow-back" : "close"} size={24} color="#12100E" />
+                            <Ionicons name={activeTab === 'forest' ? "arrow-back" : "close"} size={24} color={C.ink} />
                         </TouchableOpacity>
                         <View className="bg-card border border-line px-2.5 py-1 rounded-full">
                             <Text className="text-label text-success font-display uppercase">Focus Forest</Text>

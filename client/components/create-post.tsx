@@ -22,6 +22,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/auth.context';
 import { useBottomInset } from '../constants/layout';
+import { C } from '../constants/colors';
 
 interface UserSuggestion {
   _id: string;
@@ -195,7 +196,7 @@ function CreatePost() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-              <Ionicons name="arrow-back" size={22} color="#12100E" />
+              <Ionicons name="arrow-back" size={22} color={C.ink} />
             </Pressable>
             <View className="items-center">
               <Text className="text-ink font-display uppercase text-label">Mission Briefing</Text>
@@ -214,7 +215,7 @@ function CreatePost() {
               
               <TextInput
                 placeholder="What's on your mind? Use @ to tag friends..."
-                placeholderTextColor="#8B857E"
+                placeholderTextColor={C.ink3}
                 value={description}
                 onChangeText={handleTextChange}
                 onSelectionChange={(e) => setCursorPosition(e.nativeEvent.selection.start)}
@@ -265,7 +266,7 @@ function CreatePost() {
                   onPress={openGallery} 
                   className="flex-row items-center bg-paper-2 px-5 py-3 rounded-card border border-line"
                 >
-                  <Ionicons name="image" size={18} color="#F97316" />
+                  <Ionicons name="image" size={18} color={C.brand[500]} />
                   <Text className="text-ink text-label font-display uppercase ml-3">Add Photos</Text>
                 </TouchableOpacity>
               </View>
@@ -288,7 +289,7 @@ function CreatePost() {
               >
                 <View className="flex-row items-center flex-1 min-w-0">
                   <View className="w-10 h-10 rounded-xl bg-paper items-center justify-center border-2 border-ink">
-                    <Ionicons name="location" size={18} color="#EA580C" />
+                    <Ionicons name="location" size={18} color={C.brand[600]} />
                   </View>
                   <View className="ml-4 flex-1 min-w-0">
                     <Text className="text-ink font-display uppercase text-label">
@@ -309,10 +310,10 @@ function CreatePost() {
                     accessibilityRole="button"
                     accessibilityLabel="Remove location"
                   >
-                    <Ionicons name="close-circle" size={20} color="#8B857E" />
+                    <Ionicons name="close-circle" size={20} color={C.ink3} />
                   </Pressable>
                 ) : (
-                  <Ionicons name="chevron-forward" size={16} color="#8B857E" />
+                  <Ionicons name="chevron-forward" size={16} color={C.ink3} />
                 )}
               </TouchableOpacity>
 
@@ -416,7 +417,7 @@ function CreatePost() {
                 accessibilityState={{ expanded: otherOpen }}
                 accessibilityLabel="Enter a different location"
               >
-                <Ionicons name="create-outline" size={20} color="#12100E" />
+                <Ionicons name="create-outline" size={20} color={C.ink} />
                 <Text className="font-display text-ink uppercase mt-1" style={{ fontSize: 12 }}>Other</Text>
                 <Text className="font-sans text-ink-2 mt-[2px]" style={{ fontSize: 10 }}>Type a place</Text>
               </TouchableOpacity>
@@ -429,7 +430,7 @@ function CreatePost() {
                     value={customLocation}
                     onChangeText={setCustomLocation}
                     placeholder="e.g. CS Block, Room 204"
-                    placeholderTextColor="#8B857E"
+                    placeholderTextColor={C.ink3}
                     maxLength={80}
                     autoFocus
                     returnKeyType="done"

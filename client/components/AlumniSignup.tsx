@@ -19,6 +19,7 @@ import axios from '../context/axiosConfig';
 // @ts-ignore
 import loginImage from '../assets/loginImage.png';
 import AuthPoster from './ui/AuthPoster';
+import { C } from '../constants/colors';
 
 export default function AlumniSignup() {
   const navigation = useNavigation<any>();
@@ -150,7 +151,7 @@ export default function AlumniSignup() {
                       <View className="mt-2 flex-row items-center border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50 }}>
                         <TextInput
                           className="flex-1 font-sans text-base text-ink"
-                          placeholderTextColor="#8B857E"
+                          placeholderTextColor={C.ink3}
                           placeholder="you@company.com"
                           value={email}
                           onChangeText={setEmail}
@@ -163,7 +164,7 @@ export default function AlumniSignup() {
                       <View className="mt-2 flex-row items-center border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50 }}>
                         <TextInput
                           className="flex-1 font-sans text-base text-ink"
-                          placeholderTextColor="#8B857E"
+                          placeholderTextColor={C.ink3}
                           placeholder="10-digit number"
                           keyboardType="phone-pad"
                           value={phoneNumber}
@@ -174,7 +175,7 @@ export default function AlumniSignup() {
                   </View>
 
                   <View className="mb-6 flex-row items-center">
-                    <Checkbox value={agreeTerms} onValueChange={setAgreeTerms} color="#12100E" />
+                    <Checkbox value={agreeTerms} onValueChange={setAgreeTerms} color={C.ink} />
                     <Text className="ml-2 text-ink-2">
                       I agree to the Terms & Conditions
                     </Text>
@@ -187,7 +188,7 @@ export default function AlumniSignup() {
                     disabled={isLoading || !agreeTerms}
                   >
                     {isLoading ? (
-                      <ActivityIndicator color="#12100E" />
+                      <ActivityIndicator color={C.ink} />
                     ) : (
                       <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Send OTP</Text>
                     )}
@@ -203,7 +204,7 @@ export default function AlumniSignup() {
                       <View className="mt-3 border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 54, justifyContent: 'center' }}>
                         <TextInput
                           className="font-display text-lg text-ink text-center"
-                          placeholderTextColor="#8B857E"
+                          placeholderTextColor={C.ink3}
                           placeholder="6-digit code"
                           value={otp}
                           onChangeText={setOtp}
@@ -221,7 +222,7 @@ export default function AlumniSignup() {
                     disabled={isLoading}
                   >
                     {isLoading ? (
-                      <ActivityIndicator color="#12100E" />
+                      <ActivityIndicator color={C.ink} />
                     ) : (
                       <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Verify & Continue</Text>
                     )}

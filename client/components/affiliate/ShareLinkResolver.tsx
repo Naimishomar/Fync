@@ -10,6 +10,7 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 export default function ShareLinkResolver() {
   const navigation = useNavigation<any>();
@@ -42,7 +43,7 @@ export default function ShareLinkResolver() {
 
   return (
     <View className="flex-1 bg-paper items-center justify-center">
-      <ActivityIndicator color="#F97316" />
+      <ActivityIndicator color={C.brand[500]} />
       <Text className="text-ink-3 text-sm mt-3">Opening…</Text>
     </View>
   );

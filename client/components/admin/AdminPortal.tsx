@@ -9,6 +9,7 @@ import { useAuth } from '../../context/auth.context';
 import Toast from 'react-native-toast-message';
 import { AdItem, RedemptionItem, MarketPlaceItem, ReportItem, ContactMessageItem, UserItem, MediaItem, PaymentItem } from './AdminComponents';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 // Using a stable key for navigation to ensure it survives re-renders
 const HubButton = ({ title, tab, icon, color, description, onOpen }: { title: string, tab: any, icon: any, color: string, description: string, onOpen: (tab: any) => void }) => (
@@ -26,7 +27,7 @@ const HubButton = ({ title, tab, icon, color, description, onOpen }: { title: st
                 <Text className="text-label text-ink-3 leading-[14px] font-medium">{description}</Text>
             </View>
             <View className="w-8 h-8 rounded-xl bg-paper justify-center items-center ml-2 border border-line">
-                <Ionicons name="chevron-forward" size={16} color="#8B857E" />
+                <Ionicons name="chevron-forward" size={16} color={C.ink3} />
             </View>
         </View>
     </TouchableOpacity>
@@ -781,14 +782,14 @@ const AdminPortal = ({ navigation }: any) => {
             >
                 <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: '#EA580C10' }}>
                     <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: '#EA580C20' }}>
-                        <Ionicons name="code-slash" size={24} color="#EA580C" />
+                        <Ionicons name="code-slash" size={24} color={C.brand[600]} />
                     </View>
                     <View className="flex-1">
                         <Text className="text-sm font-display text-ink uppercase mb-1">Problem Bank</Text>
                         <Text className="text-label text-ink-3 leading-[14px] font-medium">Import coding problems and their test cases for contests and battles.</Text>
                     </View>
                     <View className="w-8 h-8 rounded-xl bg-paper justify-center items-center ml-2 border border-line">
-                        <Ionicons name="chevron-forward" size={16} color="#57534E" />
+                        <Ionicons name="chevron-forward" size={16} color={C.ink2} />
                     </View>
                 </View>
             </TouchableOpacity>
@@ -799,14 +800,14 @@ const AdminPortal = ({ navigation }: any) => {
             >
                 <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: '#EA580C10' }}>
                     <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: '#EA580C20' }}>
-                        <Ionicons name="pricetags" size={24} color="#EA580C" />
+                        <Ionicons name="pricetags" size={24} color={C.brand[600]} />
                     </View>
                     <View className="flex-1">
                         <Text className="text-sm font-display text-ink uppercase mb-1">Fync Store</Text>
                         <Text className="text-label text-ink-3 leading-[14px] font-medium">List affiliate products and track the commission each one earns.</Text>
                     </View>
                     <View className="w-8 h-8 rounded-xl bg-paper justify-center items-center ml-2 border border-line">
-                        <Ionicons name="chevron-forward" size={16} color="#57534E" />
+                        <Ionicons name="chevron-forward" size={16} color={C.ink2} />
                     </View>
                 </View>
             </TouchableOpacity>
@@ -814,66 +815,66 @@ const AdminPortal = ({ navigation }: any) => {
                 title="Banner Ads" 
                 tab="ads" 
                 icon="megaphone" 
-                color="#F97316" 
+                color={C.brand[500]} 
                 description="Manage campus-wide banner advertisements and promotion campaigns." onOpen={openHub} />
             <HubButton 
                 title="User Management" 
                 tab="users"  
                 icon="people" 
-                color="#047857" 
+                color={C.success} 
                 description="Oversee student profiles, moderation status, and account access." onOpen={openHub} />
             <HubButton 
                 title="Fync Media" 
                 tab="media" 
                 icon="play-circle" 
-                color="#0891B2" 
+                color={C.fam.social} 
                 description="Manage educational content, campus videos, and digital media." onOpen={openHub} />
             <HubButton 
                 title="Reported Content" 
                 tab="reports" 
                 icon="flag" 
-                color="#DC2626" 
+                color={C.danger} 
                 description="Review flagged posts and enforce community safety protocols." onOpen={openHub} />
             <HubButton 
                 title="Reward Items" 
                 tab="marketplace" 
                 icon="cart" 
-                color="#4F46E5" 
+                color={C.recruiter} 
                 description="Update the Fync store inventory and redemption items." onOpen={openHub} />
             <HubButton 
                 title="Redemptions" 
                 tab="rewards" 
                 icon="gift" 
-                color="#7C3AED" 
+                color={C.fam.study} 
                 description="Process student reward claims and inventory payouts." onOpen={openHub} />
             <HubButton 
                 title="Contact Messages" 
                 tab="messages" 
                 icon="mail" 
-                color="#8B857E" 
+                color={C.ink3} 
                 description="Review and respond to official support and inquiry messages." onOpen={openHub} />
             <HubButton 
                 title="Global Broadcast" 
                 tab="broadcast" 
                 icon="notifications" 
-                color="#0891B2" 
+                color={C.fam.social} 
                 description="Send an instant push notification to all users." onOpen={openHub} />
             <HubButton 
                 title="Payments" 
                 tab="payments" 
                 icon="card" 
-                color="#047857" 
+                color={C.success} 
                 description="Every transaction with its reference id, payer and outcome — for answering student queries." onOpen={openHub} />
             <HubButton 
                 title="Subscription Pricing" 
                 tab="subscription" 
                 icon="pricetag" 
-                color="#B45309" 
+                color={C.warning} 
                 description="Dynamically adjust the platform's premium subscription fee." onOpen={openHub} />
 
             <View className="mt-8 p-6 bg-ink rounded-sheet shadow-hair">
                 <View className="flex-row items-center mb-4">
-                    <Ionicons name="stats-chart" size={18} color="#F97316" />
+                    <Ionicons name="stats-chart" size={18} color={C.brand[500]} />
                     <Text className="text-white font-display text-label uppercase ml-3">System Health</Text>
                 </View>
                 <View className="flex-row justify-between">
@@ -931,7 +932,7 @@ const AdminPortal = ({ navigation }: any) => {
                 <SafeAreaView className="flex-1 justify-center px-gutter" edges={['top', 'bottom']}>
                     <View className="bg-card p-card-pad rounded-sheet border border-line shadow-hair">
                         <View className="w-16 h-16 bg-paper-2 rounded-card items-center justify-center mb-6 border border-line">
-                            <Ionicons name="shield-checkmark" size={32} color="#F97316" />
+                            <Ionicons name="shield-checkmark" size={32} color={C.brand[500]} />
                         </View>
                         
                         <View className="mb-8">
@@ -946,7 +947,7 @@ const AdminPortal = ({ navigation }: any) => {
                             value={adminPassword}
                             onChangeText={setAdminPassword}
                             placeholder="Enter admin password"
-                            placeholderTextColor="#8B857E"
+                            placeholderTextColor={C.ink3}
                             secureTextEntry
                             className="bg-card border-2 border-ink rounded-card px-5 text-ink font-sans text-base mb-6"
                             style={{
@@ -1015,11 +1016,11 @@ const AdminPortal = ({ navigation }: any) => {
                     {view === 'feature' && activeTab === 'users' && (
                         <View className="flex-row items-center bg-card p-1.5 mb-8 border-2 border-ink shadow-hair rounded-md">
                             <View className="flex-row items-center flex-1 px-4 py-2.5">
-                                <Ionicons name="search" size={18} color="#8B857E" />
+                                <Ionicons name="search" size={18} color={C.ink3} />
                                 <TextInput 
                                     className="flex-1 ml-3 text-xs font-display text-ink uppercase"
                                     placeholder="Search student signals..."
-                                    placeholderTextColor="#C4BEB6"
+                                    placeholderTextColor={C.ink4}
                                     value={userSearch}
                                     onChangeText={setUserSearch}
                                     onSubmitEditing={() => {
@@ -1030,7 +1031,7 @@ const AdminPortal = ({ navigation }: any) => {
                                 />
                                 {userSearch ? (
                                     <TouchableOpacity onPress={() => { setUserSearch(''); setUsers([]); }}>
-                                        <Ionicons name="close-circle" size={18} color="#8B857E" />
+                                        <Ionicons name="close-circle" size={18} color={C.ink3} />
                                     </TouchableOpacity>
                                 ) : null}
                             </View>
@@ -1051,7 +1052,7 @@ const AdminPortal = ({ navigation }: any) => {
                     <View className="bg-card p-6 rounded-card mx-gutter border border-line shadow-hair mt-4">
                         <View className="flex-row items-center mb-6">
                             <View className="w-12 h-12 bg-warning/15 rounded-card items-center justify-center mr-4">
-                                <Ionicons name="pricetag" size={24} color="#B45309" />
+                                <Ionicons name="pricetag" size={24} color={C.warning} />
                             </View>
                             <View>
                                 <Text className="text-ink text-lg font-display uppercase">Global Price Engine</Text>
@@ -1113,7 +1114,7 @@ const AdminPortal = ({ navigation }: any) => {
                 <View className="bg-card p-6 rounded-card mx-gutter border border-line shadow-hair mt-4">
                     <View className="flex-row items-center mb-6">
                         <View className="w-12 h-12 bg-fam-social/15 rounded-card items-center justify-center mr-4">
-                            <Ionicons name="notifications" size={24} color="#0891B2" />
+                            <Ionicons name="notifications" size={24} color={C.fam.social} />
                         </View>
                         <View>
                             <Text className="text-ink text-lg font-display uppercase">Global Broadcast</Text>
@@ -1218,7 +1219,7 @@ const AdminPortal = ({ navigation }: any) => {
             ) : (
                 loading ? (
                     <View className="flex-1 items-center justify-center">
-                        <ActivityIndicator color="#F97316" size="large" />
+                        <ActivityIndicator color={C.brand[500]} size="large" />
                     </View>
                 ) : (
                     <FlatList
@@ -1306,7 +1307,7 @@ const AdminPortal = ({ navigation }: any) => {
                             activeTab === 'payments' ? (
                                 paymentsLoadingMore ? (
                                     <View className="py-6 items-center">
-                                        <ActivityIndicator size="small" color="#F97316" />
+                                        <ActivityIndicator size="small" color={C.brand[500]} />
                                     </View>
                                 ) : payments.length && !paymentCursor ? (
                                     <View className="py-6 items-center">
@@ -1339,7 +1340,7 @@ const AdminPortal = ({ navigation }: any) => {
                             <View className="flex-row justify-between items-center mb-6">
                                 <Text className="text-ink font-display text-h1">{editingAd || editingProduct ? 'Edit Item' : activeTab === 'ads' ? 'New Ad Banner' : activeTab === 'media' ? 'Publish Fync Media' : 'New Reward Item'}</Text>
                                 <TouchableOpacity onPress={() => { setModalVisible(false); resetForm(); }} className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center">
-                                    <Ionicons name="close" size={18} color="#12100E" />
+                                    <Ionicons name="close" size={18} color={C.ink} />
                                 </TouchableOpacity>
                             </View>
 
@@ -1351,7 +1352,7 @@ const AdminPortal = ({ navigation }: any) => {
                                 >
                                     {imageUri ? <Image source={{ uri: imageUri }} className="w-full h-full" resizeMode={activeTab === 'marketplace' ? "contain" : "cover"} /> : imageUrl ? <Image source={{ uri: imageUrl }} className="w-full h-full" resizeMode={activeTab === 'marketplace' ? "contain" : "cover"} /> : (
                                         <View className="items-center">
-                                            <Ionicons name="image-outline" size={36} color="#C4BEB6" />
+                                            <Ionicons name="image-outline" size={36} color={C.ink4} />
                                             <Text className="text-ink-3 font-medium text-sm mt-2">Pick {activeTab === 'marketplace' ? 'item' : activeTab === 'media' ? 'thumbnail' : 'banner'} image</Text>
                                         </View>
                                     )}
@@ -1364,12 +1365,12 @@ const AdminPortal = ({ navigation }: any) => {
                                     >
                                         {videoUri ? (
                                             <View className="items-center">
-                                                <Ionicons name="videocam" size={36} color="#4F46E5" />
+                                                <Ionicons name="videocam" size={36} color={C.recruiter} />
                                                 <Text className="text-recruiter font-display text-xs mt-2 uppercase">Video Ready</Text>
                                             </View>
                                         ) : (
                                             <View className="items-center">
-                                                <Ionicons name="videocam-outline" size={36} color="#C4BEB6" />
+                                                <Ionicons name="videocam-outline" size={36} color={C.ink4} />
                                                 <Text className="text-ink-3 font-medium text-sm mt-2">Pick Video File</Text>
                                             </View>
                                         )}
@@ -1457,7 +1458,7 @@ const AdminPortal = ({ navigation }: any) => {
                                     disabled={submitting}
                                     className={`py-4 rounded-xl items-center flex-row justify-center ${submitting ? 'bg-brand-300' : 'bg-brand-500'}`}
                                 >
-                                    {submitting ? <ActivityIndicator color="#12100E" /> : <Text className="text-ink font-display uppercase text-sm">{editingAd || editingProduct ? 'Save Changes' : activeTab === 'ads' ? 'Publish Ad' : 'Add to Store'}</Text>}
+                                    {submitting ? <ActivityIndicator color={C.ink} /> : <Text className="text-ink font-display uppercase text-sm">{editingAd || editingProduct ? 'Save Changes' : activeTab === 'ads' ? 'Publish Ad' : 'Add to Store'}</Text>}
                                 </TouchableOpacity>
                             </ScrollView>
                         </View>
@@ -1471,7 +1472,7 @@ const AdminPortal = ({ navigation }: any) => {
                     <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={() => setSubConfirmModalVisible(false)} />
                     <View className="bg-card rounded-sheet p-card-pad shadow-hair overflow-hidden border border-line">
                         <View className="w-16 h-16 bg-danger/10 rounded-card items-center justify-center mb-6 border border-danger/15">
-                            <Ionicons name="warning" size={32} color="#DC2626" />
+                            <Ionicons name="warning" size={32} color={C.danger} />
                         </View>
                         
                         <View className="mb-8">
@@ -1487,7 +1488,7 @@ const AdminPortal = ({ navigation }: any) => {
                             value={subConfirmPassword}
                             onChangeText={setSubConfirmPassword}
                             placeholder="ENTER MASTER PASSWORD"
-                            placeholderTextColor="#8B857E"
+                            placeholderTextColor={C.ink3}
                             secureTextEntry
                             className="bg-card border-[1.5px] border-ink px-6 py-5 text-ink font-display text-label shadow-hair mb-6 rounded-md"
                             onSubmitEditing={confirmAndDeploySubscriptionPrice}

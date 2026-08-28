@@ -5,8 +5,10 @@ import * as Speech from 'expo-speech';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import Feather from '@expo/vector-icons/Feather';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
+import socket from '../../utils/socket';
 
 export default function ActiveInterview() {
   const route = useRoute<any>();
@@ -23,6 +25,9 @@ export default function ActiveInterview() {
   // STATE
   const [aiState, setAiState] = useState<'IDLE' | 'SPEAKING' | 'LISTENING' | 'PROCESSING'>('SPEAKING');
   const [currentQuestion, setCurrentQuestion] = useState(firstQuestion);
+  // What the candidate just said, shown the moment Whisper returns it rather
+  // than after the interviewer has finished replying.
+  const [transcript, setTranscript] = useState('');
   const [timeLeft, setTimeLeft] = useState(duration * 60);
   const [report, setReport] = useState<any>(null);
 
@@ -133,6 +138,77 @@ export default function ActiveInterview() {
     });
   };
 
+  /**
+   * Streamed reply.
+   *
+   * Tokens arrive over the socket the app already holds. Two things make this
+   * feel like a conversation rather than a request: the text appears as it is
+   * generated, and each finished SENTENCE is queued to Speech immediately
+   * instead of waiting for the whole answer. Speech.speak queues rather than
+   * interrupts, so the interviewer starts talking after the first sentence.
+   */
+  const spokenUpTo = useRef(0);
+  const streamBuffer = useRef('');
+
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const mine = (p: any) => String(p?.sessionId) === String(sessionId);
+
+    const onTranscript = (p: any) => {
+      if (!mine(p) || isEnded.current) return;
+      setTranscript(p.text || '');
+    };
+
+    const onToken = (p: any) => {
+      if (!mine(p) || isEnded.current) return;
+      streamBuffer.current += p.delta || '';
+      setCurrentQuestion(streamBuffer.current);
+
+      // Speak only whole sentences: a half sentence read aloud is worse than
+      // a short wait, and Speech has no way to amend what it already queued.
+      const upToLastBreak = streamBuffer.current.search(/[.!?][^.!?]*$/);
+      if (upToLastBreak > spokenUpTo.current) {
+        const chunk = streamBuffer.current.slice(spokenUpTo.current, upToLastBreak + 1).trim();
+        spokenUpTo.current = upToLastBreak + 1;
+        if (chunk) {
+          setAiState('SPEAKING');
+          Speech.speak(chunk, { language: 'en-US' });
+        }
+      }
+    };
+
+    const onDone = (p: any) => {
+      if (!mine(p) || isEnded.current) return;
+      const full = p.text || streamBuffer.current;
+      setCurrentQuestion(full);
+
+      // Whatever the last sentence break left over, plus the case where the
+      // model produced no terminal punctuation at all.
+      const tail = full.slice(spokenUpTo.current).trim();
+      if (tail) Speech.speak(tail, { language: 'en-US' });
+
+      // onDone only fires for the final queued utterance, so IDLE is set here
+      // rather than per chunk.
+      Speech.speak('', {
+        onDone: () => setAiState('IDLE'),
+        onError: () => setAiState('IDLE'),
+      });
+
+      streamBuffer.current = '';
+      spokenUpTo.current = 0;
+    };
+
+    socket.on('interview:transcript', onTranscript);
+    socket.on('interview:token', onToken);
+    socket.on('interview:done', onDone);
+    return () => {
+      socket.off('interview:transcript', onTranscript);
+      socket.off('interview:token', onToken);
+      socket.off('interview:done', onDone);
+    };
+  }, [sessionId, report]);
+
   // 3. START RECORDING (With Mutex Lock)
   const startRecording = async () => {
     if (isProcessingRef.current || report) return;
@@ -176,6 +252,9 @@ export default function ActiveInterview() {
 
     isProcessingRef.current = true;
     setAiState('PROCESSING');
+    streamBuffer.current = '';
+    spokenUpTo.current = 0;
+    setTranscript('');
 
     try {
       const currentRecording = recordingRef.current;
@@ -200,7 +279,10 @@ export default function ActiveInterview() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      if (res.data.success) {
+      // The socket has normally already rendered and spoken this. Only fall
+      // back to the whole-response path if no token ever arrived -- a dropped
+      // socket must not cost the candidate their turn.
+      if (res.data.success && !streamBuffer.current && spokenUpTo.current === 0) {
         setCurrentQuestion(res.data.text);
         speak(res.data.text);
       }
@@ -222,7 +304,7 @@ export default function ActiveInterview() {
       <View className="flex-1 bg-paper p-6 pt-16">
         <View className="items-center mb-8">
           <View className="bg-success/15 p-4 rounded-full mb-4">
-            <Ionicons name="checkmark-circle" size={60} color="#047857" />
+            <Ionicons name="checkmark-circle" size={60} color={C.success} />
           </View>
           <Text className="text-3xl font-display text-ink">
             INTERVIEW<Text className="text-accent-text">COMPLETE</Text>
@@ -260,11 +342,11 @@ export default function ActiveInterview() {
           <View className="gap-6">
             <View>
               <Text className="text-ink font-semibold mb-3 flex-row items-center">
-                <Ionicons name="star" size={16} color="#B45309" /> Strengths
+                <Ionicons name="star" size={16} color={C.warning} /> Strengths
               </Text>
               {report.strengths.map((s: string, i: number) => (
                 <View key={i} className="flex-row items-start mb-2 bg-success/10 p-3 rounded-xl">
-                  <Ionicons name="caret-forward" size={14} color="#047857" style={{ marginTop: 4, marginRight: 8 }} />
+                  <Ionicons name="caret-forward" size={14} color={C.success} style={{ marginTop: 4, marginRight: 8 }} />
                   <Text className="text-ink-2 flex-1">{s}</Text>
                 </View>
               ))}
@@ -272,11 +354,11 @@ export default function ActiveInterview() {
 
             <View>
               <Text className="font-display text-label text-ink uppercase mb-3">
-                <Ionicons name="build" size={16} color="#2563EB" /> Areas of Improvement
+                <Ionicons name="build" size={16} color={C.info} /> Areas of Improvement
               </Text>
               {report.improvements.map((s: string, i: number) => (
                 <View key={i} className="flex-row items-start mb-2 bg-fam-career/10 p-3 rounded-xl">
-                  <Ionicons name="caret-forward" size={14} color="#2563EB" style={{ marginTop: 4, marginRight: 8 }} />
+                  <Ionicons name="caret-forward" size={14} color={C.info} style={{ marginTop: 4, marginRight: 8 }} />
                   <Text className="text-ink-2 flex-1">{s}</Text>
                 </View>
               ))}
@@ -317,7 +399,7 @@ export default function ActiveInterview() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-          <Ionicons name="chevron-back" size={28} color="#57534E" />
+          <Ionicons name="chevron-back" size={28} color={C.ink2} />
         </TouchableOpacity>
 
         <View className="bg-paper-2 px-4 py-2 rounded-full border border-line flex-row items-center gap-2">
@@ -334,7 +416,7 @@ export default function ActiveInterview() {
         <View className={`w-56 h-56 rounded-full border-2 items-center justify-center mb-8 shadow-hair ${aiState === 'SPEAKING' ? 'border-brand-500 bg-brand-50' : aiState === 'PROCESSING' ? 'border-fam-career bg-fam-career/10' : aiState === 'LISTENING' ? 'border-danger bg-danger/10' : 'border-line bg-paper-2'}`}
         >
           {aiState === 'PROCESSING' ? (
-            <ActivityIndicator size="large" color="#2563EB" />
+            <ActivityIndicator size="large" color={C.info} />
           ) : (
             <View className="items-center">
               <Ionicons
@@ -352,6 +434,18 @@ export default function ActiveInterview() {
             "{currentQuestion}"
           </Text>
         </View>
+
+        {/* What Whisper heard, shown as soon as it lands. Seeing your own
+            words is the fastest possible acknowledgement that the turn was
+            received -- it arrives well before the interviewer starts replying. */}
+        {!!transcript && (
+          <View className="mt-3 w-full flex-row items-start gap-2 px-1">
+            <Ionicons name="person-circle-outline" size={16} color={C.ink3} />
+            <Text className="flex-1 text-ink-3 text-sm italic" numberOfLines={3}>
+              {transcript}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Controls */}
@@ -367,7 +461,7 @@ export default function ActiveInterview() {
             onPress={() => Alert.alert("End Interview", "Finish early?", [{ text: "Cancel" }, { text: "End", onPress: cleanupAndExit }])}
             className="w-16 h-16 rounded-full bg-danger/10 items-center justify-center border border-danger/15"
           >
-            <MaterialIcons name="call-end" size={28} color="#DC2626" />
+            <Feather name="phone-off" size={28} color={C.danger} />
           </TouchableOpacity>
 
           <TouchableOpacity

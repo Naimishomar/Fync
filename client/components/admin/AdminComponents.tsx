@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, ScrollView, Linking } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { C } from '../../constants/colors';
 
 const PUBLIC_PROFILE_SCREEN = 'PublicProfile';
 
@@ -21,10 +22,10 @@ export const AdItem = ({ item, onEdit, onDelete }: any) => (
                 </View>
                 <View className="flex-row gap-2 ml-2">
                     <TouchableOpacity onPress={() => onEdit(item, 'ad')} className="w-9 h-9 bg-paper-2 rounded-full items-center justify-center border border-line">
-                        <Ionicons name="pencil" size={16} color="#12100E" />
+                        <Ionicons name="pencil" size={16} color={C.ink} />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => onDelete(item._id, 'ad')} className="w-9 h-9 bg-danger/10 rounded-full items-center justify-center border border-danger/15">
-                        <Ionicons name="trash" size={16} color="#DC2626" />
+                        <Ionicons name="trash" size={16} color={C.danger} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -53,7 +54,7 @@ export const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
                     onPress={() => item.mobileNumber && Linking.openURL(`tel:${item.mobileNumber}`)}
                     className="p-2 bg-success/10 rounded-full"
                 >
-                    <Ionicons name="call" size={18} color="#047857" />
+                    <Ionicons name="call" size={18} color={C.success} />
                 </TouchableOpacity>
             </View>
 
@@ -62,7 +63,7 @@ export const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
                 {item.redeemedItems?.map((prod: any, idx: number) => (
                     <View key={idx} className="mb-4 last:mb-0 border-b border-line pb-3 last:border-0 last:pb-0">
                         <View className="flex-row items-center gap-2 mb-2">
-                            <Ionicons name="gift-outline" size={14} color="#F97316" />
+                            <Ionicons name="gift-outline" size={14} color={C.brand[500]} />
                             <Text className="text-ink font-semibold text-sm">{prod.product_name}</Text>
                             <View className="ml-auto bg-warning/15 px-2 py-0.5 rounded-full">
                                 <Text className="text-label text-warning font-semibold">{prod.coins_required}</Text>
@@ -71,7 +72,7 @@ export const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
                         <View className="bg-card p-2 rounded-lg border border-line">
                             <View className="flex-row justify-between items-start mb-1.5">
                                 <View className="flex-row items-start gap-1.5 flex-1">
-                                    <Ionicons name="location-outline" size={12} color="#8B857E" />
+                                    <Ionicons name="location-outline" size={12} color={C.ink3} />
                                     <View className="flex-1">
                                         <Text className="text-ink-2 text-label leading-4">{prod.address}</Text>
                                         <Text className="text-ink font-display text-label mt-0.5">Pincode: {prod.pincode}</Text>
@@ -85,7 +86,7 @@ export const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
                                 </TouchableOpacity>
                             </View>
                             <View className="flex-row items-center gap-1.5">
-                                <Ionicons name="call-outline" size={12} color="#8B857E" />
+                                <Ionicons name="call-outline" size={12} color={C.ink3} />
                                 <TouchableOpacity onPress={() => Linking.openURL(`tel:${prod.mobileNumber}`)}>
                                     <Text className="text-recruiter text-label font-semibold">{prod.mobileNumber}</Text>
                                 </TouchableOpacity>
@@ -108,7 +109,7 @@ export const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
                     className="flex-row items-center gap-1"
                 >
                     <Text className="text-accent-text font-semibold text-xs">View Profile</Text>
-                    <Ionicons name="chevron-forward" size={12} color="#F97316" />
+                    <Ionicons name="chevron-forward" size={12} color={C.brand[500]} />
                 </TouchableOpacity>
             </View>
         </View>
@@ -146,10 +147,10 @@ export const MarketPlaceItem = ({ item, onEdit, onDelete }: any) => (
                 </View>
                 <View className="flex-row gap-2 ml-2">
                     <TouchableOpacity onPress={() => onEdit(item, 'product')} className="w-9 h-9 bg-paper-2 rounded-full items-center justify-center border border-line">
-                        <Ionicons name="pencil" size={16} color="#12100E" />
+                        <Ionicons name="pencil" size={16} color={C.ink} />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => onDelete(item._id, 'product')} className="w-9 h-9 bg-danger/10 rounded-full items-center justify-center border border-danger/15">
-                        <Ionicons name="trash" size={16} color="#DC2626" />
+                        <Ionicons name="trash" size={16} color={C.danger} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -170,7 +171,7 @@ export const ReportItem = ({ item, onDelete }: any) => (
                 <Text className="text-ink-3 text-label mt-1">Reason: <Text className="text-danger font-semibold">{item.reason}</Text></Text>
             </View>
             <TouchableOpacity onPress={() => onDelete(item._id, 'report')} className="w-9 h-9 bg-danger/10 rounded-full items-center justify-center border border-danger/15">
-                <Ionicons name="trash" size={16} color="#DC2626" />
+                <Ionicons name="trash" size={16} color={C.danger} />
             </TouchableOpacity>
         </View>
 
@@ -222,7 +223,7 @@ export const ContactMessageItem = ({ item, onDelete, onToggleRead }: any) => (
                     <Ionicons name="checkmark" size={16} color={item.isRead ? "white" : "#C4BEB6"} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => onDelete(item._id, 'message')} className="w-9 h-9 bg-danger/10 rounded-full items-center justify-center border border-danger/15">
-                    <Ionicons name="trash" size={16} color="#DC2626" />
+                    <Ionicons name="trash" size={16} color={C.danger} />
                 </TouchableOpacity>
             </View>
         </View>
@@ -231,11 +232,11 @@ export const ContactMessageItem = ({ item, onDelete, onToggleRead }: any) => (
         </View>
         <View className="flex-row items-center gap-4">
             <TouchableOpacity onPress={() => Linking.openURL(`tel:${item.phone}`)} className="flex-row items-center gap-1.5 bg-success/10 px-3 py-1.5 rounded-full border border-success/15">
-                <Ionicons name="call" size={14} color="#047857" />
+                <Ionicons name="call" size={14} color={C.success} />
                 <Text className="text-success font-semibold text-label">{item.phone}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => Linking.openURL(`mailto:${item.email}`)} className="flex-row items-center gap-1.5 bg-fam-career/10 px-3 py-1.5 rounded-full border border-fam-career/15">
-                <Ionicons name="mail" size={14} color="#2563EB" />
+                <Ionicons name="mail" size={14} color={C.info} />
                 <Text className="text-fam-career font-semibold text-label">Reply</Text>
             </TouchableOpacity>
         </View>
@@ -277,7 +278,7 @@ export const UserItem = ({ item, onToggleBan }: any) => (
         </View>
         <View className="mt-4 flex-row items-center justify-between border-t border-paper pt-4">
             <View className="flex-row items-center gap-2">
-                <Ionicons name="mail-outline" size={12} color="#8B857E" />
+                <Ionicons name="mail-outline" size={12} color={C.ink3} />
                 <Text className="text-ink-3 text-label font-medium">{item.email}</Text>
             </View>
             <Text className="text-ink-3 text-label font-display">Joined {new Date(item.createdAt).toLocaleDateString()}</Text>
@@ -386,7 +387,7 @@ export const PaymentItem = ({ item, onCopy }: any) => {
                                 {value ?? '—'}
                             </Text>
                             {value ? (
-                                <Ionicons name="copy-outline" size={12} color="#8B857E" style={{ marginLeft: 6 }} />
+                                <Ionicons name="copy-outline" size={12} color={C.ink3} style={{ marginLeft: 6 }} />
                             ) : null}
                         </View>
                     </TouchableOpacity>

@@ -8,6 +8,7 @@ import * as ImagePicker from 'expo-image-picker';
 import socket from '../../utils/socket';
 import { goBack, navigate } from '../../utils/navigation';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -269,7 +270,7 @@ export default function EventCommunityChat({ route }: any) {
                                 <Text className={`text-label font-semibold ${isMine ? 'text-recruiter' : 'text-ink-3'}`}>
                                     {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </Text>
-                                {isMine && <Ionicons name="checkmark-done" size={10} color="#EDE8E0" />}
+                                {isMine && <Ionicons name="checkmark-done" size={10} color={C.paper2} />}
                             </View>
                         </View>
                     </View>
@@ -290,7 +291,7 @@ export default function EventCommunityChat({ route }: any) {
                         accessibilityLabel="Go back"
                         className="w-11 h-11 items-center justify-center rounded-xl"
                         style={{ marginLeft: -11 }}>
-                        <Ionicons name="chevron-back" size={24} color="#12100E" />
+                        <Ionicons name="chevron-back" size={24} color={C.ink} />
                     </TouchableOpacity>
 
                     <View className="ml-4 flex-1">
@@ -306,7 +307,7 @@ export default function EventCommunityChat({ route }: any) {
 
                 {loading ? (
                     <View className="flex-1 items-center justify-center">
-                        <ActivityIndicator size="large" color="#4F46E5" />
+                        <ActivityIndicator size="large" color={C.recruiter} />
                         <Text className="mt-4 text-ink-3 text-label font-semibold uppercase">Encrypting Chat...</Text>
                     </View>
                 ) : (
@@ -342,7 +343,7 @@ export default function EventCommunityChat({ route }: any) {
                                     </Text>
                                 </View>
                                 <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                                    <Ionicons name="close-circle" size={22} color="#4F46E5" />
+                                    <Ionicons name="close-circle" size={22} color={C.recruiter} />
                                 </TouchableOpacity>
                             </View>
                         )}
@@ -352,14 +353,14 @@ export default function EventCommunityChat({ route }: any) {
                                 onPress={pickImage}
                                 className="w-10 h-10 items-center justify-center"
                              hitSlop={2}>
-                                <Ionicons name="image" size={22} color="#4F46E5" />
+                                <Ionicons name="image" size={22} color={C.recruiter} />
                             </TouchableOpacity>
                             <TextInput
                                 placeholder="Type a message..."
                                 value={inputText}
                                 onChangeText={setInputText}
                                 className="flex-1 h-10 text-ink font-semibold px-2 text-xs"
-                                placeholderTextColor="#8B857E"
+                                placeholderTextColor={C.ink3}
                             />
                             <TouchableOpacity
                                 onPress={() => handleSend()}

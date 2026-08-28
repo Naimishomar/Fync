@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { View, Dimensions, ActivityIndicator, Text, Image } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { C } from '../constants/colors';
 
 const SCREEN_HEIGHT = Dimensions.get('screen').height;
 const SCREEN_WIDTH = Dimensions.get('screen').width;
@@ -138,7 +139,7 @@ export default function YouTubeShort({
 
     return (
       <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }} className="bg-ink items-center justify-center px-10">
-        <Ionicons name="cloud-offline-outline" size={48} color="#8B857E" />
+        <Ionicons name="cloud-offline-outline" size={48} color={C.ink3} />
         <Text className="font-sans text-sm text-night-3 mt-3 text-center">
           {reason} Swipe on.
         </Text>
@@ -194,7 +195,7 @@ export default function YouTubeShort({
 
       {!loaded && failed === null && (
         <View className="absolute inset-0 items-center justify-center">
-          <ActivityIndicator size="large" color="#F97316" />
+          <ActivityIndicator size="large" color={C.brand[500]} />
         </View>
       )}
     </View>

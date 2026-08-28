@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BOLLYWOOD_MOVIES, INDIAN_PERSONALITIES } from './charadesData';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -80,7 +81,7 @@ const DesiCharades = () => {
                 </>
             ) : (
                 <View className="items-center">
-                    <Ionicons name="sparkles" size={32} color="#8B857E" />
+                    <Ionicons name="sparkles" size={32} color={C.ink3} />
                     <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
                         {activeCategory === 'BOLLYWOOD' ? '1000+ MOVIES LOADED' : '200+ PERSONALITIES LOADED'}
                     </Text>
@@ -97,7 +98,7 @@ const DesiCharades = () => {
                 00:{timer < 10 ? `0${timer}` : timer}
               </Text>
               <TouchableOpacity onPress={toggleTimer} className="ml-4">
-                  <Ionicons name={isTimerRunning ? "pause-circle" : "play-circle"} size={28} color="#12100E" />
+                  <Ionicons name={isTimerRunning ? "pause-circle" : "play-circle"} size={28} color={C.ink} />
               </TouchableOpacity>
           </View>
       )}

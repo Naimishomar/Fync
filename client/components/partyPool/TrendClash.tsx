@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { C } from '../../constants/colors';
 
 const TERMS = [
   { id: 'Python_(programming_language)', name: 'Python' },
@@ -108,7 +109,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
     if (loading && !itemA) {
         return (
             <View className="flex-1 bg-ink justify-center items-center h-[500px] rounded-sheet">
-                <ActivityIndicator size="large" color="#F97316" />
+                <ActivityIndicator size="large" color={C.brand[500]} />
                 <Text className="text-white mt-4 font-display uppercase">Fetching Live Trends...</Text>
             </View>
         );
@@ -117,7 +118,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
     if (status === 'gameover') {
         return (
             <View className="flex-1 bg-ink justify-center items-center h-[500px] rounded-sheet p-6 border-2 border-danger/30">
-                <Ionicons name="close-circle" size={80} color="#DC2626" />
+                <Ionicons name="close-circle" size={80} color={C.danger} />
                 <Text className="text-white text-3xl font-display uppercase mt-4 text-center">Game Over</Text>
                 <Text className="text-ink-3 text-sm font-semibold uppercase mt-2 text-center">
                     {itemB.name} has {formatNumber(itemB.views)} views.
@@ -167,7 +168,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
             {/* Bottom Half - Item B */}
             <View className="flex-1 justify-center items-center p-6 bg-ink relative">
                 {loading && status === 'playing' ? (
-                    <ActivityIndicator size="large" color="#F97316" />
+                    <ActivityIndicator size="large" color={C.brand[500]} />
                 ) : (
                     <>
                         <Text className="text-white text-3xl font-display text-center uppercase leading-[36px]">"{itemB?.name}"</Text>
@@ -183,7 +184,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
                                     onPress={() => handleGuess('higher')}
                                     className="bg-card/10 px-6 py-4 rounded-card items-center border border-white/20 flex-1"
                                 >
-                                    <Ionicons name="caret-up" size={32} color="#047857" />
+                                    <Ionicons name="caret-up" size={32} color={C.success} />
                                     <Text className="text-white font-display mt-1 uppercase text-xs">Higher</Text>
                                 </TouchableOpacity>
                                 
@@ -191,7 +192,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
                                     onPress={() => handleGuess('lower')}
                                     className="bg-card/10 px-6 py-4 rounded-card items-center border border-white/20 flex-1"
                                 >
-                                    <Ionicons name="caret-down" size={32} color="#DC2626" />
+                                    <Ionicons name="caret-down" size={32} color={C.danger} />
                                     <Text className="text-white font-display mt-1 uppercase text-xs">Lower</Text>
                                 </TouchableOpacity>
                             </View>

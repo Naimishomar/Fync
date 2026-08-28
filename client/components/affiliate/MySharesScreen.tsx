@@ -15,6 +15,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 type ShareRow = {
   _id: string;
@@ -67,7 +68,7 @@ export default function MySharesScreen() {
             accessibilityRole="button" accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}
           >
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
           <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Your</Text>
           <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Shares</Text>
@@ -83,7 +84,7 @@ export default function MySharesScreen() {
         </View>
 
         {loading ? (
-          <ActivityIndicator color="#F97316" style={{ marginTop: 40 }} />
+          <ActivityIndicator color={C.brand[500]} style={{ marginTop: 40 }} />
         ) : (
           <FlatList
             data={rows}
@@ -91,7 +92,7 @@ export default function MySharesScreen() {
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60 }}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor="#F97316" colors={['#F97316']} />
+              <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.brand[500]} colors={['#F97316']} />
             }
             renderItem={({ item }) => (
               <View className="flex-row items-center bg-card rounded-card p-4 border border-line mb-2">
@@ -110,14 +111,14 @@ export default function MySharesScreen() {
                   className="w-11 h-11 items-center justify-center rounded-xl border border-line bg-card"
                   accessibilityRole="button" accessibilityLabel={`Share ${item.product?.name ?? 'again'}`}
                 >
-                  <Ionicons name="share-outline" size={18} color="#12100E" />
+                  <Ionicons name="share-outline" size={18} color={C.ink} />
                 </TouchableOpacity>
               </View>
             )}
             ListEmptyComponent={
               <View className="items-center mt-16 px-8">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-4">
-                  <Ionicons name="link-outline" size={32} color="#57534E" />
+                  <Ionicons name="link-outline" size={32} color={C.ink2} />
                 </View>
                 <Text className="text-ink font-display uppercase text-h2 text-center">Nothing shared yet</Text>
                 <Text className="text-ink-2 text-sm text-center mt-2">

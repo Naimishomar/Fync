@@ -7,6 +7,7 @@ import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/nativ
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 type Post = {
     _id: string;
@@ -175,7 +176,7 @@ export default function CommunityFeed() {
                     <Image source={{ uri: item.image[0] }} className="w-full h-44 rounded-card mt-3" resizeMode="cover" />
                 )}
                 <View className="flex-row items-center mt-3">
-                    <Feather name="message-circle" size={14} color="#8B857E" />
+                    <Feather name="message-circle" size={14} color={C.ink3} />
                     <Text className="text-ink-3 font-display text-label uppercase ml-2">
                         {item.commentCount} {item.commentCount === 1 ? 'Comment' : 'Comments'}
                     </Text>
@@ -193,7 +194,7 @@ export default function CommunityFeed() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-                        <Ionicons name="chevron-back" size={24} color="#12100E" />
+                        <Ionicons name="chevron-back" size={24} color={C.ink} />
                     </TouchableOpacity>
                     <View className="flex-1 ml-1">
                         <Text className="text-ink text-2xl font-display">{subName}</Text>
@@ -220,7 +221,7 @@ export default function CommunityFeed() {
                 </View>
 
                 {loading ? (
-                    <ActivityIndicator size="large" color="#F97316" className="mt-10" />
+                    <ActivityIndicator size="large" color={C.brand[500]} className="mt-10" />
                 ) : (
                     <FlatList
                         data={posts}
@@ -229,13 +230,13 @@ export default function CommunityFeed() {
                         contentContainerStyle={{ paddingBottom: 40 }}
                         onEndReached={loadMore}
                         onEndReachedThreshold={0.4}
-                        ListFooterComponent={loadingMore ? <ActivityIndicator color="#F97316" className="my-4" /> : null}
+                        ListFooterComponent={loadingMore ? <ActivityIndicator color={C.brand[500]} className="my-4" /> : null}
                         refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); setCursor(null); fetchFeed(sort); }} tintColor="#F97316" />
+                            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); setCursor(null); fetchFeed(sort); }} tintColor={C.brand[500]} />
                         }
                         ListEmptyComponent={
                             <View className="bg-paper-2 mx-5 p-card-pad rounded-sheet items-center border border-line border-dashed">
-                                <Feather name="feather" size={32} color="#C4BEB6" />
+                                <Feather name="feather" size={32} color={C.ink4} />
                                 <Text className="font-sans text-sm text-ink-3 mt-4 text-center">Nothing posted yet</Text>
                             </View>
                         }
@@ -248,7 +249,7 @@ export default function CommunityFeed() {
                     <KeyboardAvoidingView behavior="padding" className="flex-1">
                         <View className="flex-row items-center px-5 py-3 border-b border-line">
                             <TouchableOpacity onPress={() => setComposerOpen(false)}>
-                                <Ionicons name="close" size={24} color="#12100E" />
+                                <Ionicons name="close" size={24} color={C.ink} />
                             </TouchableOpacity>
                             <Text className="flex-1 text-ink font-display uppercase text-label ml-4">New Post</Text>
                             <TouchableOpacity
@@ -267,7 +268,7 @@ export default function CommunityFeed() {
                                 value={title}
                                 onChangeText={setTitle}
                                 placeholder="Title"
-                                placeholderTextColor="#8B857E"
+                                placeholderTextColor={C.ink3}
                                 maxLength={300}
                                 className="text-ink text-xl font-display mb-4"
                             />
@@ -275,14 +276,14 @@ export default function CommunityFeed() {
                                 value={body}
                                 onChangeText={setBody}
                                 placeholder="Body (optional)"
-                                placeholderTextColor="#8B857E"
+                                placeholderTextColor={C.ink3}
                                 multiline
                                 className="text-ink-2 text-base flex-1 leading-relaxed"
                                 textAlignVertical="top"
                             />
                             {!!image && <Image source={{ uri: image }} className="w-full h-40 rounded-card mb-3" resizeMode="cover" />}
                             <TouchableOpacity onPress={pickImage} className="flex-row items-center h-12 px-4 bg-paper-2 rounded-card border border-line">
-                                <Feather name="image" size={16} color="#F97316" />
+                                <Feather name="image" size={16} color={C.brand[500]} />
                                 <Text className="text-ink-3 font-display uppercase text-label ml-3">
                                     {image ? 'Change Image' : 'Add Image'}
                                 </Text>

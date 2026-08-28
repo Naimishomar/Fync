@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput } from 'react-native';
 import PdfToolShell from './PdfToolShell';
 import { PDFDocument, loadDoc, writeDoc, parsePageRanges } from './pdfKit';
+import { C } from '../../../constants/colors';
 
 export default function RemovePagesScreen() {
   const [spec, setSpec] = useState('');
@@ -15,7 +16,7 @@ export default function RemovePagesScreen() {
           <Text className="text-ink-3 font-display uppercase text-label mb-2">Pages to remove</Text>
           <TextInput
             value={spec} onChangeText={setSpec}
-            placeholder="e.g. 2, 6-8" placeholderTextColor="#8B857E"
+            placeholder="e.g. 2, 6-8" placeholderTextColor={C.ink3}
             className="bg-card p-4 text-ink border-[1.5px] border-ink rounded-md"
             style={{ minHeight: 50 }} autoCapitalize="none"
           />

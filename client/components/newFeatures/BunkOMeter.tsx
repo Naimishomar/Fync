@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Alert } from '../ui/AlertModal';
 
 import { StampCard } from '../ui/kit';
+import { C } from '../../constants/colors';
 // --- 🌌 BACKGROUND IMAGE ---
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
 
@@ -123,13 +124,13 @@ export default function BunkOMeter() {
                                 <View className="flex-1">
                                     <Text className="text-ink-3 mb-2 font-display text-label uppercase ml-1">Attended</Text>
                                     <View className="flex-row items-center bg-paper-2 border-2 border-ink px-4 h-14 rounded-md">
-                                        <Ionicons name="checkmark-done" size={18} color="#F97316" />
+                                        <Ionicons name="checkmark-done" size={18} color={C.brand[500]} />
                                         <TextInput
                                             value={attended}
                                             onChangeText={setAttended}
                                             keyboardType="numeric"
                                             placeholder="0"
-                                            placeholderTextColor="#8B857E"
+                                            placeholderTextColor={C.ink3}
                                             className="flex-1 text-ink text-lg font-display ml-3 uppercase"
                                         />
                                     </View>
@@ -138,13 +139,13 @@ export default function BunkOMeter() {
                                 <View className="flex-1">
                                     <Text className="text-ink-3 mb-2 font-display text-label uppercase ml-1">Total Held</Text>
                                     <View className="flex-row items-center bg-paper-2 border-2 border-ink px-4 h-14 rounded-md">
-                                        <Ionicons name="list" size={18} color="#8B857E" />
+                                        <Ionicons name="list" size={18} color={C.ink3} />
                                         <TextInput
                                             value={total}
                                             onChangeText={setTotal}
                                             keyboardType="numeric"
                                             placeholder="0"
-                                            placeholderTextColor="#8B857E"
+                                            placeholderTextColor={C.ink3}
                                             className="flex-1 text-ink text-lg font-display ml-3 uppercase"
                                         />
                                     </View>
@@ -155,13 +156,13 @@ export default function BunkOMeter() {
                             <View className="mb-8">
                                 <Text className="text-ink-3 mb-2 font-display text-label uppercase ml-1">Target Percentage (%)</Text>
                                 <View className="flex-row items-center bg-paper-2 border-2 border-ink px-4 h-14 rounded-md">
-                                    <Ionicons name="flash" size={18} color="#F97316" />
+                                    <Ionicons name="flash" size={18} color={C.brand[500]} />
                                     <TextInput
                                         value={targetInput}
                                         onChangeText={setTargetInput}
                                         keyboardType="numeric"
                                         placeholder="75 (Threshold)"
-                                        placeholderTextColor="#8B857E"
+                                        placeholderTextColor={C.ink3}
                                         className="flex-1 text-ink text-lg font-display ml-3 uppercase"
                                     />
                                 </View>
@@ -219,7 +220,7 @@ export default function BunkOMeter() {
                                                 <Ionicons
                                                     name="flash"
                                                     size={18}
-                                                    color="#F97316"
+                                                    color={C.brand[500]}
                                                 />
                                             </View>
                                             <View className="ml-4 flex-1">

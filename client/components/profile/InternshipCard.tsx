@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
+import { C } from '../../constants/colors';
 
 const TYPE_CONFIG: Record<string, { icon: string; color: string; bg: string }> = {
   internship:   { icon: 'school-outline',    color: '#12100E', bg: '#F5F2EC' },
@@ -65,7 +66,7 @@ export default function InternshipCard({ item, isOwner, onEdit, onDelete }: Prop
 
           <View className="flex-row flex-wrap items-center gap-x-4 gap-y-2 mt-3">
             <View className="flex-row items-center gap-1.5">
-              <Feather name="calendar" size={10} color="#8B857E" />
+              <Feather name="calendar" size={10} color={C.ink3} />
               <Text className="text-ink-3 font-semibold text-label uppercase">{start} — {end}</Text>
             </View>
             {durationStr ? (
@@ -74,7 +75,7 @@ export default function InternshipCard({ item, isOwner, onEdit, onDelete }: Prop
               </View>
             ) : null}
             <View className="flex-row items-center gap-1.5">
-              <Feather name="map-pin" size={10} color="#8B857E" />
+              <Feather name="map-pin" size={10} color={C.ink3} />
               <Text className="text-ink-3 font-semibold text-label uppercase">{item.workMode || 'remote'}</Text>
             </View>
             {item.isCurrentlyWorking && (
@@ -107,7 +108,7 @@ export default function InternshipCard({ item, isOwner, onEdit, onDelete }: Prop
               <Feather name="edit-3" size={12} color="white" />
             </Pressable>
             <Pressable onPress={() => onDelete?.(item._id)} className="w-8 h-8 items-center justify-center bg-danger/10 rounded-xl">
-              <Ionicons name="trash-outline" size={14} color="#DC2626" />
+              <Ionicons name="trash-outline" size={14} color={C.danger} />
             </Pressable>
           </View>
         )}

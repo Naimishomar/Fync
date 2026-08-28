@@ -1,4 +1,5 @@
 import Groq from "groq-sdk";
+import { GROQ_MODEL_FAST, GROQ_MODEL_CHAT, GROQ_MODEL_REPORT, GROQ_MODEL_STT } from "../utils/groqModel.js";
 import { randomUUID } from "crypto";
 import PaymentOrder from "../models/paymentOrder.model.js";
 import { resolvePurchase } from "../utils/pricing.js";
@@ -56,7 +57,7 @@ const updateHistorySummary = async (history) => {
             .join("\n");
 
         const res = await groq.chat.completions.create({
-            model: "llama-3.1-8b-instant",
+            model: GROQ_MODEL_FAST,
             messages: [
                 {
                     role: "system",
@@ -127,7 +128,7 @@ INTERACTION RULES:
 5. CONCISE: Keep your total response under 3 sentences.`;
 
         const completion = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
+            model: GROQ_MODEL_CHAT,
             messages: [{ role: "system", content: systemPrompt }],
             temperature: 0.7,
             max_tokens: 200,
@@ -184,7 +185,7 @@ export const processAnswer = async (req, res) => {
 
             const transcription = await groq.audio.transcriptions.create({
                 file: fs.createReadStream(tempPath),
-                model: "whisper-large-v3",
+                model: GROQ_MODEL_STT,
                 language: "en",
             });
 
@@ -237,14 +238,59 @@ STRICT RULES:
             })),
         ];
 
-        const completion = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
-            messages,
-            temperature: 0.7,
-            max_tokens: 200,
-        });
+        /**
+         * Streamed, not awaited whole.
+         *
+         * Time to first token is ~410ms; a full four-sentence reply takes
+         * several times that. Waiting for the whole thing meant the candidate
+         * sat in silence for the difference, which is the single thing that
+         * made this feel like software rather than a conversation.
+         *
+         * Tokens go over the socket the client already holds. The HTTP
+         * response still returns the complete text at the end, so an app build
+         * that predates this keeps working unchanged -- it just doesn't render
+         * the intermediate tokens.
+         */
+        const io = req.app.get("io");
+        const room = `user:${req.user.id}`;
+        const emit = (event, payload) => {
+            // Never let a socket problem fail an interview turn.
+            try {
+                io?.to(room).emit(event, { sessionId: String(session._id), ...payload });
+            } catch (err) {
+                console.log("⚠️ Interview emit failed:", err.message);
+            }
+        };
 
-        const aiResponse = completion.choices[0].message.content;
+        // The candidate's own words, as soon as Whisper has them. Previously
+        // nothing appeared on screen until the model had finished replying.
+        emit("interview:transcript", { text: userText });
+
+        let aiResponse = "";
+        try {
+            const stream = await groq.chat.completions.create({
+                model: GROQ_MODEL_CHAT,
+                messages,
+                temperature: 0.7,
+                max_tokens: 200,
+                stream: true,
+            });
+
+            for await (const chunk of stream) {
+                const delta = chunk.choices?.[0]?.delta?.content;
+                if (!delta) continue;
+                aiResponse += delta;
+                emit("interview:token", { delta });
+            }
+        } catch (err) {
+            // A stream that dies mid-flight leaves a partial answer. Better to
+            // send what we have than to 500 on a live interview.
+            console.log("⚠️ Interview stream error:", err.message);
+        }
+
+        if (!aiResponse.trim()) {
+            aiResponse = "Sorry, I missed that. Could you say it once more?";
+        }
 
         session.history.push({
             role: "assistant",
@@ -253,9 +299,12 @@ STRICT RULES:
 
         await session.save();
 
+        emit("interview:done", { text: aiResponse });
+
         res.json({
             success: true,
             text: aiResponse,
+            userText,
         });
     } catch (error) {
         console.log("❌ Process error:", error);
@@ -289,7 +338,7 @@ summary
 `;
 
         const completion = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
+            model: GROQ_MODEL_REPORT,
             messages: [
                 {
                     role: "system",

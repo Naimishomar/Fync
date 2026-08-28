@@ -6,6 +6,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Print from 'expo-print';
 import { Alert } from '../../ui/AlertModal';
 import { sharePdf, savePdfToDevice } from './pdfKit';
+import { C } from '../../../constants/colors';
 
 export default function UrlToPdfScreen() {
   const navigation = useNavigation<any>();
@@ -43,7 +44,7 @@ export default function UrlToPdfScreen() {
         <View className="px-5 py-4 flex-row items-center border-b border-line bg-transparent">
           <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
             accessibilityRole="button" accessibilityLabel="Go back" style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
           <Text className="text-xl font-display text-ink flex-1">Web Page to PDF</Text>
         </View>
@@ -55,7 +56,7 @@ export default function UrlToPdfScreen() {
             <Text className="text-ink-3 font-display uppercase text-label mb-2">Page address</Text>
             <TextInput
               value={url} onChangeText={(t) => { setUrl(t); setPdf(null); }}
-              placeholder="college.ac.in/notices" placeholderTextColor="#8B857E"
+              placeholder="college.ac.in/notices" placeholderTextColor={C.ink3}
               className="bg-card p-4 text-ink border-[1.5px] border-ink rounded-md"
               style={{ minHeight: 50 }} autoCapitalize="none" keyboardType="url" autoCorrect={false}
             />
@@ -65,7 +66,7 @@ export default function UrlToPdfScreen() {
           <TouchableOpacity onPress={build} disabled={busy || !url.trim()}
             className={`w-full py-4 rounded-md items-center justify-center border-2 border-ink mb-3 ${busy || !url.trim() ? 'bg-paper-2' : 'bg-brand-500'}`}
             accessibilityRole="button">
-            {busy ? <ActivityIndicator color="#12100E" />
+            {busy ? <ActivityIndicator color={C.ink} />
               : <Text className={`font-display uppercase text-base ${url.trim() ? 'text-ink' : 'text-ink-3'}`}>Save as PDF</Text>}
           </TouchableOpacity>
 
@@ -77,7 +78,7 @@ export default function UrlToPdfScreen() {
                 <TouchableOpacity onPress={() => sharePdf(pdf).catch((e) => Alert.alert('Error', e.message))}
                   className="flex-1 flex-row items-center justify-center bg-ink border-2 border-ink rounded-md" style={{ minHeight: 44 }}
                   accessibilityRole="button">
-                  <Ionicons name="share-outline" size={16} color="#F5F2EC" style={{ marginRight: 7 }} />
+                  <Ionicons name="share-outline" size={16} color={C.paper} style={{ marginRight: 7 }} />
                   <Text className="font-display text-paper uppercase" style={{ fontSize: 12 }}>Share</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => savePdfToDevice(pdf, 'fync-page.pdf')
@@ -85,7 +86,7 @@ export default function UrlToPdfScreen() {
                     .catch((e) => Alert.alert('Error', e.message))}
                   className="flex-1 flex-row items-center justify-center bg-card border-[1.5px] border-line rounded-md" style={{ minHeight: 44 }}
                   accessibilityRole="button">
-                  <Ionicons name="download-outline" size={16} color="#12100E" style={{ marginRight: 7 }} />
+                  <Ionicons name="download-outline" size={16} color={C.ink} style={{ marginRight: 7 }} />
                   <Text className="font-display text-ink uppercase" style={{ fontSize: 12 }}>Save</Text>
                 </TouchableOpacity>
               </View>

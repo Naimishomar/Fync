@@ -7,6 +7,7 @@ import * as Clipboard from 'expo-clipboard';
 import { Alert } from '../../ui/AlertModal';
 import { pickPdf, readBase64, type PickedPdf } from './pdfKit';
 import { usePdfJs } from './usePdfJs';
+import { C } from '../../../constants/colors';
 
 export default function PdfToTextScreen() {
   const navigation = useNavigation<any>();
@@ -43,7 +44,7 @@ export default function PdfToTextScreen() {
         <View className="px-5 py-4 flex-row items-center border-b border-line bg-transparent">
           <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
             accessibilityRole="button" accessibilityLabel="Go back" style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
           <Text className="text-xl font-display text-ink flex-1">Extract Text</Text>
         </View>
@@ -55,14 +56,14 @@ export default function PdfToTextScreen() {
             className="w-full bg-card border-2 border-dashed border-ink-4 rounded-card p-card-pad items-center justify-center mb-5 shadow-hair"
             accessibilityRole="button">
             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-3">
-              <Ionicons name="text-outline" size={32} color="#57534E" />
+              <Ionicons name="text-outline" size={32} color={C.ink2} />
             </View>
             <Text className="text-ink font-display uppercase text-label">{file ? 'Choose a different PDF' : 'Choose PDF'}</Text>
           </TouchableOpacity>
 
           {file && (
             <View className="flex-row items-center bg-card rounded-card p-4 border border-line mb-5">
-              <Ionicons name="document-text-outline" size={20} color="#57534E" />
+              <Ionicons name="document-text-outline" size={20} color={C.ink2} />
               <Text className="text-ink text-sm ml-3 flex-1" numberOfLines={1}>{file.name}</Text>
             </View>
           )}
@@ -71,7 +72,7 @@ export default function PdfToTextScreen() {
             <TouchableOpacity onPress={extract} disabled={busy}
               className={`w-full py-4 rounded-md items-center justify-center border-2 border-ink mb-3 ${busy ? 'bg-paper-2' : 'bg-brand-500'}`}
               accessibilityRole="button">
-              {busy ? <ActivityIndicator color="#12100E" />
+              {busy ? <ActivityIndicator color={C.ink} />
                 : <Text className="font-display uppercase text-base text-ink">Extract text</Text>}
             </TouchableOpacity>
           )}
@@ -93,14 +94,14 @@ export default function PdfToTextScreen() {
                   onPress={async () => { await Clipboard.setStringAsync(text); Alert.alert('Copied', 'The text is on your clipboard.'); }}
                   className="flex-1 flex-row items-center justify-center bg-ink border-2 border-ink rounded-md" style={{ minHeight: 44 }}
                   accessibilityRole="button">
-                  <Ionicons name="copy-outline" size={16} color="#F5F2EC" style={{ marginRight: 7 }} />
+                  <Ionicons name="copy-outline" size={16} color={C.paper} style={{ marginRight: 7 }} />
                   <Text className="font-display text-paper uppercase" style={{ fontSize: 12 }}>Copy</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => Share.share({ message: text })}
                   className="flex-1 flex-row items-center justify-center bg-card border-[1.5px] border-line rounded-md" style={{ minHeight: 44 }}
                   accessibilityRole="button">
-                  <Ionicons name="share-outline" size={16} color="#12100E" style={{ marginRight: 7 }} />
+                  <Ionicons name="share-outline" size={16} color={C.ink} style={{ marginRight: 7 }} />
                   <Text className="font-display text-ink uppercase" style={{ fontSize: 12 }}>Share</Text>
                 </TouchableOpacity>
               </View>

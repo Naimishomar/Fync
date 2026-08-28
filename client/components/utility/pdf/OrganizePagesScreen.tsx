@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput } from 'react-native';
 import PdfToolShell from './PdfToolShell';
 import { PDFDocument, loadDoc, writeDoc, parsePageRanges } from './pdfKit';
+import { C } from '../../../constants/colors';
 
 export default function OrganizePagesScreen() {
   const [order, setOrder] = useState('');
@@ -16,7 +17,7 @@ export default function OrganizePagesScreen() {
           <Text className="text-ink-3 font-display uppercase text-label mb-2">New page order</Text>
           <TextInput
             value={order} onChangeText={(t) => { setOrder(t); if (t) setReverse(false); }}
-            placeholder="e.g. 3, 1, 2, 4-6" placeholderTextColor="#8B857E"
+            placeholder="e.g. 3, 1, 2, 4-6" placeholderTextColor={C.ink3}
             className="bg-card p-4 text-ink border-[1.5px] border-ink rounded-md"
             style={{ minHeight: 50 }} autoCapitalize="none"
           />

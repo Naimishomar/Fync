@@ -6,6 +6,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 // --- 🌌 BACKGROUND IMAGE ---
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
@@ -40,7 +41,7 @@ const InternshipCard = memo(({ item, onApply, hideApply }: { item: any; onApply:
       <View className="mt-5 flex-row flex-wrap gap-2">
         {/* Experience/Duration */}
         <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
-          <Ionicons name="calendar" size={14} color="#8B857E" />
+          <Ionicons name="calendar" size={14} color={C.ink3} />
           <Text className="text-label font-display uppercase text-ink-3 ml-2">
             {item.duration || "Self-Paced"}
           </Text>
@@ -48,7 +49,7 @@ const InternshipCard = memo(({ item, onApply, hideApply }: { item: any; onApply:
 
         {/* Location */}
         <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
-          <Ionicons name="location-sharp" size={14} color="#8B857E" />
+          <Ionicons name="location-sharp" size={14} color={C.ink3} />
           <Text className="text-label font-display uppercase text-ink-3 ml-2">
             {item.location}
           </Text>
@@ -238,7 +239,7 @@ const InternshipList = () => {
     if (!loading) return <View className="h-12" />;
     return (
       <View className="py-10 items-center">
-        <ActivityIndicator size="small" color="#F97316" />
+        <ActivityIndicator size="small" color={C.brand[500]} />
       </View>
     );
   };
@@ -263,7 +264,7 @@ const InternshipList = () => {
                   accessibilityLabel="Go back"
                   style={{ marginLeft: -11 }}
                 >
-                  <Ionicons name="arrow-back" size={24} color="#12100E" />
+                  <Ionicons name="arrow-back" size={24} color={C.ink} />
                 </TouchableOpacity>
                 <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Internships</Text>
                 <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Hub</Text>
@@ -300,10 +301,10 @@ const InternshipList = () => {
         {activeTab === 'all' && (
           <View className="px-gutter mb-3">
             <View className="flex-row items-center bg-card px-5 h-14 border-2 border-ink shadow-hair rounded-md">
-              <Ionicons name="search" size={20} color="#F97316" />
+              <Ionicons name="search" size={20} color={C.brand[500]} />
               <TextInput
                 placeholder="Search roles, skills, or firms..."
-                placeholderTextColor="#8B857E"
+                placeholderTextColor={C.ink3}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 onSubmitEditing={onSearchSubmit}
@@ -312,7 +313,7 @@ const InternshipList = () => {
               />
               {searchQuery.length > 0 && (
                 <TouchableOpacity onPress={() => { setSearchQuery(""); fetchInternships(1, ""); }} className="bg-paper-2 p-1.5 rounded-xl">
-                  <Ionicons name="close" size={16} color="#8B857E" />
+                  <Ionicons name="close" size={16} color={C.ink3} />
                 </TouchableOpacity>
               )}
             </View>
@@ -323,7 +324,7 @@ const InternshipList = () => {
         {user?.user_access !== 'recruiter' && (
           <View className="mx-gutter p-5 bg-card rounded-card border border-line flex-row items-center shadow-hair">
             <View className="bg-brand-500/10 w-10 h-10 rounded-xl items-center justify-center border border-brand-500/20">
-              <Ionicons name="flash" size={20} color="#F97316" />
+              <Ionicons name="flash" size={20} color={C.brand[500]} />
             </View>
             <View className="ml-4 flex-1">
               <Text className="text-ink font-display uppercase text-label">Technical Advisory</Text>
@@ -353,7 +354,7 @@ const InternshipList = () => {
             !loading ? (
               <View className="items-center mt-20 px-gutter">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name={activeTab === 'all' ? "briefcase" : "star-outline"} size={40} color="#C4BEB6" />
+                  <Ionicons name={activeTab === 'all' ? "briefcase" : "star-outline"} size={40} color={C.ink4} />
                 </View>
                 <Text className="text-ink font-display text-xl text-center uppercase">
                   {activeTab === 'all' ? "Zero Matches" : "No Shortlists"}
@@ -398,7 +399,7 @@ const InternshipList = () => {
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center gap-3">
                       <View className="bg-card p-2 rounded-lg border border-line">
-                        <Ionicons name="document-text" size={16} color="#F97316" />
+                        <Ionicons name="document-text" size={16} color={C.brand[500]} />
                       </View>
                       <Text className="font-semibold text-base text-ink">Master Resume</Text>
                     </View>
@@ -412,17 +413,17 @@ const InternshipList = () => {
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center gap-3">
                       <View className="bg-card p-2 rounded-lg border border-line">
-                        <Ionicons name="shield-checkmark" size={16} color="#F97316" />
+                        <Ionicons name="shield-checkmark" size={16} color={C.brand[500]} />
                       </View>
                       <Text className="font-semibold text-base text-ink">Fync Portfolio Sync</Text>
                     </View>
-                    <Ionicons name="checkmark-circle" size={22} color="#047857" />
+                    <Ionicons name="checkmark-circle" size={22} color={C.success} />
                   </View>
                 </View>
 
                 {!user?.resumeUrl && selectedItem?.requireResume && (
                   <View className="mt-8 p-5 bg-paper-2 rounded-card border border-line flex-row items-center">
-                    <Ionicons name="alert-circle" size={20} color="#F97316" />
+                    <Ionicons name="alert-circle" size={20} color={C.brand[500]} />
                     <Text className="text-brand-700 text-label font-display uppercase flex-1 ml-4 leading-4">
                       Access Denied: Role requires validated resume. Update Registry profile.
                     </Text>
@@ -443,7 +444,7 @@ const InternshipList = () => {
                   disabled={applying || (!user?.resumeUrl && selectedItem?.requireResume)}
                   className={`flex-1 py-5 rounded-card items-center justify-center shadow-hair ${(!user?.resumeUrl && selectedItem?.requireResume) ? 'bg-paper-2' : 'bg-brand-500 '}`}
                 >
-                  {applying ? <ActivityIndicator color="#12100E" /> : (
+                  {applying ? <ActivityIndicator color={C.ink} /> : (
                     <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Confirm Application</Text>
                   )}
                 </TouchableOpacity>

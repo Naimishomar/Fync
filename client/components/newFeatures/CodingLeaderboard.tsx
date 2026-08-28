@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import Octicons from '@expo/vector-icons/Octicons';
 import { BlurView } from 'expo-blur';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
@@ -12,6 +11,7 @@ import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 
 import { StampCard } from '../ui/kit';
+import { C } from '../../constants/colors';
 // Mirrors LEETCODE_COOLDOWN_SECONDS on the server.
 const COOLDOWN_MS = 15 * 60 * 1000;
 
@@ -265,14 +265,14 @@ export default function CodingLeaderboard() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-                            <Ionicons name="arrow-back" size={20} color="#12100E" />
+                            <Ionicons name="arrow-back" size={20} color={C.ink} />
                         </TouchableOpacity>
                     </View>
 
                     <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 20, paddingBottom: 50 }}>
                         <View className="items-center mb-10">
                             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-8">
-                                <MaterialCommunityIcons name="shield-lock" size={48} color="#F97316" />
+                                <MaterialCommunityIcons name="shield-lock" size={48} color={C.brand[500]} />
                             </View>
 
                             <Text className="text-ink text-4xl font-display uppercase text-center">Join The<Text className="text-accent-text"> Arena</Text></Text>
@@ -295,7 +295,7 @@ export default function CodingLeaderboard() {
 
                             <TextInput
                                 placeholder="USERNAME (E.G. NAIMISHOMAR)"
-                                placeholderTextColor="#8B857E"
+                                placeholderTextColor={C.ink3}
                                 value={lcUsername}
                                 onChangeText={setLcUsername}
                                 autoCapitalize="none"
@@ -353,10 +353,10 @@ export default function CodingLeaderboard() {
                             className={`px-4 py-2.5 rounded-xl items-center shadow-hair ${loading ? 'bg-brand-200' : 'bg-brand-500 '}`}
                         >
                             {loading ? (
-                                <ActivityIndicator size="small" color="#12100E" />
+                                <ActivityIndicator size="small" color={C.ink} />
                             ) : (
                                 <View className="flex-row items-center">
-                                    <Ionicons name="reload" size={12} color="#12100E" />
+                                    <Ionicons name="reload" size={12} color={C.ink} />
                                     <Text className="text-ink font-display text-label uppercase ml-1.5">Load Fresh</Text>
                                 </View>
                             )}
@@ -371,8 +371,8 @@ export default function CodingLeaderboard() {
 
                 <View className="px-gutter mb-6">
                     <View className="flex-row items-center bg-card px-4 py-1 border-2 border-ink shadow-hair mb-6 rounded-md">
-                        <Ionicons name="search" size={20} color="#C4BEB6" />
-                        <TextInput placeholder="Search hunters..." placeholderTextColor="#C4BEB6" value={search} onChangeText={setSearch} className="flex-1 text-ink font-display uppercase text-sm" />
+                        <Ionicons name="search" size={20} color={C.ink4} />
+                        <TextInput placeholder="Search hunters..." placeholderTextColor={C.ink4} value={search} onChangeText={setSearch} className="flex-1 text-ink font-display uppercase text-sm" />
                     </View>
 
                     <View className="flex-row justify-between gap-4">
@@ -403,11 +403,11 @@ export default function CodingLeaderboard() {
                         data={users} keyExtractor={(item) => item._id} renderItem={renderItem}
                         contentContainerStyle={{ paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
                         ListEmptyComponent={
                             <View className="items-center mt-20 px-gutter">
                                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                    <FontAwesome5 name="code" size={32} color="#C4BEB6" />
+                                    <FontAwesome5 name="code" size={32} color={C.ink4} />
                                 </View>
                                 <Text className="text-ink font-display text-xl text-center uppercase">No Hunters Found</Text>
                                 <Text className="font-sans text-sm text-ink-3 text-center mt-2">The arena is currently quiet.</Text>
@@ -424,7 +424,7 @@ export default function CodingLeaderboard() {
                             <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mb-8" />
 
                             {profileLoading || !lcData ? (
-                                <ActivityIndicator size="large" color="#F97316" className="mt-20" />
+                                <ActivityIndicator size="large" color={C.brand[500]} className="mt-20" />
                             ) : (
                                 <ScrollView showsVerticalScrollIndicator={false}>
 

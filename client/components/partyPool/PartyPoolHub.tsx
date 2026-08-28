@@ -21,6 +21,7 @@ import ChessHome from './ChessHome';
 import TriviaSurvival from './TriviaSurvival';
 import ReactionMaster from './ReactionMaster';
 import TrendClash from './TrendClash';
+import { C } from '../../constants/colors';
 
 const PartyPoolHub = () => {
   const navigation = useNavigation<any>();
@@ -66,7 +67,7 @@ const PartyPoolHub = () => {
               accessibilityRole="button"
               accessibilityLabel="Back to Party Pool"
             >
-              <Ionicons name="chevron-back" size={20} color="#12100E" />
+              <Ionicons name="chevron-back" size={20} color={C.ink} />
               <Text className="text-label font-display text-ink ml-1">BACK TO HQ</Text>
             </TouchableOpacity>
             <View className="flex-1">{renderGame()}</View>
@@ -86,14 +87,14 @@ const PartyPoolHub = () => {
               >
                 <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#EDE8E0' }}>
                     <View className="w-[60px] h-[60px] rounded-card bg-danger/10 justify-center items-center mr-4">
-                        <Ionicons name="skull" size={28} color="#DC2626" />
+                        <Ionicons name="skull" size={28} color={C.danger} />
                     </View>
                     <View className="flex-1">
                         <Text className="font-semibold text-base text-ink mb-1">Trivia Survival</Text>
                         <Text className="text-label text-ink-3 leading-[14px] font-medium">Health drains quickly. Answer right to survive.</Text>
                     </View>
                     <View className="w-8 h-8 rounded-xl bg-danger/10 justify-center items-center ml-2">
-                        <Ionicons name="arrow-forward" size={16} color="#DC2626" />
+                        <Ionicons name="arrow-forward" size={16} color={C.danger} />
                     </View>
                 </View>
               </TouchableOpacity>
@@ -105,7 +106,7 @@ const PartyPoolHub = () => {
               >
                 <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#EDE8E0' }}>
                     <View className="w-[60px] h-[60px] rounded-card bg-brand-100 justify-center items-center mr-4">
-                        <MaterialCommunityIcons name="bottle-wine" size={28} color="#F97316" />
+                        <MaterialCommunityIcons name="bottle-wine" size={28} color={C.brand[500]} />
                     </View>
                     <View className="flex-1">
                         <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
@@ -115,7 +116,7 @@ const PartyPoolHub = () => {
                         <Text className="text-label text-ink-3 leading-[14px] font-medium">Who's next? Truth or Dare protocol for groups up to 20.</Text>
                     </View>
                     <View className="w-8 h-8 rounded-xl bg-brand-100 justify-center items-center ml-2">
-                        <Ionicons name="arrow-forward" size={16} color="#F97316" />
+                        <Ionicons name="arrow-forward" size={16} color={C.brand[500]} />
                     </View>
                 </View>
               </TouchableOpacity>
@@ -137,7 +138,7 @@ const PartyPoolHub = () => {
                         <Text className="text-label text-ink-3 leading-[14px] font-medium">Challenge your friends or the AI to a rapid match.</Text>
                     </View>
                     <View className="w-8 h-8 rounded-xl bg-paper-2 justify-center items-center ml-2">
-                        <Ionicons name="arrow-forward" size={16} color="#12100E" />
+                        <Ionicons name="arrow-forward" size={16} color={C.ink} />
                     </View>
                 </View>
               </TouchableOpacity>
@@ -149,7 +150,7 @@ const PartyPoolHub = () => {
               >
                 <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#EDE8E0' }}>
                     <View className="w-[60px] h-[60px] rounded-card bg-fam-fun/10 justify-center items-center mr-4">
-                        <MaterialCommunityIcons name="microphone" size={28} color="#DB2777" />
+                        <MaterialCommunityIcons name="microphone" size={28} color={C.fam.fun} />
                     </View>
                     <View className="flex-1">
                         <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
@@ -159,7 +160,7 @@ const PartyPoolHub = () => {
                         <Text className="text-label text-ink-3 leading-[14px] font-medium">Sing your way through Bollywood hits with 1000+ modern prompts.</Text>
                     </View>
                     <View className="w-8 h-8 rounded-xl bg-fam-fun/10 justify-center items-center ml-2">
-                        <Ionicons name="arrow-forward" size={16} color="#DB2777" />
+                        <Ionicons name="arrow-forward" size={16} color={C.fam.fun} />
                     </View>
                 </View>
               </TouchableOpacity>
@@ -171,7 +172,7 @@ const PartyPoolHub = () => {
               >
                 <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#F5F2EC' }}>
                     <View className="w-[60px] h-[60px] rounded-card bg-paper-2 justify-center items-center mr-4">
-                        <MaterialCommunityIcons name="currency-usd" size={28} color="#57534E" />
+                        <MaterialCommunityIcons name="currency-usd" size={28} color={C.ink2} />
                     </View>
                     <View className="flex-1">
                         <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
@@ -181,7 +182,7 @@ const PartyPoolHub = () => {
                         <Text className="text-label text-ink-3 leading-[14px] font-medium">Execute quick decisions with our probability engine.</Text>
                     </View>
                     <View className="w-8 h-8 rounded-xl bg-paper-2 justify-center items-center ml-2">
-                        <Ionicons name="arrow-forward" size={16} color="#57534E" />
+                        <Ionicons name="arrow-forward" size={16} color={C.ink2} />
                     </View>
                 </View>
               </TouchableOpacity>
@@ -193,7 +194,7 @@ const PartyPoolHub = () => {
               >
                 <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#EDE8E0' }}>
                     <View className="w-[60px] h-[60px] rounded-card bg-fam-fun/10 justify-center items-center mr-4">
-                        <Ionicons name="flash" size={28} color="#DB2777" />
+                        <Ionicons name="flash" size={28} color={C.fam.fun} />
                     </View>
                     <View className="flex-1">
                         <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
@@ -203,7 +204,7 @@ const PartyPoolHub = () => {
                         <Text className="text-label text-ink-3 leading-[14px] font-medium">Test your reflexes! Looser will pay the next coffee.</Text>
                     </View>
                     <View className="w-8 h-8 rounded-xl bg-fam-fun/10 justify-center items-center ml-2">
-                        <Ionicons name="arrow-forward" size={16} color="#DB2777" />
+                        <Ionicons name="arrow-forward" size={16} color={C.fam.fun} />
                     </View>
                 </View>
               </TouchableOpacity>
@@ -215,14 +216,14 @@ const PartyPoolHub = () => {
               >
                 <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#EDE8E0' }}>
                     <View className="w-[60px] h-[60px] rounded-card bg-brand-100 justify-center items-center mr-4">
-                        <Ionicons name="trending-up" size={28} color="#F97316" />
+                        <Ionicons name="trending-up" size={28} color={C.brand[500]} />
                     </View>
                     <View className="flex-1">
                         <Text className="font-semibold text-base text-ink mb-1">Trend Clash</Text>
                         <Text className="text-label text-ink-3 leading-[14px] font-medium">Guess which one the internet liked more.</Text>
                     </View>
                     <View className="w-8 h-8 rounded-xl bg-brand-100 justify-center items-center ml-2">
-                        <Ionicons name="arrow-forward" size={16} color="#EA580C" />
+                        <Ionicons name="arrow-forward" size={16} color={C.brand[600]} />
                     </View>
                 </View>
               </TouchableOpacity>
@@ -234,7 +235,7 @@ const PartyPoolHub = () => {
               >
                 <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#EDE8E0' }}>
                     <View className="w-[60px] h-[60px] rounded-card bg-success/10 justify-center items-center mr-4">
-                        <Ionicons name="logo-twitter" size={28} color="#047857" />
+                        <Ionicons name="logo-twitter" size={28} color={C.success} />
                     </View>
                     <View className="flex-1">
                         <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
@@ -244,7 +245,7 @@ const PartyPoolHub = () => {
                         <Text className="text-label text-ink-3 leading-[14px] font-medium">Navigate the bird through obstacles to achieve high scores.</Text>
                     </View>
                     <View className="w-8 h-8 rounded-xl bg-success/10 justify-center items-center ml-2">
-                        <Ionicons name="arrow-forward" size={16} color="#047857" />
+                        <Ionicons name="arrow-forward" size={16} color={C.success} />
                     </View>
                 </View>
               </TouchableOpacity>
@@ -256,7 +257,7 @@ const PartyPoolHub = () => {
               >
                 <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#EDE8E0' }}>
                     <View className="w-[60px] h-[60px] rounded-card bg-fam-career/10 justify-center items-center mr-4">
-                        <Ionicons name="color-palette" size={28} color="#2563EB" />
+                        <Ionicons name="color-palette" size={28} color={C.info} />
                     </View>
                     <View className="flex-1">
                         <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
@@ -266,14 +267,14 @@ const PartyPoolHub = () => {
                         <Text className="text-label text-ink-3 leading-[14px] font-medium">Multiplayer Pictionary. Draw the word or guess the drawing.</Text>
                     </View>
                     <View className="w-8 h-8 rounded-xl bg-fam-career/10 justify-center items-center ml-2">
-                        <Ionicons name="arrow-forward" size={16} color="#2563EB" />
+                        <Ionicons name="arrow-forward" size={16} color={C.info} />
                     </View>
                 </View>
               </TouchableOpacity>
 
               {/* Tip Box */}
               <View className="flex-row items-center justify-center mt-6 bg-card p-3 rounded-card border border-line">
-                <Ionicons name="bulb-outline" size={16} color="#8B857E" />
+                <Ionicons name="bulb-outline" size={16} color={C.ink3} />
                 <Text className="text-label text-ink-3 font-display ml-2 uppercase">PRO TIP: Best played in your college common room or canteen!</Text>
               </View>
             </View>

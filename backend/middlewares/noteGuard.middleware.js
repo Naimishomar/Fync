@@ -9,6 +9,7 @@ import crypto from "crypto";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import Note from "../models/note.model.js";
 import User from "../models/user.model.js";
+import { GEMINI_MODEL_PRO } from '../utils/geminiModel.js';
 
 // Gemini rejects very large inline payloads, and a scan that throws would block
 // legitimate uploads. Past this size the text pass is the only check.
@@ -67,7 +68,7 @@ async function screenWithModel(buffer) {
 
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: GEMINI_MODEL_PRO });
 
     const result = await model.generateContent([
       {

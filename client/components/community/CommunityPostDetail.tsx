@@ -7,6 +7,7 @@ import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/nativ
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 type Author = { _id: string; name: string; username: string; avatar: string };
 type CommentNode = {
@@ -150,7 +151,7 @@ export default function CommunityPostDetail() {
     if (loading) {
         return (
             <View className="flex-1 bg-paper items-center justify-center">
-                <ActivityIndicator size="large" color="#F97316" />
+                <ActivityIndicator size="large" color={C.brand[500]} />
             </View>
         );
     }
@@ -165,14 +166,14 @@ export default function CommunityPostDetail() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-                            <Ionicons name="chevron-back" size={24} color="#12100E" />
+                            <Ionicons name="chevron-back" size={24} color={C.ink} />
                         </TouchableOpacity>
                         <Text className="text-ink font-display uppercase text-label ml-1">{subName}</Text>
                     </View>
 
                     <ScrollView
                         contentContainerStyle={{ paddingBottom: 24 }}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchPost(); }} tintColor="#F97316" />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchPost(); }} tintColor={C.brand[500]} />}
                     >
                         <View className="bg-card mx-5 p-6 rounded-card border border-line shadow-hair">
                             <Text className="text-ink-3 font-display text-label uppercase mb-2">
@@ -195,7 +196,7 @@ export default function CommunityPostDetail() {
                                     </TouchableOpacity>
                                 </View>
                                 <View className="flex-row items-center">
-                                    <Feather name="message-circle" size={15} color="#8B857E" />
+                                    <Feather name="message-circle" size={15} color={C.ink3} />
                                     <Text className="text-ink-3 font-display text-label uppercase ml-2">
                                         {post?.commentCount ?? 0}
                                     </Text>
@@ -219,7 +220,7 @@ export default function CommunityPostDetail() {
                                     Replying to @{replyTo.comment.commentor?.username}
                                 </Text>
                                 <TouchableOpacity onPress={() => setReplyTo(null)}>
-                                    <Ionicons name="close" size={16} color="#8B857E" />
+                                    <Ionicons name="close" size={16} color={C.ink3} />
                                 </TouchableOpacity>
                             </View>
                         )}
@@ -228,7 +229,7 @@ export default function CommunityPostDetail() {
                                 value={draft}
                                 onChangeText={setDraft}
                                 placeholder="Add a comment"
-                                placeholderTextColor="#8B857E"
+                                placeholderTextColor={C.ink3}
                                 multiline
                                 className="flex-1 bg-paper border-[1.5px] border-ink px-4 py-3 text-ink max-h-28 rounded-md"
                             />

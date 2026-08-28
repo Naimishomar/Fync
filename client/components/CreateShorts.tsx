@@ -15,6 +15,7 @@ import { useAuth } from "../context/auth.context";
 import { compressVideo } from "../utils/mediaUpload";
 import { Alert } from './ui/AlertModal';
 import { useBottomInset } from '../constants/layout';
+import { C } from '../constants/colors';
 
 const { width, height } = Dimensions.get("window");
 const COLUMN_COUNT = 3;
@@ -61,9 +62,9 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
         ) : (
           <View className="flex-1 bg-paper-2 items-center justify-center">
              {error ? (
-                <Ionicons name="videocam-outline" size={24} color="#8B857E" />
+                <Ionicons name="videocam-outline" size={24} color={C.ink3} />
              ) : (
-                <ActivityIndicator size="small" color="#F97316" />
+                <ActivityIndicator size="small" color={C.brand[500]} />
              )}
           </View>
         )}
@@ -74,7 +75,7 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
         </View>
         {isSelected && (
           <View className="absolute top-2 right-2 bg-brand-500 rounded-full w-6 h-6 items-center justify-center shadow-hair">
-            <Ionicons name="checkmark" size={14} color="#12100E" />
+            <Ionicons name="checkmark" size={14} color={C.ink} />
           </View>
         )}
       </View>
@@ -190,6 +191,16 @@ const CreateShorts = () => {
         return;
       }
 
+      // Poster frame, pulled from the compressed file so it matches what
+      // actually ships. Grids render this still instead of mounting a <Video>
+      // per cell. A failure here is not worth blocking the upload over: the
+      // field is optional and the grid falls back to the video.
+      let posterUri: string | null = null;
+      try {
+        const { uri: poster } = await VideoThumbnails.getThumbnailAsync(uploadUri, { time: 1000, quality: 0.6 });
+        posterUri = poster;
+      } catch { }
+
       const formData = new FormData();
       formData.append("title", title.trim());
       formData.append("description", description.trim());
@@ -198,6 +209,13 @@ const CreateShorts = () => {
         name: `short_${Date.now()}.mp4`,
         type: "video/mp4",
       } as any);
+      if (posterUri) {
+        formData.append("thumbnail", {
+          uri: posterUri,
+          name: `short_${Date.now()}.jpg`,
+          type: "image/jpeg",
+        } as any);
+      }
 
       const res = await axios.post("/shorts/create", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -232,7 +250,7 @@ const CreateShorts = () => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-          <Ionicons name="close" size={24} color="#12100E" />
+          <Ionicons name="close" size={24} color={C.ink} />
         </TouchableOpacity>
         <View className="items-center">
           <Text className="text-ink font-display uppercase text-h1">Create Short</Text>
@@ -270,10 +288,10 @@ const CreateShorts = () => {
             ) : (
               <View className="flex-1 items-center justify-center">
                  {fetching ? (
-                   <ActivityIndicator color="#F97316" size="large" />
+                   <ActivityIndicator color={C.brand[500]} size="large" />
                  ) : (
                    <View className="items-center px-gutter">
-                      <Ionicons name="videocam-off-outline" size={40} color="#C4BEB6" />
+                      <Ionicons name="videocam-off-outline" size={40} color={C.ink4} />
                       <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
                           {permissionError ? "Permission Denied" : "No Content Found"}
                       </Text>
@@ -295,13 +313,13 @@ const CreateShorts = () => {
               <Text className="text-label text-ink-3 font-display uppercase">{assets.length} Videos Available</Text>
            </View>
            <TouchableOpacity onPress={pickFromSystem} className="bg-paper-2 p-3 rounded-xl border border-line">
-              <Ionicons name="search-outline" size={20} color="#F97316" />
+              <Ionicons name="search-outline" size={20} color={C.brand[500]} />
            </TouchableOpacity>
         </View>
 
         {fetching ? (
           <View className="flex-1 items-center justify-center pb-20">
-              <ActivityIndicator color="#F97316" />
+              <ActivityIndicator color={C.brand[500]} />
               <Text className="text-ink-3 mt-4 font-display uppercase text-label">Indexing Assets...</Text>
           </View>
         ) : (
@@ -365,7 +383,7 @@ const CreateShorts = () => {
                   <Text className="text-brand-500 text-label font-display uppercase">Details</Text>
                 </View>
                 <TouchableOpacity onPress={() => setShowDetailsModal(false)} className="w-10 h-10 rounded-full bg-paper-2 items-center justify-center">
-                  <Ionicons name="close" size={20} color="#12100E" />
+                  <Ionicons name="close" size={20} color={C.ink} />
                 </TouchableOpacity>
               </View>
 
@@ -375,7 +393,7 @@ const CreateShorts = () => {
                   <View className="bg-paper-2 rounded-xl border border-line px-3 justify-center shadow-hair">
                     <TextInput
                       placeholder="WHAT'S THIS SHORT ABOUT?"
-                      placeholderTextColor="#8B857E"
+                      placeholderTextColor={C.ink3}
                       value={title}
                       onChangeText={setTitle}
                       className="text-ink font-display text-base"
@@ -388,7 +406,7 @@ const CreateShorts = () => {
                   <View className="bg-paper-2 rounded-xl border border-line px-3 py-1 min-h-[160px] shadow-hair">
                     <TextInput
                       placeholder="ADD A STORY OR TAGS TO YOUR SHORT..."
-                      placeholderTextColor="#8B857E"
+                      placeholderTextColor={C.ink3}
                       value={description}
                       onChangeText={setDescription}
                       multiline
@@ -409,7 +427,7 @@ const CreateShorts = () => {
                    style={{ backgroundColor: '#F97316' }}>
                     {loading ? (
                       <>
-                        <ActivityIndicator color="#12100E" size="small" />
+                        <ActivityIndicator color={C.ink} size="small" />
                         {compressProgress > 0 && compressProgress < 1 && (
                           <Text className="text-ink font-display uppercase ml-3 text-xs">
                             Optimising {Math.round(compressProgress * 100)}%
@@ -419,7 +437,7 @@ const CreateShorts = () => {
                     ) : (
                       <>
                         <Text className="text-ink font-display uppercase mr-3 text-base">Post to Fync</Text>
-                        <Ionicons name="rocket-outline" size={20} color="#12100E" />
+                        <Ionicons name="rocket-outline" size={20} color={C.ink} />
                       </>
                     )}
                   </View>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, FlatList, Image, useWindowDimensions, ActivityIndicator, TouchableOpacity, Linking } from "react-native";
 import axios from "../context/axiosConfig";
+import { C } from '../constants/colors';
 
 const AdCarousel = () => {
   const flatListRef = useRef<FlatList>(null);
@@ -56,7 +57,7 @@ const AdCarousel = () => {
   if (loading) {
     return (
       <View style={{ height: imageHeight }} className="items-center justify-center bg-paper-2">
-        <ActivityIndicator color="#F97316" />
+        <ActivityIndicator color={C.brand[500]} />
       </View>
     );
   }

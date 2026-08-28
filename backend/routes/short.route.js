@@ -4,7 +4,7 @@ import { addComment, batchViewsInShorts, createShorts, deleteComment, deleteShor
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { cacheMiddleware } from '../middlewares/cache.middleware.js';
 import { createLimiter, feedLimiter } from '../middlewares/rateLimit.middleware.js';
-import { videoUpload } from '../utils/r2.js';
+import { shortsUpload } from '../utils/r2.js';
 import { r2UploadMiddleware } from '../utils/r2Upload.js';
 import { toggleRepost, getReposts } from "../controllers/repost.controller.js";
 const router = express.Router();
@@ -14,7 +14,16 @@ router.use((req, res, next) => {
   next();
 });
 
-router.post('/create', authMiddleware, createLimiter, videoUpload.single('video'), r2UploadMiddleware({ __single__: 'video' }), createShorts);
+// Video and poster frame arrive together. The folder for the video is
+// unchanged ('video') so URLs already in the database stay valid.
+router.post(
+  '/create',
+  authMiddleware,
+  createLimiter,
+  shortsUpload.fields([{ name: 'video', maxCount: 1 }, { name: 'thumbnail', maxCount: 1 }]),
+  r2UploadMiddleware({ video: 'video', thumbnail: 'shorts_thumbnails' }),
+  createShorts,
+);
 // Discover: aggregated tech content, cached in Redis and stored nowhere.
 //
 // Deliberately NOT wrapped in cacheMiddleware: that keys on the full URL, and
@@ -35,7 +44,7 @@ router.post('/smart', authMiddleware, feedLimiter, getSmartShorts);
 
 router.get('/feed/:userId', authMiddleware, cacheMiddleware(1, { tags: (req) => [`shorts:user:${req.params.userId}`] }), getShortsByUserId);
 
-router.post('/update/:id', authMiddleware, videoUpload.single('video'), r2UploadMiddleware({ __single__: 'video' }), updateShort);
+router.post('/update/:id', authMiddleware, shortsUpload.single('video'), r2UploadMiddleware({ __single__: 'video' }), updateShort);
 router.post('/delete/:id', authMiddleware, deleteShort);
 router.delete('/delete/:id', authMiddleware, deleteShort); // Keep DELETE for compatibility
 

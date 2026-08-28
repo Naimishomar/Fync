@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {View, Text, Pressable, Image, Dimensions, FlatList, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, RefreshControl, ViewToken, TouchableOpacity, Share, DeviceEventEmitter, ScrollView, Animated, Easing, useWindowDimensions, StatusBar} from 'react-native'
+import { FlashList } from '@shopify/flash-list';
 import { PostSkeleton } from "./Skeleton";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -47,6 +48,7 @@ import { dedupedGet } from '../utils/batchRequest';
 import socket from '../utils/socket';
 import { Alert } from './ui/AlertModal';
 import CommentsSheet from './ui/CommentsSheet';
+import { C } from '../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -279,7 +281,7 @@ const MAX_CHAR_LIMIT = 150;
           </Pressable>
           {!!item.location && (
             <View className="flex-row items-center ml-2 min-w-0">
-              <Ionicons name="location" size={11} color="#EA580C" />
+              <Ionicons name="location" size={11} color={C.brand[600]} />
               <Text className="text-ink-2 text-xs ml-0.5" numberOfLines={1}>{item.location}</Text>
             </View>
           )}
@@ -326,7 +328,7 @@ const MAX_CHAR_LIMIT = 150;
           accessibilityRole="button"
           accessibilityLabel="Post options"
         >
-          <Ionicons name="ellipsis-horizontal" size={18} color="#12100E" />
+          <Ionicons name="ellipsis-horizontal" size={18} color={C.ink} />
         </Pressable>
       </View>
 
@@ -441,7 +443,7 @@ const MAX_CHAR_LIMIT = 150;
             accessibilityLabel="Upvote"
             accessibilityState={{ selected: vote === 'up' }}
           >
-            <Ionicons name={vote === 'up' ? 'arrow-up' : 'arrow-up-outline'} size={16} color="#12100E" />
+            <Ionicons name={vote === 'up' ? 'arrow-up' : 'arrow-up-outline'} size={16} color={C.ink} />
           </Pressable>
 
           <Text
@@ -476,7 +478,7 @@ const MAX_CHAR_LIMIT = 150;
           accessibilityRole="button"
           accessibilityLabel={`${displayCommentCount} comments`}
         >
-          <Ionicons name="chatbubble-outline" size={14} color="#12100E" />
+          <Ionicons name="chatbubble-outline" size={14} color={C.ink} />
           <Text className="font-display text-ink ml-1.5" style={{ fontSize: 12 }}>
             {formatCount(displayCommentCount)}
           </Text>
@@ -493,7 +495,7 @@ const MAX_CHAR_LIMIT = 150;
             accessibilityState={{ selected: !!reposted }}
             accessibilityLabel={reposted ? 'Remove your repost' : 'Repost this'}
           >
-            <Ionicons name={reposted ? 'repeat' : 'repeat-outline'} size={15} color="#12100E" />
+            <Ionicons name={reposted ? 'repeat' : 'repeat-outline'} size={15} color={C.ink} />
             {repostCount > 0 && (
               <Text className="font-display text-ink ml-1.5" style={{ fontSize: 12 }}>
                 {formatCount(repostCount)}
@@ -509,7 +511,7 @@ const MAX_CHAR_LIMIT = 150;
           accessibilityRole="button"
           accessibilityLabel="Share this post"
         >
-          <Ionicons name="paper-plane-outline" size={14} color="#12100E" />
+          <Ionicons name="paper-plane-outline" size={14} color={C.ink} />
           <Text className="font-display text-ink ml-1.5" style={{ fontSize: 12 }}>Share</Text>
         </Pressable>
 
@@ -826,12 +828,12 @@ export default function HomeScreen() {
       style={{ paddingTop: insets.top - 10 }}
       className="flex-row items-center justify-between px-4 bg-transparent z-10 mt-2 pb-2"
     >
-      <View className="flex-row items-center py-2 gap-2">
+      <View className="flex-row items-center py-2 gap-2 flex-1 min-w-0 mr-2">
         <Pressable onPress={() => navigation.openDrawer()} accessibilityRole="button" accessibilityLabel="Open menu">
           {/* mockup .av.ring-student: box-shadow 0 0 0 2px card, 0 0 0 4px student.
               RN has no spread shadow, so the two rings are a 2px card-coloured
               pad inside a 2px brand border. */}
-          <View className="mr-3 rounded-full border-2 border-brand-500 bg-card" style={{ padding: 2 }}>
+          <View className="rounded-full border-2 border-brand-500 bg-card" style={{ padding: 2 }}>
             <ExpoImage
               source={{ uri: getFullUrl(profileImage) || `https://ui-avatars.com/api/?name=${user?.username}&background=random&color=fff` }}
               style={{ width: 34, height: 34, borderRadius: 999 }}
@@ -839,34 +841,34 @@ export default function HomeScreen() {
             />
           </View>
         </Pressable>
-        <Text className="font-display text-h2 text-ink" numberOfLines={1}>{`Hi, ${user?.name?.split(" ")[0]}`}</Text>
+        <Text className="font-display text-h2 text-ink shrink" numberOfLines={1}>{`Hi, ${user?.name?.split(" ")[0]}`}</Text>
       </View>
 
-      <View className="flex-row items-center gap-5">
+      <View className="flex-row items-center gap-3 shrink-0">
         {/* Streak Display */}
         <TouchableOpacity 
           onPress={() => setShowLeaderboard(true)}
-          className="flex-row items-center bg-brand-100 px-3 py-1.5 rounded-full border border-ink"
+          className="flex-row items-center bg-brand-100 px-2 py-1 rounded-full border border-ink"
         >
           <MaterialCommunityIcons 
             name="fire" 
-            size={20} 
+            size={16} 
             color={(user as any)?.streakCount > 0 ? "#F97316" : "#F97316"} 
           />
-          <Text className="font-display text-sm ml-1 text-brand-700">
+          <Text className="font-display text-xs ml-0.5 text-brand-700">
             {(user as any)?.streakCount || 0}
           </Text>
         </TouchableOpacity>
 
         <Pressable onPress={() => navigation.navigate('SearchScreen')}>
-          <Ionicons name="search-outline" size={26} color="#12100E" />
+          <Ionicons name="search-outline" size={22} color={C.ink} />
         </Pressable>
 
         <Pressable onPress={() => navigation.navigate('Notification')}>
           <View>
-            <Ionicons name="heart-outline" size={26} color="#12100E" />
+            <Ionicons name="heart-outline" size={22} color={C.ink} />
             {unreadCount > 0 && (
-              <View className="absolute -top-2 -right-2 bg-brand-500 rounded-full w-5 h-5 justify-center items-center border border-white">
+              <View className="absolute -top-1.5 -right-1.5 bg-brand-500 rounded-full w-4 h-4 justify-center items-center border border-white">
                 <Text className="text-ink text-label font-semibold">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </Text>
@@ -876,9 +878,9 @@ export default function HomeScreen() {
         </Pressable>
         <Pressable onPress={() => navigation.navigate('ChatList')}>
           <View>
-            <Ionicons name="chatbubble-ellipses-outline" size={26} color="#12100E" />
+            <Ionicons name="chatbubble-ellipses-outline" size={22} color={C.ink} />
             {chatUnreadCount > 0 && (
-              <View className="absolute -top-1 -right-1 bg-fam-fun rounded-full w-5 h-5 justify-center items-center border border-white">
+              <View className="absolute -top-1.5 -right-1.5 bg-fam-fun rounded-full w-4 h-4 justify-center items-center border border-white">
                 <Text className="text-white text-label font-semibold">
                   {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
                 </Text>
@@ -918,7 +920,7 @@ export default function HomeScreen() {
     if (!loadingMore) return <View className="h-20" />;
     return (
       <View className="py-4 h-20">
-        <ActivityIndicator size="small" color="#F97316" />
+        <ActivityIndicator size="small" color={C.brand[500]} />
       </View>
     );
   };
@@ -1002,14 +1004,14 @@ export default function HomeScreen() {
       
       {renderHeader()}
 
-      <FlatList
+      {/* FlashList recycles cells instead of keeping every mounted row alive,
+          which is what stops the blank-cell flash on a fast scroll once the
+          feed is thousands of posts long. v2 sizes cells itself, so the
+          FlatList windowing props it replaces are gone. */}
+      <FlashList
         data={feedWithSuggestions}
         keyExtractor={(item) => item._id}
         renderItem={renderPostItem}
-        initialNumToRender={8}
-        maxToRenderPerBatch={10}
-        windowSize={11}
-        removeClippedSubviews={Platform.OS === 'android'}
         ListHeaderComponent={
           <View>
             {renderTabBar()}
@@ -1027,7 +1029,7 @@ export default function HomeScreen() {
         }
 
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
         }
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}

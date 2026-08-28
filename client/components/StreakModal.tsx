@@ -3,6 +3,7 @@ import { View, Text, Modal, Animated, Dimensions } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
+import { C } from '../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -82,7 +83,7 @@ const StreakModal: React.FC<StreakModalProps> = ({ visible, streakCount, onClose
                   <View
                     className="w-[100px] h-[100px] rounded-full justify-center items-center shadow-hair"
                    style={{ backgroundColor: '#F5B700' }}>
-                    <Ionicons name="flame" size={60} color="#12100E" />
+                    <Ionicons name="flame" size={60} color={C.ink} />
                   </View>
                 </View>
               </View>

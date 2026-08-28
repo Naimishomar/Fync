@@ -3,13 +3,13 @@ import {View, Text, TouchableOpacity, FlatList, Image, ActivityIndicator, Refres
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/auth.context';
 import axios from '../context/axiosConfig';
 import socket from '../utils/socket';
 import { TeammateSkeleton } from './Skeleton';
 import { Alert } from './ui/AlertModal';
+import { C } from '../constants/colors';
 
 const BG_IMAGE = "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000&auto=format&fit=crop";
 
@@ -165,7 +165,7 @@ export default function FindTeammate() {
                         <Text className="text-ink text-lg font-display uppercase">{item.name}</Text>
                         <Text className="text-ink-3 text-label font-display uppercase mt-0.5">@{item.username}</Text>
                         <View className="flex-row items-center mt-1.5 bg-paper-2 self-start px-2 py-0.5 rounded-full border border-line">
-                            <MaterialCommunityIcons name="school" size={12} color="#8B857E" />
+                            <MaterialCommunityIcons name="school" size={12} color={C.ink3} />
                             <Text className="text-ink-3 text-label font-semibold ml-1 uppercase">
                                 {item.year}YR • {item.major}
                             </Text>
@@ -177,12 +177,12 @@ export default function FindTeammate() {
                 <View className="flex-row gap-2">
                     {item.github_id && (
                         <TouchableOpacity onPress={() => openLink(item.github_id)} className="w-9 h-9 bg-paper-2 rounded-card items-center justify-center border border-line">
-                            <FontAwesome name="github" size={18} color="#12100E" />
+                            <Ionicons name="logo-github" size={18} color={C.ink} />
                         </TouchableOpacity>
                     )}
                     {item.linkedIn_id && (
                         <TouchableOpacity onPress={() => openLink(item.linkedIn_id)} className="w-9 h-9 bg-fam-career/10 rounded-xl items-center justify-center border border-fam-career/15">
-                            <FontAwesome name="linkedin" size={18} color="#0077b5" />
+                            <Ionicons name="logo-linkedin" size={18} color="#0077b5" />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -214,7 +214,7 @@ export default function FindTeammate() {
             {/* Footer */}
             <View className="flex-row justify-between items-center bg-ink/5 p-2 rounded-card border border-ink/5">
                 <View className="flex-row items-center flex-1 ml-3 mr-4">
-                    <Ionicons name="location" size={14} color="#8B857E" />
+                    <Ionicons name="location" size={14} color={C.ink3} />
                     <Text className="text-ink-3 text-label font-display uppercase ml-2 flex-1" numberOfLines={1}>
                         {item.college}
                     </Text>
@@ -301,24 +301,24 @@ export default function FindTeammate() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-                        <Ionicons name="close" size={24} color="#12100E" />
+                        <Ionicons name="close" size={24} color={C.ink} />
                     </TouchableOpacity>
                 </View>
 
                 {/* SEARCH BAR */}
                 <View className="mx-gutter mt-6 mb-6">
                     <View className="flex-row items-center bg-card px-6 py-4 border-2 border-ink shadow-hair rounded-md">
-                        <Ionicons name="search" size={20} color="#C4BEB6" />
+                        <Ionicons name="search" size={20} color={C.ink4} />
                         <TextInput
                             placeholder="Search by skill or index..."
-                            placeholderTextColor="#C4BEB6"
+                            placeholderTextColor={C.ink4}
                             value={searchQuery}
                             onChangeText={setSearchQuery}
                             className="flex-1 ml-4 text-ink text-sm font-display"
                         />
                         {searchQuery.length > 0 && (
                             <TouchableOpacity onPress={() => setSearchQuery("")}>
-                                <Ionicons name="close-circle" size={20} color="#C4BEB6" />
+                                <Ionicons name="close-circle" size={20} color={C.ink4} />
                             </TouchableOpacity>
                         )}
                     </View>
@@ -360,19 +360,19 @@ export default function FindTeammate() {
                         contentContainerStyle={{ paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
                         refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" colors={['#F97316']} />
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={['#F97316']} />
                         }
                         // A local search filters what is already loaded, so paging
                         // while filtering would append rows the filter then hides.
                         onEndReached={searchQuery.length > 0 ? undefined : loadMore}
                         onEndReachedThreshold={0.5}
                         ListFooterComponent={
-                            loadingMore ? <ActivityIndicator size="small" color="#F97316" style={{ paddingVertical: 24 }} /> : null
+                            loadingMore ? <ActivityIndicator size="small" color={C.brand[500]} style={{ paddingVertical: 24 }} /> : null
                         }
                         ListEmptyComponent={
                             <View className="items-center mt-20 px-gutter">
                                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                    <MaterialCommunityIcons name="account-search-outline" size={40} color="#C4BEB6" />
+                                    <MaterialCommunityIcons name="account-search-outline" size={40} color={C.ink4} />
                                 </View>
                                 <Text className="text-ink font-display text-xl text-center uppercase">No Talent Found</Text>
                                 <Text className="font-sans text-sm text-ink-3 text-center mt-2">

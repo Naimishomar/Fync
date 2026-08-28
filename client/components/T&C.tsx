@@ -3,12 +3,13 @@ import { View, Text, ScrollView, TouchableOpacity, StatusBar } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import { C } from '../constants/colors';
 
 const TCSection = ({ icon, title, content }: { icon: any; title: string; content: string }) => (
   <View className="mb-6 bg-card rounded-card p-5 border border-line shadow-hair">
     <View className="flex-row items-center mb-3">
       <View className="w-10 h-10 rounded-card bg-recruiter/10 items-center justify-center mr-3">
-        <Ionicons name={icon} size={20} color="#4F46E5" />
+        <Ionicons name={icon} size={20} color={C.recruiter} />
       </View>
       <Text className="text-ink text-lg font-display uppercase">{title}</Text>
     </View>
@@ -33,7 +34,7 @@ export default function TermsAndCondition() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
           <View className="items-end">
             <Text className="text-ink text-xl font-display uppercase">Legal Hub</Text>

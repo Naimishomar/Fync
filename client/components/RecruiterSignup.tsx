@@ -16,6 +16,7 @@ import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
 import AuthPoster from './ui/AuthPoster';
+import { C } from '../constants/colors';
 
 export default function RecruiterSignup() {
   const navigation = useNavigation<any>();
@@ -164,7 +165,7 @@ export default function RecruiterSignup() {
                       <View className="mt-2 flex-row items-center border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50 }}>
                         <TextInput
                           className="flex-1 font-sans text-base text-ink"
-                          placeholderTextColor="#8B857E"
+                          placeholderTextColor={C.ink3}
                           placeholder="you@company.com"
                           value={email}
                           onChangeText={setEmail}
@@ -177,7 +178,7 @@ export default function RecruiterSignup() {
                       <View className="mt-2 flex-row items-center border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50 }}>
                         <TextInput
                           className="flex-1 font-sans text-base text-ink"
-                          placeholderTextColor="#8B857E"
+                          placeholderTextColor={C.ink3}
                           placeholder="How you appear to students"
                           value={username}
                           onChangeText={setUsername}
@@ -189,7 +190,7 @@ export default function RecruiterSignup() {
                       <View className="mt-2 flex-row items-center border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50 }}>
                         <TextInput
                           className="flex-1 font-sans text-base text-ink"
-                          placeholderTextColor="#8B857E"
+                          placeholderTextColor={C.ink3}
                           placeholder="10-digit number"
                           keyboardType="phone-pad"
                           value={phoneNumber}
@@ -200,7 +201,7 @@ export default function RecruiterSignup() {
                   </View>
 
                   <View className="mb-6 flex-row items-center px-2">
-                    <Checkbox value={agreeTerms} onValueChange={setAgreeTerms} color="#12100E" />
+                    <Checkbox value={agreeTerms} onValueChange={setAgreeTerms} color={C.ink} />
                     <Text className="ml-3 text-ink-2 font-medium text-xs flex-1">
                       I agree to the Recruiter Terms & Conditions
                     </Text>
@@ -228,7 +229,7 @@ export default function RecruiterSignup() {
                       <View className="mt-3 border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 54, justifyContent: 'center' }}>
                         <TextInput
                           className="font-display text-lg text-ink text-center"
-                          placeholderTextColor="#8B857E"
+                          placeholderTextColor={C.ink3}
                           placeholder="6-digit code"
                           value={otp}
                           onChangeText={setOtp}
@@ -246,7 +247,7 @@ export default function RecruiterSignup() {
                     disabled={isLoading}
                   >
                     {isLoading ? (
-                      <ActivityIndicator color="#12100E" />
+                      <ActivityIndicator color={C.ink} />
                     ) : (
                       <Text className="text-ink text-base font-semibold">Verify OTP</Text>
                     )}

@@ -10,6 +10,7 @@ import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
 import Avatar from './Avatar';
 import { Alert } from './ui/AlertModal';
+import { C } from '../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -87,13 +88,13 @@ const RecruiterProfile = () => {
                         onPress={() => navigation.navigate('EditProfile')}
                         className="bg-card/90 p-2.5 rounded-card shadow-hair"
                     >
-                        <Ionicons name="settings-outline" size={20} color="#57534E" />
+                        <Ionicons name="settings-outline" size={20} color={C.ink2} />
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={handleLogout}
                         className="bg-card/90 p-2.5 rounded-card shadow-hair"
                     >
-                        <Ionicons name="log-out-outline" size={20} color="#DC2626" />
+                        <Ionicons name="log-out-outline" size={20} color={C.danger} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -111,7 +112,7 @@ const RecruiterProfile = () => {
                         <Text className="text-2xl font-display text-ink uppercase">
                             {user?.company || user?.name}
                         </Text>
-                        <MaterialCommunityIcons name="check-decagram" size={20} color="#4F46E5" />
+                        <MaterialCommunityIcons name="check-decagram" size={20} color={C.recruiter} />
                     </View>
                     <Text className="text-ink-3 font-semibold text-xs uppercase mt-1">
                         {user?.industry || 'Corporate Partner'} • {user?.companySize || 'Growing Team'}
@@ -119,7 +120,7 @@ const RecruiterProfile = () => {
 
                     <View className="flex-row items-center gap-4 mt-4">
                         <View className="flex-row items-center gap-1.5 bg-paper-2 px-3 py-1.5 rounded-full">
-                            <Ionicons name="business-outline" size={14} color="#8B857E" />
+                            <Ionicons name="business-outline" size={14} color={C.ink3} />
                             <Text className="text-ink-2 text-label font-semibold uppercase">{user?.role || 'Hiring Manager'}</Text>
                         </View>
                         {user?.companyWebsite && (
@@ -127,7 +128,7 @@ const RecruiterProfile = () => {
                                 onPress={() => Linking.openURL(user.companyWebsite)}
                                 className="flex-row items-center gap-1.5 bg-recruiter/10 px-3 py-1.5 rounded-full"
                             >
-                                <Ionicons name="globe-outline" size={14} color="#4F46E5" />
+                                <Ionicons name="globe-outline" size={14} color={C.recruiter} />
                                 <Text className="text-recruiter text-label font-semibold uppercase">Visit Website</Text>
                             </TouchableOpacity>
                         )}
@@ -169,7 +170,7 @@ const RecruiterProfile = () => {
                 <View className="gap-4">
                     <View className="flex-row items-center gap-4">
                         <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center">
-                            <Ionicons name="briefcase-outline" size={20} color="#4F46E5" />
+                            <Ionicons name="briefcase-outline" size={20} color={C.recruiter} />
                         </View>
                         <View>
                             <Text className="text-ink-3 text-label font-display uppercase">Industry</Text>
@@ -179,7 +180,7 @@ const RecruiterProfile = () => {
 
                     <View className="flex-row items-center gap-4">
                         <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center">
-                            <Ionicons name="people-outline" size={20} color="#047857" />
+                            <Ionicons name="people-outline" size={20} color={C.success} />
                         </View>
                         <View>
                             <Text className="text-ink-3 text-label font-display uppercase">Company Size</Text>
@@ -189,7 +190,7 @@ const RecruiterProfile = () => {
 
                     <View className="flex-row items-center gap-4">
                         <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center">
-                            <Ionicons name="location-outline" size={20} color="#DC2626" />
+                            <Ionicons name="location-outline" size={20} color={C.danger} />
                         </View>
                         <View>
                             <Text className="text-ink-3 text-label font-display uppercase">Headquarters</Text>
@@ -247,7 +248,7 @@ const RecruiterProfile = () => {
             <StatusBar style="dark" />
             <ScrollView
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4F46E5" />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.recruiter} />
                 }
             >
                 {renderHeader()}

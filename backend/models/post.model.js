@@ -130,5 +130,10 @@ postSchema.index({ "tags.user": 1, "tags.status": 1, createdAt: -1 });
 
 postSchema.index({ repostedBy: 1, createdAt: -1 });
 
+// The candidate pool is find({ isPrivate: { $ne: true } }).sort({ createdAt: -1 }).
+// { createdAt: -1 } alone gives the sort but still fetches and discards private
+// posts one by one; leading with isPrivate keeps the scan inside the index.
+postSchema.index({ isPrivate: 1, createdAt: -1 });
+
 const Post = mongoose.model("Post", postSchema);
 export default Post;

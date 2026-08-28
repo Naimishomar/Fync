@@ -14,6 +14,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
+import { C } from '../../constants/colors';
 
 export default function MasterStudyHub() {
   const navigation = useNavigation<any>();
@@ -98,7 +99,7 @@ export default function MasterStudyHub() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={20} color="#12100E" />
+            <Ionicons name="arrow-back" size={20} color={C.ink} />
           </TouchableOpacity>
         </View>
 
@@ -110,18 +111,18 @@ export default function MasterStudyHub() {
           {/* SEARCH BAR */}
           <View className="mb-6 bg-card p-4 rounded-sheet shadow-hair border border-line">
             <View className="flex-row items-center mb-3 ml-2">
-              <Ionicons name="search-circle" size={18} color="#EA580C" />
+              <Ionicons name="search-circle" size={18} color={C.brand[600]} />
               <Text className="text-ink font-display text-label uppercase ml-2">Fync Search</Text>
               <View className="ml-2 bg-danger/15 px-2 py-0.5 rounded-md">
                 <Text className="text-danger font-semibold text-label uppercase">PDF Only</Text>
               </View>
             </View>
             <View className="flex-row items-center bg-paper-2 px-5 py-4 border-2 border-ink rounded-md">
-              <Ionicons name="search" size={20} color="#8B857E" />
+              <Ionicons name="search" size={20} color={C.ink3} />
               <TextInput 
                 className="flex-1 ml-3 text-ink-2 font-semibold text-sm p-0"
                 placeholder="Search DSA, React, ML..."
-                placeholderTextColor="#8B857E"
+                placeholderTextColor={C.ink3}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 onSubmitEditing={handleSearch}
@@ -129,7 +130,7 @@ export default function MasterStudyHub() {
               />
               {searchQuery.length > 0 && (
                 <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <Ionicons name="close-circle" size={20} color="#C4BEB6" />
+                  <Ionicons name="close-circle" size={20} color={C.ink4} />
                 </TouchableOpacity>
               )}
             </View>
@@ -177,7 +178,7 @@ export default function MasterStudyHub() {
             <View className="mt-4 rounded-sheet bg-ink p-card-pad border border-ink">
               <View className="flex-row items-center mb-4">
                 <View className="bg-brand-500 p-2 rounded-xl mr-3">
-                  <Ionicons name="rocket-outline" size={20} color="#12100E" />
+                  <Ionicons name="rocket-outline" size={20} color={C.ink} />
                 </View>
                 <Text className="text-white font-display text-lg uppercase">Mission: Expert</Text>
               </View>
@@ -207,7 +208,7 @@ export default function MasterStudyHub() {
               accessibilityRole="button"
               accessibilityLabel="Close results"
             >
-              <Ionicons name="arrow-back" size={24} color="#12100E" />
+              <Ionicons name="arrow-back" size={24} color={C.ink} />
             </TouchableOpacity>
             <Text className="font-display text-xl text-ink mt-1" numberOfLines={1}>{searchQuery}</Text>
             <Text className="text-ink-3 font-display uppercase text-label mt-1">
@@ -217,7 +218,7 @@ export default function MasterStudyHub() {
 
           {searchLoading ? (
             <View className="flex-1 items-center justify-center">
-              <ActivityIndicator size="large" color="#F97316" />
+              <ActivityIndicator size="large" color={C.brand[500]} />
               <Text className="font-semibold text-base text-ink mt-4">Finding PDFs...</Text>
             </View>
           ) : (
@@ -256,7 +257,7 @@ export default function MasterStudyHub() {
               )}
               ListEmptyComponent={
                 <View className="items-center mt-20 px-8">
-                  <Ionicons name="document-outline" size={52} color="#C4BEB6" />
+                  <Ionicons name="document-outline" size={52} color={C.ink4} />
                   <Text className="font-display text-base text-ink mt-4 text-center">Nothing found</Text>
                   <Text className="font-sans text-ink-3 mt-2 text-center" style={{ fontSize: 13 }}>
                     Try the subject name on its own, like "operating systems".

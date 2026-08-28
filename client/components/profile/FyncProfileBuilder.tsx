@@ -27,6 +27,7 @@ import { Alert } from '../ui/AlertModal';
 
 import { StampCard } from '../ui/kit';
 import { useBottomInset } from '../../constants/layout';
+import { C } from '../../constants/colors';
 const { width } = Dimensions.get('window');
 
 // ─── Completeness Bar ─────────────────────────────────────────────────────────
@@ -65,14 +66,14 @@ function SectionHeader({ title, icon, onAdd, addLabel }: {
     <View className="flex-row items-center justify-between px-6 mb-4 mt-8">
       <View className="flex-row items-center gap-3">
         <View className="w-10 h-10 bg-ink rounded-card items-center justify-center shadow-hair">
-          <Ionicons name={icon as any} size={18} color="#F97316" />
+          <Ionicons name={icon as any} size={18} color={C.brand[500]} />
         </View>
         <Text className="text-ink font-display uppercase text-sm">{title}</Text>
       </View>
       {onAdd && (
         <Pressable onPress={onAdd}
           className="flex-row items-center gap-2 bg-card px-4 py-2.5 rounded-card border border-line shadow-hair">
-          <Ionicons name="add" size={16} color="#12100E" />
+          <Ionicons name="add" size={16} color={C.ink} />
           <Text className="text-ink text-label font-display uppercase">{addLabel || 'Add'}</Text>
         </Pressable>
       )}
@@ -340,7 +341,7 @@ export default function FyncProfileBuilder() {
 
   if (loading) return (
     <SafeAreaView className="flex-1 bg-paper items-center justify-center">
-      <ActivityIndicator size="large" color="#F97316" />
+      <ActivityIndicator size="large" color={C.brand[500]} />
     </SafeAreaView>
   );
 
@@ -358,7 +359,7 @@ export default function FyncProfileBuilder() {
             <View className="flex-row mx-4 mb-6 gap-4">
               <View className="flex-1 bg-paper border border-line p-5 shadow-hair items-center justify-center rounded-md">
                 <View className="bg-brand-100 p-3 rounded-card mb-3">
-                   <Ionicons name="flame" size={24} color="#F97316" />
+                   <Ionicons name="flame" size={24} color={C.brand[500]} />
                 </View>
                 <Text className="text-ink text-2xl font-display">{profile?.user?.highestStreak || 0}</Text>
                 <Text className="text-ink-3 text-label font-display uppercase mt-1">Max Streak</Text>
@@ -369,7 +370,7 @@ export default function FyncProfileBuilder() {
                 className="flex-1 bg-paper border border-line p-5 shadow-hair items-center justify-center rounded-md"
               >
                 <View className="bg-paper-2 p-3 rounded-card mb-3">
-                   <Ionicons name="code-working" size={24} color="#12100E" />
+                   <Ionicons name="code-working" size={24} color={C.ink} />
                 </View>
                 <Text className="text-ink text-label font-display uppercase text-center">Coding Profiles</Text>
                 <Text className="text-ink-3 text-label font-semibold uppercase mt-1">Boost Score</Text>
@@ -383,7 +384,7 @@ export default function FyncProfileBuilder() {
               <View className="flex-row items-center justify-between mb-4">
                 <View className="flex-row items-center gap-3">
                   <View className="w-10 h-10 bg-recruiter/15 rounded-card items-center justify-center">
-                    <Ionicons name="document-text" size={18} color="#4F46E5" />
+                    <Ionicons name="document-text" size={18} color={C.recruiter} />
                   </View>
                   <View>
                     <Text className="text-ink font-display uppercase text-label">Career Document</Text>
@@ -403,7 +404,7 @@ export default function FyncProfileBuilder() {
                 className={`flex-row items-center justify-center gap-3 h-14 rounded-card border-2 border-dashed ${profile?.user?.resumeUrl ? 'border-recruiter/25 bg-recruiter/10' : 'border-line bg-paper-2'}`}
               >
                 {uploadingResume ? (
-                  <ActivityIndicator color="#4F46E5" size="small" />
+                  <ActivityIndicator color={C.recruiter} size="small" />
                 ) : (
                   <>
                     <Feather name={profile?.user?.resumeUrl ? "check-circle" : "upload-cloud"} size={18} color={profile?.user?.resumeUrl ? "#047857" : "#8B857E"} />
@@ -430,7 +431,7 @@ export default function FyncProfileBuilder() {
                     <View key={index} className="bg-recruiter/15 border border-recruiter/15 flex-row items-center px-2.5 py-1 rounded-full">
                       <Text className="text-recruiter font-semibold text-label uppercase mr-1">{skill}</Text>
                       <Pressable onPress={() => removeSkill(index)}>
-                        <Ionicons name="close-circle" size={14} color="#4F46E5" />
+                        <Ionicons name="close-circle" size={14} color={C.recruiter} />
                       </Pressable>
                     </View>
                   ))}
@@ -438,7 +439,7 @@ export default function FyncProfileBuilder() {
                     value={skillInput}
                     onChangeText={handleSkillInput}
                     placeholder={skills.length > 0 ? "" : "React, Node.js, Design..."}
-                    placeholderTextColor="#8B857E"
+                    placeholderTextColor={C.ink3}
                     className="text-ink-2 min-w-[120px] flex-1 py-1 text-label font-semibold uppercase"
                   />
                 </View>
@@ -469,7 +470,7 @@ export default function FyncProfileBuilder() {
             {projects.length === 0 ? (
               <View className="items-center py-20 px-gutter">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Feather name="box" size={32} color="#C4BEB6" />
+                  <Feather name="box" size={32} color={C.ink4} />
                 </View>
                 <Text className="font-semibold text-base text-ink text-center">No projects yet</Text>
                 <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
@@ -495,7 +496,7 @@ export default function FyncProfileBuilder() {
             {internships.length === 0 ? (
               <View className="items-center py-20 px-gutter">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="briefcase-outline" size={32} color="#C4BEB6" />
+                  <Ionicons name="briefcase-outline" size={32} color={C.ink4} />
                 </View>
                 <Text className="font-semibold text-base text-ink text-center">No experience added yet</Text>
                 <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
@@ -516,7 +517,7 @@ export default function FyncProfileBuilder() {
             {education.length === 0 ? (
               <View className="items-center py-20 px-gutter">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="school-outline" size={32} color="#C4BEB6" />
+                  <Ionicons name="school-outline" size={32} color={C.ink4} />
                 </View>
                 <Text className="font-semibold text-base text-ink text-center">No education added yet</Text>
                 <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
@@ -540,7 +541,7 @@ export default function FyncProfileBuilder() {
             {certificates.length === 0 ? (
               <View className="items-center py-20 px-gutter">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="ribbon-outline" size={32} color="#C4BEB6" />
+                  <Ionicons name="ribbon-outline" size={32} color={C.ink4} />
                 </View>
                 <Text className="font-semibold text-base text-ink text-center">No certificates added yet</Text>
                 <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
@@ -587,7 +588,7 @@ export default function FyncProfileBuilder() {
                   accessibilityLabel="Go back"
                   style={{ marginLeft: -11 }}
                 >
-                  <Ionicons name="arrow-back" size={24} color="#12100E" />
+                  <Ionicons name="arrow-back" size={24} color={C.ink} />
                 </Pressable>
                 <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
                 <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Portfolio</Text>
@@ -598,7 +599,7 @@ export default function FyncProfileBuilder() {
             </View>
             <Pressable onPress={downloadResume}
               className="bg-ink px-4 py-3 flex-row items-center border-2 border-ink rounded-md">
-              <Feather name="file-text" size={14} color="#F97316" />
+              <Feather name="file-text" size={14} color={C.brand[500]} />
               <Text className="text-white font-display uppercase text-label ml-2">Resume</Text>
             </Pressable>
           </View>
@@ -627,7 +628,7 @@ export default function FyncProfileBuilder() {
         <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
           contentContainerStyle={{ paddingBottom: 60, paddingTop: 16 }}
         >
           {renderContent()}

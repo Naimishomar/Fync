@@ -14,6 +14,7 @@ import Toast from 'react-native-toast-message';
 import { useAuth } from '../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import AuthPoster from './ui/AuthPoster';
+import { C } from '../constants/colors';
 
 
 export default function LoginScreen() {
@@ -117,7 +118,7 @@ export default function LoginScreen() {
                   <TextInput
                     className="flex-1 font-sans text-base text-ink"
                     placeholder="you@college.ac.in"
-                    placeholderTextColor="#8B857E"
+                    placeholderTextColor={C.ink3}
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
@@ -131,7 +132,7 @@ export default function LoginScreen() {
                   <TextInput
                     className="flex-1 font-sans text-base text-ink"
                     placeholder="••••••••"
-                    placeholderTextColor="#8B857E"
+                    placeholderTextColor={C.ink3}
                     secureTextEntry={!passwordVisible}
                     value={password}
                     onChangeText={setPassword}
@@ -139,7 +140,7 @@ export default function LoginScreen() {
                   />
                   <Pressable onPress={togglePassword} hitSlop={12} accessibilityRole="button"
                     accessibilityLabel={passwordVisible ? 'Hide password' : 'Show password'}>
-                    <Ionicons name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} size={22} color="#8B857E" />
+                    <Ionicons name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} size={22} color={C.ink3} />
                   </Pressable>
                 </View>
 
@@ -158,7 +159,7 @@ export default function LoginScreen() {
                   accessibilityRole="button"
                 >
                   {isLoading
-                    ? <ActivityIndicator size="small" color="#12100E" />
+                    ? <ActivityIndicator size="small" color={C.ink} />
                     : <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Login</Text>}
                 </Pressable>
 
@@ -186,7 +187,7 @@ export default function LoginScreen() {
                 onPress={() => navigation.navigate('AlumniSignup')}
                 accessibilityRole="button"
               >
-                <Ionicons name="school-outline" size={15} color="#12100E" style={{ marginRight: 7 }} />
+                <Ionicons name="school-outline" size={15} color={C.ink} style={{ marginRight: 7 }} />
                 <Text className="font-display text-ink uppercase" style={{ fontSize: 12, letterSpacing: 0.3 }}>Join as Alumni</Text>
               </Pressable>
               <Pressable
@@ -195,7 +196,7 @@ export default function LoginScreen() {
                 onPress={() => navigation.navigate('RecruiterSignup')}
                 accessibilityRole="button"
               >
-                <Ionicons name="briefcase-outline" size={15} color="#F5F2EC" style={{ marginRight: 7 }} />
+                <Ionicons name="briefcase-outline" size={15} color={C.paper} style={{ marginRight: 7 }} />
                 <Text className="font-display text-paper uppercase" style={{ fontSize: 12, letterSpacing: 0.3 }}>Join as Recruiter</Text>
               </Pressable>
             </View>

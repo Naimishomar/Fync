@@ -12,6 +12,7 @@ import { Alert } from '../ui/AlertModal';
 import MultiSelectSheet from '../ui/MultiSelectSheet';
 import { collegesInIndia } from '../../data/college';
 import { PASSOUT_YEARS, BRANCHES } from '../../data/academics';
+import { C } from '../../constants/colors';
 
 const ELIGIBILITY_META = {
   colleges: {
@@ -373,7 +374,7 @@ const HackathonCreate = () => {
   const renderSectionHeader = (title: string, icon: string) => (
     <View className="flex-row items-center mt-8 mb-4">
       <View className="w-10 h-10 rounded-card bg-paper-2 border border-line items-center justify-center mr-3 shadow-hair">
-        <Ionicons name={icon as any} size={18} color="#F97316" />
+        <Ionicons name={icon as any} size={18} color={C.brand[500]} />
       </View>
       <Text className="text-ink font-display text-xl">{title}</Text>
     </View>
@@ -390,7 +391,7 @@ const HackathonCreate = () => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
           <View>
             <Text className="text-ink text-3xl font-display leading-7">Host</Text>
@@ -404,23 +405,23 @@ const HackathonCreate = () => {
             {/* Visual Assets */}
             <View className="flex-row gap-4 mt-8">
               <TouchableOpacity onPress={() => pickImage('logo')} className="w-28 h-28 rounded-sheet bg-paper-2 border-2 border-dashed border-line items-center justify-center overflow-hidden shadow-hair">
-                {logo ? <Image source={{ uri: logo }} className="w-full h-full" /> : <View className="items-center"><Ionicons name="flash-outline" size={28} color="#8B857E" /><Text className="text-label font-semibold text-ink-3 mt-1">Logo</Text></View>}
+                {logo ? <Image source={{ uri: logo }} className="w-full h-full" /> : <View className="items-center"><Ionicons name="flash-outline" size={28} color={C.ink3} /><Text className="text-label font-semibold text-ink-3 mt-1">Logo</Text></View>}
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => pickImage('banner')} className="flex-1 h-28 rounded-sheet bg-paper-2 border-2 border-dashed border-line items-center justify-center overflow-hidden shadow-hair">
-                {bannerImage ? <Image source={{ uri: bannerImage }} className="w-full h-full" resizeMode="cover" /> : <View className="items-center"><Ionicons name="images-outline" size={28} color="#8B857E" /><Text className="text-label font-semibold text-ink-3 mt-1">Banner</Text></View>}
+                {bannerImage ? <Image source={{ uri: bannerImage }} className="w-full h-full" resizeMode="cover" /> : <View className="items-center"><Ionicons name="images-outline" size={28} color={C.ink3} /><Text className="text-label font-semibold text-ink-3 mt-1">Banner</Text></View>}
               </TouchableOpacity>
             </View>
 
             {/* Basic Info */}
             {renderSectionHeader('Protocol Essentials', 'rocket')}
             <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
-              <TextInput value={form.title} onChangeText={(t) => setForm({ ...form, title: t })} placeholder="Hackathon title" placeholderTextColor="#8B857E" className="bg-paper-2 rounded-card px-6 py-4 mb-4 text-ink font-semibold text-sm border border-line" />
-              <TextInput value={form.description} onChangeText={(t) => setForm({ ...form, description: t })} placeholder="What is this hackathon about?" multiline numberOfLines={4} placeholderTextColor="#8B857E" className="bg-paper-2 rounded-sheet px-6 py-4 mb-4 text-ink font-semibold text-xs border border-line h-32" />
-              <TextInput value={form.tags} onChangeText={(t) => setForm({ ...form, tags: t })} placeholder="Tags (ai, blockchain…)" placeholderTextColor="#8B857E" className="bg-paper-2 rounded-card px-6 py-4 mb-4 text-ink font-semibold text-sm border border-line" />
+              <TextInput value={form.title} onChangeText={(t) => setForm({ ...form, title: t })} placeholder="Hackathon title" placeholderTextColor={C.ink3} className="bg-paper-2 rounded-card px-6 py-4 mb-4 text-ink font-semibold text-sm border border-line" />
+              <TextInput value={form.description} onChangeText={(t) => setForm({ ...form, description: t })} placeholder="What is this hackathon about?" multiline numberOfLines={4} placeholderTextColor={C.ink3} className="bg-paper-2 rounded-sheet px-6 py-4 mb-4 text-ink font-semibold text-xs border border-line h-32" />
+              <TextInput value={form.tags} onChangeText={(t) => setForm({ ...form, tags: t })} placeholder="Tags (ai, blockchain…)" placeholderTextColor={C.ink3} className="bg-paper-2 rounded-card px-6 py-4 mb-4 text-ink font-semibold text-sm border border-line" />
               <View className="flex-row gap-4">
-                <TextInput value={form.prizepool} onChangeText={(t) => setForm({ ...form, prizepool: t })} placeholder="Prize pool" placeholderTextColor="#8B857E" className="flex-[2] bg-paper-2 rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line" />
-                <TextInput value={form.teamSize} onChangeText={(t) => setForm({ ...form, teamSize: t })} placeholder="Team size" placeholderTextColor="#8B857E" className="flex-1 bg-paper-2 rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line" />
+                <TextInput value={form.prizepool} onChangeText={(t) => setForm({ ...form, prizepool: t })} placeholder="Prize pool" placeholderTextColor={C.ink3} className="flex-[2] bg-paper-2 rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line" />
+                <TextInput value={form.teamSize} onChangeText={(t) => setForm({ ...form, teamSize: t })} placeholder="Team size" placeholderTextColor={C.ink3} className="flex-1 bg-paper-2 rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line" />
               </View>
 
               {/* Mode + venue */}
@@ -443,7 +444,7 @@ const HackathonCreate = () => {
                 })}
               </View>
               {form.mode !== 'Online' ? (
-                <TextInput value={form.location} onChangeText={(t) => setForm({ ...form, location: t })} placeholder="Venue or city" placeholderTextColor="#8B857E" className="bg-paper-2 rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line" />
+                <TextInput value={form.location} onChangeText={(t) => setForm({ ...form, location: t })} placeholder="Venue or city" placeholderTextColor={C.ink3} className="bg-paper-2 rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line" />
               ) : null}
             </View>
 
@@ -460,7 +461,7 @@ const HackathonCreate = () => {
                 value={form.applyLink}
                 onChangeText={(t) => setForm({ ...form, applyLink: t })}
                 placeholder="unstop.com/… , forms.gle/… , your site"
-                placeholderTextColor="#8B857E"
+                placeholderTextColor={C.ink3}
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="url"
@@ -489,7 +490,7 @@ const HackathonCreate = () => {
                 value={form.applyLabel}
                 onChangeText={(t) => setForm({ ...form, applyLabel: t })}
                 placeholder="Or write your own"
-                placeholderTextColor="#8B857E"
+                placeholderTextColor={C.ink3}
                 maxLength={28}
                 className="bg-paper-2 rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line"
               />
@@ -516,12 +517,12 @@ const HackathonCreate = () => {
                     accessibilityLabel={`${label}: ${isAll ? allLabel : chosen.join(', ')}`}
                   >
                     <View className="flex-row items-center">
-                      <Ionicons name={icon as any} size={15} color="#8B857E" />
+                      <Ionicons name={icon as any} size={15} color={C.ink3} />
                       <Text className="text-ink-3 font-semibold text-label ml-2 flex-1">{label}</Text>
                       <Text className="text-ink-3 font-semibold text-label mr-1">
                         {isAll ? allLabel : `${chosen.length} selected`}
                       </Text>
-                      <Ionicons name="chevron-down" size={15} color="#8B857E" />
+                      <Ionicons name="chevron-down" size={15} color={C.ink3} />
                     </View>
 
                     {/* Show what was picked, not just a count — a host should be
@@ -550,12 +551,12 @@ const HackathonCreate = () => {
             <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
               {rules.map((rule, i) => (
                 <View key={i} className="flex-row items-center gap-3 mb-3">
-                  <TextInput value={rule} onChangeText={(t) => setRules(rules.map((r, idx) => idx === i ? t : r))} placeholder={`Rule ${i + 1}`} placeholderTextColor="#8B857E" className="flex-1 bg-paper rounded-card px-6 py-4 text-ink font-semibold text-xs border border-line" />
-                  <TouchableOpacity onPress={() => removeRule(i)} className="bg-paper-2 p-3 rounded-xl border border-line"><Ionicons name="trash" size={16} color="#DC2626" /></TouchableOpacity>
+                  <TextInput value={rule} onChangeText={(t) => setRules(rules.map((r, idx) => idx === i ? t : r))} placeholder={`Rule ${i + 1}`} placeholderTextColor={C.ink3} className="flex-1 bg-paper rounded-card px-6 py-4 text-ink font-semibold text-xs border border-line" />
+                  <TouchableOpacity onPress={() => removeRule(i)} className="bg-paper-2 p-3 rounded-xl border border-line"><Ionicons name="trash" size={16} color={C.danger} /></TouchableOpacity>
                 </View>
               ))}
               <TouchableOpacity onPress={addRule} className="flex-row items-center justify-center p-4 border-2 border-dashed border-line rounded-card mt-2">
-                <Ionicons name="add" size={20} color="#F97316" />
+                <Ionicons name="add" size={20} color={C.brand[500]} />
                 <Text className="text-brand-600 font-semibold ml-2 text-label">Add rule</Text>
               </TouchableOpacity>
             </View>
@@ -566,14 +567,14 @@ const HackathonCreate = () => {
               <Text className="text-ink-3 text-label font-semibold mb-4 px-2">Construct the journey for your participants (e.g. Kickoff, Workshops, Submission, Results)</Text>
               {timeline.map((item, i) => (
                 <View key={i} className="bg-paper-2 rounded-card p-5 mb-4 border border-line shadow-hair /[0.02]">
-                  <TextInput value={item.label} onChangeText={(t) => setTimeline(timeline.map((x, idx) => idx === i ? { ...x, label: t } : x))} placeholder="Stage name (e.g. semi-finals)" placeholderTextColor="#8B857E" className="text-ink font-semibold text-xs mb-3" />
+                  <TextInput value={item.label} onChangeText={(t) => setTimeline(timeline.map((x, idx) => idx === i ? { ...x, label: t } : x))} placeholder="Stage name (e.g. semi-finals)" placeholderTextColor={C.ink3} className="text-ink font-semibold text-xs mb-3" />
                   <TouchableOpacity onPress={() => triggerPicker(i)} className="bg-card rounded-xl px-4 py-3 mb-3 border border-line flex-row justify-between items-center">
                     <Text className="text-ink-3 font-semibold text-label">Date & Time</Text>
                     <Text className="text-ink font-semibold text-label">{item.date.toLocaleDateString()} {item.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
                   </TouchableOpacity>
-                  <TextInput value={item.description} onChangeText={(t) => setTimeline(timeline.map((x, idx) => idx === i ? { ...x, description: t } : x))} placeholder="What happens in this stage?" placeholderTextColor="#8B857E" multiline className="text-ink-3 text-xs leading-4" />
+                  <TextInput value={item.description} onChangeText={(t) => setTimeline(timeline.map((x, idx) => idx === i ? { ...x, description: t } : x))} placeholder="What happens in this stage?" placeholderTextColor={C.ink3} multiline className="text-ink-3 text-xs leading-4" />
                   <TouchableOpacity onPress={() => setTimeline(timeline.filter((_, idx) => idx !== i))} className="mt-4 self-end">
-                    <Ionicons name="trash" size={16} color="#DC2626" />
+                    <Ionicons name="trash" size={16} color={C.danger} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -624,15 +625,15 @@ const HackathonCreate = () => {
             <View className="bg-paper-2 rounded-sheet p-card-pad mb-8 border border-line">
               <View className="mb-6">
                 <Text className="text-ink-3 font-semibold text-label mb-3 px-2">Official Contact Email</Text>
-                <TextInput value={form.contactEmail} onChangeText={t => setForm({ ...form, contactEmail: t })} placeholder="support@yourhackathon.com" placeholderTextColor="#8B857E" className="bg-card rounded-card px-6 py-4 text-ink font-semibold text-xs border border-line" />
+                <TextInput value={form.contactEmail} onChangeText={t => setForm({ ...form, contactEmail: t })} placeholder="support@yourhackathon.com" placeholderTextColor={C.ink3} className="bg-card rounded-card px-6 py-4 text-ink font-semibold text-xs border border-line" />
               </View>
               <View className="mb-6">
                 <Text className="text-ink-3 font-semibold text-label mb-3 px-2">Discord server</Text>
-                <TextInput value={form.discordLink} onChangeText={t => setForm({ ...form, discordLink: t })} placeholder="discord.gg/invite" placeholderTextColor="#8B857E" className="bg-card rounded-card px-6 py-4 text-ink font-semibold text-xs border border-line" />
+                <TextInput value={form.discordLink} onChangeText={t => setForm({ ...form, discordLink: t })} placeholder="discord.gg/invite" placeholderTextColor={C.ink3} className="bg-card rounded-card px-6 py-4 text-ink font-semibold text-xs border border-line" />
               </View>
               <View>
                 <Text className="text-ink-3 font-semibold text-label mb-3 px-2">Website</Text>
-                <TextInput value={form.websiteLink} onChangeText={t => setForm({ ...form, websiteLink: t })} placeholder="https://yourhackathon.com" placeholderTextColor="#8B857E" className="bg-card rounded-card px-6 py-4 text-ink font-semibold text-xs border border-line" />
+                <TextInput value={form.websiteLink} onChangeText={t => setForm({ ...form, websiteLink: t })} placeholder="https://yourhackathon.com" placeholderTextColor={C.ink3} className="bg-card rounded-card px-6 py-4 text-ink font-semibold text-xs border border-line" />
               </View>
             </View>
 
@@ -643,10 +644,10 @@ const HackathonCreate = () => {
                 <View key={i} className="bg-paper-2 rounded-card p-6 mb-4 border border-line">
                   <View className="flex-row items-center mb-4">
                     <TouchableOpacity onPress={() => pickSponsorLogo(i)} className="w-16 h-16 rounded-card bg-card border border-line items-center justify-center mr-4 shadow-hair">
-                      {s.logo ? <Image source={{ uri: s.logo }} className="w-full h-full rounded-card" /> : <Ionicons name="image" size={24} color="#C4BEB6" />}
+                      {s.logo ? <Image source={{ uri: s.logo }} className="w-full h-full rounded-card" /> : <Ionicons name="image" size={24} color={C.ink4} />}
                     </TouchableOpacity>
                     <View className="flex-1">
-                      <TextInput value={s.name} onChangeText={(t) => updateSponsor(i, 'name', t)} placeholder="Sponsor name" placeholderTextColor="#8B857E" className="text-ink font-semibold text-xs mb-2" />
+                      <TextInput value={s.name} onChangeText={(t) => updateSponsor(i, 'name', t)} placeholder="Sponsor name" placeholderTextColor={C.ink3} className="text-ink font-semibold text-xs mb-2" />
                       <View className="flex-row">
                         {['Title', 'Platinum', 'Gold', 'Silver', 'Bronze', 'Partner'].slice(0, 3).map(lvl => (
                           <TouchableOpacity key={lvl} onPress={() => updateSponsor(i, 'level', lvl)} className={`px-3 py-1 rounded-lg border mr-2 ${s.level === lvl ? 'bg-ink border-ink' : 'bg-card border-line'}`}>
@@ -656,7 +657,7 @@ const HackathonCreate = () => {
                       </View>
                     </View>
                     <TouchableOpacity onPress={() => removeSponsor(i)} className="ml-2">
-                      <Ionicons name="trash-outline" size={18} color="#DC2626" />
+                      <Ionicons name="trash-outline" size={18} color={C.danger} />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -671,14 +672,14 @@ const HackathonCreate = () => {
             <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
               {tracks.map((t, i) => (
                 <View key={i} className="bg-paper-2 rounded-card p-5 mb-4 border border-line">
-                  <TextInput value={t.title} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, title: val } : x))} placeholder="Track title" placeholderTextColor="#8B857E" className="text-ink font-semibold text-xs mb-3" />
-                  <TextInput value={t.description} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, description: val } : x))} placeholder="Track description" multiline placeholderTextColor="#8B857E" className="bg-card rounded-xl px-4 py-3 text-ink font-semibold text-label border border-line mb-3 h-20" />
-                  <TextInput value={t.prizes} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, prizes: val } : x))} placeholder="Track prize (e.g. ₹50,000)" placeholderTextColor="#8B857E" className="bg-card rounded-xl px-4 py-3 text-success font-semibold text-label border border-success/10" />
-                  <TouchableOpacity onPress={() => removeTrack(i)} className="absolute -top-2 -right-2 bg-card w-8 h-8 rounded-full items-center justify-center border border-line shadow-hair"><Ionicons name="close" size={16} color="#DC2626" /></TouchableOpacity>
+                  <TextInput value={t.title} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, title: val } : x))} placeholder="Track title" placeholderTextColor={C.ink3} className="text-ink font-semibold text-xs mb-3" />
+                  <TextInput value={t.description} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, description: val } : x))} placeholder="Track description" multiline placeholderTextColor={C.ink3} className="bg-card rounded-xl px-4 py-3 text-ink font-semibold text-label border border-line mb-3 h-20" />
+                  <TextInput value={t.prizes} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, prizes: val } : x))} placeholder="Track prize (e.g. ₹50,000)" placeholderTextColor={C.ink3} className="bg-card rounded-xl px-4 py-3 text-success font-semibold text-label border border-success/10" />
+                  <TouchableOpacity onPress={() => removeTrack(i)} className="absolute -top-2 -right-2 bg-card w-8 h-8 rounded-full items-center justify-center border border-line shadow-hair"><Ionicons name="close" size={16} color={C.danger} /></TouchableOpacity>
                 </View>
               ))}
               <TouchableOpacity onPress={addTrack} className="flex-row items-center justify-center p-4 border-2 border-dashed border-line rounded-card">
-                <Ionicons name="add" size={20} color="#F97316" />
+                <Ionicons name="add" size={20} color={C.brand[500]} />
                 <Text className="text-brand-600 font-semibold ml-2 text-label">Add track</Text>
               </TouchableOpacity>
             </View>
@@ -688,13 +689,13 @@ const HackathonCreate = () => {
             <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
               {faqs.map((f, i) => (
                 <View key={i} className="bg-paper-2 rounded-card p-5 mb-4 border border-line">
-                  <TextInput value={f.question} onChangeText={(val) => setFaqs(faqs.map((x, idx) => idx === i ? { ...x, question: val } : x))} placeholder="Question" placeholderTextColor="#8B857E" className="text-ink font-semibold text-xs mb-3" />
-                  <TextInput value={f.answer} onChangeText={(val) => setFaqs(faqs.map((x, idx) => idx === i ? { ...x, answer: val } : x))} placeholder="Answer" multiline placeholderTextColor="#8B857E" className="bg-card rounded-xl px-4 py-3 text-ink-3 font-semibold text-label border border-line h-20" />
-                  <TouchableOpacity onPress={() => removeFaq(i)} className="absolute -top-2 -right-2 bg-card w-8 h-8 rounded-full items-center justify-center border border-line shadow-hair"><Ionicons name="close" size={16} color="#DC2626" /></TouchableOpacity>
+                  <TextInput value={f.question} onChangeText={(val) => setFaqs(faqs.map((x, idx) => idx === i ? { ...x, question: val } : x))} placeholder="Question" placeholderTextColor={C.ink3} className="text-ink font-semibold text-xs mb-3" />
+                  <TextInput value={f.answer} onChangeText={(val) => setFaqs(faqs.map((x, idx) => idx === i ? { ...x, answer: val } : x))} placeholder="Answer" multiline placeholderTextColor={C.ink3} className="bg-card rounded-xl px-4 py-3 text-ink-3 font-semibold text-label border border-line h-20" />
+                  <TouchableOpacity onPress={() => removeFaq(i)} className="absolute -top-2 -right-2 bg-card w-8 h-8 rounded-full items-center justify-center border border-line shadow-hair"><Ionicons name="close" size={16} color={C.danger} /></TouchableOpacity>
                 </View>
               ))}
               <TouchableOpacity onPress={addFaq} className="flex-row items-center justify-center p-4 border-2 border-dashed border-line rounded-card">
-                <Ionicons name="add" size={20} color="#F97316" />
+                <Ionicons name="add" size={20} color={C.brand[500]} />
                 <Text className="text-brand-600 font-semibold ml-2 text-label">Add question</Text>
               </TouchableOpacity>
             </View>
@@ -705,22 +706,22 @@ const HackathonCreate = () => {
               {prizes.map((p, i) => (
                 <View key={i} className="flex-row items-center gap-3 mb-4">
                   <View className="w-10 h-10 rounded-xl bg-ink items-center justify-center border border-ink shadow-hair"><Text className="font-semibold text-white text-label">#{p.rank}</Text></View>
-                  <TextInput value={p.title} onChangeText={(t) => setPrizes(prizes.map((x, idx) => idx === i ? { ...x, title: t } : x))} placeholder="Prize title" placeholderTextColor="#8B857E" className="flex-1 bg-paper rounded-card px-5 py-3 font-semibold text-xs text-ink border border-line" />
-                  <TextInput value={p.amount} onChangeText={(t) => setPrizes(prizes.map((x, idx) => idx === i ? { ...x, amount: t } : x))} placeholder="Amount" placeholderTextColor="#8B857E" className="flex-1 bg-paper rounded-card px-5 py-3 font-semibold text-xs text-ink border border-line" />
+                  <TextInput value={p.title} onChangeText={(t) => setPrizes(prizes.map((x, idx) => idx === i ? { ...x, title: t } : x))} placeholder="Prize title" placeholderTextColor={C.ink3} className="flex-1 bg-paper rounded-card px-5 py-3 font-semibold text-xs text-ink border border-line" />
+                  <TextInput value={p.amount} onChangeText={(t) => setPrizes(prizes.map((x, idx) => idx === i ? { ...x, amount: t } : x))} placeholder="Amount" placeholderTextColor={C.ink3} className="flex-1 bg-paper rounded-card px-5 py-3 font-semibold text-xs text-ink border border-line" />
                 </View>
               ))}
               <TouchableOpacity onPress={addPrize} className="flex-row items-center justify-center p-4 border-2 border-dashed border-line rounded-card mt-2">
-                <Ionicons name="add" size={20} color="#F97316" />
+                <Ionicons name="add" size={20} color={C.brand[500]} />
                 <Text className="text-brand-600 font-semibold ml-2 text-label">Add prize</Text>
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity onPress={handleSubmit} disabled={loading} className="mt-12 overflow-hidden rounded-sheet shadow-hair">
               <View className="py-6 items-center justify-center flex-row" style={{ backgroundColor: '#F97316' }}>
-                {loading ? <ActivityIndicator size="small" color="#12100E" /> : (
+                {loading ? <ActivityIndicator size="small" color={C.ink} /> : (
                   <>
                     <Text className="text-ink font-display mr-3 text-lg">Create hackathon</Text>
-                    <Ionicons name="rocket" size={24} color="#12100E" />
+                    <Ionicons name="rocket" size={24} color={C.ink} />
                   </>
                 )}
               </View>

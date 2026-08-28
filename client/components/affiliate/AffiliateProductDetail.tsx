@@ -15,6 +15,7 @@ import axios from 'axios';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Alert } from '../ui/AlertModal';
 import { LinearGradient } from 'expo-linear-gradient';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -86,7 +87,7 @@ const AffiliateProductDetail = () => {
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#F97316" />
+                <ActivityIndicator size="large" color={C.brand[500]} />
             </View>
         );
     }
@@ -158,7 +159,7 @@ const AffiliateProductDetail = () => {
                                             key={s}
                                             name={s <= Math.round(product.rating) ? 'star' : 'star-outline'}
                                             size={18}
-                                            color="#F5B700"
+                                            color={C.alumniLit}
                                         />
                                     ))}
                                 </View>
@@ -178,7 +179,7 @@ const AffiliateProductDetail = () => {
                     </View>
 
                     <View style={styles.disclosure}>
-                        <Ionicons name="information-circle-outline" size={18} color="#57534E" />
+                        <Ionicons name="information-circle-outline" size={18} color={C.ink2} />
                         <Text style={styles.disclosureText}>
                             You will complete this purchase on the retailer&apos;s own site. Fync may earn a
                             commission at no extra cost to you.
@@ -196,7 +197,7 @@ const AffiliateProductDetail = () => {
                 </View>
                 <TouchableOpacity style={styles.buyButton} onPress={handleBuyNow}>
                     <Text style={styles.buyButtonText}>Buy Now</Text>
-                    <Ionicons name="arrow-forward" size={20} color="#12100E" style={{marginLeft: 8}} />
+                    <Ionicons name="arrow-forward" size={20} color={C.ink} style={{marginLeft: 8}} />
                 </TouchableOpacity>
             </View>
         </View>

@@ -5,7 +5,6 @@ import axios from '../../context/axiosConfig';
 import { navigate, goBack } from '../../utils/navigation';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useAuth } from '../../context/auth.context';
 import * as ImagePicker from 'expo-image-picker';
 import { collegesInIndia } from '../../data/college';
@@ -17,6 +16,7 @@ import * as Sharing from 'expo-sharing';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -122,7 +122,7 @@ const JoinedBootcampCard = memo(({ item, onShowQR, onRefresh }: { item: Bootcamp
                 </View>
 
                 <View className="flex-row items-center mb-6 bg-paper-2 self-start px-4 py-2 rounded-card border border-line">
-                    <Ionicons name="time-outline" size={14} color="#4F46E5" />
+                    <Ionicons name="time-outline" size={14} color={C.recruiter} />
                     <Text className="text-ink text-label font-display uppercase ml-2">
                         {session.startTime} - {session.endTime}
                     </Text>
@@ -133,7 +133,7 @@ const JoinedBootcampCard = memo(({ item, onShowQR, onRefresh }: { item: Bootcamp
                     onPress={() => onShowQR(item)}
                     className="flex-row items-center justify-center py-4 rounded-card bg-paper-2 border border-line"
                 >
-                    <Ionicons name="qr-code" size={16} color="#4F46E5" />
+                    <Ionicons name="qr-code" size={16} color={C.recruiter} />
                     <Text className="font-semibold text-base text-ink ml-3">
                         Access Pass
                     </Text>
@@ -179,11 +179,11 @@ const BootcampCard = memo(({ item, onRegister, isAdmin, isPrimaryAdmin, onViewAt
                             <Ionicons name="scan" size={18} color="white" />
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => onViewAttendees(item.eventId)} className="w-10 h-10 bg-card rounded-card items-center justify-center border border-line shadow-hair">
-                            <Ionicons name="people" size={18} color="#12100E" />
+                            <Ionicons name="people" size={18} color={C.ink} />
                         </TouchableOpacity>
                         {isPrimaryAdmin && (
                             <TouchableOpacity onPress={() => onEditSession(item)} className="w-10 h-10 bg-card rounded-card items-center justify-center border border-line shadow-hair">
-                                <Ionicons name="settings-outline" size={18} color="#12100E" />
+                                <Ionicons name="settings-outline" size={18} color={C.ink} />
                             </TouchableOpacity>
                         )}
                     </View>
@@ -194,7 +194,7 @@ const BootcampCard = memo(({ item, onRegister, isAdmin, isPrimaryAdmin, onViewAt
                         <Image source={{ uri: item.logo }} className="w-full h-full rounded-card" />
                     ) : (
                         <View className="w-full h-full bg-recruiter/10 rounded-card items-center justify-center">
-                            <Ionicons name="rocket" size={24} color="#4F46E5" />
+                            <Ionicons name="rocket" size={24} color={C.recruiter} />
                         </View>
                     )}
                 </View>
@@ -221,7 +221,7 @@ const BootcampCard = memo(({ item, onRegister, isAdmin, isPrimaryAdmin, onViewAt
                                         {contact.mobile && (
                                             <TouchableOpacity onPress={() => Linking.openURL(`tel:${contact.mobile}`)} className="flex-row items-center">
                                                 <View className="w-5 h-5 bg-recruiter/15 rounded-lg items-center justify-center mr-2">
-                                                    <Ionicons name="call" size={8} color="#4F46E5" />
+                                                    <Ionicons name="call" size={8} color={C.recruiter} />
                                                 </View>
                                                 <Text className="text-recruiter font-display text-label uppercase">{contact.mobile}</Text>
                                             </TouchableOpacity>
@@ -243,13 +243,13 @@ const BootcampCard = memo(({ item, onRegister, isAdmin, isPrimaryAdmin, onViewAt
 
                 <View className="flex-row items-center gap-3 mb-8">
                     <View className="flex-row items-center bg-paper-2 px-4 py-2 rounded-card border border-line">
-                        <Ionicons name="calendar-outline" size={14} color="#8B857E" />
+                        <Ionicons name="calendar-outline" size={14} color={C.ink3} />
                         <Text className="text-ink text-label font-display uppercase ml-2">
                             {new Date(item.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                         </Text>
                     </View>
                     <View className="flex-row items-center bg-paper-2 px-4 py-2 rounded-card border border-line">
-                        <Ionicons name="time-outline" size={14} color="#8B857E" />
+                        <Ionicons name="time-outline" size={14} color={C.ink3} />
                         <Text className="text-ink text-label font-display uppercase ml-2">{item.startTime}</Text>
                     </View>
                 </View>
@@ -275,7 +275,7 @@ const BootcampCard = memo(({ item, onRegister, isAdmin, isPrimaryAdmin, onViewAt
                                 <Text className="text-recruiter font-semibold text-label uppercase mt-0.5">Established Community</Text>
                             </View>
                         </View>
-                        <Ionicons name="chevron-forward" size={18} color="#4F46E5" />
+                        <Ionicons name="chevron-forward" size={18} color={C.recruiter} />
                     </TouchableOpacity>
                 )}
 
@@ -680,7 +680,7 @@ export default function BootcampScreen() {
         [collegeSearch]
     );
 
-    if (loading) return <View className="flex-1 bg-paper items-center justify-center"><ActivityIndicator color="#4F46E5" size="large" /></View>;
+    if (loading) return <View className="flex-1 bg-paper items-center justify-center"><ActivityIndicator color={C.recruiter} size="large" /></View>;
 
     return (
         <View className="flex-1 bg-paper">
@@ -703,7 +703,7 @@ export default function BootcampScreen() {
                                       accessibilityLabel="Go back"
                                       style={{ marginLeft: -11 }}
                                     >
-                                      <Ionicons name="arrow-back" size={24} color="#12100E" />
+                                      <Ionicons name="arrow-back" size={24} color={C.ink} />
                                     </TouchableOpacity>
                                     <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Bootcamp</Text>
                                     <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Hub</Text>
@@ -714,7 +714,7 @@ export default function BootcampScreen() {
                                         onPress={() => setTicketsModalVisible(true)}
                                         className="w-12 h-12 bg-card rounded-card items-center justify-center shadow-hair border border-line"
                                     >
-                                        <Ionicons name="ticket" size={20} color="#F97316" />
+                                        <Ionicons name="ticket" size={20} color={C.brand[500]} />
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => {
                                         setEditData({ admin_email: user?.email });
@@ -787,10 +787,10 @@ export default function BootcampScreen() {
                                             onPress={() => exportToExcel('Bootcamp_Attendees')}
                                             className="w-12 h-12 bg-card/10 rounded-card items-center justify-center"
                                         >
-                                            <MaterialIcons name="file-download" size={24} color="white" />
+                                            <Ionicons name="download-outline" size={24} color="white" />
                                         </TouchableOpacity>
                                         <TouchableOpacity onPress={() => setAttendeeModalVisible(false)} className="w-12 h-12 bg-card rounded-card items-center justify-center">
-                                            <Ionicons name="close" size={24} color="#4F46E5" />
+                                            <Ionicons name="close" size={24} color={C.recruiter} />
                                         </TouchableOpacity>
                                     </View>
                                 </View>
@@ -820,7 +820,7 @@ export default function BootcampScreen() {
                                 </ScrollView>
                             </View>
                             <View className="bg-warning/10 px-gutter py-3 border-b border-warning/15 flex-row items-center gap-3">
-                                <Ionicons name="information-circle" size={18} color="#B45309" />
+                                <Ionicons name="information-circle" size={18} color={C.warning} />
                                 <Text className="text-warning text-label font-semibold uppercase flex-1">
                                     Download the list now. All participant details and and community messages will be permanently deleted 7 days after event completion.
                                 </Text>
@@ -923,7 +923,7 @@ export default function BootcampScreen() {
                                     <Text className="text-ink/50 font-semibold text-label uppercase mt-1">Design your training session</Text>
                                 </View>
                                 <TouchableOpacity onPress={() => setSessionModalVisible(false)} className="w-12 h-12 bg-card rounded-card items-center justify-center">
-                                    <Ionicons name="close" size={24} color="#4F46E5" />
+                                    <Ionicons name="close" size={24} color={C.recruiter} />
                                 </TouchableOpacity>
                             </View>
                             <ScrollView className="p-card-pad">
@@ -943,7 +943,7 @@ export default function BootcampScreen() {
 
                                 <TextInput
                                     placeholder="Bootcamp Title (e.g., MERN Masterclass)"
-                                    placeholderTextColor="#8B857E"
+                                    placeholderTextColor={C.ink3}
                                     value={editData.eventName}
                                     onChangeText={(t) => setEditData({ ...editData, eventName: t })}
                                     className="bg-paper-2 p-6 rounded-card mb-4 font-semibold text-ink border border-line"
@@ -951,7 +951,7 @@ export default function BootcampScreen() {
 
                                 <TextInput
                                     placeholder="Describe the curriculum..."
-                                    placeholderTextColor="#8B857E"
+                                    placeholderTextColor={C.ink3}
                                     multiline
                                     value={editData.description}
                                     onChangeText={(t) => setEditData({ ...editData, description: t })}
@@ -981,12 +981,12 @@ export default function BootcampScreen() {
                                                 }}
                                                 className="absolute top-4 right-4 z-10"
                                             >
-                                                <Ionicons name="trash-outline" size={16} color="#DC2626" />
+                                                <Ionicons name="trash-outline" size={16} color={C.danger} />
                                             </TouchableOpacity>
 
                                             <TextInput
                                                 placeholder="Mentor Name"
-                                                placeholderTextColor="#8B857E"
+                                                placeholderTextColor={C.ink3}
                                                 value={contact.name}
                                                 onChangeText={(t) => {
                                                     const contacts = [...(editData.contactDetails || [])];
@@ -999,7 +999,7 @@ export default function BootcampScreen() {
                                                 <View className="flex-1">
                                                     <TextInput
                                                         placeholder="Mobile"
-                                                        placeholderTextColor="#8B857E"
+                                                        placeholderTextColor={C.ink3}
                                                         value={contact.mobile}
                                                         onChangeText={(t) => {
                                                             const contacts = [...(editData.contactDetails || [])];
@@ -1013,7 +1013,7 @@ export default function BootcampScreen() {
                                                 <View className="flex-1">
                                                     <TextInput
                                                         placeholder="Email"
-                                                        placeholderTextColor="#8B857E"
+                                                        placeholderTextColor={C.ink3}
                                                         value={contact.email}
                                                         onChangeText={(t) => {
                                                             const contacts = [...(editData.contactDetails || [])];
@@ -1141,12 +1141,12 @@ export default function BootcampScreen() {
                                     <Text className={editData.college ? 'text-ink font-semibold' : 'text-ink-3 font-semibold'}>
                                         {editData.college || 'College'}
                                     </Text>
-                                    <Ionicons name="business" size={18} color="#8B857E" />
+                                    <Ionicons name="business" size={18} color={C.ink3} />
                                 </TouchableOpacity>
 
                                 <TextInput
                                     placeholder="Venue / Campus Location (e.g. Auditorium)"
-                                    placeholderTextColor="#8B857E"
+                                    placeholderTextColor={C.ink3}
                                     value={editData.venue}
                                     onChangeText={(t) => setEditData({ ...editData, venue: t })}
                                     className="bg-paper-2 p-6 rounded-card mb-4 font-semibold text-ink border border-line"
@@ -1156,7 +1156,7 @@ export default function BootcampScreen() {
                                         <Text className="text-ink-3 font-semibold text-label uppercase mb-2">Student Limit</Text>
                                         <TextInput
                                             placeholder="100"
-                                            placeholderTextColor="#8B857E"
+                                            placeholderTextColor={C.ink3}
                                             keyboardType="numeric"
                                             value={editData.userLimit?.toString()}
                                             onChangeText={(t) => setEditData({ ...editData, userLimit: parseInt(t) || 0 })}
@@ -1167,7 +1167,7 @@ export default function BootcampScreen() {
                                         <Text className="text-ink-3 font-semibold text-label uppercase mb-2">Fee (INR)</Text>
                                         <TextInput
                                             placeholder="0 (Free)"
-                                            placeholderTextColor="#8B857E"
+                                            placeholderTextColor={C.ink3}
                                             keyboardType="numeric"
                                             value={editData.fee?.toString()}
                                             onChangeText={(t) => setEditData({ ...editData, fee: parseInt(t) || 0 })}
@@ -1184,10 +1184,10 @@ export default function BootcampScreen() {
                                         </View>
                                         <View className="flex-row items-center gap-2 mb-4">
                                             <View className="flex-1 bg-paper px-6 py-4 flex-row items-center border-2 border-ink rounded-md">
-                                                <Ionicons name="at" size={16} color="#8B857E" />
+                                                <Ionicons name="at" size={16} color={C.ink3} />
                                                 <TextInput
                                                     placeholder="Admin Username"
-                                                    placeholderTextColor="#8B857E"
+                                                    placeholderTextColor={C.ink3}
                                                     value={adminEmailInput}
                                                     onChangeText={setAdminEmailInput}
                                                     className="flex-1 ml-3 font-semibold text-ink text-xs"
@@ -1222,7 +1222,7 @@ export default function BootcampScreen() {
                                                             <Text className="text-ink font-semibold text-xs">{suggestion.name}</Text>
                                                             <Text className="text-ink-3 text-label font-semibold uppercase mt-0.5">@{suggestion.username}</Text>
                                                         </View>
-                                                        <Ionicons name="add-circle" size={20} color="#4F46E5" />
+                                                        <Ionicons name="add-circle" size={20} color={C.recruiter} />
                                                     </TouchableOpacity>
                                                 ))}
                                             </View>
@@ -1237,7 +1237,7 @@ export default function BootcampScreen() {
                                                         <Text className="text-ink-2 font-semibold text-label mr-2">{display}</Text>
                                                         {editData.admin_email === user?.email && (
                                                             <TouchableOpacity onPress={() => handleRemoveAdmin(adminId)}>
-                                                                <Ionicons name="close-circle" size={16} color="#DC2626" />
+                                                                <Ionicons name="close-circle" size={16} color={C.danger} />
                                                             </TouchableOpacity>
                                                         )}
                                                     </View>
@@ -1298,7 +1298,7 @@ export default function BootcampScreen() {
                                         onPress={handleDeleteBootcamp}
                                         className="bg-danger/10 p-6 rounded-card items-center justify-center mb-20 border border-danger/15 flex-row gap-2"
                                     >
-                                        <Ionicons name="trash" size={18} color="#DC2626" />
+                                        <Ionicons name="trash" size={18} color={C.danger} />
                                         <Text className="text-danger font-display text-xs uppercase">Delete Bootcamp Hub</Text>
                                     </TouchableOpacity>
                                 )}
@@ -1335,7 +1335,7 @@ export default function BootcampScreen() {
                                     ListEmptyComponent={
                                         <View className="items-center mt-20">
                                             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                                <Ionicons name="ticket-outline" size={40} color="#C4BEB6" />
+                                                <Ionicons name="ticket-outline" size={40} color={C.ink4} />
                                             </View>
                                             <Text className="font-sans text-sm text-ink-3 text-center">No active bootcamps found</Text>
                                         </View>
@@ -1380,10 +1380,10 @@ export default function BootcampScreen() {
                                     </TouchableOpacity>
                                 </View>
                                 <View className="flex-row items-center bg-card/10 rounded-card px-4 border border-white/10">
-                                    <Ionicons name="search" size={16} color="#8B857E" />
+                                    <Ionicons name="search" size={16} color={C.ink3} />
                                     <TextInput
                                         placeholder="Search colleges..."
-                                        placeholderTextColor="#8B857E"
+                                        placeholderTextColor={C.ink3}
                                         value={collegeSearch}
                                         onChangeText={setCollegeSearch}
                                         className="flex-1 h-12 text-white font-semibold ml-3"
@@ -1402,7 +1402,7 @@ export default function BootcampScreen() {
                                         }}
                                         className="p-5 border-b border-line flex-row items-center"
                                     >
-                                        <Ionicons name="business-outline" size={16} color="#4F46E5" />
+                                        <Ionicons name="business-outline" size={16} color={C.recruiter} />
                                         <Text className="text-ink font-semibold ml-3 text-xs">{item}</Text>
                                     </TouchableOpacity>
                                 )}

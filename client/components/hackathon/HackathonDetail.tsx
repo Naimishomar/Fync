@@ -23,6 +23,7 @@ import { useAuth } from '../../context/auth.context';
 import Toast from 'react-native-toast-message';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
+import { C } from '../../constants/colors';
 
 /**
  * A hackathon listing.
@@ -91,7 +92,7 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
 const InfoCell = ({ icon, label, value }: { icon: any; label: string; value: string }) => (
   <View className="flex-1 bg-card border border-line rounded-card p-3.5">
     <View className="flex-row items-center mb-1.5">
-      <Feather name={icon} size={12} color="#8B857E" />
+      <Feather name={icon} size={12} color={C.ink3} />
       <Text className="text-ink-3 text-label font-semibold ml-1.5">{label}</Text>
     </View>
     <Text className="text-ink text-sm font-semibold" numberOfLines={2}>
@@ -112,7 +113,7 @@ const FAQItem = ({ faq }: { faq: { question: string; answer: string } }) => {
     >
       <View className="flex-row items-start justify-between">
         <Text className="text-ink text-sm font-semibold flex-1 mr-3">{faq.question}</Text>
-        <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={16} color="#8B857E" />
+        <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={16} color={C.ink3} />
       </View>
       {expanded ? (
         <Text className="text-ink-2 text-sm leading-5 mt-2.5">{faq.answer}</Text>
@@ -174,7 +175,7 @@ const WinnerCard = ({ winner, onOpenProfile }: { winner: Winner; onOpenProfile: 
           className="flex-row items-center mt-2.5"
           accessibilityRole="link"
         >
-          <Feather name="external-link" size={12} color="#C2410C" />
+          <Feather name="external-link" size={12} color={C.brand[700]} />
           <Text className="text-brand-700 text-label font-semibold ml-1.5">View the project</Text>
         </TouchableOpacity>
       ) : null}
@@ -319,7 +320,7 @@ const HackathonDetail = () => {
   if (loading) {
     return (
       <View className="flex-1 bg-paper items-center justify-center">
-        <ActivityIndicator size="large" color="#F97316" />
+        <ActivityIndicator size="large" color={C.brand[500]} />
       </View>
     );
   }
@@ -327,7 +328,7 @@ const HackathonDetail = () => {
   if (!hackathon) {
     return (
       <SafeAreaView className="flex-1 bg-paper items-center justify-center px-gutter">
-        <MaterialCommunityIcons name="rocket-launch-outline" size={40} color="#C4BEB6" />
+        <MaterialCommunityIcons name="rocket-launch-outline" size={40} color={C.ink4} />
         <Text className="text-ink text-base font-semibold mt-4">Hackathon not found</Text>
         <TouchableOpacity onPress={() => navigation.goBack()} className="mt-5 bg-ink px-4 py-3 rounded-md border-2 border-ink">
           <Text className="text-white text-label font-semibold">Go back</Text>
@@ -371,7 +372,7 @@ const HackathonDetail = () => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
-            <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
+            <Ionicons name="arrow-back" size={22} color={C.white} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={shareListing}
@@ -379,7 +380,7 @@ const HackathonDetail = () => {
             accessibilityRole="button"
             accessibilityLabel="Share this hackathon"
           >
-            <Feather name="share-2" size={18} color="#FFFFFF" />
+            <Feather name="share-2" size={18} color={C.white} />
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -388,7 +389,7 @@ const HackathonDetail = () => {
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" colors={['#F97316']} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={['#F97316']} />}
         contentContainerStyle={{ paddingBottom: 140 + bottomInset }}
       >
         {/* Banner */}
@@ -411,7 +412,7 @@ const HackathonDetail = () => {
                 {hackathon.logo ? (
                   <Image source={{ uri: hackathon.logo }} className="w-full h-full" resizeMode="contain" />
                 ) : (
-                  <MaterialCommunityIcons name="domain" size={20} color="#8B857E" />
+                  <MaterialCommunityIcons name="domain" size={20} color={C.ink3} />
                 )}
               </View>
               <View className="flex-1">
@@ -429,7 +430,7 @@ const HackathonDetail = () => {
             {/* Fync lists, the organiser runs it. Saying so up front stops
                 students waiting for a Fync-side registration that never comes. */}
             <View className="flex-row items-start bg-paper-2 border border-line rounded-card p-3 mt-3.5">
-              <Feather name="info" size={13} color="#8B857E" style={{ marginTop: 1 }} />
+              <Feather name="info" size={13} color={C.ink3} style={{ marginTop: 1 }} />
               <Text className="text-ink-2 text-label leading-4 ml-2 flex-1">
                 Registration, teams and judging are handled by the organiser
                 {hackathon.applyLink ? ` on ${hostOf(hackathon.applyLink)}` : ''}. Fync just lists it.
@@ -477,7 +478,7 @@ const HackathonDetail = () => {
             </View>
           ) : hasEnded ? (
             <View className="items-center bg-card border border-line rounded-card p-5 mt-6">
-              <MaterialCommunityIcons name="trophy-outline" size={24} color="#C4BEB6" />
+              <MaterialCommunityIcons name="trophy-outline" size={24} color={C.ink4} />
               <Text className="text-ink-2 text-label font-semibold mt-2 text-center">
                 Results not announced yet
               </Text>
@@ -543,7 +544,7 @@ const HackathonDetail = () => {
                         <Text className="text-ink-3 text-label font-semibold w-20">{label}</Text>
                         {open ? (
                           <View className="flex-row items-center flex-1">
-                            <Feather name="check" size={12} color="#047857" />
+                            <Feather name="check" size={12} color={C.success} />
                             <Text className="text-success text-label font-semibold ml-1.5">{allLabel}</Text>
                           </View>
                         ) : (
@@ -612,11 +613,11 @@ const HackathonDetail = () => {
                             activeOpacity={0.85}
                             accessibilityRole="link"
                           >
-                            <Feather name={icon} size={14} color="#8B857E" />
+                            <Feather name={icon} size={14} color={C.ink3} />
                             <Text className="text-ink-2 text-sm font-semibold ml-2.5 flex-1" numberOfLines={1}>
                               {val}
                             </Text>
-                            <Feather name="external-link" size={13} color="#C4BEB6" />
+                            <Feather name="external-link" size={13} color={C.ink4} />
                           </TouchableOpacity>
                         ) : null
                       )}
@@ -713,7 +714,7 @@ const HackathonDetail = () => {
                 activeOpacity={0.9}
                 accessibilityRole="button"
               >
-                <MaterialCommunityIcons name="trophy" size={17} color="#F97316" />
+                <MaterialCommunityIcons name="trophy" size={17} color={C.brand[500]} />
                 <View className="flex-1 ml-3">
                   <Text className="text-white text-sm font-semibold">
                     {winners.length ? 'Edit winners' : 'Announce winners'}
@@ -731,9 +732,9 @@ const HackathonDetail = () => {
                 activeOpacity={0.85}
                 accessibilityRole="button"
               >
-                <Feather name="edit-3" size={15} color="#12100E" />
+                <Feather name="edit-3" size={15} color={C.ink} />
                 <Text className="text-ink text-sm font-semibold ml-3 flex-1">Edit listing</Text>
-                <Ionicons name="chevron-forward" size={16} color="#C4BEB6" />
+                <Ionicons name="chevron-forward" size={16} color={C.ink4} />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -742,7 +743,7 @@ const HackathonDetail = () => {
                 activeOpacity={0.85}
                 accessibilityRole="button"
               >
-                <Feather name={isDraft ? 'eye' : 'eye-off'} size={15} color="#12100E" />
+                <Feather name={isDraft ? 'eye' : 'eye-off'} size={15} color={C.ink} />
                 <View className="flex-1 ml-3">
                   <Text className="text-ink text-sm font-semibold">
                     {isDraft ? 'Publish listing' : 'Hide listing'}
@@ -753,7 +754,7 @@ const HackathonDetail = () => {
                       : 'Live / upcoming / ended follow your dates — edit them to change it'}
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color="#C4BEB6" />
+                <Ionicons name="chevron-forward" size={16} color={C.ink4} />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -786,7 +787,7 @@ const HackathonDetail = () => {
           <Text className="text-ink text-base font-display">
             {hackathon.applyLabel || 'Register'}
           </Text>
-          <Feather name="external-link" size={15} color="#12100E" style={{ marginLeft: 8 }} />
+          <Feather name="external-link" size={15} color={C.ink} style={{ marginLeft: 8 }} />
         </TouchableOpacity>
         <Text className="text-ink-3 text-label font-semibold text-center mt-2" numberOfLines={1}>
           {hackathon.applyLink ? `Opens ${hostOf(hackathon.applyLink)}` : 'No registration link yet'}

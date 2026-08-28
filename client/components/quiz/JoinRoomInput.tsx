@@ -7,6 +7,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const JoinRoomInput = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -50,7 +51,7 @@ const JoinRoomInput = () => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
           <View>
             <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Join</Text>
@@ -66,7 +67,7 @@ const JoinRoomInput = () => {
           <View className="bg-card p-card-pad rounded-sheet border border-line items-center shadow-hair">
 
             <View className="bg-paper-2 w-24 h-24 rounded-sheet items-center justify-center mb-8 border border-line">
-              <Ionicons name="keypad" size={40} color="#F97316" />
+              <Ionicons name="keypad" size={40} color={C.brand[500]} />
             </View>
 
             <Text className="text-2xl font-display text-ink mb-3 text-center uppercase">Enter Room Node</Text>
@@ -79,7 +80,7 @@ const JoinRoomInput = () => {
               value={roomId}
               onChangeText={setRoomId}
               placeholder="000000"
-              placeholderTextColor="#C4BEB6"
+              placeholderTextColor={C.ink4}
               className="w-full bg-card border-2 border-ink p-6 rounded-card mb-10 text-center text-ink text-4xl font-display uppercase"
               style={{ letterSpacing: 12, shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 }}
               autoCapitalize="characters"
@@ -95,11 +96,11 @@ const JoinRoomInput = () => {
               className={`w-full py-5 rounded-card border-2 border-ink flex-row justify-center items-center ${loading ? 'bg-brand-200' : 'bg-brand-500'}`}
             >
               {loading ? (
-                <ActivityIndicator color="#12100E" size="small" />
+                <ActivityIndicator color={C.ink} size="small" />
               ) : (
                 <>
                   <Text className="font-display text-ink uppercase mr-2" style={{ fontSize: 14, letterSpacing: 0.3 }}>Initialize</Text>
-                  <Ionicons name="rocket" size={20} color="#12100E" />
+                  <Ionicons name="rocket" size={20} color={C.ink} />
                 </>
               )}
             </TouchableOpacity>

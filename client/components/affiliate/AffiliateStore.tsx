@@ -14,6 +14,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { C } from '../../constants/colors';
 
 const CATEGORIES = ['All', 'Education', 'Electronics', 'Fashion', 'Books', 'Lifestyle'];
 
@@ -79,7 +80,7 @@ const AffiliateStore = () => {
                 </View>
                 {item.rating > 0 && (
                     <View style={styles.ratingRow}>
-                        <Ionicons name="star" size={12} color="#F5B700" />
+                        <Ionicons name="star" size={12} color={C.alumniLit} />
                         <Text style={styles.ratingText}>{item.rating}</Text>
                         {item.reviewsCount > 0 && (
                             <Text style={styles.reviewsText}>({item.reviewsCount})</Text>
@@ -99,7 +100,7 @@ const AffiliateStore = () => {
                         accessibilityRole="button"
                         accessibilityLabel="Go back"
                         style={{ marginLeft: -11 }}>
-                        <Ionicons name="arrow-back" size={24} color="#12100E" />
+                        <Ionicons name="arrow-back" size={24} color={C.ink} />
                     </TouchableOpacity>
                 </View>
 
@@ -110,11 +111,11 @@ const AffiliateStore = () => {
                 <Text style={styles.displaySub}>Deals worth a student&apos;s money</Text>
 
                 <View style={styles.searchContainer}>
-                    <Ionicons name="search" size={20} color="#8B857E" style={styles.searchIcon} />
+                    <Ionicons name="search" size={20} color={C.ink3} style={styles.searchIcon} />
                     <TextInput
                         style={styles.searchInput}
                         placeholder="Search for laptop, gadgets, books..."
-                        placeholderTextColor="#8B857E"
+                        placeholderTextColor={C.ink3}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                         onSubmitEditing={fetchProducts}
@@ -146,7 +147,7 @@ const AffiliateStore = () => {
 
             {loading && !refreshing ? (
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#F97316" />
+                    <ActivityIndicator size="large" color={C.brand[500]} />
                     <Text style={styles.loadingText}>Loading curated deals...</Text>
                 </View>
             ) : (
@@ -157,11 +158,11 @@ const AffiliateStore = () => {
                     numColumns={2}
                     contentContainerStyle={styles.productList}
                     refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
                     }
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
-                            <Ionicons name="bag-handle-outline" size={64} color="#C4BEB6" />
+                            <Ionicons name="bag-handle-outline" size={64} color={C.ink4} />
                             <Text style={styles.emptyText}>No products found in this category</Text>
                         </View>
                     }

@@ -6,6 +6,7 @@ import { useAuth } from '../../context/auth.context';
 import socket from '../../utils/socket';
 import ChessGame from './ChessGame';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -105,7 +106,7 @@ const ChessHome = () => {
 
                 <View className="items-center mb-10 mt-4">
                     <View className="w-24 h-24 bg-ink rounded-sheet justify-center items-center mb-6 shadow-hair border-2 border-recruiter/20">
-                        <FontAwesome5 name="chess-knight" size={44} color="#4F46E5" />
+                        <FontAwesome5 name="chess-knight" size={44} color={C.recruiter} />
                     </View>
                     <Text className="text-2xl font-display text-ink uppercase text-center leading-8">Fync Chess Arena</Text>
                     <View className="bg-recruiter/10 mt-3 border border-recruiter/15 px-2.5 py-1 rounded-full">
@@ -115,7 +116,7 @@ const ChessHome = () => {
 
                 {status === 'searching' ? (
                     <View className="items-center py-10 bg-paper-2/50 rounded-card border border-line">
-                        <ActivityIndicator size="large" color="#4F46E5" />
+                        <ActivityIndicator size="large" color={C.recruiter} />
                         <Text className="mt-6 font-display text-ink-2 text-xs">SEARCHING FOR OPPONENT...</Text>
                         <TouchableOpacity 
                             onPress={() => {
@@ -139,7 +140,7 @@ const ChessHome = () => {
                              style={{ backgroundColor: '#171320' }}>
                                 <View className="flex-row items-center">
                                     <View className="w-12 h-12 bg-card/10 rounded-full items-center justify-center border border-white/10">
-                                        <Ionicons name="globe" size={24} color="#4F46E5" />
+                                        <Ionicons name="globe" size={24} color={C.recruiter} />
                                     </View>
                                     <View className="ml-4">
                                         <Text className="text-white font-display text-sm uppercase">Play Online</Text>
@@ -147,7 +148,7 @@ const ChessHome = () => {
                                     </View>
                                 </View>
                                 <View className="w-8 h-8 bg-card/10 rounded-full items-center justify-center">
-                                    <Ionicons name="chevron-forward" size={16} color="#4F46E5" />
+                                    <Ionicons name="chevron-forward" size={16} color={C.recruiter} />
                                 </View>
                             </View>
                         </TouchableOpacity>
@@ -160,7 +161,7 @@ const ChessHome = () => {
                             <View className="flex-1 bg-paper flex-row items-center justify-between px-6">
                                 <View className="flex-row items-center">
                                     <View className="w-12 h-12 bg-paper-2 rounded-full items-center justify-center border border-line">
-                                        <FontAwesome5 name="robot" size={20} color="#8B857E" />
+                                        <FontAwesome5 name="robot" size={20} color={C.ink3} />
                                     </View>
                                     <View className="ml-4">
                                         <Text className="text-ink font-display text-sm uppercase">Play VS AI</Text>
@@ -168,7 +169,7 @@ const ChessHome = () => {
                                     </View>
                                 </View>
                                 <View className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center">
-                                    <Ionicons name="chevron-forward" size={16} color="#8B857E" />
+                                    <Ionicons name="chevron-forward" size={16} color={C.ink3} />
                                 </View>
                             </View>
                         </TouchableOpacity>

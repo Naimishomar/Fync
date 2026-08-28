@@ -11,6 +11,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Alert } from '../ui/AlertModal';
 
 import { StampCard } from '../ui/kit';
+import { C } from '../../constants/colors';
 const COMPANIES = [
     { name: 'Google', icon: 'google', color: '#4285F4' },
     { name: 'Amazon', icon: 'amazon', color: '#FF9900' },
@@ -217,7 +218,7 @@ const PlacementHub = () => {
                                 }}
                                 className="flex-row items-center"
                             >
-                                <Ionicons name="chatbubble-outline" size={14} color="#C4BEB6" />
+                                <Ionicons name="chatbubble-outline" size={14} color={C.ink4} />
                                 <Text className="ml-1 text-label font-display text-ink-3">{item.comments?.length}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => handleSave(item._id)}>
@@ -324,10 +325,10 @@ const PlacementHub = () => {
                     </View>
 
                     <View className="bg-card flex-row items-center p-4 border-2 border-ink mb-6 shadow-hair overflow-hidden rounded-md">
-                        <Ionicons name="search" size={20} color="#C4BEB6" />
+                        <Ionicons name="search" size={20} color={C.ink4} />
                         <TextInput
                             placeholder="Search Interview Ledgers..."
-                            placeholderTextColor="#C4BEB6"
+                            placeholderTextColor={C.ink4}
                             value={search}
                             onChangeText={setSearch}
                             className="flex-1 ml-3 text-ink font-display uppercase text-label"
@@ -337,7 +338,7 @@ const PlacementHub = () => {
 
                 <ScrollView
                     showsVerticalScrollIndicator={false}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.info} />}
                 >
                     {/* Feature Cards */}
                     <View className="px-gutter mb-8 flex-row gap-4">
@@ -347,7 +348,7 @@ const PlacementHub = () => {
                             className="flex-1 bg-card border border-line rounded-card p-card-pad justify-center"
                             style={{ height: 160 }}
                         >
-                            <Ionicons name="stats-chart" size={26} color="#4F46E5" />
+                            <Ionicons name="stats-chart" size={26} color={C.recruiter} />
                             <Text className="font-semibold text-base text-ink mt-4">Predictor</Text>
                             <Text className="font-sans text-sm text-ink-3 mt-1">AI Resume Scan</Text>
                         </TouchableOpacity>
@@ -360,7 +361,7 @@ const PlacementHub = () => {
                                 className="p-card-pad justify-center"
                                 style={{ height: 160 }}
                             >
-                                <Ionicons name="mic" size={26} color="#EA580C" />
+                                <Ionicons name="mic" size={26} color={C.brand[600]} />
                                 <Text className="font-semibold text-base text-ink mt-4">Mock Sync</Text>
                                 <Text className="font-sans text-sm text-ink-3 mt-1">Real-time Simulation</Text>
                             </TouchableOpacity>
@@ -444,7 +445,7 @@ const PlacementHub = () => {
                             renderItem={renderQuestionCard}
                             ListEmptyComponent={
                                 <View className="items-center py-20 px-gutter">
-                                    <Ionicons name="document-text-outline" size={48} color="#C4BEB6" />
+                                    <Ionicons name="document-text-outline" size={48} color={C.ink4} />
                                     <Text className="font-semibold text-base text-ink mt-6 text-center">No Intelligence Found</Text>
                                 </View>
                             }
@@ -462,7 +463,7 @@ const PlacementHub = () => {
                                 <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Share Interview Intelligence</Text>
                             </View>
                             <TouchableOpacity onPress={() => setPostModalVisible(false)} className="bg-paper-2 p-2 rounded-card border border-line">
-                                <Ionicons name="close" size={20} color="#12100E" />
+                                <Ionicons name="close" size={20} color={C.ink} />
                             </TouchableOpacity>
                         </View>
 
@@ -471,17 +472,17 @@ const PlacementHub = () => {
                                 <Text className="text-ink-3 text-label font-display uppercase mb-4">Core Context</Text>
                                 <View className="bg-card rounded-sheet p-6 border border-line shadow-hair mb-8">
                                     <TextInput
-                                        placeholder="Company Name" placeholderTextColor="#C4BEB6"
+                                        placeholder="Company Name" placeholderTextColor={C.ink4}
                                         value={form.company} onChangeText={t => setForm({ ...form, company: t })}
                                         className="font-semibold text-base text-ink mb-6 border-b border-line pb-4"
                                     />
                                     <TextInput
-                                        placeholder="Role Assigned" placeholderTextColor="#C4BEB6"
+                                        placeholder="Role Assigned" placeholderTextColor={C.ink4}
                                         value={form.role} onChangeText={t => setForm({ ...form, role: t })}
                                         className="font-semibold text-base text-ink mb-6 border-b border-line pb-4"
                                     />
                                     <TextInput
-                                        placeholder="Interview Round" placeholderTextColor="#C4BEB6"
+                                        placeholder="Interview Round" placeholderTextColor={C.ink4}
                                         value={form.round} onChangeText={t => setForm({ ...form, round: t })}
                                         className="text-ink font-display uppercase text-label"
                                     />
@@ -505,14 +506,14 @@ const PlacementHub = () => {
                                 <Text className="text-ink-3 text-label font-display uppercase mb-4">Intelligence Details</Text>
                                 <View className="bg-card rounded-sheet p-6 border border-line shadow-hair mb-12">
                                     <TextInput
-                                        placeholder="Establish the question..." placeholderTextColor="#C4BEB6"
+                                        placeholder="Establish the question..." placeholderTextColor={C.ink4}
                                         multiline value={form.question} onChangeText={t => setForm({ ...form, question: t })}
                                         className="font-semibold text-base text-ink min-h-[120px] mb-4"
                                         textAlignVertical="top"
                                     />
                                     <View className="h-[1px] bg-paper-2 w-full mb-6" />
                                     <TextInput
-                                        placeholder="Internal Approach / Hints (Optional)" placeholderTextColor="#C4BEB6"
+                                        placeholder="Internal Approach / Hints (Optional)" placeholderTextColor={C.ink4}
                                         multiline value={form.description} onChangeText={t => setForm({ ...form, description: t })}
                                         className="text-ink-3 font-medium text-label min-h-[100px]"
                                         textAlignVertical="top"
@@ -540,7 +541,7 @@ const PlacementHub = () => {
                                 <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Deep Dive Protocol</Text>
                             </View>
                             <TouchableOpacity onPress={() => { setDiscussionVisible(false); setReplyingTo(null); }} className="bg-paper-2 p-2 rounded-card border border-line">
-                                <Ionicons name="close" size={20} color="#12100E" />
+                                <Ionicons name="close" size={20} color={C.ink} />
                             </TouchableOpacity>
                         </View>
 
@@ -580,7 +581,7 @@ const PlacementHub = () => {
                                     <View className="flex-row items-center justify-between bg-paper-2 px-4 py-2.5 mb-4 rounded-xl border border-line">
                                         <Text className="text-accent-text text-label font-display uppercase">Sync: @{replyingTo.commentor?.username}</Text>
                                         <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                                            <Ionicons name="close-circle" size={16} color="#F97316" />
+                                            <Ionicons name="close-circle" size={16} color={C.brand[500]} />
                                         </TouchableOpacity>
                                     </View>
                                 )}
@@ -588,7 +589,7 @@ const PlacementHub = () => {
                                     <View className="flex-1 bg-paper border border-line rounded-card px-6 h-16 justify-center">
                                         <TextInput
                                             ref={commentInputRef}
-                                            placeholder="Establish intelligence..." placeholderTextColor="#C4BEB6"
+                                            placeholder="Establish intelligence..." placeholderTextColor={C.ink4}
                                             value={newComment} onChangeText={setNewComment}
                                             className="text-ink font-display uppercase text-label"
                                             multiline

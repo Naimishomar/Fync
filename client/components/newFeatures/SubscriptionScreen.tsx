@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
 
 import { StampCard } from '../ui/kit';
+import { C } from '../../constants/colors';
 const SubscriptionScreen = ({ onSuccess }: any) => {
     const { user, logout } = useAuth();
     const navigation = useNavigation<any>();
@@ -164,7 +165,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                             accessibilityRole="button"
                             accessibilityLabel="Go back"
                         >
-                            <Ionicons name="arrow-back" size={24} color="#12100E" />
+                            <Ionicons name="arrow-back" size={24} color={C.ink} />
                         </Pressable>
                     )}
 
@@ -204,7 +205,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                                         and pink alongside brand — none of them from the
                                         palette, and none carrying any meaning. */}
                                     <View className="w-8 h-8 rounded-xl items-center justify-center mr-3 border-2 border-brand-500">
-                                        <Ionicons name={item.icon as any} size={15} color="#F97316" />
+                                        <Ionicons name={item.icon as any} size={15} color={C.brand[500]} />
                                     </View>
                                     <Text className="text-white font-sans flex-1" style={{ fontSize: 13 }}>{item.text}</Text>
                                 </View>
@@ -221,7 +222,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                             accessibilityLabel={user?.is_subscribed ? "Extend subscription" : "Unlock premium"}
                         >
                             {loading ? (
-                                <ActivityIndicator size="small" color="#12100E" />
+                                <ActivityIndicator size="small" color={C.ink} />
                             ) : (
                                 <View className="flex-row items-center">
                                     {/* Ink on brand-500 measures 6.77:1; white on it is 2.80
@@ -229,7 +230,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                                     <Text className="text-ink font-display uppercase mr-2" style={{ fontSize: 13 }}>
                                         {user?.is_subscribed ? "Extend subscription" : "Unlock premium"}
                                     </Text>
-                                    <Ionicons name="chevron-forward" size={15} color="#12100E" />
+                                    <Ionicons name="chevron-forward" size={15} color={C.ink} />
                                 </View>
                             )}
                         </TouchableOpacity>
@@ -237,7 +238,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                     </StampCard>
 
                     <View className="mt-6 flex-row items-center justify-center">
-                        <Ionicons name="shield-checkmark" size={15} color="#8B857E" />
+                        <Ionicons name="shield-checkmark" size={15} color={C.ink3} />
                         <Text className="font-sans text-ink-2 ml-2 text-center" style={{ fontSize: 12 }}>
                             Secure payment via Razorpay
                         </Text>
@@ -260,7 +261,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                                 className="items-center justify-center rounded-xl border-2 border-ink"
                                 style={{ width: 40, height: 40, backgroundColor: '#FEE2E2' }}
                             >
-                                <Ionicons name="log-out-outline" size={20} color="#DC2626" />
+                                <Ionicons name="log-out-outline" size={20} color={C.danger} />
                             </View>
                             <View className="ml-3 flex-1">
                                 <Text className="font-display text-danger" style={{ fontSize: 15 }}>Log out</Text>
@@ -268,7 +269,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                                     {user?.email ?? "Sign out of this account"}
                                 </Text>
                             </View>
-                            <Ionicons name="chevron-forward" size={18} color="#8B857E" />
+                            <Ionicons name="chevron-forward" size={18} color={C.ink3} />
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
@@ -286,7 +287,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                         />
                     ) : (
                         <View className="flex-1 justify-center items-center">
-                            <ActivityIndicator size="large" color="#F97316" />
+                            <ActivityIndicator size="large" color={C.brand[500]} />
                         </View>
                     )}
                 </SafeAreaView>

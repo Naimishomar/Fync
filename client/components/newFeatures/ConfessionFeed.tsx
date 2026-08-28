@@ -10,6 +10,7 @@ import Skeleton, { ConfessionSkeleton } from '../Skeleton';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 const ANONYMOUS_AVATAR = 'https://ui-avatars.com/api/?name=?&background=f1f5f9&color=64748b&bold=true';
@@ -51,7 +52,7 @@ const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navi
                         <Ionicons 
                             name={item.user?.gender === 'Female' ? "woman" : "man"} 
                             size={20} 
-                            color="#8B857E" 
+                            color={C.ink3} 
                         />
                     </View>
                     <View className="ml-2">
@@ -76,7 +77,7 @@ const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navi
                         }}
                         className="p-3 bg-paper-2 rounded-card border border-line"
                     >
-                        <Ionicons name="settings" size={20} color="#12100E" />
+                        <Ionicons name="settings" size={20} color={C.ink} />
                     </TouchableOpacity>
                 )}
             </View>
@@ -102,7 +103,7 @@ const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navi
                     }}
                     className="flex-row items-center bg-paper-2 py-2.5 px-5 rounded-full self-start mb-5 border border-line"
                 >
-                    <Ionicons name="at" size={14} color="#F97316" />
+                    <Ionicons name="at" size={14} color={C.brand[500]} />
                     <Text className="text-accent-text font-display text-label ml-1">{item.taggedUser?.username}</Text>
                 </TouchableOpacity>
             )}
@@ -119,7 +120,7 @@ const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navi
                         <Text className="text-ink-2 ml-2 text-xs font-display">{item.likes || 0}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => onComments(item._id)} className="flex-row items-center">
-                        <Ionicons name="chatbubbles-outline" size={20} color="#8B857E" />
+                        <Ionicons name="chatbubbles-outline" size={20} color={C.ink3} />
                         <Text className="text-ink-2 ml-2 text-xs font-display">{item.comments?.length || 0}</Text>
                     </TouchableOpacity>
                 </View>
@@ -395,7 +396,7 @@ const ConfessionFeed = () => {
                     <ExpoImage source={{ uri: item.commentor.avatar }} className="w-9 h-9 rounded-full bg-paper-2" />
                 ) : (
                     <View className="w-9 h-9 rounded-full bg-paper-2 items-center justify-center border border-line">
-                        <Ionicons name="person" size={14} color="#8B857E" />
+                        <Ionicons name="person" size={14} color={C.ink3} />
                     </View>
                 )}
                 <View className="ml-3 flex-1">
@@ -456,7 +457,7 @@ const ConfessionFeed = () => {
                             onPress={() => setIsPostModalOpen(true)}
                             className="w-12 h-12 bg-card rounded-card items-center justify-center border border-line shadow-hair"
                         >
-                            <Ionicons name="megaphone" size={20} color="#F97316" />
+                            <Ionicons name="megaphone" size={20} color={C.brand[500]} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -472,12 +473,12 @@ const ConfessionFeed = () => {
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
                     ListFooterComponent={() => (
-                        loadingMore ? <ActivityIndicator color="#F97316" className="my-8" /> : <View className="h-20" />
+                        loadingMore ? <ActivityIndicator color={C.brand[500]} className="my-8" /> : <View className="h-20" />
                     )}
                     ListEmptyComponent={
                         <View className="mt-20 items-center px-gutter">
                             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                <Ionicons name="lock-closed" size={40} color="#C4BEB6" />
+                                <Ionicons name="lock-closed" size={40} color={C.ink4} />
                             </View>
                             <Text className="text-ink font-display uppercase text-xl text-center">Protocol Locked</Text>
                             <Text className="font-sans text-sm text-ink-3 mt-2 text-center">No signals detected. Be the first to broadcast anonymously.</Text>
@@ -497,7 +498,7 @@ const ConfessionFeed = () => {
                                     <Text className="text-ink-3 text-label font-display uppercase mt-1">Anonymous Protocol Active</Text>
                                 </View>
                                 <TouchableOpacity onPress={closePostModal} className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line" hitSlop={2}>
-                                    <Ionicons name="close" size={20} color="#12100E" />
+                                    <Ionicons name="close" size={20} color={C.ink} />
                                 </TouchableOpacity>
                             </View>
 
@@ -508,19 +509,19 @@ const ConfessionFeed = () => {
                                             <ExpoImage source={{ uri: taggedUser.avatar }} className="w-5 h-5 rounded-full" />
                                         ) : (
                                             <View className="w-5 h-5 rounded-full bg-paper-2 items-center justify-center">
-                                                <Ionicons name="person" size={10} color="#8B857E" />
+                                                <Ionicons name="person" size={10} color={C.ink3} />
                                             </View>
                                         )}
                                         <Text className="text-accent-text font-display ml-2 text-label uppercase">Tagged: {taggedUser.name}</Text>
                                         <TouchableOpacity onPress={() => setTaggedUser(null)} className="ml-3 bg-brand-100 rounded-full w-4 h-4 items-center justify-center">
-                                            <Ionicons name="close" size={12} color="#F97316" />
+                                            <Ionicons name="close" size={12} color={C.brand[500]} />
                                         </TouchableOpacity>
                                     </View>
                                 )}
 
                                 <TextInput
                                     placeholder={editingConfession ? "Update your secret..." : "Type your secret (use @ to tag someone)"}
-                                    placeholderTextColor="#8B857E"
+                                    placeholderTextColor={C.ink3}
                                     multiline
                                     value={newConfession}
                                     onChangeText={handleTextChange}
@@ -543,7 +544,7 @@ const ConfessionFeed = () => {
                                                     <ExpoImage source={{ uri: u.avatar }} className="w-10 h-10 rounded-full bg-paper-2" />
                                                 ) : (
                                                     <View className="w-10 h-10 rounded-full bg-paper-2 items-center justify-center border border-line">
-                                                        <Ionicons name="person" size={18} color="#8B857E" />
+                                                        <Ionicons name="person" size={18} color={C.ink3} />
                                                     </View>
                                                 )}
                                                 <View className="ml-4">
@@ -564,7 +565,7 @@ const ConfessionFeed = () => {
                                 className={`h-16 rounded-card items-center justify-center shadow-hair ${submitting ? 'bg-paper-2' : 'bg-brand-500 '}`}
                             >
                                 {submitting ? (
-                                    <ActivityIndicator color="#12100E" />
+                                    <ActivityIndicator color={C.ink} />
                                 ) : (
                                     <Text className="text-ink font-display uppercase text-sm">
                                         {editingConfession ? 'Execute Update' : 'Secure Broadcast'}
@@ -590,7 +591,7 @@ const ConfessionFeed = () => {
                                     setCommentsModal({ ...commentsModal, visible: false });
                                     setReplyTo(null);
                                 }} className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line">
-                                    <Ionicons name="close" size={20} color="#12100E" />
+                                    <Ionicons name="close" size={20} color={C.ink} />
                                 </TouchableOpacity>
                             </View>
 
@@ -615,7 +616,7 @@ const ConfessionFeed = () => {
                                             setReplyTo(null);
                                             setNewComment('');
                                         }}>
-                                            <Ionicons name="close-circle" size={16} color="#F97316" />
+                                            <Ionicons name="close-circle" size={16} color={C.brand[500]} />
                                         </TouchableOpacity>
                                     </View>
                                 )}
@@ -625,12 +626,12 @@ const ConfessionFeed = () => {
                                         <ExpoImage source={{ uri: user.avatar }} className="w-9 h-9 rounded-full mr-4 bg-paper-2 border border-line" />
                                     ) : (
                                         <View className="w-9 h-9 rounded-full mr-4 bg-paper-2 items-center justify-center border border-line">
-                                            <Ionicons name="person" size={14} color="#8B857E" />
+                                            <Ionicons name="person" size={14} color={C.ink3} />
                                         </View>
                                     )}
                                     <TextInput
                                         placeholder="Broadcast signal..."
-                                        placeholderTextColor="#8B857E"
+                                        placeholderTextColor={C.ink3}
                                         value={newComment}
                                         onChangeText={setNewComment}
                                         className="text-ink flex-1 py-3 font-display uppercase text-label"

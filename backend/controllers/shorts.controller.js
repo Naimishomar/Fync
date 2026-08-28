@@ -19,8 +19,14 @@ export const createShorts = async (req, res) => {
         if (!title || !description) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
+        // multer.fields() puts each field in req.files; the single-file update
+        // route still lands in req.file, so both shapes are read here.
+        const videoPath = req.files?.video?.[0]?.path || req.file?.path || "";
+        const thumbnailPath = req.files?.thumbnail?.[0]?.path || "";
+
         const createShort = await Shorts.create({
-            video: req.file?.path || "",
+            video: videoPath,
+            thumbnail: thumbnailPath,
             title,
             description,
             user: req.user.id,
@@ -164,6 +170,9 @@ export const deleteShort = async (req, res) => {
             return res.status(403).json({ success: false, message: "Not authorized" });
         }
 
+        if (short.thumbnail) {
+            await deleteFromR2(short.thumbnail).catch(() => {});
+        }
         if (short.video) {
             console.log(`🎞️ [DeleteShort] Deleting video from R2: ${short.video}`);
             await deleteFromR2(short.video);

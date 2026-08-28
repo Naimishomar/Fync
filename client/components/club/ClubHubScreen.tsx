@@ -9,6 +9,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -115,7 +116,7 @@ const ClubHubScreen = () => {
 
     if (loading) return (
         <View className="flex-1 bg-paper justify-center items-center">
-            <ActivityIndicator color="#F97316" />
+            <ActivityIndicator color={C.brand[500]} />
         </View>
     );
 
@@ -134,7 +135,7 @@ const ClubHubScreen = () => {
             <StatusBar barStyle="light-content" />
             <ScrollView 
                 showsVerticalScrollIndicator={false}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchClubDetails} tintColor="#F97316" />}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchClubDetails} tintColor={C.brand[500]} />}
             >
                 {/* Banner & Header */}
                 <View className="h-80 w-full relative">
@@ -177,7 +178,7 @@ const ClubHubScreen = () => {
                                 onPress={handleLeaveClub}
                                 className="w-12 h-12 rounded-card bg-black/40 items-center justify-center border border-white/20 backdrop-blur-md"
                             >
-                                <Ionicons name="log-out-outline" size={18} color="#DC2626" />
+                                <Ionicons name="log-out-outline" size={18} color={C.danger} />
                             </TouchableOpacity>
                         )}
                     </View>
@@ -245,7 +246,7 @@ const ClubHubScreen = () => {
                                         >
                                             <View className={`w-16 h-16 rounded-card items-center justify-center ${sub.isGeneral ? 'bg-ink' : 'bg-paper-2 border border-line'}`}>
                                                 {sub.isGeneral ? (
-                                                    <MaterialCommunityIcons name="shield-check" size={28} color="#F97316" />
+                                                    <MaterialCommunityIcons name="shield-check" size={28} color={C.brand[500]} />
                                                 ) : (
                                                     <Image source={{ uri: sub.logo || 'https://via.placeholder.com/150' }} className="w-full h-full rounded-card" />
                                                 )}
@@ -282,7 +283,7 @@ const ClubHubScreen = () => {
                                 })
                             ) : (
                                 <View className="items-center p-12 bg-card rounded-sheet border border-dashed border-line mt-4">
-                                    <Feather name="layers" size={48} color="#E3DDD3" />
+                                    <Feather name="layers" size={48} color={C.line} />
                                     <Text className="font-sans text-sm mt-4 text-ink-4 text-center">No localized sub-domains established</Text>
                                 </View>
                             )}
@@ -292,7 +293,7 @@ const ClubHubScreen = () => {
                     <View className="px-gutter py-12 mt-4">
                         <View className="bg-ink p-card-pad rounded-sheet items-center shadow-hair">
                             <View className="w-20 h-20 bg-ink rounded-sheet items-center justify-center mb-8 border border-ink">
-                                <Feather name="lock" size={32} color="#F97316" />
+                                <Feather name="lock" size={32} color={C.brand[500]} />
                             </View>
                             <Text className="text-white text-2xl font-display uppercase text-center">Protocol Restricted</Text>
                             <Text className="text-ink-3 text-center mt-4 mb-10 leading-6 font-medium text-sm">

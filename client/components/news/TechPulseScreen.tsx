@@ -13,6 +13,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 type Feed = 'global' | 'india' | 'placement';
 
@@ -91,7 +92,7 @@ const StoryRow = ({ item, index, ranked, onRead }: { item: Story; index: number;
               accessibilityRole="button"
               accessibilityLabel={`Read ${item.comments} comments`}
             >
-              <Ionicons name="chatbubble-outline" size={14} color="#57534E" />
+              <Ionicons name="chatbubble-outline" size={14} color={C.ink2} />
               <Text className="text-ink-2 text-label font-display uppercase ml-1.5">
                 {item.comments} comments
               </Text>
@@ -142,7 +143,7 @@ export default function TechPulseScreen() {
             accessibilityRole="button" accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}
           >
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
 
           <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>Tech</Text>
@@ -176,7 +177,7 @@ export default function TechPulseScreen() {
         </View>
 
         {loading ? (
-          <ActivityIndicator color="#F97316" style={{ marginTop: 40 }} />
+          <ActivityIndicator color={C.brand[500]} style={{ marginTop: 40 }} />
         ) : (
           <FlatList
             data={stories}
@@ -188,13 +189,13 @@ export default function TechPulseScreen() {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={() => { setRefreshing(true); load(); }}
-                tintColor="#F97316" colors={['#F97316']}
+                tintColor={C.brand[500]} colors={['#F97316']}
               />
             }
             ListEmptyComponent={
               <View className="items-center mt-16">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-4">
-                  <Ionicons name={failed ? 'cloud-offline-outline' : 'newspaper-outline'} size={32} color="#57534E" />
+                  <Ionicons name={failed ? 'cloud-offline-outline' : 'newspaper-outline'} size={32} color={C.ink2} />
                 </View>
                 <Text className="text-ink font-display uppercase text-h2 text-center">
                   {failed ? 'Could not load' : 'Nothing yet'}

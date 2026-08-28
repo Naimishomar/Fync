@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { getFullUrl } from '../utils/imageUtils';
+import { C } from '../constants/colors';
 
 interface AvatarProps {
   user: {
@@ -63,7 +64,7 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
             }
           ]}
         >
-          <Ionicons name="briefcase" size={size * 0.25} color="#12100E" />
+          <Ionicons name="briefcase" size={size * 0.25} color={C.ink} />
         </View>
       )}
     </View>

@@ -5,6 +5,18 @@ const shortsSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+
+    /**
+     * Poster frame, generated on the device at upload time.
+     *
+     * Grids used to mount a real <Video> per cell just to show a still, which
+     * meant a dozen hardware decoders on one screen. This is the still.
+     * Optional: shorts uploaded before this field existed have none, and the
+     * client falls back to the video for those.
+     */
+    thumbnail: {
+        type: String,
+    },
     title:{
         type: String,
         required: true

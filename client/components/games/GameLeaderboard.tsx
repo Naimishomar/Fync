@@ -3,6 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator } from
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
+import { C } from '../../constants/colors';
 
 const GameLeaderboard = () => {
   const navigation = useNavigation<any>();
@@ -38,20 +39,20 @@ const GameLeaderboard = () => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-          <Ionicons name="arrow-back" size={24} color="#12100E" />
+          <Ionicons name="arrow-back" size={24} color={C.ink} />
         </TouchableOpacity>
         <Text className="text-xl font-display text-ink">Leaderboard</Text>
         <View className="w-10" />
       </View>
 
       <View className="p-6 items-center bg-recruiter/10 border-b border-recruiter/15">
-        <Ionicons name="trophy" size={48} color="#B45309" />
+        <Ionicons name="trophy" size={48} color={C.warning} />
         <Text className="text-lg font-display text-ink mt-2">{getGameTitle()}</Text>
       </View>
 
       {loading ? (
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#4F46E5" />
+          <ActivityIndicator size="large" color={C.recruiter} />
         </View>
       ) : leaderboard.length === 0 ? (
         <View className="flex-1 justify-center items-center">

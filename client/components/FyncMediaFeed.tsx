@@ -26,6 +26,7 @@ import Animated, {
 import FyncLogo from "../assets/Fync.png"
 import { Alert } from './ui/AlertModal';
 import { useBottomInset } from '../constants/layout';
+import { C } from '../constants/colors';
 
 interface FyncMediaItem {
   _id: string;
@@ -309,7 +310,7 @@ const YouTubeVideoPlayer = ({
           />
           {(!status || (status.isLoaded && status.isBuffering)) && (
             <View className="absolute inset-0 items-center justify-center bg-black/10">
-              <ActivityIndicator size="large" color="#ffffff" />
+              <ActivityIndicator size="large" color={C.white} />
             </View>
           )}
           {playbackRate > 1 && (
@@ -418,7 +419,7 @@ const YouTubeCard = React.memo(({
               onPress={(e) => { e.stopPropagation(); onEdit(item); }}
               className="w-10 h-10 bg-card/90 rounded-card items-center justify-center backdrop-blur-xl border border-line shadow-hair"
             >
-              <Ionicons name="pencil" size={16} color="#12100E" />
+              <Ionicons name="pencil" size={16} color={C.ink} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={(e) => { e.stopPropagation(); onDelete(item._id); }}
@@ -541,7 +542,7 @@ const MediaDetailView = React.memo(({
                 </View>
 
                 <TouchableOpacity onPress={handleShare} className="bg-card h-12 px-6 rounded-card flex-row items-center gap-2 border border-line shadow-hair">
-                  <Ionicons name="share-social-outline" size={18} color="#12100E" />
+                  <Ionicons name="share-social-outline" size={18} color={C.ink} />
                   <Text className="font-semibold text-base text-ink">Broadcast</Text>
                 </TouchableOpacity>
               </View>
@@ -591,7 +592,7 @@ const MediaDetailView = React.memo(({
                     <Text className="text-ink-3 text-label font-semibold uppercase mt-0.5">{item.comment?.length || 0} Responses</Text>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color="#8B857E" />
+                <Ionicons name="chevron-forward" size={18} color={C.ink3} />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -917,7 +918,7 @@ export default function FyncMediaFeed() {
                     accessibilityLabel="Go back"
                     style={{ marginLeft: -11 }}
                   >
-                    <Ionicons name="arrow-back" size={24} color="#12100E" />
+                    <Ionicons name="arrow-back" size={24} color={C.ink} />
                   </TouchableOpacity>
                   <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
                   <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Media</Text>
@@ -937,12 +938,12 @@ export default function FyncMediaFeed() {
 
           {loading && media.length === 0 ? (
             <View className="flex-1 items-center justify-center">
-              <ActivityIndicator size="large" color="#F97316" />
+              <ActivityIndicator size="large" color={C.brand[500]} />
             </View>
           ) : media.length === 0 ? (
             <View className="items-center justify-center mt-20 px-gutter">
               <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                <Ionicons name="videocam-outline" size={48} color="#C4BEB6" />
+                <Ionicons name="videocam-outline" size={48} color={C.ink4} />
               </View>
               <Text className="font-semibold text-base text-ink text-center">Archive Empty</Text>
               <Text className="font-sans text-sm text-ink-4 mt-2 text-center">No broadcast records found in the registry.</Text>
@@ -962,7 +963,7 @@ export default function FyncMediaFeed() {
               maxToRenderPerBatch={3}
               windowSize={5}
               removeClippedSubviews={Platform.OS === 'android'}
-              ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color="#F97316" className="mb-10" /> : <View className="h-10" />}
+              ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color={C.brand[500]} className="mb-10" /> : <View className="h-10" />}
             />
           )}
         </SafeAreaView>
@@ -1006,7 +1007,7 @@ export default function FyncMediaFeed() {
                 <View className="flex-row items-center justify-between px-6 py-4 border-b border-line">
                   <Text className="font-display text-ink text-h1">{editingItem ? 'Update' : 'Upload'} Media</Text>
                   <TouchableOpacity onPress={handleCloseModal} className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center" hitSlop={6}>
-                    <Ionicons name="close" size={20} color="#12100E" />
+                    <Ionicons name="close" size={20} color={C.ink} />
                   </TouchableOpacity>
                 </View>
 
@@ -1057,7 +1058,7 @@ export default function FyncMediaFeed() {
                         </>
                       ) : (
                         <>
-                          <Ionicons name="image-outline" size={32} color="#F97316" />
+                          <Ionicons name="image-outline" size={32} color={C.brand[500]} />
                           <Text className="text-ink-2 font-semibold mt-2 text-xs">Thumbnail</Text>
                         </>
                       )}
@@ -1080,7 +1081,7 @@ export default function FyncMediaFeed() {
                         </>
                       ) : (
                         <>
-                          <Ionicons name="videocam-outline" size={32} color="#4F46E5" />
+                          <Ionicons name="videocam-outline" size={32} color={C.recruiter} />
                           <Text className="text-ink-2 font-semibold mt-2 text-xs">Video</Text>
                         </>
                       )}
@@ -1095,10 +1096,10 @@ export default function FyncMediaFeed() {
                     className={`h-14 rounded-card items-center justify-center flex-row shadow-hair ${uploading ? 'bg-brand-200' : 'bg-brand-500 '}`}
                   >
                     {uploading ? (
-                      <ActivityIndicator color="#12100E" />
+                      <ActivityIndicator color={C.ink} />
                     ) : (
                       <>
-                        <Ionicons name="cloud-upload" size={20} color="#12100E" />
+                        <Ionicons name="cloud-upload" size={20} color={C.ink} />
                         <Text className="text-ink font-display uppercase text-sm ml-3">{editingItem ? 'Update Archive' : 'Publish Broadcast'}</Text>
                       </>
                     )}
@@ -1116,13 +1117,13 @@ export default function FyncMediaFeed() {
               <View className="flex-row justify-between items-center p-4 border-b border-line bg-card">
                 <Text className="font-display text-xl text-ink">COMMENTS</Text>
                 <TouchableOpacity onPress={() => setActiveCommentMediaId(null)} className="p-1 bg-paper-2 rounded-full border border-line">
-                  <Ionicons name="close" size={20} color="#12100E" />
+                  <Ionicons name="close" size={20} color={C.ink} />
                 </TouchableOpacity>
               </View>
 
               {loadingComments ? (
                 <View className="flex-1 justify-center items-center">
-                  <ActivityIndicator size="large" color="#F97316" />
+                  <ActivityIndicator size="large" color={C.brand[500]} />
                 </View>
               ) : (
                 <FlatList
@@ -1131,7 +1132,7 @@ export default function FyncMediaFeed() {
                   contentContainerStyle={{ padding: 20 }}
                   ListEmptyComponent={
                     <View className="items-center justify-center mt-20">
-                      <Ionicons name="chatbubbles-outline" size={48} color="#E3DDD3" />
+                      <Ionicons name="chatbubbles-outline" size={48} color={C.line} />
                       <Text className="text-ink-3 font-semibold mt-4">No comments yet</Text>
                       <Text className="text-ink-3 text-xs mt-1">Be the first to join the conversation.</Text>
                     </View>
@@ -1193,7 +1194,7 @@ export default function FyncMediaFeed() {
                     Replying to <Text className="text-accent-text">@{replyingTo.commentor?.username}</Text>
                   </Text>
                   <TouchableOpacity onPress={() => { setReplyingTo(null); setNewCommentText(""); }}>
-                    <Ionicons name="close-circle" size={16} color="#C4BEB6" />
+                    <Ionicons name="close-circle" size={16} color={C.ink4} />
                   </TouchableOpacity>
                 </View>
               )}
@@ -1205,7 +1206,7 @@ export default function FyncMediaFeed() {
                   value={newCommentText}
                   onChangeText={setNewCommentText}
                   placeholder="Broadcast your thoughts..."
-                  placeholderTextColor="#C4BEB6"
+                  placeholderTextColor={C.ink4}
                   className="flex-1 bg-paper px-4 py-3 border-[1.5px] border-ink font-semibold text-ink text-xs rounded-md"
                 />
                 <TouchableOpacity
@@ -1213,7 +1214,7 @@ export default function FyncMediaFeed() {
                   onPress={handlePostComment}
                   className={`w-11 h-11 rounded-card items-center justify-center ml-3 shadow-hair ${newCommentText.trim() ? 'bg-brand-500 ' : 'bg-paper-2 shadow-none'}`}
                 >
-                  {postingComment ? <ActivityIndicator size="small" color="#12100E" /> : <Ionicons name="send" size={18} color={newCommentText.trim() ? "white" : "#8B857E"} style={{ marginLeft: 2 }} />}
+                  {postingComment ? <ActivityIndicator size="small" color={C.ink} /> : <Ionicons name="send" size={18} color={newCommentText.trim() ? "white" : "#8B857E"} style={{ marginLeft: 2 }} />}
                 </TouchableOpacity>
               </View>
             </KeyboardAvoidingView>

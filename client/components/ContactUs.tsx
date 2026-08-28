@@ -21,6 +21,7 @@ import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
+import { C } from '../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -134,7 +135,7 @@ const ContactUs = () => {
                 
                 <View className="items-center px-gutter">
                     <View className="w-24 h-24 bg-brand-500 rounded-full items-center justify-center mb-10 shadow-hair">
-                        <Ionicons name="checkmark-done" size={48} color="#12100E" />
+                        <Ionicons name="checkmark-done" size={48} color={C.ink} />
                     </View>
                     
                     <Text className="text-ink text-4xl font-[900] text-center leading-[45px] mb-8">
@@ -175,7 +176,7 @@ const ContactUs = () => {
                               accessibilityLabel="Go back"
                               style={{ marginLeft: -11 }}
                             >
-                              <Ionicons name="arrow-back" size={24} color="#12100E" />
+                              <Ionicons name="arrow-back" size={24} color={C.ink} />
                             </TouchableOpacity>
                             <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Support</Text>
                             <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Team</Text>
@@ -187,7 +188,7 @@ const ContactUs = () => {
                             style={{ shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 }}
                         >
                             <View className="w-12 h-12 bg-brand-50 rounded-card items-center justify-center">
-                                <Ionicons name="business" size={20} color="#F97316" />
+                                <Ionicons name="business" size={20} color={C.brand[500]} />
                             </View>
                             <View className="ml-4 flex-1">
                                 <Text className="text-ink font-display uppercase text-label">Main HQ</Text>
@@ -206,7 +207,7 @@ const ContactUs = () => {
                                 <TextInput
                                     className="font-semibold text-base text-ink bg-card p-5 border-[1.5px] border-ink rounded-md"
                                     placeholder="e.g. Naimish Omar"
-                                    placeholderTextColor="#C4BEB6"
+                                    placeholderTextColor={C.ink4}
                                     value={formData.name}
                                     onChangeText={(text) => setFormData({ ...formData, name: text })}
                                 />
@@ -217,7 +218,7 @@ const ContactUs = () => {
                                 <TextInput
                                     className="font-semibold text-base text-ink bg-card p-5 border-[1.5px] border-ink rounded-md"
                                     placeholder="+91 1234567890"
-                                    placeholderTextColor="#C4BEB6"
+                                    placeholderTextColor={C.ink4}
                                     keyboardType="phone-pad"
                                     value={formData.phone}
                                     onChangeText={(text) => setFormData({ ...formData, phone: text })}
@@ -229,7 +230,7 @@ const ContactUs = () => {
                                 <TextInput
                                     className="font-semibold text-base text-ink bg-card p-5 border-[1.5px] border-ink rounded-md"
                                     placeholder="dev.fync@email.com"
-                                    placeholderTextColor="#C4BEB6"
+                                    placeholderTextColor={C.ink4}
                                     keyboardType="email-address"
                                     autoCapitalize="none"
                                     value={formData.email}
@@ -242,7 +243,7 @@ const ContactUs = () => {
                                 <TextInput
                                     className="bg-card p-6 text-xs text-ink-2 font-medium min-h-[160px] border-[1.5px] border-ink rounded-md"
                                     placeholder='Define the requirements / issues...'
-                                    placeholderTextColor="#C4BEB6"
+                                    placeholderTextColor={C.ink4}
                                     multiline
                                     numberOfLines={4}
                                     value={formData.message}
@@ -278,7 +279,7 @@ const ContactUs = () => {
                                             onPress={pickImages}
                                             className="w-20 h-20 rounded-card border border-dashed border-line justify-center items-center bg-card"
                                         >
-                                            <MaterialCommunityIcons name="camera-plus-outline" size={24} color="#C4BEB6" />
+                                            <MaterialCommunityIcons name="camera-plus-outline" size={24} color={C.ink4} />
                                             <Text className="text-label font-display text-ink-4 mt-1 uppercase">Attach</Text>
                                         </TouchableOpacity>
                                     )}

@@ -3,6 +3,7 @@ import { View, Text, Pressable, Linking, Image, ScrollView } from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Feather from '@expo/vector-icons/Feather';
+import { C } from '../../constants/colors';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   completed:    { label: 'Completed',    color: '#12100E', bg: '#F5F2EC' },
@@ -64,7 +65,7 @@ export default function ProjectCard({
       ) : (
         <View className="w-full h-32 bg-paper-2 items-center justify-center border-b border-line">
           <View className="w-12 h-12 bg-card rounded-card items-center justify-center shadow-hair">
-            <Feather name="box" size={24} color="#F97316" />
+            <Feather name="box" size={24} color={C.brand[500]} />
           </View>
           <Text className="text-label text-ink-3 font-display uppercase mt-3">No Screenshots Added</Text>
         </View>
@@ -121,13 +122,13 @@ export default function ProjectCard({
             {project.githubUrl && (
               <Pressable onPress={() => Linking.openURL(project.githubUrl!)}
                 className="w-10 h-10 bg-card items-center justify-center rounded-card border border-line shadow-hair">
-                <Ionicons name="logo-github" size={18} color="#12100E" />
+                <Ionicons name="logo-github" size={18} color={C.ink} />
               </Pressable>
             )}
             {project.liveUrl && (
               <Pressable onPress={() => Linking.openURL(project.liveUrl!)}
                 className="w-10 h-10 bg-card items-center justify-center rounded-card border border-line shadow-hair">
-                <Feather name="external-link" size={16} color="#F97316" />
+                <Feather name="external-link" size={16} color={C.brand[500]} />
               </Pressable>
             )}
           </View>
@@ -151,7 +152,7 @@ export default function ProjectCard({
                   <Feather name="edit-3" size={12} color="white" />
                 </Pressable>
                 <Pressable onPress={() => onDelete?.(project._id)} className="w-8 h-8 items-center justify-center bg-danger/10 rounded-xl">
-                  <Ionicons name="trash-outline" size={14} color="#DC2626" />
+                  <Ionicons name="trash-outline" size={14} color={C.danger} />
                 </Pressable>
               </View>
             )}

@@ -20,6 +20,7 @@ import { useAuth } from '../context/auth.context';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Device from "expo-device";
 import { useBottomInset } from '../constants/layout';
+import { C } from '../constants/colors';
 
 export default function RecruiterProfileSetup() {
   const navigation = useNavigation<any>();
@@ -164,11 +165,11 @@ export default function RecruiterProfileSetup() {
                 <Image source={{ uri: avatarUri }} className="h-24 w-24 rounded-full" />
               ) : (
                 <View className="h-24 w-24 rounded-full bg-paper-2 items-center justify-center border-4 border-line shadow-hair">
-                  <Ionicons name="business" size={40} color="#C4BEB6" />
+                  <Ionicons name="business" size={40} color={C.ink4} />
                 </View>
               )}
               <View className="absolute right-0 bg-brand-500 border-2 border-ink h-8 w-8 items-center justify-center border-paper rounded-md" style={{ bottom: bottomInset }}>
-                <Ionicons name="camera" size={14} color="#12100E" />
+                <Ionicons name="camera" size={14} color={C.ink} />
               </View>
             </Pressable>
             <Text className="text-ink-3 font-medium text-xs mt-3">Upload Profile Picture</Text>
@@ -177,14 +178,14 @@ export default function RecruiterProfileSetup() {
           <Text className="text-sm font-semibold text-ink mb-2 mt-4">Personal Details</Text>
           <TextInput
             className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             placeholder="Full Name"
             value={name}
             onChangeText={setName}
           />
           <TextInput
             className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
@@ -194,21 +195,21 @@ export default function RecruiterProfileSetup() {
           <Text className="text-sm font-semibold text-ink mb-2 mt-4">Company Verification</Text>
           <TextInput
             className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             placeholder="Company Name"
             value={company}
             onChangeText={setCompany}
           />
           <TextInput
             className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             placeholder="Designation / Role"
             value={role}
             onChangeText={setRole}
           />
           <TextInput
             className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             placeholder="Company Website URL (Optional)"
             value={companyWebsite}
             autoCapitalize="none"
@@ -216,14 +217,14 @@ export default function RecruiterProfileSetup() {
           />
           <TextInput
             className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             placeholder="Industry (e.g. IT, Finance) (Optional)"
             value={industry}
             onChangeText={setIndustry}
           />
           <TextInput
             className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             placeholder="Number of Employees (Optional)"
             value={companySize}
             keyboardType="number-pad"
@@ -232,7 +233,7 @@ export default function RecruiterProfileSetup() {
           <Text className="text-sm font-semibold text-ink mb-2 mt-4">Professional Link</Text>
           <TextInput
             className="mb-8 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             placeholder="LinkedIn Profile URL (Optional)"
             value={linkedIn}
             autoCapitalize="none"

@@ -8,6 +8,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const CreateSubGroupScreen = () => {
     const navigation = useNavigation<any>();
@@ -102,7 +103,7 @@ const CreateSubGroupScreen = () => {
                                     <Image source={{ uri: logo.uri }} className="w-24 h-24 rounded-sheet border-2 border-line bg-paper-2" />
                                 ) : (
                                     <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center">
-                                        <Feather name="image" size={24} color="#8B857E" />
+                                        <Feather name="image" size={24} color={C.ink3} />
                                         <Text className="text-label font-display uppercase text-ink-3 mt-2">Add Logo</Text>
                                     </View>
                                 )}

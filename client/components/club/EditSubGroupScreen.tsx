@@ -9,6 +9,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const EditSubGroupScreen = () => {
     const navigation = useNavigation<any>();
@@ -223,7 +224,7 @@ const EditSubGroupScreen = () => {
     const canEditRoom = isMainAdmin || isRoomLeader || isSuperAdmin;
     const canDelete = canEditRoom && !subGroup?.isGeneral;
 
-    if (loading) return <View className="flex-1 bg-paper justify-center items-center"><ActivityIndicator color="#12100E" /></View>;
+    if (loading) return <View className="flex-1 bg-paper justify-center items-center"><ActivityIndicator color={C.ink} /></View>;
 
     return (
         <View className="flex-1 bg-paper">
@@ -326,7 +327,7 @@ const EditSubGroupScreen = () => {
                                                         <Feather name="check" size={18} color="white" />
                                                     </TouchableOpacity>
                                                     <TouchableOpacity onPress={() => handleRequestAction(req._id, 'reject')} className="w-10 h-10 rounded-xl bg-danger/15 items-center justify-center border border-danger/25">
-                                                        <Feather name="x" size={18} color="#DC2626" />
+                                                        <Feather name="x" size={18} color={C.danger} />
                                                     </TouchableOpacity>
                                                 </View>
                                             </View>
@@ -339,7 +340,7 @@ const EditSubGroupScreen = () => {
                             <View className="mb-10">
                                 <Text className="text-ink-3 font-display text-label uppercase mb-4 ml-1">Room Members ({members.length})</Text>
                                 {memberLoading ? (
-                                    <ActivityIndicator color="#12100E" />
+                                    <ActivityIndicator color={C.ink} />
                                 ) : (
                                     <View className="bg-paper-2 rounded-card border border-line overflow-hidden">
                                         {members.map((m: any) => {
@@ -373,7 +374,7 @@ const EditSubGroupScreen = () => {
                                                             onPress={() => handleRemoveFromRoom(m._id)}
                                                             className="ml-2 w-8 h-8 bg-danger/10 rounded-lg items-center justify-center border border-danger/15"
                                                         >
-                                                            <Ionicons name="trash-outline" size={12} color="#DC2626" />
+                                                            <Ionicons name="trash-outline" size={12} color={C.danger} />
                                                         </TouchableOpacity>
                                                     )}
                                                 </View>
@@ -404,7 +405,7 @@ const EditSubGroupScreen = () => {
                                 disabled={updating}
                                 className="mt-4 border border-danger/30 py-4 rounded-card flex-row items-center justify-center bg-danger/10"
                             >
-                                <Ionicons name="trash-outline" size={16} color="#DC2626" />
+                                <Ionicons name="trash-outline" size={16} color={C.danger} />
                                 <Text className="text-danger font-semibold uppercase text-label ml-2">Delete Room Permanently</Text>
                             </TouchableOpacity>
                         )}

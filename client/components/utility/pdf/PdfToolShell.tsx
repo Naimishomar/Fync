@@ -10,6 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Alert } from '../../ui/AlertModal';
 import { pickPdf, sharePdf, savePdfToDevice, prettySize, type PickedPdf } from './pdfKit';
+import { C } from '../../../constants/colors';
 
 type Props = {
   title: string;
@@ -60,7 +61,7 @@ export default function PdfToolShell({
         <View className="px-5 py-4 flex-row items-center border-b border-line bg-transparent">
           <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
             accessibilityRole="button" accessibilityLabel="Go back" style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
           <Text className="text-xl font-display text-ink flex-1">{title}</Text>
         </View>
@@ -74,7 +75,7 @@ export default function PdfToolShell({
             accessibilityRole="button"
           >
             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-3">
-              <Ionicons name={icon} size={32} color="#57534E" />
+              <Ionicons name={icon} size={32} color={C.ink2} />
             </View>
             <Text className="text-ink font-display uppercase text-label">
               {files.length === 0 ? 'Choose PDF' : multiple ? 'Add another PDF' : 'Choose a different PDF'}
@@ -90,7 +91,7 @@ export default function PdfToolShell({
               </View>
               {files.map((f, i) => (
                 <View key={`${f.uri}-${i}`} className="flex-row items-center bg-card rounded-card p-4 border border-line mb-2">
-                  <Ionicons name="document-text-outline" size={20} color="#57534E" />
+                  <Ionicons name="document-text-outline" size={20} color={C.ink2} />
                   <View className="flex-1 ml-3">
                     <Text className="text-ink text-sm" numberOfLines={1}>{f.name}</Text>
                     {!!f.size && <Text className="text-ink-3 text-label mt-0.5">{prettySize(f.size)}</Text>}
@@ -100,7 +101,7 @@ export default function PdfToolShell({
                     className="w-11 h-11 items-center justify-center rounded-xl"
                     accessibilityRole="button" accessibilityLabel={`Remove ${f.name}`}
                   >
-                    <Ionicons name="close" size={18} color="#57534E" />
+                    <Ionicons name="close" size={18} color={C.ink2} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -116,7 +117,7 @@ export default function PdfToolShell({
               className={`w-full py-4 rounded-md items-center justify-center border-2 border-ink mb-3 ${blocked || busy ? 'bg-paper-2' : 'bg-brand-500'}`}
               accessibilityRole="button"
             >
-              {busy ? <ActivityIndicator color="#12100E" />
+              {busy ? <ActivityIndicator color={C.ink} />
                 : <Text className={`font-display uppercase text-base ${blocked ? 'text-ink-3' : 'text-ink'}`}>{blocked ?? runLabel}</Text>}
             </TouchableOpacity>
           )}
@@ -131,7 +132,7 @@ export default function PdfToolShell({
                   className="flex-1 flex-row items-center justify-center bg-ink border-2 border-ink rounded-md" style={{ minHeight: 44 }}
                   accessibilityRole="button"
                 >
-                  <Ionicons name="share-outline" size={16} color="#F5F2EC" style={{ marginRight: 7 }} />
+                  <Ionicons name="share-outline" size={16} color={C.paper} style={{ marginRight: 7 }} />
                   <Text className="font-display text-paper uppercase" style={{ fontSize: 12 }}>Share</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -141,7 +142,7 @@ export default function PdfToolShell({
                   className="flex-1 flex-row items-center justify-center bg-card border-[1.5px] border-line rounded-md" style={{ minHeight: 44 }}
                   accessibilityRole="button"
                 >
-                  <Ionicons name="download-outline" size={16} color="#12100E" style={{ marginRight: 7 }} />
+                  <Ionicons name="download-outline" size={16} color={C.ink} style={{ marginRight: 7 }} />
                   <Text className="font-display text-ink uppercase" style={{ fontSize: 12 }}>Save</Text>
                 </TouchableOpacity>
               </View>

@@ -9,6 +9,7 @@ import * as Print from 'expo-print';
 import { shareAsync } from 'expo-sharing';
 import socket from '../../utils/socket';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 type ScreenRouteProp = RouteProp<RootStackParamList, 'LeaderboardScreen'>;
 
@@ -204,7 +205,7 @@ const LeaderboardScreen = () => {
             onPress={() => navigation.navigate("Tabs")}
             className="w-12 h-12 bg-card rounded-card items-center justify-center border border-line shadow-hair"
           >
-            <Ionicons name="home" size={20} color="#12100E" />
+            <Ionicons name="home" size={20} color={C.ink} />
           </TouchableOpacity>
 
           <Text className="text-3xl font-display text-ink uppercase">
@@ -216,16 +217,16 @@ const LeaderboardScreen = () => {
             {/* Animated Refresh Button */}
             <TouchableOpacity onPress={handleManualRefresh} className="w-12 h-12 bg-card rounded-card items-center justify-center border border-line shadow-hair">
               <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                <Ionicons name="refresh" size={20} color="#12100E" />
+                <Ionicons name="refresh" size={20} color={C.ink} />
               </Animated.View>
             </TouchableOpacity>
 
             {/* Download Button */}
             <TouchableOpacity onPress={downloadPDF} disabled={downloading} className="w-12 h-12 bg-brand-500 items-center justify-center border-2 border-ink rounded-md">
               {downloading ? (
-                <ActivityIndicator size="small" color="#12100E" />
+                <ActivityIndicator size="small" color={C.ink} />
               ) : (
-                <Ionicons name="download" size={20} color="#12100E" />
+                <Ionicons name="download" size={20} color={C.ink} />
               )}
             </TouchableOpacity>
           </View>
@@ -253,7 +254,7 @@ const LeaderboardScreen = () => {
 
         {/* Leaderboard List */}
         {loading ? (
-          <ActivityIndicator size="large" color="#F97316" className="mt-20" />
+          <ActivityIndicator size="large" color={C.brand[500]} className="mt-20" />
         ) : (
           <FlatList
             data={leaders}
@@ -264,7 +265,7 @@ const LeaderboardScreen = () => {
             ListEmptyComponent={
               <View className="items-center justify-center mt-20 px-gutter">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="people" size={40} color="#C4BEB6" />
+                  <Ionicons name="people" size={40} color={C.ink4} />
                 </View>
                 <Text className="text-ink font-display text-xl text-center uppercase">Dev Void</Text>
                 <Text className="font-sans text-sm text-ink-3 text-center mt-2">

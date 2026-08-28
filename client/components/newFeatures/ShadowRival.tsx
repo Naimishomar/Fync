@@ -10,6 +10,7 @@ import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 
 import { StampCard } from '../ui/kit';
+import { C } from '../../constants/colors';
 type Metrics = { solved: number; commits: number; streak: number; total: number };
 type HistoryPoint = { d: string; me: number; rival: number };
 type Rivalry = {
@@ -146,7 +147,7 @@ export default function ShadowRival() {
     if (loading) {
         return (
             <View className="flex-1 bg-paper items-center justify-center">
-                <ActivityIndicator size="large" color="#F97316" />
+                <ActivityIndicator size="large" color={C.brand[500]} />
             </View>
         );
     }
@@ -167,7 +168,7 @@ export default function ShadowRival() {
                     contentContainerStyle={{ paddingBottom: 40 }}
                     showsVerticalScrollIndicator={false}
                     refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchRival(); }} tintColor="#F97316" />
+                        <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchRival(); }} tintColor={C.brand[500]} />
                     }
                 >
                     <View className="px-gutter pt-2 mb-6">
@@ -178,7 +179,7 @@ export default function ShadowRival() {
                           accessibilityLabel="Go back"
                           style={{ marginLeft: -11 }}
                         >
-                          <Ionicons name="arrow-back" size={24} color="#12100E" />
+                          <Ionicons name="arrow-back" size={24} color={C.ink} />
                         </TouchableOpacity>
                         <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Shadow</Text>
                         <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Rival</Text>
@@ -192,7 +193,7 @@ export default function ShadowRival() {
                             <Ionicons
                                 name={data?.status === 'waiting' ? 'hourglass-outline' : data?.status === 'opted_out' ? 'moon-outline' : 'link-outline'}
                                 size={40}
-                                color="#8B857E"
+                                color={C.ink3}
                             />
                             <Text className="text-ink text-lg font-display mt-4 text-center">
                                 {data?.status === 'waiting' ? 'Matching In Progress'
@@ -259,7 +260,7 @@ export default function ShadowRival() {
                                     return (
                                         <View key={key} className={i === METRICS.length - 1 ? '' : 'mb-7'}>
                                             <View className="flex-row items-center mb-3">
-                                                <Ionicons name={icon} size={16} color="#F97316" />
+                                                <Ionicons name={icon} size={16} color={C.brand[500]} />
                                                 <Text className="text-ink-3 font-display text-label uppercase ml-2">{label}</Text>
                                             </View>
 
@@ -297,7 +298,7 @@ export default function ShadowRival() {
                                     </>
                                 ) : (
                                     <>
-                                        <Ionicons name="eye-off-outline" size={28} color="#8B857E" />
+                                        <Ionicons name="eye-off-outline" size={28} color={C.ink3} />
                                         <Text className="font-sans text-sm text-ink-3 mt-3 text-center">
                                             Identity locked until {new Date(data.revealAt!).toDateString()}
                                         </Text>
@@ -326,7 +327,7 @@ export default function ShadowRival() {
                         )}
 
                         <View className="flex-row items-center px-6 py-5">
-                            <Ionicons name="moon-outline" size={18} color="#8B857E" />
+                            <Ionicons name="moon-outline" size={18} color={C.ink3} />
                             <View className="flex-1 ml-4">
                                 <Text className="text-ink font-display uppercase text-label">Opt Out</Text>
                                 <Text className="text-ink-3 text-label mt-0.5">No rival, no notifications</Text>

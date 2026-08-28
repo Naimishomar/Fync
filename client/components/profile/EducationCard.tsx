@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { C } from '../../constants/colors';
 
 export type EducationEntry = {
   _id: string; institution: string; degree?: string; field?: string;
@@ -15,7 +16,7 @@ export default function EducationCard({ item, isOwner, onEdit, onDelete }: {
     <View className="bg-card rounded-card border border-line p-5 mb-4 shadow-hair">
       <View className="flex-row">
         <View className="w-12 h-12 bg-brand-50 rounded-card items-center justify-center mr-4">
-          <Ionicons name="school" size={24} color="#F97316" />
+          <Ionicons name="school" size={24} color={C.brand[500]} />
         </View>
         <View className="flex-1">
           <Text className="text-ink font-display text-sm mb-1">{item.institution}</Text>
@@ -46,10 +47,10 @@ export default function EducationCard({ item, isOwner, onEdit, onDelete }: {
         {isOwner && (
           <View className="ml-2 gap-3">
             <Pressable onPress={() => onEdit?.(item)} className="bg-paper-2 p-2 rounded-xl border border-line">
-              <Ionicons name="pencil-outline" size={16} color="#F97316" />
+              <Ionicons name="pencil-outline" size={16} color={C.brand[500]} />
             </Pressable>
             <Pressable onPress={() => onDelete?.(item._id)} className="bg-danger/10 p-2 rounded-xl border border-danger/15">
-              <Ionicons name="trash-outline" size={16} color="#DC2626" />
+              <Ionicons name="trash-outline" size={16} color={C.danger} />
             </Pressable>
           </View>
         )}

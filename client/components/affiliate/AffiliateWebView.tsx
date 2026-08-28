@@ -5,6 +5,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const AffiliateWebView = () => {
     const route = useRoute<any>();
@@ -96,7 +97,7 @@ const AffiliateWebView = () => {
                 />
                 {loading && (
                     <View style={styles.loadingOverlay}>
-                        <ActivityIndicator size="large" color="#F97316" />
+                        <ActivityIndicator size="large" color={C.brand[500]} />
                         <Text style={styles.loadingText}>Loading Secure Checkout...</Text>
                     </View>
                 )}

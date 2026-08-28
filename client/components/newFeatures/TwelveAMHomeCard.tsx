@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { checkClubStatus, formatCountdown } from '../../utils/nightClub';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -120,11 +121,11 @@ export default function TwelveAMLockScreen() {
                 {isOpen ? (
                     <Pressable className="flex-row items-center justify-center rounded-full bg-brand-500 py-3" onPress={handleEnter}>
                         <Text className="text-ink font-display text-lg mr-2">ENTER CLUB</Text>
-                        <Ionicons name="arrow-forward" size={20} color="#12100E" />
+                        <Ionicons name="arrow-forward" size={20} color={C.ink} />
                     </Pressable>
                 ) : (
                     <View className="flex-row items-center justify-center bg-brand-500/20 py-3 rounded-full">
-                        <Ionicons name="lock-closed" size={20} color="#8B857E" style={{ marginRight: 8 }} />
+                        <Ionicons name="lock-closed" size={20} color={C.ink3} style={{ marginRight: 8 }} />
                         <Text className="text-night-3 font-display text-lg">LOCKED</Text>
                     </View>
                 )}

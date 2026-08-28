@@ -18,6 +18,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
 import { collegesInIndia } from 'data/college';
 import { PASSOUT_YEARS, MAJORS } from 'data/academics';
+import { C } from '../constants/colors';
 //@ts-ignore
 
 type ProfileSetup1RouteProp = RouteProp<RootStackParamList, 'ProfileSetup1'>;
@@ -90,7 +91,7 @@ export default function ProfileSetup1() {
                   <TextInput
                     className="font-sans text-base text-ink"
                     placeholder="Naimish Omar"
-                    placeholderTextColor="#8B857E"
+                    placeholderTextColor={C.ink3}
                     value={fullName}
                     onChangeText={setFullName}
                     autoCapitalize="words"
@@ -108,7 +109,7 @@ export default function ProfileSetup1() {
                   <Text className={`font-sans text-base ${birthday ? 'text-ink' : 'text-ink-3'}`}>
                     {birthday || 'Select a date'}
                   </Text>
-                  <Ionicons name="calendar-outline" size={20} color="#8B857E" />
+                  <Ionicons name="calendar-outline" size={20} color={C.ink3} />
                 </Pressable>
 
                 {([
@@ -129,7 +130,7 @@ export default function ProfileSetup1() {
                       <Text className={`font-sans text-base ${value ? 'text-ink' : 'text-ink-3'}`} numberOfLines={1}>
                         {value || `Select ${label.toLowerCase()}`}
                       </Text>
-                      <Ionicons name="chevron-down" size={20} color="#8B857E" />
+                      <Ionicons name="chevron-down" size={20} color={C.ink3} />
                     </Pressable>
                   </View>
                 ))}

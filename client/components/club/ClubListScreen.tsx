@@ -8,6 +8,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const ClubCard = memo(({ item, isInvitation, onAccept, onPress, userId }: any) => {
     return (
@@ -154,7 +155,7 @@ const ClubListScreen = () => {
                           accessibilityLabel="Go back"
                           style={{ marginLeft: -11 }}
                         >
-                          <Ionicons name="arrow-back" size={24} color="#12100E" />
+                          <Ionicons name="arrow-back" size={24} color={C.ink} />
                         </TouchableOpacity>
                         <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>College</Text>
                         <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Clubs</Text>
@@ -164,7 +165,7 @@ const ClubListScreen = () => {
                         onPress={() => setShowCodeModal(true)}
                         className="w-14 h-14 bg-card rounded-card items-center justify-center shadow-hair border border-line"
                     >
-                        <Ionicons name="qr-code-outline" size={24} color="#12100E" />
+                        <Ionicons name="qr-code-outline" size={24} color={C.ink} />
                     </TouchableOpacity>
                 </View>
 
@@ -215,18 +216,18 @@ const ClubListScreen = () => {
                         );
                     }}
                     showsVerticalScrollIndicator={false}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
                     ListEmptyComponent={!loading ? (
                         <View className="items-center mt-32 px-gutter">
                             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                <MaterialCommunityIcons name="shield-lock-outline" size={48} color="#C4BEB6" />
+                                <MaterialCommunityIcons name="shield-lock-outline" size={48} color={C.ink4} />
                             </View>
                             <Text className="font-semibold text-base text-ink text-center">Hub Empty</Text>
                             <Text className="font-sans text-sm text-ink-4 mt-2 text-center">
                                 Your authorization space is empty.{"\n"}Establish a hub or wait for a clearance signal.
                             </Text>
                         </View>
-                    ) : <ActivityIndicator color="#F97316" className="mt-20" />}
+                    ) : <ActivityIndicator color={C.brand[500]} className="mt-20" />}
                 />
 
                 {/* Join Code Modal */}
@@ -239,12 +240,12 @@ const ClubListScreen = () => {
                                     onPress={() => setShowCodeModal(false)}
                                     className="w-12 h-12 bg-paper-2 rounded-card items-center justify-center border border-line"
                                 >
-                                    <Ionicons name="close" size={24} color="#12100E" />
+                                    <Ionicons name="close" size={24} color={C.ink} />
                                 </TouchableOpacity>
                             </View>
 
                             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-8 self-center">
-                                <Feather name="hash" size={32} color="#12100E" />
+                                <Feather name="hash" size={32} color={C.ink} />
                             </View>
 
                             <Text className="font-sans text-sm text-ink-2 text-center mb-8">
@@ -253,7 +254,7 @@ const ClubListScreen = () => {
 
                             <TextInput
                                 placeholder="000000"
-                                placeholderTextColor="#C4BEB6"
+                                placeholderTextColor={C.ink4}
                                 className="bg-card w-full p-card-pad rounded-card text-center text-4xl font-display text-ink border-2 border-ink"
                                 style={{ letterSpacing: 12, shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 }}
                                 keyboardType="number-pad"
@@ -268,7 +269,7 @@ const ClubListScreen = () => {
                                 disabled={verifying || joinCode.length !== 6}
                                 className={`mt-10 w-full py-5 rounded-card items-center border-2 border-ink ${joinCode.length === 6 ? 'bg-brand-500' : 'bg-paper-2'}`}
                             >
-                                {verifying ? <ActivityIndicator color="#12100E" /> : (
+                                {verifying ? <ActivityIndicator color={C.ink} /> : (
                                     <Text className={`font-display uppercase ${joinCode.length === 6 ? 'text-ink' : 'text-ink-4'}`} style={{ fontSize: 14, letterSpacing: 0.3 }}>
                                         Join Club
                                     </Text>

@@ -13,6 +13,7 @@ import socket from '../../utils/socket';
 import { checkClubStatus } from '../../utils/nightClub'; 
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
 
@@ -346,7 +347,7 @@ export default function TwelveAMClub() {
         <Image source={{ uri: BG_IMAGE }} className="absolute w-full h-full opacity-60" />
         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.95)']} className="absolute w-full h-full" />
         <View className="items-center p-card-pad bg-black/40 rounded-sheet border border-white/10 shadow-hair w-[85%]">
-            <Ionicons name="lock-closed" size={42} color="#4F46E5" />
+            <Ionicons name="lock-closed" size={42} color={C.recruiter} />
             <Text className="text-white text-3xl font-display mt-4 uppercase">Club Locked</Text>
             <Text className="text-recruiter text-xl font-display mt-2">{timeLeft}</Text>
             <Text className="text-night-3 text-label uppercase font-display mt-8 text-center">Doors Open At Midnight</Text>
@@ -377,7 +378,7 @@ export default function TwelveAMClub() {
                         onPress={() => setMode(mode === 'global' ? 'private' : 'global')}
                         className="bg-recruiter/20 p-2 rounded-xl border border-recruiter/30 mr-3"
                     >
-                        <MaterialCommunityIcons name={mode === 'global' ? "earth" : "incognito"} size={22} color="#4F46E5" />
+                        <MaterialCommunityIcons name={mode === 'global' ? "earth" : "incognito"} size={22} color={C.recruiter} />
                     </TouchableOpacity>
                     <View>
                         <Text className="text-white font-display uppercase text-label">{mode === 'global' ? 'Night Club' : 'Secret 1v1'}</Text>
@@ -406,14 +407,14 @@ export default function TwelveAMClub() {
                 {mode === 'private' && isSearching ? (
                     <View className="flex-1 justify-center items-center">
                         <View className="w-32 h-32 rounded-full border-2 border-recruiter/30 items-center justify-center">
-                            <ActivityIndicator size="large" color="#4F46E5" />
+                            <ActivityIndicator size="large" color={C.recruiter} />
                         </View>
                         <Text className="text-white font-display uppercase text-sm mt-6">Searching for souls...</Text>
                         <Text className="text-night-3 text-label uppercase mt-2">Connecting you to a random stranger</Text>
                     </View>
                 ) : mode === 'private' && !matchRoomId ? (
                     <View className="flex-1 justify-center items-center px-gutter">
-                        <MaterialCommunityIcons name="comment-search-outline" size={60} color="#57534E" />
+                        <MaterialCommunityIcons name="comment-search-outline" size={60} color={C.ink2} />
                         <Text className="text-white text-xl font-display uppercase mt-4 text-center">Ready to Chat?</Text>
                         <Text className="text-night-3 text-sm text-center mt-2 leading-5">Match with someone anonymous and start a private conversation. Completely secret.</Text>
                         <TouchableOpacity 
@@ -450,7 +451,7 @@ export default function TwelveAMClub() {
                       </Text>
                     </View>
                     <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                      <Ionicons name="close-circle" size={20} color="#8B857E" />
+                      <Ionicons name="close-circle" size={20} color={C.ink3} />
                     </TouchableOpacity>
                   </BlurView>
                 )}
@@ -466,9 +467,9 @@ export default function TwelveAMClub() {
                                   className="w-11 h-11 bg-ink items-center justify-center mb-1 border-2 border-ink rounded-md"
                               >
                                   {isProcessing ? (
-                                      <ActivityIndicator size="small" color="#4F46E5" />
+                                      <ActivityIndicator size="small" color={C.recruiter} />
                                   ) : (
-                                      <Feather name="image" size={20} color="#4F46E5" />
+                                      <Feather name="image" size={20} color={C.recruiter} />
                                   )}
                               </TouchableOpacity>
                           )}
@@ -476,7 +477,7 @@ export default function TwelveAMClub() {
                           <View className="flex-1 min-h-[44px] max-h-32 bg-ink/50 rounded-card px-4 border border-white/5 justify-center">
                               <TextInput 
                                   placeholder={isProcessing ? "Sending binary data..." : mode === 'global' ? `Posting as ${myIdentity.username}...` : "Type a secret message..."}
-                                  placeholderTextColor="#57534E"
+                                  placeholderTextColor={C.ink2}
                                   className="text-white text-sm font-semibold"
                                   multiline
                                   value={inputText}

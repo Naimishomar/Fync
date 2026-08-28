@@ -13,6 +13,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { fetchPopularMovies, fetchTrendingMovies, fetchUpcomingMovies, fetchBollywoodMovies, getImageUrl } from '../../utils/tmdb';
 import MovieCard from './MovieCard';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 const numColumns = 3;
@@ -111,7 +112,7 @@ const MovieList = () => {
 
       {loading ? (
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#DB2777" />
+          <ActivityIndicator size="large" color={C.fam.fun} />
         </View>
       ) : (
         <View className="flex-1">
@@ -132,7 +133,7 @@ const MovieList = () => {
             )}
             ListEmptyComponent={
               <View className="flex-1 items-center mt-20">
-                <Ionicons name="film-outline" size={64} color="#57534E" />
+                <Ionicons name="film-outline" size={64} color={C.ink2} />
                 <Text className="text-ink-3 mt-4 text-lg">No movies found in this category</Text>
               </View>
             }

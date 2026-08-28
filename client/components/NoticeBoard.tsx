@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { RAZORPAY_KEY_ID } from '../constants/keys';
 import { Alert } from './ui/AlertModal';
 import { useBottomInset } from '../constants/layout';
+import { C } from '../constants/colors';
 
 const { width } = Dimensions.get('window');
 const ADMIN_EMAIL = "dev.fync@fync.com";
@@ -338,7 +339,7 @@ const NoticeBoard = () => {
             </View>
             {activeTab === 'global' && (
               <View className="bg-danger/10 px-3 py-1 rounded-full flex-row items-center border border-danger/15">
-                <MaterialCommunityIcons name="shield-check" size={12} color="#DB2777" />
+                <MaterialCommunityIcons name="shield-check" size={12} color={C.fam.fun} />
                 <Text className="text-danger text-label font-display ml-1 uppercase">Official</Text>
               </View>
             )}
@@ -415,13 +416,13 @@ const NoticeBoard = () => {
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => openComments(item._id)} className="flex-row items-center px-4 py-2 bg-paper-2 rounded-card border border-line">
-                <Ionicons name="chatbubble-outline" size={16} color="#C4BEB6" />
+                <Ionicons name="chatbubble-outline" size={16} color={C.ink4} />
                 <Text className="text-ink text-label ml-2 font-display">{item.comments?.length || 0}</Text>
               </TouchableOpacity>
 
               {isOwner && (
                 <TouchableOpacity onPress={() => deleteNoticeItem(item._id)} className="w-10 h-10 bg-danger/10 rounded-card items-center justify-center border border-danger/15">
-                  <Ionicons name="trash-outline" size={16} color="#DB2777" />
+                  <Ionicons name="trash-outline" size={16} color={C.fam.fun} />
                 </TouchableOpacity>
               )}
             </View>
@@ -477,7 +478,7 @@ const NoticeBoard = () => {
                 accessibilityLabel="Go back"
                 style={{ marginLeft: -11 }}
               >
-                <Ionicons name="arrow-back" size={24} color="#12100E" />
+                <Ionicons name="arrow-back" size={24} color={C.ink} />
               </TouchableOpacity>
               <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
               <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Board</Text>
@@ -511,7 +512,7 @@ const NoticeBoard = () => {
               renderItem={renderNotice}
               contentContainerStyle={{ paddingBottom: 120, paddingTop: 10 }}
               showsVerticalScrollIndicator={false}
-              refreshControl={<RefreshControl tintColor="#F97316" refreshing={refreshing} onRefresh={onRefresh} />}
+              refreshControl={<RefreshControl tintColor={C.brand[500]} refreshing={refreshing} onRefresh={onRefresh} />}
               onEndReached={handleLoadMore}
               onEndReachedThreshold={0.5}
               initialNumToRender={5}
@@ -521,14 +522,14 @@ const NoticeBoard = () => {
             ListFooterComponent={() => (
               loadingMore ? (
                 <View className="py-6 items-center">
-                  <ActivityIndicator size="small" color="#F97316" />
+                  <ActivityIndicator size="small" color={C.brand[500]} />
                 </View>
               ) : <View className="h-10" />
             )}
             ListEmptyComponent={
               <View className="items-center justify-center mt-20 px-gutter">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="clipboard-outline" size={32} color="#C4BEB6" />
+                  <Ionicons name="clipboard-outline" size={32} color={C.ink4} />
                 </View>
                 <Text className="font-semibold text-base text-ink text-center">No Active Intel</Text>
                 <Text className="font-sans text-sm text-ink-4 mt-2 text-center">The board is currently silent.</Text>
@@ -553,7 +554,7 @@ const NoticeBoard = () => {
                 New <Text className="text-accent-text">{activeTab === 'global' ? 'Global Intel' : 'Campus Intel'}</Text>
               </Text>
               <TouchableOpacity onPress={() => setCreateModalVisible(false)} className="bg-paper-2 p-2 rounded-card border border-line">
-                <Ionicons name="close" size={20} color="#12100E" />
+                <Ionicons name="close" size={20} color={C.ink} />
               </TouchableOpacity>
             </View>
             <ScrollView className="p-card-pad" contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
@@ -563,7 +564,7 @@ const NoticeBoard = () => {
                 value={title}
                 onChangeText={setTitle}
                 className="font-semibold text-base text-ink bg-card p-5 mb-6 border-[1.5px] border-ink shadow-hair rounded-md"
-                placeholderTextColor="#C4BEB6"
+                placeholderTextColor={C.ink4}
                 placeholder="Notice Heading"
               />
 
@@ -574,7 +575,7 @@ const NoticeBoard = () => {
                 multiline
                 numberOfLines={5}
                 className="bg-card p-5 mb-6 border-[1.5px] border-ink shadow-hair text-ink-2 leading-6 min-h-[150px] font-medium text-xs rounded-md"
-                placeholderTextColor="#C4BEB6"
+                placeholderTextColor={C.ink4}
                 placeholder="Establish the facts..."
                 textAlignVertical="top"
               />
@@ -584,7 +585,7 @@ const NoticeBoard = () => {
                 value={link}
                 onChangeText={setLink}
                 className="bg-card p-5 mb-8 border-[1.5px] border-ink shadow-hair text-accent-text font-semibold text-xs rounded-md"
-                placeholderTextColor="#C4BEB6"
+                placeholderTextColor={C.ink4}
                 placeholder="https://protocol-link.com/..."
                 autoCapitalize="none"
               />
@@ -601,7 +602,7 @@ const NoticeBoard = () => {
                 activeOpacity={0.8}
                 className="border-2 border-dashed border-line rounded-sheet p-card-pad items-center justify-center mb-8 bg-paper-2"
               >
-                <Ionicons name="images-outline" size={32} color="#C4BEB6" />
+                <Ionicons name="images-outline" size={32} color={C.ink4} />
                 <Text className="text-ink-3 font-display uppercase text-label mt-2">Attach Files</Text>
               </TouchableOpacity>
 
@@ -616,7 +617,7 @@ const NoticeBoard = () => {
                 disabled={submitting}
                 className={`py-5 rounded-card items-center shadow-hair flex-row justify-center ${submitting ? 'bg-paper-2' : 'bg-ink '}`}
               >
-                {submitting ? <ActivityIndicator color="#F97316" /> : (
+                {submitting ? <ActivityIndicator color={C.brand[500]} /> : (
                   <>
                     <Text className="text-white font-display uppercase text-xs mr-3">
                       {activeTab === 'global' && !isAdmin ? 'Deploy for ₹49' : 'Deploy Notice'}
@@ -640,11 +641,11 @@ const NoticeBoard = () => {
                   Transmission <Text className="text-accent-text">Log</Text>
                 </Text>
                 <TouchableOpacity onPress={() => setCommentsModalVisible(false)} className="bg-paper-2 p-2 rounded-card border border-line">
-                  <Ionicons name="close" size={20} color="#12100E" />
+                  <Ionicons name="close" size={20} color={C.ink} />
                 </TouchableOpacity>
               </View>
 
-              {commentsLoading ? <ActivityIndicator className="mt-20" color="#F97316" size="large" /> : (
+              {commentsLoading ? <ActivityIndicator className="mt-20" color={C.brand[500]} size="large" /> : (
                 <FlatList
                   data={noticeComments}
                   keyExtractor={c => c._id}
@@ -676,14 +677,14 @@ const NoticeBoard = () => {
                             }
                           }}
                         >
-                          <Ionicons name="trash-outline" size={16} color="#DB2777" />
+                          <Ionicons name="trash-outline" size={16} color={C.fam.fun} />
                         </TouchableOpacity>
                       )}
                     </View>
                   )}
                   ListEmptyComponent={
                     <View className="items-center mt-10">
-                      <Ionicons name="chatbubbles-outline" size={32} color="#C4BEB6" />
+                      <Ionicons name="chatbubbles-outline" size={32} color={C.ink4} />
                       <Text className="font-sans text-sm text-center text-ink-3 mt-4">No active discussion.</Text>
                     </View>
                   }
@@ -696,7 +697,7 @@ const NoticeBoard = () => {
                     value={newComment}
                     onChangeText={setNewComment}
                     placeholder="Establish contact..."
-                    placeholderTextColor="#C4BEB6"
+                    placeholderTextColor={C.ink4}
                     className="flex-1 bg-paper border-[1.5px] border-ink text-ink px-5 py-4 mr-3 font-display uppercase text-label rounded-md"
                   />
                   <TouchableOpacity
@@ -732,7 +733,7 @@ const NoticeBoard = () => {
             <View className="flex-row items-center justify-between p-6 border-b border-line bg-card">
               <Text className="text-ink font-display uppercase text-sm">Secure <Text className="text-accent-text">Transaction</Text></Text>
               <Pressable onPress={() => { setShowPaymentParams(null); Alert.alert('Cancelled', 'Payment is required to post a global notice.'); }}>
-                <Ionicons name="close" size={24} color="#12100E" />
+                <Ionicons name="close" size={24} color={C.ink} />
               </Pressable>
             </View>
             {showPaymentParams?.html ? (
@@ -744,7 +745,7 @@ const NoticeBoard = () => {
               />
             ) : (
               <View className="flex-1 bg-paper justify-center items-center">
-                <ActivityIndicator size="large" color="#F97316" />
+                <ActivityIndicator size="large" color={C.brand[500]} />
               </View>
             )}
           </SafeAreaView>

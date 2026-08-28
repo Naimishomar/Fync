@@ -9,6 +9,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -64,7 +65,7 @@ const CommunityItem = ({ item, userId, handleJoin, navigation, stamped }: any) =
 
                 <View className="flex-row justify-between items-center pt-4 border-t border-line">
                     <View className="flex-row items-center gap-1.5 px-3 py-1.5 bg-paper-2 rounded-card border border-line">
-                        <Ionicons name="people" size={12} color="#8B857E" />
+                        <Ionicons name="people" size={12} color={C.ink3} />
                         <Text className="text-ink-3 font-display text-label uppercase">{item.members?.length || 0} Sparks</Text>
                     </View>
 
@@ -75,7 +76,7 @@ const CommunityItem = ({ item, userId, handleJoin, navigation, stamped }: any) =
                         </View>
                     ) : isMember ? (
                         <View className="flex-row items-center gap-1.5 py-1.5 px-3 bg-paper-2 rounded-xl border border-line">
-                            <Feather name="check" size={10} color="#F97316" />
+                            <Feather name="check" size={10} color={C.brand[500]} />
                             <Text className="text-accent-text font-display uppercase text-label">Subscribed</Text>
                         </View>
                     ) : (
@@ -180,7 +181,7 @@ const CommunityListScreen = () => {
                           accessibilityLabel="Go back"
                           style={{ marginLeft: -11 }}
                         >
-                          <Ionicons name="arrow-back" size={24} color="#12100E" />
+                          <Ionicons name="arrow-back" size={24} color={C.ink} />
                         </TouchableOpacity>
                         <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Community</Text>
                         <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Hub</Text>
@@ -218,10 +219,10 @@ const CommunityListScreen = () => {
                     </View>
 
                     <View className="bg-card px-5 h-12 flex-row items-center border-2 border-ink shadow-hair mb-6 rounded-md">
-                        <Feather name="search" size={16} color="#8B857E" />
+                        <Feather name="search" size={16} color={C.ink3} />
                         <TextInput 
                             placeholder="Find a specialized hub..." 
-                            placeholderTextColor="#8B857E"
+                            placeholderTextColor={C.ink3}
                             className="flex-1 ml-4 font-display uppercase text-label text-ink"
                             value={searchQuery}
                             onChangeText={setSearchQuery}
@@ -247,11 +248,11 @@ const CommunityListScreen = () => {
                         )}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ paddingBottom: 150 }}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
                         ListEmptyComponent={
                             <View className="items-center mt-20 px-gutter">
                                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                    <Feather name="compass" size={48} color="#C4BEB6" />
+                                    <Feather name="compass" size={48} color={C.ink4} />
                                 </View>
                                 <Text className="font-semibold text-base text-ink text-center">No Active Signals</Text>
                                 <Text className="font-sans text-sm text-ink-4 mt-2 text-center">

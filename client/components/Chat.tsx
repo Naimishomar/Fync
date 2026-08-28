@@ -13,6 +13,7 @@ import * as DocumentPicker from "expo-document-picker";
 import { Video, ResizeMode } from "expo-av";
 import { ActivityIndicator, Modal } from "react-native";
 import { Alert } from './ui/AlertModal';
+import { C } from '../constants/colors';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -712,7 +713,7 @@ const Chat = ({ route, navigation }: any) => {
               className="w-11 h-11 items-center justify-center rounded-xl"
             
             style={{ marginLeft: -11 }}>
-              <Ionicons name="chevron-back" size={24} color="#12100E" />
+              <Ionicons name="chevron-back" size={24} color={C.ink} />
             </TouchableOpacity>
 
             {otherUser && (
@@ -804,7 +805,7 @@ const Chat = ({ route, navigation }: any) => {
                 onPress={() => setReplyingTo(null)}
                 className="ml-3 w-6 h-6 items-center justify-center rounded-full bg-paper-2"
               >
-                <Ionicons name="close" size={14} color="#8B857E" />
+                <Ionicons name="close" size={14} color={C.ink3} />
               </TouchableOpacity>
             </View>
           )}
@@ -814,16 +815,16 @@ const Chat = ({ route, navigation }: any) => {
             <View className="px-6 pb-2 pt-2 bg-card">
               <View className="flex-row items-center bg-paper-2 p-2 rounded-card border border-line shadow-hair">
                 <TouchableOpacity onPress={handlePickImage} className="w-10 h-10 items-center justify-center" hitSlop={2}>
-                  <Ionicons name="image-outline" size={22} color="#8B857E" />
+                  <Ionicons name="image-outline" size={22} color={C.ink3} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handlePickDocument} className="w-10 h-10 items-center justify-center mr-1" hitSlop={2}>
-                  <Ionicons name="attach-outline" size={24} color="#8B857E" />
+                  <Ionicons name="attach-outline" size={24} color={C.ink3} />
                 </TouchableOpacity>
                 <TextInput
                   value={text}
                   onChangeText={handleTyping}
                   placeholder="Encrypting transmission..."
-                  placeholderTextColor="#C4BEB6"
+                  placeholderTextColor={C.ink4}
                   className="flex-1 px-3 text-ink font-semibold text-sm py-2 placeholder:text-ink"
                   multiline={true}
                   numberOfLines={1}

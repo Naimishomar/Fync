@@ -3,7 +3,6 @@ import {View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndi
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import Feather from '@expo/vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
@@ -13,6 +12,7 @@ import RazorpayCheckout from 'react-native-razorpay';
 import { RAZORPAY_KEY_ID } from '../../constants/keys';
 import { WebView } from 'react-native-webview';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -229,7 +229,7 @@ const CreateCommunityScreen = () => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-                        <Ionicons name="close" size={20} color="#12100E" />
+                        <Ionicons name="close" size={20} color={C.ink} />
                     </TouchableOpacity>
                     <View className="items-center">
                         <Text className="text-ink text-xl font-display uppercase">Generate <Text className="text-accent-text">Hub</Text></Text>
@@ -252,7 +252,7 @@ const CreateCommunityScreen = () => {
                                 <Image source={{ uri: banner }} className="w-full h-full" resizeMode="cover" />
                             ) : (
                                 <View className="items-center">
-                                    <Feather name="image" size={24} color="#C4BEB6" />
+                                    <Feather name="image" size={24} color={C.ink4} />
                                     <Text className="text-ink-4 font-display uppercase text-label mt-2">Banner Asset</Text>
                                 </View>
                             )}
@@ -265,7 +265,7 @@ const CreateCommunityScreen = () => {
                                 <Image source={{ uri: logo }} className="w-full h-full" resizeMode="cover" />
                             ) : (
                                 <View className="items-center">
-                                    <Feather name="camera" size={24} color="#C4BEB6" />
+                                    <Feather name="camera" size={24} color={C.ink4} />
                                     <Text className="text-ink-4 font-display uppercase text-label mt-2">1:1 Logo</Text>
                                 </View>
                             )}
@@ -275,14 +275,14 @@ const CreateCommunityScreen = () => {
                     <Text className="text-ink-3 font-display uppercase text-label mb-4">Core Directives</Text>
                     <TextInput 
                         placeholder="Ecosystem Designation" 
-                        placeholderTextColor="#C4BEB6"
+                        placeholderTextColor={C.ink4}
                         className="bg-card p-5 border-[1.5px] border-ink font-display text-xs mb-4 shadow-hair text-ink rounded-md" 
                         value={name}
                         onChangeText={setName}
                     />
                     <TextInput 
                         placeholder="Describe the mission parameters of this hub..." 
-                        placeholderTextColor="#C4BEB6"
+                        placeholderTextColor={C.ink4}
                         multiline
                         className="bg-card p-5 border-[1.5px] border-ink font-medium text-xs mb-10 h-32 text-ink-2 shadow-hair rounded-md" 
                         textAlignVertical="top"
@@ -319,16 +319,16 @@ const CreateCommunityScreen = () => {
                     <Text className="text-ink-3 font-display uppercase text-label mb-4">External Links</Text>
                     <View className="bg-card p-6 rounded-sheet border border-line mb-10 shadow-hair">
                         <View className="flex-row items-center gap-4 mb-6">
-                            <FontAwesome5 name="youtube" size={16} color="#DC2626" />
-                            <TextInput placeholder="YouTube Protocol" placeholderTextColor="#C4BEB6" value={youtube} onChangeText={setYoutube} className="flex-1 font-display text-label text-ink" />
+                            <FontAwesome5 name="youtube" size={16} color={C.danger} />
+                            <TextInput placeholder="YouTube Protocol" placeholderTextColor={C.ink4} value={youtube} onChangeText={setYoutube} className="flex-1 font-display text-label text-ink" />
                         </View>
                         <View className="flex-row items-center gap-4 mb-6">
-                            <FontAwesome5 name="github" size={16} color="#12100E" />
-                            <TextInput placeholder="GitHub Repository" placeholderTextColor="#C4BEB6" value={github} onChangeText={setGithub} className="flex-1 font-display text-label text-ink" />
+                            <FontAwesome5 name="github" size={16} color={C.ink} />
+                            <TextInput placeholder="GitHub Repository" placeholderTextColor={C.ink4} value={github} onChangeText={setGithub} className="flex-1 font-display text-label text-ink" />
                         </View>
                         <View className="flex-row items-center gap-4">
-                            <SimpleLineIcons name="globe" size={16} color="#F97316" />
-                            <TextInput placeholder="Web Portal" placeholderTextColor="#C4BEB6" value={website} onChangeText={setWebsite} className="flex-1 font-display text-label text-ink" />
+                            <Ionicons name="globe-outline" size={16} color={C.brand[500]} />
+                            <TextInput placeholder="Web Portal" placeholderTextColor={C.ink4} value={website} onChangeText={setWebsite} className="flex-1 font-display text-label text-ink" />
                         </View>
                     </View>
 
@@ -337,7 +337,7 @@ const CreateCommunityScreen = () => {
                         disabled={loading}
                         className={`p-6 rounded-card items-center shadow-hair mb-20 ${loading ? 'bg-paper-2' : 'bg-ink '}`}
                     >
-                        {loading ? <ActivityIndicator color="#F97316" /> : (
+                        {loading ? <ActivityIndicator color={C.brand[500]} /> : (
                             <View className="flex-row items-center">
                                 <Text className="text-white font-display uppercase text-xs mr-3">Deploy Ecosystem Hub</Text>
                                 <Ionicons name="rocket" size={18} color="white" />

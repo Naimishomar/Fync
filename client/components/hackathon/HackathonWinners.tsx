@@ -22,6 +22,7 @@ import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
+import { C } from '../../constants/colors';
 
 /**
  * Announcing winners.
@@ -79,7 +80,7 @@ const Field = ({
       value={value}
       onChangeText={onChangeText}
       placeholder={placeholder}
-      placeholderTextColor="#8B857E"
+      placeholderTextColor={C.ink3}
       multiline={multiline}
       keyboardType={keyboardType}
       autoCapitalize={autoCapitalize}
@@ -144,25 +145,25 @@ const StudentPicker = ({
           <View className="flex-row items-center justify-between px-gutter pt-4 pb-3 border-b border-line">
             <Text className="text-ink text-base font-display">Tag a student</Text>
             <TouchableOpacity onPress={onClose} className="w-11 h-11 items-center justify-center" accessibilityRole="button" accessibilityLabel="Close">
-              <Ionicons name="close" size={22} color="#12100E" />
+              <Ionicons name="close" size={22} color={C.ink} />
             </TouchableOpacity>
           </View>
 
           <View className="px-gutter pt-3">
             <View className="flex-row items-center bg-card border-2 border-ink rounded-md px-3" style={{ height: 46 }}>
-              <Feather name="search" size={16} color="#8B857E" />
+              <Feather name="search" size={16} color={C.ink3} />
               <TextInput
                 value={query}
                 onChangeText={setQuery}
                 placeholder="Search by name or username"
-                placeholderTextColor="#8B857E"
+                placeholderTextColor={C.ink3}
                 autoFocus
                 autoCorrect={false}
                 autoCapitalize="none"
                 className="flex-1 ml-2 text-ink text-sm"
                 style={{ paddingVertical: 0 }}
               />
-              {searching ? <ActivityIndicator size="small" color="#F97316" /> : null}
+              {searching ? <ActivityIndicator size="small" color={C.brand[500]} /> : null}
             </View>
           </View>
 
@@ -204,14 +205,14 @@ const StudentPicker = ({
                   {taken ? (
                     <Text className="text-ink-3 text-label font-semibold">Added</Text>
                   ) : (
-                    <Ionicons name="add-circle-outline" size={20} color="#C2410C" />
+                    <Ionicons name="add-circle-outline" size={20} color={C.brand[700]} />
                   )}
                 </TouchableOpacity>
               );
             }}
             ListEmptyComponent={
               <View className="items-center pt-16 px-6">
-                <Feather name="users" size={26} color="#C4BEB6" />
+                <Feather name="users" size={26} color={C.ink4} />
                 <Text className="text-ink-2 text-label font-semibold mt-3 text-center">
                   {query.trim().length < 2 ? 'Type at least two characters' : searching ? 'Searching…' : 'No students matched'}
                 </Text>
@@ -338,7 +339,7 @@ const HackathonWinners = () => {
   if (loading) {
     return (
       <View className="flex-1 bg-paper items-center justify-center">
-        <ActivityIndicator size="large" color="#F97316" />
+        <ActivityIndicator size="large" color={C.brand[500]} />
       </View>
     );
   }
@@ -355,7 +356,7 @@ const HackathonWinners = () => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
-            <Ionicons name="arrow-back" size={22} color="#12100E" />
+            <Ionicons name="arrow-back" size={22} color={C.ink} />
           </TouchableOpacity>
           <View className="flex-1 ml-1">
             <Text className="text-ink text-base font-display">Announce winners</Text>
@@ -379,7 +380,7 @@ const HackathonWinners = () => {
             showsVerticalScrollIndicator={false}
           >
             <View className="flex-row items-start bg-card border border-line rounded-card p-3.5 mb-4">
-              <Feather name="info" size={13} color="#8B857E" style={{ marginTop: 1 }} />
+              <Feather name="info" size={13} color={C.ink3} style={{ marginTop: 1 }} />
               <Text className="text-ink-2 text-label leading-4 ml-2 flex-1">
                 Tagged students get a notification and the win appears on their profile. Teammates
                 without a Fync account are still credited through the team name.
@@ -456,7 +457,7 @@ const HackathonWinners = () => {
                         accessibilityRole="button"
                         accessibilityLabel={`Remove ${u.name}`}
                       >
-                        <Ionicons name="close-circle" size={16} color="#8B857E" />
+                        <Ionicons name="close-circle" size={16} color={C.ink3} />
                       </TouchableOpacity>
                     </View>
                   ))}
@@ -467,7 +468,7 @@ const HackathonWinners = () => {
                   activeOpacity={0.8}
                   accessibilityRole="button"
                 >
-                  <Ionicons name="person-add-outline" size={15} color="#C2410C" />
+                  <Ionicons name="person-add-outline" size={15} color={C.brand[700]} />
                   <Text className="text-brand-700 text-label font-semibold ml-2">Tag a student</Text>
                 </TouchableOpacity>
 
@@ -506,7 +507,7 @@ const HackathonWinners = () => {
               activeOpacity={0.8}
               accessibilityRole="button"
             >
-              <Ionicons name="add" size={17} color="#12100E" />
+              <Ionicons name="add" size={17} color={C.ink} />
               <Text className="text-ink text-label font-semibold ml-1.5">Add another position</Text>
             </TouchableOpacity>
           </ScrollView>
@@ -527,10 +528,10 @@ const HackathonWinners = () => {
             accessibilityState={{ disabled: saving }}
           >
             {saving ? (
-              <ActivityIndicator size="small" color="#12100E" />
+              <ActivityIndicator size="small" color={C.ink} />
             ) : (
               <>
-                <MaterialCommunityIcons name="trophy" size={17} color="#12100E" />
+                <MaterialCommunityIcons name="trophy" size={17} color={C.ink} />
                 <Text className="text-ink text-base font-display ml-2">Publish winners</Text>
               </>
             )}

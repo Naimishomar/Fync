@@ -21,6 +21,7 @@ import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { C } from '../../constants/colors';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 // Fixed pixel heights, not percentages of the screen. The banner used to be
@@ -210,7 +211,7 @@ const HackathonCard = memo(
             {/* Prize pool */}
             {item.prizepool ? (
               <View className="absolute bottom-3 left-3 flex-row items-center">
-                <Ionicons name="trophy" size={13} color="#F97316" />
+                <Ionicons name="trophy" size={13} color={C.brand[500]} />
                 <Text className="text-white text-sm font-semibold ml-1.5">{item.prizepool}</Text>
                 <Text className="text-white/60 text-label font-semibold ml-1.5">prize pool</Text>
               </View>
@@ -226,7 +227,7 @@ const HackathonCard = memo(
                   {item.logo ? (
                     <Image source={{ uri: item.logo }} className="w-full h-full" resizeMode="contain" />
                   ) : (
-                    <MaterialCommunityIcons name="domain" size={14} color="#8B857E" />
+                    <MaterialCommunityIcons name="domain" size={14} color={C.ink3} />
                   )}
                 </View>
                 <Text className="text-ink-3 text-label font-semibold flex-1" numberOfLines={1}>
@@ -234,7 +235,7 @@ const HackathonCard = memo(
                 </Text>
               </View>
               <View className="flex-row items-center bg-paper-2 px-2 py-1 rounded-md">
-                <Feather name="calendar" size={11} color="#8B857E" />
+                <Feather name="calendar" size={11} color={C.ink3} />
                 <Text className="text-ink-2 text-label font-semibold ml-1">
                   {fmtDate(item.hackathonstarts)} – {fmtDate(item.hackathonends)}
                 </Text>
@@ -248,7 +249,7 @@ const HackathonCard = memo(
 
             {/* Meta — mode, team size, and where the button actually goes */}
             <View className="flex-row items-center flex-wrap mb-3">
-              <Feather name="map-pin" size={12} color="#8B857E" />
+              <Feather name="map-pin" size={12} color={C.ink3} />
               <Text className="text-ink-3 text-label font-semibold ml-1.5">
                 {item.mode === 'Online' || !item.mode ? 'Online' : item.location || item.mode}
               </Text>
@@ -261,7 +262,7 @@ const HackathonCard = memo(
               {item.applyLink ? (
                 <>
                   <View className="w-1 h-1 rounded-full bg-line mx-2" />
-                  <Feather name="external-link" size={11} color="#8B857E" />
+                  <Feather name="external-link" size={11} color={C.ink3} />
                   <Text className="text-ink-3 text-label font-semibold ml-1">{hostOf(item.applyLink)}</Text>
                 </>
               ) : null}
@@ -269,7 +270,7 @@ const HackathonCard = memo(
 
             {hasWinners ? (
               <View className="flex-row items-center bg-warning/10 border border-warning/25 self-start px-2.5 py-1.5 rounded-md mb-3">
-                <MaterialCommunityIcons name="trophy" size={12} color="#B45309" />
+                <MaterialCommunityIcons name="trophy" size={12} color={C.warning} />
                 <Text className="text-warning text-label font-semibold ml-1.5">Winners announced</Text>
               </View>
             ) : null}
@@ -337,17 +338,17 @@ const ListHeader = memo(
           className="flex-row items-center bg-ink px-3.5 py-2.5 border-2 border-ink rounded-md"
           activeOpacity={0.85}
         >
-          <MaterialCommunityIcons name="plus" size={15} color="#F97316" />
+          <MaterialCommunityIcons name="plus" size={15} color={C.brand[500]} />
           <Text className="text-white text-label font-semibold ml-1">Host</Text>
         </TouchableOpacity>
       </View>
 
       {/* Search */}
       <View className="flex-row items-center bg-card border-2 border-ink px-3 mb-3 rounded-md" style={{ height: 44 }}>
-        <Feather name="search" size={16} color="#8B857E" />
+        <Feather name="search" size={16} color={C.ink3} />
         <TextInput
           placeholder="Search hackathons or tags"
-          placeholderTextColor="#8B857E"
+          placeholderTextColor={C.ink3}
           value={search}
           onChangeText={onSearch}
           returnKeyType="search"
@@ -357,7 +358,7 @@ const ListHeader = memo(
         />
         {search.length > 0 ? (
           <TouchableOpacity onPress={() => onSearch('')} hitSlop={8}>
-            <Ionicons name="close-circle" size={17} color="#C4BEB6" />
+            <Ionicons name="close-circle" size={17} color={C.ink4} />
           </TouchableOpacity>
         ) : null}
       </View>
@@ -536,7 +537,7 @@ const HackathonHub = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" colors={['#F97316']} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={['#F97316']} />
           }
           onEndReached={onEndReached}
           onEndReachedThreshold={0.6}
@@ -554,7 +555,7 @@ const HackathonHub = () => {
           ListFooterComponent={
             loadingMore ? (
               <View className="py-6 items-center">
-                <ActivityIndicator size="small" color="#F97316" />
+                <ActivityIndicator size="small" color={C.brand[500]} />
               </View>
             ) : (
               <View style={{ height: 8 }} />
@@ -563,12 +564,12 @@ const HackathonHub = () => {
           ListEmptyComponent={
             loading ? (
               <View className="py-20 items-center">
-                <ActivityIndicator size="large" color="#F97316" />
+                <ActivityIndicator size="large" color={C.brand[500]} />
               </View>
             ) : (
               <View className="items-center px-gutter" style={{ paddingTop: 56 }}>
                 <View className="w-16 h-16 rounded-card bg-card border border-line items-center justify-center mb-4">
-                  <MaterialCommunityIcons name="rocket-launch-outline" size={28} color="#C4BEB6" />
+                  <MaterialCommunityIcons name="rocket-launch-outline" size={28} color={C.ink4} />
                 </View>
                 <Text className="text-ink text-base font-semibold text-center mb-1">
                   {search
@@ -590,7 +591,7 @@ const HackathonHub = () => {
                     className="flex-row items-center bg-ink px-4 py-3 mt-5 border-2 border-ink rounded-md"
                     activeOpacity={0.85}
                   >
-                    <MaterialCommunityIcons name="plus" size={15} color="#F97316" />
+                    <MaterialCommunityIcons name="plus" size={15} color={C.brand[500]} />
                     <Text className="text-white text-label font-semibold ml-1.5">Host a hackathon</Text>
                   </TouchableOpacity>
                 ) : null}

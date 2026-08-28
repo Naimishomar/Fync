@@ -10,6 +10,7 @@ import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 
 import { StampCard } from '../ui/kit';
+import { C } from '../../constants/colors';
 const MarketplaceScreen = () => {
     const navigation = useNavigation<any>();
     const { user, setUser } = useAuth();
@@ -230,11 +231,11 @@ const MarketplaceScreen = () => {
                         numColumns={2}
                         columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 20 }}
                         contentContainerStyle={{ paddingTop: 10, paddingBottom: 100 }}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#B45309" />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.warning} />}
                         ListEmptyComponent={
                             <View className="items-center mt-32 p-card-pad">
                                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                    <Ionicons name="storefront-outline" size={32} color="#C4BEB6" />
+                                    <Ionicons name="storefront-outline" size={32} color={C.ink4} />
                                 </View>
                                 <Text className="font-semibold text-base text-ink text-center">Store Empty</Text>
                                 <Text className="font-sans text-sm text-ink-4 mt-2 text-center">New artifacts arriving soon.</Text>
@@ -259,7 +260,7 @@ const MarketplaceScreen = () => {
                                         <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Shipping Destination</Text>
                                     </View>
                                     <TouchableOpacity onPress={() => setBuyModalVisible(false)} className="bg-paper-2 w-10 h-10 rounded-card items-center justify-center border border-line">
-                                        <Ionicons name="close" size={20} color="#12100E" />
+                                        <Ionicons name="close" size={20} color={C.ink} />
                                     </TouchableOpacity>
                                 </View>
 
@@ -281,7 +282,7 @@ const MarketplaceScreen = () => {
                                             <TextInput
                                                 className="font-semibold text-base text-ink bg-card px-5 py-4 border-[1.5px] border-ink shadow-hair rounded-md"
                                                 placeholder="+91..."
-                                                placeholderTextColor="#C4BEB6"
+                                                placeholderTextColor={C.ink4}
                                                 keyboardType="phone-pad"
                                                 value={phone}
                                                 onChangeText={setPhone}
@@ -292,7 +293,7 @@ const MarketplaceScreen = () => {
                                             <TextInput
                                                 className="font-semibold text-base text-ink bg-card px-5 py-4 border-[1.5px] border-ink shadow-hair rounded-md"
                                                 placeholder="201206"
-                                                placeholderTextColor="#C4BEB6"
+                                                placeholderTextColor={C.ink4}
                                                 keyboardType="numeric"
                                                 maxLength={6}
                                                 value={pincode}
@@ -306,7 +307,7 @@ const MarketplaceScreen = () => {
                                         <TextInput
                                             className="bg-card px-5 py-5 font-medium text-xs border-[1.5px] border-ink shadow-hair text-ink h-28 rounded-md"
                                             placeholder="Complete address with landmark..."
-                                            placeholderTextColor="#C4BEB6"
+                                            placeholderTextColor={C.ink4}
                                             multiline
                                             textAlignVertical="top"
                                             value={address}
@@ -322,10 +323,10 @@ const MarketplaceScreen = () => {
                                         className={`py-5 rounded-card items-center justify-center flex-row shadow-hair ${purchasing ? 'bg-paper-2' : 'bg-ink '}`}
                                     >
                                         {purchasing ? (
-                                            <ActivityIndicator color="#B45309" />
+                                            <ActivityIndicator color={C.warning} />
                                         ) : (
                                             <>
-                                                <Ionicons name="flash-outline" size={20} color="#B45309" />
+                                                <Ionicons name="flash-outline" size={20} color={C.warning} />
                                                 <Text className="text-white font-display uppercase text-xs ml-2">Authorize Redemption</Text>
                                             </>
                                         )}

@@ -8,6 +8,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import socket from '../../utils/socket';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const SubCommunityChat = ({ navigation, route }: any) => {
     if (!navigation) return null;
@@ -179,7 +180,7 @@ const SubCommunityChat = ({ navigation, route }: any) => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-                            <Ionicons name="chevron-back" size={22} color="#12100E" />
+                            <Ionicons name="chevron-back" size={22} color={C.ink} />
                         </TouchableOpacity>
                         <View>
                             <Text className="text-ink font-display uppercase text-sm">#{subName}</Text>
@@ -190,7 +191,7 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                         </View>
                     </View>
                     <TouchableOpacity className="w-12 h-12 items-center justify-center bg-paper-2 rounded-card border border-line">
-                        <Feather name="more-horizontal" size={20} color="#C4BEB6" />
+                        <Feather name="more-horizontal" size={20} color={C.ink4} />
                     </TouchableOpacity>
                 </View>
 
@@ -201,7 +202,7 @@ const SubCommunityChat = ({ navigation, route }: any) => {
 
                 <View className="flex-1">
                     {loading ? (
-                        <View className="flex-1 items-center justify-center"><ActivityIndicator color="#F97316" /></View>
+                        <View className="flex-1 items-center justify-center"><ActivityIndicator color={C.brand[500]} /></View>
                     ) : (
                         <FlatList 
                             ref={flatListRef} 
@@ -221,7 +222,7 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                     {subType === 'announcement' && !isCreator ? (
                         <View className="p-card-pad bg-card items-center justify-center border-t border-line">
                             <View className="bg-paper-2 px-gutter py-4 rounded-card border border-line flex-row items-center gap-3">
-                                <Feather name="lock" size={16} color="#C4BEB6" />
+                                <Feather name="lock" size={16} color={C.ink4} />
                                 <Text className="font-sans text-sm text-ink-3 text-center">Guardian Broadcast Restricted</Text>
                             </View>
                         </View>
@@ -234,18 +235,18 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                                         <Text className="text-ink-3 text-label font-medium" numberOfLines={1}>{replyingTo.text}</Text>
                                     </View>
                                     <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                                        <Ionicons name="close-circle" size={24} color="#C4BEB6" />
+                                        <Ionicons name="close-circle" size={24} color={C.ink4} />
                                     </TouchableOpacity>
                                 </View>
                             )}
                             <View className="flex-row items-end gap-4">
                                 <TouchableOpacity className="w-14 h-14 bg-paper-2 rounded-card items-center justify-center mb-0.5 border border-line shadow-hair">
-                                    <Feather name="plus" size={28} color="#C4BEB6" />
+                                    <Feather name="plus" size={28} color={C.ink4} />
                                 </TouchableOpacity>
                                 <View className="flex-1 min-h-[56px] max-h-[140px] bg-paper-2 rounded-card px-6 border border-line justify-center shadow-hair">
                                     <TextInput 
                                         placeholder={subType === 'announcement' ? "Initiate broadcast..." : "Link message..."} 
-                                        placeholderTextColor="#C4BEB6"
+                                        placeholderTextColor={C.ink4}
                                         className="font-medium text-sm text-ink leading-[22px]"
                                         value={text}
                                         onChangeText={setText}

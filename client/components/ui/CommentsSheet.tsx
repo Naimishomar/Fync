@@ -8,6 +8,7 @@ import axios from '../../context/axiosConfig';
 import { Alert } from './AlertModal';
 import { getFullUrl } from '../../utils/imageUtils';
 import { useBottomInset } from '../../constants/layout';
+import { C } from '../../constants/colors';
 
 /**
  * The comment sheet, for every surface that has comments.
@@ -252,7 +253,7 @@ export default function CommentsSheet({
                   </>
                 )}
 
-                {busyId === comment._id && <ActivityIndicator size="small" color="#F97316" style={{ marginLeft: 10 }} />}
+                {busyId === comment._id && <ActivityIndicator size="small" color={C.brand[500]} style={{ marginLeft: 10 }} />}
               </View>
             )}
           </View>
@@ -293,7 +294,7 @@ export default function CommentsSheet({
 
           {loading ? (
             <View className="flex-1 items-center justify-center" style={{ minHeight: 220 }}>
-              <ActivityIndicator size="large" color="#F97316" />
+              <ActivityIndicator size="large" color={C.brand[500]} />
             </View>
           ) : (
             <FlatList
@@ -306,7 +307,7 @@ export default function CommentsSheet({
               showsVerticalScrollIndicator={false}
               ListEmptyComponent={
                 <View className="items-center mt-16 px-10">
-                  <Ionicons name="chatbubble-ellipses-outline" size={44} color="#C4BEB6" />
+                  <Ionicons name="chatbubble-ellipses-outline" size={44} color={C.ink4} />
                   <Text className="font-display text-base text-ink mt-3">No comments yet</Text>
                   <Text className="font-sans text-ink-2 mt-1 text-center" style={{ fontSize: 12 }}>
                     Say the first thing.
@@ -326,7 +327,7 @@ export default function CommentsSheet({
                   Replying to <Text className="font-display text-ink">@{replyingTo.commentor?.username}</Text>
                 </Text>
                 <Pressable onPress={() => setReplyingTo(null)} hitSlop={8}>
-                  <Ionicons name="close-circle" size={18} color="#8B857E" />
+                  <Ionicons name="close-circle" size={18} color={C.ink3} />
                 </Pressable>
               </View>
             )}
@@ -337,7 +338,7 @@ export default function CommentsSheet({
                 value={text}
                 onChangeText={setText}
                 placeholder={replyingTo ? 'Add a reply...' : 'Add a comment...'}
-                placeholderTextColor="#8B857E"
+                placeholderTextColor={C.ink3}
                 className="flex-1 text-ink bg-paper border-2 border-ink rounded-xl px-4 mr-2"
                 style={{ minHeight: 46, maxHeight: 110, paddingTop: 12, paddingBottom: 12 }}
                 multiline
@@ -353,7 +354,7 @@ export default function CommentsSheet({
                 accessibilityLabel={replyingTo ? 'Post reply' : 'Post comment'}
               >
                 {posting
-                  ? <ActivityIndicator size="small" color="#12100E" />
+                  ? <ActivityIndicator size="small" color={C.ink} />
                   : <Ionicons name="arrow-up" size={20} color={!text.trim() ? '#8B857E' : '#12100E'} />}
               </TouchableOpacity>
             </View>

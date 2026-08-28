@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchTrendingMovies } from '../../utils/tmdb';
 import MovieCard from './MovieCard';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 const numColumns = 3;
@@ -63,7 +64,7 @@ const MovieWatchlist = () => {
 
       {loading ? (
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#DB2777" />
+          <ActivityIndicator size="large" color={C.fam.fun} />
         </View>
       ) : (
         <FlatList
@@ -83,7 +84,7 @@ const MovieWatchlist = () => {
           )}
           ListEmptyComponent={
             <View className="flex-1 items-center mt-20">
-              <Ionicons name="bookmark-outline" size={64} color="#57534E" />
+              <Ionicons name="bookmark-outline" size={64} color={C.ink2} />
               <Text className="text-ink-3 mt-4 text-lg">Your watchlist is empty</Text>
               <TouchableOpacity 
                 onPress={() => navigation.navigate('EntertainmentHome')}

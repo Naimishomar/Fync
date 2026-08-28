@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
 
 import { StampCard } from '../ui/kit';
+import { C } from '../../constants/colors';
 const PlacementPredictor = () => {
     const navigation = useNavigation<any>();
     const [gpa, setGpa] = useState('');
@@ -70,7 +71,7 @@ const PlacementPredictor = () => {
                 <SafeAreaView className="flex-1">
                     <View className="px-6 pt-4 flex-row items-center gap-4">
                         <TouchableOpacity onPress={() => setResult(null)} className="p-2 bg-paper-2 rounded-full">
-                            <Ionicons name="arrow-back" size={24} color="#12100E" />
+                            <Ionicons name="arrow-back" size={24} color={C.ink} />
                         </TouchableOpacity>
                         <Text className="text-2xl font-display uppercase">Analysis <Text className="text-accent-text">Report</Text></Text>
                     </View>
@@ -95,7 +96,7 @@ const PlacementPredictor = () => {
                         {/* Jake's Format Badge */}
                         {result.is_jakes_format ? (
                             <View className="bg-success/10 p-4 rounded-card border border-success/15 flex-row items-center gap-3 mb-6">
-                                <Ionicons name="checkmark-circle" size={24} color="#047857" />
+                                <Ionicons name="checkmark-circle" size={24} color={C.success} />
                                 <View>
                                     <Text className="text-success font-display text-label uppercase">Jake's Resume Standard</Text>
                                     <Text className="text-success/70 text-label font-semibold">Your format is recruiter-optimized & ATS friendly.</Text>
@@ -103,7 +104,7 @@ const PlacementPredictor = () => {
                             </View>
                         ) : (
                             <View className="bg-warning/10 p-4 rounded-card border border-warning/15 flex-row items-center gap-3 mb-6">
-                                <Ionicons name="warning" size={24} color="#B45309" />
+                                <Ionicons name="warning" size={24} color={C.warning} />
                                 <View className="flex-1">
                                     <Text className="text-warning font-display text-label uppercase">Formatting Alert</Text>
                                     <Text className="text-warning/70 text-label font-semibold">{result.resume_fix_tip}</Text>
@@ -120,7 +121,7 @@ const PlacementPredictor = () => {
                                 <Text className="text-white text-xl font-display">{result.salary_estimate}</Text>
                             </View>
                             <View className="bg-brand-500/20 w-12 h-12 rounded-card items-center justify-center border border-white/10">
-                                <MaterialCommunityIcons name="currency-inr" size={24} color="#F97316" />
+                                <MaterialCommunityIcons name="currency-inr" size={24} color={C.brand[500]} />
                             </View>
                         </View>
 
@@ -148,7 +149,7 @@ const PlacementPredictor = () => {
                         <Text className="font-semibold text-base text-ink mb-3">Strengths</Text>
                         {(result.strengths || []).map((s: string, i: number) => (
                             <View key={i} className="flex-row items-center gap-2 mb-2">
-                                <Ionicons name="checkmark-circle" size={18} color="#047857" />
+                                <Ionicons name="checkmark-circle" size={18} color={C.success} />
                                 <Text className="text-ink-2 font-medium text-sm flex-1">{s}</Text>
                             </View>
                         ))}
@@ -157,7 +158,7 @@ const PlacementPredictor = () => {
                         <Text className="font-semibold text-base text-ink mt-6 mb-3">Areas to Improve</Text>
                         {(result.weaknesses || []).map((w: string, i: number) => (
                             <View key={i} className="flex-row items-center gap-2 mb-2">
-                                <Ionicons name="alert-circle" size={18} color="#B45309" />
+                                <Ionicons name="alert-circle" size={18} color={C.warning} />
                                 <Text className="text-ink-2 font-medium text-sm flex-1">{w}</Text>
                             </View>
                         ))}
@@ -182,7 +183,7 @@ const PlacementPredictor = () => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-                        <Ionicons name="arrow-back" size={24} color="#12100E" />
+                        <Ionicons name="arrow-back" size={24} color={C.ink} />
                     </TouchableOpacity>
                     <View>
                         <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Placement</Text>
@@ -199,7 +200,7 @@ const PlacementPredictor = () => {
                         <Text className="text-ink-3 text-label font-display uppercase mb-2">Current CGPA / GPA</Text>
                         <TextInput
                             placeholder="e.g. 8.5"
-                            placeholderTextColor="#C4BEB6"
+                            placeholderTextColor={C.ink4}
                             value={gpa}
                             onChangeText={setGpa}
                             keyboardType="numeric"
@@ -214,7 +215,7 @@ const PlacementPredictor = () => {
                         className={`p-card-pad rounded-sheet border-2 border-dashed items-center justify-center ${resume ? 'bg-brand-50 border-ink' : 'bg-paper-2 border-line'}`}
                     >
                         <View className={`w-16 h-16 rounded-card items-center justify-center mb-4 ${resume ? 'bg-brand-500' : 'bg-paper-2'}`}>
-                            <Ionicons name={resume ? "document-text" : "cloud-upload"} size={32} color="#12100E" />
+                            <Ionicons name={resume ? "document-text" : "cloud-upload"} size={32} color={C.ink} />
                         </View>
                         <Text className={`font-display uppercase text-sm text-center ${resume ? 'text-accent-text' : 'text-ink-3'}`}>
                             {resume ? resume.name : 'Upload PDF Resume'}
@@ -223,7 +224,7 @@ const PlacementPredictor = () => {
                     </TouchableOpacity>
 
                     <View className="mt-10 bg-fam-career/10 p-6 rounded-card border border-fam-career/15 flex-row items-center gap-4">
-                        <Ionicons name="information-circle" size={24} color="#2563EB" />
+                        <Ionicons name="information-circle" size={24} color={C.info} />
                         <Text className="flex-1 text-fam-career text-label font-semibold leading-4">
                             Our AI will analyze your GPA and resume keywords to match you with top-tier companies and predict your success rate.
                         </Text>
@@ -241,11 +242,11 @@ const PlacementPredictor = () => {
                             className="py-4 rounded-card flex-row justify-center items-center shadow-hair"
                          style={{ backgroundColor: '#F97316' }}>
                             {loading ? (
-                                <ActivityIndicator color="#12100E" />
+                                <ActivityIndicator color={C.ink} />
                             ) : (
                                 <View className='flex-row rounded-card'>
                                     <Text className="text-ink font-display text-lg mr-1 uppercase">Generate Prediction</Text>
-                                    <Ionicons name="flash" size={22} color="#12100E" />
+                                    <Ionicons name="flash" size={22} color={C.ink} />
                                 </View>
                             )}
                         </View>

@@ -21,6 +21,7 @@ import { readCache, writeCache, userKey } from "../utils/screenCache";
 import Avatar from "./Avatar";
 import { ChatListSkeleton } from "./Skeleton";
 import { useBottomInset } from '../constants/layout';
+import { C } from '../constants/colors';
 
 const ChatList = () => {
   const navigation = useNavigation<any>();
@@ -352,7 +353,7 @@ const ChatList = () => {
           {item.name}
         </Text>
       </View>
-      <Ionicons name="chatbubble-ellipses-outline" size={20} color="#F97316" />
+      <Ionicons name="chatbubble-ellipses-outline" size={20} color={C.brand[500]} />
     </TouchableOpacity>
   ), [onlineUsers]);
 
@@ -378,10 +379,10 @@ const ChatList = () => {
 
           {/* SEARCH DOCK */}
           <View className="flex-row items-center bg-card px-5 py-1 border-2 border-ink shadow-hair mb-5 rounded-md">
-            <Ionicons name="search" size={20} color="#8B857E" />
+            <Ionicons name="search" size={20} color={C.ink3} />
             <TextInput
               placeholder="Search contacts..."
-              placeholderTextColor="#C4BEB6"
+              placeholderTextColor={C.ink4}
               value={search}
               onChangeText={handleSearchChange}
               className="flex-1 text-ink font-semibold text-sm p-3"
@@ -390,7 +391,7 @@ const ChatList = () => {
             />
             {search.length > 0 && (
               <TouchableOpacity onPress={() => handleSearchChange("")}>
-                <Ionicons name="close-circle" size={18} color="#C4BEB6" />
+                <Ionicons name="close-circle" size={18} color={C.ink4} />
               </TouchableOpacity>
             )}
           </View>
@@ -435,7 +436,7 @@ const ChatList = () => {
                         className="flex-row items-center bg-card rounded-card p-5 border border-line shadow-hair mb-2"
                       >
                         <View className="w-12 h-12 rounded-card bg-paper-2 items-center justify-center border border-line mr-4">
-                          <Ionicons name="school" size={24} color="#F97316" />
+                          <Ionicons name="school" size={24} color={C.brand[500]} />
                         </View>
                         <View className="flex-1">
                           <Text className="font-semibold text-base text-ink">{user.college} Area</Text>
@@ -452,7 +453,7 @@ const ChatList = () => {
                         className="flex-row items-center bg-card rounded-card p-5 border border-line shadow-hair"
                       >
                         <View className="w-12 h-12 rounded-card bg-recruiter/10 items-center justify-center border border-recruiter/15 mr-4">
-                          <Ionicons name="people" size={24} color="#4F46E5" />
+                          <Ionicons name="people" size={24} color={C.recruiter} />
                         </View>
                         <View className="flex-1">
                           <Text className="font-semibold text-base text-ink">Student-Alumni Chat</Text>
@@ -496,7 +497,7 @@ const ChatList = () => {
                   <Ionicons
                     name={search.length > 0 ? "person-remove-outline" : "chatbubbles-outline"}
                     size={32}
-                    color="#C4BEB6"
+                    color={C.ink4}
                   />
                 </View>
                 <Text className="font-semibold text-base text-ink text-center">

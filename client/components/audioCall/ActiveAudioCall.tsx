@@ -6,6 +6,7 @@ import { webRTCManager } from '../../services/WebRTCService';
 import Avatar from '../Avatar';
 import { useBottomInset } from '../../constants/layout';
 import type { CallUser } from '../../services/CallSignalingService';
+import { C } from '../../constants/colors';
 
 export default function ActiveAudioCall({
   remoteUser,
@@ -48,7 +49,7 @@ export default function ActiveAudioCall({
       <SafeAreaView className="flex-1" edges={['top']}>
         <View className="items-center pt-6">
           <View className="flex-row items-center bg-card/10 px-4 py-1.5 rounded-full border border-white/15">
-            <Ionicons name="lock-closed" size={11} color="#F97316" />
+            <Ionicons name="lock-closed" size={11} color={C.brand[500]} />
             <Text className="text-white/70 text-label font-display uppercase ml-2">
               Encrypted
             </Text>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput } from 'react-native';
 import PdfToolShell from './PdfToolShell';
 import { loadDoc, writeDoc, rgb, degrees, StandardFonts } from './pdfKit';
+import { C } from '../../../constants/colors';
 
 export default function WatermarkPdfScreen() {
   const [text, setText] = useState('');
@@ -15,7 +16,7 @@ export default function WatermarkPdfScreen() {
           <Text className="text-ink-3 font-display uppercase text-label mb-2">Watermark text</Text>
           <TextInput
             value={text} onChangeText={setText}
-            placeholder="e.g. DRAFT" placeholderTextColor="#8B857E"
+            placeholder="e.g. DRAFT" placeholderTextColor={C.ink3}
             className="bg-card p-4 text-ink border-[1.5px] border-ink rounded-md"
             style={{ minHeight: 50 }}
           />

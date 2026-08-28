@@ -20,6 +20,7 @@ import {
   getImageUrl
 } from '../../utils/tmdb';
 import MovieCard from './MovieCard';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -65,7 +66,7 @@ const EntertainmentHome = () => {
   if (loading) {
     return (
       <View className="flex-1 bg-ink justify-center items-center">
-        <ActivityIndicator size="large" color="#DB2777" />
+        <ActivityIndicator size="large" color={C.fam.fun} />
       </View>
     );
   }
@@ -149,7 +150,7 @@ const EntertainmentHome = () => {
                     <Text className="font-display text-white uppercase" style={{ fontSize: 10, letterSpacing: 1 }}>Trending</Text>
                   </View>
                   <View className="flex-row items-center">
-                    <Ionicons name="star" size={14} color="#B45309" />
+                    <Ionicons name="star" size={14} color={C.warning} />
                     <Text className="text-white text-xs ml-1 font-semibold">{featuredMovie.vote_average.toFixed(1)}</Text>
                   </View>
                   <Text className="font-sans text-sm text-night-3">Movie</Text>

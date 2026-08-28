@@ -13,14 +13,16 @@ import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import Avatar from './Avatar';
 import { Image as ExpoImage } from 'expo-image';
+import { FlashList } from '@shopify/flash-list';
 import { LinearGradient } from 'expo-linear-gradient';
-import { getFullUrl } from '../utils/imageUtils';
+import { getFullUrl, getThumbUrl } from '../utils/imageUtils';
 import { StatusBar } from 'expo-status-bar';
 import EducationCard, { EducationEntry } from './profile/EducationCard';
 import { useTabBarClearance } from '../constants/layout';
 import { Alert } from './ui/AlertModal';
 
 import { StampCard, StampNumber } from './ui/kit';
+import { C } from '../constants/colors';
 const { width } = Dimensions.get('window');
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -134,10 +136,10 @@ function CodingStatsModal({ visible, user, onClose, onSuccess }: {
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <KeyboardAvoidingView className="flex-1 bg-paper" behavior="padding">
         <View className="flex-row items-center justify-between px-4 py-4 border-b border-line">
-          <Pressable onPress={onClose}><Ionicons name="close" size={24} color="#57534E" /></Pressable>
+          <Pressable onPress={onClose}><Ionicons name="close" size={24} color={C.ink2} /></Pressable>
           <Text className="font-display text-h2 text-ink">Update Coding Stats</Text>
           <Pressable onPress={save} disabled={saving} className="bg-brand-500 px-4 py-2 rounded-xl">
-            {saving ? <ActivityIndicator size="small" color="#12100E" /> : <Text className="text-ink font-semibold">Save</Text>}
+            {saving ? <ActivityIndicator size="small" color={C.ink} /> : <Text className="text-ink font-semibold">Save</Text>}
           </Pressable>
         </View>
         <ScrollView className="flex-1 px-4 pt-2" keyboardShouldPersistTaps="handled">
@@ -148,7 +150,7 @@ function CodingStatsModal({ visible, user, onClose, onSuccess }: {
             <View key={f.key} className="mb-4">
               <Text className="font-display text-label text-ink-3 uppercase mb-2" style={{ letterSpacing: 1.4 }}>{f.label}</Text>
               <TextInput className="bg-card border-[1.5px] border-ink px-4 py-3 text-ink text-sm rounded-md"
-                placeholder={f.ph} placeholderTextColor="#C4BEB6"
+                placeholder={f.ph} placeholderTextColor={C.ink4}
                 keyboardType={f.numeric === false ? 'default' : 'numeric'}
                 value={form[f.key] || ''}
                 onChangeText={v => setForm((p: any) => ({ ...p, [f.key]: v }))} />
@@ -210,7 +212,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
               </View>
 
               <View className="mt-4 border-2 border-ink bg-brand-500 items-center justify-center flex-row rounded-md" style={{ minHeight: 48 }}>
-                <Ionicons name={BADGE_ICON[user.fyncBadge || 'Newcomer']} size={16} color="#12100E" style={{ marginRight: 8 }} />
+                <Ionicons name={BADGE_ICON[user.fyncBadge || 'Newcomer']} size={16} color={C.ink} style={{ marginRight: 8 }} />
                 <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Boost Score</Text>
               </View>
             </View>
@@ -263,7 +265,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
           <View className="flex-row items-center gap-3">
             <View className="w-1.5 h-6 rounded-full bg-brand-500" />
             <View className="bg-paper-2 p-1.5 rounded-lg border border-line">
-              <Ionicons name="school-outline" size={18} color="#F97316" />
+              <Ionicons name="school-outline" size={18} color={C.brand[500]} />
             </View>
             <Text className="font-semibold text-ink text-xs uppercase">Education</Text>
           </View>
@@ -271,7 +273,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
         {education.length === 0 ? (
           <View className="bg-card rounded-sheet border border-line p-card-pad items-center shadow-hair">
             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-4">
-              <Ionicons name="school-outline" size={32} color="#C4BEB6" />
+              <Ionicons name="school-outline" size={32} color={C.ink4} />
             </View>
             <Text className="text-ink font-semibold text-sm">No education yet</Text>
             <Text className="text-ink-3 text-xs mt-1 text-center">Highlight your academic journey here</Text>
@@ -290,7 +292,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
               {isOwner && (
                 <Pressable onPress={() => setShowCodingModal(true)}
                   className="bg-fam-career/10 px-3 py-1.5 rounded-xl border border-fam-career/15">
-                  <Ionicons name="pencil-outline" size={14} color="#0891B2" />
+                  <Ionicons name="pencil-outline" size={14} color={C.fam.social} />
                 </Pressable>
               )}
             </View>
@@ -320,7 +322,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
               />
               <CodingPlatformCard
                 icon="https://upload.wikimedia.org/wikipedia/commons/e/eb/GeeksForGeeks_logo.png"
-                name="GFG" color="#047857" bg="#EDE8E0"
+                name="GFG" color={C.success} bg="#EDE8E0"
                 username={cp.gfg} solved={cs.gfgSolved} rating={cs.gfgRating}
                 profileUrl={`https://www.geeksforgeeks.org/user/${cp.gfg}`}
               />
@@ -343,12 +345,12 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
             {user?.github_id && (
               <Pressable onPress={() => Linking.openURL(user.github_id!)}
                 className="flex-row items-center bg-paper-2 px-5 py-4 rounded-card border border-line">
-                <Ionicons name="logo-github" size={24} color="#57534E" />
+                <Ionicons name="logo-github" size={24} color={C.ink2} />
                 <View className="ml-4 flex-1">
                   <Text className="text-label text-ink-3 font-display uppercase">Developer</Text>
                   <Text className="text-ink font-semibold text-sm">GitHub</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color="#C4BEB6" />
+                <Ionicons name="chevron-forward" size={16} color={C.ink4} />
               </Pressable>
             )}
             {user?.linkedIn_id && (
@@ -359,7 +361,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
                   <Text className="text-label text-ink-3 font-display uppercase">Professional</Text>
                   <Text className="text-ink font-semibold text-sm">LinkedIn</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color="#C4BEB6" />
+                <Ionicons name="chevron-forward" size={16} color={C.ink4} />
               </Pressable>
             )}
             {user?.upiId && (
@@ -395,7 +397,8 @@ function Profile() {
 
   const [posts, setPosts] = useState<any[]>([]);
   const [shorts, setShorts] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'posts' | 'shorts' | 'about'>('posts');
+  const [reposts, setReposts] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'posts' | 'shorts' | 'reposts' | 'about'>('posts');
   const [refreshing, setRefreshing] = useState(false);
   const [postsPage, setPostsPage] = useState(1);
   const [shortsPage, setShortsPage] = useState(1);
@@ -480,6 +483,7 @@ function Profile() {
     const results = await batchGet({
       posts: '/post/posts?page=1&limit=12',
       shorts: '/shorts/your?page=1&limit=12',
+      reposts: `/post/reposts/${user?._id}`,
       subscription: '/subscription/status',
       me: '/user/profile',
     });
@@ -502,6 +506,10 @@ function Profile() {
     } else {
       setHasMoreShorts(false);
     }
+
+    // getReposts answers under the model key, so this is `post`, not `posts`.
+    const repostsBody = bodyOf<any>(results.reposts);
+    if (repostsBody?.success) setReposts(repostsBody.post || []);
 
     const subBody = bodyOf<any>(results.subscription);
     if (subBody?.success) setSubscription(subBody);
@@ -593,7 +601,7 @@ function Profile() {
         </Text>
 
         <View className="flex-row items-center mt-4 px-4 py-2 bg-paper-2 rounded-card border border-line gap-2">
-          <Ionicons name="location" size={16} color="#F97316" />
+          <Ionicons name="location" size={16} color={C.brand[500]} />
           <Text className="font-semibold text-base text-ink">{user?.college || 'Earth'}</Text>
         </View>
 
@@ -619,7 +627,7 @@ function Profile() {
           <View className="w-full mt-4 bg-paper-2 border border-line px-5 py-3 flex-row items-center justify-between rounded-md">
             <View className="flex-row items-center">
               <View className="w-8 h-8 bg-brand-500 rounded-xl items-center justify-center mr-3">
-                <Ionicons name="flash" size={16} color="#12100E" />
+                <Ionicons name="flash" size={16} color={C.ink} />
               </View>
               <View>
                 <Text className="text-brand-900 font-display text-label uppercase">
@@ -648,14 +656,14 @@ function Profile() {
           >
              <View className="flex-row items-center">
               <View className="w-8 h-8 bg-brand-500 rounded-xl items-center justify-center mr-3">
-                <Ionicons name="alert-circle" size={18} color="#12100E" />
+                <Ionicons name="alert-circle" size={18} color={C.ink} />
               </View>
               <View>
                 <Text className="text-brand-900 font-display text-label uppercase">Plan Expired</Text>
                 <Text className="text-accent-text font-semibold text-label mt-0.5">Renew to unlock all features</Text>
               </View>
             </View>
-            <Ionicons name="arrow-forward" size={16} color="#F97316" />
+            <Ionicons name="arrow-forward" size={16} color={C.brand[500]} />
           </Pressable>
         )}
 
@@ -680,6 +688,7 @@ function Profile() {
       {[
         { key: 'posts', icon: 'grid-outline', activeIcon: 'grid' },
         { key: 'shorts', icon: 'play-circle-outline', activeIcon: 'play-circle' },
+        { key: 'reposts', icon: 'repeat-outline', activeIcon: 'repeat' },
         { key: 'about', icon: 'person-outline', activeIcon: 'person' },
       ].map((t, i) => {
         const isActive = activeTab === t.key;
@@ -697,19 +706,41 @@ function Profile() {
   );
 
   // ── Grid item ─────────────────────────────────────────────────────────
-  const renderGridItem = useCallback(({ item, isShort }: { item: any; isShort?: boolean }) => (
+  /** Small variant first, full file only if the twin is missing. */
+  const GridImage = ({ path }: { path: string }) => {
+    const [src, setSrc] = useState(getThumbUrl(path) || '');
+    return (
+      <ExpoImage
+        source={{ uri: src }}
+        style={{ width: '100%', height: '100%' }}
+        contentFit="cover"
+        cachePolicy="disk"
+        onError={() => { const full = getFullUrl(path); if (full && src !== full) setSrc(full); }}
+      />
+    );
+  };
+
+  const renderGridItem = useCallback(({ item, isShort, canDelete = true }: { item: any; isShort?: boolean; canDelete?: boolean }) => (
     <Pressable
       onPress={() => navigation.navigate('IndividualPostOrShort', isShort ? { shortId: item._id } : { postId: item._id })}
-      onLongPress={() => Alert.alert(
+      onLongPress={canDelete ? () => Alert.alert(
         isShort ? 'Delete Short' : 'Delete Post', 'Are you sure?',
         [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => isShort ? deleteShort(item._id) : deletePost(item._id) }]
-      )}
+      ) : undefined}
       className="m-[1px] rounded-lg overflow-hidden"
       style={{ width: (width / 3) - 2, height: isShort ? (width / 1.8) : (width / 3) }}>
       {isShort ? (
         <View className="w-full h-full bg-paper-2 overflow-hidden">
-          <Video source={{ uri: getFullUrl(item.video) || '' }} style={{ width: '100%', height: '100%' }}
-            resizeMode={ResizeMode.COVER} shouldPlay={false} positionMillis={100} />
+          {/* A still, not a decoder. Mounting <Video> per cell meant a dozen
+              hardware decoders on one screen. Shorts uploaded before the
+              thumbnail field existed still fall back to the video. */}
+          {item.thumbnail ? (
+            <ExpoImage source={{ uri: getFullUrl(item.thumbnail) || '' }} style={{ width: '100%', height: '100%' }}
+              contentFit="cover" cachePolicy="disk" transition={120} />
+          ) : (
+            <Video source={{ uri: getFullUrl(item.video) || '' }} style={{ width: '100%', height: '100%' }}
+              resizeMode={ResizeMode.COVER} shouldPlay={false} positionMillis={100} />
+          )}
           <LinearGradient colors={['transparent', 'rgba(0,0,0,0.5)']} className="absolute inset-0" />
           <View className="absolute bottom-2 left-2 flex-row items-center gap-1.5">
             <Ionicons name="play" size={12} color="white" />
@@ -717,7 +748,7 @@ function Profile() {
           </View>
         </View>
       ) : item.image?.length > 0 ? (
-        <ExpoImage source={{ uri: getFullUrl(item.image[0]) || '' }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="disk" />
+        <GridImage path={item.image[0]} />
       ) : (
         <View className="w-full h-full bg-paper-2 items-center justify-center p-3">
           <Text className="text-accent-text text-label font-semibold text-center" numberOfLines={4}>{item.title || item.description}</Text>
@@ -731,32 +762,35 @@ function Profile() {
     </Pressable>
   ), [navigation, deleteShort, deletePost]);
 
+  /** Inline, this was rebuilt on every parent render and took the whole grid
+   *  with it. */
+  const renderTabItem = useCallback(({ item }: { item: any }) => {
+    if (activeTab === 'about') return <AboutSection user={user} isOwner onRefresh={onRefresh} />;
+    if (activeTab === 'posts') return renderGridItem({ item, isShort: false });
+    if (activeTab === 'shorts') return renderGridItem({ item, isShort: true });
+    if (activeTab === 'reposts') return renderGridItem({ item, isShort: false, canDelete: false });
+    return null;
+  }, [activeTab, user, renderGridItem]);
+
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
       <StatusBar style="dark" />
-      <FlatList
+      {/* key={activeTab} forces a remount when the column count changes,
+          which both list implementations require. */}
+      <FlashList
         key={activeTab}
-        data={activeTab === 'posts' ? posts : activeTab === 'shorts' ? shorts : (['ABOUT'] as any)}
+        data={activeTab === 'posts' ? posts : activeTab === 'shorts' ? shorts : activeTab === 'reposts' ? reposts : (['ABOUT'] as any)}
         keyExtractor={(item, i) => (typeof item === 'string' ? item : item._id + i)}
         numColumns={activeTab === 'about' ? 1 : 3}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4F46E5" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.recruiter} />}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
-        initialNumToRender={12}
-        maxToRenderPerBatch={12}
-        windowSize={5}
-        removeClippedSubviews={Platform.OS === 'android'}
         ListHeaderComponent={<>{renderProfileInfo()}{renderTabBar()}</>}
-        renderItem={({ item }) => {
-          if (activeTab === 'about') return <AboutSection user={user} isOwner onRefresh={onRefresh} />;
-          if (activeTab === 'posts') return renderGridItem({ item, isShort: false });
-          if (activeTab === 'shorts') return renderGridItem({ item, isShort: true });
-          return null;
-        }}
-        ListFooterComponent={isLoadingMore ? <View className="py-4"><ActivityIndicator size="small" color="#4F46E5" /></View> : null}
+        renderItem={renderTabItem}
+        ListFooterComponent={isLoadingMore ? <View className="py-4"><ActivityIndicator size="small" color={C.recruiter} /></View> : null}
         ListEmptyComponent={
           <View className="items-center justify-center py-20">
-            <Ionicons name="images-outline" size={48} color="#C4BEB6" />
+            <Ionicons name="images-outline" size={48} color={C.ink4} />
             <Text className="text-ink-3 mt-4 font-medium">No content here yet</Text>
           </View>
         }

@@ -14,6 +14,7 @@ import * as Sharing from 'expo-sharing';
 // package root leaves them undefined at runtime.
 import * as FileSystem from 'expo-file-system/legacy';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 export default function ImageCompressorScreen() {
   const navigation = useNavigation();
@@ -110,7 +111,7 @@ export default function ImageCompressorScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
           <Text className="text-xl font-display text-ink flex-1">Compress Image</Text>
         </View>
@@ -122,7 +123,7 @@ export default function ImageCompressorScreen() {
               className="w-full bg-card border-2 border-dashed border-fam-career/25 rounded-card p-card-pad items-center justify-center mb-6 shadow-hair"
             >
               <View className="w-16 h-16 bg-fam-career/10 rounded-full items-center justify-center mb-3">
-                <Ionicons name="image-outline" size={32} color="#0891B2" />
+                <Ionicons name="image-outline" size={32} color={C.fam.social} />
               </View>
               <Text className="text-lg font-display text-ink mb-1">Select Image</Text>
               <Text className="text-xs font-medium text-ink-3 text-center">Tap to choose a large image</Text>
@@ -144,7 +145,7 @@ export default function ImageCompressorScreen() {
                   <Text className="text-xs text-ink-3 font-semibold mb-1 uppercase">Original Size</Text>
                   <Text className="text-base font-display text-ink">{formatSize(originalSize)}</Text>
                 </View>
-                <Ionicons name="arrow-forward" size={20} color="#C4BEB6" />
+                <Ionicons name="arrow-forward" size={20} color={C.ink4} />
                 <View className="items-end">
                   <Text className="text-xs text-fam-career font-semibold mb-1 uppercase">Compressed Size</Text>
                   <Text className={`text-base font-display ${compressedUri ? 'text-fam-career' : 'text-ink-4'}`}>

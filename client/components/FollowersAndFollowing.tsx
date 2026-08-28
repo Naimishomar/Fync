@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
+import { C } from '../constants/colors';
 
 type User = {
   _id: string;
@@ -149,7 +150,7 @@ const FollowersAndFollowing = () => {
                       accessibilityLabel="Go back"
                       style={{ marginLeft: -11 }}
                     >
-                      <Ionicons name="arrow-back" size={24} color="#12100E" />
+                      <Ionicons name="arrow-back" size={24} color={C.ink} />
                     </TouchableOpacity>
                     <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Social</Text>
                     <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>{type}</Text>
@@ -172,7 +173,7 @@ const FollowersAndFollowing = () => {
                 ListEmptyComponent={
                 <View className="items-center justify-center mt-20 px-gutter">
                     <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                        <Ionicons name="people" size={40} color="#C4BEB6" />
+                        <Ionicons name="people" size={40} color={C.ink4} />
                     </View>
                     <Text className="font-semibold text-base text-ink text-center">No {type} Found</Text>
                     <Text className="font-sans text-sm text-ink-4 mt-2 text-center">There are no users in this list yet.</Text>

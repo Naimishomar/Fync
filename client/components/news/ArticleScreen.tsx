@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
+import { C } from '../../constants/colors';
 
 type Block =
   | { type: 'paragraph' | 'heading' | 'quote' | 'bullet' | 'code'; text: string }
@@ -79,7 +80,7 @@ export default function ArticleScreen() {
             accessibilityRole="button" accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}
           >
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
           <Text className="flex-1 font-display text-ink uppercase text-label ml-1" numberOfLines={1}>
             {article?.siteName ?? source ?? 'Article'}
@@ -89,19 +90,19 @@ export default function ArticleScreen() {
             className="w-11 h-11 items-center justify-center rounded-xl"
             accessibilityRole="button" accessibilityLabel="Share article"
           >
-            <Ionicons name="share-outline" size={20} color="#12100E" />
+            <Ionicons name="share-outline" size={20} color={C.ink} />
           </TouchableOpacity>
         </View>
 
         {loading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator color="#F97316" />
+            <ActivityIndicator color={C.brand[500]} />
             <Text className="text-ink-3 text-sm mt-3">Fetching the article…</Text>
           </View>
         ) : error ? (
           <View className="flex-1 items-center justify-center px-8">
             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-4">
-              <Ionicons name="document-outline" size={32} color="#57534E" />
+              <Ionicons name="document-outline" size={32} color={C.ink2} />
             </View>
             <Text className="text-ink font-display uppercase text-h2 text-center">Cannot show this one</Text>
             <Text className="text-ink-2 text-sm text-center mt-2">{error}</Text>
@@ -174,7 +175,7 @@ export default function ArticleScreen() {
               accessibilityRole="button"
               accessibilityLabel={`Read the original on ${article.siteName}`}
             >
-              <Ionicons name="open-outline" size={16} color="#12100E" style={{ marginRight: 8 }} />
+              <Ionicons name="open-outline" size={16} color={C.ink} style={{ marginRight: 8 }} />
               <Text className="font-display uppercase text-ink text-label">Read on {article.siteName}</Text>
             </TouchableOpacity>
           </ScrollView>

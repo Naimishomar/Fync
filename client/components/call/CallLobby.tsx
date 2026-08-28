@@ -17,6 +17,7 @@ import { callSignaling, type CallUser, type CallerInfo } from '../../services/Ca
 import Avatar from '../Avatar';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
+import { C } from '../../constants/colors';
 
 /**
  * One lobby for both audio and video calling.
@@ -359,14 +360,14 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
               accessibilityLabel="Go back"
             
             style={{ marginLeft: -11 }}>
-              <Ionicons name="close" size={18} color="#12100E" />
+              <Ionicons name="close" size={18} color={C.ink} />
             </Pressable>
           </View>
         </View>
 
         {loading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#F97316" />
+            <ActivityIndicator size="large" color={C.brand[500]} />
           </View>
         ) : (
           <FlatList
@@ -376,7 +377,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: bottomInset + 24 }}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={() => loadUsers(true)} tintColor="#F97316" />
+              <RefreshControl refreshing={refreshing} onRefresh={() => loadUsers(true)} tintColor={C.brand[500]} />
             }
             ListHeaderComponent={
               <Text className="text-ink-3 text-label font-display uppercase mb-4 ml-2">
@@ -389,7 +390,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
                   <Ionicons
                     name={isVideo ? 'videocam-off-outline' : 'call-outline'}
                     size={32}
-                    color="#C4BEB6"
+                    color={C.ink4}
                   />
                 </View>
                 <Text className="font-semibold text-base text-ink text-center">

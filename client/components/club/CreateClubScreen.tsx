@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const CreateClubScreen = () => {
     const navigation = useNavigation<any>();
@@ -106,7 +107,7 @@ const CreateClubScreen = () => {
                                 <Image source={{ uri: banner.uri }} className="w-full h-full" />
                             ) : (
                                 <View className="items-center">
-                                    <Feather name="image" size={32} color="#8B857E" />
+                                    <Feather name="image" size={32} color={C.ink3} />
                                     <Text className="text-ink-3 font-semibold text-label uppercase mt-2">Upload Banner (16:9)</Text>
                                 </View>
                             )}
@@ -120,7 +121,7 @@ const CreateClubScreen = () => {
                             {logo ? (
                                 <Image source={{ uri: logo.uri }} className="w-full h-full" />
                             ) : (
-                                <Feather name="camera" size={24} color="#8B857E" />
+                                <Feather name="camera" size={24} color={C.ink3} />
                             )}
                         </TouchableOpacity>
 

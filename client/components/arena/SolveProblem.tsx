@@ -8,6 +8,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
+import { C } from '../../constants/colors';
 
 const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://fync-zeta.vercel.app';
 
@@ -76,7 +77,7 @@ export default function SolveProblem() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-paper items-center justify-center">
-        <ActivityIndicator size="large" color="#F97316" />
+        <ActivityIndicator size="large" color={C.brand[500]} />
       </SafeAreaView>
     );
   }
@@ -94,7 +95,7 @@ export default function SolveProblem() {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <Ionicons name="arrow-back" size={24} color="#12100E" />
+          <Ionicons name="arrow-back" size={24} color={C.ink} />
         </TouchableOpacity>
 
         <View className="flex-row items-center mt-1 mb-2">
@@ -181,7 +182,7 @@ export default function SolveProblem() {
           accessibilityRole="button"
           accessibilityLabel="Open this problem in your browser to solve it"
         >
-          <Ionicons name="laptop-outline" size={18} color="#12100E" />
+          <Ionicons name="laptop-outline" size={18} color={C.ink} />
           <Text className="font-display text-ink uppercase">
             {solved ? 'Open in browser' : 'Solve in browser'}
           </Text>

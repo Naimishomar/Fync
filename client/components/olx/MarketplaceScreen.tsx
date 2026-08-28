@@ -7,6 +7,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = width / 2 - 28;
@@ -86,7 +87,7 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
                     <View className="flex-row justify-between items-center px-gutter py-2 border-b border-line">
                         <Text className="text-ink font-display uppercase text-h1">List <Text className="text-accent-text">Artifact</Text></Text>
                         <TouchableOpacity onPress={onClose} className="bg-card p-2 rounded-full border border-line">
-                            <Ionicons name="close" size={20} color="#12100E" />
+                            <Ionicons name="close" size={20} color={C.ink} />
                         </TouchableOpacity>
                     </View>
 
@@ -97,15 +98,15 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
                         </View>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-8">
                             <TouchableOpacity onPress={pickImage} className="w-28 h-28 bg-card border border-dashed border-line rounded-card items-center justify-center mr-4 shadow-hair">
-                                <Ionicons name="camera-outline" size={24} color="#F97316" />
+                                <Ionicons name="camera-outline" size={24} color={C.brand[500]} />
                                 <Text className="text-ink-3 text-label font-display uppercase mt-2">Add Assets</Text>
                             </TouchableOpacity>
                             {images.map((img, index) => (<Image key={index} source={{ uri: img.uri }} className="w-28 h-28 rounded-card mr-4 bg-paper-2 border border-line" />))}
                         </ScrollView>
 
                         <Text className="text-ink-3 text-label font-display uppercase mb-4">Metadata Details</Text>
-                        <TextInput value={name} onChangeText={setName} className="font-semibold text-base text-ink bg-card p-5 border-[1.5px] border-ink shadow-hair mb-4 rounded-md" placeholder="Artifact Name" placeholderTextColor="#C4BEB6" />
-                        <TextInput value={price} onChangeText={setPrice} keyboardType="numeric" className="font-semibold text-base text-ink bg-card p-5 border-[1.5px] border-ink shadow-hair mb-6 rounded-md" placeholder="Valuation (INR)" placeholderTextColor="#C4BEB6" />
+                        <TextInput value={name} onChangeText={setName} className="font-semibold text-base text-ink bg-card p-5 border-[1.5px] border-ink shadow-hair mb-4 rounded-md" placeholder="Artifact Name" placeholderTextColor={C.ink4} />
+                        <TextInput value={price} onChangeText={setPrice} keyboardType="numeric" className="font-semibold text-base text-ink bg-card p-5 border-[1.5px] border-ink shadow-hair mb-6 rounded-md" placeholder="Valuation (INR)" placeholderTextColor={C.ink4} />
 
                         <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
                           <Text className="text-ink-3 text-label font-display uppercase">Classification</Text>
@@ -124,10 +125,10 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
                         </ScrollView>
 
                         <Text className="text-ink-3 text-label font-display uppercase mb-4 mt-2">Technical Description</Text>
-                        <TextInput value={desc} onChangeText={setDesc} multiline numberOfLines={4} className="bg-card text-ink p-5 border-[1.5px] border-ink shadow-hair mb-10 font-medium text-xs leading-5 rounded-md" placeholder="Operational status, physical condition, etc." placeholderTextColor="#C4BEB6" textAlignVertical="top" />
+                        <TextInput value={desc} onChangeText={setDesc} multiline numberOfLines={4} className="bg-card text-ink p-5 border-[1.5px] border-ink shadow-hair mb-10 font-medium text-xs leading-5 rounded-md" placeholder="Operational status, physical condition, etc." placeholderTextColor={C.ink4} textAlignVertical="top" />
 
                         <TouchableOpacity onPress={handleSell} disabled={loading} className={`p-5 rounded-card items-center mb-20 shadow-hair ${loading ? 'bg-paper-2' : 'bg-ink '}`}>
-                            {loading ? <ActivityIndicator color="#F97316" /> : <Text className="text-white font-display uppercase text-xs">Deploy to Marketplace</Text>}
+                            {loading ? <ActivityIndicator color={C.brand[500]} /> : <Text className="text-white font-display uppercase text-xs">Deploy to Marketplace</Text>}
                         </TouchableOpacity>
                     </ScrollView>
                 </View>
@@ -171,7 +172,7 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                                 </View>
                                 {isOwner && (
                                     <TouchableOpacity onPress={() => onDelete(product._id)} className="bg-danger/10 p-3 rounded-card border border-danger/15 shadow-hair">
-                                        <Ionicons name="trash-outline" size={20} color="#DB2777" />
+                                        <Ionicons name="trash-outline" size={20} color={C.fam.fun} />
                                     </TouchableOpacity>
                                 )}
                             </View>
@@ -193,7 +194,7 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                                     <Text className="text-ink-3 text-label font-semibold uppercase mt-1">@{product.seller.username} • {product.college}</Text>
                                 </View>
                                 <View className="ml-auto w-8 h-8 bg-card rounded-full items-center justify-center border border-line">
-                                    <Ionicons name="chevron-forward" size={14} color="#C4BEB6" />
+                                    <Ionicons name="chevron-forward" size={14} color={C.ink4} />
                                 </View>
                             </Pressable>
 
@@ -228,7 +229,7 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                                         }
                                     }}
                                 >
-                                    <Ionicons name="chatbubbles" size={20} color="#12100E" />
+                                    <Ionicons name="chatbubbles" size={20} color={C.ink} />
                                     <Text className="text-ink font-display uppercase text-xs">Chat with Seller</Text>
                                 </TouchableOpacity>
                             )}
@@ -380,7 +381,7 @@ const MarketplaceScreen = () => {
                               accessibilityLabel="Go back"
                               style={{ marginLeft: -11 }}
                             >
-                              <Ionicons name="arrow-back" size={24} color="#12100E" />
+                              <Ionicons name="arrow-back" size={24} color={C.ink} />
                             </TouchableOpacity>
                             <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
                             <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Market</Text>
@@ -396,17 +397,17 @@ const MarketplaceScreen = () => {
 
                     {/* SEARCH DOCK */}
                     <View className="flex-row items-center bg-card px-5 py-1.5 border-2 border-ink shadow-hair mb-8 rounded-md">
-                        <Ionicons name="search" size={20} color="#8B857E" />
+                        <Ionicons name="search" size={20} color={C.ink3} />
                         <TextInput
                             placeholder="Search artifacts..."
-                            placeholderTextColor="#C4BEB6"
+                            placeholderTextColor={C.ink4}
                             value={search}
                             onChangeText={setSearch}
                             className="flex-1 text-ink font-semibold text-sm p-3"
                         />
                         {search.length > 0 && (
                             <TouchableOpacity onPress={() => setSearch("")}>
-                                <Ionicons name="close-circle" size={18} color="#C4BEB6" />
+                                <Ionicons name="close-circle" size={18} color={C.ink4} />
                             </TouchableOpacity>
                         )}
                     </View>
@@ -427,7 +428,7 @@ const MarketplaceScreen = () => {
 
                 {loading && !refreshing ? (
                     <View className="mt-10 px-gutter">
-                        <ActivityIndicator color="#F97316" size="large" />
+                        <ActivityIndicator color={C.brand[500]} size="large" />
                         <Text className="font-sans text-sm text-ink-3 text-center mt-4">Syncing Marketplace Indices...</Text>
                     </View>
                 ) : (
@@ -440,12 +441,12 @@ const MarketplaceScreen = () => {
                         contentContainerStyle={{ paddingTop: 10, paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
                         refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchProducts(); }} tintColor="#F97316" />
+                            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchProducts(); }} tintColor={C.brand[500]} />
                         }
                         ListEmptyComponent={
                             <View className="items-center justify-center mt-20 px-gutter">
                                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                    <Ionicons name="basket-outline" size={32} color="#C4BEB6" />
+                                    <Ionicons name="basket-outline" size={32} color={C.ink4} />
                                 </View>
                                 <Text className="font-semibold text-base text-ink text-center">No Active Listings</Text>
                                 <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Be the first hunter to deploy assets here.</Text>

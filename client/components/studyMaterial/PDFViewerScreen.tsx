@@ -3,6 +3,7 @@ import { WebView } from 'react-native-webview';
 import { View, ActivityIndicator, Text, Pressable, StatusBar, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { C } from '../../constants/colors';
 
 /**
  * Google's PDF viewer follows the reader's own Google theme, so on a dark-mode
@@ -139,7 +140,7 @@ const PDFViewerScreen = ({ route, navigation }: any) => {
               backgroundColor: bg,
             }}
           >
-            <ActivityIndicator size="large" color="#7C3AED" />
+            <ActivityIndicator size="large" color={C.fam.study} />
           </View>
         )}
       />

@@ -2,6 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, Text, TouchableOpacity, StatusBar, DevSettings } from 'react-native';
 import { RefreshCcw, AlertTriangle } from './ui/icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { C } from '../constants/colors';
 
 interface Props {
   children: ReactNode;
@@ -48,7 +49,7 @@ class ErrorBoundary extends Component<Props, State> {
               justifyContent: 'center',
               marginBottom: 24
             }}>
-              <AlertTriangle size={40} color="#DC2626" />
+              <AlertTriangle size={40} color={C.danger} />
             </View>
             
             <Text style={{ 
@@ -88,7 +89,7 @@ class ErrorBoundary extends Component<Props, State> {
                 minHeight: 48
               }}
             >
-              <RefreshCcw size={18} color="#12100E" style={{ marginRight: 8 }} />
+              <RefreshCcw size={18} color={C.ink} style={{ marginRight: 8 }} />
               <Text style={{ color: '#12100E', fontFamily: 'SpaceGrotesk_700Bold', fontSize: 14, letterSpacing: 0.3, textTransform: 'uppercase' }}>Reload App</Text>
             </TouchableOpacity>
 

@@ -17,6 +17,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Device from "expo-device";
 // @ts-ignore
 import loginImage from '../assets/loginImage.png';
+import { C } from '../constants/colors';
 
 export default function AlumniAvatarSetup() {
   const navigation = useNavigation<any>();
@@ -134,7 +135,7 @@ export default function AlumniAvatarSetup() {
               {profileImageUri ? (
                 <Image source={{ uri: profileImageUri }} className="h-full w-full" resizeMode="cover" />
               ) : (
-                <Ionicons name="camera" size={48} color="#C4BEB6" />
+                <Ionicons name="camera" size={48} color={C.ink4} />
               )}
             </Pressable>
             <Text className="mt-4 text-ink-2 font-medium">Capture or Upload</Text>
@@ -146,7 +147,7 @@ export default function AlumniAvatarSetup() {
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator color="#12100E" />
+              <ActivityIndicator color={C.ink} />
             ) : (
               <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Finish Setup</Text>
             )}

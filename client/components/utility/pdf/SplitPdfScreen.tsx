@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput } from 'react-native';
 import PdfToolShell from './PdfToolShell';
 import { PDFDocument, loadDoc, writeDoc, parsePageRanges } from './pdfKit';
+import { C } from '../../../constants/colors';
 
 export default function SplitPdfScreen() {
   const [spec, setSpec] = useState('');
@@ -14,7 +15,7 @@ export default function SplitPdfScreen() {
           <Text className="text-ink-3 font-display uppercase text-label mb-2">Pages to keep</Text>
           <TextInput
             value={spec} onChangeText={setSpec}
-            placeholder="e.g. 1-3, 5, 9-" placeholderTextColor="#8B857E"
+            placeholder="e.g. 1-3, 5, 9-" placeholderTextColor={C.ink3}
             className="bg-card p-4 text-ink border-[1.5px] border-ink rounded-md"
             style={{ minHeight: 50 }} autoCapitalize="none"
           />

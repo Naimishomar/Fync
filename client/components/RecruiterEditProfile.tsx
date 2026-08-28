@@ -19,6 +19,7 @@ import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { StatusBar } from 'expo-status-bar';
 import { useBottomInset } from '../constants/layout';
+import { C } from '../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -142,7 +143,7 @@ export default function RecruiterEditProfile() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-          <Ionicons name="close" size={24} color="#57534E" />
+          <Ionicons name="close" size={24} color={C.ink2} />
         </TouchableOpacity>
         <Text className="font-semibold text-base text-ink">Global Profile Settings</Text>
         <TouchableOpacity
@@ -166,12 +167,12 @@ export default function RecruiterEditProfile() {
             <Image source={{ uri: banner }} className="w-full h-full" resizeMode="cover" />
           ) : (
             <View className="flex-1 items-center justify-center">
-              <Ionicons name="image-outline" size={32} color="#8B857E" />
+              <Ionicons name="image-outline" size={32} color={C.ink3} />
               <Text className="text-ink-3 text-label font-display uppercase mt-2">Add Banner</Text>
             </View>
           )}
           <View className="absolute right-3 bg-card/90 p-2 rounded-full shadow-hair" style={{ bottom: bottomInset + 12 }}>
-            <Ionicons name="camera" size={18} color="#4F46E5" />
+            <Ionicons name="camera" size={18} color={C.recruiter} />
           </View>
         </TouchableOpacity>
 
@@ -193,7 +194,7 @@ export default function RecruiterEditProfile() {
 
           {/* Section: Company Details */}
           <View>
-            <SectionHeader title="Corporate Identity" icon="business" color="#4F46E5" />
+            <SectionHeader title="Corporate Identity" icon="business" color={C.recruiter} />
             <View className="gap-4">
               <InputGroup label="Company Name" value={company} onChange={setCompany} placeholder="e.g. Acme Corp" />
               <InputGroup label="Company Website" value={companyWebsite} onChange={setCompanyWebsite} placeholder="https://acme.org" keyboardType="url" />
@@ -211,7 +212,7 @@ export default function RecruiterEditProfile() {
 
           {/* Section: Your Professional Role */}
           <View>
-            <SectionHeader title="Professional Identity" icon="person-circle" color="#047857" />
+            <SectionHeader title="Professional Identity" icon="person-circle" color={C.success} />
             <View className="gap-4">
               <InputGroup label="Your Name" value={name} onChange={setName} placeholder="Your full name" />
               <InputGroup label="Role / Designation" value={role} onChange={setRole} placeholder="e.g. Head of Talent" />
@@ -230,13 +231,13 @@ export default function RecruiterEditProfile() {
 
           {/* Section: Professional Links */}
           <View>
-            <SectionHeader title="Presence" icon="share-social" color="#DC2626" />
+            <SectionHeader title="Presence" icon="share-social" color={C.danger} />
             <InputGroup label="LinkedIn Company/Personal URL" value={linkedinId} onChange={setLinkedinId} placeholder="https://linkedin.com/..." />
           </View>
 
           {/* Section: About Company */}
           <View>
-            <SectionHeader title="About the Organization" icon="document-text" color="#B45309" />
+            <SectionHeader title="About the Organization" icon="document-text" color={C.warning} />
             <InputGroup
               label="Company Overview"
               value={about}
@@ -268,7 +269,7 @@ const InputGroup = ({ label, value, onChange, placeholder, multiline = false, ke
       onChangeText={onChange}
       className={`bg-paper-2 text-ink p-4 rounded-card text-sm font-semibold border border-line ${multiline ? 'min-h-[100px]' : ''}`}
       placeholder={placeholder}
-      placeholderTextColor="#8B857E"
+      placeholderTextColor={C.ink3}
       multiline={multiline}
       keyboardType={keyboardType as any}
       textAlignVertical={multiline ? 'top' : 'center'}

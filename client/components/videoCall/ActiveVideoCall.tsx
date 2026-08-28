@@ -5,6 +5,7 @@ import type { CallUser } from '../../services/CallSignalingService';
 import { RTCView } from 'react-native-webrtc';
 import { Mic, MicOff, PhoneOff, Camera, CameraOff, RefreshCw } from '../ui/icons';
 import { webRTCManager } from '../../services/WebRTCService';
+import { C } from '../../constants/colors';
 
 export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall }: { remoteUser: CallUser, isCallConnected: boolean, onEndCall: () => void }) {
   const [isMuted, setIsMuted] = useState(false);
@@ -98,11 +99,11 @@ export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall
       {/* CONTROLS */}
       <View style={styles.controls}>
         <TouchableOpacity onPress={handleToggleMute} style={[styles.controlBtn, isMuted && styles.controlBtnActive]}>
-          {isMuted ? <MicOff size={22} color="#12100E" /> : <Mic size={22} color="#fff" />}
+          {isMuted ? <MicOff size={22} color={C.ink} /> : <Mic size={22} color="#fff" />}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleToggleVideo} style={[styles.controlBtn, !isVideoOn && styles.controlBtnActive]}>
-          {isVideoOn ? <Camera size={22} color="#fff" /> : <CameraOff size={22} color="#12100E" />}
+          {isVideoOn ? <Camera size={22} color="#fff" /> : <CameraOff size={22} color={C.ink} />}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleSwitchCamera} style={styles.controlBtn}>

@@ -11,6 +11,7 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import { useBottomInset } from '../../constants/layout';
+import { C } from '../../constants/colors';
 
 /**
  * "Everyone, or these specific ones."
@@ -87,26 +88,26 @@ const MultiSelectSheet = ({
               accessibilityRole="button"
               accessibilityLabel="Done"
             >
-              <Ionicons name="close" size={22} color="#12100E" />
+              <Ionicons name="close" size={22} color={C.ink} />
             </TouchableOpacity>
           </View>
 
           {searchable ? (
             <View className="px-gutter pt-3">
               <View className="flex-row items-center bg-card border-2 border-ink rounded-md px-3" style={{ height: 46 }}>
-                <Feather name="search" size={16} color="#8B857E" />
+                <Feather name="search" size={16} color={C.ink3} />
                 <TextInput
                   value={query}
                   onChangeText={setQuery}
                   placeholder={searchPlaceholder}
-                  placeholderTextColor="#8B857E"
+                  placeholderTextColor={C.ink3}
                   autoCorrect={false}
                   className="flex-1 ml-2 text-ink text-sm"
                   style={{ paddingVertical: 0 }}
                 />
                 {query.length ? (
                   <TouchableOpacity onPress={() => setQuery('')} hitSlop={8} accessibilityRole="button" accessibilityLabel="Clear search">
-                    <Ionicons name="close-circle" size={17} color="#C4BEB6" />
+                    <Ionicons name="close-circle" size={17} color={C.ink4} />
                   </TouchableOpacity>
                 ) : null}
               </View>
@@ -157,7 +158,7 @@ const MultiSelectSheet = ({
             }}
             ListEmptyComponent={
               <View className="items-center pt-14 px-6">
-                <Feather name="search" size={24} color="#C4BEB6" />
+                <Feather name="search" size={24} color={C.ink4} />
                 <Text className="text-ink-2 text-label font-semibold mt-3 text-center">
                   Nothing matches “{query}”
                 </Text>

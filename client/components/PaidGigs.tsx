@@ -7,6 +7,7 @@ import { useAuth } from '../context/auth.context';
 import socket from '../utils/socket';
 import { formatDistanceToNow } from 'date-fns';
 import { Alert } from './ui/AlertModal';
+import { C } from '../constants/colors';
 
 // --- TYPES ---
 interface Gig {
@@ -50,17 +51,17 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                     {isOwner && (
                         <View className="flex-row gap-2 bg-paper-2 p-1.5 rounded-card border border-line">
                             <TouchableOpacity onPress={() => onEdit(item)} className="p-2 bg-card rounded-xl border border-line">
-                                <Ionicons name="pencil" size={12} color="#12100E" />
+                                <Ionicons name="pencil" size={12} color={C.ink} />
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => onDelete(item._id)} className="p-2 bg-danger/10 rounded-xl border border-danger/15">
-                                <Ionicons name="trash" size={12} color="#DB2777" />
+                                <Ionicons name="trash" size={12} color={C.fam.fun} />
                             </TouchableOpacity>
                         </View>
                     )}
                 </View>
 
                 <View className="flex-row items-center bg-success/10 self-start px-3 py-1.5 rounded-xl border border-success/15 mb-6">
-                    <Ionicons name="cash-outline" size={14} color="#047857" />
+                    <Ionicons name="cash-outline" size={14} color={C.success} />
                     <Text className="text-success text-label font-display ml-1.5 uppercase">
                         {item.stipend || 'Pay: Open'}
                     </Text>
@@ -108,7 +109,7 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                         onPress={() => onCloseGig(item._id, 'Closed')}
                         className="w-full py-5 bg-danger/10 border border-danger/15 rounded-card items-center justify-center flex-row shadow-hair"
                     >
-                        <Ionicons name="close-circle" size={18} color="#DB2777" />
+                        <Ionicons name="close-circle" size={18} color={C.fam.fun} />
                         <Text className="text-danger font-display text-label uppercase ml-2">Terminate Gig</Text>
                     </TouchableOpacity>
                 ) : (
@@ -122,10 +123,10 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                             className="py-5 flex-row items-center justify-center"
                          style={{ backgroundColor: '#F97316' }}>
                             {connectingId === item._id ? (
-                                <ActivityIndicator size="small" color="#12100E" />
+                                <ActivityIndicator size="small" color={C.ink} />
                             ) : (
                                 <>
-                                    <Ionicons name="chatbubble-ellipses" size={18} color="#12100E" />
+                                    <Ionicons name="chatbubble-ellipses" size={18} color={C.ink} />
                                     <Text className="text-ink font-display text-label uppercase ml-2">Initiate Contact</Text>
                                 </>
                             )}
@@ -396,7 +397,7 @@ export default function PaidGigs({ navigation }: any) {
                               accessibilityLabel="Go back"
                               style={{ marginLeft: -11 }}
                             >
-                              <Ionicons name="arrow-back" size={24} color="#12100E" />
+                              <Ionicons name="arrow-back" size={24} color={C.ink} />
                             </TouchableOpacity>
                             <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Paid</Text>
                             <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Gigs</Text>
@@ -437,7 +438,7 @@ export default function PaidGigs({ navigation }: any) {
                         data={gigs}
                         keyExtractor={(item) => item._id}
                         showsVerticalScrollIndicator={false}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
                         contentContainerStyle={{ paddingBottom: 120, paddingTop: 10 }}
                         renderItem={({ item }) => (
                             <GigCard
@@ -455,14 +456,14 @@ export default function PaidGigs({ navigation }: any) {
                         ListFooterComponent={() => (
                             loadingMore ? (
                                 <View className="py-6 items-center">
-                                    <ActivityIndicator size="small" color="#F97316" />
+                                    <ActivityIndicator size="small" color={C.brand[500]} />
                                 </View>
                             ) : <View className="h-10" />
                         )}
                         ListEmptyComponent={
                             <View className="items-center justify-center mt-20 px-gutter">
                                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                    <Ionicons name="briefcase-outline" size={32} color="#C4BEB6" />
+                                    <Ionicons name="briefcase-outline" size={32} color={C.ink4} />
                                 </View>
                                 <Text className="font-semibold text-base text-ink text-center">No Gigs Active</Text>
                                 <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Transmission silence detected.</Text>
@@ -481,7 +482,7 @@ export default function PaidGigs({ navigation }: any) {
                             {editMode ? 'Edit' : 'New'} <Text className="text-accent-text">Gig Protocol</Text>
                         </Text>
                         <TouchableOpacity onPress={closeModal} className="bg-paper-2 p-2 rounded-card border border-line">
-                            <Ionicons name="close" size={20} color="#12100E" />
+                            <Ionicons name="close" size={20} color={C.ink} />
                         </TouchableOpacity>
                     </View>
 
@@ -492,7 +493,7 @@ export default function PaidGigs({ navigation }: any) {
                             <TextInput
                                 value={title} onChangeText={setTitle}
                                 placeholder="Requirement Heading"
-                                placeholderTextColor="#C4BEB6"
+                                placeholderTextColor={C.ink4}
                                 className="font-semibold text-base text-ink bg-card p-5 mb-6 border-[1.5px] border-ink shadow-hair rounded-md"
                             />
 
@@ -524,7 +525,7 @@ export default function PaidGigs({ navigation }: any) {
                                 value={description} onChangeText={setDescription}
                                 multiline numberOfLines={5} textAlignVertical="top"
                                 placeholder="Establish the requirements..."
-                                placeholderTextColor="#C4BEB6"
+                                placeholderTextColor={C.ink4}
                                 className="bg-card p-5 mb-6 border-[1.5px] border-ink shadow-hair text-ink-2 leading-6 min-h-[150px] font-medium text-xs rounded-md"
                             />
 
@@ -532,7 +533,7 @@ export default function PaidGigs({ navigation }: any) {
                             <TextInput
                                 value={stipend} onChangeText={setStipend}
                                 placeholder="Credit Amount (Optional)"
-                                placeholderTextColor="#C4BEB6"
+                                placeholderTextColor={C.ink4}
                                 className="bg-card p-5 mb-10 border-[1.5px] border-ink shadow-hair text-success font-display uppercase text-xs rounded-md"
                             />
 
@@ -541,7 +542,7 @@ export default function PaidGigs({ navigation }: any) {
                                 activeOpacity={0.8}
                                 className={`py-5 rounded-card items-center shadow-hair flex-row justify-center ${submitting ? 'bg-paper-2' : 'bg-ink '}`}
                             >
-                                {submitting ? <ActivityIndicator color="#F97316" /> : (
+                                {submitting ? <ActivityIndicator color={C.brand[500]} /> : (
                                     <>
                                         <Text className="text-white font-display uppercase text-xs mr-3">
                                             {editMode ? 'Sync Changes' : 'Deploy Gig'}

@@ -12,6 +12,7 @@ import Avatar from "./Avatar";
 import { TeammateSkeleton } from "./Skeleton";
 
 import { RoleSticker } from './ui/kit';
+import { C } from '../constants/colors';
 const { width } = Dimensions.get("window");
 
 const FindAlumni = ({ navigation }: any) => {
@@ -128,7 +129,7 @@ const FindAlumni = ({ navigation }: any) => {
                 <Text className="font-sans text-sm text-ink-3">@{item.username}</Text>
 
                 <View className="flex-row items-center mt-2 bg-paper-2 self-start px-2.5 rounded-full border border-line" style={{ minHeight: 28 }}>
-                    <MaterialCommunityIcons name="school" size={14} color="#F97316" />
+                    <MaterialCommunityIcons name="school" size={14} color={C.brand[500]} />
                     <Text className="font-medium text-label text-brand-700 ml-1.5">
                         Batch of {item.graduationYear}
                     </Text>
@@ -136,7 +137,7 @@ const FindAlumni = ({ navigation }: any) => {
 
                 {item.company && (
                     <View className="flex-row items-center mt-2">
-                        <Ionicons name="briefcase" size={14} color="#8B857E" />
+                        <Ionicons name="briefcase" size={14} color={C.ink3} />
                         <Text className="text-ink-3 text-label ml-2 font-semibold uppercase" numberOfLines={1}>
                             {item.role} at <Text className="text-ink font-display">{item.company}</Text>
                         </Text>
@@ -155,7 +156,7 @@ const FindAlumni = ({ navigation }: any) => {
                     onPress={() => navigation.navigate("PublicProfile", { user: item })}
                     className="bg-paper-2 w-12 h-12 rounded-card items-center justify-center border border-line"
                 >
-                    <Ionicons name="chevron-forward" size={18} color="#8B857E" />
+                    <Ionicons name="chevron-forward" size={18} color={C.ink3} />
                 </TouchableOpacity>
             </View>
         </View>
@@ -180,7 +181,7 @@ const FindAlumni = ({ navigation }: any) => {
                                   accessibilityLabel="Go back"
                                   style={{ marginLeft: -11 }}
                                 >
-                                  <Ionicons name="arrow-back" size={24} color="#12100E" />
+                                  <Ionicons name="arrow-back" size={24} color={C.ink} />
                                 </TouchableOpacity>
                                 <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Campus</Text>
                                 <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Alumni</Text>
@@ -200,17 +201,17 @@ const FindAlumni = ({ navigation }: any) => {
                 {/* 🔍 Arena Search Dock */}
                 <View className="px-gutter mb-2">
                     <View className="flex-row items-center bg-card px-5 h-14 border-2 border-ink shadow-hair rounded-md">
-                        <Ionicons name="search" size={20} color="#F97316" />
+                        <Ionicons name="search" size={20} color={C.brand[500]} />
                         <TextInput
                             placeholder="Search by name, firm, or role..."
-                            placeholderTextColor="#8B857E"
+                            placeholderTextColor={C.ink3}
                             className="flex-1 ml-3 text-ink text-sm font-display uppercase"
                             value={searchQuery}
                             onChangeText={setSearchQuery}
                         />
                         {searchQuery.length > 0 && (
                             <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-paper-2 p-1.5 rounded-xl">
-                                <Ionicons name="close" size={16} color="#8B857E" />
+                                <Ionicons name="close" size={16} color={C.ink3} />
                             </TouchableOpacity>
                         )}
                     </View>
@@ -236,20 +237,20 @@ const FindAlumni = ({ navigation }: any) => {
                         contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 10, paddingBottom: 100 }}
                         showsVerticalScrollIndicator={false}
                         refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
                         }
                         onEndReached={loadMore}
                         onEndReachedThreshold={0.5}
                         ListFooterComponent={() => (
                             loadingMore ? (
-                                <ActivityIndicator size="small" color="#F97316" className="py-6" />
+                                <ActivityIndicator size="small" color={C.brand[500]} className="py-6" />
                             ) : null
                         )}
                         ListEmptyComponent={
                             <View className="items-center mt-20 px-gutter">
                                 <View className="bg-card p-card-pad rounded-sheet border border-line shadow-hair items-center">
                                     <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                        <MaterialCommunityIcons name="account-search-outline" size={48} color="#C4BEB6" />
+                                        <MaterialCommunityIcons name="account-search-outline" size={48} color={C.ink4} />
                                     </View>
                                     <Text className="text-ink font-display uppercase text-xl text-center">
                                         Registry Clear

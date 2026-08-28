@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
+import { C } from '../../constants/colors';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -178,17 +179,17 @@ const DrawAndGuess = () => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-          <Ionicons name="arrow-back" size={24} color="#12100E" />
+          <Ionicons name="arrow-back" size={24} color={C.ink} />
         </TouchableOpacity>
         <Text className="text-xl font-display text-ink">Draw & Guess</Text>
         <TouchableOpacity onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'DrawAndGuess' })}>
-          <Ionicons name="trophy" size={24} color="#B45309" />
+          <Ionicons name="trophy" size={24} color={C.warning} />
         </TouchableOpacity>
       </View>
 
       {!matchData ? (
         <View className="flex-1 items-center justify-center p-6">
-          <Ionicons name="color-palette" size={80} color="#2563EB" />
+          <Ionicons name="color-palette" size={80} color={C.info} />
           <Text className="text-2xl font-display text-ink mt-6 mb-2">Multiplayer Pictionary</Text>
           <Text className="text-center text-ink-3 mb-8 px-4">
             Compete against random students. Draw the word, or guess what your opponent is drawing!
@@ -232,7 +233,7 @@ const DrawAndGuess = () => {
 
             {matchData.role === "drawer" && (
               <TouchableOpacity onPress={clearCanvas} className="absolute right-4 bg-paper-2 p-3 rounded-full shadow-hair" style={{ bottom: bottomInset + 16 }}>
-                <Ionicons name="trash" size={20} color="#DC2626" />
+                <Ionicons name="trash" size={20} color={C.danger} />
               </TouchableOpacity>
             )}
           </View>

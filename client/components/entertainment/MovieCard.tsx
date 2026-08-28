@@ -3,6 +3,7 @@ import { TouchableOpacity, Image, View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { getImageUrl } from '../../utils/tmdb';
+import { C } from '../../constants/colors';
 
 interface MovieCardProps {
   item: any;
@@ -34,7 +35,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ item, onPress, width = 140, heigh
               {item.title}
             </Text>
             <View className="flex-row items-center mt-0.5">
-              <Ionicons name="star" size={10} color="#B45309" />
+              <Ionicons name="star" size={10} color={C.warning} />
               <Text className="text-ink-4 text-label ml-1">{item.vote_average.toFixed(1)}</Text>
             </View>
           </View>

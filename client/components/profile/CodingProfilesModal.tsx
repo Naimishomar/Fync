@@ -7,6 +7,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
+import { C } from '../../constants/colors';
 
 const { height: screenHeight } = Dimensions.get('window');
 
@@ -24,7 +25,7 @@ const ProfileInput = ({ label, value, onChange, icon, logo }: any) => (
           {logo ? (
           <Image source={{ uri: logo }} className="w-5 h-5" resizeMode="contain" />
           ) : (
-          <Feather name={icon} size={14} color="#F97316" />
+          <Feather name={icon} size={14} color={C.brand[500]} />
           )}
       </View>
       <Text className="text-ink-3 font-display uppercase text-label">{label}</Text>
@@ -34,7 +35,7 @@ const ProfileInput = ({ label, value, onChange, icon, logo }: any) => (
         value={value}
         onChangeText={onChange}
         placeholder={`${label} identifier`}
-        placeholderTextColor="#8B857E"
+        placeholderTextColor={C.ink3}
         className="flex-1 text-ink py-4 text-sm font-semibold"
         autoCapitalize="none"
       />
@@ -110,7 +111,7 @@ const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: Codin
               <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Competitive Protocol</Text>
             </View>
             <Pressable onPress={onClose} className="w-11 h-11 rounded-xl items-center justify-center" hitSlop={2}>
-              <Ionicons name="close" size={20} color="#12100E" />
+              <Ionicons name="close" size={20} color={C.ink} />
             </Pressable>
           </View>
 
@@ -156,7 +157,7 @@ const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: Codin
               className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md"
             >
               {loading ? (
-                <ActivityIndicator color="#F97316" />
+                <ActivityIndicator color={C.brand[500]} />
               ) : (
                 <>
                   <Feather name="save" size={16} color="white" className="mr-2" />

@@ -13,6 +13,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { searchMovies } from '../../utils/tmdb';
 import MovieCard from './MovieCard';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 const numColumns = 3;
@@ -59,18 +60,18 @@ const MovieSearch = () => {
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <View className="flex-1 bg-ink rounded-full flex-row items-center px-4 py-2 border border-ink">
-          <Ionicons name="search" size={20} color="#C4BEB6" />
+          <Ionicons name="search" size={20} color={C.ink4} />
           <TextInput
             autoFocus
             placeholder="Search movies, trailers..."
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             className="flex-1 ml-2 text-white text-base"
             value={query}
             onChangeText={setQuery}
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={() => setQuery('')}>
-              <Ionicons name="close-circle" size={20} color="#C4BEB6" />
+              <Ionicons name="close-circle" size={20} color={C.ink4} />
             </TouchableOpacity>
           )}
         </View>
@@ -78,7 +79,7 @@ const MovieSearch = () => {
 
       {loading ? (
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#DB2777" />
+          <ActivityIndicator size="large" color={C.fam.fun} />
         </View>
       ) : (
         <FlatList
@@ -99,12 +100,12 @@ const MovieSearch = () => {
           ListEmptyComponent={
             query.length > 2 ? (
               <View className="flex-1 items-center mt-20">
-                <Ionicons name="film-outline" size={64} color="#57534E" />
+                <Ionicons name="film-outline" size={64} color={C.ink2} />
                 <Text className="text-ink-3 mt-4 text-lg">No movies found for "{query}"</Text>
               </View>
             ) : (
               <View className="flex-1 items-center mt-20">
-                <Ionicons name="search-outline" size={64} color="#57534E" />
+                <Ionicons name="search-outline" size={64} color={C.ink2} />
                 <Text className="text-ink-3 mt-4 text-lg text-center px-gutter">
                   Search for your favorite movies and watch their trailers.
                 </Text>

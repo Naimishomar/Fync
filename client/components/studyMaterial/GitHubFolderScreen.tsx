@@ -13,6 +13,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
+import { C } from '../../constants/colors';
 
 const FOLDER_IMG = 'https://cdn-icons-png.flaticon.com/512/716/716784.png';
 const NOTE_IMG = 'https://cdn-icons-png.flaticon.com/512/3209/3209265.png';
@@ -111,15 +112,15 @@ const GitHubFolderScreen = () => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-              <Ionicons name="arrow-back" size={20} color="#12100E" />
+              <Ionicons name="arrow-back" size={20} color={C.ink} />
             </TouchableOpacity>
           </View>
 
           <View className="flex-row items-center bg-card px-4 py-1 border-2 border-ink mb-6 rounded-md">
-            <Ionicons name="search" size={20} color="#C4BEB6" />
+            <Ionicons name="search" size={20} color={C.ink4} />
             <TextInput
               placeholder="Search in this folder..."
-              placeholderTextColor="#C4BEB6"
+              placeholderTextColor={C.ink4}
               value={search}
               onChangeText={setSearch}
               className="flex-1 text-ink font-display text-sm p-3"
@@ -129,7 +130,7 @@ const GitHubFolderScreen = () => {
 
         {loading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#2563EB" />
+            <ActivityIndicator size="large" color={C.info} />
             <Text className="mt-4 text-ink-3 font-display text-label uppercase">Fetching Protocol...</Text>
           </View>
         ) : (
@@ -164,7 +165,7 @@ const GitHubFolderScreen = () => {
                   </View>
 
                   <View className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center">
-                    <Ionicons name={isFolder ? "chevron-forward" : "eye-outline"} size={12} color="#C4BEB6" />
+                    <Ionicons name={isFolder ? "chevron-forward" : "eye-outline"} size={12} color={C.ink4} />
                   </View>
                 </TouchableOpacity>
               );
@@ -172,7 +173,7 @@ const GitHubFolderScreen = () => {
             ListEmptyComponent={
               <View className="items-center mt-20 px-gutter">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="folder-open-outline" size={32} color="#C4BEB6" />
+                  <Ionicons name="folder-open-outline" size={32} color={C.ink4} />
                 </View>
                 <Text className="font-semibold text-base text-ink text-center">No protocol files found</Text>
               </View>

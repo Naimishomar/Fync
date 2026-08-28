@@ -8,6 +8,7 @@ import RecruiterProfile from "./RecruiterProfile";
 import SearchScreen from "./SearchScreen";
 import ChatList from "./ChatList";
 import { useAuth } from "context/auth.context";
+import { C } from '../constants/colors';
 
 const { width } = Dimensions.get('window');
 const Tab = createBottomTabNavigator();
@@ -36,7 +37,7 @@ const PostOpportunityButton = ({ children, onPress }: any) => {
           accessibilityRole="button"
           accessibilityLabel="Post opportunity"
         >
-          <Ionicons name="add" size={28} color="#12100E" />
+          <Ionicons name="add" size={28} color={C.ink} />
         </TouchableOpacity>
       </View>
     </View>

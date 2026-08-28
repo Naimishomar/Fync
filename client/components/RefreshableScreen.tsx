@@ -1,5 +1,6 @@
 import React, { useState, ReactNode } from "react";
 import { ScrollView, RefreshControl, ViewStyle, StyleProp } from "react-native";
+import { C } from '../constants/colors';
 
 type Props = {
   onRefresh: () => Promise<void> | void;
@@ -28,7 +29,7 @@ const RefreshableScreen = ({ onRefresh, children, style }: Props) => {
           refreshing={refreshing}
           onRefresh={handleRefresh}
           colors={["#F97316"]}
-          tintColor="#F97316"
+          tintColor={C.brand[500]}
           progressBackgroundColor="#FFFFFF"
         />
       }

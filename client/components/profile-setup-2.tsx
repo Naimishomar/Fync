@@ -23,6 +23,7 @@ import loginImage from '../assets/loginImage.png';
 import axios from '../context/axiosConfig';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Device from "expo-device";
+import { C } from '../constants/colors';
 
 
 
@@ -163,7 +164,7 @@ export default function ProfileSetup2() {
                       resizeMode="cover"
                     />
                   ) : (
-                    <Ionicons name="camera-outline" size={36} color="#8B857E" />
+                    <Ionicons name="camera-outline" size={36} color={C.ink3} />
                   )}
                 </Pressable>
                 <Text className="font-display text-label text-ink-3 uppercase mt-3" style={{ letterSpacing: 1.4 }}>Upload Profile Photo</Text>
@@ -172,7 +173,7 @@ export default function ProfileSetup2() {
               {/* Continue */}
               {isLoading ? (
                 <Pressable className="bg-brand-500 items-center justify-center mb-4 border-2 border-ink rounded-md" style={{ minHeight: 48 }}>
-                  <ActivityIndicator size="small" color="#12100E" />
+                  <ActivityIndicator size="small" color={C.ink} />
                 </Pressable>
               ) : (
                 <Pressable
@@ -190,7 +191,7 @@ export default function ProfileSetup2() {
               {/* Skip */}
               {isLoading ? (
                 <Pressable className="rounded-full border border-line py-4 items-center">
-                  <ActivityIndicator size="small" color="#8B857E" />
+                  <ActivityIndicator size="small" color={C.ink3} />
                 </Pressable>
               ) : (
                 <Pressable

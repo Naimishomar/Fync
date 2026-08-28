@@ -8,6 +8,7 @@ import * as MediaLibrary from 'expo-media-library';
 import { Alert } from '../../ui/AlertModal';
 import { pickPdf, readBase64, type PickedPdf } from './pdfKit';
 import { usePdfJs } from './usePdfJs';
+import { C } from '../../../constants/colors';
 
 export default function PdfToImagesScreen() {
   const navigation = useNavigation<any>();
@@ -56,7 +57,7 @@ export default function PdfToImagesScreen() {
         <View className="px-5 py-4 flex-row items-center border-b border-line bg-transparent">
           <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
             accessibilityRole="button" accessibilityLabel="Go back" style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
           <Text className="text-xl font-display text-ink flex-1">PDF to Images</Text>
         </View>
@@ -68,14 +69,14 @@ export default function PdfToImagesScreen() {
             className="w-full bg-card border-2 border-dashed border-ink-4 rounded-card p-card-pad items-center justify-center mb-5 shadow-hair"
             accessibilityRole="button">
             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-3">
-              <Ionicons name="image-outline" size={32} color="#57534E" />
+              <Ionicons name="image-outline" size={32} color={C.ink2} />
             </View>
             <Text className="text-ink font-display uppercase text-label">{file ? 'Choose a different PDF' : 'Choose PDF'}</Text>
           </TouchableOpacity>
 
           {file && (
             <View className="flex-row items-center bg-card rounded-card p-4 border border-line mb-5">
-              <Ionicons name="document-text-outline" size={20} color="#57534E" />
+              <Ionicons name="document-text-outline" size={20} color={C.ink2} />
               <Text className="text-ink text-sm ml-3 flex-1" numberOfLines={1}>{file.name}</Text>
             </View>
           )}
@@ -84,7 +85,7 @@ export default function PdfToImagesScreen() {
             <TouchableOpacity onPress={convert} disabled={busy}
               className={`w-full py-4 rounded-md items-center justify-center border-2 border-ink mb-3 ${busy ? 'bg-paper-2' : 'bg-brand-500'}`}
               accessibilityRole="button">
-              {busy ? <ActivityIndicator color="#12100E" />
+              {busy ? <ActivityIndicator color={C.ink} />
                 : <Text className="font-display uppercase text-base text-ink">Convert to images</Text>}
             </TouchableOpacity>
           )}

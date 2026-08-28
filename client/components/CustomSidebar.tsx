@@ -3,6 +3,7 @@ import { View, Text, Image, Pressable, ScrollView } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../context/auth.context';
 import { visibleFeatures } from '../constants/features';
+import { C } from '../constants/colors';
 
 /**
  * The drawer used to be the app's only feature menu: ~35 rows across seven
@@ -56,7 +57,7 @@ export default function CustomSidebar(props: any) {
                             onPress={() => props.navigation.closeDrawer()}
                             className="w-9 h-9 bg-card rounded-full items-center justify-center border border-line active:opacity-70"
                         >
-                            <Ionicons name="close" size={18} color="#F97316" />
+                            <Ionicons name="close" size={18} color={C.brand[500]} />
                         </Pressable>
                     </View>
 
@@ -79,7 +80,7 @@ export default function CustomSidebar(props: any) {
                                         : 'leaf'
                                     }
                                     size={18}
-                                    color="#F97316"
+                                    color={C.brand[500]}
                                 />
                             </View>
                             <View>
@@ -90,7 +91,7 @@ export default function CustomSidebar(props: any) {
                             </View>
                         </View>
                         <View className="w-8 h-8 bg-card rounded-xl items-center justify-center shadow-hair">
-                            <Ionicons name="arrow-forward" size={14} color="#12100E" />
+                            <Ionicons name="arrow-forward" size={14} color={C.ink} />
                         </View>
                     </Pressable>
                 </View>
@@ -103,13 +104,13 @@ export default function CustomSidebar(props: any) {
                         className="flex-row items-center bg-card rounded-card p-4 border border-line shadow-hair mb-6 active:opacity-70"
                     >
                         <View className="w-11 h-11 rounded-card bg-paper-2 items-center justify-center border border-line mr-4">
-                            <Ionicons name="compass" size={22} color="#F97316" />
+                            <Ionicons name="compass" size={22} color={C.brand[500]} />
                         </View>
                         <View className="flex-1">
                             <Text className="font-semibold text-base text-ink">Explore Fync</Text>
                             <Text className="text-ink-3 text-label font-semibold mt-0.5">All features, searchable</Text>
                         </View>
-                        <Ionicons name="chevron-forward" size={16} color="#C4BEB6" />
+                        <Ionicons name="chevron-forward" size={16} color={C.ink4} />
                     </Pressable>
 
                     <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
@@ -118,12 +119,12 @@ export default function CustomSidebar(props: any) {
                     </View>
 
                     <Pressable onPress={() => go('Profile')} className="flex-row items-center px-4 py-3.5 rounded-card active:bg-paper-2">
-                        <Ionicons name="person-outline" size={20} color="#F97316" />
+                        <Ionicons name="person-outline" size={20} color={C.brand[500]} />
                         <Text className="text-ink text-sm ml-4 font-display uppercase">Profile</Text>
                     </Pressable>
 
                     <Pressable onPress={() => go('SettingsScreen')} className="flex-row items-center px-4 py-3.5 rounded-card active:bg-paper-2">
-                        <Ionicons name="settings-outline" size={20} color="#F97316" />
+                        <Ionicons name="settings-outline" size={20} color={C.brand[500]} />
                         <Text className="text-ink text-sm ml-4 font-display uppercase">Settings</Text>
                     </Pressable>
 

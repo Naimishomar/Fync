@@ -16,6 +16,7 @@ import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
+import { C } from '../../constants/colors';
 
 export default function ImageToPdfScreen() {
   const navigation = useNavigation();
@@ -133,7 +134,7 @@ export default function ImageToPdfScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-          <Ionicons name="arrow-back" size={24} color="#12100E" />
+          <Ionicons name="arrow-back" size={24} color={C.ink} />
         </TouchableOpacity>
         <Text className="text-xl font-display text-ink flex-1">Image to PDF</Text>
         <TouchableOpacity onPress={() => setImages([])} className="p-2">
@@ -147,7 +148,7 @@ export default function ImageToPdfScreen() {
           className="w-full bg-card border-2 border-dashed border-ink-4 rounded-card p-card-pad items-center justify-center mb-6 shadow-hair"
         >
           <View className="w-16 h-16 bg-brand-50 rounded-full items-center justify-center mb-3">
-            <Ionicons name="images-outline" size={32} color="#F97316" />
+            <Ionicons name="images-outline" size={32} color={C.brand[500]} />
           </View>
           <Text className="text-lg font-display text-ink mb-1">Select Images</Text>
           <Text className="text-xs font-medium text-ink-3 text-center">Tap here to choose multiple images from your gallery</Text>
@@ -182,10 +183,10 @@ export default function ImageToPdfScreen() {
               className={`w-full py-4 rounded-card items-center justify-center flex-row shadow-hair ${isProcessing ? 'bg-brand-400' : 'bg-brand-500'}`}
             >
               {isProcessing ? (
-                <ActivityIndicator color="#12100E" />
+                <ActivityIndicator color={C.ink} />
               ) : (
                 <>
-                  <Ionicons name="document-text" size={20} color="#12100E" className="mr-2" />
+                  <Ionicons name="document-text" size={20} color={C.ink} className="mr-2" />
                   <Text className="text-ink font-semibold text-base ml-2">Generate PDF ({images.length} pages)</Text>
                 </>
               )}
@@ -203,7 +204,7 @@ export default function ImageToPdfScreen() {
                 onPress={downloadPdf}
                 className="flex-1 py-4 items-center justify-center flex-row bg-brand-500 ml-2 border-2 border-ink rounded-md"
               >
-                <Ionicons name="download" size={20} color="#12100E" className="mr-2" />
+                <Ionicons name="download" size={20} color={C.ink} className="mr-2" />
                 <Text className="text-ink font-semibold text-base ml-2">Download</Text>
               </TouchableOpacity>
             </View>

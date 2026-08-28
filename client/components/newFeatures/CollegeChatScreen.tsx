@@ -11,6 +11,7 @@ import axios from "../../context/axiosConfig";
 import socket from "../../utils/socket";
 import { useAuth } from "../../context/auth.context";
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const CollegeChatScreen = ({ navigation }: any) => {
     const { user } = useAuth();
@@ -384,7 +385,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                         className="w-11 h-11 items-center justify-center rounded-xl"
                         style={{ marginLeft: -11 }}
                     >
-                        <Ionicons name="chevron-back" size={22} color="#12100E" />
+                        <Ionicons name="chevron-back" size={22} color={C.ink} />
                     </TouchableOpacity>
                     <View className="flex-1 min-w-0">
                         <Text className="font-display text-h2 text-ink" numberOfLines={1}>{user?.college} Hub</Text>
@@ -395,7 +396,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                 {/* The countdown is the point of this room, so it gets a strip of
                     its own rather than a chip fighting the title for width. */}
                 <View className="flex-row items-center justify-center bg-brand-50 py-2.5" style={{ gap: 8 }}>
-                    <Ionicons name="timer-outline" size={15} color="#EA580C" />
+                    <Ionicons name="timer-outline" size={15} color={C.brand[600]} />
                     <Text className="font-display text-label text-brand-700 uppercase">Expires in {timeLeft}</Text>
                 </View>
             </SafeAreaView>
@@ -411,7 +412,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                     {/* MESSAGES */}
                     <View className="flex-1 bg-paper shadow-hair overflow-hidden border-t border-line">
                         {loading ? (
-                            <View className="flex-1 justify-center items-center"><ActivityIndicator size="large" color="#F97316" /></View>
+                            <View className="flex-1 justify-center items-center"><ActivityIndicator size="large" color={C.brand[500]} /></View>
                         ) : (
                             <FlatList
                                 ref={flatListRef}
@@ -436,7 +437,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                                     <Text className="text-label text-accent-text font-semibold uppercase">Replying to @{replyTo.senderId?.username}</Text>
                                     <Text className="text-xs text-ink-3" numberOfLines={1}>{replyTo.content || '[Media]'}</Text>
                                 </View>
-                                <TouchableOpacity onPress={() => setReplyTo(null)}><Ionicons name="close-circle" size={20} color="#F97316" /></TouchableOpacity>
+                                <TouchableOpacity onPress={() => setReplyTo(null)}><Ionicons name="close-circle" size={20} color={C.brand[500]} /></TouchableOpacity>
                             </View>
                         )}
                         <View
@@ -447,10 +448,10 @@ const CollegeChatScreen = ({ navigation }: any) => {
                         >
                             <View className="flex-row items-center bg-paper-2 flex-1 p-1 border border-line rounded-md">
                                 <TouchableOpacity onPress={handlePickImage} className="w-9 h-9 items-center justify-center rounded-full bg-brand-50/50 ml-1" hitSlop={4}>
-                                    <Ionicons name="image" size={18} color="#F97316" />
+                                    <Ionicons name="image" size={18} color={C.brand[500]} />
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={handlePickDocument} className="w-9 h-9 items-center justify-center rounded-full bg-brand-50/50 ml-1" hitSlop={4}>
-                                    <Ionicons name="document-attach" size={18} color="#F97316" />
+                                    <Ionicons name="document-attach" size={18} color={C.brand[500]} />
                                 </TouchableOpacity>
                                 <TextInput
                                     value={text}
@@ -458,7 +459,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                                     onFocus={() => setIsKeyboardVisible(true)}
                                     onBlur={() => setIsKeyboardVisible(false)}
                                     placeholder="Broadcast to campus..."
-                                    placeholderTextColor="#8B857E"
+                                    placeholderTextColor={C.ink3}
                                     className="flex-1 px-3 text-ink font-semibold text-sm py-2"
                                     multiline
                                 />

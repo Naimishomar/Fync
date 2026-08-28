@@ -13,6 +13,7 @@ import * as Sharing from 'expo-sharing';
 // package root leaves them undefined at runtime.
 import * as FileSystem from 'expo-file-system/legacy';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 export default function QRCodeToolScreen() {
   const navigation = useNavigation();
@@ -60,7 +61,7 @@ export default function QRCodeToolScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
           <Text className="text-xl font-display text-ink flex-1">QR Generator</Text>
         </View>
@@ -72,7 +73,7 @@ export default function QRCodeToolScreen() {
             value={inputText}
             onChangeText={setInputText}
             placeholder="https://fync.app or any text..."
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             className="bg-card p-4 text-ink border-[1.5px] border-ink mb-4 rounded-md"
             multiline
             numberOfLines={3}

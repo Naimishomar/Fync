@@ -10,6 +10,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { Buffer } from 'buffer';
 import Toast from 'react-native-toast-message';
+import { C } from '../../constants/colors';
 
 /**
  * view: 'posts'        → My Posts list (default)
@@ -343,10 +344,10 @@ const RecruiterPortal = () => {
                         </TouchableOpacity>
 
                         <TouchableOpacity onPress={() => navigation.navigate('CreateOpportunity', { initialData: item })}>
-                            <Ionicons name="create-outline" size={20} color="#4F46E5" />
+                            <Ionicons name="create-outline" size={20} color={C.recruiter} />
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => handleDeletePost(item._id)}>
-                            <Ionicons name="trash-outline" size={20} color="#DC2626" />
+                            <Ionicons name="trash-outline" size={20} color={C.danger} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -388,7 +389,7 @@ const RecruiterPortal = () => {
                 {/* Paused notice */}
                 {!isActive && (
                     <View className="flex-row items-center gap-2 bg-warning/10 border border-warning/15 rounded-card px-4 py-2.5 mb-3">
-                        <Ionicons name="pause-circle-outline" size={16} color="#B45309" />
+                        <Ionicons name="pause-circle-outline" size={16} color={C.warning} />
                         <Text className="text-warning text-label font-display uppercase">
                             This post is inactive — not visible to students
                         </Text>
@@ -407,7 +408,7 @@ const RecruiterPortal = () => {
                             accessibilityRole="button"
                             accessibilityLabel={`Review ${pendingCount} new applicants`}
                         >
-                            <Ionicons name="eye-outline" size={15} color="#12100E" />
+                            <Ionicons name="eye-outline" size={15} color={C.ink} />
                             <Text className="text-ink font-display uppercase text-label">Review {pendingCount}</Text>
                         </TouchableOpacity>
                     ) : (
@@ -488,7 +489,7 @@ const RecruiterPortal = () => {
                         accessibilityRole="button"
                         accessibilityLabel={`Email ${item.candidate.email}`}
                     >
-                        <Ionicons name="mail-outline" size={14} color="#4F46E5" />
+                        <Ionicons name="mail-outline" size={14} color={C.recruiter} />
                         <Text className="text-ink ml-2 flex-1" style={{ fontSize: 12 }} numberOfLines={1}>
                             {item.candidate.email}
                         </Text>
@@ -503,13 +504,13 @@ const RecruiterPortal = () => {
                         accessibilityRole="button"
                         accessibilityLabel={`Call ${item.candidate.mobileNumber}`}
                     >
-                        <Ionicons name="call-outline" size={14} color="#4F46E5" />
+                        <Ionicons name="call-outline" size={14} color={C.recruiter} />
                         <Text className="text-ink ml-2" style={{ fontSize: 12 }}>{item.candidate.mobileNumber}</Text>
                     </TouchableOpacity>
                 )}
 
                 <View className="flex-row items-center">
-                    <Ionicons name="finger-print-outline" size={14} color="#8B857E" />
+                    <Ionicons name="finger-print-outline" size={14} color={C.ink3} />
                     <Text className="text-ink-2 ml-2" style={{ fontSize: 11, fontFamily: 'monospace' }} selectable>
                         {item.candidate?._id}
                     </Text>
@@ -528,7 +529,7 @@ const RecruiterPortal = () => {
                 <View className="mb-4 bg-paper-2 p-4 rounded-card border border-line">
                     <View className="flex-row items-center justify-between mb-3">
                         <View className="flex-row items-center gap-2">
-                             <Ionicons name="logo-github" size={16} color="#12100E" />
+                             <Ionicons name="logo-github" size={16} color={C.ink} />
                              <Text className="text-ink font-display uppercase text-label">GitHub Stats Preview</Text>
                         </View>
                         <View className="bg-success/10 border border-success/20 px-2.5 py-1 rounded-full">
@@ -556,7 +557,7 @@ const RecruiterPortal = () => {
                         className="mt-3 flex-row items-center justify-center gap-1.5"
                     >
                          <Text className="text-ink-3 font-display uppercase text-label">View Repo Analysis</Text>
-                         <Ionicons name="arrow-forward" size={10} color="#8B857E" />
+                         <Ionicons name="arrow-forward" size={10} color={C.ink3} />
                     </TouchableOpacity>
                 </View>
             )}
@@ -580,7 +581,7 @@ const RecruiterPortal = () => {
                     onPress={() => item.resume && Linking.openURL(item.resume)}
                     className="flex-1 bg-paper-2 h-12 rounded-card items-center justify-center flex-row gap-2"
                 >
-                    <Ionicons name="document-text-outline" size={15} color="#57534E" />
+                    <Ionicons name="document-text-outline" size={15} color={C.ink2} />
                     <Text className="text-ink-2 font-display uppercase text-label">Resume</Text>
                 </TouchableOpacity>
 
@@ -592,10 +593,10 @@ const RecruiterPortal = () => {
                     accessibilityLabel={`Open portfolio for ${item.candidate?.name ?? 'candidate'}`}
                 >
                     {portfolioLoading === item.candidate?._id ? (
-                        <ActivityIndicator size="small" color="#4F46E5" />
+                        <ActivityIndicator size="small" color={C.recruiter} />
                     ) : (
                         <>
-                            <Ionicons name="person-outline" size={15} color="#4F46E5" />
+                            <Ionicons name="person-outline" size={15} color={C.recruiter} />
                             <Text className="text-recruiter font-display uppercase text-label">Portfolio</Text>
                         </>
                     )}
@@ -614,7 +615,7 @@ const RecruiterPortal = () => {
                         accessibilityRole="button"
                         accessibilityLabel={`Remove ${item.candidate?.name ?? 'candidate'} from shortlist`}
                     >
-                        <Ionicons name="close" size={15} color="#12100E" />
+                        <Ionicons name="close" size={15} color={C.ink} />
                         <Text className="text-ink font-display uppercase text-label">Remove</Text>
                     </TouchableOpacity>
                 ) : item.status === 'rejected' ? (
@@ -635,7 +636,7 @@ const RecruiterPortal = () => {
                             accessibilityRole="button"
                             accessibilityLabel={`Reject ${item.candidate?.name ?? 'candidate'}`}
                         >
-                            <Ionicons name="close" size={15} color="#12100E" />
+                            <Ionicons name="close" size={15} color={C.ink} />
                             <Text className="text-ink font-display uppercase text-label">Reject</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -644,7 +645,7 @@ const RecruiterPortal = () => {
                             accessibilityRole="button"
                             accessibilityLabel={`Shortlist ${item.candidate?.name ?? 'candidate'}`}
                         >
-                            <Ionicons name="star" size={15} color="#12100E" />
+                            <Ionicons name="star" size={15} color={C.ink} />
                             <Text className="text-ink font-display uppercase text-label">Shortlist</Text>
                         </TouchableOpacity>
                     </>
@@ -666,7 +667,7 @@ const RecruiterPortal = () => {
                     accessibilityRole="button"
                     accessibilityLabel="Back to posts"
                 >
-                    <Ionicons name="arrow-back" size={20} color="#12100E" />
+                    <Ionicons name="arrow-back" size={20} color={C.ink} />
                 </TouchableOpacity>
 
                 <View className="flex-1">
@@ -694,7 +695,7 @@ const RecruiterPortal = () => {
                         accessibilityRole="button"
                         accessibilityLabel={`Email all ${counts[activeFilter]} ${activeFilter} candidates`}
                     >
-                        <Ionicons name="mail-outline" size={14} color="#12100E" />
+                        <Ionicons name="mail-outline" size={14} color={C.ink} />
                         <Text className="text-ink font-display uppercase" style={{ fontSize: 10 }}>
                             Email {counts[activeFilter]}
                         </Text>
@@ -740,10 +741,10 @@ const RecruiterPortal = () => {
                 first candidate below the fold on a normal phone. */}
             <View className="flex-row items-center gap-2 px-4 pb-3">
                 <View className="flex-1 flex-row items-center bg-card px-3 border-2 border-ink rounded-xl" style={{ minHeight: 44 }}>
-                    <Ionicons name="search" size={16} color="#8B857E" />
+                    <Ionicons name="search" size={16} color={C.ink3} />
                     <TextInput
                         placeholder="Name, college or course"
-                        placeholderTextColor="#8B857E"
+                        placeholderTextColor={C.ink3}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                         className="flex-1 ml-2 text-ink"
@@ -756,7 +757,7 @@ const RecruiterPortal = () => {
                             accessibilityRole="button"
                             accessibilityLabel="Clear search"
                         >
-                            <Ionicons name="close-circle" size={18} color="#8B857E" />
+                            <Ionicons name="close-circle" size={18} color={C.ink3} />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -770,7 +771,7 @@ const RecruiterPortal = () => {
                     accessibilityRole="button"
                     accessibilityLabel={`Sorted by ${sortBy === 'recent' ? 'newest first' : 'most active first'}. Tap to change.`}
                 >
-                    <Ionicons name="swap-vertical" size={14} color="#12100E" />
+                    <Ionicons name="swap-vertical" size={14} color={C.ink} />
                     <Text className="text-ink font-display uppercase" style={{ fontSize: 10 }}>
                         {sortBy === 'recent' ? 'Newest' : 'Active'}
                     </Text>
@@ -799,7 +800,7 @@ const RecruiterPortal = () => {
                         accessibilityRole="button"
                         accessibilityLabel="Notifications"
                     >
-                        <Ionicons name="notifications-outline" size={24} color="#12100E" />
+                        <Ionicons name="notifications-outline" size={24} color={C.ink} />
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={fetchData}
@@ -808,7 +809,7 @@ const RecruiterPortal = () => {
                         accessibilityRole="button"
                         accessibilityLabel="Refresh"
                     >
-                        <Ionicons name="refresh" size={24} color="#12100E" />
+                        <Ionicons name="refresh" size={24} color={C.ink} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -847,7 +848,7 @@ const RecruiterPortal = () => {
                     className="flex-1 bg-paper p-4 border border-line flex-row items-center gap-3 shadow-hair rounded-md"
                 >
                     <View className="w-10 h-10 bg-recruiter/10 rounded-card items-center justify-center">
-                        <Ionicons name="school-outline" size={20} color="#4F46E5" />
+                        <Ionicons name="school-outline" size={20} color={C.recruiter} />
                     </View>
                     <View>
                         <Text className="text-ink font-display uppercase text-label">Internships</Text>
@@ -861,7 +862,7 @@ const RecruiterPortal = () => {
                     className="flex-1 bg-paper p-4 border border-line flex-row items-center gap-3 shadow-hair rounded-md"
                 >
                     <View className="w-10 h-10 bg-brand-50 rounded-card items-center justify-center">
-                        <Ionicons name="business-outline" size={20} color="#F97316" />
+                        <Ionicons name="business-outline" size={20} color={C.brand[500]} />
                     </View>
                     <View>
                         <Text className="text-ink font-display uppercase text-label">Jobs</Text>
@@ -886,7 +887,7 @@ const RecruiterPortal = () => {
                     {renderMainHeader()}
                     {loading ? (
                         <View className="flex-1 items-center justify-center">
-                            <ActivityIndicator size="large" color="#F97316" />
+                            <ActivityIndicator size="large" color={C.brand[500]} />
                         </View>
                     ) : (
                         <FlatList
@@ -897,7 +898,7 @@ const RecruiterPortal = () => {
                             refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} />}
                             ListEmptyComponent={
                                 <View className="items-center justify-center py-20 px-gutter">
-                                    <Ionicons name="file-tray-outline" size={60} color="#C4BEB6" />
+                                    <Ionicons name="file-tray-outline" size={60} color={C.ink4} />
                                     <Text className="text-ink-3 font-display uppercase text-center mt-4">
                                         No posts yet
                                     </Text>
@@ -911,7 +912,7 @@ const RecruiterPortal = () => {
                                         accessibilityRole="button"
                                         accessibilityLabel="Post your first opportunity"
                                     >
-                                        <Ionicons name="add" size={18} color="#12100E" />
+                                        <Ionicons name="add" size={18} color={C.ink} />
                                         <Text className="text-ink font-display uppercase text-label">Post your first role</Text>
                                     </TouchableOpacity>
                                 </View>
@@ -954,7 +955,7 @@ const RecruiterPortal = () => {
                                         : 'Applications will appear here once students apply.';
                                     return (
                                         <>
-                                            <Ionicons name={icon as any} size={60} color="#C4BEB6" />
+                                            <Ionicons name={icon as any} size={60} color={C.ink4} />
                                             <Text className="text-ink-3 font-display uppercase text-center mt-4">{title}</Text>
                                             <Text className="text-ink-2 text-label text-center mt-2">{body}</Text>
                                             {(searching || filtered) && (
@@ -992,7 +993,7 @@ const RecruiterPortal = () => {
                             <Text className="font-display text-xl text-ink">Email candidates</Text>
                             <View className="flex-1" />
                             <TouchableOpacity onPress={() => setMailTo(null)} hitSlop={10} accessibilityLabel="Close">
-                                <Ionicons name="close" size={24} color="#12100E" />
+                                <Ionicons name="close" size={24} color={C.ink} />
                             </TouchableOpacity>
                         </View>
 
@@ -1016,7 +1017,7 @@ const RecruiterPortal = () => {
                                 value={mailSubject}
                                 onChangeText={setMailSubject}
                                 placeholder="Subject line"
-                                placeholderTextColor="#8B857E"
+                                placeholderTextColor={C.ink3}
                                 className="font-sans text-base text-ink"
                             />
                         </View>
@@ -1027,7 +1028,7 @@ const RecruiterPortal = () => {
                                 value={mailBody}
                                 onChangeText={setMailBody}
                                 placeholder="What do you want to tell them?"
-                                placeholderTextColor="#8B857E"
+                                placeholderTextColor={C.ink3}
                                 multiline
                                 className="font-sans text-base text-ink"
                                 style={{ minHeight: 120, textAlignVertical: 'top' }}
@@ -1047,7 +1048,7 @@ const RecruiterPortal = () => {
                             accessibilityLabel={`Send to ${mailTo ? counts[mailTo] : 0} candidates`}
                         >
                             {mailSending
-                                ? <ActivityIndicator color="#12100E" />
+                                ? <ActivityIndicator color={C.ink} />
                                 : <Text className="font-display text-ink uppercase">Send to {mailTo ? counts[mailTo] : 0}</Text>}
                         </TouchableOpacity>
                     </View>

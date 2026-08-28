@@ -15,8 +15,10 @@ import { useAuth } from '../context/auth.context';
 import Avatar from './Avatar';
 import { ProfileSkeleton } from './Skeleton';
 import { Image as ExpoImage } from 'expo-image';
+import { FlashList } from '@shopify/flash-list';
 import { getFullUrl } from '../utils/imageUtils';
 import GitHubStatsCard from './profile/GitHubStatsCard';
+import { C } from '../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -237,7 +239,7 @@ const PublicProfile = () => {
 
     // --- GRID RENDERER ---
     const COLUMN_SIZE = width / 3;
-    const renderGridItem = ({ item }: { item: any }) => {
+    const renderGridItem = useCallback(({ item }: { item: any }) => {
         const isVideo = activeTab === 'shorts';
         return (
             <Pressable
@@ -253,13 +255,24 @@ const PublicProfile = () => {
             >
                 {isVideo ? (
                     <View className="flex-1 bg-ink justify-center items-center overflow-hidden">
-                        <Video
-                            source={{ uri: getFullUrl(item.video) || '' }}
-                            style={{ width: '100%', height: '100%' }}
-                            resizeMode={ResizeMode.COVER}
-                            shouldPlay={false}
-                            positionMillis={100}
-                        />
+                        {/* Still frame; see the note in profile.tsx. */}
+                        {item.thumbnail ? (
+                            <ExpoImage
+                                source={{ uri: getFullUrl(item.thumbnail) || '' }}
+                                style={{ width: '100%', height: '100%' }}
+                                contentFit="cover"
+                                cachePolicy="disk"
+                                transition={120}
+                            />
+                        ) : (
+                            <Video
+                                source={{ uri: getFullUrl(item.video) || '' }}
+                                style={{ width: '100%', height: '100%' }}
+                                resizeMode={ResizeMode.COVER}
+                                shouldPlay={false}
+                                positionMillis={100}
+                            />
+                        )}
                         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} className="absolute bottom-0 w-full h-1/2 z-10" />
                         <View className="absolute inset-0 items-center justify-center">
                             <Ionicons name="play-outline" size={28} color="white" style={{ opacity: 0.8 }} />
@@ -287,7 +300,13 @@ const PublicProfile = () => {
                 )}
             </Pressable>
         );
-    };
+    }, [activeTab, navigation]);
+
+    /** Rebuilt inline on every render, this re-rendered the whole grid. */
+    const renderTabItem = useCallback(({ item }: { item: any }) => {
+        if (activeTab === 'tags') return <AboutSection />;
+        return renderGridItem({ item });
+    }, [activeTab, renderGridItem]);
 
     // --- ABOUT SECTION (Light Mode) ---
     const AboutSection = () => (
@@ -308,7 +327,7 @@ const PublicProfile = () => {
                 {profileUser?.experience && (
                     <View className="w-full bg-card p-5 rounded-sheet border border-line flex-row items-center shadow-hair">
                         <View className="bg-brand-50 p-3 rounded-card mr-4">
-                            <Ionicons name="briefcase" size={24} color="#F97316" />
+                            <Ionicons name="briefcase" size={24} color={C.brand[500]} />
                         </View>
                         <View className="flex-1">
                             <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
@@ -367,30 +386,30 @@ const PublicProfile = () => {
             <View className="gap-3">
                 {profileUser?.github_id && (
                     <Pressable onPress={() => Linking.openURL(profileUser.github_id!)} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
-                        <Ionicons name="logo-github" size={24} color="#12100E" />
+                        <Ionicons name="logo-github" size={24} color={C.ink} />
                         <Text className="text-ink ml-4 font-display uppercase">GitHub</Text>
-                        <Ionicons name="open-outline" size={18} color="#8B857E" style={{ marginLeft: 'auto' }} />
+                        <Ionicons name="open-outline" size={18} color={C.ink3} style={{ marginLeft: 'auto' }} />
                     </Pressable>
                 )}
                 {profileUser?.linkedIn_id && (
                     <Pressable onPress={() => Linking.openURL(profileUser.linkedIn_id!)} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
                         <Ionicons name="logo-linkedin" size={24} color="#0077b5" />
                         <Text className="text-ink ml-4 font-display uppercase">LinkedIn</Text>
-                        <Ionicons name="open-outline" size={18} color="#8B857E" style={{ marginLeft: 'auto' }} />
+                        <Ionicons name="open-outline" size={18} color={C.ink3} style={{ marginLeft: 'auto' }} />
                     </Pressable>
                 )}
                 {profileUser?.codingProfiles?.leetcode && (
                     <Pressable onPress={() => Linking.openURL(`https://leetcode.com/${profileUser.codingProfiles?.leetcode}`)} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
                         <Image source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png" }} className="w-6 h-6" style={{ tintColor: '#F5B700' }} />
                         <Text className="text-ink ml-4 font-display uppercase">LeetCode</Text>
-                        <Ionicons name="open-outline" size={18} color="#8B857E" style={{ marginLeft: 'auto' }} />
+                        <Ionicons name="open-outline" size={18} color={C.ink3} style={{ marginLeft: 'auto' }} />
                     </Pressable>
                 )}
                 {profileUser?.codingProfiles?.gfg && (
                     <Pressable onPress={() => Linking.openURL(`https://www.geeksforgeeks.org/user/${profileUser.codingProfiles?.gfg}`)} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
                         <Image source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/4/43/GeeksforGeeks.svg" }} className="w-6 h-6" />
                         <Text className="text-ink ml-4 font-display uppercase">GeeksForGeeks</Text>
-                        <Ionicons name="open-outline" size={18} color="#8B857E" style={{ marginLeft: 'auto' }} />
+                        <Ionicons name="open-outline" size={18} color={C.ink3} style={{ marginLeft: 'auto' }} />
                     </Pressable>
                 )}
             </View>
@@ -457,7 +476,7 @@ const PublicProfile = () => {
                             <Text className="text-2xl font-display text-ink uppercase">
                                 {(profileUser as any)?.company || profileUser?.name}
                             </Text>
-                            <MaterialCommunityIcons name="check-decagram" size={22} color="#4F46E5" />
+                            <MaterialCommunityIcons name="check-decagram" size={22} color={C.recruiter} />
                         </View>
                         <Text className="text-ink-3 font-semibold text-xs uppercase mt-1">
                             {(profileUser as any)?.industry || 'Corporate Partner'} • {(profileUser as any)?.companySize || 'Growing Team'}
@@ -489,7 +508,7 @@ const PublicProfile = () => {
                         <View className="gap-4 mt-6">
                             <View className="flex-row items-center gap-4">
                                 <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center">
-                                    <Ionicons name="location-outline" size={20} color="#DC2626" />
+                                    <Ionicons name="location-outline" size={20} color={C.danger} />
                                 </View>
                                 <View>
                                     <Text className="text-ink-3 text-label font-display uppercase">Headquarters</Text>
@@ -502,7 +521,7 @@ const PublicProfile = () => {
                                     className="flex-row items-center gap-4"
                                 >
                                     <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center">
-                                        <Ionicons name="globe-outline" size={20} color="#4F46E5" />
+                                        <Ionicons name="globe-outline" size={20} color={C.recruiter} />
                                     </View>
                                     <View>
                                         <Text className="text-ink-3 text-label font-display uppercase">Official Website</Text>
@@ -558,7 +577,7 @@ const PublicProfile = () => {
                 </Pressable>
             </View>
 
-            <FlatList
+            <FlashList
                 key={activeTab} // Reset list when tab changes
                 data={activeTab === 'tags' ? ['ABOUT'] : activeTab === 'posts' ? posts : shorts}
                 numColumns={activeTab === 'tags' ? 1 : 3}
@@ -598,7 +617,7 @@ const PublicProfile = () => {
                             </Text>
 
                             <View className="flex-row items-center mt-4 px-4 py-2 bg-paper-2 rounded-card border border-line gap-2">
-                                <Ionicons name="location" size={16} color="#F97316" />
+                                <Ionicons name="location" size={16} color={C.brand[500]} />
                                 <Text className="font-semibold text-base text-ink">{profileUser?.college || 'Earth'}</Text>
                             </View>
 
@@ -654,20 +673,17 @@ const PublicProfile = () => {
                         </View>
                     </View>
                 }
-                renderItem={({ item }: { item: any }) => {
-                    if (activeTab === 'tags') return <AboutSection />;
-                    return renderGridItem({ item });
-                }}
+                renderItem={renderTabItem}
                 ListFooterComponent={
                     isFetchingMore ? (
                         <View className="py-4 bg-card">
-                            <ActivityIndicator size="small" color="#F97316" />
+                            <ActivityIndicator size="small" color={C.brand[500]} />
                         </View>
                     ) : null
                 }
                 ListEmptyComponent={
                     <View className="items-center mt-20 opacity-50 bg-paper-2">
-                        <Ionicons name={activeTab === 'shorts' ? "videocam-off-outline" : "images-outline"} size={48} color="#C4BEB6" />
+                        <Ionicons name={activeTab === 'shorts' ? "videocam-off-outline" : "images-outline"} size={48} color={C.ink4} />
                         <Text className="text-ink-3 mt-2 font-semibold uppercase text-label">Nothing to see here</Text>
                     </View>
                 }
@@ -684,14 +700,14 @@ const PublicProfile = () => {
                             <View className="w-full h-96 bg-paper-2 justify-center items-center relative">
                                 {activeTab === 'shorts' ? (
                                     <View className="items-center">
-                                        <Ionicons name="play-circle" size={64} color="#F97316" />
+                                        <Ionicons name="play-circle" size={64} color={C.brand[500]} />
                                         <Text className="text-ink-3 mt-2 font-semibold uppercase text-label">PREVIEW MODE</Text>
                                     </View>
                                 ) : (
                                     <Image source={{ uri: getFullUrl(selectedItem.image ? selectedItem.image[0] : '') || '' }} className="w-full h-full" resizeMode="cover" />
                                 )}
                                 <Pressable onPress={() => setModalVisible(false)} className="absolute top-4 right-4 bg-card/80 p-2 rounded-full">
-                                    <Ionicons name="close" size={20} color="#12100E" />
+                                    <Ionicons name="close" size={20} color={C.ink} />
                                 </Pressable>
                             </View>
                             <View className="p-5">

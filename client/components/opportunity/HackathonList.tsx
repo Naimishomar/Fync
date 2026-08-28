@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { C } from '../../constants/colors';
 
 const HackathonList = () => {
   const [hackathons, setHackathons] = useState<any[]>([]);
@@ -111,7 +112,7 @@ const HackathonList = () => {
           <Ionicons
             name={item.job_location?.toLowerCase().includes('online') ? "globe-outline" : "location-sharp"}
             size={14}
-            color="#8B857E"
+            color={C.ink3}
           />
           <Text className="text-label font-display uppercase text-ink-3 ml-1">
             {item.job_location || "Global"}
@@ -121,7 +122,7 @@ const HackathonList = () => {
         {/* Mode (Online/Offline/Region) */}
         {item.region && item.region.toLowerCase() !== (item.job_location || '').toLowerCase() && (
           <View className="flex-row items-center bg-recruiter/10 px-3 py-1.5 rounded-xl border border-recruiter/15">
-            <Ionicons name="earth" size={14} color="#4F46E5" />
+            <Ionicons name="earth" size={14} color={C.recruiter} />
             <Text className="text-label font-display uppercase text-recruiter ml-1">
               {item.region}
             </Text>
@@ -130,7 +131,7 @@ const HackathonList = () => {
 
         {/* Region/Deadline */}
         <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
-          <Ionicons name="calendar" size={14} color="#8B857E" />
+          <Ionicons name="calendar" size={14} color={C.ink3} />
           <Text className="text-label font-display uppercase text-ink-3 ml-1">
             {item.regnEndDate ? new Date(item.regnEndDate).toLocaleDateString() : "Open"}
           </Text>
@@ -176,7 +177,7 @@ const HackathonList = () => {
     if (!loading) return <View className="h-12" />;
     return (
       <View className="py-6 items-center">
-        <ActivityIndicator size="small" color="#F97316" />
+        <ActivityIndicator size="small" color={C.brand[500]} />
       </View>
     );
   };
@@ -191,7 +192,7 @@ const HackathonList = () => {
         <View className="px-gutter pt-8 pb-4">
           <View className="flex-row items-center gap-3">
             <View className="w-12 h-12 bg-brand-500 rounded-card items-center justify-center shadow-hair">
-              <Ionicons name="rocket" size={24} color="#12100E" />
+              <Ionicons name="rocket" size={24} color={C.ink} />
             </View>
             <View>
               <Text className="text-ink text-3xl font-display uppercase">Hackathons</Text>
@@ -203,17 +204,17 @@ const HackathonList = () => {
         {/* 🔍 Search Bar */}
         <View className="px-6 mt-2 mb-4">
           <View className="flex-row items-center bg-card px-6 py-2 border-2 border-ink shadow-hair rounded-md">
-            <Ionicons name="search" size={20} color="#F97316" />
+            <Ionicons name="search" size={20} color={C.brand[500]} />
             <TextInput
               placeholder="Search hackathons, companies..."
-              placeholderTextColor="#8B857E"
+              placeholderTextColor={C.ink3}
               value={searchQuery}
               onChangeText={setSearchQuery}
               className="flex-1 ml-3 text-ink text-base font-display"
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-paper-2 p-1 rounded-full">
-                <Ionicons name="close" size={18} color="#8B857E" />
+                <Ionicons name="close" size={18} color={C.ink3} />
               </TouchableOpacity>
             )}
           </View>
@@ -233,7 +234,7 @@ const HackathonList = () => {
             !loading ? (
               <View className="items-center mt-20 px-gutter">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="search" size={40} color="#C4BEB6" />
+                  <Ionicons name="search" size={40} color={C.ink4} />
                 </View>
                 <Text className="text-ink font-display text-xl text-center uppercase">Zero Hits</Text>
                 <Text className="font-sans text-sm text-ink-3 text-center mt-2">

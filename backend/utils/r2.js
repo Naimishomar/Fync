@@ -70,25 +70,59 @@ export const uploadToR2 = async (buffer, folder, originalname, mimetype) => {
   let uploadMime = mimetype;
   let uploadExt = path.extname(originalname) || "";
 
+  /**
+   * One decode, two outputs.
+   *
+   * The full-size WebP is what a post or a detail view shows. The `_sm` twin is
+   * for grid cells, which are a fraction of 1200px wide and were being handed
+   * the whole file.
+   *
+   * sharp().clone() branches a single decoded image into both encoders. Calling
+   * sharp() twice would decode the JPEG twice, and on a burstable instance
+   * image work is the thing that drains CPU credits.
+   *
+   * Objects uploaded before the twin existed have none, which is why the client
+   * keeps the full URL as an onError fallback rather than trusting the
+   * convention blindly.
+   */
+  let smallBuffer = null;
   if (mimetype.startsWith("image/") && mimetype !== "image/gif") {
     try {
-      console.log(`🖼️ Optimizing image: ${originalname} (${mimetype})`);
-      const optimized = await sharp(buffer)
-        .rotate()
-        .resize({ width: 1200, withoutEnlargement: true }) // Resize to max 1200px width
-        .webp({ quality: 80 }) // Convert to WebP for great compression
-        .toBuffer();
-      
-      uploadBuffer = optimized;
+      const decoded = sharp(buffer).rotate();
+      const [full, small] = await Promise.all([
+        decoded.clone().resize({ width: 1200, withoutEnlargement: true }).webp({ quality: 80 }).toBuffer(),
+        decoded.clone().resize({ width: 400, withoutEnlargement: true }).webp({ quality: 70 }).toBuffer(),
+      ]);
+
+      uploadBuffer = full;
+      smallBuffer = small;
       uploadMime = "image/webp";
       uploadExt = ".webp";
-      console.log(`✅ Optimization complete: ${originalname} -> WebP, Size: ${buffer.length} -> ${optimized.length}`);
+      console.log(`✅ Optimized ${originalname}: ${buffer.length} -> ${full.length} (+${small.length} thumb)`);
     } catch (err) {
       console.error(`⚠️ Optimization failed for ${originalname}, uploading original:`, err.message);
+      smallBuffer = null;
     }
   }
 
   const key = `${folder}/${nanoid()}${uploadExt}`;
+
+  if (smallBuffer) {
+    const smallKey = key.replace(/(\.[^.]+)$/, "_sm$1");
+    // A missing thumbnail costs bandwidth, not correctness, so it never fails
+    // the upload it belongs to.
+    await r2Client
+      .send(
+        new PutObjectCommand({
+          Bucket: bucketName,
+          Key: smallKey,
+          Body: smallBuffer,
+          ContentType: "image/webp",
+          CacheControl: "public, max-age=2592000, stale-while-revalidate=86400",
+        })
+      )
+      .catch((err) => console.error(`⚠️ Thumbnail upload failed for ${key}:`, err.message));
+  }
 
   try {
     console.log(`🔹 Uploading to R2: Bucket=${bucketName}, Key=${key}, Size=${uploadBuffer.length}`);
@@ -126,6 +160,15 @@ export const deleteFromR2 = async (url) => {
         Key: key,
       })
     );
+
+    // The `_sm` variant is written by uploadToR2 under a derived key, so it has
+    // to be swept here too or it leaks storage forever.
+    const smallKey = key.replace(/(\.[^.]+)$/, "_sm$1");
+    if (smallKey !== key) {
+      await r2Client
+        .send(new DeleteObjectCommand({ Bucket: bucketName, Key: smallKey }))
+        .catch(() => {});
+    }
   } catch (error) {
     console.error("R2 Delete Error:", error.message);
   }
@@ -158,6 +201,24 @@ export const videoUpload = multer({
   storage: memoryStorage,
   limits: { fileSize: 1024 * 1024 * 20 },
   fileFilter: (_req, file, cb) => {
+    cb(null, file.mimetype === "video/mp4");
+  },
+});
+
+/**
+ * Short video + its poster frame, in one request — 20 MB.
+ *
+ * The thumbnail is generated on the device (expo-video-thumbnails), so it
+ * arrives as a small JPEG alongside the mp4 rather than costing a server-side
+ * transcode.
+ */
+export const shortsUpload = multer({
+  storage: memoryStorage,
+  limits: { fileSize: 1024 * 1024 * 20 },
+  fileFilter: (_req, file, cb) => {
+    if (file.fieldname === "thumbnail") {
+      return cb(null, ["image/jpeg", "image/png", "image/webp"].includes(file.mimetype));
+    }
     cb(null, file.mimetype === "video/mp4");
   },
 });

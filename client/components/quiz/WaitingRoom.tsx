@@ -7,6 +7,7 @@ import { RootStackParamList } from '../../App';
 import socket from '../../utils/socket';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WaitingRoom'>;
 
@@ -114,7 +115,7 @@ const WaitingRoom: React.FC<Props> = ({ route, navigation }) => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-            <Ionicons name="close" size={24} color="#12100E" />
+            <Ionicons name="close" size={24} color={C.ink} />
           </TouchableOpacity>
           <Text className="text-ink text-3xl font-display uppercase">
             The <Text className="text-accent-text">Lobby</Text>
@@ -155,7 +156,7 @@ const WaitingRoom: React.FC<Props> = ({ route, navigation }) => {
         {/* FOOTER WARNING */}
         <View className="bg-card p-card-pad rounded-sheet flex-row items-center shadow-hair border border-line">
           <View className="w-12 h-12 bg-paper-2 rounded-card items-center justify-center border border-line">
-            <Ionicons name="shield-checkmark" size={24} color="#F97316" />
+            <Ionicons name="shield-checkmark" size={24} color={C.brand[500]} />
           </View>
           <Text className="text-ink-3 ml-5 flex-1 text-label font-semibold uppercase leading-5">
             <Text className="font-display text-ink">Protocol Active.</Text> Maintain active connection. Disconnection will result in session void.

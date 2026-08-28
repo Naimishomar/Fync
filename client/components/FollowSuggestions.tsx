@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
 import Avatar from './Avatar';
+import { C } from '../constants/colors';
 
 interface Suggestion {
   _id: string;
@@ -60,7 +61,7 @@ export default function FollowSuggestions({ offset = 0 }: { offset?: number }) {
   if (loading) {
     return (
       <View className="py-8 items-center">
-        <ActivityIndicator color="#F97316" />
+        <ActivityIndicator color={C.brand[500]} />
       </View>
     );
   }

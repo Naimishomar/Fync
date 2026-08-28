@@ -16,6 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 // @ts-ignore
 import axios from '../context/axiosConfig';
 import AuthPoster from './ui/AuthPoster';
+import { C } from '../constants/colors';
 
 export default function SignUpScreen() {
   const navigation = useNavigation<any>();
@@ -172,38 +173,38 @@ export default function SignUpScreen() {
                 <Text className="font-display text-label text-ink-3 uppercase" style={{ letterSpacing: 1.4 }}>Email</Text>
                 <View className="mt-2 border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50, justifyContent: 'center' }}>
                   <TextInput className="font-sans text-base text-ink" placeholder="you@college.ac.in"
-                    placeholderTextColor="#8B857E" value={email} onChangeText={setEmail}
+                    placeholderTextColor={C.ink3} value={email} onChangeText={setEmail}
                     keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
                 </View>
 
                 <Text className="font-display text-label text-ink-3 uppercase mt-4" style={{ letterSpacing: 1.4 }}>Username</Text>
                 <View className="mt-2 border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50, justifyContent: 'center' }}>
                   <TextInput className="font-sans text-base text-ink" placeholder="naimish"
-                    placeholderTextColor="#8B857E" value={username} onChangeText={setUsername}
+                    placeholderTextColor={C.ink3} value={username} onChangeText={setUsername}
                     autoCapitalize="none" autoComplete="username" />
                 </View>
 
                 <Text className="font-display text-label text-ink-3 uppercase mt-4" style={{ letterSpacing: 1.4 }}>Phone Number</Text>
                 <View className="mt-2 border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50, justifyContent: 'center' }}>
                   <TextInput className="font-sans text-base text-ink" placeholder="+91 98765 43210"
-                    placeholderTextColor="#8B857E" keyboardType="phone-pad" value={phoneNumber}
+                    placeholderTextColor={C.ink3} keyboardType="phone-pad" value={phoneNumber}
                     onChangeText={setPhoneNumber} autoComplete="tel" />
                 </View>
 
                 <Text className="font-display text-label text-ink-3 uppercase mt-4" style={{ letterSpacing: 1.4 }}>Password</Text>
                 <View className="mt-2 flex-row items-center border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50 }}>
                   <TextInput className="flex-1 font-sans text-base text-ink" placeholder="••••••••"
-                    placeholderTextColor="#8B857E" secureTextEntry={!passwordVisible}
+                    placeholderTextColor={C.ink3} secureTextEntry={!passwordVisible}
                     value={password} onChangeText={setPassword} autoComplete="new-password" />
                   <Pressable onPress={() => setPasswordVisible(!passwordVisible)} hitSlop={12}
                     accessibilityRole="button"
                     accessibilityLabel={passwordVisible ? 'Hide password' : 'Show password'}>
-                    <Ionicons name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} size={22} color="#8B857E" />
+                    <Ionicons name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} size={22} color={C.ink3} />
                   </Pressable>
                 </View>
 
                 <View className="flex-row items-center mt-4" style={{ gap: 12 }}>
-                  <Checkbox value={agreeTerms} onValueChange={setAgreeTerms} color="#12100E" />
+                  <Checkbox value={agreeTerms} onValueChange={setAgreeTerms} color={C.ink} />
                   <View className="flex-row flex-wrap flex-1">
                     <Text className="font-sans text-sm text-ink-2">I agree to the </Text>
                     <Pressable onPress={() => navigation.navigate('TermsAndCondition')} hitSlop={8}>
@@ -220,7 +221,7 @@ export default function SignUpScreen() {
                   accessibilityRole="button"
                 >
                   {isLoading
-                    ? <ActivityIndicator size="small" color="#12100E" />
+                    ? <ActivityIndicator size="small" color={C.ink} />
                     : <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>
                         {otpSent ? 'Verify & Continue' : 'Send OTP'}
                       </Text>}
@@ -246,7 +247,7 @@ export default function SignUpScreen() {
                     <TextInput
                       className="font-display text-ink"
                       style={{ fontSize: 22, letterSpacing: 8, textAlign: 'center' }}
-                      placeholder="––––" placeholderTextColor="#C4BEB6"
+                      placeholder="––––" placeholderTextColor={C.ink4}
                       keyboardType="number-pad" maxLength={6}
                       value={otp} onChangeText={setOtp} autoComplete="one-time-code" />
                   </View>

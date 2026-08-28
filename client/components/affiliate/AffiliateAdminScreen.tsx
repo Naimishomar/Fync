@@ -16,6 +16,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const CATEGORIES = ['Education', 'Electronics', 'Fashion', 'Books', 'Lifestyle', 'Other'];
 
@@ -163,13 +164,13 @@ export default function AffiliateAdminScreen() {
         <View className="px-5 py-4 flex-row items-center border-b border-line bg-transparent">
           <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
             accessibilityRole="button" accessibilityLabel="Go back" style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
           <Text className="text-xl font-display text-ink flex-1">Store Admin</Text>
         </View>
 
         <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor="#F97316" colors={['#F97316']} />}>
+          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={C.brand[500]} colors={['#F97316']} />}>
 
           {/* the one stamped card on this screen */}
           <View style={{ position: 'relative', marginBottom: 24 }}>
@@ -204,7 +205,7 @@ export default function AffiliateAdminScreen() {
                   <Image source={{ uri: photo.uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
                 ) : (
                   <>
-                    <Ionicons name="image-outline" size={34} color="#8B857E" />
+                    <Ionicons name="image-outline" size={34} color={C.ink3} />
                     <Text className="text-ink-3 font-sans mt-2" style={{ fontSize: 13 }}>
                       Pick from gallery
                     </Text>
@@ -223,7 +224,7 @@ export default function AffiliateAdminScreen() {
                 <Text className="text-ink-3 font-display uppercase text-label mb-2">{f.label}</Text>
                 <TextInput
                   value={form[f.key] ?? ''} onChangeText={(t) => set(f.key, t)}
-                  placeholder={f.placeholder} placeholderTextColor="#8B857E"
+                  placeholder={f.placeholder} placeholderTextColor={C.ink3}
                   keyboardType={f.numeric ? 'numeric' : 'default'}
                   autoCapitalize={f.key === 'affiliateLink' ? 'none' : 'sentences'}
                   multiline={f.multi} textAlignVertical={f.multi ? 'top' : 'center'}
@@ -248,7 +249,7 @@ export default function AffiliateAdminScreen() {
           <TouchableOpacity onPress={submit} disabled={saving}
             className={`w-full py-4 rounded-md items-center justify-center border-2 border-ink mb-6 ${saving ? 'bg-paper-2' : 'bg-brand-500'}`}
             accessibilityRole="button">
-            {saving ? <ActivityIndicator color="#12100E" />
+            {saving ? <ActivityIndicator color={C.ink} />
               : <Text className="font-display uppercase text-base text-ink">List in Fync Store</Text>}
           </TouchableOpacity>
 
@@ -261,7 +262,7 @@ export default function AffiliateAdminScreen() {
           {products.length === 0 && !loading ? (
             <View className="items-center py-10">
               <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-3">
-                <Ionicons name="pricetags-outline" size={32} color="#57534E" />
+                <Ionicons name="pricetags-outline" size={32} color={C.ink2} />
               </View>
               <Text className="text-ink-2 text-sm">Nothing listed yet.</Text>
             </View>
@@ -289,7 +290,7 @@ export default function AffiliateAdminScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={p.isAvailable ? `Delist ${p.name}` : `Relist ${p.name}`}
                 >
-                  <Ionicons name={p.isAvailable ? 'eye-off-outline' : 'eye-outline'} size={16} color="#12100E" style={{ marginRight: 7 }} />
+                  <Ionicons name={p.isAvailable ? 'eye-off-outline' : 'eye-outline'} size={16} color={C.ink} style={{ marginRight: 7 }} />
                   <Text className="font-display text-ink uppercase" style={{ fontSize: 12 }}>
                     {p.isAvailable ? 'Delist' : 'Relist'}
                   </Text>
@@ -301,7 +302,7 @@ export default function AffiliateAdminScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`Delete ${p.name}`}
                 >
-                  <Ionicons name="trash-outline" size={16} color="#FFFFFF" style={{ marginRight: 7 }} />
+                  <Ionicons name="trash-outline" size={16} color={C.white} style={{ marginRight: 7 }} />
                   <Text className="font-display text-white uppercase" style={{ fontSize: 12 }}>Delete</Text>
                 </TouchableOpacity>
               </View>

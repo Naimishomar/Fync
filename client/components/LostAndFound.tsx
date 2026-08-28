@@ -8,6 +8,7 @@ import { useAuth } from '../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import socket from '../utils/socket';
 import { Alert } from './ui/AlertModal';
+import { C } from '../constants/colors';
 
 // --- TYPES ---
 interface LostAndFoundItem {
@@ -186,11 +187,11 @@ const LostAndFound = () => {
                         {item.image ? (
                             <Image source={{ uri: item.image }} className="w-full h-full" resizeMode="cover" />
                         ) : (
-                            <Ionicons name="cube-outline" size={28} color="#C4BEB6" />
+                            <Ionicons name="cube-outline" size={28} color={C.ink4} />
                         )}
                         {isResolved && (
                             <View className="absolute inset-0 bg-card/40 items-center justify-center">
-                                <Ionicons name="checkmark-circle" size={32} color="#F97316" />
+                                <Ionicons name="checkmark-circle" size={32} color={C.brand[500]} />
                             </View>
                         )}
                     </View>
@@ -209,7 +210,7 @@ const LostAndFound = () => {
                             </View>
 
                             <View className="flex-row items-center">
-                                <Ionicons name="location" size={10} color="#C4BEB6" />
+                                <Ionicons name="location" size={10} color={C.ink4} />
                                 <Text className="text-ink-3 text-label font-display uppercase ml-1.5" numberOfLines={1}>{item.place}</Text>
                             </View>
                         </View>
@@ -297,7 +298,7 @@ const LostAndFound = () => {
                               accessibilityLabel="Go back"
                               style={{ marginLeft: -11 }}
                             >
-                              <Ionicons name="arrow-back" size={24} color="#12100E" />
+                              <Ionicons name="arrow-back" size={24} color={C.ink} />
                             </TouchableOpacity>
                             <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Lost &</Text>
                             <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Found</Text>
@@ -336,11 +337,11 @@ const LostAndFound = () => {
                         renderItem={renderItem}
                         contentContainerStyle={{ paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchItems(); }} tintColor="#F97316" />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchItems(); }} tintColor={C.brand[500]} />}
                         ListEmptyComponent={
                             <View className="items-center justify-center mt-20 px-gutter">
                                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                    <Ionicons name="search" size={32} color="#C4BEB6" />
+                                    <Ionicons name="search" size={32} color={C.ink4} />
                                 </View>
                                 <Text className="font-semibold text-base text-ink text-center">No Active Signals</Text>
                                 <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Scanning campus for artifacts...</Text>
@@ -362,7 +363,7 @@ const LostAndFound = () => {
                                 <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Campus Recovery Protocol</Text>
                             </View>
                             <TouchableOpacity onPress={() => setModalVisible(false)} className="bg-paper-2 w-10 h-10 rounded-card items-center justify-center border border-line">
-                                <Ionicons name="close" size={20} color="#12100E" />
+                                <Ionicons name="close" size={20} color={C.ink} />
                             </TouchableOpacity>
                         </View>
 
@@ -372,7 +373,7 @@ const LostAndFound = () => {
                                 value={newItemName}
                                 onChangeText={setNewItemName}
                                 placeholder="e.g. TITAN v2 Pro (Blue Frame)"
-                                placeholderTextColor="#C4BEB6"
+                                placeholderTextColor={C.ink4}
                                 className="font-semibold text-base text-ink bg-card p-5 mb-6 border-[1.5px] border-ink shadow-hair rounded-md"
                             />
 
@@ -381,7 +382,7 @@ const LostAndFound = () => {
                                 value={newItemPlace}
                                 onChangeText={setNewItemPlace}
                                 placeholder={activeTab === 'lost' ? "Last seen at..." : "Discovered at..."}
-                                placeholderTextColor="#C4BEB6"
+                                placeholderTextColor={C.ink4}
                                 className="font-semibold text-base text-ink bg-card p-5 mb-8 border-[1.5px] border-ink shadow-hair rounded-md"
                             />
 
@@ -394,7 +395,7 @@ const LostAndFound = () => {
                                     <Image source={{ uri: newItemImage.uri }} className="w-full h-40 rounded-card" resizeMode="cover" />
                                 ) : (
                                     <View className="items-center">
-                                        <Ionicons name="camera-outline" size={28} color="#C4BEB6" />
+                                        <Ionicons name="camera-outline" size={28} color={C.ink4} />
                                         <Text className="text-ink-3 font-display uppercase text-label mt-2">Capture Asset Image</Text>
                                     </View>
                                 )}
@@ -405,7 +406,7 @@ const LostAndFound = () => {
                                 disabled={submitting}
                                 className={`p-5 rounded-card items-center mb-20 shadow-hair ${activeTab === 'lost' ? 'bg-ink ' : 'bg-brand-500 '}`}
                             >
-                                {submitting ? <ActivityIndicator color="#12100E" /> : <Text className="text-ink font-display uppercase text-sm">Deploy Report to HQ</Text>}
+                                {submitting ? <ActivityIndicator color={C.ink} /> : <Text className="text-ink font-display uppercase text-sm">Deploy Report to HQ</Text>}
                             </TouchableOpacity>
                         </ScrollView>
                     </View>

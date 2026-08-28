@@ -3,6 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Image, Anima
 import { fetchDriveData } from '../../utils/handleDrive';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { C } from '../../constants/colors';
 
 const FOLDER_IMG = 'https://cdn-icons-png.flaticon.com/512/716/716784.png';
 const PDF_IMG = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
@@ -105,14 +106,14 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                                       accessibilityLabel="Go back"
                                       style={{ marginLeft: -11 }}
                                     >
-                                      <Ionicons name="arrow-back" size={24} color="#12100E" />
+                                      <Ionicons name="arrow-back" size={24} color={C.ink} />
                                     </TouchableOpacity>
                                     <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
                                     <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Drive</Text>
                                     <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Campus Resource Arena</Text>
                                 </View>
                                 <TouchableOpacity disabled className="w-12 h-12 rounded-card items-center justify-center border border-line bg-card shadow-hair">
-                                    <ActivityIndicator size="small" color="#F97316" />
+                                    <ActivityIndicator size="small" color={C.brand[500]} />
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -135,15 +136,15 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                                         <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Campus Resource Arena</Text>
                                     </View>
                                     <TouchableOpacity onPress={loadData} disabled={loading} className={`w-12 h-12 rounded-card items-center justify-center border shadow-hair ${loading ? 'border-line bg-paper-2' : 'border-line bg-card'}`}>
-                                        {loading ? <ActivityIndicator size="small" color="#F97316" /> : <Ionicons name="refresh" size={20} color="#12100E" />}
+                                        {loading ? <ActivityIndicator size="small" color={C.brand[500]} /> : <Ionicons name="refresh" size={20} color={C.ink} />}
                                     </TouchableOpacity>
                                 </View>
 
                                 <View className="flex-row items-center bg-card px-4 py-1 border-2 border-ink mb-6 rounded-md">
-                                    <Ionicons name="search" size={20} color="#C4BEB6" />
+                                    <Ionicons name="search" size={20} color={C.ink4} />
                                     <TextInput
                                         placeholder="Search resources..."
-                                        placeholderTextColor="#C4BEB6"
+                                        placeholderTextColor={C.ink4}
                                         value={search}
                                         onChangeText={setSearch}
                                         className="flex-1 text-ink font-display text-sm p-3"
@@ -203,7 +204,7 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                                     </View>
 
                                     <View className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center">
-                                        <Ionicons name="chevron-forward" size={12} color="#C4BEB6" />
+                                        <Ionicons name="chevron-forward" size={12} color={C.ink4} />
                                     </View>
                                 </TouchableOpacity>
                             );
@@ -211,7 +212,7 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                         ListEmptyComponent={
                             <View className="items-center mt-20 px-gutter">
                                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                    <Ionicons name="document-text-outline" size={32} color="#C4BEB6" />
+                                    <Ionicons name="document-text-outline" size={32} color={C.ink4} />
                                 </View>
                                 <Text className="font-semibold text-base text-ink text-center">No resources found</Text>
                             </View>

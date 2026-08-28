@@ -9,6 +9,7 @@ import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 
 import { StampCard } from '../ui/kit';
+import { C } from '../../constants/colors';
 const { width } = Dimensions.get('window');
 
 export default function StudyAssistant() {
@@ -135,7 +136,7 @@ export default function StudyAssistant() {
                                 <StampCard radius={26}>
                                 <View className="p-card-pad items-center" style={{ paddingVertical: 32 }}>
                                     <View className="bg-paper-2 p-card-pad rounded-sheet mb-8 border border-line">
-                                        <Ionicons name="cloud-upload" size={48} color="#F97316" />
+                                        <Ionicons name="cloud-upload" size={48} color={C.brand[500]} />
                                     </View>
                                     <Text className="text-ink text-2xl font-display uppercase text-center leading-tight">Sync <Text className="text-accent-text">Source</Text></Text>
                                     <Text className="font-sans text-sm text-ink-2 text-center mt-4 px-6">
@@ -173,7 +174,7 @@ export default function StudyAssistant() {
                                         className="p-6 flex-row items-center justify-between"
                                      style={{ backgroundColor: '#F97316' }}>
                                         <View className="flex-row items-center">
-                                            <Ionicons name="flash" size={18} color="#12100E" />
+                                            <Ionicons name="flash" size={18} color={C.ink} />
                                             <Text className="text-ink font-display ml-4 text-label uppercase">Generate Protocol Guide</Text>
                                         </View>
                                         <Ionicons name="arrow-forward" size={18} color="white" />
@@ -200,7 +201,7 @@ export default function StudyAssistant() {
                                 ))}
                                 {loading && (
                                     <View className="flex-row items-center p-5 bg-card rounded-card border border-line self-start shadow-hair">
-                                        <ActivityIndicator color="#F97316" size="small" />
+                                        <ActivityIndicator color={C.brand[500]} size="small" />
                                         <Text className="text-ink-3 text-label font-display uppercase ml-4">Analyzing Intel...</Text>
                                     </View>
                                 )}
@@ -213,7 +214,7 @@ export default function StudyAssistant() {
                         <View className="flex-row items-center bg-card p-2.5 border-2 border-ink mb-10 shadow-hair rounded-md">
                             <TextInput
                                 placeholder="Query the intelligence..."
-                                placeholderTextColor="#C4BEB6"
+                                placeholderTextColor={C.ink4}
                                 value={inputText}
                                 onChangeText={setInputText}
                                 className="font-semibold text-base text-ink flex-1 px-6"

@@ -7,6 +7,7 @@ import { RootStackParamList } from '../../App';
 import socket from '../../utils/socket';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'QuizScreen'>;
 
@@ -122,7 +123,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
         <SafeAreaView className="flex-1 justify-center items-center px-gutter">
           <View className="bg-card p-card-pad rounded-sheet border border-line items-center w-full shadow-hair">
             <View className="bg-paper-2 p-6 rounded-full mb-8 border border-line">
-              <ActivityIndicator size="large" color="#F97316" />
+              <ActivityIndicator size="large" color={C.brand[500]} />
             </View>
             <Text className="text-3xl font-display text-ink text-center uppercase mt-6 mb-2">Submitted!</Text>
             <Text className="text-ink-3 text-center text-lg font-display uppercase">
@@ -209,7 +210,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
                   className={`p-6 mb-5 rounded-card border flex-row items-center transition-all ${isSelected ? 'bg-card border-brand-500 shadow-hair ' : 'bg-paper-2 border-line' }`}
                 >
                   <View className={`w-6 h-6 rounded-full border-2 mr-4 items-center justify-center ${isSelected ? 'border-brand-500 bg-brand-500' : 'border-line bg-card' }`}>
-                    {isSelected && <Ionicons name="checkmark" size={14} color="#12100E" />}
+                    {isSelected && <Ionicons name="checkmark" size={14} color={C.ink} />}
                   </View>
                   <Text className={`flex-1 text-base font-display uppercase ${isSelected ? 'text-white' : 'text-ink-3'}`}>
                     {opt}
@@ -240,7 +241,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
               className="py-5 px-gutter rounded-card bg-brand-500 shadow-hair flex-row items-center"
             >
               <Text className="text-ink font-display uppercase text-sm mr-3">Next Step</Text>
-              <Ionicons name="arrow-forward" size={18} color="#12100E" />
+              <Ionicons name="arrow-forward" size={18} color={C.ink} />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -250,7 +251,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
               className="py-5 px-gutter rounded-card bg-brand-500 shadow-hair flex-row items-center"
             >
               <Text className="text-ink font-display uppercase text-sm mr-3">Finalize</Text>
-              <Ionicons name="rocket" size={22} color="#12100E" />
+              <Ionicons name="rocket" size={22} color={C.ink} />
             </TouchableOpacity>
           )}
 
@@ -266,7 +267,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
           <View className="flex-1 bg-ink/60 justify-center items-center px-gutter">
             <View className="bg-card p-card-pad rounded-sheet border border-line w-full items-center shadow-hair">
               <View className="bg-warning/10 p-6 rounded-full mb-8 border border-warning/15">
-                <Ionicons name="alert-circle" size={48} color="#B45309" />
+                <Ionicons name="alert-circle" size={48} color={C.warning} />
               </View>
               <Text className="text-3xl font-display text-ink text-center uppercase mt-6 mb-3">Complete Quiz?</Text>
 

@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Avatar from "./Avatar";
+import { C } from '../constants/colors';
 
 interface User {
   _id: string;
@@ -124,7 +125,7 @@ const SearchScreen = () => {
           className="bg-paper-2 p-2 rounded-xl border border-line"
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="close" size={14} color="#8B857E" />
+          <Ionicons name="close" size={14} color={C.ink3} />
         </TouchableOpacity>
       )}
     </TouchableOpacity>
@@ -150,7 +151,7 @@ const SearchScreen = () => {
                   accessibilityLabel="Go back"
                   style={{ marginLeft: -11 }}
                 >
-                  <Ionicons name="arrow-back" size={24} color="#12100E" />
+                  <Ionicons name="arrow-back" size={24} color={C.ink} />
                 </TouchableOpacity>
                 <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>
                   Find <Text className="text-accent-text">Friends</Text>
@@ -162,20 +163,20 @@ const SearchScreen = () => {
 
           {/* SEARCH DOCK */}
           <View className="flex-row items-center bg-card px-5 py-1 border-2 border-ink shadow-hair mb-5 rounded-md">
-            <Ionicons name="search" size={20} color="#8B857E" />
+            <Ionicons name="search" size={20} color={C.ink3} />
             <TextInput
               className="flex-1 text-ink font-semibold text-sm p-3"
               placeholder="Search contacts..."
-              placeholderTextColor="#C4BEB6"
+              placeholderTextColor={C.ink4}
               value={query}
               onChangeText={setQuery}
               autoCapitalize="none"
               autoCorrect={false}
             />
-            {loading && <ActivityIndicator size="small" color="#F97316" className="mr-2" />}
+            {loading && <ActivityIndicator size="small" color={C.brand[500]} className="mr-2" />}
             {query.length > 0 && (
               <TouchableOpacity onPress={() => setQuery("")} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <Ionicons name="close-circle" size={18} color="#C4BEB6" />
+                <Ionicons name="close-circle" size={18} color={C.ink4} />
               </TouchableOpacity>
             )}
           </View>
@@ -199,7 +200,7 @@ const SearchScreen = () => {
               !loading && searchResults.length === 0 ? (
                 <View className="items-center mt-12 px-gutter">
                   <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-4">
-                    <Ionicons name="search-outline" size={32} color="#C4BEB6" />
+                    <Ionicons name="search-outline" size={32} color={C.ink4} />
                   </View>
                   <Text className="text-center text-ink font-display text-lg">
                     No users found
@@ -231,7 +232,7 @@ const SearchScreen = () => {
               ListEmptyComponent={
                 <View className="items-center mt-12 px-gutter">
                   <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                    <Ionicons name="time-outline" size={32} color="#C4BEB6" />
+                    <Ionicons name="time-outline" size={32} color={C.ink4} />
                   </View>
                   <Text className="font-semibold text-base text-ink text-center">History Empty</Text>
                   <Text className="font-sans text-sm text-ink-4 mt-2 text-center">No previous registry lookups found.</Text>

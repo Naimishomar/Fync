@@ -6,6 +6,7 @@ import { Chess } from 'chess.js';
 import Chessboard, { ChessboardRef } from 'react-native-chessboard';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 interface ChessGameProps {
     socket: any;
@@ -226,7 +227,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                     {isInitializing ? (
                         <View className="flex-1 items-center justify-center">
                             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                <ActivityIndicator size="large" color="#F97316" />
+                                <ActivityIndicator size="large" color={C.brand[500]} />
                             </View>
                             <Text className="text-ink text-xl font-display uppercase">Initializing Board</Text>
                             <Text className="text-ink-3 text-xs font-semibold mt-2 uppercase">{gameMode === 'bot' ? 'Waking up AI...' : 'Connecting to peer...'}</Text>
@@ -243,7 +244,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                                             <Image source={{ uri: matchDetails.opponent.avatar }} className="w-full h-full" />
                                         ) : (
                                             <View className="w-full h-full items-center justify-center bg-brand-50">
-                                                {gameMode === 'bot' ? <Ionicons name="hardware-chip" size={24} color="#F97316" /> : <Ionicons name="person" size={24} color="#F97316" />}
+                                                {gameMode === 'bot' ? <Ionicons name="hardware-chip" size={24} color={C.brand[500]} /> : <Ionicons name="person" size={24} color={C.brand[500]} />}
                                             </View>
                                         )}
                                     </View>
@@ -257,7 +258,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                                 </View>
                                 {botThinking && (
                                     <View className="bg-paper-2 p-3 rounded-card border border-line">
-                                        <ActivityIndicator color="#F97316" size="small" />
+                                        <ActivityIndicator color={C.brand[500]} size="small" />
                                     </View>
                                 )}
                                 {!botThinking && !isMyTurn && gameMode === 'pvp' && (
@@ -311,7 +312,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                                     onPress={handleResign}
                                     className="w-12 h-12 bg-danger/10 rounded-card items-center justify-center border border-danger/15 shadow-hair"
                                 >
-                                    <Ionicons name="flag" size={20} color="#DC2626" />
+                                    <Ionicons name="flag" size={20} color={C.danger} />
                                 </TouchableOpacity>
                             </View>
                         </>

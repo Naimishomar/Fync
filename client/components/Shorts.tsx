@@ -22,6 +22,7 @@ import { useTabBarClearance } from '../constants/layout';
 import { Alert } from './ui/AlertModal';
 import CommentsSheet from './ui/CommentsSheet';
 import YouTubeShort from './YouTubeShort';
+import { C } from '../constants/colors';
 
 
 /* ---------------- CONSTANTS ---------------- */
@@ -229,7 +230,7 @@ const SingleShort = React.memo(({
               }}
               className="mb-4"
             >
-              <Ionicons name="trash-outline" size={28} color="#DC2626" />
+              <Ionicons name="trash-outline" size={28} color={C.danger} />
             </Pressable>
           )}
 
@@ -279,7 +280,7 @@ const SingleShort = React.memo(({
             className="mb-4 items-center"
           >
             <View className="bg-brand-500/20 p-2 rounded-full border border-brand-500/40">
-              <Ionicons name="cash-outline" size={26} color="#F97316" />
+              <Ionicons name="cash-outline" size={26} color={C.brand[500]} />
             </View>
             <Text className="font-display text-label text-brand-400 mt-1 uppercase">Tip</Text>
           </Pressable>

@@ -13,6 +13,7 @@ import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Alert } from '../../ui/AlertModal';
 import { sharePdf, savePdfToDevice } from './pdfKit';
+import { C } from '../../../constants/colors';
 
 export default function ScanToPdfScreen() {
   const navigation = useNavigation<any>();
@@ -48,7 +49,7 @@ export default function ScanToPdfScreen() {
         <View className="px-5 py-4 flex-row items-center border-b border-line bg-transparent">
           <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
             accessibilityRole="button" accessibilityLabel="Go back" style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
           <Text className="text-xl font-display text-ink flex-1">Scan to PDF</Text>
         </View>
@@ -60,7 +61,7 @@ export default function ScanToPdfScreen() {
             className="w-full bg-card border-2 border-dashed border-ink-4 rounded-card p-card-pad items-center justify-center mb-5 shadow-hair"
             accessibilityRole="button">
             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-3">
-              <Ionicons name="camera-outline" size={32} color="#57534E" />
+              <Ionicons name="camera-outline" size={32} color={C.ink2} />
             </View>
             <Text className="text-ink font-display uppercase text-label">
               {shots.length ? 'Scan another page' : 'Scan first page'}
@@ -82,7 +83,7 @@ export default function ScanToPdfScreen() {
                       onPress={() => { setShots(shots.filter((_, j) => j !== i)); setPdf(null); }}
                       className="absolute top-1 right-1 w-7 h-7 rounded-full bg-ink items-center justify-center"
                       accessibilityRole="button" accessibilityLabel={`Remove page ${i + 1}`}>
-                      <Ionicons name="close" size={14} color="#F5F2EC" />
+                      <Ionicons name="close" size={14} color={C.paper} />
                     </TouchableOpacity>
                   </View>
                 ))}
@@ -91,7 +92,7 @@ export default function ScanToPdfScreen() {
               <TouchableOpacity onPress={build} disabled={busy}
                 className={`w-full py-4 rounded-md items-center justify-center border-2 border-ink mb-3 ${busy ? 'bg-paper-2' : 'bg-brand-500'}`}
                 accessibilityRole="button">
-                {busy ? <ActivityIndicator color="#12100E" />
+                {busy ? <ActivityIndicator color={C.ink} />
                   : <Text className="font-display uppercase text-base text-ink">Build PDF ({shots.length} pages)</Text>}
               </TouchableOpacity>
             </>
@@ -105,7 +106,7 @@ export default function ScanToPdfScreen() {
                 <TouchableOpacity onPress={() => sharePdf(pdf).catch((e) => Alert.alert('Error', e.message))}
                   className="flex-1 flex-row items-center justify-center bg-ink border-2 border-ink rounded-md" style={{ minHeight: 44 }}
                   accessibilityRole="button">
-                  <Ionicons name="share-outline" size={16} color="#F5F2EC" style={{ marginRight: 7 }} />
+                  <Ionicons name="share-outline" size={16} color={C.paper} style={{ marginRight: 7 }} />
                   <Text className="font-display text-paper uppercase" style={{ fontSize: 12 }}>Share</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => savePdfToDevice(pdf, 'fync-scan.pdf')
@@ -113,7 +114,7 @@ export default function ScanToPdfScreen() {
                     .catch((e) => Alert.alert('Error', e.message))}
                   className="flex-1 flex-row items-center justify-center bg-card border-[1.5px] border-line rounded-md" style={{ minHeight: 44 }}
                   accessibilityRole="button">
-                  <Ionicons name="download-outline" size={16} color="#12100E" style={{ marginRight: 7 }} />
+                  <Ionicons name="download-outline" size={16} color={C.ink} style={{ marginRight: 7 }} />
                   <Text className="font-display text-ink uppercase" style={{ fontSize: 12 }}>Save</Text>
                 </TouchableOpacity>
               </View>

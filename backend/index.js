@@ -85,6 +85,7 @@ import startWeeklyContestCron from './utils/weeklyContest.js';
 
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
+import os from 'os';
 
 import { socketController } from './controllers/socket.controller.js';
 import codingBattleSockets from './controllers/coding/battle.socket.js';
@@ -396,9 +397,18 @@ app.get('/health', (req, res) => {
   // for; Redis is reported, not enforced.
   // ponytail: cluster broadcasts still split across workers while redis is
   // false — watch the field, or run one worker until Redis is back.
+  // Mongo is reported for the same reason as Redis: surfaced, never enforced.
+  // It was missing entirely, so an API that could not reach Atlas still
+  // answered 'UP'. 1 === connected in mongoose's readyState.
+  //
+  // `host` names the instance that answered, which is what tells you a
+  // replacement box is actually the one serving after an instance swap.
+  const mongoUp = mongoose.connection.readyState === 1;
   res.status(200).json({
-    status: adapterReady ? 'UP' : 'DEGRADED',
+    status: adapterReady && mongoUp ? 'UP' : 'DEGRADED',
+    host: process.env.SERVER_LABEL || os.hostname(),
     redis: adapterReady,
+    mongo: mongoUp,
     timestamp: new Date(),
   });
 });

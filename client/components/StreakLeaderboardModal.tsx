@@ -5,6 +5,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import axios from '../context/axiosConfig';
 import { Alert } from './ui/AlertModal';
+import { C } from '../constants/colors';
 
 const { width, height } = Dimensions.get('window');
 
@@ -82,14 +83,14 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                   }}
                   className="w-11 h-11 bg-paper-2 rounded-card items-center justify-center border border-line"
                 >
-                  <Ionicons name="information-circle-outline" size={22} color="#57534E" />
+                  <Ionicons name="information-circle-outline" size={22} color={C.ink2} />
                 </TouchableOpacity>
 
                 <TouchableOpacity 
                   onPress={onClose}
                   className="w-11 h-11 bg-paper-2 rounded-card items-center justify-center border border-line"
                 >
-                  <Ionicons name="close" size={22} color="#12100E" />
+                  <Ionicons name="close" size={22} color={C.ink} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -150,7 +151,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
           <View className="flex-1 px-5">
             {loading ? (
               <View className="flex-1 items-center justify-center">
-                <ActivityIndicator size="large" color="#F97316" />
+                <ActivityIndicator size="large" color={C.brand[500]} />
               </View>
             ) : (
               <FlatList
@@ -194,7 +195,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
 
                     <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
                       <Text className="text-accent-text font-display text-xs mr-1">{item.streakCount}</Text>
-                      <MaterialCommunityIcons name="fire" size={16} color="#F97316" />
+                      <MaterialCommunityIcons name="fire" size={16} color={C.brand[500]} />
                     </View>
                   </View>
                 )}
@@ -204,7 +205,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                 ListEmptyComponent={() => (
                   <View className="items-center mt-20 px-gutter">
                     <View className="bg-paper-2 p-card-pad rounded-full mb-6">
-                      <MaterialCommunityIcons name="fire-off" size={64} color="#C4BEB6" />
+                      <MaterialCommunityIcons name="fire-off" size={64} color={C.ink4} />
                     </View>
                     <Text className="text-ink font-display text-lg uppercase text-center">Ecosystem Inactive</Text>
                     <Text className="font-sans text-sm text-ink-3 text-center mt-2">

@@ -8,6 +8,7 @@ import Feather from '@expo/vector-icons/Feather';
 import * as DocumentPicker from 'expo-document-picker';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
+import { C } from '../../constants/colors';
 
 const { height: screenHeight } = Dimensions.get('window');
 const TYPES = ['internship', 'full-time', 'part-time', 'freelance', 'contract', 'open-source'];
@@ -156,7 +157,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
               <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Career History Module</Text>
             </View>
             <Pressable onPress={onClose} className="w-11 h-11 rounded-xl items-center justify-center" hitSlop={2}>
-              <Ionicons name="close" size={20} color="#12100E" />
+              <Ionicons name="close" size={20} color={C.ink} />
             </Pressable>
           </View>
 
@@ -164,7 +165,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
             {/* Type */}
             <View className="mb-6">
               <View className="flex-row items-center gap-2 mb-3">
-                <Feather name="layers" size={12} color="#8B857E" />
+                <Feather name="layers" size={12} color={C.ink3} />
                 <Text className="text-ink-3 font-display uppercase text-label">Engagement Type</Text>
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -189,13 +190,13 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
             ].map(f => (
               <View key={f.key} className="mb-6">
                 <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name={f.icon as any} size={12} color="#8B857E" />
+                  <Feather name={f.icon as any} size={12} color={C.ink3} />
                   <Text className="text-ink-3 font-display uppercase text-label">{f.label}</Text>
                 </View>
                 <TextInput
                   className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
                   style={[{ minHeight: 50 }, f.multi ? { height: 100, textAlignVertical: 'top' } : null]}
-                  placeholder={f.ph} placeholderTextColor="#8B857E"
+                  placeholder={f.ph} placeholderTextColor={C.ink3}
                   value={form[f.key as keyof typeof form] as string}
                   onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
                   multiline={!!f.multi}
@@ -206,7 +207,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
             {/* Currently working toggle */}
             <View className="flex-row items-center justify-between mb-6 bg-paper-2 px-5 py-4 rounded-card border border-line">
               <View className="flex-row items-center gap-2">
-                <Feather name="clock" size={12} color="#12100E" />
+                <Feather name="clock" size={12} color={C.ink} />
                 <Text className="text-ink font-display uppercase text-label">Currently Active</Text>
               </View>
               <Switch value={form.isCurrentlyWorking}
@@ -217,12 +218,12 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
             {!form.isCurrentlyWorking && (
               <View className="mb-6">
                 <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name="calendar" size={12} color="#8B857E" />
+                  <Feather name="calendar" size={12} color={C.ink3} />
                   <Text className="text-ink-3 font-display uppercase text-label">End Date (YYYY-MM-DD)</Text>
                 </View>
                 <TextInput className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
             style={{ minHeight: 50 }}
-                  placeholder="2024-09-30" placeholderTextColor="#8B857E"
+                  placeholder="2024-09-30" placeholderTextColor={C.ink3}
                   value={form.endDate} onChangeText={v => setForm(p => ({ ...p, endDate: v }))} />
               </View>
             )}
@@ -230,7 +231,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
             {/* Work mode */}
             <View className="mb-8">
               <View className="flex-row items-center gap-2 mb-3">
-                <Feather name="globe" size={12} color="#8B857E" />
+                <Feather name="globe" size={12} color={C.ink3} />
                 <Text className="text-ink-3 font-display uppercase text-label">Work Mode</Text>
               </View>
               <View className="flex-row gap-3">
@@ -247,7 +248,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
             <View className="mb-12 p-6 bg-paper-2 border border-line rounded-card shadow-hair">
                <View className="flex-row items-center mb-4">
                  <View className="w-8 h-8 bg-card rounded-xl items-center justify-center shadow-hair mr-3">
-                   <Ionicons name="shield-checkmark" size={16} color="#F97316" />
+                   <Ionicons name="shield-checkmark" size={16} color={C.brand[500]} />
                  </View>
                  <Text className="font-semibold text-base text-ink">Integrity Verification</Text>
                </View>
@@ -261,12 +262,12 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
                    <Pressable onPress={() => pickDocument('offer')} 
                      className="bg-card border border-line p-5 rounded-card flex-row items-center justify-between shadow-hair">
                       <View className="flex-row items-center flex-1 pr-4">
-                        <Feather name="file-text" size={18} color="#F97316" />
+                        <Feather name="file-text" size={18} color={C.brand[500]} />
                         <Text className="text-ink text-label ml-3 font-display uppercase" numberOfLines={1}>
                           {offerLetter ? offerLetter.name : (existingOfferLetter ? 'Offer Letter Synced' : 'Select PDF Manifest')}
                         </Text>
                       </View>
-                      <Feather name="upload" size={16} color="#F97316" />
+                      <Feather name="upload" size={16} color={C.brand[500]} />
                    </Pressable>
                  </View>
                ) : (
@@ -278,12 +279,12 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
                    <Pressable onPress={() => pickDocument('cert')} 
                      className="bg-card border border-line p-5 rounded-card flex-row items-center justify-between shadow-hair">
                       <View className="flex-row items-center flex-1 pr-4">
-                        <Feather name="award" size={18} color="#F97316" />
+                        <Feather name="award" size={18} color={C.brand[500]} />
                         <Text className="text-ink text-label ml-3 font-display uppercase" numberOfLines={1}>
                           {completionCertificate ? completionCertificate.name : (existingCertificate ? 'Proof Synced' : 'Select PDF Manifest')}
                         </Text>
                       </View>
-                      <Feather name="upload" size={16} color="#F97316" />
+                      <Feather name="upload" size={16} color={C.brand[500]} />
                    </Pressable>
                  </View>
                )}
@@ -295,7 +296,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
           <View className="p-card-pad border-t border-line bg-paper">
             <Pressable onPress={save} disabled={saving}
               className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md">
-              {saving ? <ActivityIndicator size="small" color="#F97316" />
+              {saving ? <ActivityIndicator size="small" color={C.brand[500]} />
                 : (
                   <>
                     <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />

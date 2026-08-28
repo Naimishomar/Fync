@@ -12,6 +12,7 @@ import Avatar from "./Avatar";
 import { Alert } from './ui/AlertModal';
 
 import { RoleSticker } from './ui/kit';
+import { C } from '../constants/colors';
 const { width } = Dimensions.get("window");
 
 const ProfessionalHub = ({ navigation }: any) => {
@@ -301,7 +302,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                                 }}
                                 className={`flex-row items-center p-2 rounded-lg ${isMe ? 'bg-ink' : 'bg-paper-2'}`}
                             >
-                                <Ionicons name="document-text" size={24} color="#F97316" />
+                                <Ionicons name="document-text" size={24} color={C.brand[500]} />
                                 <View className="ml-2">
                                     <Text className={`${isMe ? 'text-white' : 'text-ink'} text-xs font-semibold`} numberOfLines={1}>{item.fileName || "Document"}</Text>
                                     <Text className="text-ink-3 text-label">Mentorship Resource (Limit 5MB)</Text>
@@ -328,7 +329,7 @@ const ProfessionalHub = ({ navigation }: any) => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-                            <Ionicons name="arrow-back" size={22} color="#12100E" />
+                            <Ionicons name="arrow-back" size={22} color={C.ink} />
                         </Pressable>
                         <View>
                             <Text className="text-ink font-semibold text-lg">Professional <Text className="text-accent-text">Hub</Text></Text>
@@ -354,7 +355,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                     className="flex-1"
                 >
                     {loading ? (
-                        <ActivityIndicator className="flex-1" color="#F97316" />
+                        <ActivityIndicator className="flex-1" color={C.brand[500]} />
                     ) : (
                         <FlatList
                             ref={flatListRef}
@@ -382,7 +383,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                                 <Text className="text-ink-3 text-xs mt-0.5 font-medium" numberOfLines={1}>{replyingTo.message}</Text>
                             </View>
                             <Pressable onPress={() => setReplyingTo(null)} className="p-1">
-                                <Ionicons name="close-circle" size={20} color="#C4BEB6" />
+                                <Ionicons name="close-circle" size={20} color={C.ink4} />
                             </Pressable>
                         </View>
                     )}
@@ -411,27 +412,27 @@ const ProfessionalHub = ({ navigation }: any) => {
                     <View className="p-4 bg-card border-t border-line shadow-hair">
                         <View className="flex-row items-center bg-paper-2 rounded-card px-3 py-1 border border-line">
                             <Pressable onPress={handlePickMedia} className="p-2">
-                                <Ionicons name="image-outline" size={24} color="#8B857E" />
+                                <Ionicons name="image-outline" size={24} color={C.ink3} />
                             </Pressable>
                             <Pressable onPress={handlePickDocument} className="p-2">
-                                <Ionicons name="attach-outline" size={26} color="#8B857E" />
+                                <Ionicons name="attach-outline" size={26} color={C.ink3} />
                             </Pressable>
                             <TextInput
                                 value={text}
                                 onChangeText={handleTyping}
                                 placeholder="Ask alumni anything..."
-                                placeholderTextColor="#C4BEB6"
+                                placeholderTextColor={C.ink4}
                                 className="flex-1 text-ink py-3 px-2 text-sm font-medium"
                                 multiline
                             />
                             {text.trim().length > 0 && (
                                 <Pressable onPress={handleSendText} className="bg-brand-500 p-2.5 rounded-full ml-2 shadow-hair">
-                                    <Ionicons name="send" size={16} color="#12100E" />
+                                    <Ionicons name="send" size={16} color={C.ink} />
                                 </Pressable>
                             )}
                         </View>
                         <View className="flex-row items-center justify-center mt-3">
-                            <Ionicons name="at-circle" size={14} color="#F97316" />
+                            <Ionicons name="at-circle" size={14} color={C.brand[500]} />
                             <Text className="text-label text-ink-3 ml-1 font-semibold">Type @ followed by username to tag mentors or peers</Text>
                         </View>
                     </View>

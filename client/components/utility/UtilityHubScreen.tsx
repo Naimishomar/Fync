@@ -5,6 +5,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { StampCard } from '../ui/kit';
+import { C } from '../../constants/colors';
 export default function UtilityHubScreen() {
   const navigation = useNavigation<any>();
 
@@ -65,17 +66,17 @@ export default function UtilityHubScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
           <Text className="text-xl font-display text-ink">Utility Hub</Text>
         </View>
-        <Ionicons name="construct-outline" size={24} color="#F97316" />
+        <Ionicons name="construct-outline" size={24} color={C.brand[500]} />
       </View>
 
       <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
         <StampCard style={{ marginBottom: 24 }}>
           <View className="p-card-pad flex-row items-start" style={{ gap: 12 }}>
-            <Ionicons name="lock-closed-outline" size={26} color="#047857" />
+            <Ionicons name="lock-closed-outline" size={26} color={C.success} />
             <View className="flex-1">
               <Text className="font-semibold text-base text-ink">Everything runs on your phone</Text>
               <Text className="font-sans text-sm text-ink-2 mt-2">
@@ -106,7 +107,7 @@ export default function UtilityHubScreen() {
                     style={{ backgroundColor: tool.color }}
                     className="w-14 h-14 rounded-card items-center justify-center border-2 border-ink"
                   >
-                    <Ionicons name={tool.icon as any} size={26} color="#12100E" />
+                    <Ionicons name={tool.icon as any} size={26} color={C.ink} />
                   </View>
                   <View className="flex-1 ml-4">
                     <Text className="text-lg font-display text-ink mb-1">{tool.title}</Text>
@@ -114,7 +115,7 @@ export default function UtilityHubScreen() {
                       {tool.description}
                     </Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={20} color="#C4BEB6" />
+                  <Ionicons name="chevron-forward" size={20} color={C.ink4} />
                 </TouchableOpacity>
               ))}
             </View>

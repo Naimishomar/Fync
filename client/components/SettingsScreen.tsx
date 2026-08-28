@@ -13,6 +13,7 @@ import { Image as ExpoImage } from 'expo-image';
 import Constants from 'expo-constants';
 import { useAuth } from '../context/auth.context';
 import { Alert } from './ui/AlertModal';
+import { C } from '../constants/colors';
 
 type Row = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -143,7 +144,7 @@ export default function SettingsScreen() {
             accessibilityRole="button" accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}
           >
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
           <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Settings</Text>
           <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>& More</Text>
@@ -169,14 +170,14 @@ export default function SettingsScreen() {
                   accessibilityLabel={row.label}
                 >
                   <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center mr-3">
-                    <Ionicons name={row.icon} size={18} color="#57534E" />
+                    <Ionicons name={row.icon} size={18} color={C.ink2} />
                   </View>
                   <View className="flex-1">
                     <Text className="text-ink text-sm">{row.label}</Text>
                     {!!row.hint && <Text className="text-ink-3 text-label mt-0.5">{row.hint}</Text>}
                   </View>
                   {!!row.value && <Text className="text-ink-3 font-mono text-label mr-2">{row.value}</Text>}
-                  <Ionicons name="chevron-forward" size={18} color="#C4BEB6" />
+                  <Ionicons name="chevron-forward" size={18} color={C.ink4} />
                 </TouchableOpacity>
               ))}
             </View>
@@ -187,7 +188,7 @@ export default function SettingsScreen() {
             className="flex-row items-center justify-center bg-card rounded-card p-4 border-2 border-danger mt-8"
             accessibilityRole="button" accessibilityLabel="Sign out"
           >
-            <Ionicons name="log-out-outline" size={18} color="#DC2626" style={{ marginRight: 8 }} />
+            <Ionicons name="log-out-outline" size={18} color={C.danger} style={{ marginRight: 8 }} />
             <Text className="text-danger font-display uppercase text-label">Sign out</Text>
           </TouchableOpacity>
 

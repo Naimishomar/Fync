@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, Dimensions, Animated } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -73,7 +74,7 @@ const ReactionMaster = () => {
         <Animated.View className="flex-1" style={{ transform: [{ scale: scaleAnim }] }}>
             {gameState === 'idle' && (
                 <View className="flex-1 justify-center items-center p-[30px]">
-                    <Ionicons name="flash-outline" size={48} color="#8B857E" />
+                    <Ionicons name="flash-outline" size={48} color={C.ink3} />
                     <Text className="text-sm text-ink-3 font-semibold mt-[15px] mb-[30px] text-center">Ready to test your speed?</Text>
                     <TouchableOpacity onPress={startGame} className="w-full h-[54px] rounded-card overflow-hidden shadow-hair">
                         <View className="flex-1 justify-center items-center" style={{ backgroundColor: '#12100E' }}>

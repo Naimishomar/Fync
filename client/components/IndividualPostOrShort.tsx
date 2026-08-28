@@ -16,6 +16,7 @@ import { getFullUrl } from '../utils/imageUtils';
 import { Alert } from './ui/AlertModal';
 import { useBottomInset } from '../constants/layout';
 import CommentsSheet from './ui/CommentsSheet';
+import { C } from '../constants/colors';
 
 const { width, height } = Dimensions.get('window');
 const SCREEN_WIDTH = Dimensions.get('screen').width;
@@ -85,7 +86,7 @@ const CommentItem = memo(({
                         <>
                             {editingId === comment._id ? (
                                 <Pressable onPress={() => handleUpdate(comment._id)}>
-                                    {actionLoadingId === comment._id ? <ActivityIndicator size="small" color="#12100E" /> : <Text className="text-fam-career text-label font-semibold uppercase">Save</Text>}
+                                    {actionLoadingId === comment._id ? <ActivityIndicator size="small" color={C.ink} /> : <Text className="text-fam-career text-label font-semibold uppercase">Save</Text>}
                                 </Pressable>
                             ) : (
                                 <Pressable onPress={() => onEdit(comment)}>
@@ -158,7 +159,7 @@ const SheetAction = ({
         <Text className="font-sans text-ink-3 mt-[2px]" style={{ fontSize: 11 }}>{hint}</Text>
       )}
     </View>
-    <Ionicons name="chevron-forward" size={18} color="#8B857E" />
+    <Ionicons name="chevron-forward" size={18} color={C.ink3} />
   </TouchableOpacity>
 );
 
@@ -565,11 +566,11 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 </Pressable>
                             </View>
                             <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="flex-row items-center bg-paper-2 rounded-full px-3 py-2">
-                                <Ionicons name="chatbubble-outline" size={20} color="#57534E" />
+                                <Ionicons name="chatbubble-outline" size={20} color={C.ink2} />
                                 <Text className="text-ink-3 font-semibold text-xs ml-1.5">{commentCount}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={handleShare} className="flex-row items-center bg-paper-2 rounded-full px-3 py-2">
-                                <Ionicons name="paper-plane-outline" size={20} color="#57534E" />
+                                <Ionicons name="paper-plane-outline" size={20} color={C.ink2} />
                                 <Text className="text-ink-3 font-semibold text-xs ml-1.5">Share</Text>
                             </TouchableOpacity>
                         </View>
@@ -584,7 +585,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             <View className="border-t-2 border-ink pt-4 mt-2">
                                 <Text className="text-ink font-semibold text-sm mb-4">Comments ({commentCount})</Text>
                                 {inlineCommentsLoading ? (
-                                    <ActivityIndicator size="small" color="#12100E" />
+                                    <ActivityIndicator size="small" color={C.ink} />
                                 ) : inlineComments.length > 0 ? (
                                     inlineComments.map(comment => (
                                         <View key={comment._id} pointerEvents="box-none">
@@ -749,7 +750,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                     accessibilityRole="button"
                                     accessibilityLabel="Close editor"
                                 >
-                                    <Ionicons name="close" size={26} color="#12100E" />
+                                    <Ionicons name="close" size={26} color={C.ink} />
                                 </TouchableOpacity>
                             </View>
 
@@ -763,7 +764,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                         <Video source={{ uri: newVideo.uri }} style={{ width: '100%', height: '100%' }} resizeMode={ResizeMode.COVER} isMuted />
                                     ) : (
                                         <View className="items-center">
-                                            <Ionicons name="videocam-outline" size={40} color="#8B857E" />
+                                            <Ionicons name="videocam-outline" size={40} color={C.ink3} />
                                             <Text className="text-ink-3 font-semibold mt-2">Change Video</Text>
                                         </View>
                                     )
@@ -776,14 +777,14 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                         </ScrollView>
                                     ) : (
                                         <View className="items-center">
-                                            <Ionicons name="images-outline" size={40} color="#8B857E" />
+                                            <Ionicons name="images-outline" size={40} color={C.ink3} />
                                             <Text className="text-ink-3 font-semibold mt-2">Replace Photos</Text>
                                         </View>
                                     )
                                 )}
                             </Pressable>
 
-                            <TextInput multiline value={editDescription} onChangeText={setEditDescription} placeholder="Write something..." placeholderTextColor="#C4BEB6" className="bg-paper-2 rounded-card p-4 text-ink text-base min-h-[120px]" autoFocus />
+                            <TextInput multiline value={editDescription} onChangeText={setEditDescription} placeholder="Write something..." placeholderTextColor={C.ink4} className="bg-paper-2 rounded-card p-4 text-ink text-base min-h-[120px]" autoFocus />
                             <Pressable 
                                 onPress={async () => {
                                     setIsUpdating(true);
@@ -826,7 +827,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 disabled={isUpdating}
                                 className="bg-brand-500 border-2 border-ink py-4 rounded-card mt-6 items-center"
                             >
-                                {isUpdating ? <ActivityIndicator color="#12100E" /> : <Text className="text-ink font-display text-lg">Save changes</Text>}
+                                {isUpdating ? <ActivityIndicator color={C.ink} /> : <Text className="text-ink font-display text-lg">Save changes</Text>}
                             </Pressable>
                     </View>
                 </KeyboardAvoidingView>

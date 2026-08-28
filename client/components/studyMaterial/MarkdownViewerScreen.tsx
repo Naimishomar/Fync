@@ -1,6 +1,7 @@
 import React from 'react';
 import { WebView } from 'react-native-webview';
 import { View, ActivityIndicator, StatusBar } from 'react-native';
+import { C } from '../../constants/colors';
 
 const MarkdownViewerScreen = ({ route, navigation } : any) => {
   const { url, title } = route.params;
@@ -116,7 +117,7 @@ const MarkdownViewerScreen = ({ route, navigation } : any) => {
         startInLoadingState={true}
         renderLoading={() => (
           <View className="absolute inset-0 items-center justify-center bg-card">
-            <ActivityIndicator size="large" color="#2563EB" />
+            <ActivityIndicator size="large" color={C.info} />
           </View>
         )}
       />

@@ -6,6 +6,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../context/axiosConfig';
 //@ts-ignore
 import { Alert } from './ui/AlertModal';
+import { C } from '../constants/colors';
 
 const ForgotPassword = ({ route, navigation }: any) => {
   const [email, setEmail] = useState(route.params?.email || '');
@@ -143,7 +144,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
                     <TextInput
                       className={`flex-1 font-sans text-base ${isOtpSent ? 'text-ink-2' : 'text-ink'}`}
                       placeholder="you@college.ac.in"
-                      placeholderTextColor="#8B857E"
+                      placeholderTextColor={C.ink3}
                       value={email}
                       onChangeText={setEmail}
                       keyboardType="email-address"
@@ -159,7 +160,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
                         <TextInput
                           className="font-display text-lg text-ink text-center"
                           placeholder="6-digit code"
-                          placeholderTextColor="#8B857E"
+                          placeholderTextColor={C.ink3}
                           value={otp}
                           onChangeText={setOtp}
                           keyboardType="number-pad"
@@ -173,7 +174,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
                         <TextInput
                           className="flex-1 font-sans text-base text-ink"
                           placeholder="At least 8 characters"
-                          placeholderTextColor="#8B857E"
+                          placeholderTextColor={C.ink3}
                           secureTextEntry={!passwordVisible}
                           value={password}
                           onChangeText={setPassword}
@@ -182,7 +183,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
                           <Ionicons
                             name={passwordVisible ? 'eye-off' : 'eye'}
                             size={22}
-                            color="#8B857E"
+                            color={C.ink3}
                           />
                         </Pressable>
                       </View>
@@ -194,7 +195,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
               {/* Action Button */}
               {isLoading ? (
                 <Pressable className="bg-brand-500 py-4 items-center justify-center border-2 border-ink rounded-xl" style={{ minHeight: 52 }}>
-                  <ActivityIndicator size="small" color="#12100E" />
+                  <ActivityIndicator size="small" color={C.ink} />
                 </Pressable>
               ) : (
                 <Pressable

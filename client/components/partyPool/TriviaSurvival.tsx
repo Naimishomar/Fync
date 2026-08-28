@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { C } from '../../constants/colors';
 
 // Decode HTML entities from OpenTDB
 const decodeHTMLEntities = (text: string) => {
@@ -130,7 +131,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
     if (loading) {
         return (
             <View className="flex-1 bg-ink justify-center items-center h-[500px] rounded-sheet">
-                <ActivityIndicator size="large" color="#DC2626" />
+                <ActivityIndicator size="large" color={C.danger} />
                 <Text className="text-white mt-4 font-display uppercase">Loading Trivia...</Text>
             </View>
         );
@@ -139,7 +140,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
     if (status === 'gameover') {
         return (
             <View className="flex-1 bg-ink justify-center items-center h-[500px] rounded-sheet p-6 border-2 border-danger/30">
-                <Ionicons name="skull" size={80} color="#DC2626" />
+                <Ionicons name="skull" size={80} color={C.danger} />
                 <Text className="text-white text-3xl font-display uppercase mt-4 text-center">You Died</Text>
                 
                 <View className="bg-danger/20 px-6 py-3 rounded-full mt-6 border border-danger">

@@ -8,6 +8,7 @@ import Feather from '@expo/vector-icons/Feather';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
+import { C } from '../../constants/colors';
 
 const { height: screenHeight } = Dimensions.get('window');
 const CATEGORIES = ['coding', 'design', 'cloud', 'ai-ml', 'cybersecurity', 'management', 'data-science', 'other'];
@@ -120,7 +121,7 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
               <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Academic Validation Module</Text>
             </View>
             <Pressable onPress={onClose} className="w-11 h-11 rounded-xl items-center justify-center" hitSlop={2}>
-              <Ionicons name="close" size={20} color="#12100E" />
+              <Ionicons name="close" size={20} color={C.ink} />
             </Pressable>
           </View>
 
@@ -128,7 +129,7 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
             {/* Category chips */}
             <View className="mb-6">
               <View className="flex-row items-center gap-2 mb-3">
-                <Feather name="tag" size={12} color="#8B857E" />
+                <Feather name="tag" size={12} color={C.ink3} />
                 <Text className="text-ink-3 font-display uppercase text-label">Specialization Field</Text>
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -155,13 +156,13 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
             ].map(f => (
               <View key={f.key} className="mb-6">
                 <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name={f.icon as any} size={12} color="#8B857E" />
+                  <Feather name={f.icon as any} size={12} color={C.ink3} />
                   <Text className="text-ink-3 font-display uppercase text-label">{f.label}</Text>
                 </View>
                 <TextInput
                   className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
             style={{ minHeight: 50 }}
-                  placeholder={f.ph} placeholderTextColor="#8B857E"
+                  placeholder={f.ph} placeholderTextColor={C.ink3}
                   value={(form as any)[f.key]}
                   onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
                 />
@@ -171,7 +172,7 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
             {/* Image Picker */}
             <View className="mb-12">
               <View className="flex-row items-center gap-2 mb-4">
-                <Feather name="image" size={12} color="#8B857E" />
+                <Feather name="image" size={12} color={C.ink3} />
                 <Text className="text-ink-3 font-display uppercase text-label">Digital Proof / Manifest</Text>
               </View>
               <Pressable onPress={pickImage}>
@@ -192,7 +193,7 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
                 ) : (
                    <View className="w-full h-48 border-2 border-dashed border-line rounded-sheet items-center justify-center bg-paper-2/50">
                      <View className="w-12 h-12 bg-card rounded-full items-center justify-center shadow-hair mb-3">
-                       <Feather name="upload-cloud" size={20} color="#F97316" />
+                       <Feather name="upload-cloud" size={20} color={C.brand[500]} />
                      </View>
                      <Text className="text-ink-3 text-label font-display uppercase">Initialize Proof Upload</Text>
                    </View>
@@ -207,7 +208,7 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
           <View className="p-card-pad border-t border-line bg-paper">
             <Pressable onPress={save} disabled={saving}
               className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md">
-              {saving ? <ActivityIndicator size="small" color="#F97316" />
+              {saving ? <ActivityIndicator size="small" color={C.brand[500]} />
                 : (
                   <>
                     <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />

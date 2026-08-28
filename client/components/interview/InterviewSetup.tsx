@@ -10,6 +10,7 @@ import Toast from 'react-native-toast-message';
 import { RAZORPAY_KEY_ID } from '../../constants/keys';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 export default function InterviewSetup() {
   const navigation = useNavigation<any>();
@@ -187,7 +188,7 @@ export default function InterviewSetup() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-              <Ionicons name="chevron-back" size={24} color="#57534E" />
+              <Ionicons name="chevron-back" size={24} color={C.ink2} />
             </TouchableOpacity>
             <Text className="text-ink text-3xl font-display">
               AI <Text className="text-accent-text">INTERVIEW</Text>
@@ -210,7 +211,7 @@ export default function InterviewSetup() {
                   <Text className="text-ink-3 font-semibold mb-2 ml-1 text-xs uppercase">Target Role / Domain</Text>
                   <TextInput
                     placeholder="e.g. React Native, Data Scientist"
-                    placeholderTextColor="#C4BEB6"
+                    placeholderTextColor={C.ink4}
                     className="bg-card text-ink p-4 border-[1.5px] border-ink font-medium rounded-md"
                     value={domain}
                     onChangeText={setDomain}
@@ -222,7 +223,7 @@ export default function InterviewSetup() {
                   <Text className="text-ink-3 font-semibold mb-2 ml-1 text-xs uppercase">Years of Experience</Text>
                   <TextInput
                     placeholder="e.g. 2"
-                    placeholderTextColor="#C4BEB6"
+                    placeholderTextColor={C.ink4}
                     className="bg-card text-ink p-4 border-[1.5px] border-ink font-medium rounded-md"
                     keyboardType="numeric"
                     value={experience}
@@ -262,7 +263,7 @@ export default function InterviewSetup() {
                     {resume ? (
                       <View className="items-center">
                         <View className="bg-brand-100 p-3 rounded-full mb-3 border border-ink">
-                          <Ionicons name="document-text" size={32} color="#F97316" />
+                          <Ionicons name="document-text" size={32} color={C.brand[500]} />
                         </View>
                         <Text className="text-ink font-semibold text-center" numberOfLines={1}>
                           {resume.name}
@@ -271,7 +272,7 @@ export default function InterviewSetup() {
                       </View>
                     ) : (
                       <View className="items-center py-2">
-                        <Ionicons name="cloud-upload-outline" size={40} color="#C4BEB6" />
+                        <Ionicons name="cloud-upload-outline" size={40} color={C.ink4} />
                         <Text className="text-ink-3 font-semibold mt-3">Tap to Upload Resume</Text>
                         <Text className="text-ink-3 text-xs mt-1">PDF format only</Text>
                       </View>
@@ -295,11 +296,11 @@ export default function InterviewSetup() {
                 }}
               >
                 {loading ? (
-                  <ActivityIndicator color="#12100E" />
+                  <ActivityIndicator color={C.ink} />
                 ) : (
                   <>
                     <Text className="font-display text-ink uppercase mr-2" style={{ fontSize: 14, letterSpacing: 0.3 }}>Start Interview</Text>
-                    <Ionicons name="arrow-forward" size={16} color="#12100E" />
+                    <Ionicons name="arrow-forward" size={16} color={C.ink} />
                   </>
                 )}
               </TouchableOpacity>
@@ -319,7 +320,7 @@ export default function InterviewSetup() {
               setLoading(false);
               Alert.alert("Cancelled", "Payment was cancelled.");
             }}>
-              <Ionicons name="close" size={24} color="#57534E" />
+              <Ionicons name="close" size={24} color={C.ink2} />
             </Pressable>
           </View>
           {html ? (
@@ -331,7 +332,7 @@ export default function InterviewSetup() {
             />
           ) : (
             <View className="flex-1 bg-paper justify-center items-center">
-              <ActivityIndicator size="large" color="#F97316" />
+              <ActivityIndicator size="large" color={C.brand[500]} />
             </View>
           )}
         </SafeAreaView>

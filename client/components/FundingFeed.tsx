@@ -25,6 +25,7 @@ import { useTabBarClearance } from '../constants/layout';
 import { Alert } from './ui/AlertModal';
 
 import { RoleSticker } from './ui/kit';
+import { C } from '../constants/colors';
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width - 32;
 
@@ -198,7 +199,7 @@ const YouTubeVideoPlayer = ({
           />
           {(!status || (status.isLoaded && status.isBuffering)) && (
             <View className="absolute inset-0 items-center justify-center bg-black/10">
-              <ActivityIndicator size="large" color="#ffffff" />
+              <ActivityIndicator size="large" color={C.white} />
             </View>
           )}
           {playbackRate > 1 && (
@@ -318,10 +319,10 @@ const ProjectCard = memo(({
         {isOwner && (
           <View className="flex-row gap-3">
             <TouchableOpacity onPress={() => openEditModal(item)} className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line">
-              <Ionicons name="pencil" size={16} color="#12100E" />
+              <Ionicons name="pencil" size={16} color={C.ink} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => handleDeleteProject(item._id)} className="w-10 h-10 bg-danger/10 rounded-card items-center justify-center border border-danger/15">
-              <Ionicons name="trash" size={16} color="#DC2626" />
+              <Ionicons name="trash" size={16} color={C.danger} />
             </TouchableOpacity>
           </View>
         )}
@@ -392,7 +393,7 @@ const ProjectCard = memo(({
             </Pressable>
 
             <Pressable onPress={() => openComments(item._id)} className="flex-row items-center">
-              <Ionicons name="chatbubble-outline" size={26} color="#12100E" />
+              <Ionicons name="chatbubble-outline" size={26} color={C.ink} />
             </Pressable>
 
             {!isOwner && (
@@ -412,7 +413,7 @@ const ProjectCard = memo(({
                 onPress={() => Linking.openURL(item.github_url as string)}
                 className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line"
               >
-                <Ionicons name="logo-github" size={20} color="#12100E" />
+                <Ionicons name="logo-github" size={20} color={C.ink} />
               </TouchableOpacity>
             )}
             {item.deployed_url && (
@@ -420,7 +421,7 @@ const ProjectCard = memo(({
                 onPress={() => Linking.openURL(item.deployed_url as string)}
                 className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line"
               >
-                <Ionicons name="globe-outline" size={20} color="#F97316" />
+                <Ionicons name="globe-outline" size={20} color={C.brand[500]} />
               </TouchableOpacity>
             )}
           </View>
@@ -620,7 +621,7 @@ export default function FundingFeed() {
                   accessibilityLabel="Go back"
                   style={{ marginLeft: -11 }}
                 >
-                  <Ionicons name="arrow-back" size={24} color="#12100E" />
+                  <Ionicons name="arrow-back" size={24} color={C.ink} />
                 </TouchableOpacity>
                 <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Funding</Text>
                 <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Feed</Text>
@@ -650,13 +651,13 @@ export default function FundingFeed() {
               )}
               keyExtractor={(item) => item._id}
               showsVerticalScrollIndicator={false}
-              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />}
+              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
               onEndReached={handleLoadMore}
               onEndReachedThreshold={0.5}
               ListFooterComponent={() => (
                 loadingMore ? (
                   <View className="py-10 items-center">
-                    <ActivityIndicator size="small" color="#F97316" />
+                    <ActivityIndicator size="small" color={C.brand[500]} />
                   </View>
                 ) : <View className="h-40" />
               )}
@@ -664,7 +665,7 @@ export default function FundingFeed() {
               ListEmptyComponent={
                 <View className="items-center mt-20 px-gutter">
                   <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                    <Ionicons name="rocket-outline" size={48} color="#C4BEB6" />
+                    <Ionicons name="rocket-outline" size={48} color={C.ink4} />
                   </View>
                   <Text className="font-semibold text-base text-ink text-center">Archive Empty</Text>
                   <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Deploy your innovation to the innovation registry and establish your presence.</Text>
@@ -683,11 +684,11 @@ export default function FundingFeed() {
                     <Text className="text-ink-3 text-label font-display uppercase mt-1">Community Discussion</Text>
                   </View>
                   <TouchableOpacity onPress={() => { setCommentModal(false); setReplyingTo(null); }} className="w-12 h-12 bg-paper-2 rounded-card items-center justify-center border border-line">
-                    <Ionicons name="close" size={24} color="#12100E" />
+                    <Ionicons name="close" size={24} color={C.ink} />
                   </TouchableOpacity>
                 </View>
 
-                {commentsLoading ? <ActivityIndicator className="mt-10" color="#F97316" /> : (
+                {commentsLoading ? <ActivityIndicator className="mt-10" color={C.brand[500]} /> : (
                   <FlatList
                     data={comments}
                     keyExtractor={c => c._id}
@@ -697,7 +698,7 @@ export default function FundingFeed() {
                     ListEmptyComponent={
                       <View className="items-center mt-20 px-gutter">
                         <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                          <Ionicons name="chatbubbles-outline" size={32} color="#C4BEB6" />
+                          <Ionicons name="chatbubbles-outline" size={32} color={C.ink4} />
                         </View>
                         <Text className="font-semibold text-base text-ink text-center">No Signals Detected</Text>
                         <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Transmit your thoughts to the innovation network.</Text>
@@ -712,7 +713,7 @@ export default function FundingFeed() {
                       <View className="flex-row items-center justify-between bg-paper-2 px-5 py-3 mb-4 rounded-card border border-line">
                         <Text className="text-accent-text font-display uppercase text-label">Replying to @{replyingTo.commentor.username}</Text>
                         <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                          <Ionicons name="close-circle" size={18} color="#F97316" />
+                          <Ionicons name="close-circle" size={18} color={C.brand[500]} />
                         </TouchableOpacity>
                       </View>
                     )}
@@ -722,7 +723,7 @@ export default function FundingFeed() {
                         value={commentText}
                         onChangeText={setCommentText}
                         placeholder={replyingTo ? "Transmit reply..." : "Transmit intelligence..."}
-                        placeholderTextColor="#8B857E"
+                        placeholderTextColor={C.ink3}
                         className="font-semibold text-base text-ink flex-1 bg-paper px-6 py-5 mr-4 border-[1.5px] border-ink rounded-md"
                         multiline
                       />

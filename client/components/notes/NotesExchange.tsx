@@ -11,6 +11,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
+import { C } from '../../constants/colors';
 
 interface Note {
   _id: string;
@@ -105,7 +106,7 @@ export default function NotesExchange() {
           </Text>
         )}
         <View className="flex-1" />
-        <Ionicons name="download-outline" size={13} color="#8B857E" />
+        <Ionicons name="download-outline" size={13} color={C.ink3} />
         <Text className="font-sans text-ink-3 ml-1" style={{ fontSize: 11 }}>{item.downloads}</Text>
       </View>
 
@@ -132,10 +133,10 @@ export default function NotesExchange() {
           accessibilityLabel={`Open ${item.title}`}
         >
           {unlocking === item._id ? (
-            <ActivityIndicator size="small" color="#12100E" />
+            <ActivityIndicator size="small" color={C.ink} />
           ) : (
             <>
-              <Ionicons name="document-text-outline" size={15} color="#12100E" />
+              <Ionicons name="document-text-outline" size={15} color={C.ink} />
               <Text className="font-display text-ink ml-1" style={{ fontSize: 12 }}>
                 {item.owned ? 'OPEN' : 'DOWNLOAD'}
               </Text>
@@ -156,7 +157,7 @@ export default function NotesExchange() {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <Ionicons name="arrow-back" size={24} color="#12100E" />
+          <Ionicons name="arrow-back" size={24} color={C.ink} />
         </TouchableOpacity>
 
         <Text className="font-display text-display text-ink uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Notes</Text>
@@ -170,17 +171,17 @@ export default function NotesExchange() {
           {/* Coins earned from sharing. Kept visible because uploading still
               pays — but nothing here costs anything to read. */}
           <View className="flex-row items-center bg-white border-2 border-ink rounded-xl px-3 py-1">
-            <Ionicons name="server-outline" size={14} color="#EA580C" />
+            <Ionicons name="server-outline" size={14} color={C.brand[600]} />
             <Text className="font-display text-ink ml-1" style={{ fontSize: 13 }}>{coins}</Text>
           </View>
         </View>
 
         <View className="flex-row items-center bg-white border-2 border-ink rounded-xl px-3 mb-3" style={{ height: 48 }}>
-          <Ionicons name="search" size={18} color="#8B857E" />
+          <Ionicons name="search" size={18} color={C.ink3} />
           <TextInput
             className="flex-1 ml-2 text-ink"
             placeholder="Subject, topic, paper..."
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             value={query}
             onChangeText={setQuery}
             onSubmitEditing={() => { setLoading(true); fetchNotes(); }}
@@ -206,7 +207,7 @@ export default function NotesExchange() {
             className="px-4 py-2 rounded-xl border-2 border-ink mr-2 bg-white flex-row items-center"
             style={{ minHeight: 40 }}
           >
-            <Ionicons name="swap-vertical-outline" size={14} color="#12100E" />
+            <Ionicons name="swap-vertical-outline" size={14} color={C.ink} />
             <Text className="font-display text-ink ml-1" style={{ fontSize: 12 }}>
               {sort === 'recent' ? 'Newest' : 'Popular'}
             </Text>
@@ -216,7 +217,7 @@ export default function NotesExchange() {
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#F97316" />
+          <ActivityIndicator size="large" color={C.brand[500]} />
         </View>
       ) : (
         <FlatList
@@ -225,11 +226,11 @@ export default function NotesExchange() {
           keyExtractor={(n) => n._id}
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 120 }}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchNotes(); }} tintColor="#F97316" />
+            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchNotes(); }} tintColor={C.brand[500]} />
           }
           ListEmptyComponent={
             <View className="items-center mt-20 px-8">
-              <Ionicons name="documents-outline" size={56} color="#C4BEB6" />
+              <Ionicons name="documents-outline" size={56} color={C.ink4} />
               <Text className="font-display text-base text-ink mt-4 text-center">Nothing here yet</Text>
               <Text className="font-sans text-ink-3 mt-2 text-center" style={{ fontSize: 13 }}>
                 Be the first to share notes for your college. Free for everyone to read.
@@ -246,7 +247,7 @@ export default function NotesExchange() {
         accessibilityRole="button"
         accessibilityLabel="Share notes"
       >
-        <Ionicons name="cloud-upload-outline" size={20} color="#12100E" />
+        <Ionicons name="cloud-upload-outline" size={20} color={C.ink} />
         <Text className="font-display text-ink ml-2">SHARE</Text>
       </TouchableOpacity>
 
@@ -337,7 +338,7 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
             className="bg-white border-2 border-ink rounded-card px-4 flex-row items-center mb-3"
             style={{ height: 56 }}
           >
-            <Ionicons name={file ? 'document-text' : 'add-circle-outline'} size={22} color="#EA580C" />
+            <Ionicons name={file ? 'document-text' : 'add-circle-outline'} size={22} color={C.brand[600]} />
             <Text className="font-sans text-ink ml-3 flex-1" numberOfLines={1}>
               {file ? file.name : 'Choose a PDF'}
             </Text>
@@ -347,7 +348,7 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
             className="bg-white border-2 border-ink rounded-xl px-4 text-ink mb-3"
             style={{ height: 50 }}
             placeholder="Title, e.g. Unit 3 - Trees"
-            placeholderTextColor="#8B857E"
+            placeholderTextColor={C.ink3}
             value={title}
             onChangeText={setTitle}
           />
@@ -356,7 +357,7 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
               className="bg-white border-2 border-ink rounded-xl px-4 text-ink flex-1 mr-2"
               style={{ height: 50 }}
               placeholder="Subject"
-              placeholderTextColor="#8B857E"
+              placeholderTextColor={C.ink3}
               value={subject}
               onChangeText={setSubject}
             />
@@ -364,7 +365,7 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
               className="bg-white border-2 border-ink rounded-xl px-4 text-ink"
               style={{ height: 50, width: 96 }}
               placeholder="Sem"
-              placeholderTextColor="#8B857E"
+              placeholderTextColor={C.ink3}
               keyboardType="number-pad"
               value={semester}
               onChangeText={setSemester}
@@ -390,7 +391,7 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
             className="bg-brand-500 border-2 border-ink rounded-xl items-center justify-center"
             style={{ height: 54, opacity: busy ? 0.6 : 1 }}
           >
-            {busy ? <ActivityIndicator color="#12100E" /> : <Text className="font-display text-ink">SHARE AND EARN</Text>}
+            {busy ? <ActivityIndicator color={C.ink} /> : <Text className="font-display text-ink">SHARE AND EARN</Text>}
           </TouchableOpacity>
         </View>
       </View>

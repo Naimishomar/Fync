@@ -9,6 +9,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { useBottomInset } from '../../constants/layout';
+import { C } from '../../constants/colors';
 
 const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://fync-zeta.vercel.app';
 
@@ -72,7 +73,7 @@ export default function CodingArena() {
       {!loading && !progress && (
         <View className="mx-5 mb-4 bg-card border-2 border-ink rounded-card p-4">
           <View className="flex-row items-center">
-            <Ionicons name="cloud-offline-outline" size={18} color="#B45309" />
+            <Ionicons name="cloud-offline-outline" size={18} color={C.warning} />
             <Text className="font-display text-ink ml-2" style={{ fontSize: 13 }}>Progress unavailable</Text>
           </View>
           <Text className="font-sans text-ink-2 mt-1" style={{ fontSize: 12 }}>
@@ -149,13 +150,13 @@ export default function CodingArena() {
             accessibilityLabel={`${progress.coins} Fync coins. Open the marketplace.`}
           >
             <View className="items-center justify-center rounded-xl border-2 border-ink" style={{ width: 40, height: 40, backgroundColor: '#FFEDD5' }}>
-              <Ionicons name="server-outline" size={20} color="#C2410C" />
+              <Ionicons name="server-outline" size={20} color={C.brand[700]} />
             </View>
             <View className="ml-3 flex-1">
               <Text className="font-display text-ink" style={{ fontSize: 16 }}>{progress.coins} coins</Text>
               <Text className="font-sans text-ink-2" style={{ fontSize: 11 }}>Spend them in Fync Marketplace</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#8B857E" />
+            <Ionicons name="chevron-forward" size={18} color={C.ink3} />
           </TouchableOpacity>
         </View>
       )}
@@ -209,7 +210,7 @@ export default function CodingArena() {
                 </Text>
 
                 <View className={`flex-row items-center justify-center mt-3 rounded-xl border-2 ${running ? 'bg-brand-500 border-brand-500' : 'bg-card border-ink'}`} style={{ minHeight: 42 }}>
-                  <Ionicons name={running ? 'flash' : 'calendar-outline'} size={15} color="#12100E" />
+                  <Ionicons name={running ? 'flash' : 'calendar-outline'} size={15} color={C.ink} />
                   <Text className="font-display text-ink uppercase ml-1.5" style={{ fontSize: 11 }}>
                     {running ? 'Enter on web' : 'View details'}
                   </Text>
@@ -250,7 +251,7 @@ export default function CodingArena() {
                       <Text className="font-display text-ink-2" style={{ fontSize: 8 }}>of {c.outOf}</Text>
                     </>
                   ) : (
-                    <Ionicons name="remove-outline" size={18} color="#8B857E" />
+                    <Ionicons name="remove-outline" size={18} color={C.ink3} />
                   )}
                 </View>
                 <View className="ml-3 flex-1">
@@ -334,7 +335,7 @@ export default function CodingArena() {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <Ionicons name="arrow-back" size={24} color="#12100E" />
+          <Ionicons name="arrow-back" size={24} color={C.ink} />
         </TouchableOpacity>
         <Text className="font-display text-display text-ink uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Coding</Text>
         <Text className="font-display text-display text-brand-600 uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Arena</Text>
@@ -345,7 +346,7 @@ export default function CodingArena() {
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#F97316" />
+          <ActivityIndicator size="large" color={C.brand[500]} />
         </View>
       ) : (
         <FlatList
@@ -357,11 +358,11 @@ export default function CodingArena() {
           // that is a gesture pill or three physical buttons.
           contentContainerStyle={{ paddingBottom: bottomInset + 54 + 24 }}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor="#F97316" />
+            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.brand[500]} />
           }
           ListEmptyComponent={
             <View className="items-center mt-12 px-8">
-              <Ionicons name="podium-outline" size={52} color="#C4BEB6" />
+              <Ionicons name="podium-outline" size={52} color={C.ink4} />
               <Text className="font-display text-base text-ink mt-4 text-center">Nobody ranked yet</Text>
               <Text className="font-sans text-ink-2 mt-2 text-center" style={{ fontSize: 13 }}>
                 {scope === 'college'
@@ -381,7 +382,7 @@ export default function CodingArena() {
           accessibilityRole="button"
           accessibilityLabel="Open the arena in your browser to solve problems"
         >
-          <Ionicons name="laptop-outline" size={18} color="#12100E" />
+          <Ionicons name="laptop-outline" size={18} color={C.ink} />
           <Text className="font-display text-ink uppercase">Solve on web</Text>
         </TouchableOpacity>
       </View>

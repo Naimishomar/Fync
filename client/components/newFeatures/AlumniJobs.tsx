@@ -9,6 +9,7 @@ import { useAuth } from '../../context/auth.context';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigation } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const JobCard = memo(({ item, onOpenDiscussion, onMessageAlumni, onDeleteJob, isOwner, navigation }: any) => {
     return (
@@ -55,7 +56,7 @@ const JobCard = memo(({ item, onOpenDiscussion, onMessageAlumni, onDeleteJob, is
                         onPress={() => onOpenDiscussion(item)}
                         className="bg-paper-2 px-5 py-4 rounded-card items-center flex-row border border-line"
                     >
-                        <Ionicons name="chatbubbles-outline" size={18} color="#12100E" />
+                        <Ionicons name="chatbubbles-outline" size={18} color={C.ink} />
                         <Text className="text-ink ml-2 text-label font-display uppercase">{item.comments?.length || 0}</Text>
                     </TouchableOpacity>
                     {isOwner && (
@@ -63,7 +64,7 @@ const JobCard = memo(({ item, onOpenDiscussion, onMessageAlumni, onDeleteJob, is
                             onPress={() => onDeleteJob(item._id)}
                             className="bg-danger/10 px-5 py-4 rounded-card items-center border border-danger/15"
                         >
-                            <Ionicons name="trash-outline" size={18} color="#DC2626" />
+                            <Ionicons name="trash-outline" size={18} color={C.danger} />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -73,7 +74,7 @@ const JobCard = memo(({ item, onOpenDiscussion, onMessageAlumni, onDeleteJob, is
                         onPress={() => onMessageAlumni(item.alumni)}
                         className="mt-4 flex-row items-center justify-center py-4 bg-paper-2/50 rounded-card border border-line/50"
                     >
-                        <Ionicons name="mail-outline" size={14} color="#8B857E" />
+                        <Ionicons name="mail-outline" size={14} color={C.ink3} />
                         <Text className="text-ink-3 font-display text-label uppercase ml-2">Message Personnel</Text>
                     </TouchableOpacity>
                 )}
@@ -293,7 +294,7 @@ export default function AlumniJobs() {
                                       accessibilityLabel="Go back"
                                       style={{ marginLeft: -11 }}
                                     >
-                                      <Ionicons name="arrow-back" size={24} color="#12100E" />
+                                      <Ionicons name="arrow-back" size={24} color={C.ink} />
                                     </TouchableOpacity>
                                     <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Alumni</Text>
                                     <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Jobs</Text>
@@ -313,12 +314,12 @@ export default function AlumniJobs() {
                     ListEmptyComponent={!loading ? (
                         <View className="items-center justify-center mt-20 px-gutter">
                             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                <Ionicons name="briefcase-outline" size={48} color="#C4BEB6" />
+                                <Ionicons name="briefcase-outline" size={48} color={C.ink4} />
                             </View>
                             <Text className="font-semibold text-base text-ink text-center">No Jobs Found</Text>
                             <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Check back later for new opportunities from your alumni network.</Text>
                         </View>
-                    ) : <ActivityIndicator size="large" color="#F97316" className="mt-20" />}
+                    ) : <ActivityIndicator size="large" color={C.brand[500]} className="mt-20" />}
                 />
 
                 {/* --- POST JOB MODAL --- */}
@@ -335,7 +336,7 @@ export default function AlumniJobs() {
 
                                 <TextInput
                                     placeholder="Position Intel (e.g. Software Engineer)"
-                                    placeholderTextColor="#8B857E"
+                                    placeholderTextColor={C.ink3}
                                     className="bg-card px-6 py-5 mb-4 font-display text-ink border-[1.5px] border-ink rounded-md"
                                     value={form.title}
                                     onChangeText={t => setForm({ ...form, title: t })}
@@ -343,7 +344,7 @@ export default function AlumniJobs() {
                                 <TextInput
                                     placeholder="Opportunity Description"
                                     multiline
-                                    placeholderTextColor="#8B857E"
+                                    placeholderTextColor={C.ink3}
                                     className="bg-card px-6 py-5 mb-4 font-display text-ink border-[1.5px] border-ink h-32 rounded-md"
                                     value={form.description}
                                     onChangeText={t => setForm({ ...form, description: t })}
@@ -351,14 +352,14 @@ export default function AlumniJobs() {
                                 />
                                 <TextInput
                                     placeholder="Source / Apply Link"
-                                    placeholderTextColor="#8B857E"
+                                    placeholderTextColor={C.ink3}
                                     className="bg-card px-6 py-5 mb-4 font-display text-ink border-[1.5px] border-ink rounded-md"
                                     value={form.applyLink}
                                     onChangeText={t => setForm({ ...form, applyLink: t })}
                                 />
                                 <TextInput
                                     placeholder="Compensation (Optional)"
-                                    placeholderTextColor="#8B857E"
+                                    placeholderTextColor={C.ink3}
                                     className="bg-card px-6 py-5 mb-10 font-display text-ink border-[1.5px] border-ink rounded-md"
                                     value={form.salary}
                                     onChangeText={t => setForm({ ...form, salary: t })}
@@ -398,10 +399,10 @@ export default function AlumniJobs() {
                                 showsVerticalScrollIndicator={false}
                                 ListEmptyComponent={!loadingComments ? (
                                     <View className="items-center mt-20">
-                                        <Ionicons name="chatbubble-ellipses-outline" size={48} color="#C4BEB6" />
+                                        <Ionicons name="chatbubble-ellipses-outline" size={48} color={C.ink4} />
                                         <Text className="text-ink-3 font-display uppercase text-label mt-4">No active discussion</Text>
                                     </View>
-                                ) : <ActivityIndicator color="#F97316" />}
+                                ) : <ActivityIndicator color={C.brand[500]} />}
                             />
 
                             <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
@@ -409,13 +410,13 @@ export default function AlumniJobs() {
                                     {replyingTo && (
                                         <View className="flex-row items-center justify-between mb-4 bg-paper-2 p-4 rounded-card border border-line">
                                             <Text className="text-accent-text font-display uppercase text-label">Replying to @{replyingTo.commentor?.username}</Text>
-                                            <TouchableOpacity onPress={() => setReplyingTo(null)}><Ionicons name="close-circle" size={18} color="#F97316" /></TouchableOpacity>
+                                            <TouchableOpacity onPress={() => setReplyingTo(null)}><Ionicons name="close-circle" size={18} color={C.brand[500]} /></TouchableOpacity>
                                         </View>
                                     )}
                                     <View className="flex-row items-center">
                                         <TextInput
                                             placeholder="Transmit intelligence..."
-                                            placeholderTextColor="#8B857E"
+                                            placeholderTextColor={C.ink3}
                                             className="flex-1 bg-paper text-ink p-5 mr-4 font-display text-xs border-[1.5px] border-ink rounded-md"
                                             value={newComment}
                                             onChangeText={setNewComment}

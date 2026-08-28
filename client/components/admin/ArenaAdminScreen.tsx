@@ -9,6 +9,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Clipboard from 'expo-clipboard';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 /**
  * Problem bank admin.
@@ -101,7 +102,7 @@ export default function ArenaAdminScreen() {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <Ionicons name="arrow-back" size={24} color="#12100E" />
+          <Ionicons name="arrow-back" size={24} color={C.ink} />
         </TouchableOpacity>
         <Text className="font-display text-display text-ink uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Problem</Text>
         <Text className="font-display text-display text-brand-600 uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Bank</Text>
@@ -112,7 +113,7 @@ export default function ArenaAdminScreen() {
 
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60 }}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor="#F97316" />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={C.brand[500]} />}
         keyboardShouldPersistTaps="handled"
       >
         <View className="flex-row items-center mb-2">
@@ -139,7 +140,7 @@ export default function ArenaAdminScreen() {
           onChangeText={setJson}
           multiline
           placeholder="A problem object, or an array of them"
-          placeholderTextColor="#8B857E"
+          placeholderTextColor={C.ink3}
           autoCapitalize="none"
           autoCorrect={false}
           // Monospace so the JSON is legible and a stray bracket is findable.
@@ -155,7 +156,7 @@ export default function ArenaAdminScreen() {
           accessibilityRole="button"
           accessibilityLabel="Import problems"
         >
-          {busy ? <ActivityIndicator color="#12100E" /> : <Text className="font-display text-ink">IMPORT</Text>}
+          {busy ? <ActivityIndicator color={C.ink} /> : <Text className="font-display text-ink">IMPORT</Text>}
         </TouchableOpacity>
 
         {!!report && (

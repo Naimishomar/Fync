@@ -9,6 +9,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import socket from '../../utils/socket';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const SubGroupChat = ({ navigation, route }: any) => {
     const { subGroupId, subGroupName, clubId } = route.params;
@@ -179,7 +180,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                                 <Image source={{ uri: item.fileUrl }} className="w-48 h-48 rounded-lg" />
                             ) : (
                                 <View className="bg-paper-2 p-2 rounded-lg flex-row items-center border border-line">
-                                    <Feather name="file" size={20} color="#57534E" />
+                                    <Feather name="file" size={20} color={C.ink2} />
                                     <Text className="ml-2 text-ink-2 text-xs font-semibold" numberOfLines={1}>{item.fileName}</Text>
                                 </View>
                             )}
@@ -208,7 +209,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                                             <View className="flex-row items-center z-10 flex-1">
                                                 <Text className={`text-xs font-semibold ${hasVoted ? 'text-fam-career' : 'text-ink'}`}>{opt.optionText}</Text>
                                                 {hasVoted && (
-                                                    <Ionicons name="checkmark-circle" size={14} color="#2563EB" style={{ marginLeft: 6 }} />
+                                                    <Ionicons name="checkmark-circle" size={14} color={C.info} style={{ marginLeft: 6 }} />
                                                 )}
                                             </View>
                                             <Text className={`text-label font-display z-10 ${percentage === 100 ? 'text-white' : 'text-ink-3'}`}>{Math.round(percentage)}%</Text>
@@ -253,22 +254,22 @@ const SubGroupChat = ({ navigation, route }: any) => {
                     </TouchableOpacity>
                     <View className="ml-4 flex-1">
                         <View className="flex-row items-center">
-                            {subGroup?.isGeneral && <MaterialCommunityIcons name="shield-check" size={14} color="#047857" style={{ marginRight: 4 }} />}
+                            {subGroup?.isGeneral && <MaterialCommunityIcons name="shield-check" size={14} color={C.success} style={{ marginRight: 4 }} />}
                             <Text className="font-semibold text-base text-ink">{subGroupName}</Text>
                         </View>
                         <Text className="text-success font-semibold text-label uppercase">{subGroup?.isGeneral ? 'Community Hub' : 'Connected Now'}</Text>
                     </View>
                     <TouchableOpacity onPress={() => navigation.navigate('EditSubGroup', { subGroupId })} className="mr-4">
-                        <Feather name="info" size={22} color="#57534E" />
+                        <Feather name="info" size={22} color={C.ink2} />
                     </TouchableOpacity>
                     {isRoomAdmin && (
                         <TouchableOpacity onPress={() => setShowPollModal(true)} className="mr-4">
-                            <MaterialCommunityIcons name="poll" size={24} color="#57534E" />
+                            <MaterialCommunityIcons name="poll" size={24} color={C.ink2} />
                         </TouchableOpacity>
                     )}
                     {!subGroup?.isGeneral && (
                         <TouchableOpacity onPress={handleLeaveRoom}>
-                            <Ionicons name="log-out-outline" size={22} color="#DC2626" />
+                            <Ionicons name="log-out-outline" size={22} color={C.danger} />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -276,7 +277,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                 {/* Chat Area */}
                 <View className="flex-1 bg-paper">
                     {loading ? (
-                        <ActivityIndicator color="#12100E" className="mt-10" />
+                        <ActivityIndicator color={C.ink} className="mt-10" />
                     ) : (
                         <FlatList 
                             ref={flatListRef}
@@ -301,7 +302,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                                     onPress={handlePickDocument}
                                     className="w-11 h-11 bg-paper-2 rounded-card items-center justify-center mb-1"
                                 >
-                                    <Feather name="paperclip" size={20} color="#57534E" />
+                                    <Feather name="paperclip" size={20} color={C.ink2} />
                                 </TouchableOpacity>
                                 <View className="flex-1 min-h-[40px] max-h-32 bg-paper-2 rounded-card px-4 border border-line justify-center">
                                     <TextInput 
@@ -322,7 +323,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                             </View>
                         ) : (
                             <View className="bg-paper-2 py-4 rounded-card items-center justify-center border border-dashed border-line">
-                                <Feather name="lock" size={14} color="#8B857E" />
+                                <Feather name="lock" size={14} color={C.ink3} />
                                 <Text className="text-ink-3 text-label font-display uppercase mt-1">Only admins can send messages</Text>
                             </View>
                         )}
@@ -336,7 +337,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                             <View className="flex-row justify-between items-center mb-6">
                                 <Text className="text-ink font-display uppercase text-h1">Create Poll</Text>
                                 <TouchableOpacity onPress={() => setShowPollModal(false)}>
-                                    <Ionicons name="close" size={28} color="#12100E" />
+                                    <Ionicons name="close" size={28} color={C.ink} />
                                 </TouchableOpacity>
                             </View>
                             

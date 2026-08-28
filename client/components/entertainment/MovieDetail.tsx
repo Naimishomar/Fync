@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { fetchMovieDetails, getImageUrl } from '../../utils/tmdb';
 import MovieCard from './MovieCard';
+import { C } from '../../constants/colors';
 
 const MovieDetail = () => {
   const navigation = useNavigation<any>();
@@ -53,7 +54,7 @@ const MovieDetail = () => {
   if (loading) {
     return (
       <View className="flex-1 bg-ink justify-center items-center">
-        <ActivityIndicator size="large" color="#DB2777" />
+        <ActivityIndicator size="large" color={C.fam.fun} />
       </View>
     );
   }
@@ -100,7 +101,7 @@ const MovieDetail = () => {
             <Text className="text-white text-3xl font-display mb-2 shadow-hair">{movie.title}</Text>
             <View className="flex-row items-center gap-3 mb-6">
               <View className="flex-row items-center">
-                <Ionicons name="star" size={16} color="#B45309" />
+                <Ionicons name="star" size={16} color={C.warning} />
                 <Text className="text-white text-sm ml-1 font-semibold">{movie.vote_average.toFixed(1)}</Text>
               </View>
               <Text className="text-ink-3">•</Text>

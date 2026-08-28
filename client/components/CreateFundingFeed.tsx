@@ -11,6 +11,7 @@ import { WebView } from "react-native-webview";
 import { useAuth } from '../context/auth.context';
 import { Video, ResizeMode } from "expo-av";
 import { Alert } from './ui/AlertModal';
+import { C } from '../constants/colors';
 
 export default function CreateFundingFeed() {
   const { user } = useAuth();
@@ -209,7 +210,7 @@ export default function CreateFundingFeed() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-          <Ionicons name="arrow-back-outline" size={20} color="#12100E" />
+          <Ionicons name="arrow-back-outline" size={20} color={C.ink} />
         </Pressable>
         <View className="flex-1 items-center pr-10">
           <Text className='text-2xl font-display text-ink'>{isEditing ? 'Edit' : 'Post'} <Text className="text-accent-text">Project</Text></Text>
@@ -243,10 +244,10 @@ export default function CreateFundingFeed() {
         <View className="bg-card rounded-card p-5 shadow-hair mb-5">
           <Text className="text-base font-semibold text-ink mb-4">Live Links</Text>
           <View className="flex-row items-center border-b border-line pb-2 mb-4">
-            <Ionicons name="link-outline" size={20} color="#F97316" />
+            <Ionicons name="link-outline" size={20} color={C.brand[500]} />
             <TextInput
               placeholder="Deployed URL (Required)"
-              placeholderTextColor="#C4BEB6"
+              placeholderTextColor={C.ink4}
               value={deployedUrl}
               onChangeText={setDeployedUrl}
               className="text-ink font-semibold flex-1 ml-3"
@@ -254,10 +255,10 @@ export default function CreateFundingFeed() {
             />
           </View>
           <View className="flex-row items-center">
-            <Ionicons name="logo-github" size={20} color="#12100E" />
+            <Ionicons name="logo-github" size={20} color={C.ink} />
             <TextInput
               placeholder="Github URL (Optional)"
-              placeholderTextColor="#C4BEB6"
+              placeholderTextColor={C.ink4}
               value={githubUrl}
               onChangeText={setGithubUrl}
               className="text-ink font-semibold flex-1 ml-3"
@@ -319,11 +320,11 @@ export default function CreateFundingFeed() {
 
           <View className="flex-row items-center justify-start gap-4 mt-2">
             <Pressable onPress={pickImages} className="flex-row items-center gap-2 px-4 py-2 rounded-full border border-line bg-paper-2/50">
-              <Ionicons name="images-outline" size={18} color="#F97316" />
+              <Ionicons name="images-outline" size={18} color={C.brand[500]} />
               <Text className="text-ink-3 text-xs font-semibold">Add Images</Text>
             </Pressable>
             <Pressable onPress={pickVideo} className="flex-row items-center gap-2 px-4 py-2 rounded-full border border-line bg-paper-2/50">
-              <Ionicons name="videocam-outline" size={18} color="#F97316" />
+              <Ionicons name="videocam-outline" size={18} color={C.brand[500]} />
               <Text className="text-ink-3 text-xs font-semibold">Add Video</Text>
             </Pressable>
           </View>
@@ -346,7 +347,7 @@ export default function CreateFundingFeed() {
         <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F2EC' }}>
           <View className="flex-row items-center px-4 py-3 bg-card border-b border-line">
             <TouchableOpacity onPress={() => setShowPaymentParams(null)} className="p-2">
-              <Ionicons name="close" size={24} color="#12100E" />
+              <Ionicons name="close" size={24} color={C.ink} />
             </TouchableOpacity>
             <Text className="ml-4 font-semibold text-lg">Secure Gateway</Text>
           </View>
@@ -356,7 +357,7 @@ export default function CreateFundingFeed() {
             javaScriptEnabled={true}
             domStorageEnabled={true}
             startInLoadingState={true}
-            renderLoading={() => <ActivityIndicator color="#F97316" size="large" style={{ position: 'absolute', top: '50%', left: '45%' }} />}
+            renderLoading={() => <ActivityIndicator color={C.brand[500]} size="large" style={{ position: 'absolute', top: '50%', left: '45%' }} />}
           />
         </SafeAreaView>
       </Modal>

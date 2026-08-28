@@ -1,6 +1,7 @@
 import React from 'react';
 import { WebView } from 'react-native-webview';
 import { View, ActivityIndicator, StatusBar } from 'react-native';
+import { C } from '../../constants/colors';
 
 const CodeViewerScreen = ({ route, navigation } : any) => {
   const { url, title, language = 'javascript' } = route.params;
@@ -75,7 +76,7 @@ const CodeViewerScreen = ({ route, navigation } : any) => {
         startInLoadingState={true}
         renderLoading={() => (
           <View className="absolute inset-0 items-center justify-center bg-ink">
-            <ActivityIndicator size="large" color="#F97316" />
+            <ActivityIndicator size="large" color={C.brand[500]} />
           </View>
         )}
       />

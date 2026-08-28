@@ -29,6 +29,7 @@
 
 import redisClient from './redis.js';
 import { GoogleGenAI } from '@google/genai';
+import { GEMINI_MODEL } from './geminiModel.js';
 
 // ─── Lazy Gemini init ────────────────────────────────────────
 // Matches the same SDK & pattern used in gemini.js (already working).
@@ -43,7 +44,10 @@ function getGenAI() {
 
 // ─── Cache TTLs ──────────────────────────────────────────────
 const CANDIDATE_POOL_TTL = 5 * 60;        // 5 minutes — post/shorts pool per college
-const USER_INTEREST_PROFILE_TTL = 24 * 60 * 60; // 24 hours — AI interest profile per user
+// A user's interests do not change daily, but a 24h TTL billed one Gemini call
+// per active user per day: at 5k DAU that is ~150k calls/month. Seven days cuts
+// it by 7x for a profile that is about as accurate either way.
+const USER_INTEREST_PROFILE_TTL = 7 * 24 * 60 * 60; // 7 days — AI interest profile per user
 const FEED_POOL_KEY = (type) => `fync:pool:${type}:global`;
 // Bumped whenever the pool is invalidated, so a client paging through an old
 // pool is told to restart rather than silently interleaving two orderings.
@@ -165,7 +169,7 @@ No explanation, no markdown, no extra text.
 
         // Use the same SDK and model that already works in gemini.js
         const response = await getGenAI().models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: GEMINI_MODEL,
             contents: prompt
         });
         const text = response.text

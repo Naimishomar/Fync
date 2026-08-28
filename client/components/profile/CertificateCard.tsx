@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Pressable, Linking, Image } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
+import { C } from '../../constants/colors';
 
 const CAT_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
   coding:        { color: '#12100E', bg: '#F5F2EC', icon: 'code-slash' },
@@ -59,7 +60,7 @@ export default function CertificateCard({ cert, isOwner, onEdit, onDelete }: Pro
         <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">{cert.issuer}</Text>
         {cert.issueDate && (
           <View className="flex-row items-center gap-1 mt-2">
-            <Feather name="calendar" size={10} color="#8B857E" />
+            <Feather name="calendar" size={10} color={C.ink3} />
             <Text className="text-ink-3 font-semibold text-label uppercase">{fmtDate(cert.issueDate)}</Text>
           </View>
         )}
@@ -70,7 +71,7 @@ export default function CertificateCard({ cert, isOwner, onEdit, onDelete }: Pro
         {cert.credentialUrl && (
           <Pressable onPress={() => Linking.openURL(cert.credentialUrl!)}
             className="w-9 h-9 bg-card items-center justify-center rounded-xl border border-line shadow-hair">
-            <Feather name="external-link" size={14} color="#F97316" />
+            <Feather name="external-link" size={14} color={C.brand[500]} />
           </Pressable>
         )}
         {isOwner && (
@@ -79,7 +80,7 @@ export default function CertificateCard({ cert, isOwner, onEdit, onDelete }: Pro
               <Feather name="edit-3" size={12} color="white" />
             </Pressable>
             <Pressable onPress={() => onDelete?.(cert._id)} className="w-8 h-8 items-center justify-center bg-danger/10 rounded-xl">
-              <Ionicons name="trash-outline" size={14} color="#DC2626" />
+              <Ionicons name="trash-outline" size={14} color={C.danger} />
             </Pressable>
           </>
         )}

@@ -8,6 +8,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, Question } from "../../App";
 import axios from "../../context/axiosConfig";
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const DOMAINS = ["DSA", "Frontend", "Backend", "Full Stack", "AI", "ML", "DBMS", "OS", "Custom"];
 
@@ -143,7 +144,7 @@ const CreateRoom = () => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color="#12100E" />
+            <Ionicons name="arrow-back" size={24} color={C.ink} />
           </TouchableOpacity>
           <View>
             <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Room</Text>
@@ -184,7 +185,7 @@ const CreateRoom = () => {
                 value={maxMembers}
                 onChangeText={setMaxMembers}
                 keyboardType="numeric"
-                placeholderTextColor="#8B857E"
+                placeholderTextColor={C.ink3}
                 className="border-[1.5px] border-ink p-5 bg-card text-ink font-display rounded-md"
               />
             </View>
@@ -195,7 +196,7 @@ const CreateRoom = () => {
                 value={duration}
                 onChangeText={setDuration}
                 keyboardType="numeric"
-                placeholderTextColor="#8B857E"
+                placeholderTextColor={C.ink3}
                 className="border-[1.5px] border-ink p-5 bg-card text-ink font-display rounded-md"
               />
             </View>
@@ -213,7 +214,7 @@ const CreateRoom = () => {
                     month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                   })}
                 </Text>
-                <Ionicons name="stopwatch" size={20} color="#F97316" />
+                <Ionicons name="stopwatch" size={20} color={C.brand[500]} />
               </TouchableOpacity>
             </View>
 
@@ -257,14 +258,14 @@ const CreateRoom = () => {
                     onPress={() => setQuestions(questions.filter((_, i) => i !== qIndex))}
                     className="w-10 h-10 bg-paper-2 rounded-xl items-center justify-center border border-line"
                   >
-                    <Ionicons name="trash-outline" size={18} color="#DC2626" />
+                    <Ionicons name="trash-outline" size={18} color={C.danger} />
                   </TouchableOpacity>
                 )}
               </View>
 
               <TextInput
                 placeholder="Initialize primary prompt..."
-                placeholderTextColor="#8B857E"
+                placeholderTextColor={C.ink3}
                 value={q.question}
                 onChangeText={(t) => updateQuestion(qIndex, "question", t)}
                 className="border border-line p-6 rounded-card mb-6 bg-paper-2 text-ink font-display text-base min-h-[100px]"
@@ -282,13 +283,13 @@ const CreateRoom = () => {
                   <View
                     className={`w-6 h-6 mr-4 rounded-full border-2 items-center justify-center transition-all ${q.correctAnswer === i ? "bg-brand-500 border-brand-500 shadow-hair " : "border-line bg-card" }`}
                   >
-                    {q.correctAnswer === i && <Ionicons name="checkmark" size={14} color="#12100E" />}
+                    {q.correctAnswer === i && <Ionicons name="checkmark" size={14} color={C.ink} />}
                   </View>
 
                   <TextInput
                     value={opt}
                     placeholder={`Buffer Option ${i + 1}`}
-                    placeholderTextColor="#8B857E"
+                    placeholderTextColor={C.ink3}
                     onChangeText={(text) => updateOption(qIndex, i, text)}
                     className={`border p-5 rounded-card flex-1 font-display uppercase text-sm ${q.correctAnswer === i ? "bg-card border-brand-500 text-ink shadow-hair " : "bg-card border-line text-ink-3" }`}
                   />
@@ -305,11 +306,11 @@ const CreateRoom = () => {
             className={`py-6 rounded-sheet mb-16 shadow-hair flex-row justify-center items-center ${loading ? 'bg-brand-400' : 'bg-brand-500 ' }`}
           >
             {loading ? (
-              <ActivityIndicator color="#12100E" />
+              <ActivityIndicator color={C.ink} />
             ) : (
               <>
                 <Text className="font-display text-ink uppercase mr-2" style={{ fontSize: 14, letterSpacing: 0.3 }}>Finalize Node</Text>
-                <Ionicons name="rocket" size={20} color="#12100E" />
+                <Ionicons name="rocket" size={20} color={C.ink} />
               </>
             )}
           </TouchableOpacity>

@@ -8,6 +8,7 @@ import Feather from '@expo/vector-icons/Feather';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
+import { C } from '../../constants/colors';
 
 const { height: screenHeight } = Dimensions.get('window');
 const STATUSES = ['completed', 'in-progress', 'archived'];
@@ -137,7 +138,7 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
               <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Ecosystem Contribution</Text>
             </View>
             <Pressable onPress={onClose} className="w-11 h-11 rounded-xl items-center justify-center" hitSlop={2}>
-              <Ionicons name="close" size={20} color="#12100E" />
+              <Ionicons name="close" size={20} color={C.ink} />
             </Pressable>
           </View>
 
@@ -145,7 +146,7 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
             {/* Status Selector */}
             <View className="mb-6">
               <View className="flex-row items-center gap-2 mb-3">
-                <Feather name="activity" size={12} color="#8B857E" />
+                <Feather name="activity" size={12} color={C.ink3} />
                 <Text className="text-ink-3 font-display uppercase text-label">Project Lifecycle</Text>
               </View>
               <View className="flex-row gap-2">
@@ -168,13 +169,13 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
             ].map(f => (
               <View key={f.key} className="mb-6">
                 <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name={f.icon as any} size={12} color="#8B857E" />
+                  <Feather name={f.icon as any} size={12} color={C.ink3} />
                   <Text className="text-ink-3 font-display uppercase text-label">{f.label}</Text>
                 </View>
                 <TextInput
                   className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
                   style={[{ minHeight: 50 }, f.multi ? { height: 100, textAlignVertical: 'top' } : null]}
-                  placeholder={f.ph} placeholderTextColor="#8B857E"
+                  placeholder={f.ph} placeholderTextColor={C.ink3}
                   value={form[f.key as keyof typeof form]}
                   onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
                   multiline={!!f.multi}
@@ -186,7 +187,7 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
             <View className="mb-12">
               <View className="flex-row items-center justify-between mb-4">
                 <View className="flex-row items-center gap-2">
-                  <Feather name="image" size={12} color="#8B857E" />
+                  <Feather name="image" size={12} color={C.ink3} />
                   <Text className="text-ink-3 font-display uppercase text-label">Visual Evidence ({existingImages.length + images.length}/5)</Text>
                 </View>
                 {existingImages.length + images.length < 5 && (
@@ -216,7 +217,7 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
                 {existingImages.length + images.length === 0 && (
                   <Pressable onPress={pickImages} className="w-full h-32 border-2 border-dashed border-line rounded-sheet items-center justify-center bg-paper-2/50">
                     <View className="w-10 h-10 bg-card rounded-full items-center justify-center shadow-hair mb-2">
-                      <Feather name="upload-cloud" size={18} color="#F97316" />
+                      <Feather name="upload-cloud" size={18} color={C.brand[500]} />
                     </View>
                     <Text className="text-ink-3 text-label font-display uppercase">Initialize Media Manifest</Text>
                   </Pressable>
@@ -230,7 +231,7 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
           <View className="p-card-pad border-t border-line bg-paper">
             <Pressable onPress={save} disabled={saving}
               className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md">
-              {saving ? <ActivityIndicator size="small" color="#F97316" />
+              {saving ? <ActivityIndicator size="small" color={C.brand[500]} />
                 : (
                   <>
                     <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />

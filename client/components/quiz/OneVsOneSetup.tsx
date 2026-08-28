@@ -10,6 +10,7 @@ import { useAuth } from '../../context/auth.context';
 import axios from '../../context/axiosConfig';
 import Avatar from '../Avatar';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -119,7 +120,7 @@ const OneVsOneSetup = () => {
                         <View className="w-48 h-48 rounded-full border-4 border-brand-500/10 items-center justify-center">
                             <View className="w-40 h-40 rounded-full border-2 border-brand-500/20 items-center justify-center">
                                 <View className="w-32 h-32 rounded-full bg-brand-50 items-center justify-center">
-                                    <ActivityIndicator size="large" color="#F97316" />
+                                    <ActivityIndicator size="large" color={C.brand[500]} />
                                 </View>
                             </View>
                         </View>
@@ -156,7 +157,7 @@ const OneVsOneSetup = () => {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{ marginLeft: -11 }}>
-                        <Ionicons name="chevron-back" size={24} color="#12100E" />
+                        <Ionicons name="chevron-back" size={24} color={C.ink} />
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -207,7 +208,7 @@ const OneVsOneSetup = () => {
                     <View className="mt-10 mb-20">
                         <View className="flex-row justify-between items-center mb-6">
                             <Text className="text-ink text-lg font-display uppercase">Global Aces</Text>
-                            <Ionicons name="trophy" size={20} color="#B45309" />
+                            <Ionicons name="trophy" size={20} color={C.warning} />
                         </View>
 
                         {leaderboard.slice(0, 5).map((player, index) => (
@@ -233,7 +234,7 @@ const OneVsOneSetup = () => {
                         className='flex-row items-center justify-center bg-brand-500 border-2 border-ink py-4 rounded-card'
                     >
                         <Text className="text-ink font-display text-lg uppercase mr-3">Locate Rival</Text>
-                        <Ionicons name="flash" size={22} color="#12100E" />
+                        <Ionicons name="flash" size={22} color={C.ink} />
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>

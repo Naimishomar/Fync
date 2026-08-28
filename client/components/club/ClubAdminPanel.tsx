@@ -3,13 +3,13 @@ import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, Flat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const ClubAdminPanel = () => {
     const navigation = useNavigation<any>();
@@ -264,7 +264,7 @@ const ClubAdminPanel = () => {
         );
     };
 
-    if (loading) return <View className="flex-1 bg-paper justify-center items-center"><ActivityIndicator color="#12100E" /></View>;
+    if (loading) return <View className="flex-1 bg-paper justify-center items-center"><ActivityIndicator color={C.ink} /></View>;
 
     return (
         <View className="flex-1 bg-paper">
@@ -316,14 +316,14 @@ const ClubAdminPanel = () => {
                                             <Feather name="check" size={18} color="white" />
                                         </TouchableOpacity>
                                         <TouchableOpacity onPress={() => handleRequestAction(req._id, 'reject')} className="w-9 h-9 bg-paper-2 rounded-xl items-center justify-center">
-                                            <Feather name="x" size={18} color="#57534E" />
+                                            <Feather name="x" size={18} color={C.ink2} />
                                         </TouchableOpacity>
                                     </View>
                                 </View>
                             ))}
                             {club.joinRequests?.length === 0 && (
                                 <View className="items-center mt-20">
-                                    <Feather name="inbox" size={32} color="#E3DDD3" />
+                                    <Feather name="inbox" size={32} color={C.line} />
                                     <Text className="font-sans text-sm text-center text-ink-4 mt-4">No pending requests</Text>
                                 </View>
                             )}
@@ -334,14 +334,14 @@ const ClubAdminPanel = () => {
                         <View>
                             <Text className="text-ink-3 font-semibold uppercase text-label mb-4">Recruit Members</Text>
                             <View className="bg-card p-4 border-2 border-ink mb-6 flex-row items-center rounded-md">
-                                <Feather name="search" size={18} color="#8B857E" />
+                                <Feather name="search" size={18} color={C.ink3} />
                                 <TextInput 
                                     placeholder="Search by username..."
                                     className="flex-1 ml-3 font-semibold text-ink"
                                     value={searchQuery}
                                     onChangeText={handleSearch}
                                 />
-                                {searching && <ActivityIndicator size="small" color="#12100E" />}
+                                {searching && <ActivityIndicator size="small" color={C.ink} />}
                             </View>
 
                             {searchResults.length > 0 && (
@@ -418,7 +418,7 @@ const ClubAdminPanel = () => {
                                                 onPress={() => handleRemoveMember(member._id)}
                                                 className="ml-2 w-8 h-8 bg-danger/10 rounded-lg items-center justify-center border border-danger/15"
                                             >
-                                                <Ionicons name="trash-outline" size={14} color="#DC2626" />
+                                                <Ionicons name="trash-outline" size={14} color={C.danger} />
                                             </TouchableOpacity>
                                         )}
                                     </View>
@@ -527,7 +527,7 @@ const ClubAdminPanel = () => {
                                         onPress={() => navigation.navigate('EditSubGroup', { subGroupId: sub._id })}
                                         className="w-8 h-8 bg-paper-2 rounded-lg items-center justify-center border border-line"
                                     >
-                                        <Feather name="edit-3" size={14} color="#57534E" />
+                                        <Feather name="edit-3" size={14} color={C.ink2} />
                                     </TouchableOpacity>
                                 </View>
                             ))}
@@ -535,7 +535,7 @@ const ClubAdminPanel = () => {
                             {/* Danger Zone */}
                             <View className="mt-12 bg-danger/10 p-6 rounded-sheet border border-danger/15 mb-5">
                                 <View className="flex-row items-center mb-2">
-                                    <Ionicons name="warning-outline" size={16} color="#DC2626" />
+                                    <Ionicons name="warning-outline" size={16} color={C.danger} />
                                     <Text className="text-danger font-display text-label uppercase ml-2">Danger Zone</Text>
                                 </View>
                                 <Text className="text-danger text-label font-semibold uppercase mb-5">

@@ -4,6 +4,7 @@ import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -87,7 +88,7 @@ export default function GitHubStatsCard({
         <View
           className="w-20 h-20 rounded-card items-center justify-center mb-6 shadow-hair"
          style={{ backgroundColor: '#12100E' }}>
-          <Ionicons name="logo-github" size={40} color="#F97316" />
+          <Ionicons name="logo-github" size={40} color={C.brand[500]} />
         </View>
         <Text className="text-ink font-display text-xl text-center">Open Source Identity</Text>
         <Text className="font-sans text-sm text-ink-3 text-center mt-3 px-6">
@@ -129,11 +130,11 @@ export default function GitHubStatsCard({
             <View className="flex-row gap-2">
               <Pressable onPress={handleSync} disabled={isSyncing} className="w-10 h-10 bg-paper-2 items-center justify-center rounded-xl border border-line" hitSlop={2}>
                 <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                  <Ionicons name="refresh" size={18} color="#12100E" />
+                  <Ionicons name="refresh" size={18} color={C.ink} />
                 </Animated.View>
               </Pressable>
               <Pressable onPress={onDisconnect} className="w-10 h-10 bg-danger/10 items-center justify-center rounded-xl border border-danger/15" hitSlop={2}>
-                <Ionicons name="trash-outline" size={18} color="#DC2626" />
+                <Ionicons name="trash-outline" size={18} color={C.danger} />
               </Pressable>
             </View>
           )}
@@ -141,9 +142,9 @@ export default function GitHubStatsCard({
 
         {/* Dynamic Stats Row */}
         <View className="flex-row gap-3 mb-4">
-          <StatItem label="Commits" value={stats?.totalCommits || 0} icon="git-commit" color="#F97316" />
-          <StatItem label="Stars" value={stats?.totalStars || 0} icon="star" color="#B45309" />
-          <StatItem label="Streak" value={`${stats?.contributionStreak || 0}d`} icon="flame" color="#DC2626" />
+          <StatItem label="Commits" value={stats?.totalCommits || 0} icon="git-commit" color={C.brand[500]} />
+          <StatItem label="Stars" value={stats?.totalStars || 0} icon="star" color={C.warning} />
+          <StatItem label="Streak" value={`${stats?.contributionStreak || 0}d`} icon="flame" color={C.danger} />
         </View>
 
         {/* Bio if exists */}
@@ -169,13 +170,13 @@ export default function GitHubStatsCard({
             {/* Hero Card: General Performance */}
             <View className="bg-card rounded-sheet border border-line shadow-hair overflow-hidden">
               <View className="flex-row items-center gap-2 px-5 py-4 border-b border-line bg-paper-2/30">
-                <Ionicons name="bar-chart" size={14} color="#12100E" />
+                <Ionicons name="bar-chart" size={14} color={C.ink} />
                 <Text className="text-ink font-display uppercase text-label">General Performance</Text>
               </View>
               <View className="p-4 bg-paper-2/50 justify-center items-center relative" style={{ minHeight: 180 }}>
                 {loadingStates.general && (
                   <View className="absolute z-10">
-                    <ActivityIndicator color="#F97316" />
+                    <ActivityIndicator color={C.brand[500]} />
                   </View>
                 )}
                 <ExpoImage 
@@ -199,7 +200,7 @@ export default function GitHubStatsCard({
                 <View className="p-3 bg-paper-2/50 justify-center items-center relative" style={{ minHeight: 150 }}>
                   {loadingStates.langs && (
                     <View className="absolute z-10">
-                      <ActivityIndicator color="#F97316" />
+                      <ActivityIndicator color={C.brand[500]} />
                     </View>
                   )}
                   <ExpoImage 
@@ -221,7 +222,7 @@ export default function GitHubStatsCard({
                 <View className="p-3 bg-paper-2/50 justify-center items-center relative" style={{ minHeight: 150 }}>
                   {loadingStates.streak && (
                     <View className="absolute z-10">
-                      <ActivityIndicator color="#F97316" />
+                      <ActivityIndicator color={C.brand[500]} />
                     </View>
                   )}
                   <ExpoImage 
@@ -251,7 +252,7 @@ export default function GitHubStatsCard({
             className="flex-row items-center gap-1.5"
           >
             <Text className="text-ink font-display uppercase text-label">View Profile</Text>
-            <Ionicons name="arrow-forward" size={12} color="#12100E" />
+            <Ionicons name="arrow-forward" size={12} color={C.ink} />
           </Pressable>
         </View>
       </View>

@@ -18,6 +18,7 @@ import { useAuth } from '../context/auth.context';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { useBottomInset } from '../constants/layout';
+import { C } from '../constants/colors';
 
 export default function EditProfile() {
   const { user, setUser } = useAuth();
@@ -163,7 +164,7 @@ export default function EditProfile() {
           style={{ opacity: (loading || !hasChanges) ? 0.5 : 1 }}
         >
           {loading ? (
-            <ActivityIndicator size="small" color="#F97316" />
+            <ActivityIndicator size="small" color={C.brand[500]} />
           ) : (
             <Text className={`text-lg font-display ${!hasChanges ? 'text-ink-3' : 'text-accent-text'}`}>Save</Text>
           )}
@@ -179,7 +180,7 @@ export default function EditProfile() {
               <Image source={{ uri: banner }} className="w-full h-full" resizeMode="cover" />
             ) : (
               <View className="items-center">
-                <Ionicons name="image-outline" size={30} color="#8B857E" />
+                <Ionicons name="image-outline" size={30} color={C.ink3} />
                 <Text className="text-ink-3 text-xs mt-1">Tap to add banner</Text>
               </View>
             )}
@@ -197,7 +198,7 @@ export default function EditProfile() {
               className="h-24 w-24 rounded-full border-4 border-line bg-paper-2"
             />
             <View className="absolute right-0 bg-brand-500 p-1.5 rounded-full border-2 border-paper" style={{ bottom: bottomInset }}>
-              <Ionicons name="pencil" size={14} color="#12100E" />
+              <Ionicons name="pencil" size={14} color={C.ink} />
             </View>
           </Pressable>
           <Text className="text-accent-text text-sm font-semibold mt-2">Change Profile Photo</Text>
@@ -244,7 +245,7 @@ const InputGroup = ({ label, value, onChange, placeholder, multiline = false }: 
       onChangeText={onChange}
       className={`bg-paper-2 text-ink p-3.5 rounded-xl text-base border border-line ${multiline ? 'min-h-[80px]' : ''}`}
       placeholder={placeholder}
-      placeholderTextColor="#C4BEB6"
+      placeholderTextColor={C.ink4}
       multiline={multiline}
       textAlignVertical={multiline ? 'top' : 'center'}
     />

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput } from 'react-native';
 import PdfToolShell from './PdfToolShell';
 import { PDFDocument, loadDoc, writeDoc, parsePageRanges } from './pdfKit';
+import { C } from '../../../constants/colors';
 
 export default function ExtractPagesScreen() {
   const [spec, setSpec] = useState('');
@@ -15,7 +16,7 @@ export default function ExtractPagesScreen() {
           <Text className="text-ink-3 font-display uppercase text-label mb-2">Pages to extract</Text>
           <TextInput
             value={spec} onChangeText={setSpec}
-            placeholder="e.g. 4, 10-14" placeholderTextColor="#8B857E"
+            placeholder="e.g. 4, 10-14" placeholderTextColor={C.ink3}
             className="bg-card p-4 text-ink border-[1.5px] border-ink rounded-md"
             style={{ minHeight: 50 }} autoCapitalize="none"
           />

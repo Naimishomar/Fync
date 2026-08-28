@@ -17,6 +17,7 @@ import axios from 'axios';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
+import { C } from '../../constants/colors';
 
 // --- 🌌 BACKGROUND IMAGE ---
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
@@ -76,7 +77,7 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
       <View className="mt-5 flex-row flex-wrap gap-2">
         {/* Start Date */}
         <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
-          <Ionicons name="calendar" size={14} color="#8B857E" />
+          <Ionicons name="calendar" size={14} color={C.ink3} />
           <Text className="text-label font-display uppercase text-ink-3 ml-2">
             {item.start_date ? new Date(item.start_date).toLocaleDateString() : 'Active Session'}
           </Text>
@@ -84,7 +85,7 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
 
         {/* Location */}
         <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
-          <Ionicons name="location-sharp" size={14} color="#8B857E" />
+          <Ionicons name="location-sharp" size={14} color={C.ink3} />
           <Text className="text-label font-display uppercase text-ink-3 ml-2">
             {item.filters?.location || "Remote Hub"}
           </Text>
@@ -209,7 +210,7 @@ export default function WorkshopList() {
     if (!loading && !loadingMore) return <View className="h-12" />;
     return (
       <View className="py-10 items-center">
-        <ActivityIndicator size="small" color="#F97316" />
+        <ActivityIndicator size="small" color={C.brand[500]} />
       </View>
     );
   };
@@ -234,7 +235,7 @@ export default function WorkshopList() {
                   accessibilityLabel="Go back"
                   style={{ marginLeft: -11 }}
                 >
-                  <Ionicons name="arrow-back" size={24} color="#12100E" />
+                  <Ionicons name="arrow-back" size={24} color={C.ink} />
                 </TouchableOpacity>
                 <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Workshop</Text>
                 <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Hub</Text>
@@ -247,17 +248,17 @@ export default function WorkshopList() {
         {/* 🔍 Arena Search Dock */}
         <View className="px-gutter mb-3">
           <View className="flex-row items-center bg-card px-5 h-14 border-2 border-ink shadow-hair rounded-md">
-            <Ionicons name="search" size={20} color="#F97316" />
+            <Ionicons name="search" size={20} color={C.brand[500]} />
             <TextInput
               placeholder="Search labs, workshops, skills..."
-              placeholderTextColor="#8B857E"
+              placeholderTextColor={C.ink3}
               value={searchQuery}
               onChangeText={setSearchQuery}
               className="flex-1 ml-3 text-ink text-sm font-display uppercase"
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-paper-2 p-1.5 rounded-xl">
-                <Ionicons name="close" size={16} color="#8B857E" />
+                <Ionicons name="close" size={16} color={C.ink3} />
               </TouchableOpacity>
             )}
           </View>
@@ -273,14 +274,14 @@ export default function WorkshopList() {
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
           }
           ListFooterComponent={renderFooter}
           ListEmptyComponent={
             !loading ? (
               <View className="items-center mt-20 px-gutter">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="construct" size={40} color="#C4BEB6" />
+                  <Ionicons name="construct" size={40} color={C.ink4} />
                 </View>
                 <Text className="text-ink font-display text-xl text-center uppercase">Zero Signals</Text>
                 <Text className="font-sans text-sm text-ink-3 text-center mt-2">

@@ -7,6 +7,7 @@ import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from '../ui/AlertModal';
+import { C } from '../../constants/colors';
 
 const SelectionGroup = ({ label, options, field, formData, setFormData }: { label: string, options: string[], field: string, formData: any, setFormData: (v: any) => void }) => (
   <View className="mb-5">
@@ -190,7 +191,7 @@ const CreateOpportunity = () => {
                 ) : (
                   <View className="items-center">
                     <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-3">
-                      <Ionicons name="image-outline" size={28} color="#8B857E" />
+                      <Ionicons name="image-outline" size={28} color={C.ink3} />
                     </View>
                     <Text className="font-semibold text-base text-ink">Upload Company Logo</Text>
                     <Text className="text-ink-3 text-label mt-1">PNG, JPG • Square recommended</Text>
@@ -324,7 +325,7 @@ const InputGroup = ({ label, value, onChange, placeholder, multiline = false }: 
       value={value}
       onChangeText={onChange}
       placeholder={placeholder}
-      placeholderTextColor="#C4BEB6"
+      placeholderTextColor={C.ink4}
       multiline={multiline}
       numberOfLines={multiline ? 4 : 1}
       className={`bg-paper-2 border border-line rounded-card px-5 py-4 text-ink font-semibold ${multiline ? 'h-40 text-top' : ''}`}

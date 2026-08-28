@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
 import { NotificationSkeleton } from './Skeleton';
+import { C } from '../constants/colors';
 
 // --- TYPES ---
 interface NotificationItem {
@@ -279,7 +280,7 @@ const Notification = () => {
           <Image source={{ uri: item.imageUrl }} className="w-12 h-12 rounded-xl border border-line ml-2" />
         ) : item.type === 'opportunity' || item.type === 'hackathon_announcement' || item.type === 'broadcast' ? (
           <View style={{ backgroundColor: 'rgba(249,115,22,0.12)', borderRadius: 12, padding: 8 }}>
-            <Ionicons name={item.type === 'broadcast' ? 'megaphone' : 'briefcase'} size={18} color="#F97316" />
+            <Ionicons name={item.type === 'broadcast' ? 'megaphone' : 'briefcase'} size={18} color={C.brand[500]} />
           </View>
         ) : item.type !== 'follow' && item.post?.image && item.post.image.length > 0 ? (
           <Image
@@ -314,7 +315,7 @@ const Notification = () => {
                   accessibilityLabel="Go back"
                   style={{ marginLeft: -11 }}
                 >
-                  <Ionicons name="arrow-back" size={24} color="#12100E" />
+                  <Ionicons name="arrow-back" size={24} color={C.ink} />
                 </TouchableOpacity>
                 <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>
                   Updates <Text className="text-accent-text">Center</Text>
@@ -342,7 +343,7 @@ const Notification = () => {
             windowSize={5}
             removeClippedSubviews={Platform.OS === 'android'}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F97316" />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
             }
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.5}
@@ -355,14 +356,14 @@ const Notification = () => {
             ListFooterComponent={() => (
               loadingMore ? (
                 <View className="py-6 items-center">
-                  <ActivityIndicator size="small" color="#F97316" />
+                  <ActivityIndicator size="small" color={C.brand[500]} />
                 </View>
               ) : <View className="h-20" />
             )}
             ListEmptyComponent={
               <View className="items-center justify-center mt-20 px-gutter">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="notifications-off-outline" size={32} color="#C4BEB6" />
+                  <Ionicons name="notifications-off-outline" size={32} color={C.ink4} />
                 </View>
                 <Text className="font-semibold text-base text-ink text-center">Sync Complete</Text>
                 <Text className="font-sans text-sm text-ink-4 mt-2 text-center">No active signals found in the registry.</Text>

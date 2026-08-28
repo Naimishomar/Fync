@@ -22,6 +22,7 @@ import {
   searchFeatures,
   type Feature,
 } from '../constants/features';
+import { C } from '../constants/colors';
 
 // A category reads as one colour instead of forty. `feature.tint` stays in
 // constants/features.ts as a fallback for anything not yet categorised.
@@ -87,7 +88,7 @@ const Row = ({ feature, onOpen }: { feature: Feature; onOpen: (f: Feature) => vo
       <Text className="font-semibold text-base text-ink" numberOfLines={1}>{feature.label}</Text>
       <Text className="font-sans text-sm text-ink-3 mt-0.5" numberOfLines={1}>{feature.hint}</Text>
     </View>
-    <Ionicons name="chevron-forward" size={18} color="#C4BEB6" />
+    <Ionicons name="chevron-forward" size={18} color={C.ink4} />
   </Pressable>
 );
 
@@ -140,7 +141,7 @@ const CategoryCard = ({
       <View className="items-center justify-center rounded-full bg-paper-2 mr-2" style={{ width: 26, height: 26 }}>
         <Text className="font-display text-ink" style={{ fontSize: 11 }}>{items.length}</Text>
       </View>
-      <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color="#12100E" />
+      <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={C.ink} />
     </Pressable>
 
     {open && (
@@ -240,10 +241,10 @@ const ExploreHub = () => {
           </Text>
 
           <View className="flex-row items-center bg-card px-4 border-2 border-ink mt-5 rounded-md" style={{ minHeight: 50 }}>
-            <Ionicons name="search" size={20} color="#8B857E" />
+            <Ionicons name="search" size={20} color={C.ink3} />
             <TextInput
               placeholder="Search features..."
-              placeholderTextColor="#8B857E"
+              placeholderTextColor={C.ink3}
               value={query}
               onChangeText={setQuery}
               className="flex-1 font-sans text-base text-ink px-3"
@@ -253,7 +254,7 @@ const ExploreHub = () => {
             />
             {query.length > 0 && (
               <Pressable onPress={() => setQuery('')} hitSlop={12} accessibilityRole="button" accessibilityLabel="Clear search">
-                <Ionicons name="close-circle" size={18} color="#C4BEB6" />
+                <Ionicons name="close-circle" size={18} color={C.ink4} />
               </Pressable>
             )}
           </View>
@@ -275,7 +276,7 @@ const ExploreHub = () => {
               </>
             ) : (
               <View className="items-center mt-10 py-7 px-5 rounded-card border border-dashed border-line">
-                <Ionicons name="telescope-outline" size={28} color="#C4BEB6" />
+                <Ionicons name="telescope-outline" size={28} color={C.ink4} />
                 <Text className="font-display text-label text-ink-3 uppercase mt-3" style={{ letterSpacing: 1.4 }}>
                   Nothing matches “{query}”
                 </Text>

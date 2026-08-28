@@ -12,6 +12,7 @@ import Avatar from "./Avatar";
 import { Alert } from './ui/AlertModal';
 
 import { RoleSticker } from './ui/kit';
+import { C } from '../constants/colors';
 const { width, height } = Dimensions.get("window");
 
 const AlumniConnect = ({ navigation }: any) => {
@@ -339,7 +340,7 @@ const AlumniConnect = ({ navigation }: any) => {
                                 }}
                                 className="flex-row items-center bg-black/20 p-2 rounded-lg"
                             >
-                                <Ionicons name="document-text" size={24} color="#F5B700" />
+                                <Ionicons name="document-text" size={24} color={C.alumniLit} />
                                 <View className="ml-2">
                                     <Text className="text-ink text-xs font-semibold" numberOfLines={1}>{item.fileName || "Document"}</Text>
                                     <Text className="text-ink-3 text-label">Tap to view (Limit 5MB)</Text>
@@ -377,7 +378,7 @@ const AlumniConnect = ({ navigation }: any) => {
                         </View>
                     </View>
                     <Pressable onPress={() => setShowMembers(true)} className="bg-card/10 p-2 rounded-full border border-line">
-                        <Ionicons name="people" size={20} color="#F5B700" />
+                        <Ionicons name="people" size={20} color={C.alumniLit} />
                     </Pressable>
                 </View>
 
@@ -385,7 +386,7 @@ const AlumniConnect = ({ navigation }: any) => {
                 <KeyboardAvoidingView behavior="padding" className="flex-1">
                     {loading ? (
                         <View className="flex-1 justify-center items-center">
-                            <ActivityIndicator size="large" color="#F5B700" />
+                            <ActivityIndicator size="large" color={C.alumniLit} />
                         </View>
                     ) : (
                         <FlatList
@@ -489,7 +490,7 @@ const AlumniConnect = ({ navigation }: any) => {
                                         <Text className="text-ink-3 text-xs">@{item.username}</Text>
                                         {item.company && (
                                             <View className="flex-row items-center mt-1">
-                                                <Ionicons name="briefcase" size={10} color="#F5B700" />
+                                                <Ionicons name="briefcase" size={10} color={C.alumniLit} />
                                                 <Text className="text-accent-text text-label font-semibold ml-1">{item.role} at {item.company}</Text>
                                             </View>
                                         )}
@@ -499,7 +500,7 @@ const AlumniConnect = ({ navigation }: any) => {
                             )}
                             ListEmptyComponent={
                                 <View className="flex-1 items-center justify-center mt-20">
-                                    <ActivityIndicator size="small" color="#F5B700" />
+                                    <ActivityIndicator size="small" color={C.alumniLit} />
                                     <Text className="text-ink-3 mt-4">No classmates found</Text>
                                 </View>
                             }

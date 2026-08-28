@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { GEMINI_MODEL } from './geminiModel.js';
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const FALLBACK_QUESTIONS = [
@@ -57,7 +58,7 @@ const FALLBACK_QUESTIONS = [
 export const generateQuestions = async (domain) => {
     try {
         const response = await genAI.models.generateContent({
-            model: "gemini-1.5-flash",
+            model: GEMINI_MODEL,
             contents: `
             Generate 10 multiple choice questions for "${domain}".
             Difficulty: Medium/Hard.

@@ -1,12 +1,13 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from 'dotenv';
 import PDFParser from "pdf2json";
+import { GEMINI_MODEL_PRO } from '../../utils/geminiModel.js';
 
 dotenv.config({ quiet: true });
 
 // Initialize the Official SDK
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const model = genAI.getGenerativeModel({ model: GEMINI_MODEL_PRO });
 
 export const uploadPDF = async (req, res) => {
     try {

@@ -6,6 +6,7 @@ import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { EducationEntry } from './EducationCard';
 import { useAuth } from '../../context/auth.context';
+import { C } from '../../constants/colors';
 
 const { height: screenHeight } = Dimensions.get('window');
 
@@ -74,7 +75,7 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
               <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Academic History Module</Text>
             </View>
             <Pressable onPress={onClose} className="w-11 h-11 rounded-xl items-center justify-center" hitSlop={2}>
-              <Ionicons name="close" size={20} color="#12100E" />
+              <Ionicons name="close" size={20} color={C.ink} />
             </Pressable>
           </View>
 
@@ -88,13 +89,13 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
             ].map(f => (
               <View key={f.key} className="mb-6">
                 <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name={f.icon as any} size={12} color="#8B857E" />
+                  <Feather name={f.icon as any} size={12} color={C.ink3} />
                   <Text className="text-ink-3 font-display uppercase text-label">{f.label}</Text>
                 </View>
                 <TextInput
                   className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
             style={{ minHeight: 50 }}
-                  placeholder={f.ph} placeholderTextColor="#8B857E"
+                  placeholder={f.ph} placeholderTextColor={C.ink3}
                   value={form[f.key as keyof typeof form] as string}
                   onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
                   keyboardType={f.num ? 'numeric' : 'default'}
@@ -105,7 +106,7 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
             {/* Currently studying toggle */}
             <View className="flex-row items-center justify-between mb-6 bg-paper-2 px-5 py-4 rounded-card border border-line">
               <View className="flex-row items-center gap-2">
-                <Feather name="clock" size={12} color="#12100E" />
+                <Feather name="clock" size={12} color={C.ink} />
                 <Text className="text-ink font-display uppercase text-label">Currently Studying Here</Text>
               </View>
               <Switch value={form.isCurrent}
@@ -116,23 +117,23 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
             {!form.isCurrent && (
               <View className="mb-6">
                 <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name="calendar" size={12} color="#8B857E" />
+                  <Feather name="calendar" size={12} color={C.ink3} />
                   <Text className="text-ink-3 font-display uppercase text-label">End Year</Text>
                 </View>
                 <TextInput className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
             style={{ minHeight: 50 }}
-                  placeholder="2024" placeholderTextColor="#8B857E" keyboardType="numeric"
+                  placeholder="2024" placeholderTextColor={C.ink3} keyboardType="numeric"
                   value={form.endYear} onChangeText={v => setForm(p => ({ ...p, endYear: v }))} />
               </View>
             )}
 
             <View className="mb-12">
               <View className="flex-row items-center gap-2 mb-2">
-                <Feather name="align-left" size={12} color="#8B857E" />
+                <Feather name="align-left" size={12} color={C.ink3} />
                 <Text className="text-ink-3 font-display uppercase text-label">Description</Text>
               </View>
               <TextInput className="bg-card border-[1.5px] border-ink px-4 py-3 text-ink text-base font-sans rounded-md"
-                placeholder="Clubs, achievements, projects..." placeholderTextColor="#8B857E"
+                placeholder="Clubs, achievements, projects..." placeholderTextColor={C.ink3}
                 style={{ minHeight: 100, textAlignVertical: 'top' }}
                 value={form.description} multiline
                 onChangeText={v => setForm(p => ({ ...p, description: v }))} />
@@ -144,7 +145,7 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
           <View className="p-card-pad border-t border-line bg-paper">
             <Pressable onPress={save} disabled={saving}
               className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md">
-              {saving ? <ActivityIndicator size="small" color="#F97316" />
+              {saving ? <ActivityIndicator size="small" color={C.brand[500]} />
                 : (
                   <>
                     <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />
