@@ -98,28 +98,38 @@ export default function CommentsSheet({
   const onCountChangeRef = useRef(onCountChange);
   useEffect(() => { onCountChangeRef.current = onCountChange; }, [onCountChange]);
 
-  const fetchComments = useCallback(async () => {
+  /**
+   * Tell the parent what this list adds up to.
+   *
+   * Replies count too — the feed row counts every comment on the post, so
+   * reporting only the top-level ones would make the badge drop the moment the
+   * sheet opened. The list is newest-first, so its head is the preview.
+   */
+  const report = useCallback((list: CommentModel[], id: string) => {
+    const total = list.reduce((sum, comment) => sum + 1 + (comment.replies?.length ?? 0), 0);
+    onCountChangeRef.current?.(id, total, list[0]);
+  }, []);
+
+  const fetchComments = useCallback(async (options?: { fresh?: boolean }) => {
     if (!targetId) return;
     setLoading(true);
     try {
-      const res = await axios.get(ENDPOINTS[resource](targetId));
+      // The GET is cached for a minute server-side. That cache is invalidated
+      // when a comment is written, but a refetch that lands before the
+      // invalidation — or while the cache store is unreachable — answered with
+      // the list from before the comment, which is what made a just-posted
+      // comment vanish. A read straight after a write asks for a fresh one.
+      const url = ENDPOINTS[resource](targetId) + (options?.fresh ? `?t=${Date.now()}` : '');
+      const res = await axios.get(url);
       const list = res.data.comments ?? [];
       setComments(list);
-      // Replies count too — the feed row counts every comment on the post, so
-      // reporting only the top-level ones would make the badge drop the moment
-      // the sheet opened.
-      const total = list.reduce(
-        (sum: number, comment: CommentModel) => sum + 1 + (comment.replies?.length ?? 0),
-        0,
-      );
-      // The list arrives newest-first, so the preview is the head of it.
-      onCountChangeRef.current?.(targetId, total, list[0]);
+      report(list, targetId);
     } catch {
       // Leaves whatever was already on screen rather than blanking it.
     } finally {
       setLoading(false);
     }
-  }, [resource, targetId]);
+  }, [resource, targetId, report]);
 
   useEffect(() => {
     if (visible && targetId) fetchComments();
@@ -130,15 +140,39 @@ export default function CommentsSheet({
     if (!body || !targetId) return;
     setPosting(true);
     try {
-      await axios.post(`/${resource}/comment/${targetId}`, {
+      const res = await axios.post(`/${resource}/comment/${targetId}`, {
         text: body,
         parentComment: replyingTo?._id ?? null,
       });
+      const parentId = replyingTo?._id;
       setText('');
       setReplyingTo(null);
-      fetchComments();
-    } catch {
-      Alert.alert('Could not post', 'Your comment did not send. Try again.', [{ text: 'Okay' }]);
+
+      // Show it straight away from what the server just handed back, rather
+      // than waiting on a refetch to prove it exists.
+      const created: CommentModel | undefined = res.data?.comment;
+      if (created) {
+        setComments((prev) => {
+          const next = parentId
+            ? prev.map((c) => (c._id === parentId
+              ? { ...c, replies: [...(c.replies ?? []), created] }
+              : c))
+            : [{ ...created, replies: [] }, ...prev];
+          report(next, targetId);
+          return next;
+        });
+      }
+
+      fetchComments({ fresh: true });
+    } catch (error: any) {
+      // The server's own reason, when it gave one — "did not send" alone left
+      // nothing to act on.
+      console.log('Comment post failed:', error?.response?.status, error?.response?.data);
+      Alert.alert(
+        'Could not post',
+        error?.response?.data?.message || 'Your comment did not send. Try again.',
+        [{ text: 'Okay' }],
+      );
     } finally {
       setPosting(false);
     }
@@ -151,7 +185,7 @@ export default function CommentsSheet({
       await axios.post(`/${resource}/comment/update/${id}`, { text: editingText.trim() });
       setEditingId(null);
       setEditingText('');
-      fetchComments();
+      fetchComments({ fresh: true });
     } catch {
       Alert.alert('Could not save', 'That edit did not save.', [{ text: 'Okay' }]);
     } finally {
@@ -171,7 +205,7 @@ export default function CommentsSheet({
             // Shorts historically exposed a POST variant as well; DELETE is the
             // one both resources accept, so it is the only one used here.
             await axios.delete(`/${resource}/comment/${id}`);
-            fetchComments();
+            fetchComments({ fresh: true });
           } catch {
             Alert.alert('Could not delete', 'That comment is still there.', [{ text: 'Okay' }]);
           } finally {
