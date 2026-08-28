@@ -76,9 +76,6 @@ interface Post {
   description: string;
   likes: number;
   liked_by: string[];
-  upvoted_by?: string[];
-  downvoted_by?: string[];
-  score?: number;
   saved_by?: string[];
   repostedBy?: string[];
   reposts?: number;
@@ -91,22 +88,16 @@ interface Post {
 // --- COMMENTS MODAL ---
 
 // --- POST ITEM ---
-/** Vote pill geometry. The indicator's travel is derived from these, so the
- *  fill always lands centred on a button rather than near it. */
-const VOTE_BTN = 30;
-const VOTE_SCORE_W = 30;
-
 /** Instagram/LinkedIn feed: the card is edge-to-edge, so media spans the full
  *  screen width and only the text rows carry a horizontal inset. */
 
 const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }: { item: Post, index: number, currentUser: any, openComments: (id: string) => void, onDeletePost: (id: string) => void }) => {
   const { width } = useWindowDimensions();
   const mediaWidth = width;
-  const [vote, setVote] = useState<'up' | 'down' | null>(
-    item.upvoted_by?.includes(currentUser?._id) ? 'up' : 
-    item.downvoted_by?.includes(currentUser?._id) ? 'down' : null
+  const [liked, setLiked] = useState(
+    !!item.liked_by?.some((u: any) => String(u) === String(currentUser?._id))
   );
-  const [score, setScore] = useState(item.score || (item.likes || 0));
+  const [likeCount, setLikeCount] = useState(item.likes || 0);
   const [reposted, setReposted] = useState(item.repostedBy?.some((u: any) => String(u) === String(currentUser?._id)));
   const [repostCount, setRepostCount] = useState(item.reposts || 0);
   const [viewCount] = useState(item.views || 0);
@@ -118,53 +109,10 @@ const MAX_CHAR_LIMIT = 150;
 
   const springValue = useRef(new Animated.Value(1)).current;
 
-  /**
-   * The sliding vote indicator.
-   *
-   * `slide` is 0 at the upvote and 1 at the downvote; `fill` fades it out when
-   * there is no vote. The pill used to fill the button itself, which left a
-   * sliver of the container's own padding showing beside the circle — a white
-   * crescent on an otherwise solid orange control. Moving the fill to a layer
-   * underneath removes the padding problem entirely and gives the transition
-   * something to animate along.
-   */
-  const slide = useRef(new Animated.Value(0)).current;
-  const fill = useRef(new Animated.Value(0)).current;
-  const tint = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation<any>();
 
   const displayCommentCount = item.commentCount || item.comments?.length || 0;
   const images = item.image || [];
-
-  // Driven from `vote` rather than from the tap, so an optimistic update that
-  // gets rolled back animates back too.
-  useEffect(() => {
-    Animated.parallel([
-      // All three on the JS driver, and they have to match.
-      //
-      // backgroundColor cannot run natively, and this indicator animates its
-      // colour, its position and its opacity on one node. Mixing drivers on a
-      // single node throws: once it is attached natively for transform, the JS
-      // driver is refused for colour. The movement here is a 34px pill on tap,
-      // never during a scroll, so nothing is lost by running it in JS.
-      Animated.spring(slide, {
-        toValue: vote === 'down' ? 1 : 0,
-        friction: 7,
-        tension: 90,
-        useNativeDriver: false,
-      }),
-      Animated.timing(fill, {
-        toValue: vote ? 1 : 0,
-        duration: 140,
-        useNativeDriver: false,
-      }),
-      Animated.timing(tint, {
-        toValue: vote === 'down' ? 1 : 0,
-        duration: 200,
-        useNativeDriver: false,
-      }),
-    ]).start();
-  }, [vote, slide, fill, tint]);
 
   const animatePress = () => {
     Animated.sequence([
@@ -173,29 +121,30 @@ const MAX_CHAR_LIMIT = 150;
     ]).start();
   };
 
-  const handleVote = async (type: 'up' | 'down') => {
+  /**
+   * Like, one tap, LinkedIn style.
+   *
+   * Optimistic, then reconciled from the row the server returns: `likes` is
+   * derived from `liked_by` server-side, so the count here cannot drift away
+   * from the membership it is meant to describe.
+   */
+  const handleLike = async () => {
     animatePress();
-    const prevVote = vote;
-    const prevScore = score;
-    let newVote: 'up' | 'down' | null = type;
-    let scoreDelta = 0;
-
-    if (prevVote === type) {
-      newVote = null;
-      scoreDelta = type === 'up' ? -1 : 1;
-    } else {
-      if (prevVote === null) scoreDelta = type === 'up' ? 1 : -1;
-      else scoreDelta = type === 'up' ? 2 : -2;
-    }
-
-    setVote(newVote);
-    setScore(prevScore + scoreDelta);
+    const prevLiked = liked;
+    const prevCount = likeCount;
+    setLiked(!prevLiked);
+    setLikeCount(prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1);
 
     try {
-      await axios.post(`/post/vote/${item._id}`, { type: newVote });
+      const res = await axios.post(`/post/like/${item._id}`);
+      const post = res.data?.post;
+      if (post) {
+        setLiked(!!post.liked_by?.some((u: any) => String(u) === String(currentUser?._id)));
+        setLikeCount(post.likes || 0);
+      }
     } catch (error) {
-      setVote(prevVote);
-      setScore(prevScore);
+      setLiked(prevLiked);
+      setLikeCount(prevCount);
     }
   };
 
@@ -321,10 +270,10 @@ const MAX_CHAR_LIMIT = 150;
             };
 
             Alert.alert('Report this post', 'What is wrong with it?', [
-              { text: 'Cancel', style: 'cancel' },
               { text: 'Spam or scam', onPress: () => report('Spam or scam') },
               { text: 'Harassment or abuse', onPress: () => report('Harassment or abuse') },
               { text: 'Explicit content', style: 'destructive', onPress: () => report('Explicit content') },
+              { text: 'Cancel', style: 'cancel' },
             ]);
           }}
           className="items-center justify-center rounded-full"
@@ -406,68 +355,32 @@ const MAX_CHAR_LIMIT = 150;
         </View>
       )}
 
-      {/* Action Bar (Reddit Style Pills) */}
+      {/* Action Bar. Flat on the page like Instagram's: no chrome, ink icons
+          at full strength carry the affordance. */}
       <View className="flex-row items-center gap-1 px-3">
-        <Animated.View
-          style={{ transform: [{ scale: springValue }] }}
-          className="flex-row items-center border rounded-full overflow-hidden"
-        >
-          <Animated.View
-            pointerEvents="none"
-            style={{
-              position: 'absolute',
-              left: 0,
-              width: VOTE_BTN,
-              height: VOTE_BTN,
-              borderRadius: VOTE_BTN / 2,
-              opacity: fill,
-              transform: [{
-                translateX: slide.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, VOTE_BTN + VOTE_SCORE_W],
-                }),
-              }],
-              backgroundColor: tint.interpolate({
-                inputRange: [0, 1],
-                outputRange: ['#F97316', '#12100E'],
-              }) as unknown as string,
-            }}
-          />
-
+        <Animated.View style={{ transform: [{ scale: springValue }] }}>
           <Pressable
-            onPress={() => handleVote('up')}
-            className="items-center justify-center"
-            style={{ width: VOTE_BTN, height: VOTE_BTN }}
+            onPress={handleLike}
+            className="flex-row items-center rounded-full px-1"
+            style={{ minHeight: 30 }}
             hitSlop={4}
             accessibilityRole="button"
-            accessibilityLabel="Upvote"
-            accessibilityState={{ selected: vote === 'up' }}
+            accessibilityState={{ selected: liked }}
+            accessibilityLabel={liked ? 'Unlike this post' : 'Like this post'}
           >
-            <Ionicons name={vote === 'up' ? 'arrow-up' : 'arrow-up-outline'} size={20} color={C.ink} />
-          </Pressable>
-
-          <Text
-            className="font-display text-ink text-center"
-            style={{ width: VOTE_SCORE_W, fontSize: 12 }}
-          >
-            {score === 0 ? '0' : score > 999 ? formatCount(score) : score}
-          </Text>
-
-          <Pressable
-            onPress={() => handleVote('down')}
-            className="items-center justify-center"
-            style={{ width: VOTE_BTN, height: VOTE_BTN }}
-            hitSlop={4}
-            accessibilityRole="button"
-            accessibilityLabel="Downvote"
-            accessibilityState={{ selected: vote === 'down' }}
-          >
-            {/* White on ink once the fill arrives underneath it. */}
             <Ionicons
-              name={vote === 'down' ? 'arrow-down' : 'arrow-down-outline'}
+              name={liked ? 'thumbs-up' : 'thumbs-up-outline'}
               size={20}
-              color={vote === 'down' ? '#FFFFFF' : '#12100E'}
+              color={liked ? C.brand[600] : C.ink}
             />
+            {likeCount > 0 && (
+              <Text
+                className={`font-display ml-1.5 ${liked ? 'text-accent-text' : 'text-ink'}`}
+                style={{ fontSize: 12 }}
+              >
+                {formatCount(likeCount)}
+              </Text>
+            )}
           </Pressable>
         </Animated.View>
 
@@ -827,7 +740,7 @@ export default function HomeScreen() {
       style={{ paddingTop: insets.top - 10 }}
       className="flex-row items-center justify-between px-4 bg-transparent z-10 mt-2 pb-2"
     >
-      <View className="flex-row items-center py-2 gap-2 flex-1 min-w-0 mr-2">
+      <View className="flex-row items-center py-2 gap-1 flex-1 min-w-0 mr-2">
         <Pressable onPress={() => navigation.openDrawer()} accessibilityRole="button" accessibilityLabel="Open menu">
           {/* mockup .av.ring-student: box-shadow 0 0 0 2px card, 0 0 0 4px student.
               RN has no spread shadow, so the two rings are a 2px card-coloured
@@ -835,7 +748,7 @@ export default function HomeScreen() {
           <View className="rounded-full border-2 border-brand-500 bg-card" style={{ padding: 2 }}>
             <ExpoImage
               source={{ uri: getFullUrl(profileImage) || `https://ui-avatars.com/api/?name=${user?.username}&background=random&color=fff` }}
-              style={{ width: 34, height: 34, borderRadius: 999 }}
+              style={{ width: 30, height: 30, borderRadius: 999 }}
               cachePolicy="disk"
             />
           </View>

@@ -183,11 +183,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
     const [commentCount, setCommentCount] = useState(0);
     const [isCommentModalVisible, setCommentModalVisible] = useState(false);
     
-    // Post Voting State
-    const [vote, setVote] = useState<'up' | 'down' | null>(null);
-    const [score, setScore] = useState(0);
-
-    // Shorts Like State (Shorts still use Likes)
+    // Like state. Posts and shorts share it — both are a single like now.
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(0);
 
@@ -294,16 +290,8 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                 const fetchedData = isShort ? res.data.short : res.data.post;
                 setData(fetchedData);
                 
-                if (!isShort) {
-                    setScore(fetchedData.score || fetchedData.likes || 0);
-                    setVote(
-                        fetchedData.upvoted_by?.includes(currentUser?._id) ? 'up' : 
-                        fetchedData.downvoted_by?.includes(currentUser?._id) ? 'down' : null
-                    );
-                } else {
-                    setLikeCount(fetchedData.likes || 0);
-                    setIsLiked(fetchedData.liked_by?.some((id: any) => String(id) === String(currentUser?._id)));
-                }
+                setLikeCount(fetchedData.likes || 0);
+                setIsLiked(!!fetchedData.liked_by?.some((id: any) => String(id) === String(currentUser?._id)));
 
                 setCommentCount(fetchedData.comments?.length || 0);
                 if (isShort && endpoints.view) axios.post(endpoints.view);
@@ -315,31 +303,6 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             setLoading(false);
         }
     }, [id, isShort, currentUser?._id, endpoints.get, endpoints.view]);
-
-    const handleVote = useCallback(async (type: 'up' | 'down') => {
-        const prevVote = vote;
-        const prevScore = score;
-        let newVote: 'up' | 'down' | null = type;
-        let scoreDelta = 0;
-
-        if (prevVote === type) {
-            newVote = null;
-            scoreDelta = type === 'up' ? -1 : 1;
-        } else {
-            if (prevVote === null) scoreDelta = type === 'up' ? 1 : -1;
-            else scoreDelta = type === 'up' ? 2 : -2;
-        }
-
-        setVote(newVote);
-        setScore(prevScore + scoreDelta);
-
-        try {
-            await axios.post(`/post/vote/${id}`, { type: newVote });
-        } catch (error) {
-            setVote(prevVote);
-            setScore(prevScore);
-        }
-    }, [vote, score, id]);
 
     const handleLike = useCallback(async () => {
         const previousLiked = isLiked;
@@ -554,17 +517,10 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                         </View>
 
                         <View className="px-3 pt-3 flex-row items-center gap-3">
-                            <View className="flex-row items-center bg-paper-2 rounded-full px-1 py-0.5">
-                                <Pressable onPress={() => handleVote('up')} className="p-1.5">
-                                    <Ionicons name={vote === 'up' ? "arrow-up" : "arrow-up-outline"} size={22} color={vote === 'up' ? "#F97316" : "#57534E"} />
-                                </Pressable>
-                                <Text className={`font-semibold text-sm px-1 min-w-[20px] text-center ${vote === 'up' ? 'text-brand-500' : vote === 'down' ? 'text-fam-career' : 'text-ink-3'}`}>
-                                    {score === 0 ? 'Vote' : score}
-                                </Text>
-                                <Pressable onPress={() => handleVote('down')} className="p-1.5">
-                                    <Ionicons name={vote === 'down' ? "arrow-down" : "arrow-down-outline"} size={22} color={vote === 'down' ? "#7193FF" : "#57534E"} />
-                                </Pressable>
-                            </View>
+                            <TouchableOpacity onPress={handleLike} className="flex-row items-center bg-paper-2 rounded-full px-3 py-2">
+                                <Ionicons name={isLiked ? "thumbs-up" : "thumbs-up-outline"} size={20} color={isLiked ? C.brand[600] : C.ink2} />
+                                <Text className={`font-semibold text-xs ml-1.5 ${isLiked ? 'text-accent-text' : 'text-ink-3'}`}>{likeCount}</Text>
+                            </TouchableOpacity>
                             <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="flex-row items-center bg-paper-2 rounded-full px-3 py-2">
                                 <Ionicons name="chatbubble-outline" size={20} color={C.ink2} />
                                 <Text className="text-ink-3 font-semibold text-xs ml-1.5">{commentCount}</Text>
