@@ -275,7 +275,10 @@ const MAX_CHAR_LIMIT = 150;
             )}
           </Pressable>
           <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })} className="ml-2 flex-row items-center">
-            <Text className="font-semibold text-sm text-ink">{item.user?.username || "Unknown"}</Text>
+            <View className=''>
+              <Text className="font-semibold text-sm text-ink">{item.user?.name || "Unknown"}</Text>
+              <Text className="font-semibold text-sm text-ink">{item.user?.username || "Unknown"}</Text>
+            </View>
             <Text className="text-ink-3 text-sm mx-1">·</Text>
             <Text className="text-ink-3 text-sm">{timeAgo(item.createdAt)}</Text>
           </Pressable>
@@ -386,7 +389,7 @@ const MAX_CHAR_LIMIT = 150;
           then the controls. */}
       {!!item.description && (
         <View className="mb-3 px-3">
-          <Text className="font-sans text-base text-ink-2">
+          <Text className="font-sans text-sm text-ink-2">
             {isExpanded || (item.description?.length || 0) <= MAX_CHAR_LIMIT
               ? item.description
               : `${item.description?.slice(0, MAX_CHAR_LIMIT)}...`}
@@ -402,16 +405,10 @@ const MAX_CHAR_LIMIT = 150;
       )}
 
       {/* Action Bar (Reddit Style Pills) */}
-      <View className="flex-row items-center gap-2 px-3">
-        {/* The action row. Flat on the page like Instagram's: no chrome, ink
-            icons at full strength carry the affordance.
-
-            The vote fill is a layer underneath rather than a background on the
-            button, which is what lets it slide between the two positions and
-            change colour on the way. */}
+      <View className="flex-row items-center gap-1 px-3">
         <Animated.View
           style={{ transform: [{ scale: springValue }] }}
-          className="flex-row items-center rounded-full overflow-hidden"
+          className="flex-row items-center border rounded-full overflow-hidden"
         >
           <Animated.View
             pointerEvents="none"
@@ -444,7 +441,7 @@ const MAX_CHAR_LIMIT = 150;
             accessibilityLabel="Upvote"
             accessibilityState={{ selected: vote === 'up' }}
           >
-            <Ionicons name={vote === 'up' ? 'arrow-up' : 'arrow-up-outline'} size={16} color={C.ink} />
+            <Ionicons name={vote === 'up' ? 'arrow-up' : 'arrow-up-outline'} size={20} color={C.ink} />
           </Pressable>
 
           <Text
@@ -466,7 +463,7 @@ const MAX_CHAR_LIMIT = 150;
             {/* White on ink once the fill arrives underneath it. */}
             <Ionicons
               name={vote === 'down' ? 'arrow-down' : 'arrow-down-outline'}
-              size={16}
+              size={20}
               color={vote === 'down' ? '#FFFFFF' : '#12100E'}
             />
           </Pressable>
@@ -474,12 +471,12 @@ const MAX_CHAR_LIMIT = 150;
 
         <Pressable
           onPress={() => openComments(item._id)}
-          className="flex-row items-center rounded-full px-2.5"
+          className="flex-row items-center rounded-full px-1.5"
           style={{ minHeight: 30 }}
           accessibilityRole="button"
           accessibilityLabel={`${displayCommentCount} comments`}
         >
-          <Ionicons name="chatbubble-outline" size={14} color={C.ink} />
+          <Ionicons name="chatbubble-outline" size={20} color={C.ink} />
           <Text className="font-display text-ink ml-1.5" style={{ fontSize: 12 }}>
             {formatCount(displayCommentCount)}
           </Text>
@@ -490,13 +487,13 @@ const MAX_CHAR_LIMIT = 150;
         {item.user?._id !== currentUser?._id && (
           <Pressable
             onPress={handleRepost}
-            className={`flex-row items-center rounded-full px-2.5 ${reposted ? 'bg-brand-500' : ''}`}
+            className={`flex-row items-center rounded-full px-1.5 ${reposted ? 'bg-brand-500' : ''}`}
             style={{ minHeight: 30 }}
             accessibilityRole="button"
             accessibilityState={{ selected: !!reposted }}
             accessibilityLabel={reposted ? 'Remove your repost' : 'Repost this'}
           >
-            <Ionicons name={reposted ? 'repeat' : 'repeat-outline'} size={15} color={C.ink} />
+            <Ionicons name={reposted ? 'repeat' : 'repeat-outline'} size={20} color={C.ink} />
             {repostCount > 0 && (
               <Text className="font-display text-ink ml-1.5" style={{ fontSize: 12 }}>
                 {formatCount(repostCount)}
@@ -507,13 +504,12 @@ const MAX_CHAR_LIMIT = 150;
 
         <Pressable
           onPress={handleShare}
-          className="flex-row items-center rounded-full px-2.5"
+          className="flex-row items-center rounded-full px-1.5"
           style={{ minHeight: 30 }}
           accessibilityRole="button"
           accessibilityLabel="Share this post"
         >
-          <Ionicons name="paper-plane-outline" size={14} color={C.ink} />
-          <Text className="font-display text-ink ml-1.5" style={{ fontSize: 12 }}>Share</Text>
+          <Ionicons name="paper-plane-outline" size={20} color={C.ink} />
         </Pressable>
 
         <View className="flex-1" />
