@@ -48,6 +48,7 @@ import { dedupedGet } from '../utils/batchRequest';
 import socket from '../utils/socket';
 import { Alert } from './ui/AlertModal';
 import CommentsSheet from './ui/CommentsSheet';
+import RepostModal from './ui/RepostModal';
 import { C } from '../constants/colors';
 
 const { width } = Dimensions.get('window');
@@ -82,6 +83,8 @@ interface Post {
   views?: number;
   comments: any[];
   commentCount?: number;
+  /** Present when this row is in the feed because someone reposted it. */
+  repostMeta?: { user?: { _id?: string; name?: string; username?: string; avatar?: string }; text?: string; createdAt?: string };
   college?: string;
 }
 
@@ -91,7 +94,7 @@ interface Post {
 /** Instagram/LinkedIn feed: the card is edge-to-edge, so media spans the full
  *  screen width and only the text rows carry a horizontal inset. */
 
-const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost }: { item: Post, index: number, currentUser: any, openComments: (id: string) => void, onDeletePost: (id: string) => void }) => {
+const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost, onRequestRepost }: { item: Post, index: number, currentUser: any, openComments: (id: string) => void, onDeletePost: (id: string) => void, onRequestRepost: (item: Post, confirm: (text: string) => Promise<void>) => void }) => {
   const { width } = useWindowDimensions();
   const mediaWidth = width;
   const [liked, setLiked] = useState(
@@ -111,7 +114,10 @@ const MAX_CHAR_LIMIT = 150;
 
   const navigation = useNavigation<any>();
 
-  const displayCommentCount = item.commentCount || item.comments?.length || 0;
+  const displayCommentCount = item.commentCount ?? item.comments?.length ?? 0;
+  // The feed carries one populated comment per post; anything unpopulated is
+  // still a bare ObjectId, which has no text to show.
+  const topComment = item.comments?.find((c: any) => c && typeof c === 'object' && c.text);
   const images = item.image || [];
 
   const animatePress = () => {
@@ -156,14 +162,14 @@ const MAX_CHAR_LIMIT = 150;
    * so two devices sharing at once cannot leave this showing a number the
    * database never held.
    */
-  const handleRepost = async () => {
+  const handleRepost = async (text = '') => {
     const prevReposted = reposted;
     const prevCount = repostCount;
     setReposted(!prevReposted);
     setRepostCount(prevReposted ? Math.max(0, prevCount - 1) : prevCount + 1);
 
     try {
-      const res = await axios.post(`/post/repost/${item._id}`);
+      const res = await axios.post(`/post/repost/${item._id}`, { text });
       if (res.data?.success) {
         setReposted(res.data.reposted);
         setRepostCount(res.data.reposts);
@@ -211,6 +217,19 @@ const MAX_CHAR_LIMIT = 150;
 
   return (
     <View className="py-3">
+      {/* Why this post is in the feed at all: someone you follow shared it. */}
+      {!!item.repostMeta && (
+        <View className="flex-row items-center mb-2 px-3">
+          <Ionicons name="repeat" size={14} color={C.ink3} />
+          <Text className="text-ink-3 text-xs ml-1.5" numberOfLines={1}>
+            <Text className="font-semibold">
+              {item.repostMeta.user?.name || item.repostMeta.user?.username || 'Someone'}
+            </Text>
+            {' reposted this'}
+          </Text>
+        </View>
+      )}
+
       {/* Top Header Row (Reddit Style) */}
       <View className="flex-row items-center justify-between mb-3 px-3">
         <View className="flex-row items-center">
@@ -286,6 +305,12 @@ const MAX_CHAR_LIMIT = 150;
         </Pressable>
       </View>
 
+      {!!item.repostMeta?.text && (
+        <View className="mb-3 px-3">
+          <Text className="font-sans text-base text-ink">{item.repostMeta.text}</Text>
+        </View>
+      )}
+
       {/* Media (Full Width) */}
       {!!item.image?.length && (
       <View className="relative mb-3">
@@ -347,7 +372,7 @@ const MAX_CHAR_LIMIT = 150;
           </Text>
           {(item.description?.length || 0) > MAX_CHAR_LIMIT && (
             <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} className="mt-1">
-              <Text className="text-accent-text font-semibold">
+              <Text className="text-black font-semibold text-sm">
                 {isExpanded ? 'Show Less' : 'Show More'}
               </Text>
             </TouchableOpacity>
@@ -401,7 +426,7 @@ const MAX_CHAR_LIMIT = 150;
             the control would only produce an error. */}
         {item.user?._id !== currentUser?._id && (
           <Pressable
-            onPress={handleRepost}
+            onPress={() => (reposted ? handleRepost() : onRequestRepost(item, handleRepost))}
             className={`flex-row items-center rounded-full px-1`}
             style={{ minHeight: 30 }}
             accessibilityRole="button"
@@ -430,6 +455,29 @@ const MAX_CHAR_LIMIT = 150;
         <View className="flex-1" />
 
       </View>
+
+      {/* Newest comment, LinkedIn style: the conversation is visible from the
+          feed, and the whole block opens the sheet. */}
+      {!!topComment && (
+        <Pressable onPress={() => openComments(item._id)} className="mt-3 px-3">
+          <View className="flex-row">
+            <Avatar user={topComment.commentor as any} size={24} />
+            <View className="ml-2 flex-1">
+              <Text className="font-semibold text-sm text-ink">
+                {topComment.commentor?.name || topComment.commentor?.username || 'Someone'}
+              </Text>
+              <Text className="font-sans text-sm text-ink-2 mt-0.5" numberOfLines={2}>
+                {topComment.text}
+              </Text>
+            </View>
+          </View>
+          {displayCommentCount > 1 && (
+            <Text className="font-semibold text-sm text-ink-3 mt-2 ml-8">
+              See {formatCount(displayCommentCount - 1)} more {displayCommentCount === 2 ? 'comment' : 'comments'}
+            </Text>
+          )}
+        </Pressable>
+      )}
     </View>
   );
 });
@@ -642,37 +690,35 @@ export default function HomeScreen() {
     fetchBadges();
   }, []);
 
+  /**
+   * The repost sheet is owned by the screen, not by the row.
+   *
+   * A modal rendered inside a recycled list row is unmounted the moment the row
+   * scrolls out from under it, which on Android leaves the dimmed window behind
+   * with nothing left to dismiss it. The row hands up its own confirm handler
+   * so the toggle state stays where it belongs.
+   */
+  const [repostTarget, setRepostTarget] = useState<{ item: Post; confirm: (text: string) => Promise<void> } | null>(null);
+
+  const handleRequestRepost = useCallback((item: Post, confirm: (text: string) => Promise<void>) => {
+    setRepostTarget({ item, confirm });
+  }, []);
+
   const handleOpenComments = useCallback((postId: string) => {
     setSelectedPostId(postId);
     setCommentModalVisible(true);
   }, []);
 
-  const handleCommentAddedInModal = useCallback((postId: string, newComment: any) => {
-    setFeed((currentFeed) =>
-      currentFeed.map((post) => {
-        if (post._id === postId) {
-          const currentCount = post.commentCount || post.comments?.length || 0;
-          return {
-            ...post,
-            comments: post.comments ? [newComment, ...post.comments] : [newComment],
-            commentCount: currentCount + 1
-          };
-        }
-        return post;
-      })
-    );
-  }, []);
-
   /**
-   * Set a post's comment count to the number the server actually returned.
-   *
-   * Distinct from handleCommentAddedInModal, which prepends a comment and adds
-   * one. Passing a count into that path inflated the badge on every refetch.
+   * Set a post's comment count — and its previewed comment — to what the server
+   * actually returned, so posting from the sheet updates the row behind it.
    */
-  const handleCommentCount = useCallback((postId: string, count: number) => {
+  const handleCommentCount = useCallback((postId: string, count: number, newest?: any) => {
     setFeed((currentFeed) =>
       currentFeed.map((post) =>
-        post._id === postId ? { ...post, commentCount: count } : post,
+        post._id === postId
+          ? { ...post, commentCount: count, comments: newest ? [newest] : [] }
+          : post,
       ),
     );
   }, []);
@@ -729,9 +775,10 @@ export default function HomeScreen() {
         currentUser={user}
         openComments={handleOpenComments}
         onDeletePost={handleDeletePost}
+        onRequestRepost={handleRequestRepost}
       />
     );
-  }, [user, handleOpenComments, handleDeletePost]);
+  }, [user, handleOpenComments, handleDeletePost, handleRequestRepost]);
 
 
 
@@ -973,6 +1020,16 @@ export default function HomeScreen() {
         currentUser={user}
         onCountChange={handleCommentCount}
       />
+
+      {!!repostTarget && (
+        <RepostModal
+          visible
+          onClose={() => setRepostTarget(null)}
+          onConfirm={repostTarget.confirm}
+          author={repostTarget.item.user}
+          preview={repostTarget.item.description}
+        />
+      )}
 
       <StreakLeaderboardModal 
         isVisible={showLeaderboard} 

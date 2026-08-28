@@ -16,6 +16,7 @@ import { getFullUrl } from '../utils/imageUtils';
 import { Alert } from './ui/AlertModal';
 import { useBottomInset } from '../constants/layout';
 import CommentsSheet from './ui/CommentsSheet';
+import RepostModal from './ui/RepostModal';
 import { C } from '../constants/colors';
 
 const { width, height } = Dimensions.get('window');
@@ -27,6 +28,7 @@ const getEndpoints = (isShort: boolean, id: string) => ({
     get: isShort ? `/shorts/individual/${id}` : `/post/individual/${id}`,
     like: isShort ? `/shorts/like/${id}` : `/post/like/${id}`,
     view: isShort ? `/shorts/views/${id}` : null,
+    repost: isShort ? `/shorts/repost/${id}` : `/post/repost/${id}`,
     getComments: isShort ? `/shorts/comments/${id}` : `/post/comment/${id}`,
     addComment: isShort ? `/shorts/comment/${id}` : `/post/comment/${id}`,
     updateComment: isShort ? `/shorts/comment/update` : `/post/comment/update`,
@@ -187,6 +189,10 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(0);
 
+    const [reposted, setReposted] = useState(false);
+    const [repostCount, setRepostCount] = useState(0);
+    const [repostModalOpen, setRepostModalOpen] = useState(false);
+
     // UI State
     const [resizeMode, setResizeMode] = useState(false);
     const [showFullText, setShowFullText] = useState(false);
@@ -292,6 +298,8 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                 
                 setLikeCount(fetchedData.likes || 0);
                 setIsLiked(!!fetchedData.liked_by?.some((id: any) => String(id) === String(currentUser?._id)));
+                setRepostCount(fetchedData.reposts || 0);
+                setReposted(!!fetchedData.repostedBy?.some((u: any) => String(u) === String(currentUser?._id)));
 
                 setCommentCount(fetchedData.comments?.length || 0);
                 if (isShort && endpoints.view) axios.post(endpoints.view);
@@ -318,6 +326,31 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             setLikeCount(previousCount);
         }
     }, [isLiked, likeCount, endpoints.like]);
+
+    /**
+     * Repost, one tap. Optimistic, then reconciled from the count the server
+     * settled on, so two devices sharing at once cannot leave a number here
+     * that the database never held.
+     */
+    const handleRepost = useCallback(async (text = '') => {
+        const prevReposted = reposted;
+        const prevCount = repostCount;
+        setReposted(!prevReposted);
+        setRepostCount(prevReposted ? Math.max(0, prevCount - 1) : prevCount + 1);
+
+        try {
+            const res = await axios.post(endpoints.repost, { text });
+            if (res.data?.success) {
+                setReposted(res.data.reposted);
+                setRepostCount(res.data.reposts);
+            }
+        } catch (err: any) {
+            setReposted(prevReposted);
+            setRepostCount(prevCount);
+            const msg = err?.response?.data?.message;
+            if (msg) Toast.show({ type: 'info', text1: msg });
+        }
+    }, [reposted, repostCount, endpoints.repost]);
 
     const handleCommentAdded = useCallback(() => {
         setCommentCount(prev => prev + 1);
@@ -525,6 +558,16 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 <Ionicons name="chatbubble-outline" size={20} color={C.ink2} />
                                 <Text className="text-ink-3 font-semibold text-xs ml-1.5">{commentCount}</Text>
                             </TouchableOpacity>
+                            {/* Hidden on your own post: the endpoint refuses it,
+                                so the control could only produce an error. */}
+                            {data.user?._id !== currentUser?._id && (
+                                <TouchableOpacity onPress={() => (reposted ? handleRepost() : setRepostModalOpen(true))} className="flex-row items-center bg-paper-2 rounded-full px-3 py-2">
+                                    <Ionicons name={reposted ? "repeat" : "repeat-outline"} size={20} color={reposted ? C.brand[600] : C.ink2} />
+                                    {repostCount > 0 && (
+                                        <Text className={`font-semibold text-xs ml-1.5 ${reposted ? 'text-accent-text' : 'text-ink-3'}`}>{repostCount}</Text>
+                                    )}
+                                </TouchableOpacity>
+                            )}
                             <TouchableOpacity onPress={handleShare} className="flex-row items-center bg-paper-2 rounded-full px-3 py-2">
                                 <Ionicons name="paper-plane-outline" size={20} color={C.ink2} />
                                 <Text className="text-ink-3 font-semibold text-xs ml-1.5">Share</Text>
@@ -797,6 +840,16 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                 currentUser={currentUser}
                 onCountChange={handleCommentCount}
             />
+
+            {repostModalOpen && (
+                <RepostModal
+                    visible
+                    onClose={() => setRepostModalOpen(false)}
+                    onConfirm={handleRepost}
+                    author={data?.user}
+                    preview={data?.description}
+                />
+            )}
         </>
     );
 };

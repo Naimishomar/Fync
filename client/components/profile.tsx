@@ -402,6 +402,9 @@ function Profile() {
   const [refreshing, setRefreshing] = useState(false);
   const [postsPage, setPostsPage] = useState(1);
   const [shortsPage, setShortsPage] = useState(1);
+  // The header shows how many posts exist, not how many have been scrolled
+  // into the grid — the first page is 12, which read as a cap.
+  const [postCount, setPostCount] = useState<number | null>(null);
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const [hasMoreShorts, setHasMoreShorts] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -425,6 +428,7 @@ function Profile() {
       if (res.data.success) {
         setPosts(prev => isInitial ? res.data.posts : [...prev, ...res.data.posts.filter((p: any) => !prev.some(e => e._id === p._id))]);
         setHasMorePosts(res.data.hasMore); setPostsPage(page);
+        if (typeof res.data.total === 'number') setPostCount(res.data.total);
         if (isInitial) {
           prefetchPostImages(res.data.posts);
           writeCache(userKey(user?._id, 'profile_posts'), res.data.posts);
@@ -493,6 +497,7 @@ function Profile() {
       setPosts(postsBody.posts || []);
       setHasMorePosts(postsBody.hasMore);
       setPostsPage(1);
+      if (typeof postsBody.total === 'number') setPostCount(postsBody.total);
       prefetchPostImages(postsBody.posts || []);
       writeCache(userKey(user?._id, 'profile_posts'), postsBody.posts || []);
     }
@@ -608,7 +613,7 @@ function Profile() {
         {/* Stats Dashboard */}
         <View className="flex-row w-full bg-ink rounded-sheet mt-6 p-6 shadow-hair">
           {[
-            { label: 'Posts', value: posts.length },
+            { label: 'Posts', value: postCount ?? posts.length },
             { label: 'Followers', value: user?.followers?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user._id, type: 'followers' }) },
             { label: 'Following', value: user?.following?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user._id, type: 'following' }) },
           ].map((s, i) => (

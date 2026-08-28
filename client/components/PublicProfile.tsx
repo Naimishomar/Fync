@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View, Text, Image, Pressable, ScrollView, Dimensions,
     ActivityIndicator, Modal, Linking, FlatList, TouchableOpacity
@@ -96,8 +96,14 @@ const PublicProfile = () => {
         setIsFollowing(profileUser.followers?.includes(currentUser._id) || false);
     }, [currentUser, profileUser]);
 
+    // The endpoint pages by cursor, not by page number — passing `page` to it
+    // returned the same first twelve posts forever, so scrolling never grew
+    // the grid.
+    const postsCursor = useRef<string | null>(null);
     const [postsPage, setPostsPage] = useState(1);
     const [shortsPage, setShortsPage] = useState(1);
+    // How many posts they have, not how many are loaded into the grid.
+    const [postCount, setPostCount] = useState<number | null>(null);
     const [hasMorePosts, setHasMorePosts] = useState(true);
     const [hasMoreShorts, setHasMoreShorts] = useState(true);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -112,6 +118,7 @@ const PublicProfile = () => {
             setPosts([]);
             setShorts([]);
             setPostsPage(1);
+            postsCursor.current = null;
             setShortsPage(1);
             setHasMorePosts(true);
             setHasMoreShorts(true);
@@ -144,9 +151,11 @@ const PublicProfile = () => {
     const fetchUserPosts = async (uid: string, page = 1, isInitial = false) => {
         try {
             setIsFetchingMore(true);
-            const res = await axios.get(`/post/feed/${uid}?page=${page}&limit=12`);
+            const cursor = page > 1 ? postsCursor.current : null;
+            const res = await axios.get(`/post/feed/${uid}?limit=12${cursor ? `&cursor=${cursor}` : ''}`);
             if (res.data.success) {
                 const newPosts = res.data.posts || [];
+                postsCursor.current = res.data.nextCursor ?? null;
                 setPosts(prev => {
                     if (isInitial) return newPosts;
                     const existingIds = new Set(prev.map(p => p._id));
@@ -155,6 +164,7 @@ const PublicProfile = () => {
                 });
                 setHasMorePosts(res.data.hasMore === true);
                 setPostsPage(page);
+                if (typeof res.data.total === 'number') setPostCount(res.data.total);
             }
         } catch (error) {
             console.log("Error fetching posts:", error);
@@ -624,7 +634,7 @@ const PublicProfile = () => {
                             {/* Stats Dashboard */}
                             <View className="flex-row w-full bg-ink rounded-sheet mt-6 p-6 shadow-hair">
                                 {[
-                                    { label: 'Posts', value: posts.length },
+                                    { label: 'Posts', value: postCount ?? posts.length },
                                     { label: 'Followers', value: profileUser?.followers?.length || 0, onPress: () => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "followers" }) },
                                     { label: 'Following', value: profileUser?.following?.length || 0, onPress: () => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "following" }) },
                                 ].map((s, i) => (

@@ -28,6 +28,7 @@
  */
 
 import redisClient from './redis.js';
+import { withTopComment } from './comments.js';
 import { GoogleGenAI } from '@google/genai';
 import { GEMINI_MODEL } from './geminiModel.js';
 
@@ -87,10 +88,16 @@ export async function getCandidatePool(PostModel, poolSize = 150) {
         .sort({ createdAt: -1 })
         .limit(poolSize)
         .populate('user', 'name username avatar user_access')
+        .populate({
+            path: 'comments',
+            select: 'text commentor createdAt',
+            populate: { path: 'commentor', select: 'name username avatar' }
+        })
         .lean();   // .lean() = plain JS objects, much faster than Mongoose docs
 
-    await rSet(cacheKey, JSON.stringify(posts), CANDIDATE_POOL_TTL);
-    return posts;
+    const trimmed = withTopComment(posts);
+    await rSet(cacheKey, JSON.stringify(trimmed), CANDIDATE_POOL_TTL);
+    return trimmed;
 }
 
 /**

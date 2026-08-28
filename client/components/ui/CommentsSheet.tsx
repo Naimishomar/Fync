@@ -39,7 +39,9 @@ export interface CommentsSheetProps {
   targetId: string | null;
   currentUser: any;
   /** Told when the count changes, so a feed can update its label. */
-  onCountChange?: (targetId: string, count: number) => void;
+  /** Fires with the server's count and its newest comment, so a feed row can
+   *  refresh both its badge and the comment it previews. */
+  onCountChange?: (targetId: string, count: number, newest?: any) => void;
 }
 
 interface CommentModel {
@@ -103,7 +105,8 @@ export default function CommentsSheet({
       const res = await axios.get(ENDPOINTS[resource](targetId));
       const list = res.data.comments ?? [];
       setComments(list);
-      onCountChangeRef.current?.(targetId, list.length);
+      // The list arrives newest-first, so the preview is the head of it.
+      onCountChangeRef.current?.(targetId, list.length, list[0]);
     } catch {
       // Leaves whatever was already on screen rather than blanking it.
     } finally {

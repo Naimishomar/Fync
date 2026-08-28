@@ -21,6 +21,7 @@ import {
 import { useTabBarClearance } from '../constants/layout';
 import { Alert } from './ui/AlertModal';
 import CommentsSheet from './ui/CommentsSheet';
+import RepostModal from './ui/RepostModal';
 import YouTubeShort from './YouTubeShort';
 import { C } from '../constants/colors';
 
@@ -400,6 +401,8 @@ export default function Shorts() {
   const [loading, setLoading] = useState(globalShortsCache.length === 0);
 
   const [commentModalVisible, setCommentModalVisible] = useState(false);
+  /** The short awaiting repost confirmation, or null. */
+  const [repostTarget, setRepostTarget] = useState<ShortItem | null>(null);
   const [activeShortId, setActiveShortId] = useState<string | null>(null);
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -549,7 +552,7 @@ export default function Shorts() {
    * swiping a feed should never have to read an error code.
    */
   /** Reference-style: the short surfaces on your profile, credited to its author. */
-  const handleRepost = useCallback(async (short: ShortItem) => {
+  const handleRepost = useCallback(async (short: ShortItem, text = '') => {
     const mine = short.repostedBy?.some((u) => String(u) === String(currentUserId));
     // Applied locally first so the icon responds to the tap, then corrected
     // from whatever the server actually stored.
@@ -570,7 +573,7 @@ export default function Shorts() {
     apply(!mine, Math.max(0, (short.reposts ?? 0) + (mine ? -1 : 1)));
 
     try {
-      const res = await axios.post(`/shorts/repost/${short._id}`);
+      const res = await axios.post(`/shorts/repost/${short._id}`, { text });
       if (res.data?.success) apply(res.data.reposted, res.data.reposts);
     } catch (err: any) {
       apply(!!mine, short.reposts ?? 0);
@@ -716,7 +719,11 @@ export default function Shorts() {
         currentUserId={currentUserId}
         navigation={navigation}
         onLike={toggleLike}
-        onRepost={handleRepost}
+        onRepost={(short: ShortItem) =>
+          short.repostedBy?.some((u) => String(u) === String(currentUserId))
+            ? handleRepost(short)
+            : setRepostTarget(short)
+        }
         onComment={openComments}
         onDelete={deleteShort}
       />
@@ -765,6 +772,16 @@ export default function Shorts() {
         targetId={activeShortId}
         currentUser={user}
       />
+
+      {!!repostTarget && (
+        <RepostModal
+          visible
+          onClose={() => setRepostTarget(null)}
+          onConfirm={(text) => handleRepost(repostTarget, text)}
+          author={repostTarget.user}
+          preview={repostTarget.description || repostTarget.title}
+        />
+      )}
     </>
   );
 }

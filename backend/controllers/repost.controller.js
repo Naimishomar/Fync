@@ -11,8 +11,10 @@ import Post from "../models/post.model.js";
 import Shorts from "../models/shorts.model.js";
 import User from "../models/user.model.js";
 import Notification from "../models/notification.model.js";
+import Repost from "../models/repost.model.js";
 
 const MODELS = { post: Post, shorts: Shorts };
+const POST_TYPES = { post: "Post", shorts: "Shorts" };
 
 /**
  * Toggle a repost.
@@ -23,6 +25,9 @@ const MODELS = { post: Post, shorts: Shorts };
 export const toggleRepost = (kind) => async (req, res) => {
   const Model = MODELS[kind];
   const { id } = req.params;
+  // What the reposter added, LinkedIn style. Optional: sharing without a word
+  // is the common case.
+  const text = typeof req.body?.text === "string" ? req.body.text.trim().slice(0, 1000) : "";
 
   if (!mongoose.isValidObjectId(id)) {
     return res.status(400).json({ success: false, message: "Unknown item." });
@@ -58,6 +63,19 @@ export const toggleRepost = (kind) => async (req, res) => {
       return res.status(200).json({ success: true, reposted: !already, reposts: current?.reposts ?? 0 });
     }
 
+    // The row carries the commentary and the time; the array on the post stays
+    // the membership check. Both directions are idempotent, so a repeated tap
+    // cannot leave one of them describing something the other does not.
+    if (already) {
+      await Repost.deleteOne({ post: id, user: req.user.id }).catch(() => {});
+    } else {
+      await Repost.updateOne(
+        { post: id, user: req.user.id },
+        { $set: { postType: POST_TYPES[kind], text }, $setOnInsert: { user: req.user.id, post: id } },
+        { upsert: true },
+      ).catch(() => {});
+    }
+
     if (!already) {
       const actor = await User.findById(req.user.id).select("name username").lean();
       Notification.create({
@@ -90,11 +108,20 @@ export const getReposts = (kind) => async (req, res) => {
   }
 
   try {
-    const items = await Model.find({ repostedBy: userId, isPrivate: { $ne: true } })
+    // Sorted by when it was reposted, not when it was written: the tab is a
+    // record of what this student shared, in the order they shared it.
+    const rows = await Repost.find({ user: userId, postType: POST_TYPES[kind] })
       .sort({ createdAt: -1 })
       .limit(50)
-      .populate("user", "name username avatar user_access")
+      .populate({
+        path: "post",
+        populate: { path: "user", select: "name username avatar user_access" },
+      })
       .lean();
+
+    const items = rows
+      .filter((row) => row.post && row.post.isPrivate !== true)
+      .map((row) => ({ ...row.post, repostText: row.text, repostedAt: row.createdAt }));
 
     return res.status(200).json({ success: true, [kind]: items });
   } catch (error) {

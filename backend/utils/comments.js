@@ -32,3 +32,20 @@ export const getCommentThread = async (postId, postType, { limit = 100 } = {}) =
     replies: repliesByParent.get(String(comment._id)) || [],
   }));
 };
+
+/**
+ * The feed shows one comment under each post, LinkedIn style.
+ *
+ * Every comment on 150 posts would be the largest thing in the cached pool and
+ * the response, and the client renders exactly one of them — so the row keeps
+ * the newest comment and a count, and the sheet fetches the rest on open.
+ */
+export function withTopComment(posts) {
+    return posts.map((post) => {
+        const comments = post.comments ?? [];
+        const newest = [...comments]
+            .sort((a, b) => new Date(a?.createdAt || 0) - new Date(b?.createdAt || 0))
+            .slice(-1);
+        return { ...post, commentCount: comments.length, comments: newest };
+    });
+}

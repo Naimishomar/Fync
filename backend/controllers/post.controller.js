@@ -11,7 +11,8 @@ import { getCandidatePool, getUserInterestProfile, rankFeed, invalidatePool, get
 import { clearCacheTags } from '../middlewares/cache.middleware.js';
 
 import { updateStreak } from '../utils/streak.js';
-import { getCommentThread } from "../utils/comments.js";
+import { getCommentThread, withTopComment } from "../utils/comments.js";
+import Repost from '../models/repost.model.js';
 
 export const createPost = async (req, res) => {
     try {
@@ -166,6 +167,7 @@ export const getPosts = async (req, res) => {
             success: true, 
             message: "Posts fetched successfully", 
             posts,
+            total: totalPosts,
             hasMore: skip + posts.length < totalPosts
         });
     } catch (error) {
@@ -573,19 +575,20 @@ export const getFeed = async (req, res) => {
         const { cursor, limit = 10 } = req.query;
         const query = cursor ? { _id: { $lt: cursor }, isPrivate: { $ne: true } } : { isPrivate: { $ne: true } };
 
-        const posts = await Post.find(query)
-            .select("-liked_by -upvoted_by -downvoted_by")
+        const posts = withTopComment(await Post.find(query)
+            .select("-upvoted_by -downvoted_by")
             .sort({ _id: -1 })
             .limit(parseInt(limit))
             .populate("user", "name username avatar")
             .populate({
                 path: "comments",
+                select: "text commentor createdAt",
                 populate: {
                     path: "commentor",
                     select: "name avatar username"
                 }
             })
-            .lean();
+            .lean());
 
         const nextCursor = posts.length > 0 ? posts[posts.length - 1]._id : null;
 
@@ -615,19 +618,29 @@ export const getFollowingPosts = async (req, res) => {
             isPrivate: { $ne: true },
             ...(cursor && { _id: { $lt: cursor } })
         };
-        const posts = await Post.find(query)
-            .select("-liked_by -upvoted_by -downvoted_by")
+        const posts = withTopComment(await Post.find(query)
+            .select("-upvoted_by -downvoted_by")
             .sort({ _id: -1 })
             .limit(parseInt(limit))
             .populate("user", "name username avatar")
-            .lean();
+            .populate({
+                path: "comments",
+                select: "text commentor createdAt",
+                populate: { path: "commentor", select: "name avatar username" }
+            })
+            .lean());
 
         const nextCursor = posts.length > 0 ? posts[posts.length - 1]._id : null;
+
+        // ponytail: reposts ride along on the first page only. Paginating a
+        // merge of two collections needs a compound cursor; until the feed is
+        // long enough for that to matter, the newest shares are enough.
+        const withReposts = cursor ? posts : [...await followedReposts(user.following, posts), ...posts];
 
         res.status(200).json({ 
             success: true, 
             message: "Posts fetched successfully", 
-            posts,
+            posts: withReposts,
             nextCursor,
             hasMore: posts.length === parseInt(limit)
         });
@@ -635,6 +648,40 @@ export const getFollowingPosts = async (req, res) => {
         console.error(error);
         res.status(500).json({ message: "Server error" });
     }
+};
+
+/**
+ * Posts the people you follow have reposted, newest share first.
+ *
+ * Carries `repostMeta` so the row can say who shared it and what they added,
+ * the way LinkedIn shows a repost in the feed. Posts already on the page are
+ * skipped: seeing the same post twice, once on its own and once as a share, is
+ * the failure mode this endpoint had before reposts were rows.
+ */
+const followedReposts = async (following, alreadyShown = []) => {
+    const shownIds = new Set(alreadyShown.map((p) => String(p._id)));
+
+    const rows = await Repost.find({ user: { $in: following }, postType: 'Post' })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .populate('user', 'name username avatar')
+        .populate({
+            path: 'post',
+            populate: [
+                { path: 'user', select: 'name username avatar' },
+                { path: 'comments', select: 'text commentor createdAt', populate: { path: 'commentor', select: 'name avatar username' } },
+            ],
+        })
+        .lean();
+
+    const posts = rows
+        .filter((row) => row.post && row.post.isPrivate !== true && !shownIds.has(String(row.post._id)))
+        .map((row) => ({
+            ...row.post,
+            repostMeta: { user: row.user, text: row.text, createdAt: row.createdAt },
+        }));
+
+    return withTopComment(posts);
 };
 
 export const getPostsByUserId = async (req, res) => {
@@ -646,6 +693,9 @@ export const getPostsByUserId = async (req, res) => {
         if (req.user.id !== userId) {
             query.isPrivate = { $ne: true };
         }
+        // Counted before the cursor narrows it, so the total is the whole
+        // profile rather than what is left below the scroll position.
+        const countQuery = { ...query };
         if (cursor) query._id = { $lt: cursor };
 
         const posts = await Post.find(query)
@@ -657,9 +707,12 @@ export const getPostsByUserId = async (req, res) => {
 
         const nextCursor = posts.length > 0 ? posts[posts.length - 1]._id : null;
 
+        const total = await Post.countDocuments(countQuery);
+
         return res.status(200).json({ 
             success: true, 
             posts,
+            total,
             nextCursor,
             hasMore: posts.length === parseInt(limit) 
         });
@@ -707,14 +760,18 @@ export const getSmartFeed = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
     const simpleFallback = async () => {
-        const posts = await Post.find({ isPrivate: { $ne: true } })
+        const posts = withTopComment(await Post.find({ isPrivate: { $ne: true } })
             .populate('user', 'name username avatar user_access')
-            .populate({ path: 'comments', populate: { path: 'commentor', select: 'name avatar username' } })
-            .select("-liked_by -upvoted_by -downvoted_by")
+            .populate({
+                path: 'comments',
+                select: 'text commentor createdAt',
+                populate: { path: 'commentor', select: 'name avatar username' }
+            })
+            .select("-upvoted_by -downvoted_by")
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
-            .lean();
+            .lean());
         return res.status(200).json({ success: true, posts, hasMore: posts.length >= limit, mode: 'fallback' });
     };
 
