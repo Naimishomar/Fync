@@ -275,9 +275,11 @@ const MAX_CHAR_LIMIT = 150;
             )}
           </Pressable>
           <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })} className="ml-2 flex-row items-center">
-            <View className=''>
-              <Text className="font-semibold text-sm text-ink">{item.user?.name || "Unknown"}</Text>
-              <Text className="font-semibold text-sm text-ink">{item.user?.username || "Unknown"}</Text>
+            <View>
+              {/* Explicit line heights: the default leading on two stacked
+                  14px lines opens a gap wide enough to read as two rows. */}
+              <Text className="font-semibold text-sm text-ink" style={{ lineHeight: 16 }}>{item.user?.name || "Unknown"}</Text>
+              <Text className="text-xs text-ink-3" style={{ lineHeight: 14 }}>{item.user?.username || "Unknown"}</Text>
             </View>
             <Text className="text-ink-3 text-sm mx-1">·</Text>
             <Text className="text-ink-3 text-sm">{timeAgo(item.createdAt)}</Text>
