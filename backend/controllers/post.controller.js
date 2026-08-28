@@ -11,7 +11,7 @@ import { getCandidatePool, getUserInterestProfile, rankFeed, invalidatePool, get
 import { clearCacheTags } from '../middlewares/cache.middleware.js';
 
 import { updateStreak } from '../utils/streak.js';
-import { getCommentThread, withTopComment } from "../utils/comments.js";
+import { getCommentThread, attachTopComments } from "../utils/comments.js";
 import Repost from '../models/repost.model.js';
 
 export const createPost = async (req, res) => {
@@ -585,19 +585,11 @@ export const getFeed = async (req, res) => {
         const { cursor, limit = 10 } = req.query;
         const query = cursor ? { _id: { $lt: cursor }, isPrivate: { $ne: true } } : { isPrivate: { $ne: true } };
 
-        const posts = withTopComment(await Post.find(query)
+        const posts = await attachTopComments(await Post.find(query)
             .select("-upvoted_by -downvoted_by")
             .sort({ _id: -1 })
             .limit(parseInt(limit))
             .populate("user", "name username avatar")
-            .populate({
-                path: "comments",
-                select: "text commentor createdAt",
-                populate: {
-                    path: "commentor",
-                    select: "name avatar username"
-                }
-            })
             .lean());
 
         const nextCursor = posts.length > 0 ? posts[posts.length - 1]._id : null;
@@ -628,16 +620,11 @@ export const getFollowingPosts = async (req, res) => {
             isPrivate: { $ne: true },
             ...(cursor && { _id: { $lt: cursor } })
         };
-        const posts = withTopComment(await Post.find(query)
+        const posts = await attachTopComments(await Post.find(query)
             .select("-upvoted_by -downvoted_by")
             .sort({ _id: -1 })
             .limit(parseInt(limit))
             .populate("user", "name username avatar")
-            .populate({
-                path: "comments",
-                select: "text commentor createdAt",
-                populate: { path: "commentor", select: "name avatar username" }
-            })
             .lean());
 
         const nextCursor = posts.length > 0 ? posts[posts.length - 1]._id : null;
@@ -677,10 +664,7 @@ const followedReposts = async (following, alreadyShown = []) => {
         .populate('user', 'name username avatar')
         .populate({
             path: 'post',
-            populate: [
-                { path: 'user', select: 'name username avatar' },
-                { path: 'comments', select: 'text commentor createdAt', populate: { path: 'commentor', select: 'name avatar username' } },
-            ],
+            populate: { path: 'user', select: 'name username avatar' },
         })
         .lean();
 
@@ -691,7 +675,7 @@ const followedReposts = async (following, alreadyShown = []) => {
             repostMeta: { user: row.user, text: row.text, createdAt: row.createdAt },
         }));
 
-    return withTopComment(posts);
+    return attachTopComments(posts);
 };
 
 export const getPostsByUserId = async (req, res) => {
@@ -770,13 +754,8 @@ export const getSmartFeed = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
     const simpleFallback = async () => {
-        const posts = withTopComment(await Post.find({ isPrivate: { $ne: true } })
+        const posts = await attachTopComments(await Post.find({ isPrivate: { $ne: true } })
             .populate('user', 'name username avatar user_access')
-            .populate({
-                path: 'comments',
-                select: 'text commentor createdAt',
-                populate: { path: 'commentor', select: 'name avatar username' }
-            })
             .select("-upvoted_by -downvoted_by")
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -818,7 +797,7 @@ export const getSmartFeed = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            posts: ranked.items,
+            posts: await attachTopComments(ranked.items),
             hasMore: ranked.hasMore,
             mode: ranked.mode   // 'fresh' | 'recycled'
         });

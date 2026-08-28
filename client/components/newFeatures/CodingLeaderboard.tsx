@@ -55,7 +55,10 @@ export default function CodingLeaderboard() {
             if (res.data.success) {
                 setUser(res.data.user);
                 Alert.alert("Welcome to the Arena!", "Your profile has been connected. Start coding to climb the ranks.");
-                fetchLeaderboard();
+                // No fetch from here: this closure still sees the pre-link
+                // `hasLinkedProfile`, so the call would bail out and leave the
+                // board on skeletons. The effect below runs on the flag itself.
+                setLoading(true);
             }
         } catch (err: any) {
             Alert.alert("Link Failed", err.response?.data?.message || "Something went wrong");
@@ -90,7 +93,14 @@ export default function CodingLeaderboard() {
     };
 
     const fetchLeaderboard = async () => {
-        if (!hasLinkedProfile) return;
+        // Bailing out without clearing `loading` left the board showing its
+        // skeleton for good: the flag starts true, and this is the only thing
+        // that turns it off.
+        if (!hasLinkedProfile) {
+            setLoading(false);
+            setRefreshing(false);
+            return;
+        }
         try {
             if (!refreshing) setLoading(true);
             const res = await axios.get(`/leaderboard?scope=${activeScope}&type=${timeFilter}&search=${search}`);
@@ -154,7 +164,7 @@ export default function CodingLeaderboard() {
         }
     };
 
-    useEffect(() => { fetchLeaderboard(); }, [activeScope, timeFilter]);
+    useEffect(() => { fetchLeaderboard(); }, [activeScope, timeFilter, hasLinkedProfile]);
     useEffect(() => { const t = setTimeout(fetchLeaderboard, 500); return () => clearTimeout(t); }, [search]);
     const onRefresh = () => { setRefreshing(true); fetchLeaderboard(); };
 

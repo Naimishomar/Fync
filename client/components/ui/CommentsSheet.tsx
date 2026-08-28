@@ -105,8 +105,15 @@ export default function CommentsSheet({
       const res = await axios.get(ENDPOINTS[resource](targetId));
       const list = res.data.comments ?? [];
       setComments(list);
+      // Replies count too — the feed row counts every comment on the post, so
+      // reporting only the top-level ones would make the badge drop the moment
+      // the sheet opened.
+      const total = list.reduce(
+        (sum: number, comment: CommentModel) => sum + 1 + (comment.replies?.length ?? 0),
+        0,
+      );
       // The list arrives newest-first, so the preview is the head of it.
-      onCountChangeRef.current?.(targetId, list.length, list[0]);
+      onCountChangeRef.current?.(targetId, total, list[0]);
     } catch {
       // Leaves whatever was already on screen rather than blanking it.
     } finally {

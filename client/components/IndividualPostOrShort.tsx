@@ -282,7 +282,14 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
         try {
             const res = await axios.get(endpoints.getComments);
             if (res.data.success) {
-                setInlineComments(res.data.comments);
+                const list = res.data.comments ?? [];
+                setInlineComments(list);
+                // The post document carries a denormalised `comments` array that
+                // can lag; the thread itself is the count.
+                setCommentCount(list.reduce(
+                    (sum: number, comment: any) => sum + 1 + (comment.replies?.length ?? 0),
+                    0,
+                ));
             }
         } catch (error) {
             console.log("Error loading inline comments", error);

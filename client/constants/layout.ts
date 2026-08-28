@@ -86,6 +86,15 @@ export const hideTabBar = () => {
 const SCROLL_NOISE = 6;
 
 /**
+ * How far you have to keep scrolling down before the bar gives up its place.
+ *
+ * Asymmetric on purpose: hiding is a deliberate "I am reading, get out of the
+ * way", so it takes a real swipe rather than the first few pixels. Showing
+ * stays instant — reaching for the tabs should never need a measured gesture.
+ */
+const HIDE_AFTER = 120;
+
+/**
  * Spread onto any scrollable inside the tab navigator:
  *
  *   <FlashList {...useTabBarAutoHide()} ... />
@@ -96,6 +105,8 @@ const SCROLL_NOISE = 6;
  */
 export const useTabBarAutoHide = () => {
   const lastY = useRef(0);
+  /** Downward pixels since the last time the bar was shown. */
+  const downSince = useRef(0);
 
   useEffect(() => () => showTabBar(), []);
 
@@ -104,6 +115,7 @@ export const useTabBarAutoHide = () => {
   useFocusEffect(
     useCallback(() => {
       lastY.current = 0;
+      downSince.current = 0;
       showTabBar();
     }, []),
   );
@@ -112,9 +124,16 @@ export const useTabBarAutoHide = () => {
     const y = event.nativeEvent.contentOffset.y;
     const delta = y - lastY.current;
 
-    if (y <= 0) showTabBar();
-    else if (delta > SCROLL_NOISE && y > TAB_BAR_HEIGHT) hideTabBar();
-    else if (delta < -SCROLL_NOISE) showTabBar();
+    if (y <= 0) {
+      downSince.current = 0;
+      showTabBar();
+    } else if (delta > SCROLL_NOISE && y > TAB_BAR_HEIGHT) {
+      downSince.current += delta;
+      if (downSince.current >= HIDE_AFTER) hideTabBar();
+    } else if (delta < -SCROLL_NOISE) {
+      downSince.current = 0;
+      showTabBar();
+    }
 
     if (Math.abs(delta) > SCROLL_NOISE) lastY.current = y;
   }, []);

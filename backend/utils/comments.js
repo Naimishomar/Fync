@@ -34,18 +34,52 @@ export const getCommentThread = async (postId, postType, { limit = 100 } = {}) =
 };
 
 /**
- * The feed shows one comment under each post, LinkedIn style.
+ * Attach each post's comment count and its newest top-level comment.
  *
- * Every comment on 150 posts would be the largest thing in the cached pool and
- * the response, and the client renders exactly one of them — so the row keeps
- * the newest comment and a count, and the sheet fetches the rest on open.
+ * Read from the comment collection rather than the `comments` array on the
+ * post. That array is a denormalised copy that had drifted — it was $pull-ed on
+ * delete but never pushed on create — so rows showed 0 comments until the sheet
+ * was opened and answered with the truth. Counting where the comments actually
+ * live cannot drift, and it is one indexed query per page either way.
  */
-export function withTopComment(posts) {
-    return posts.map((post) => {
-        const comments = post.comments ?? [];
-        const newest = [...comments]
-            .sort((a, b) => new Date(a?.createdAt || 0) - new Date(b?.createdAt || 0))
-            .slice(-1);
-        return { ...post, commentCount: comments.length, comments: newest };
-    });
+export const attachTopComments = async (posts, postType = "Post") => {
+  if (!posts?.length) return posts ?? [];
+
+  const ids = posts.map((post) => post._id);
+
+  const [counts, newest] = await Promise.all([
+    Comment.aggregate([
+      { $match: { post: { $in: ids }, postType } },
+      { $group: { _id: "$post", count: { $sum: 1 } } },
+    ]),
+    Comment.aggregate([
+      // Replies belong under their parent, not in a one-line preview.
+      { $match: { post: { $in: ids }, postType, parentComment: null } },
+      { $sort: { createdAt: -1 } },
+      { $group: { _id: "$post", doc: { $first: "$$ROOT" } } },
+    ]),
+  ]);
+
+  const topComments = newest.map((row) => row.doc);
+  await Comment.populate(topComments, { path: "commentor", select: "name username avatar" });
+
+  return mergeCommentMeta(posts, counts, topComments);
+};
+
+/**
+ * The pure half of `attachTopComments`, kept separate so it can be tested
+ * without a database.
+ */
+export function mergeCommentMeta(posts, counts, topComments) {
+  const countByPost = new Map(counts.map((row) => [String(row._id), row.count]));
+  const topByPost = new Map(topComments.map((comment) => [String(comment.post), comment]));
+
+  return posts.map((post) => {
+    const top = topByPost.get(String(post._id));
+    return {
+      ...post,
+      commentCount: countByPost.get(String(post._id)) ?? 0,
+      comments: top ? [top] : [],
+    };
+  });
 }
