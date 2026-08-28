@@ -261,7 +261,7 @@ const MAX_CHAR_LIMIT = 150;
   };
 
   return (
-    <View className="bg-card border-b border-line mb-2 py-3">
+    <View className="py-3">
       {/* Top Header Row (Reddit Style) */}
       <View className="flex-row items-center justify-between mb-3 px-3">
         <View className="flex-row items-center">
@@ -332,24 +332,9 @@ const MAX_CHAR_LIMIT = 150;
         </Pressable>
       </View>
 
-      <View className="mb-3 px-3">
-        <Text className="font-sans text-base text-ink-2">
-          {isExpanded || (item.description?.length || 0) <= MAX_CHAR_LIMIT
-            ? item.description
-            : `${item.description?.slice(0, MAX_CHAR_LIMIT)}...`}
-        </Text>
-        {(item.description?.length || 0) > MAX_CHAR_LIMIT && (
-          <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} className="mt-1">
-            <Text className="text-accent-text font-semibold">
-              {isExpanded ? 'Show Less' : 'Show More'}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
       {/* Media (Full Width) */}
       {!!item.image?.length && (
-      <View className="relative mb-4">
+      <View className="relative mb-3">
         <FlatList
           data={item.image || []}
           keyExtractor={(url, index) => `${item._id}-img-${index}`}
@@ -397,20 +382,36 @@ const MAX_CHAR_LIMIT = 150;
       </View>
       )}
 
+      {/* Caption sits under the media, Instagram order: photo, then words,
+          then the controls. */}
+      {!!item.description && (
+        <View className="mb-3 px-3">
+          <Text className="font-sans text-base text-ink-2">
+            {isExpanded || (item.description?.length || 0) <= MAX_CHAR_LIMIT
+              ? item.description
+              : `${item.description?.slice(0, MAX_CHAR_LIMIT)}...`}
+          </Text>
+          {(item.description?.length || 0) > MAX_CHAR_LIMIT && (
+            <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} className="mt-1">
+              <Text className="text-accent-text font-semibold">
+                {isExpanded ? 'Show Less' : 'Show More'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
       {/* Action Bar (Reddit Style Pills) */}
       <View className="flex-row items-center gap-2 px-3">
-        {/* The action row.
-            These were bg-paper-2 with a hairline border and ink-3 icons — 2.99:1,
-            the exact visual language of a disabled control. They are live
-            controls, so they sit on white with a 2px ink border.
+        {/* The action row. Flat on the page like Instagram's: no chrome, ink
+            icons at full strength carry the affordance.
 
-            The container carries no horizontal padding: that 4px was the white
-            sliver showing beside the filled button. The vote fill is a layer
-            underneath instead, which is what lets it slide between the two
-            positions and change colour on the way. */}
+            The vote fill is a layer underneath rather than a background on the
+            button, which is what lets it slide between the two positions and
+            change colour on the way. */}
         <Animated.View
           style={{ transform: [{ scale: springValue }] }}
-          className="flex-row items-center bg-card border-2 border-ink rounded-full overflow-hidden"
+          className="flex-row items-center rounded-full overflow-hidden"
         >
           <Animated.View
             pointerEvents="none"
@@ -473,7 +474,7 @@ const MAX_CHAR_LIMIT = 150;
 
         <Pressable
           onPress={() => openComments(item._id)}
-          className="flex-row items-center bg-card border-2 border-ink rounded-full px-2.5"
+          className="flex-row items-center rounded-full px-2.5"
           style={{ minHeight: 30 }}
           accessibilityRole="button"
           accessibilityLabel={`${displayCommentCount} comments`}
@@ -489,7 +490,7 @@ const MAX_CHAR_LIMIT = 150;
         {item.user?._id !== currentUser?._id && (
           <Pressable
             onPress={handleRepost}
-            className={`flex-row items-center rounded-full px-2.5 border-2 border-ink ${reposted ? 'bg-brand-500' : 'bg-card'}`}
+            className={`flex-row items-center rounded-full px-2.5 ${reposted ? 'bg-brand-500' : ''}`}
             style={{ minHeight: 30 }}
             accessibilityRole="button"
             accessibilityState={{ selected: !!reposted }}
@@ -506,7 +507,7 @@ const MAX_CHAR_LIMIT = 150;
 
         <Pressable
           onPress={handleShare}
-          className="flex-row items-center bg-card border-2 border-ink rounded-full px-2.5"
+          className="flex-row items-center rounded-full px-2.5"
           style={{ minHeight: 30 }}
           accessibilityRole="button"
           accessibilityLabel="Share this post"
