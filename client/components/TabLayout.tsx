@@ -12,6 +12,7 @@ import Profile from "./profile";
 import { useAuth } from "context/auth.context";
 import { useState } from "react";
 import { TAB_BAR_HEIGHT, useTabBarOffset } from "../constants/layout";
+import SlidingTabBar from "./ui/SlidingTabBar";
 import { C } from '../constants/colors';
 
 const { width } = Dimensions.get('window');
@@ -232,6 +233,7 @@ export default function TabLayout() {
   return (
     <View className="flex-1 bg-paper justify-center">
       <Tab.Navigator
+        tabBar={(props) => <SlidingTabBar {...props} />}
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: false,

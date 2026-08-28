@@ -1,3 +1,6 @@
+import { useCallback, useEffect, useRef } from 'react';
+import { Animated, Easing, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // The tab bar floats above the content rather than reserving space in the layout,
@@ -43,4 +46,78 @@ export const useTabBarClearance = () => {
 export const useBottomInset = (minimum = 16) => {
   const insets = useSafeAreaInsets();
   return Math.max(insets.bottom, minimum);
+};
+
+// ── Auto-hiding tab bar ─────────────────────────────────────────────────────
+//
+// One shared value, because there is one tab bar. A context would only pass
+// this same object down a tree that never has two of them.
+
+/** 0 = the pill is in place, 1 = it has slid off the bottom edge. */
+export const tabBarHidden = new Animated.Value(0);
+
+let hiddenNow = false;
+
+const slide = (to: 0 | 1) => {
+  // Transform only, so this runs on the native thread and keeps up with a
+  // fling. Duration is short enough that the bar is back before a thumb that
+  // reversed direction has finished the gesture.
+  Animated.timing(tabBarHidden, {
+    toValue: to,
+    duration: to ? 180 : 140,
+    easing: Easing.out(Easing.quad),
+    useNativeDriver: true,
+  }).start();
+};
+
+export const showTabBar = () => {
+  if (!hiddenNow) return;
+  hiddenNow = false;
+  slide(0);
+};
+
+export const hideTabBar = () => {
+  if (hiddenNow) return;
+  hiddenNow = true;
+  slide(1);
+};
+
+/** Ignore the jitter of a finger resting on the screen. */
+const SCROLL_NOISE = 6;
+
+/**
+ * Spread onto any scrollable inside the tab navigator:
+ *
+ *   <FlashList {...useTabBarAutoHide()} ... />
+ *
+ * Scrolling down hides the bar, scrolling up brings it straight back, and it
+ * is always visible at the top of the list. Leaving the screen restores it, so
+ * a screen can never hand the bar off hidden.
+ */
+export const useTabBarAutoHide = () => {
+  const lastY = useRef(0);
+
+  useEffect(() => () => showTabBar(), []);
+
+  // Tab screens stay mounted when you switch away from them, so unmount alone
+  // would let a screen left mid-scroll hand the next tab a hidden bar.
+  useFocusEffect(
+    useCallback(() => {
+      lastY.current = 0;
+      showTabBar();
+    }, []),
+  );
+
+  const onScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = event.nativeEvent.contentOffset.y;
+    const delta = y - lastY.current;
+
+    if (y <= 0) showTabBar();
+    else if (delta > SCROLL_NOISE && y > TAB_BAR_HEIGHT) hideTabBar();
+    else if (delta < -SCROLL_NOISE) showTabBar();
+
+    if (Math.abs(delta) > SCROLL_NOISE) lastY.current = y;
+  }, []);
+
+  return { onScroll, scrollEventThrottle: 16 };
 };

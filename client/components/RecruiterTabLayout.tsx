@@ -9,6 +9,7 @@ import SearchScreen from "./SearchScreen";
 import ChatList from "./ChatList";
 import { useAuth } from "context/auth.context";
 import { C } from '../constants/colors';
+import SlidingTabBar from './ui/SlidingTabBar';
 
 const { width } = Dimensions.get('window');
 const Tab = createBottomTabNavigator();
@@ -52,6 +53,7 @@ export default function RecruiterTabLayout() {
   return (
     <View className="flex-1 bg-paper justify-center">
       <Tab.Navigator
+        tabBar={(props) => <SlidingTabBar {...props} />}
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: false,

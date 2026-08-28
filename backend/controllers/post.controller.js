@@ -439,7 +439,11 @@ export const votePost = async (req, res) => {
 
 export const addComment = async (req, res) => {
     try {
-        const { text, parentCommentId } = req.body;
+        const { text } = req.body;
+        // The sheet sends `parentComment`; older callers send `parentCommentId`.
+        // Reading only the latter is why every reply landed as a top-level
+        // comment instead of under the one it answered.
+        const parentCommentId = req.body.parentCommentId ?? req.body.parentComment ?? null;
         if (!text) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
@@ -483,6 +487,12 @@ export const addComment = async (req, res) => {
                 commentText: text
             });
         }
+
+        // The post's own `comments` array was never written on create, only
+        // $pull-ed on delete, so it drifted down towards empty. Everything that
+        // reads the post rather than the comment collection — the feed's
+        // comment preview and its count — was reading that stale array.
+        await Post.findByIdAndUpdate(req.params.id, { $addToSet: { comments: comment._id } });
 
         const commenterDetails = await Comment.findById(comment._id)
             .populate("commentor", "name avatar username")

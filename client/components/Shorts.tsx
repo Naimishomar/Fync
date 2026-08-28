@@ -18,7 +18,7 @@ import {
   markShortsAsSeen,
   resetSeenShorts,
 } from "../utils/feedSession";
-import { useTabBarClearance } from '../constants/layout';
+import { useTabBarClearance, useTabBarAutoHide } from '../constants/layout';
 import { Alert } from './ui/AlertModal';
 import CommentsSheet from './ui/CommentsSheet';
 import RepostModal from './ui/RepostModal';
@@ -392,6 +392,7 @@ const DiscoverAttribution = ({ item }: { item: ShortItem }) => (
 
 export default function Shorts() {
   const tabBarClearance = useTabBarClearance();
+  const autoHideTabBar = useTabBarAutoHide();
   const { user } = useAuth();
   const currentUserId = user?.id || user?._id;
 
@@ -757,7 +758,7 @@ export default function Shorts() {
         maxToRenderPerBatch={2}
         updateCellsBatchingPeriod={50}
         removeClippedSubviews={Platform.OS === 'android'}
-        scrollEventThrottle={16}
+        {...autoHideTabBar}
         refreshing={refreshing}
         onRefresh={onRefresh}
         onEndReached={loadMore}

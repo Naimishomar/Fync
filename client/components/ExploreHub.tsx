@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { readRecentFeatureIds, recordFeatureUse } from '../utils/recentFeatures';
 import { useAuth } from '../context/auth.context';
-import { useTabBarClearance } from '../constants/layout';
+import { useTabBarClearance, useTabBarAutoHide } from '../constants/layout';
 import {
   CATEGORIES,
   artUrl,
@@ -172,6 +172,7 @@ const ExploreHub = () => {
   const { user } = useAuth();
   const { width } = useWindowDimensions();
   const bottomPad = useTabBarClearance();
+  const autoHideTabBar = useTabBarAutoHide();
 
   const [query, setQuery] = useState('');
   const [recentIds, setRecentIds] = useState<string[]>([]);
@@ -262,6 +263,7 @@ const ExploreHub = () => {
 
         <ScrollView
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: bottomPad }}
+          {...autoHideTabBar}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"

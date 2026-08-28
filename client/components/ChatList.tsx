@@ -21,9 +21,11 @@ import { readCache, writeCache, userKey } from "../utils/screenCache";
 import Avatar from "./Avatar";
 import { ChatListSkeleton } from "./Skeleton";
 import { useBottomInset } from '../constants/layout';
+import { useTabBarAutoHide } from '../constants/layout';
 import { C } from '../constants/colors';
 
 const ChatList = () => {
+  const autoHideTabBar = useTabBarAutoHide();
   const navigation = useNavigation<any>();
   const bottomInset = useBottomInset();
   const { user } = useAuth();
@@ -409,6 +411,7 @@ const ChatList = () => {
         ) : (
           <FlatList
             data={search.length > 0 ? results : conversations}
+            {...autoHideTabBar}
             keyExtractor={(item) => item._id}
             renderItem={search.length > 0 ? renderUserItem : renderConversationItem}
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}

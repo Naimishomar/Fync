@@ -11,10 +11,12 @@ import { useAuth } from '../context/auth.context';
 import Avatar from './Avatar';
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
+import { useTabBarAutoHide } from '../constants/layout';
 
 const { width } = Dimensions.get('window');
 
 const RecruiterProfile = () => {
+    const autoHideTabBar = useTabBarAutoHide();
     const navigation = useNavigation<any>();
     const { user, logout, setUser } = useAuth();
 
@@ -247,6 +249,7 @@ const RecruiterProfile = () => {
         <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
             <StatusBar style="dark" />
             <ScrollView
+                {...autoHideTabBar}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.recruiter} />
                 }

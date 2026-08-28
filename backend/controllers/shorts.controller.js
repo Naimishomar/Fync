@@ -228,7 +228,9 @@ export const likeAndUnlikeShort = async (req, res) => {
 
 export const addComment = async (req, res) => {
     try {
-        const { text, parentCommentId } = req.body;
+        const { text } = req.body;
+        // The sheet sends `parentComment`; older callers send `parentCommentId`.
+        const parentCommentId = req.body.parentCommentId ?? req.body.parentComment ?? null;
         if (!text) {
             return res.status(400).json({ success: false, message: "Missing required fields" });
         }
@@ -272,6 +274,10 @@ export const addComment = async (req, res) => {
                 commentText: text
             });
         }
+
+        // Same omission as posts had: created comments never joined the
+        // short's own array, which only ever shrank on delete.
+        await Shorts.findByIdAndUpdate(req.params.id, { $addToSet: { comments: comment._id } });
 
         const commenterDetails = await Comment.findById(comment._id)
             .populate("commentor", "name avatar username")

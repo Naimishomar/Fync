@@ -11,6 +11,7 @@ import * as Sharing from 'expo-sharing';
 import { Buffer } from 'buffer';
 import Toast from 'react-native-toast-message';
 import { C } from '../../constants/colors';
+import { useTabBarAutoHide } from '../../constants/layout';
 
 /**
  * view: 'posts'        → My Posts list (default)
@@ -20,6 +21,7 @@ import { C } from '../../constants/colors';
 type PortalView = 'posts' | 'applicants' | 'shortlisted';
 
 const RecruiterPortal = () => {
+  const autoHideTabBar = useTabBarAutoHide();
     const navigation = useNavigation<any>();
     const { user } = useAuth();
 
@@ -892,6 +894,7 @@ const RecruiterPortal = () => {
                     ) : (
                         <FlatList
                             data={posts}
+                            {...autoHideTabBar}
                             keyExtractor={item => item._id}
                             renderItem={renderPostCard}
                             contentContainerStyle={{ paddingTop: 8, paddingBottom: 120 }}
@@ -925,6 +928,7 @@ const RecruiterPortal = () => {
                     {renderSubHeader()}
                     <FlatList
                         data={visibleApplications}
+                        {...autoHideTabBar}
                         keyExtractor={item => item._id}
                         renderItem={renderApplicantCard}
                         contentContainerStyle={{ paddingTop: 12, paddingBottom: 120 }}

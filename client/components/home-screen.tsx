@@ -30,7 +30,7 @@ import StreakLeaderboardModal from './StreakLeaderboardModal';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { getFullUrl } from '../utils/imageUtils';
 import { prefetchPostImages, POST_PLACEHOLDER } from '../utils/imageWarm';
-import { useTabBarClearance, useBottomInset } from '../constants/layout';
+import { useTabBarClearance, useBottomInset, useTabBarAutoHide } from '../constants/layout';
 import { fetchUnreadCounts } from '../utils/supabase';
 import { readRecentFeatureIds, recordFeatureUse } from '../utils/recentFeatures';
 import { visibleFeatures, artUrl, type Feature } from '../constants/features';
@@ -485,6 +485,7 @@ const MAX_CHAR_LIMIT = 150;
 // --- MAIN SCREEN ---
 export default function HomeScreen() {
   const tabBarClearance = useTabBarClearance();
+  const autoHideTabBar = useTabBarAutoHide();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const [profileImage, setProfileImage] = useState<string | undefined>('');
@@ -969,6 +970,7 @@ export default function HomeScreen() {
           FlatList windowing props it replaces are gone. */}
       <FlashList
         data={feedWithSuggestions}
+        {...autoHideTabBar}
         keyExtractor={(item) => item._id}
         renderItem={renderPostItem}
         ListHeaderComponent={

@@ -169,8 +169,11 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
     const bottomInset = useBottomInset();
 
     /** Stable identity, so the sheet's fetch effect does not re-fire. */
-    const handleCommentCount = useCallback(() => {
-        handleCommentAdded?.();
+    const handleCommentCount = useCallback((_targetId: string, count: number) => {
+        setCommentCount(count);
+        // The list under the post is a separate read; refresh it so a comment
+        // posted in the sheet shows up behind it.
+        inlineRefreshRef.current?.();
     }, []);
     const { postId, shortId } = route.params;
     const isShort = !!shortId;
@@ -228,7 +231,12 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
     const [menuVisible, setMenuVisible] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editDescription, setEditDescription] = useState('');
+    /** The author's other posts and shorts, so the screen keeps going the way
+     *  Instagram's does instead of dead-ending at one item. */
+    const [moreFromUser, setMoreFromUser] = useState<any[]>([]);
     const [inlineComments, setInlineComments] = useState<any[]>([]);
+    /** Set once `fetchInlineComments` exists; the count handler is declared above it. */
+    const inlineRefreshRef = useRef<(() => void) | null>(null);
     const [inlineCommentsLoading, setInlineCommentsLoading] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [isPlaying, setIsPlaying] = useState(true);
@@ -284,8 +292,38 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
     }, [endpoints.getComments, isShort]);
 
     useEffect(() => {
+        inlineRefreshRef.current = fetchInlineComments;
         fetchInlineComments();
     }, [fetchInlineComments]);
+
+    const authorId = data?.user?._id;
+
+    useEffect(() => {
+        if (!authorId) return;
+        let cancelled = false;
+
+        (async () => {
+            // Either request failing just means that half of the strip is
+            // empty; neither is worth an error state on a secondary section.
+            const [postsRes, shortsRes] = await Promise.all([
+                axios.get(`/post/feed/${authorId}?limit=12`).catch(() => null),
+                axios.get(`/shorts/feed/${authorId}?limit=12`).catch(() => null),
+            ]);
+            if (cancelled) return;
+
+            const posts = (postsRes?.data?.posts ?? []).map((p: any) => ({ ...p, isShort: false }));
+            const shorts = (shortsRes?.data?.shorts ?? []).map((s: any) => ({ ...s, isShort: true }));
+
+            setMoreFromUser(
+                [...posts, ...shorts]
+                    .filter((item) => String(item._id) !== String(id))
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                    .slice(0, 12),
+            );
+        })();
+
+        return () => { cancelled = true; };
+    }, [authorId, id]);
 
     const loadData = useCallback(async () => {
         try {
@@ -351,10 +389,6 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             if (msg) Toast.show({ type: 'info', text1: msg });
         }
     }, [reposted, repostCount, endpoints.repost]);
-
-    const handleCommentAdded = useCallback(() => {
-        setCommentCount(prev => prev + 1);
-    }, []);
 
     const handleShare = async () => {
         try {
@@ -606,6 +640,56 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                     <Text className="text-ink-2 font-semibold text-sm">Add a comment...</Text>
                                 </Pressable>
                             </View>
+
+                            {/* Keep scrolling and you are still with this person:
+                                their other posts and shorts, newest first. */}
+                            {moreFromUser.length > 0 && (
+                                <View className="border-t-2 border-ink pt-4 mt-6">
+                                    <Text className="text-ink font-semibold text-sm mb-4">
+                                        More from {data.user?.username || data.user?.name || 'this student'}
+                                    </Text>
+                                    {moreFromUser.map((item) => (
+                                        <Pressable
+                                            key={item._id}
+                                            // push, not navigate: the screen is already mounted for
+                                            // another item, and replacing it would lose the way back.
+                                            onPress={() => navigation.push('IndividualPostOrShort', item.isShort ? { shortId: item._id } : { postId: item._id })}
+                                            className="flex-row mb-4"
+                                        >
+                                            <View className="w-24 h-24 rounded-card overflow-hidden bg-paper-2">
+                                                {item.isShort ? (
+                                                    item.thumbnail ? (
+                                                        <ExpoImage source={{ uri: getFullUrl(item.thumbnail) || '' }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="disk" />
+                                                    ) : (
+                                                        <View className="flex-1 items-center justify-center">
+                                                            <Ionicons name="play" size={22} color={C.ink3} />
+                                                        </View>
+                                                    )
+                                                ) : item.image?.length ? (
+                                                    <ExpoImage source={{ uri: getFullUrl(item.image[0]) || '' }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="disk" />
+                                                ) : (
+                                                    <View className="flex-1 items-center justify-center p-2">
+                                                        <Text className="text-ink-3 text-label text-center" numberOfLines={4}>{item.title || item.description}</Text>
+                                                    </View>
+                                                )}
+                                                {item.isShort && (
+                                                    <View className="absolute bottom-1 left-1 bg-black/50 rounded-full px-1.5 py-0.5">
+                                                        <Ionicons name="play" size={10} color="white" />
+                                                    </View>
+                                                )}
+                                            </View>
+                                            <View className="flex-1 ml-3 justify-center">
+                                                <Text className="text-ink text-sm" numberOfLines={3}>
+                                                    {item.description || item.title || (item.isShort ? 'Short' : 'Post')}
+                                                </Text>
+                                                <Text className="text-ink-3 text-label uppercase font-semibold mt-2">
+                                                    {formatTime(item.createdAt)}
+                                                </Text>
+                                            </View>
+                                        </Pressable>
+                                    ))}
+                                </View>
+                            )}
                         </View>
                     </ScrollView>
                 </SafeAreaView>

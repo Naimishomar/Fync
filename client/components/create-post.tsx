@@ -12,6 +12,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  DeviceEventEmitter,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
@@ -168,6 +169,9 @@ function CreatePost() {
         setDescription('');
         setImages([]);
         setMentions([]);
+        // The profile grid no longer refetches on every focus, so tell it that
+        // this particular return trip does have something new to show.
+        DeviceEventEmitter.emit('post:created');
         navigation.goBack();
       } else {
         Toast.show({ type: 'error', text1: res.data.message });

@@ -1,4 +1,5 @@
 import { View, Text, TextInput, FlatList, Image, ActivityIndicator, TouchableOpacity, StatusBar } from "react-native";
+import { useTabBarAutoHide } from '../constants/layout';
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
@@ -17,6 +18,7 @@ interface User {
 }
 
 const SearchScreen = () => {
+  const autoHideTabBar = useTabBarAutoHide();
   const navigation = useNavigation<any>();
   const [query, setQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
@@ -186,6 +188,7 @@ const SearchScreen = () => {
         {query.length > 0 ? (
           <FlatList
             data={searchResults}
+            {...autoHideTabBar}
             keyExtractor={(item) => item._id}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => renderUserItem({ item, isRecent: false })}
@@ -225,6 +228,7 @@ const SearchScreen = () => {
 
             <FlatList
               data={recentSearches}
+              {...autoHideTabBar}
               keyExtractor={(item) => item._id}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => renderUserItem({ item, isRecent: true })}

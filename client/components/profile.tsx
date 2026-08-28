@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {Text, Image, View, Pressable, FlatList, Dimensions, RefreshControl, Linking, ActivityIndicator, ScrollView, Modal, TextInput, Switch, KeyboardAvoidingView, Platform} from 'react-native'
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {Text, Image, View, Pressable, FlatList, Dimensions, RefreshControl, Linking, ActivityIndicator, ScrollView, Modal, TextInput, Switch, KeyboardAvoidingView, Platform, DeviceEventEmitter} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -18,7 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { getFullUrl, getThumbUrl } from '../utils/imageUtils';
 import { StatusBar } from 'expo-status-bar';
 import EducationCard, { EducationEntry } from './profile/EducationCard';
-import { useTabBarClearance } from '../constants/layout';
+import { useTabBarClearance, useTabBarAutoHide } from '../constants/layout';
 import { Alert } from './ui/AlertModal';
 
 import { StampCard, StampNumber } from './ui/kit';
@@ -392,6 +392,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
 // ─── MAIN PROFILE COMPONENT ───────────────────────────────────────────────────
 function Profile() {
   const tabBarClearance = useTabBarClearance();
+  const autoHideTabBar = useTabBarAutoHide();
   const { user, logout, setUser } = useAuth();
   const navigation = useNavigation<any>();
 
@@ -483,7 +484,21 @@ function Profile() {
    * is exactly the shape batching suits: the server pays one middleware pass
    * rather than four, and the device opens one connection rather than four.
    */
-  const loadProfileScreen = useCallback(async () => {
+  const loadProfileScreen = useCallback(async ({ replace = false } = {}) => {
+    /**
+     * Merge the fresh first page into what is already loaded.
+     *
+     * Replacing outright cut a grid the user had scrolled thirty items into
+     * back down to twelve, and the list, suddenly shorter than the scroll
+     * offset, snapped to the top — which is what returning from a post looked
+     * like. A pull-to-refresh does still replace: that is what it is for.
+     */
+    const merge = (fresh: any[], previous: any[]) => {
+      if (replace || previous.length === 0) return fresh;
+      const freshIds = new Set(fresh.map((item) => item._id));
+      return [...fresh, ...previous.filter((item) => !freshIds.has(item._id))];
+    };
+
     const results = await batchGet({
       posts: '/post/posts?page=1&limit=12',
       shorts: '/shorts/your?page=1&limit=12',
@@ -494,9 +509,9 @@ function Profile() {
 
     const postsBody = bodyOf<any>(results.posts);
     if (postsBody?.success) {
-      setPosts(postsBody.posts || []);
+      setPosts((prev) => merge(postsBody.posts || [], prev));
       setHasMorePosts(postsBody.hasMore);
-      setPostsPage(1);
+      if (replace) setPostsPage(1);
       if (typeof postsBody.total === 'number') setPostCount(postsBody.total);
       prefetchPostImages(postsBody.posts || []);
       writeCache(userKey(user?._id, 'profile_posts'), postsBody.posts || []);
@@ -504,9 +519,9 @@ function Profile() {
 
     const shortsBody = bodyOf<any>(results.shorts);
     if (shortsBody?.success) {
-      setShorts(shortsBody.shorts || []);
+      setShorts((prev) => merge(shortsBody.shorts || [], prev));
       setHasMoreShorts(shortsBody.hasMore === true);
-      setShortsPage(1);
+      if (replace) setShortsPage(1);
       writeCache(userKey(user?._id, 'profile_shorts'), shortsBody.shorts || []);
     } else {
       setHasMoreShorts(false);
@@ -523,15 +538,33 @@ function Profile() {
     if (meBody?.user && setUser) setUser(meBody.user);
   }, [user?._id, setUser]);
 
+  // Coming back from a post is not a reason to refetch the whole screen. The
+  // first focus loads it; after that only a stale one does, so a quick trip
+  // into a post and back leaves the grid exactly where it was.
+  const lastLoadedAt = useRef(0);
+  const STALE_AFTER_MS = 2 * 60 * 1000;
+
   useFocusEffect(
     useCallback(() => {
-      loadProfileScreen().catch(() => {});
+      if (Date.now() - lastLoadedAt.current < STALE_AFTER_MS) return;
+      lastLoadedAt.current = Date.now();
+      loadProfileScreen().catch(() => { lastLoadedAt.current = 0; });
     }, [loadProfileScreen])
   );
 
+  // A post the user just made is the one case where a return trip does need
+  // fresh data, stale gate or not.
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('post:created', () => {
+      lastLoadedAt.current = 0;
+    });
+    return () => sub.remove();
+  }, []);
+
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadProfileScreen().catch(() => {});
+    lastLoadedAt.current = Date.now();
+    await loadProfileScreen({ replace: true }).catch(() => {});
     setRefreshing(false);
   };
 
@@ -784,6 +817,7 @@ function Profile() {
           which both list implementations require. */}
       <FlashList
         key={activeTab}
+        {...autoHideTabBar}
         data={activeTab === 'posts' ? posts : activeTab === 'shorts' ? shorts : activeTab === 'reposts' ? reposts : (['ABOUT'] as any)}
         keyExtractor={(item, i) => (typeof item === 'string' ? item : item._id + i)}
         numColumns={activeTab === 'about' ? 1 : 3}
