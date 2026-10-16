@@ -132,14 +132,9 @@ const CreateRoom = () => {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
-      <SafeAreaView className="flex-1">
+      <SafeAreaView className="flex-1" edges={['bottom']}>
 
-        <AppBar onBack={() => navigation.goBack()} />
-        <View className="px-gutter mb-6">
-          <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Room</Text>
-          <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Builder</Text>
-          <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Initialize Custom Node</Text>
-        </View>
+        <AppBar title="Room Builder" onBack={() => navigation.goBack()} />
 
         <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView className="px-gutter pb-12" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">

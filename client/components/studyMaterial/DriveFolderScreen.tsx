@@ -3,9 +3,8 @@ import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Animated, St
 import { Image } from 'expo-image';
 import { fetchDriveData } from '../../utils/handleDrive';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, IconBtn } from '../ui/kit';
 
 const FOLDER_IMG = 'https://cdn-icons-png.flaticon.com/512/716/716784.png';
 const PDF_IMG = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
@@ -96,23 +95,14 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
 
             {/* HEADER DECORATION - MATCHING LEADERBOARD */}
 
-            <SafeAreaView className="flex-1" edges={['top']}>
-                <AppBar onBack={() => navigation.goBack()} />
+            <View className="flex-1">
+                <AppBar title="Fync Drive" onBack={() => navigation.goBack()}
+                    right={loading
+                        ? <ActivityIndicator size="small" color={C.brand[500]} style={{ marginRight: 11 }} />
+                        : <IconBtn name="refresh" onPress={loadData} />} />
                 {/* Skeleton only on first load; a refresh keeps the list and spins the button. */}
                 {loading && items.length === 0 ? (
                     <View>
-                        <View className='px-gutter pt-8 bg-transparent'>
-                            <View className="flex-row items-center justify-between mb-8">
-                                <View>
-                                    <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
-                                    <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Drive</Text>
-                                    <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Campus Resource Arena</Text>
-                                </View>
-                                <TouchableOpacity disabled className="w-12 h-12 rounded-card items-center justify-center border border-line bg-card shadow-hair">
-                                    <ActivityIndicator size="small" color={C.brand[500]} />
-                                </TouchableOpacity>
-                            </View>
-                        </View>
                         <View className="mt-4">
                             {[1, 2, 3, 4, 5, 6].map((i) => <SkeletonItem key={i} />)}
                         </View>
@@ -124,17 +114,7 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ paddingBottom: 100 }}
                         ListHeaderComponent={
-                            <View className='px-gutter pt-8 bg-transparent'>
-                                <View className="flex-row items-center justify-between mb-8">
-                                    <View>
-                                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
-                                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Drive</Text>
-                                        <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Campus Resource Arena</Text>
-                                    </View>
-                                    <TouchableOpacity onPress={loadData} disabled={loading} className={`w-12 h-12 rounded-card items-center justify-center border shadow-hair ${loading ? 'border-line bg-paper-2' : 'border-line bg-card'}`}>
-                                        {loading ? <ActivityIndicator size="small" color={C.brand[500]} /> : <Ionicons name="refresh" size={20} color={C.ink} />}
-                                    </TouchableOpacity>
-                                </View>
+                            <View className='px-gutter pt-2 bg-transparent'>
 
                                 <View className="flex-row items-center bg-card px-4 py-1 border-2 border-ink mb-6 rounded-md">
                                     <Ionicons name="search" size={20} color={C.ink4} />
@@ -216,7 +196,7 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                         }
                     />
                 )}
-            </SafeAreaView>
+            </View>
         </View>
     );
 };

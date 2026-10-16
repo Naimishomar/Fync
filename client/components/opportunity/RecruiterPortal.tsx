@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {View, Text, FlatList, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl, Linking, TextInput, Modal, Pressable, KeyboardAvoidingView, Platform} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
@@ -12,7 +11,7 @@ import * as Sharing from 'expo-sharing';
 import { Buffer } from 'buffer';
 import Toast from 'react-native-toast-message';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, IconBtn, Meta } from '../ui/kit';
 import { useTabBarAutoHide, useTabBarClearance } from '../../constants/layout';
 
 /**
@@ -678,12 +677,9 @@ const RecruiterPortal = () => {
 
     // ─── Sub-view header (Applicants / Shortlisted) ───────────────────────
     const renderSubHeader = () => (
-        <View className="bg-card border-b border-line">
-            {/* Back + title. The subtitle states the one thing a recruiter
-                needs on arrival: how much is left to do. */}
+        <>
             <AppBar
                 title={selectedPost?.title}
-                subtitle={counts.new > 0 ? `${counts.new} left to review` : 'All reviewed'}
                 onBack={goBack}
                 right={
                     <>
@@ -712,6 +708,11 @@ const RecruiterPortal = () => {
                     </>
                 }
             />
+        <View className="bg-card border-b border-line">
+            {/* The one thing a recruiter needs on arrival: how much is left to do. */}
+            <Meta style={{ paddingHorizontal: 20, paddingBottom: 8 }} numberOfLines={1}>
+                {counts.new > 0 ? `${counts.new} left to review` : 'All reviewed'}
+            </Meta>
 
             {/* Status filter. This is the screen's real navigation, so it gets
                 its own row and carries the counts — no need to switch to find
@@ -788,6 +789,7 @@ const RecruiterPortal = () => {
                 </TouchableOpacity>
             </View>
         </View>
+        </>
     );
 
     // ─── Main header ─────────────────────────────────────────────────────
@@ -795,7 +797,6 @@ const RecruiterPortal = () => {
         <>
             <AppBar
                 title="Recruiter Portal"
-                subtitle="Applicant Tracking"
                 right={
                     <>
                         <IconBtn name="notifications-outline" onPress={() => navigation.navigate('Notification')} />
@@ -871,7 +872,7 @@ const RecruiterPortal = () => {
 
     // ─── Render ───────────────────────────────────────────────────────────
     return (
-        <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
+        <View className="flex-1 bg-paper">
             {view === 'posts' ? (
                 <>
                     {renderMainHeader()}
@@ -1047,7 +1048,7 @@ const RecruiterPortal = () => {
                     </View>
                 </KeyboardAvoidingView>
             </Modal>
-        </SafeAreaView>
+        </View>
     );
 };
 

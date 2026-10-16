@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {View, Text, TouchableOpacity, ScrollView, RefreshControl, Linking, Dimensions, ActivityIndicator} from 'react-native'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -11,6 +11,7 @@ import { useAuth } from '../context/auth.context';
 import Avatar from './Avatar';
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
+import { AppBar, IconBtn } from './ui/kit';
 import { useTabBarAutoHide, useTabBarClearance } from '../constants/layout';
 
 const { width } = Dimensions.get('window');
@@ -18,7 +19,6 @@ const { width } = Dimensions.get('window');
 const RecruiterProfile = () => {
     const autoHideTabBar = useTabBarAutoHide();
     const tabBarClearance = useTabBarClearance();
-    const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
     const { user, logout, setUser } = useAuth();
 
@@ -85,26 +85,6 @@ const RecruiterProfile = () => {
                     contentFit="cover"
                 />
                 <View className="absolute inset-0 bg-black/20" />
-
-                {/* Top Actions */}
-                <View className="absolute right-4 flex-row gap-3" style={{ top: insets.top + 8 }}>
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate('EditProfile')}
-                        className="bg-card/90 p-2.5 rounded-card shadow-hair"
-                        hitSlop={4}
-                        accessibilityLabel="Edit profile"
-                    >
-                        <Ionicons name="settings-outline" size={20} color={C.ink2} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={handleLogout}
-                        className="bg-card/90 p-2.5 rounded-card shadow-hair"
-                        hitSlop={4}
-                        accessibilityLabel="Logout"
-                    >
-                        <Ionicons name="log-out-outline" size={20} color={C.danger} />
-                    </TouchableOpacity>
-                </View>
             </View>
 
             {/* Profile Info Overlay */}
@@ -254,6 +234,15 @@ const RecruiterProfile = () => {
     return (
         <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
             <StatusBar style="dark" />
+            <AppBar
+                title="Profile"
+                right={
+                    <>
+                        <IconBtn name="settings-outline" onPress={() => navigation.navigate('EditProfile')} />
+                        <IconBtn name="log-out-outline" color={C.danger} onPress={handleLogout} />
+                    </>
+                }
+            />
             <ScrollView
                 {...autoHideTabBar}
                 contentContainerStyle={{ paddingBottom: tabBarClearance }}

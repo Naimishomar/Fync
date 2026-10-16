@@ -8,7 +8,6 @@ import {
   View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
   Linking, StatusBar, useWindowDimensions, Share,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -75,8 +74,7 @@ export default function ArticleScreen() {
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
-      <SafeAreaView className="flex-1" edges={['top']}>
-        <View className="border-b border-line">
+      <View className="flex-1">
           <AppBar
             title={article?.siteName ?? source ?? 'Article'}
             onBack={() => navigation.goBack()}
@@ -87,7 +85,6 @@ export default function ArticleScreen() {
               />
             }
           />
-        </View>
 
         {loading ? (
           <View className="flex-1 items-center justify-center">
@@ -175,7 +172,7 @@ export default function ArticleScreen() {
             </TouchableOpacity>
           </ScrollView>
         ) : null}
-      </SafeAreaView>
+      </View>
     </View>
   );
 }

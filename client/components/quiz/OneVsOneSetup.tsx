@@ -180,8 +180,8 @@ const OneVsOneSetup = () => {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            <SafeAreaView className="flex-1">
-                <AppBar onBack={() => navigation.goBack()} right={
+            <SafeAreaView className="flex-1" edges={['bottom']}>
+                <AppBar title="Choose Arena" onBack={() => navigation.goBack()} right={
                     <TouchableOpacity
                         onPress={() => navigation.navigate("Profile", { userId: user?._id })}
                         className="flex-row items-center bg-card pr-4 pl-1 py-1 rounded-full border border-line shadow-hair"
@@ -195,11 +195,8 @@ const OneVsOneSetup = () => {
                 } />
 
                 <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-gutter">
-                    <View className="mt-6 mb-10">
-                        <Text className="text-ink text-4xl font-display uppercase line-clamp-1">
-                            Choose <Text className="text-accent-text">Arena</Text>
-                        </Text>
-                        <Text className="text-ink-3 mt-2 uppercase text-label font-semibold">Select your combat domain</Text>
+                    <View className="mt-2 mb-8">
+                        <Text className="text-ink-3 uppercase text-label font-semibold">Select your combat domain</Text>
                     </View>
 
                     {/* Arena Card System */}

@@ -12,7 +12,7 @@ import { useAuth } from "../context/auth.context";
 import Avatar from "./Avatar";
 import { Alert } from './ui/AlertModal';
 
-import { AppBar, RoleSticker } from './ui/kit';
+import { AppBar, Meta, RoleSticker } from './ui/kit';
 import { C } from '../constants/colors';
 const { width } = Dimensions.get("window");
 
@@ -333,28 +333,29 @@ const ProfessionalHub = ({ navigation }: any) => {
     return (
         <View className="flex-1 bg-paper-2">
             <StatusBar barStyle="dark-content" />
-            <SafeAreaView className="flex-1">
-                <View className="bg-card border-b border-line shadow-hair">
-                    <AppBar
-                        title="Professional Hub"
-                        subtitle={user?.college ? `${user.college} Community` : undefined}
-                        onBack={() => navigation.goBack()}
-                        right={
-                            <View
-                                className="bg-brand-200 px-2.5 py-1 border-2 border-ink"
-                                style={{
-                                    marginRight: 11, borderRadius: 4, transform: [{ rotate: '-1.6deg' }],
-                                    shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0,
-                                    shadowOffset: { width: 2, height: 2 }, elevation: 0,
-                                }}
-                            >
-                                <Text className="font-display text-ink uppercase" style={{ fontSize: 10, letterSpacing: 1 }}>
-                                    Student-Alumni
-                                </Text>
-                            </View>
-                        }
-                    />
-                </View>
+            <SafeAreaView className="flex-1" edges={['bottom']}>
+                <AppBar
+                    title="Professional Hub"
+                    onBack={() => navigation.goBack()}
+                    right={
+                        <View
+                            className="bg-brand-200 px-2.5 py-1 border-2 border-ink"
+                            style={{
+                                marginRight: 11, borderRadius: 4, transform: [{ rotate: '-1.6deg' }],
+                                shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0,
+                                shadowOffset: { width: 2, height: 2 }, elevation: 0,
+                            }}
+                        >
+                            <Text className="font-display text-ink uppercase" style={{ fontSize: 10, letterSpacing: 1 }}>
+                                Student-Alumni
+                            </Text>
+                        </View>
+                    }
+                />
+
+                {user?.college ? (
+                    <Meta style={{ paddingHorizontal: 20, paddingVertical: 8 }} numberOfLines={1}>{user.college} Community</Meta>
+                ) : null}
 
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

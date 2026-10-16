@@ -12,7 +12,7 @@ import {
   Share,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -187,6 +187,7 @@ const WinnerCard = ({ winner, onOpenProfile }: { winner: Winner; onOpenProfile: 
 
 // ─── Screen ──────────────────────────────────────────────────────────────────
 const HackathonDetail = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const bottomInset = useBottomInset();
@@ -356,23 +357,23 @@ const HackathonDetail = () => {
         style={{ opacity: headerOpacity }}
         className="absolute top-0 left-0 right-0 z-20 bg-paper border-b border-line"
       >
-        <SafeAreaView edges={['top']}>
+        <View style={{ paddingTop: insets.top }}>
           <View className="h-14 justify-center px-14">
             <Text className="text-ink text-sm font-display text-center" numberOfLines={1}>
               {hackathon.title}
             </Text>
           </View>
-        </SafeAreaView>
+        </View>
       </Animated.View>
 
       {/* Back + share, always tappable above the banner */}
-      <SafeAreaView edges={['top']} className="absolute top-0 left-0 right-0 z-30">
+      <View className="absolute top-0 left-0 right-0 z-30" pointerEvents="box-none">
         <AppBar
           overlay
           onBack={() => navigation.goBack()}
           right={<IconBtn overlay name="share-outline" onPress={shareListing} />}
         />
-      </SafeAreaView>
+      </View>
 
       <Animated.ScrollView
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}

@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Linking,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
@@ -76,18 +75,18 @@ export default function SolveProblem() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-paper items-center justify-center">
+      <View className="flex-1 bg-paper items-center justify-center">
         <ActivityIndicator size="large" color={C.brand[500]} />
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!problem) {
     return (
-      <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-        <AppBar onBack={() => navigation.goBack()} />
+      <View className="flex-1 bg-paper">
+        <AppBar title="Problem" onBack={() => navigation.goBack()} />
         <Empty icon="cloud-offline-outline" title="Could not load" hint="This problem would not open." />
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -95,8 +94,8 @@ export default function SolveProblem() {
   const solved = attempts.some((a) => a.status === 'Accepted');
 
   return (
-    <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-      <AppBar onBack={() => navigation.goBack()} />
+    <View className="flex-1 bg-paper">
+      <AppBar title="Problem" onBack={() => navigation.goBack()} />
       <View className="px-5 pb-3 border-b-2 border-ink">
         <View className="flex-row items-center mt-1 mb-2">
           <View className="px-2 py-1 rounded-sm" style={{ backgroundColor: level.bg }}>
@@ -188,6 +187,6 @@ export default function SolveProblem() {
           </Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

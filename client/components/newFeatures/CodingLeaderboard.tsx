@@ -284,9 +284,9 @@ export default function CodingLeaderboard() {
             <View className="flex-1 bg-paper">
                 <StatusBar barStyle="dark-content" />
 
-                <SafeAreaView className="flex-1">
+                <SafeAreaView className="flex-1" edges={['bottom']}>
                     {/* Header with Back Button */}
-                    <AppBar onBack={() => navigation.goBack()} />
+                    <AppBar title="Coding Rank" onBack={() => navigation.goBack()} />
 
                     <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 20, paddingBottom: 50 }}>
                         <View className="items-center mb-10">
@@ -352,21 +352,16 @@ export default function CodingLeaderboard() {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            {/* HEADER DECORATION */}
-
-            <SafeAreaView className="flex-1">
-                <AppBar onBack={() => navigation.goBack()} />
-                <View className="px-gutter pt-2 mb-6 flex-row justify-between items-center">
-                    <View>
-                        <Text className="text-ink text-3xl font-display uppercase">Coding<Text className="text-accent-text"> Rank</Text></Text>
-                        <Text className="text-ink-3 text-label font-display uppercase">Campus Coding Arena</Text>
-                    </View>
-                    
-                    {/* Synchronized Refresh Timer */}
-                    {canRefresh ? (
+            <SafeAreaView className="flex-1" edges={['bottom']}>
+                <AppBar
+                    title="Coding Rank"
+                    onBack={() => navigation.goBack()}
+                    right={
+                    canRefresh ? (
                         <TouchableOpacity 
                             onPress={handleManualRefresh}
                             disabled={refreshingStats}
+                            style={{ marginRight: 11 }}
                             className={`px-4 py-2.5 rounded-xl items-center shadow-hair ${refreshingStats ? 'bg-brand-200' : 'bg-brand-500 '}`}
                         >
                             {refreshingStats ? (
@@ -379,14 +374,15 @@ export default function CodingLeaderboard() {
                             )}
                         </TouchableOpacity>
                     ) : (
-                        <View className="bg-card border border-line items-center justify-center px-2.5 py-1 rounded-full">
+                        <View className="bg-card border border-line items-center justify-center px-2.5 py-1 rounded-full" style={{ marginRight: 11 }}>
                             <Text className="font-display text-label text-ink-3 uppercase mb-0.5">Next Sync</Text>
                             <Text className="text-ink font-display text-sm">{syncCountdown}</Text>
                         </View>
-                    )}
-                </View>
+                    )
+                    }
+                />
 
-                <View className="px-gutter mb-6">
+                <View className="px-gutter mt-2 mb-6">
                     <View className="flex-row items-center bg-card px-4 py-1 border-2 border-ink shadow-hair mb-6 rounded-md">
                         <Ionicons name="search" size={20} color={C.ink4} />
                         <TextInput placeholder="Search hunters..." placeholderTextColor={C.ink4} value={search} onChangeText={setSearch} className="flex-1 text-ink font-display uppercase text-sm" />

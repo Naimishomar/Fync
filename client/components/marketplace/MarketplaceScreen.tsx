@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {View, Text, TouchableOpacity, FlatList, Image, ActivityIndicator, StatusBar, Modal, TextInput, KeyboardAvoidingView, ScrollView, RefreshControl, Animated, Pressable} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
@@ -10,7 +9,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 
-import { StampCard } from '../ui/kit';
+import { StampCard, AppBar } from '../ui/kit';
 import { C } from '../../constants/colors';
 // Outside the screen so a parent re-render doesn't remount it and restart the pulse.
 const ProductSkeleton = () => {
@@ -194,17 +193,9 @@ const MarketplaceScreen = () => {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            {/* Arena Header Decoration */}
-
-            <SafeAreaView className="flex-1" edges={['top']}>
-                {/* Arena Header */}
-                <View className="px-gutter pt-6 flex-row justify-between items-center mb-8">
-                    <View className="flex-row items-center">
-                        <View>
-                            <Text className="text-ink text-3xl font-display uppercase leading-tight">Reward <Text className="text-warning">Store</Text></Text>
-                            <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Spend Your Fync Coins</Text>
-                        </View>
-                    </View>
+            <View className="flex-1">
+                <AppBar title="Reward Store" onBack={() => navigation.goBack()} />
+                <View className="px-gutter pt-2 flex-row justify-end items-center mb-8">
                     <StampCard>
                         <View className="items-center py-3 px-4">
                             <Text className="font-display text-label text-ink-3 uppercase">Balance</Text>
@@ -341,7 +332,7 @@ const MarketplaceScreen = () => {
                     </View>
                 </Modal>
 
-            </SafeAreaView>
+            </View>
         </View>
     );
 };

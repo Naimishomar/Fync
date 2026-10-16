@@ -57,7 +57,7 @@ export default function PdfToImagesScreen() {
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
       <Host />
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="PDF to Images" onBack={() => navigation.goBack()} />
 
         <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>

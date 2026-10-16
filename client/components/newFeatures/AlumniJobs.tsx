@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import {View, Text, TouchableOpacity, TextInput, FlatList, Modal, ActivityIndicator, KeyboardAvoidingView, Linking, StatusBar} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -223,10 +222,9 @@ export default function AlumniJobs() {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            {/* Background Protocol Gradient */}
-
-            <SafeAreaView className="flex-1" edges={['top']}>
+            <View className="flex-1">
                 <AppBar
+                    title="Alumni Jobs"
                     onBack={() => navigation.goBack()}
                     right={isAlumni ? <IconBtn name="add" boxed onPress={() => setPostModalVisible(true)} /> : undefined}
                 />
@@ -234,21 +232,10 @@ export default function AlumniJobs() {
                     data={jobs}
                     keyExtractor={(item) => item._id}
                     renderItem={renderJob}
-                    contentContainerStyle={{ paddingBottom: 120 }}
+                    contentContainerStyle={{ paddingTop: 8, paddingBottom: 120 }}
                     showsVerticalScrollIndicator={false}
                     onRefresh={onRefresh}
                     refreshing={refreshing}
-                    ListHeaderComponent={
-                        <View className="px-gutter mb-10">
-                            <View className="flex-row justify-between items-center">
-                                <View>
-                                    <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Alumni</Text>
-                                    <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Jobs</Text>
-                                    <Text className="text-ink-3 text-label font-display uppercase">Exclusive Senior Intel</Text>
-                                </View>
-                            </View>
-                        </View>
-                    }
                     ListEmptyComponent={!loading ? (
                         <View className="items-center justify-center mt-20 px-gutter">
                             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
@@ -324,7 +311,7 @@ export default function AlumniJobs() {
                     currentUser={user}
                 />
 
-            </SafeAreaView>
+            </View>
         </View>
     );
 }

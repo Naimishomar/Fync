@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppBar } from '../ui/kit';
 import { useNavigation } from '@react-navigation/native';
 import { C } from '../../constants/colors';
@@ -64,19 +63,15 @@ const DSAPrep = () => {
 
       {/* HEADER DECORATION */}
 
-      <SafeAreaView className="flex-1" edges={['top']}>
-        <AppBar onBack={() => navigation.goBack()} />
+      <View className="flex-1">
+        <AppBar title="DSA Prep" onBack={() => navigation.goBack()} />
         <FlatList
           data={filteredTopics}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100 }}
           ListHeaderComponent={
-            <View className='px-gutter pt-8 bg-transparent'>
-              <View className="mb-8">
-                <Text className="text-ink text-3xl font-display uppercase">DSA <Text className="text-fam-study">Prep</Text></Text>
-                <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Master Placement Hub</Text>
-              </View>
+            <View className='px-gutter pt-2 bg-transparent'>
 
               <View className="flex-row items-center bg-card px-4 py-1 border-2 border-ink mb-6 rounded-md">
                 <Ionicons name="search" size={20} color={C.ink4} />
@@ -155,7 +150,7 @@ const DSAPrep = () => {
             </View>
           }
         />
-      </SafeAreaView>
+      </View>
     </View>
   );
 };

@@ -8,7 +8,6 @@ import {
   StatusBar,
   BackHandler
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
@@ -62,10 +61,9 @@ const PartyPoolHub = () => {
       <View className="absolute top-0 w-full h-[300px] opacity-[0.15]">
       </View>
 
-      <SafeAreaView className="flex-1" edges={['top']}>
+      <View className="flex-1">
         <AppBar
           title="Party Pool"
-          subtitle="Campus Social Hub"
           onBack={activeGame !== 'none' ? () => setActiveGame('none') : () => navigation.goBack()}
         />
 
@@ -296,7 +294,7 @@ const PartyPoolHub = () => {
           </>
         </ScrollView>
         )}
-      </SafeAreaView>
+      </View>
     </View>
   );
 };

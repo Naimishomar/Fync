@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { searchMovies } from '../../utils/tmdb';
 import MovieCard from './MovieCard';
 import { C } from '../../constants/colors';
-import { IconBtn } from '../ui/kit';
+import { AppBar } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
 const numColumns = 3;
@@ -57,9 +57,9 @@ const MovieSearch = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-ink">
-      <View className="px-5 py-4 flex-row items-center gap-3">
-        <IconBtn name="chevron-back" color="white" onPress={() => navigation.goBack()} style={{ marginLeft: -11 }} />
+    <SafeAreaView className="flex-1 bg-ink" edges={['bottom']}>
+      <AppBar night title="Search Movies" onBack={() => navigation.goBack()} />
+      <View className="px-5 pb-4">
         <View className="flex-1 bg-ink rounded-full flex-row items-center px-4 py-2 border border-ink">
           <Ionicons name="search" size={20} color={C.ink4} />
           <TextInput

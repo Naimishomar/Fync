@@ -288,11 +288,8 @@ export default function EventCommunityChat({ route }: any) {
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
-            <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
-                {/* Header */}
-                <View className="bg-card border-b border-line shadow-hair z-10">
-                    <AppBar title={eventName} subtitle="Community Hub" onBack={() => goBack()} />
-                </View>
+            <SafeAreaView className="flex-1" edges={['bottom']}>
+                <AppBar title={eventName} onBack={() => goBack()} />
 
                 {loading ? (
                     <View className="flex-1 items-center justify-center">

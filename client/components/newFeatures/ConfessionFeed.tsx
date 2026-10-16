@@ -6,11 +6,10 @@ import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
-import Skeleton, { ConfessionSkeleton } from '../Skeleton';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ConfessionSkeleton } from '../Skeleton';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, IconBtn, Meta } from '../ui/kit';
 import CommentsSheet, { CommentsApi, CommentModel } from '../ui/CommentsSheet';
 
 const { width } = Dimensions.get('window');
@@ -365,14 +364,11 @@ const ConfessionFeed = () => {
 
     if (loading && confessions.length === 0) {
         return (
-            <View className="flex-1 bg-paper-2 px-gutter pb-4 pt-12">
-                <View className="flex-row items-center justify-between mb-8">
-                    <View>
-                        <Text className="text-ink text-3xl font-display">Secrets & Feeds</Text>
-                        <Skeleton width={150} height={15} style={{ marginTop: 6 }} />
-                    </View>
+            <View className="flex-1 bg-paper-2">
+                <AppBar title="Confessions Feed" onBack={() => navigation.goBack()} />
+                <View className="px-gutter pb-4 pt-2">
+                    {[1, 2, 3].map(i => <ConfessionSkeleton key={i} />)}
                 </View>
-                {[1, 2, 3].map(i => <ConfessionSkeleton key={i} />)}
             </View>
         );
     }
@@ -381,14 +377,10 @@ const ConfessionFeed = () => {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            {/* HEADER DECORATION */}
-
-            <SafeAreaView className="flex-1" edges={['top']}>
-                {/* Arena Header */}
+            <View className="flex-1">
                 <AppBar
                     onBack={() => navigation.goBack()}
                     title="Confessions Feed"
-                    subtitle={`${user?.college || 'Campus'} Broadcast Registry`}
                     right={<IconBtn name="megaphone" color={C.brand[500]} boxed onPress={() => setIsPostModalOpen(true)} />}
                 />
 
@@ -402,6 +394,7 @@ const ConfessionFeed = () => {
                     onEndReachedThreshold={0.5}
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
+                    ListHeaderComponent={<Meta style={{ marginBottom: 10 }}>{user?.college || 'Campus'}</Meta>}
                     ListFooterComponent={() => (
                         loadingMore ? <ActivityIndicator color={C.brand[500]} className="my-8" /> : <View className="h-20" />
                     )}
@@ -514,7 +507,7 @@ const ConfessionFeed = () => {
                     currentUser={user}
                     onCountChange={onCommentCount}
                 />
-            </SafeAreaView>
+            </View>
         </View>
     );
 };

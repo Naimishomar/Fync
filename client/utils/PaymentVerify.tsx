@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
+import { AppBar } from '../components/ui/kit';
 
 interface PaymentVerifyProps {
   route: {
@@ -65,9 +66,12 @@ export default function PaymentVerify({ route }: any) {
 
   if (loading) {
     return (
+      <View className="flex-1 bg-black">
+        <AppBar title="Payment" night />
       <View className="flex-1 items-center justify-center bg-black">
         <ActivityIndicator size="large" color="white" />
         <Text className="mt-3 text-xl text-white">Verifying Payment...</Text>
+      </View>
       </View>
     );
   }
@@ -75,6 +79,8 @@ export default function PaymentVerify({ route }: any) {
   // ⬇ SUCCESS UI
   if (success) {
     return (
+      <View className="flex-1 bg-black">
+        <AppBar title="Payment" night />
       <View className="flex-1 items-center justify-center bg-black px-5">
         <Text className="mb-3 text-3xl font-bold text-green-400">Payment Successful 🎉</Text>
 
@@ -101,12 +107,15 @@ export default function PaymentVerify({ route }: any) {
           <Text className="text-lg font-semibold text-white">Go Back to Home</Text>
         </Pressable>
       </View>
+      </View>
     );
   }
 
   // ⬇ FAILURE UI
   return (
-    <View className="flex-1 items-center justify-center bg-black px-5">
+    <View className="flex-1 bg-black">
+        <AppBar title="Payment" night />
+      <View className="flex-1 items-center justify-center bg-black px-5">
       <Text className="mb-3 text-3xl font-bold text-red-400">Payment Failed ❌</Text>
 
       <Text className="mb-10 text-center text-lg text-gray-300">
@@ -123,6 +132,7 @@ export default function PaymentVerify({ route }: any) {
         }>
         <Text className="text-lg font-semibold text-white">Go Back to Home</Text>
       </Pressable>
+    </View>
     </View>
   );
 }

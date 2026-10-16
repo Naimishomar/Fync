@@ -149,14 +149,11 @@ export default function RecruiterProfileSetup() {
       className="flex-1 bg-paper" 
       behavior="padding"
     >
+      <AppBar title="Company Profile" onBack={() => navigation.goBack()}
+        right={<Text className="text-ink-3 font-semibold text-xs uppercase" style={{ marginRight: 11 }}>Step 2 of 2</Text>} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 50 }}>
-        <View className="pt-16 pb-6 bg-paper">
-            <AppBar onBack={() => navigation.goBack()}
-              right={<Text className="text-ink-3 font-semibold text-xs uppercase" style={{ marginRight: 11 }}>Step 2 of 2</Text>} />
-            <View className="px-5">
-              <Text className="text-2xl font-display text-ink mb-1">Company Profile</Text>
-              <Text className="text-ink-3 text-sm font-medium">Complete your recruiter profile.</Text>
-            </View>
+        <View className="px-5 pt-2 pb-6 bg-paper">
+          <Text className="text-ink-3 text-sm font-medium">Complete your recruiter profile.</Text>
         </View>
 
         <View className="px-5 py-6 border-b border-line">

@@ -19,7 +19,7 @@ export default function ReceiptWebview({ route }: ReceiptWebviewProps) {
   // headerShown is off app-wide, so without these the page sat under the status
   // bar with no way back but the system gesture.
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+    <SafeAreaView style={{ flex: 1 }} edges={["bottom"]}>
       <AppBar title="Receipt" onBack={() => navigation.goBack()} />
       <View style={{ flex: 1 }}>
       <WebView

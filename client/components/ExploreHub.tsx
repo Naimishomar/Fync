@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image as ExpoImage } from 'expo-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { readRecentFeatureIds, recordFeatureUse } from '../utils/recentFeatures';
 import { useAuth } from '../context/auth.context';
@@ -23,6 +22,7 @@ import {
   type Feature,
 } from '../constants/features';
 import { C } from '../constants/colors';
+import { AppBar } from './ui/kit';
 
 // A category reads as one colour instead of forty. `feature.tint` stays in
 // constants/features.ts as a fallback for anything not yet categorised.
@@ -229,19 +229,10 @@ const ExploreHub = () => {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
-      <SafeAreaView className="flex-1" edges={['top']}>
-        <View className="px-gutter pt-4">
-          <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>
-            Explore
-          </Text>
-          <Text className="font-display text-accent-text uppercase text-display" style={{ letterSpacing: -1.2 }}>
-            Fync
-          </Text>
-          <Text className="font-display text-label text-ink-3 uppercase mt-3" style={{ letterSpacing: 1.4 }}>
-            Find what you need
-          </Text>
-
-          <View className="flex-row items-center bg-card px-4 border-2 border-ink mt-5 rounded-md" style={{ minHeight: 50 }}>
+      <View className="flex-1">
+        <AppBar title="Explore" />
+        <View className="px-gutter">
+          <View className="flex-row items-center bg-card px-4 border-2 border-ink rounded-md" style={{ minHeight: 50 }}>
             <Ionicons name="search" size={20} color={C.ink3} />
             <TextInput
               placeholder="Search features..."
@@ -333,7 +324,7 @@ const ExploreHub = () => {
             </>
           )}
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </View>
   );
 

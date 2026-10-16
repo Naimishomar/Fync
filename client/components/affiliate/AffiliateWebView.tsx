@@ -8,7 +8,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, IconBtn, Meta } from '../ui/kit';
 
 const AffiliateWebView = () => {
     const route = useRoute<any>();
@@ -84,15 +84,13 @@ const AffiliateWebView = () => {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-            <View style={styles.header}>
-                <AppBar
-                    title="Checkout"
-                    subtitle={url}
-                    onBack={handleBack}
-                    right={<IconBtn name="share-outline" onPress={handleShare} />}
-                />
-            </View>
+        <SafeAreaView style={styles.container} edges={['bottom']}>
+            <AppBar
+                title="Checkout"
+                onBack={handleBack}
+                right={<IconBtn name="share-outline" onPress={handleShare} />}
+            />
+            <Meta numberOfLines={1} style={styles.url}>{url}</Meta>
 
             <View style={styles.webViewContainer}>
                 <WebView
@@ -141,10 +139,9 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#F5F2EC',
     },
-    header: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#E3DDD3',
-        backgroundColor: '#FFFFFF',
+    url: {
+        paddingHorizontal: 20,
+        paddingBottom: 8,
     },
     webViewContainer: {
         flex: 1,

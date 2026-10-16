@@ -10,8 +10,7 @@ import {
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
-import { AppBar } from '../ui/kit';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppBar, Meta } from '../ui/kit';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import { C } from '../../constants/colors';
@@ -103,9 +102,10 @@ const GitHubFolderScreen = () => {
 
       {/* HEADER DECORATION */}
 
-      <SafeAreaView className="flex-1" edges={['top']}>
-        <AppBar title={title} subtitle={`Repo Explorer / ${path || 'root'}`} onBack={() => navigation.goBack()} />
+      <View className="flex-1">
+        <AppBar title={title} onBack={() => navigation.goBack()} />
         <View className='px-gutter bg-transparent'>
+          <Meta style={{ marginBottom: 8 }} numberOfLines={1}>{path || 'root'}</Meta>
 
           <View className="flex-row items-center bg-card px-4 py-1 border-2 border-ink mb-6 rounded-md">
             <Ionicons name="search" size={20} color={C.ink4} />
@@ -172,7 +172,7 @@ const GitHubFolderScreen = () => {
             }
           />
         )}
-      </SafeAreaView>
+      </View>
     </View>
   );
 };

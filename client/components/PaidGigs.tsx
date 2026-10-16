@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, TextInput, ScrollView, KeyboardAvoidingView, Pressable, Animated, StatusBar, Platform} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../context/axiosConfig';
@@ -421,18 +420,13 @@ export default function PaidGigs({ navigation }: any) {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            <SafeAreaView className="flex-1" edges={['top']}>
+            <View className="flex-1">
                 <AppBar
+                    title="Paid Gigs"
                     onBack={() => navigation.goBack()}
                     right={<IconBtn name="add" onPress={openCreateModal} />}
                 />
                 <View className="px-gutter">
-                    <View className="mb-8">
-                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Paid</Text>
-                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Gigs</Text>
-                        <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Freelance Work Protocol</Text>
-                    </View>
-
                     <View className="flex-row bg-card p-1.5 rounded-card mb-8 border border-line">
                         {[
                             { key: 'college', label: 'College' },
@@ -482,20 +476,13 @@ export default function PaidGigs({ navigation }: any) {
                         }
                     />
                 )}
-            </SafeAreaView>
+            </View>
 
             {/* CREATE / EDIT MODAL */}
             <Modal visible={modalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeModal}>
                 <View className="flex-1 bg-paper">
                     <StatusBar barStyle="dark-content" />
-                    <View className="flex-row justify-between items-center px-gutter py-6 border-b border-line bg-card">
-                        <Text className="text-xl font-display text-ink uppercase leading-tight">
-                            {editMode ? 'Edit' : 'New'} <Text className="text-accent-text">Gig Protocol</Text>
-                        </Text>
-                        <TouchableOpacity onPress={closeModal} hitSlop={8} className="bg-paper-2 p-2 rounded-card border border-line">
-                            <Ionicons name="close" size={20} color={C.ink} />
-                        </TouchableOpacity>
-                    </View>
+                    <AppBar inset={false} title={editMode ? 'Edit Gig' : 'New Gig'} right={<IconBtn name="close" onPress={closeModal} />} />
 
                     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
                         <ScrollView className="p-card-pad" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">

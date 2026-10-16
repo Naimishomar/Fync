@@ -132,29 +132,26 @@ export default function RecruiterEditProfile() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-paper">
+    <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
       <StatusBar style="dark" />
 
-      {/* Header */}
-      <View className="border-b border-line">
-        <AppBar
-          title="Profile Settings"
-          onBack={() => navigation.goBack()}
-          right={
-            <TouchableOpacity
-              onPress={handleUpdate}
-              disabled={loading || !hasChanges}
-              className={`bg-recruiter px-5 py-2 rounded-xl shadow-hair mr-[11px] ${(!hasChanges || loading) ? 'opacity-50' : ''}`}
-            >
-              {loading ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text className="text-white font-display uppercase text-label">Save</Text>
-              )}
-            </TouchableOpacity>
-          }
-        />
-      </View>
+      <AppBar
+        title="Profile Settings"
+        onBack={() => navigation.goBack()}
+        right={
+          <TouchableOpacity
+            onPress={handleUpdate}
+            disabled={loading || !hasChanges}
+            className={`bg-recruiter px-5 py-2 rounded-xl shadow-hair mr-[11px] ${(!hasChanges || loading) ? 'opacity-50' : ''}`}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text className="text-white font-display uppercase text-label">Save</Text>
+            )}
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
 

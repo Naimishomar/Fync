@@ -432,9 +432,10 @@ export default function ActiveInterview() {
   }
 
   return (
-    <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
+    <View className="flex-1 bg-paper">
       {/* Top Bar */}
       <AppBar
+        title="Interview"
         onBack={() => navigation.goBack()}
         right={
           <View className="bg-paper-2 px-4 py-2 rounded-full border border-line flex-row items-center gap-2" style={{ marginRight: 11 }}>

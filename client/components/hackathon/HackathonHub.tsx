@@ -12,7 +12,6 @@ import {
   Pressable,
   useWindowDimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -519,10 +518,9 @@ const HackathonHub = () => {
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-      <SafeAreaView className="flex-1" edges={['top']}>
+      <View className="flex-1">
         <AppBar
           title="Hackathon Hub"
-          subtitle="Find one, register with the host"
           onBack={() => navigation.goBack()}
           right={
             <TouchableOpacity
@@ -610,7 +608,7 @@ const HackathonHub = () => {
             )
           }
         />
-      </SafeAreaView>
+      </View>
     </View>
   );
 };

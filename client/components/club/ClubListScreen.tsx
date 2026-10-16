@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useRef, memo } from 'react';
 import {View, Text, TouchableOpacity, FlatList, TextInput, ActivityIndicator, RefreshControl, StatusBar, Modal, KeyboardAvoidingView, Platform} from 'react-native'
 import { Image } from 'expo-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -157,18 +156,12 @@ const ClubListScreen = () => {
             
             {/* Background Protocol Gradient */}
 
-            <SafeAreaView className="flex-1" edges={['top']}>
-                {/* Header */}
+            <View className="flex-1">
                 <AppBar
+                    title="College Clubs"
                     onBack={() => navigation.goBack()}
                     right={<IconBtn name="qr-code-outline" boxed onPress={() => setShowCodeModal(true)} />}
                 />
-                <View className="px-gutter pb-2">
-                    <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>College</Text>
-                    <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Clubs</Text>
-                    <Text className="text-ink-3 text-label font-display uppercase">Secure Community Network</Text>
-                </View>
-
                 <FlatList
                     ListHeaderComponent={
                         <TouchableOpacity
@@ -280,7 +273,7 @@ const ClubListScreen = () => {
                         </View>
                     </KeyboardAvoidingView>
                 </Modal>
-            </SafeAreaView>
+            </View>
         </View>
     );
 };

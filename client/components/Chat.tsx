@@ -680,8 +680,7 @@ const Chat = ({ route, navigation }: any) => {
       </View>
 
       {/* FIXED HEADER */}
-      <SafeAreaView edges={['top']} style={{ backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)' }}>
-        <AppBar onBack={() => navigation.goBack()}>
+      <AppBar onBack={() => navigation.goBack()}>
             {otherUser && (
               <TouchableOpacity
                 className="flex-row items-center"
@@ -693,7 +692,7 @@ const Chat = ({ route, navigation }: any) => {
                 }
               >
                 <View className="relative">
-                  <View className="w-11 h-11 rounded-full border-2 border-white shadow-hair overflow-hidden">
+                  <View className="w-9 h-9 rounded-full border-2 border-white shadow-hair overflow-hidden">
                     <Image
                       source={{
                         uri:
@@ -726,7 +725,6 @@ const Chat = ({ route, navigation }: any) => {
               </TouchableOpacity>
             )}
         </AppBar>
-      </SafeAreaView>
 
       <KeyboardAvoidingView
         behavior="padding"

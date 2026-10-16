@@ -206,7 +206,7 @@ export default function CreateFundingFeed() {
 
 
   return (
-    <SafeAreaView className='flex-1 bg-paper'>
+    <SafeAreaView className='flex-1 bg-paper' edges={['bottom']}>
       <AppBar title={`${isEditing ? 'Edit' : 'Post'} Project`} onBack={() => navigation.goBack()} />
 
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -338,11 +338,9 @@ export default function CreateFundingFeed() {
       </KeyboardAvoidingView>
 
       {/* PAYMENT MODAL */}
-      <Modal visible={!!showPaymentParams} animationType="slide" transparent={false} onRequestClose={() => setShowPaymentParams(null)}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F2EC' }}>
-          <View className="bg-card border-b border-line">
-            <AppBar title="Secure Gateway" right={<IconBtn name="close" size={24} onPress={() => setShowPaymentParams(null)} />} />
-          </View>
+      <Modal visible={!!showPaymentParams} animationType="slide" transparent={false} statusBarTranslucent onRequestClose={() => setShowPaymentParams(null)}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F2EC' }} edges={['bottom']}>
+          <AppBar title="Secure Gateway" right={<IconBtn name="close" size={24} onPress={() => setShowPaymentParams(null)} />} />
           <WebView
             source={showPaymentParams}
             onMessage={handleWebViewMessage}

@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image as ExpoImage } from 'expo-image';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
@@ -298,16 +297,8 @@ const Notification = () => {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
-      {/* HEADER DECORATION */}
-
-      <SafeAreaView className="flex-1" edges={['top']}>
-        <AppBar onBack={() => navigation.goBack()} />
-        <View className="px-gutter mb-5">
-          <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>
-            Updates <Text className="text-accent-text">Center</Text>
-          </Text>
-          <Text className="font-display text-label text-ink-3 uppercase">System & Social Logs</Text>
-        </View>
+      <View className="flex-1">
+        <AppBar title="Updates Center" onBack={() => navigation.goBack()} />
 
         {/* List */}
         {loading ? (
@@ -356,7 +347,7 @@ const Notification = () => {
             showsVerticalScrollIndicator={false}
           />
         )}
-      </SafeAreaView>
+      </View>
     </View>
   );
 };

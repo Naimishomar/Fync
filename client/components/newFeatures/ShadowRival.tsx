@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {View, Text, ScrollView, ActivityIndicator, RefreshControl, StatusBar, Image, TouchableOpacity, Switch, Dimensions} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Svg, { Polyline, Circle } from 'react-native-svg';
@@ -163,8 +162,8 @@ export default function ShadowRival() {
             <StatusBar barStyle="dark-content" />
 
 
-            <SafeAreaView className="flex-1" edges={['top']}>
-                <AppBar onBack={() => navigation.goBack()} />
+            <View className="flex-1">
+                <AppBar title="Shadow Rival" onBack={() => navigation.goBack()} />
                 <ScrollView
                     contentContainerStyle={{ paddingBottom: 40 }}
                     showsVerticalScrollIndicator={false}
@@ -173,8 +172,6 @@ export default function ShadowRival() {
                     }
                 >
                     <View className="px-gutter mb-6">
-                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Shadow</Text>
-                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Rival</Text>
                         <Text className="text-ink-3 text-label font-display uppercase">
                             One anonymous match. Revealed at semester end.
                         </Text>
@@ -336,7 +333,7 @@ export default function ShadowRival() {
                         </View>
                     </View>
                 </ScrollView>
-            </SafeAreaView>
+            </View>
 
             {celebrate && (
                 <ConfettiCannon

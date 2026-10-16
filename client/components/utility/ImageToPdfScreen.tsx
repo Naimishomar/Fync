@@ -128,7 +128,7 @@ export default function ImageToPdfScreen() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="Image to PDF" onBack={() => navigation.goBack()}
           right={<IconBtn name="trash-outline" color={C.ink3} onPress={() => setImages([])} />} />
 

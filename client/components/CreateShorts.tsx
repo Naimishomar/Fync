@@ -16,6 +16,7 @@ import { useAuth } from "../context/auth.context";
 import { compressVideo } from "../utils/mediaUpload";
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
+import { AppBar, IconBtn } from './ui/kit';
 
 const { width, height } = Dimensions.get("window");
 const COLUMN_COUNT = 3;
@@ -246,28 +247,10 @@ const CreateShorts = () => {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
       
-      <SafeAreaView className="flex-1">
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-6 py-4">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-          <Ionicons name="close" size={24} color={C.ink} />
-        </TouchableOpacity>
-        <View className="items-center">
-          <Text className="text-ink font-display uppercase text-h1">Create Short</Text>
-          <Text className="text-ink-3 text-label font-display uppercase">Gallery Sync</Text>
-        </View>
-        <TouchableOpacity 
-          onPress={() => selectedAsset && setShowDetailsModal(true)}
-          disabled={!selectedAsset}
-          hitSlop={4}
-          className={`w-10 h-10 rounded-full items-center justify-center ${selectedAsset ? 'bg-brand-500' : 'bg-paper-2'}`}
-        >
-          <Ionicons name="arrow-forward" size={20} color="black" />
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView className="flex-1" edges={['bottom']}>
+      <AppBar title="Create Short" onBack={() => navigation.goBack()}
+        right={<IconBtn boxed name="arrow-forward" color={selectedAsset ? C.ink : C.ink4}
+          onPress={() => selectedAsset && setShowDetailsModal(true)} />} />
 
       {/* Main Preview Container */}
       <View className="px-6 py-4" style={{ height: height * 0.35 }}>

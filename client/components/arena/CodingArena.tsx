@@ -4,7 +4,6 @@ import {
   RefreshControl, Linking,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
@@ -332,15 +331,8 @@ export default function CodingArena() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-      <AppBar onBack={() => navigation.goBack()} />
-      <View className="px-5">
-        <Text className="font-display text-display text-ink uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Coding</Text>
-        <Text className="font-display text-display text-brand-600 uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Arena</Text>
-        <Text className="font-display text-ink-2 uppercase mt-2 mb-4" style={{ fontSize: 11, letterSpacing: 1.4 }}>
-          Your progress and rank
-        </Text>
-      </View>
+    <View className="flex-1 bg-paper">
+      <AppBar title="Coding Arena" onBack={() => navigation.goBack()} />
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
@@ -384,6 +376,6 @@ export default function CodingArena() {
           <Text className="font-display text-ink uppercase">Solve on web</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

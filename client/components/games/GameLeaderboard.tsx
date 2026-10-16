@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, ActivityIndicator } from 'react-native';
 import { Image } from 'expo-image';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
@@ -12,7 +11,6 @@ import { useBottomInset } from '../../constants/layout';
 const GameLeaderboard = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const insets = useSafeAreaInsets();
   const bottomInset = useBottomInset();
   const gameName = route.params?.gameName || "FlappyBird"; // Default to FlappyBird
 
@@ -40,9 +38,7 @@ const GameLeaderboard = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <View className="border-b border-line shadow-hair z-10 bg-card" style={{ paddingTop: insets.top }}>
-        <AppBar title="Leaderboard" onBack={() => navigation.goBack()} />
-      </View>
+      <AppBar title="Leaderboard" onBack={() => navigation.goBack()} />
 
       <View className="p-6 items-center bg-recruiter/10 border-b border-recruiter/15">
         <Ionicons name="trophy" size={48} color={C.warning} />

@@ -14,7 +14,6 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import socket from "../utils/socket";
 import { supabase, fetchUnreadCounts } from "../utils/supabase";
 import { readCache, writeCache, userKey } from "../utils/screenCache";
@@ -22,6 +21,7 @@ import Avatar from "./Avatar";
 import { ChatListSkeleton } from "./Skeleton";
 import { useTabBarClearance, useTabBarAutoHide } from '../constants/layout';
 import { C } from '../constants/colors';
+import { AppBar } from './ui/kit';
 
 const ChatList = () => {
   const autoHideTabBar = useTabBarAutoHide();
@@ -365,22 +365,9 @@ const ChatList = () => {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
-      {/* HEADER DECORATION */}
-
-      <SafeAreaView className="flex-1" edges={['top']}>
-        {/* Arena Header */}
-        <View className="px-gutter pt-4 bg-transparent">
-          <View className="flex-row items-center justify-between mb-5">
-            <View className="flex-1">
-              <View className="flex-row items-center">
-                <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>
-                  Inbox <Text className="text-accent-text">Center</Text>
-                </Text>
-              </View>
-              <Text className="font-display text-label text-ink-3 uppercase">Real-time Encrypted Protocol</Text>
-            </View>
-          </View>
-
+      <View className="flex-1">
+        <AppBar title="Messages" />
+        <View className="px-gutter">
           {/* SEARCH DOCK */}
           <View className="flex-row items-center bg-card px-5 py-1 border-2 border-ink shadow-hair mb-5 rounded-md">
             <Ionicons name="search" size={20} color={C.ink3} />
@@ -517,7 +504,7 @@ const ChatList = () => {
             }
           />
         )}
-      </SafeAreaView>
+      </View>
     </View>
   );
 };

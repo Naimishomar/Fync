@@ -177,16 +177,12 @@ const SubCommunityChat = ({ navigation, route }: any) => {
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
-            <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
-                {/* Modern Header */}
-                <View className="border-b border-line bg-card">
-                    <AppBar
-                        title={`#${subName}`}
-                        subtitle="Link Established"
-                        onBack={() => navigation.goBack()}
-                        right={<IconBtn name="ellipsis-horizontal" color={C.ink4} boxed />}
-                    />
-                </View>
+            <SafeAreaView className="flex-1" edges={['bottom']}>
+                <AppBar
+                    title={`#${subName}`}
+                    onBack={() => navigation.goBack()}
+                    right={<IconBtn name="ellipsis-horizontal" color={C.ink4} boxed />}
+                />
 
                 {/* Status Bar */}
                 <View className="bg-paper-2 py-2.5 items-center border-b border-line">

@@ -13,6 +13,7 @@ import { RAZORPAY_KEY_ID } from '../../constants/keys';
 import { WebView } from 'react-native-webview';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
 
@@ -222,22 +223,11 @@ const CreateCommunityScreen = () => {
             >
                 <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
                 
-                <View className="px-gutter py-4 flex-row items-center justify-between">
-                    <TouchableOpacity 
-                        onPress={() => navigation.goBack()} 
-                        className="w-11 h-11 items-center justify-center rounded-xl"
-                    
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                        <Ionicons name="close" size={20} color={C.ink} />
-                    </TouchableOpacity>
-                    <View className="items-center">
-                        <Text className="text-ink text-xl font-display uppercase">Generate <Text className="text-accent-text">Hub</Text></Text>
-                        <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Ecosystem Initiation Protocol</Text>
-                    </View>
-                    <View className="w-11" />
-                </View>
+                <AppBar
+                    inset={false}
+                    title="Create Community"
+                    right={<IconBtn name="close" size={20} onPress={() => navigation.goBack()} />}
+                />
 
                 <ScrollView showsVerticalScrollIndicator={false} className="px-gutter flex-1">
                     <View className="flex-row items-center mt-4 mb-4" style={{ gap: 12 }}>

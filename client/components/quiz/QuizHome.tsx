@@ -65,25 +65,9 @@ const QuizHome = () => {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            <SafeAreaView className="flex-1">
-                <AppBar onBack={() => navigation.goBack()} />
-                <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
-
-                    {/* --- HEADER SECTION --- */}
-                    <View className="mb-10 pb-4">
-                        <View className="flex-row items-center gap-3">
-                            <View className="w-12 h-12 bg-brand-500 rounded-card items-center justify-center shadow-hair">
-                                <Ionicons name="trophy" size={24} color={C.ink} />
-                            </View>
-                            <View>
-                                <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>QUIZ</Text>
-                                <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>ARENA</Text>
-                                <Text className="text-ink-3 text-label font-display uppercase mt-0.5">
-                                    GLOBAL BATTLEGROUND SITE
-                                </Text>
-                            </View>
-                        </View>
-                    </View>
+            <SafeAreaView className="flex-1" edges={['bottom']}>
+                <AppBar title="Quiz Arena" onBack={() => navigation.goBack()} />
+                <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingTop: 8 }} showsVerticalScrollIndicator={false}>
 
                     {/* --- CARDS GRID --- */}
                     <View className="flex-1">

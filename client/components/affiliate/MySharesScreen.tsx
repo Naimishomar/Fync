@@ -10,7 +10,6 @@ import {
   View, Text, FlatList, TouchableOpacity, ActivityIndicator,
   RefreshControl, Share, StatusBar,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -62,16 +61,10 @@ export default function MySharesScreen() {
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
-      <SafeAreaView className="flex-1" edges={['top']}>
-        <AppBar onBack={() => navigation.goBack()} />
+      <View className="flex-1">
+        <AppBar title="Your Shares" onBack={() => navigation.goBack()} />
         <View className="px-gutter">
-          <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Your</Text>
-          <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Shares</Text>
-          <Text className="font-display text-label text-ink-3 uppercase mt-3" style={{ letterSpacing: 1.4 }}>
-            What your links are doing
-          </Text>
-
-          <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
+          <View className="flex-row items-center mt-2 mb-3" style={{ gap: 12 }}>
             <Text className="text-ink text-label font-display uppercase">Taps</Text>
             <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
             <Text className="text-ink-3 font-mono text-label">{totalClicks}</Text>
@@ -130,7 +123,7 @@ export default function MySharesScreen() {
             }
           />
         )}
-      </SafeAreaView>
+      </View>
     </View>
   );
 }

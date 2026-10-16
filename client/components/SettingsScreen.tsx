@@ -4,7 +4,6 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Linking, StatusBar, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -137,12 +136,10 @@ export default function SettingsScreen() {
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
-      <SafeAreaView className="flex-1" edges={['top']}>
-        <AppBar onBack={() => navigation.goBack()} />
+      <View className="flex-1">
+        <AppBar title="Settings & More" onBack={() => navigation.goBack()} />
         <View className="px-gutter">
-          <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Settings</Text>
-          <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>& More</Text>
-          <Text className="font-display text-label text-ink-3 uppercase mt-3" style={{ letterSpacing: 1.4 }}>
+          <Text className="font-display text-label text-ink-3 uppercase" style={{ letterSpacing: 1.4 }}>
             Everything about your account
           </Text>
         </View>
@@ -190,7 +187,7 @@ export default function SettingsScreen() {
             Fync {Constants.expoConfig?.version ?? ''}{Platform.OS === 'ios' ? ' · iOS' : ' · Android'}
           </Text>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }

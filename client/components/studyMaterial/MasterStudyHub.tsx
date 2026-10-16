@@ -11,11 +11,10 @@ import {
   ActivityIndicator
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, Meta } from '../ui/kit';
 
 export default function MasterStudyHub() {
   const navigation = useNavigation<any>();
@@ -91,15 +90,11 @@ export default function MasterStudyHub() {
 
       {/* HEADER DECORATION */}
 
-      <SafeAreaView className="flex-1" edges={['top']}>
-        <AppBar onBack={() => navigation.goBack()} />
-        <View className="px-5">
-          <Text className="text-ink text-3xl font-display uppercase">Fync <Text className="text-fam-study">Academy</Text></Text>
-          <Text className="text-ink-3 text-label font-display uppercase mt-0.5">The Infinite Tech Protocol</Text>
-        </View>
+      <View className="flex-1">
+        <AppBar title="Fync Academy" onBack={() => navigation.goBack()} />
 
         <ScrollView 
-          className="flex-1 px-5 mt-4" 
+          className="flex-1 px-5 pt-2" 
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100 }}
         >
@@ -186,17 +181,17 @@ export default function MasterStudyHub() {
             </View>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
 
       {/* WEBVIEW MODAL */}
       {/* Results are drawn here, not loaded from a search engine.
           This used to be a WebView pointed at Google with CSS injected to hide
           its chrome — which still looked like Google, because it was. The
           backend returns open-access PDFs as data and the list below is ours. */}
-      <Modal visible={resultsOpen} animationType="slide" onRequestClose={() => setResultsOpen(false)}>
-        <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-          <AppBar title={searchQuery} subtitle={searchLoading ? 'Searching' : `${results.length} free PDFs`}
-            onBack={() => setResultsOpen(false)} />
+      <Modal visible={resultsOpen} animationType="slide" statusBarTranslucent onRequestClose={() => setResultsOpen(false)}>
+        <View className="flex-1 bg-paper">
+          <AppBar title={searchQuery} onBack={() => setResultsOpen(false)} />
+          {!searchLoading && <Meta style={{ paddingHorizontal: 20 }}>{results.length} free PDFs</Meta>}
 
           {searchLoading ? (
             <View className="flex-1 items-center justify-center">
@@ -248,7 +243,7 @@ export default function MasterStudyHub() {
               }
             />
           )}
-        </SafeAreaView>
+        </View>
       </Modal>
     </View>
   );

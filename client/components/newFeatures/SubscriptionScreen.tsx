@@ -157,14 +157,10 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            <SafeAreaView className="flex-1" edges={['top']}>
-                {navigation.canGoBack() && <AppBar onBack={() => navigation.goBack()} />}
+            <View className="flex-1">
+                <AppBar title="Fync Pro" onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined} />
                 <View className="px-5 pt-2">
-
-                    {/* The two-line display headline every other screen uses. */}
-                    <Text className="font-display text-display text-ink uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Fync</Text>
-                    <Text className="font-display text-display text-brand-600 uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Pro</Text>
-                    <Text className="font-display text-ink-3 uppercase mt-3 mb-5" style={{ fontSize: 11, letterSpacing: 1.4 }}>
+                    <Text className="font-display text-ink-3 uppercase mb-5" style={{ fontSize: 11, letterSpacing: 1.4 }}>
                         {user?.is_subscribed ? "Active — extend any time" : "Everything, unlocked"}
                     </Text>
                 </View>
@@ -265,7 +261,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
-            </SafeAreaView>
+            </View>
 
             {/* Razorpay WebView Modal */}
             <Modal

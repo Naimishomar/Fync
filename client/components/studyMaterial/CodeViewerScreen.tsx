@@ -1,7 +1,6 @@
 import React from 'react';
 import { WebView } from 'react-native-webview';
 import { View, ActivityIndicator, StatusBar } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { C } from '../../constants/colors';
 import { AppBar } from '../ui/kit';
 
@@ -74,9 +73,7 @@ const CodeViewerScreen = ({ route, navigation } : any) => {
       <StatusBar barStyle="light-content" />
       {/* headerShown:false on the stack: without this the code ran under the
           status bar and there was no way back except the system gesture. */}
-      <SafeAreaView edges={['top']}>
-        <AppBar title={title} night onBack={() => navigation.goBack()} />
-      </SafeAreaView>
+      <AppBar title={title} night onBack={() => navigation.goBack()} />
       <WebView 
         source={{ html: htmlContent }} 
         style={{ flex: 1, backgroundColor: '#12100E' }}

@@ -15,7 +15,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Alert } from '../ui/AlertModal';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
 import { AppBar, IconBtn } from '../ui/kit';
@@ -29,7 +28,6 @@ const AffiliateProductDetail = () => {
     const [product, setProduct] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [opening, setOpening] = useState(false);
-    const insets = useSafeAreaInsets();
     const bottomInset = useBottomInset();
 
     useEffect(() => {
@@ -123,16 +121,6 @@ const AffiliateProductDetail = () => {
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={styles.imageContainer}>
                     <Image source={{ uri: product.image }} style={styles.productImage} contentFit="cover" cachePolicy="memory-disk" />
-                    <LinearGradient
-                        colors={['rgba(0,0,0,0.5)', 'transparent']}
-                        style={[styles.imageHeader, { paddingTop: insets.top }]}
-                    >
-                        <AppBar
-                            overlay
-                            onBack={() => navigation.goBack()}
-                            right={<IconBtn overlay name="share-outline" onPress={handleShare} />}
-                        />
-                    </LinearGradient>
                 </View>
 
                 <View style={styles.content}>
@@ -193,6 +181,14 @@ const AffiliateProductDetail = () => {
                     <View style={{ height: 100 }} />
                 </View>
             </ScrollView>
+
+            <LinearGradient colors={['rgba(0,0,0,0.5)', 'transparent']} style={styles.imageHeader} pointerEvents="box-none">
+                <AppBar
+                    overlay
+                    onBack={() => navigation.goBack()}
+                    right={<IconBtn overlay name="share-outline" onPress={handleShare} />}
+                />
+            </LinearGradient>
 
             <View style={[styles.bottomBar, { paddingBottom: bottomInset + 10 }]}>
                 <View style={styles.bottomPrice}>

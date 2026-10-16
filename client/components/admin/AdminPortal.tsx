@@ -10,6 +10,13 @@ import Toast from 'react-native-toast-message';
 import { AdItem, RedemptionItem, MarketPlaceItem, ReportItem, ContactMessageItem, UserItem, MediaItem, PaymentItem } from './AdminComponents';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
+
+const TAB_TITLES: Record<string, string> = {
+    ads: 'Banner Ads', users: 'User Management', media: 'Fync Media', reports: 'Reported Content',
+    marketplace: 'Reward Items', rewards: 'Redemptions', messages: 'Contact Messages',
+    broadcast: 'Global Broadcast', payments: 'Payments', subscription: 'Subscription Pricing',
+};
 
 // Using a stable key for navigation to ensure it survives re-renders
 const HubButton = ({ title, tab, icon, color, description, onOpen }: { title: string, tab: any, icon: any, color: string, description: string, onOpen: (tab: any) => void }) => (
@@ -931,15 +938,14 @@ const AdminPortal = ({ navigation }: any) => {
             <View className="flex-1 bg-paper">
                 <StatusBar barStyle="dark-content" />
                 
-                <SafeAreaView className="flex-1 justify-center px-gutter" edges={['top', 'bottom']}>
+                <AppBar title="Admin Access" onBack={() => navigation.goBack()} />
+                <SafeAreaView className="flex-1 justify-center px-gutter" edges={['bottom']}>
                     <View className="bg-card p-card-pad rounded-sheet border border-line shadow-hair">
                         <View className="w-16 h-16 bg-paper-2 rounded-card items-center justify-center mb-6 border border-line">
                             <Ionicons name="shield-checkmark" size={32} color={C.brand[500]} />
                         </View>
                         
                         <View className="mb-8">
-                            <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>ADMIN</Text>
-                            <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>CHECK</Text>
                             <Text className="text-ink-3 text-label font-display uppercase mt-1 leading-4">
                                 Admin protocol password required to access operational core.
                             </Text>
@@ -992,31 +998,17 @@ const AdminPortal = ({ navigation }: any) => {
             <StatusBar barStyle="dark-content" />
             
 
-            <SafeAreaView className="flex-1" edges={['top']}>
-                {/* Header */}
-                <View className="px-gutter pt-6">
-                    <View className="flex-row items-center justify-between mb-8">
-                        <View className="flex-row items-center gap-4">
-                            <View>
-                                <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>{view === 'hub' ? 'ADMIN PANEL' : activeTab === 'marketplace' ? 'Store' : activeTab === 'subscription' ? 'Config' : activeTab.toUpperCase()}</Text>
-                                <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>{view === 'hub' ? 'PORTAL' : 'CORE'}</Text>
-                                <Text className="text-ink-3 text-label font-display uppercase mt-0.5">
-                                    {view === 'hub' ? 'Control Center v2.0' : 'Operational Protocol'}
-                                </Text>
-                            </View>
-                        </View>
-                        {view === 'feature' && activeTab !== 'rewards' && activeTab !== 'messages' && activeTab !== 'reports' && activeTab !== 'users' && activeTab !== 'subscription' && activeTab !== 'payments' && (
-                            <TouchableOpacity
-                                onPress={() => { resetForm(); setModalVisible(true); }}
-                                className="w-14 h-14 bg-ink rounded-card items-center justify-center shadow-hair"
-                            >
-                                <Ionicons name="add" size={28} color="white" />
-                            </TouchableOpacity>
-                        )}
-                    </View>
-
+            <View className="flex-1">
+                <AppBar
+                    title={view === 'hub' ? 'Admin Portal' : TAB_TITLES[activeTab]}
+                    onBack={() => (view === 'feature' ? setView('hub') : navigation.goBack())}
+                    right={view === 'feature' && activeTab !== 'rewards' && activeTab !== 'messages' && activeTab !== 'reports' && activeTab !== 'users' && activeTab !== 'subscription' && activeTab !== 'payments' ? (
+                        <IconBtn name="add" boxed onPress={() => { resetForm(); setModalVisible(true); }} />
+                    ) : undefined}
+                />
+                <View className="px-gutter">
                     {view === 'feature' && activeTab === 'users' && (
-                        <View className="flex-row items-center bg-card p-1.5 mb-8 border-2 border-ink shadow-hair rounded-md">
+                        <View className="flex-row items-center bg-card p-1.5 mt-2 mb-8 border-2 border-ink shadow-hair rounded-md">
                             <View className="flex-row items-center flex-1 px-4 py-2.5">
                                 <Ionicons name="search" size={18} color={C.ink3} />
                                 <TextInput 
@@ -1475,7 +1467,7 @@ const AdminPortal = ({ navigation }: any) => {
                     </KeyboardAvoidingView>
                 </View>
             </Modal>
-            </SafeAreaView>
+            </View>
             {/* Subscription Confirmation Modal */}
             <Modal visible={subConfirmModalVisible} animationType="fade" transparent onRequestClose={() => !submittingPrice && setSubConfirmModalVisible(false)}>
                 <View className="flex-1 bg-ink/80 justify-center px-6">

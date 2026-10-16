@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {View, Text, TouchableOpacity, TextInput, Dimensions, PanResponder, KeyboardAvoidingView, Platform, FlatList} from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Polyline } from 'react-native-svg';
@@ -18,7 +17,6 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const DrawAndGuess = () => {
   const navigation = useNavigation<any>();
   const bottomInset = useBottomInset();
-  const { top: topInset } = useSafeAreaInsets();
   const { user } = useAuth();
 
   const [isSearching, setIsSearching] = useState(false);
@@ -183,10 +181,8 @@ const DrawAndGuess = () => {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: "#F5F2EC" }}>
       {/* Header */}
-      <View className="bg-card shadow-hair z-10" style={{ paddingTop: topInset }}>
-        <AppBar title="Draw & Guess" onBack={() => navigation.goBack()}
-          right={<IconBtn name="trophy" size={24} color={C.warning} onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'DrawAndGuess' })} />} />
-      </View>
+      <AppBar title="Draw & Guess" onBack={() => navigation.goBack()}
+        right={<IconBtn name="trophy" size={24} color={C.warning} onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'DrawAndGuess' })} />} />
 
       {!matchData ? (
         <View className="flex-1 items-center justify-center p-6">

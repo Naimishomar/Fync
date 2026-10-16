@@ -553,10 +553,10 @@ const MediaDetailView = React.memo(({
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-paper">
+    <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
       <View className="flex-1 bg-paper">
         {/* The only way out used to be Android's back button. */}
-        <AppBar onBack={onClose} />
+        <AppBar title="Fync Media" onBack={onClose} />
         {/* YouTube Video Component */}
         <YouTubeVideoPlayer
           source={item.video_link}
@@ -906,24 +906,12 @@ export default function FyncMediaFeed() {
 
         {/* HEADER DECORATION */}
 
-        <SafeAreaView className="flex-1" edges={['top']}>
-
-          {/* Arena Header */}
+        <View className="flex-1">
           <AppBar
+            title="Fync Media"
             onBack={() => navigation.goBack()}
             right={isAdmin ? <IconBtn name="add" boxed onPress={() => setUploadModalVisible(true)} /> : undefined}
           />
-          <View className="px-gutter bg-transparent">
-            <View className="flex-row items-center justify-between mb-6">
-              <View className="flex-1">
-                <View className="flex-row items-center">
-                  <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
-                  <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Media</Text>
-                </View>
-                <Text className="text-ink-3 text-label font-display uppercase">Broadcast Archive & News</Text>
-              </View>
-            </View>
-          </View>
 
           {loading && media.length === 0 ? (
             <View className="flex-1 items-center justify-center">
@@ -955,13 +943,14 @@ export default function FyncMediaFeed() {
               ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color={C.brand[500]} className="mb-10" /> : <View className="h-10" />}
             />
           )}
-        </SafeAreaView>
+        </View>
 
         {/* Video Detail Modal */}
         <Modal
           visible={!!activeMedia}
           animationType="slide"
           presentationStyle="fullScreen"
+          statusBarTranslucent
           onRequestClose={() => setActiveMedia(null)}
         >
           {activeMedia && (

@@ -269,11 +269,10 @@ const PlacementHub = () => {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            <SafeAreaView className="flex-1" edges={['top']}>
+            <View className="flex-1">
                 <AppBar
                     onBack={() => navigation.goBack()}
                     title="Career Hub"
-                    subtitle="Corporate Intelligence Unit"
                     right={<IconBtn name="add" boxed onPress={() => setPostModalVisible(true)} />}
                 />
                 <View className="px-gutter">
@@ -404,15 +403,11 @@ const PlacementHub = () => {
                     {/* Android draws this full-screen modal under the status bar. */}
                     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'bottom']}>
                         <StatusBar barStyle="dark-content" />
-                        <View className="flex-row justify-between items-center px-gutter py-6 border-b border-line bg-card">
-                            <View>
-                                <Text className="text-xl font-display text-ink uppercase leading-tight">Contribution <Text className="text-fam-career">Ledger</Text></Text>
-                                <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Share Interview Intelligence</Text>
-                            </View>
-                            <TouchableOpacity onPress={() => setPostModalVisible(false)} className="bg-paper-2 p-2 rounded-card border border-line">
-                                <Ionicons name="close" size={20} color={C.ink} />
-                            </TouchableOpacity>
-                        </View>
+                        <AppBar
+                            inset={false}
+                            title="Share Interview"
+                            right={<IconBtn name="close" onPress={() => setPostModalVisible(false)} />}
+                        />
 
                         <KeyboardAvoidingView behavior="padding" className="flex-1">
                             <ScrollView className="p-card-pad" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
@@ -490,7 +485,7 @@ const PlacementHub = () => {
                         q._id === id ? { ...q, comments: Array.from({ length: count }) } : q
                     ))}
                 />
-            </SafeAreaView>
+            </View>
         </View >
     );
 };

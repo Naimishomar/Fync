@@ -39,14 +39,9 @@ const JoinRoomInput = () => {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
-      <SafeAreaView className="flex-1">
+      <SafeAreaView className="flex-1" edges={['bottom']}>
 
-        <AppBar onBack={() => navigation.goBack()} />
-        <View className="px-gutter mb-4">
-          <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Join</Text>
-          <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Room</Text>
-          <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Initialize Remote Sync</Text>
-        </View>
+        <AppBar title="Join Room" onBack={() => navigation.goBack()} />
 
         {/* Centered Content */}
         <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>

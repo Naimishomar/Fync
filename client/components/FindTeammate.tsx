@@ -11,6 +11,7 @@ import { TeammateSkeleton } from './Skeleton';
 import Avatar from './Avatar';
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
+import { AppBar } from './ui/kit';
 
 const BG_IMAGE = "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000&auto=format&fit=crop";
 
@@ -251,24 +252,8 @@ export default function FindTeammate() {
 
             {/* HEADER DECORATION */}
 
-            <SafeAreaView className="flex-1">
-
-                {/* HEADER */}
-                <View className="px-gutter pt-8 pb-4 flex-row justify-between items-center">
-                    <View>
-                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Squad</Text>
-                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Builder</Text>
-                        <Text className="text-ink-3 text-label font-display uppercase mt-0.5">
-                            Build your dream team today.
-                        </Text>
-                    </View>
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginRight: -11 }}>
-                        <Ionicons name="close" size={24} color={C.ink} />
-                    </TouchableOpacity>
-                </View>
+            <SafeAreaView className="flex-1" edges={['bottom']}>
+                <AppBar title="Squad Builder" onBack={() => navigation.goBack()} />
 
                 {/* SEARCH BAR */}
                 <View className="mx-gutter mt-6 mb-6">

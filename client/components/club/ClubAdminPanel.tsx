@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, TextInput, StatusBar, Switch, KeyboardAvoidingView, Platform} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -10,7 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, Empty } from '../ui/kit';
+import { AppBar, Empty, Meta } from '../ui/kit';
 import Avatar from '../Avatar';
 
 const ClubAdminPanel = () => {
@@ -283,21 +282,19 @@ const ClubAdminPanel = () => {
 
     if (!club) {
         return (
-            <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
+            <View className="flex-1 bg-paper">
                 <AppBar title="Control Panel" onBack={() => navigation.goBack()} />
                 <Empty icon="cloud-offline-outline" title="Could not load club" hint="Go back and try again." />
-            </SafeAreaView>
+            </View>
         );
     }
 
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
-            <SafeAreaView className="flex-1" edges={['top']}>
-                {/* Header */}
-                <View className="border-b border-line bg-card">
-                    <AppBar title="Control Panel" subtitle={club.name} onBack={() => navigation.goBack()} />
-                </View>
+            <View className="flex-1">
+                <AppBar title="Control Panel" onBack={() => navigation.goBack()} />
+                <Meta style={{ paddingHorizontal: 20, paddingBottom: 8 }} numberOfLines={1}>{club.name}</Meta>
 
                 {/* Tabs */}
                 <View className="flex-row bg-card border-b border-line">
@@ -575,7 +572,7 @@ const ClubAdminPanel = () => {
                     <View className="h-40" />
                 </ScrollView>
                 </KeyboardAvoidingView>
-            </SafeAreaView>
+            </View>
         </View>
     );
 };

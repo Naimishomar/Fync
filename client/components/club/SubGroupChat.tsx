@@ -249,24 +249,20 @@ const SubGroupChat = ({ navigation, route }: any) => {
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
-            <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
-                {/* Header */}
-                <View className="border-b border-line">
-                    <AppBar
-                        title={subGroupName}
-                        subtitle={subGroup?.isGeneral ? 'Community Hub' : 'Connected Now'}
-                        onBack={() => navigation.goBack()}
-                        right={<>
-                            <IconBtn name="information-circle-outline" color={C.ink2} onPress={() => navigation.navigate('EditSubGroup', { subGroupId })} />
-                            {isRoomAdmin && (
-                                <IconBtn name="bar-chart-outline" color={C.ink2} onPress={() => setShowPollModal(true)} />
-                            )}
-                            {!subGroup?.isGeneral && (
-                                <IconBtn name="log-out-outline" color={C.danger} onPress={handleLeaveRoom} />
-                            )}
-                        </>}
-                    />
-                </View>
+            <SafeAreaView className="flex-1" edges={['bottom']}>
+                <AppBar
+                    title={subGroupName}
+                    onBack={() => navigation.goBack()}
+                    right={<>
+                        <IconBtn name="information-circle-outline" color={C.ink2} onPress={() => navigation.navigate('EditSubGroup', { subGroupId })} />
+                        {isRoomAdmin && (
+                            <IconBtn name="bar-chart-outline" color={C.ink2} onPress={() => setShowPollModal(true)} />
+                        )}
+                        {!subGroup?.isGeneral && (
+                            <IconBtn name="log-out-outline" color={C.danger} onPress={handleLeaveRoom} />
+                        )}
+                    </>}
+                />
 
                 <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                 {/* Chat Area */}

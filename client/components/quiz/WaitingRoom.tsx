@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import {View, Text, Animated, TouchableOpacity, StatusBar} from 'react-native'
+import {View, Text, Animated, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -8,6 +8,7 @@ import socket from '../../utils/socket';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WaitingRoom'>;
 
@@ -114,26 +115,9 @@ const WaitingRoom: React.FC<Props> = ({ route, navigation }) => {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
-      <SafeAreaView className="flex-1 justify-between px-gutter pb-12">
+      <AppBar title="The Lobby" onBack={() => navigation.goBack()} />
 
-        {/* HEADER */}
-        <View className="flex-row items-center justify-between pt-8">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.9}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-            <Ionicons name="close" size={24} color={C.ink} />
-          </TouchableOpacity>
-          <Text className="text-ink text-3xl font-display uppercase">
-            The <Text className="text-accent-text">Lobby</Text>
-          </Text>
-          <View style={{ width: 48 }} /> {/* Spacer for centering */}
-        </View>
+      <SafeAreaView className="flex-1 justify-between px-gutter pt-6 pb-12" edges={['bottom']}>
 
         {/* MAIN CONTENT */}
         <View className="items-center">

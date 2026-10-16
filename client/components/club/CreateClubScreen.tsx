@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {View, Text, TouchableOpacity, TextInput, Image, ScrollView, ActivityIndicator, StatusBar, KeyboardAvoidingView, Platform} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from '@expo/vector-icons/Feather';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
@@ -82,11 +81,8 @@ const CreateClubScreen = () => {
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
-            <SafeAreaView className="flex-1" edges={['top']}>
-                {/* Header */}
-                <View className="border-b border-line">
-                    <AppBar title="Establish Club" right={<IconBtn name="close" onPress={() => navigation.goBack()} />} />
-                </View>
+            <View className="flex-1">
+                <AppBar title="Establish Club" right={<IconBtn name="close" onPress={() => navigation.goBack()} />} />
 
                 <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
                     <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -162,7 +158,7 @@ const CreateClubScreen = () => {
                         <View className="h-20" />
                     </ScrollView>
                 </KeyboardAvoidingView>
-            </SafeAreaView>
+            </View>
         </View>
     );
 };

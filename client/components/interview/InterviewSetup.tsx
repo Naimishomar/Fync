@@ -205,7 +205,7 @@ export default function InterviewSetup() {
   return (
     <View className="flex-1 bg-paper">
 
-      <SafeAreaView className="flex-1">
+      <SafeAreaView className="flex-1" edges={['bottom']}>
         <KeyboardAvoidingView
           behavior="padding"
           className="flex-1"
@@ -339,13 +339,14 @@ export default function InterviewSetup() {
         visible={showWebView}
         animationType="slide"
         transparent={false}
+        statusBarTranslucent
         onRequestClose={() => {
           setShowWebView(false);
           setLoading(false);
           Alert.alert("Cancelled", "Payment was cancelled.");
         }}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['bottom']}>
           <AppBar
             title="Secure Checkout"
             right={<IconBtn name="close" onPress={() => {

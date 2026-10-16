@@ -3,7 +3,6 @@ import {
   View, Text, FlatList, TouchableOpacity, TextInput, ActivityIndicator,
   RefreshControl, ScrollView, Linking, Modal, Pressable, KeyboardAvoidingView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as DocumentPicker from 'expo-document-picker';
 import { useNavigation } from '@react-navigation/native';
@@ -155,13 +154,10 @@ export default function NotesExchange() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-      <AppBar onBack={() => navigation.goBack()} />
+    <View className="flex-1 bg-paper">
+      <AppBar title="Notes Exchange" onBack={() => navigation.goBack()} />
       <View className="px-5">
-        <Text className="font-display text-display text-ink uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Notes</Text>
-        <Text className="font-display text-display text-brand-600 uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Exchange</Text>
-
-        <View className="flex-row items-center mt-3 mb-4">
+        <View className="flex-row items-center mb-4">
           <Text className="font-display text-ink-3 uppercase" style={{ fontSize: 11, letterSpacing: 1.4 }}>
             Free for everyone
           </Text>
@@ -259,7 +255,7 @@ export default function NotesExchange() {
           if (earned > 0) setUser((u: any) => (u ? { ...u, coins: (u.coins ?? 0) + earned } : u));
         }}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 

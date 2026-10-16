@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {View, Text, TextInput, TouchableOpacity, Keyboard, Image, ScrollView, KeyboardAvoidingView, Platform, StatusBar} from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Alert } from '../ui/AlertModal';
 
 import { useNavigation } from '@react-navigation/native';
@@ -96,28 +95,13 @@ export default function BunkOMeter() {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            {/* HEADER DECORATION */}
-
-            <SafeAreaView className="flex-1" edges={['top']}>
-                <AppBar onBack={() => navigation.goBack()} />
+            <View className="flex-1">
+                <AppBar title="Bunk-O-Meter" onBack={() => navigation.goBack()} />
                 <KeyboardAvoidingView
                     behavior="padding"
                     className="flex-1"
                 >
                     <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-
-                        {/* Arena Header */}
-                        <View className="px-gutter pt-2">
-                            <View className="flex-row items-center justify-between mb-6">
-                                <View className="flex-1">
-                                    <View className="flex-row items-center">
-                                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>BunkO</Text>
-                                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Meter</Text>
-                                    </View>
-                                    <Text className="text-ink-3 text-label font-display uppercase">Attendance Prediction Engine</Text>
-                                </View>
-                            </View>
-                        </View>
 
                         {/* --- INPUT CARD (Arena Style) --- */}
                         <View className="bg-card mx-gutter mt-4 p-card-pad rounded-xl border border-line shadow-hair">
@@ -242,7 +226,7 @@ export default function BunkOMeter() {
 
                     </ScrollView>
                 </KeyboardAvoidingView>
-            </SafeAreaView>
+            </View>
         </View>
     );
 }

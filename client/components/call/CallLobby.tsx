@@ -10,7 +10,6 @@ import {
   RefreshControl,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/auth.context';
 import { webRTCManager } from '../../services/WebRTCService';
 import { callSignaling, type CallUser, type CallerInfo } from '../../services/CallSignalingService';
@@ -18,7 +17,7 @@ import Avatar from '../Avatar';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, Meta } from '../ui/kit';
 
 /**
  * One lobby for both audio and video calling.
@@ -350,19 +349,11 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
       <StatusBar barStyle="dark-content" />
 
 
-      <SafeAreaView className="flex-1" edges={['top']}>
-        <AppBar onBack={() => navigation.goBack()} />
-        <View className="px-gutter">
-          <View className="mb-5">
-            <View>
-              <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>{label}</Text>
-              <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Rooms</Text>
-              <Text className="text-ink-3 text-label font-display uppercase">
-                {socketReady ? `${onlineUsers.length} people online` : 'Connecting…'}
-              </Text>
-            </View>
-          </View>
-        </View>
+      <View className="flex-1">
+        <AppBar title={`${label} Rooms`} onBack={() => navigation.goBack()} />
+        <Meta className="px-gutter mb-5">
+          {socketReady ? `${onlineUsers.length} people online` : 'Connecting…'}
+        </Meta>
 
         {loading ? (
           <View className="flex-1 items-center justify-center">
@@ -402,7 +393,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
             }
           />
         )}
-      </SafeAreaView>
+      </View>
 
       {/* Dialling overlay — the caller needs to see who is ringing and be able
           to cancel before the callee picks up. */}

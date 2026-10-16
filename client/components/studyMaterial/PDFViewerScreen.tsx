@@ -1,7 +1,6 @@
 import React from 'react';
 import { WebView } from 'react-native-webview';
 import { View, ActivityIndicator, StatusBar, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { C } from '../../constants/colors';
 import { AppBar } from '../ui/kit';
 
@@ -79,19 +78,13 @@ const PDFViewerScreen = ({ route, navigation }: any) => {
     }
   };
 
-  const border = dark ? 'rgba(255,255,255,0.12)' : 'rgba(18, 16, 14,0.08)';
-
   return (
     <View style={{ flex: 1, backgroundColor: bg }}>
       <StatusBar
         barStyle={dark ? 'light-content' : 'dark-content'}
         backgroundColor={Platform.OS === 'android' ? bg : undefined}
       />
-      <SafeAreaView edges={['top']} style={{ backgroundColor: bg }}>
-        <View style={{ borderBottomWidth: 1, borderBottomColor: border }}>
-          <AppBar title={title} night={dark} onBack={() => navigation.goBack()} />
-        </View>
-      </SafeAreaView>
+      <AppBar title={title} night={dark} onBack={() => navigation.goBack()} />
 
       <WebView
         source={{ uri: pdfUrl }}

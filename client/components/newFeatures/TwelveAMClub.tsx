@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, StatusBar, ActivityIndicator, Pressable} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -355,9 +354,9 @@ export default function TwelveAMClub() {
         <Image source={{ uri: BG_IMAGE }} style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0.6 }} />
         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.95)']} className="absolute w-full h-full" />
         {/* No way out on iOS without this: the locked state had no back button. */}
-        <SafeAreaView edges={['top']} style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
-          <AppBar night onBack={() => navigation.goBack()} />
-        </SafeAreaView>
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+          <AppBar night title="12 AM Club" onBack={() => navigation.goBack()} />
+        </View>
         <View className="items-center p-card-pad bg-black/40 rounded-sheet border border-white/10 shadow-hair w-[85%]">
             <Ionicons name="lock-closed" size={42} color={C.recruiter} />
             <Text className="text-white text-3xl font-display mt-4 uppercase">Club Locked</Text>
@@ -374,12 +373,10 @@ export default function TwelveAMClub() {
         <Image source={{ uri: BG_IMAGE }} style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0.3 }} />
         <LinearGradient colors={['rgba(79, 70, 229, 0.1)', 'rgba(0,0,0,0.9)', '#12100E']} className="absolute w-full h-full" />
 
-        <SafeAreaView className="flex-1" edges={['top']}>
-            <BlurView intensity={40} tint="dark" className="border-b border-white/5">
+        <View className="flex-1">
                 <AppBar
                     night
                     title={mode === 'global' ? 'Night Club' : 'Secret 1v1'}
-                    subtitle={mode === 'global' ? 'Ephemeral Group Chat' : 'One-on-One Secrets'}
                     onBack={() => navigation.goBack()}
                     right={<>
                         {mode === 'private' && matchRoomId && (
@@ -403,7 +400,6 @@ export default function TwelveAMClub() {
                         />
                     </>}
                 />
-            </BlurView>
 
             <View className="flex-1">
                 {mode === 'private' && isSearching ? (
@@ -503,7 +499,7 @@ export default function TwelveAMClub() {
                   </View>
                 )}
             </KeyboardAvoidingView>
-        </SafeAreaView>
+        </View>
     </View>
   );
 }

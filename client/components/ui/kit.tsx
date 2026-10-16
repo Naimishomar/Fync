@@ -73,35 +73,50 @@ export const Pad = ({ style, ...p }: ViewProps) => (
 );
 
 /* ------------------------------------------------------------------ appbar */
+/** Height of the bar itself, below the status-bar inset. */
+export const APPBAR_HEIGHT = 56;
+
+/**
+ * The one screen header. It owns everything that made headers drift:
+ *   - the status-bar inset (screens must NOT add their own top SafeArea/padding),
+ *   - a fixed 56px row,
+ *   - a single-line title. There is no subtitle on purpose: a second line on
+ *     some screens and not others is exactly the inconsistency this removes.
+ *     Context that used to live there belongs in the screen's content.
+ *
+ * `inset={false}` only where the bar sits inside something already below the
+ * status bar (a bottom sheet, a non-fullscreen modal).
+ */
 export function AppBar({
-  title, subtitle, onBack, right, night, overlay, children,
+  title, onBack, right, night, overlay, children, inset = true,
 }: {
-  title?: string; subtitle?: string; onBack?: () => void;
+  title?: string; onBack?: () => void;
   right?: React.ReactNode; night?: boolean;
   /** Floating over a photo/poster: light glyphs on dark discs so they read on any
    *  image. Pass `overlay` to the `right` IconBtns too. */
   overlay?: boolean;
-  /** Replaces the title block when it needs more than text (avatar, presence). */
+  /** Replaces the title when it needs more than text (chat: avatar + presence). */
   children?: React.ReactNode;
+  inset?: boolean;
 }) {
+  const insets = useSafeAreaInsets();
   const fg = night || overlay ? C.nightInk : C.ink;
+  const bg = overlay ? 'transparent' : night ? C.night : C.paper;
   return (
     // box-none: floated over a banner, the empty stretch between the buttons must
     // not swallow the drag that scrolls the list underneath.
-    <View style={s.appbar} pointerEvents="box-none">
-      {onBack ? (
-        // -11px so the chevron's own edge lands on the 20px gutter, not the box's.
-        // A disc already reads as the button, so it sits on the gutter itself.
-        <IconBtn name="chevron-back" onPress={onBack} overlay={overlay} color={fg} style={overlay ? undefined : { marginLeft: -11 }} />
-      ) : null}
-      <View style={{ flex: 1, minWidth: 0 }}>
-        {children}
-        {title ? <H2 style={{ color: fg }} numberOfLines={1}>{title}</H2> : null}
-        {subtitle ? (
-          <Meta numberOfLines={1} style={night ? { color: C.night3 } : undefined}>{subtitle}</Meta>
+    <View style={{ paddingTop: inset ? insets.top : 0, backgroundColor: bg }} pointerEvents="box-none">
+      <View style={s.appbar} pointerEvents="box-none">
+        {onBack ? (
+          // -11px so the chevron's own edge lands on the 20px gutter, not the box's.
+          // A disc already reads as the button, so it sits on the gutter itself.
+          <IconBtn name="chevron-back" onPress={onBack} overlay={overlay} color={fg} style={overlay ? undefined : { marginLeft: -11 }} />
         ) : null}
+        <View style={{ flex: 1, minWidth: 0 }}>
+          {children ?? (title ? <H2 style={{ color: fg }} numberOfLines={1}>{title}</H2> : null)}
+        </View>
+        {right ? <View style={s.appbarActions}>{right}</View> : null}
       </View>
-      {right ? <View style={s.appbarActions}>{right}</View> : null}
     </View>
   );
 }
@@ -522,7 +537,7 @@ const s = StyleSheet.create({
   label: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 11, lineHeight: 14, letterSpacing: 1.4, textTransform: 'uppercase', color: C.ink3 },
   num: { fontFamily: 'SpaceGrotesk_700Bold', letterSpacing: -0.5, color: C.ink, fontVariant: ['tabular-nums'] },
 
-  appbar: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: GUTTER, paddingTop: 8, paddingBottom: 12 },
+  appbar: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: GUTTER, height: APPBAR_HEIGHT },
   appbarActions: { flexDirection: 'row', alignItems: 'center', marginRight: -11 },
 
   iconbtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },

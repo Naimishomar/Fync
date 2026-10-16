@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, RefreshControl, StatusBar, Share, StyleSheet} from 'react-native'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -17,7 +16,6 @@ const ClubHubScreen = () => {
     const route = useRoute<any>();
     const { clubId } = route.params ?? {};
     const { user } = useAuth();
-    const insets = useSafeAreaInsets();
     
     const [club, setClub] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -121,10 +119,10 @@ const ClubHubScreen = () => {
     );
 
     if (!club) return (
-        <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-            <AppBar onBack={() => navigation.goBack()} />
+        <View className="flex-1 bg-paper">
+            <AppBar title="Club" onBack={() => navigation.goBack()} />
             <Empty icon="cloud-offline-outline" title="Could not load club" hint="Go back and try again." />
-        </SafeAreaView>
+        </View>
     );
 
     const isAdmin = club?.admins?.some((a: any) => (a._id || a) === user?._id);
@@ -155,7 +153,7 @@ const ClubHubScreen = () => {
                         style={StyleSheet.absoluteFill}
                     />
                     
-                    <View className="absolute left-0 right-0" style={{ top: insets.top }}>
+                    <View className="absolute top-0 left-0 right-0">
                         <AppBar
                             overlay
                             onBack={() => navigation.goBack()}

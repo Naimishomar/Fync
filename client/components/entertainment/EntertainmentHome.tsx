@@ -97,15 +97,12 @@ const EntertainmentHome = () => {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-ink" edges={['top', 'bottom']}>
+    <SafeAreaView className="flex-1 bg-ink" edges={['bottom']}>
       <StatusBar barStyle="light-content" />
+      <AppBar night title="Fync Cinema" onBack={() => navigation.goBack()}
+        right={<IconBtn name="search-outline" color="white" onPress={() => navigation.navigate('MovieSearch')} />} />
 
-      <ScrollView showsVerticalScrollIndicator={false} stickyHeaderIndices={[0]}>
-        {/* Header */}
-        <View className="bg-ink">
-          <AppBar night title="Fync Cinema" onBack={() => navigation.goBack()}
-            right={<IconBtn name="search-outline" color="white" onPress={() => navigation.navigate('MovieSearch')} />} />
-        </View>
+      <ScrollView showsVerticalScrollIndicator={false}>
 
         {/* Hero Banner */}
         {featuredMovie && (

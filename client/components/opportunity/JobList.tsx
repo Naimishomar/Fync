@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef, memo } from 'react';
 import {View, Text, FlatList, Image, ActivityIndicator, Pressable, Linking, TextInput, TouchableOpacity, StatusBar, Modal} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
@@ -268,18 +267,8 @@ const JobList = () => {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
-      {/* HEADER DECORATION */}
-
-      <SafeAreaView className="flex-1" edges={['top']}>
-
-        <AppBar onBack={() => navigation.goBack()} />
-        <View className="px-gutter mb-6">
-          <View className="flex-row items-center">
-            <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Jobs</Text>
-            <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Hub</Text>
-          </View>
-          <Text className="text-ink-3 text-label font-display uppercase">Professional Opportunity Archive</Text>
-        </View>
+      <View className="flex-1">
+        <AppBar title="Jobs" onBack={() => navigation.goBack()} />
 
         {/* Arena Tabs */}
         {/* Segmented tabs with the brand underline. The previous pill pair put
@@ -459,7 +448,7 @@ const JobList = () => {
             </View>
           </View>
         </Modal>
-      </SafeAreaView>
+      </View>
     </View>
   );
 };

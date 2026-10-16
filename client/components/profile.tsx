@@ -21,7 +21,7 @@ import EducationCard, { EducationEntry } from './profile/EducationCard';
 import { useTabBarClearance, useTabBarAutoHide } from '../constants/layout';
 import { Alert } from './ui/AlertModal';
 
-import { StampCard, StampNumber } from './ui/kit';
+import { AppBar, StampCard, StampNumber } from './ui/kit';
 import { C } from '../constants/colors';
 const { width } = Dimensions.get('window');
 
@@ -821,6 +821,7 @@ function Profile() {
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
       <StatusBar style="dark" />
+      <AppBar title="Profile" />
       {/* key={activeTab} forces a remount when the column count changes,
           which both list implementations require. */}
       <FlashList

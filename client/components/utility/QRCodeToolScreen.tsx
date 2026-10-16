@@ -55,7 +55,7 @@ export default function QRCodeToolScreen() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="QR Generator" onBack={() => navigation.goBack()} />
 
         <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>

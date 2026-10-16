@@ -101,19 +101,16 @@ export default function StudyAssistant() {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            <SafeAreaView className="flex-1">
-                <AppBar onBack={() => navigation.goBack()} />
+            <SafeAreaView className="flex-1" edges={['bottom']}>
+                <AppBar title="Study AI" onBack={() => navigation.goBack()} />
                 <KeyboardAvoidingView
                     behavior="padding"
                     className="flex-1 px-gutter"
                 >
-                    {/* --- CUSTOM HEADER --- */}
+                    {/* --- SOURCE STATUS --- */}
                     <View className="flex-row items-center justify-between pb-6">
                         <View>
-                            <Text className="text-ink text-3xl font-display uppercase">
-                                Study <Text className="text-accent-text">AI</Text>
-                            </Text>
-                            <View className="flex-row items-center mt-1">
+                            <View className="flex-row items-center">
                                 <View className={`w-2 h-2 rounded-full mr-2 ${pdfContent ? 'bg-success' : 'bg-paper-2'}`} />
                                 <Text className="text-ink-3 text-label font-display uppercase">
                                     {pdfContent ? 'Intelligence Active' : 'Waiting for Source'}

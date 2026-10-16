@@ -68,7 +68,7 @@ const PlacementPredictor = () => {
         return (
             <View className="flex-1 bg-paper">
                 <StatusBar barStyle="dark-content" />
-                <SafeAreaView className="flex-1">
+                <SafeAreaView className="flex-1" edges={['bottom']}>
                     <AppBar title="Analysis Report" onBack={() => setResult(null)} />
 
                     <ScrollView className="flex-1 px-5 mt-6 pb-20" showsVerticalScrollIndicator={false}>
@@ -172,8 +172,8 @@ const PlacementPredictor = () => {
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
-            <SafeAreaView className="flex-1">
-                <AppBar title="Placement Predictor" subtitle="AI Career Analysis" onBack={() => navigation.goBack()} />
+            <SafeAreaView className="flex-1" edges={['bottom']}>
+                <AppBar title="Placement Predictor" onBack={() => navigation.goBack()} />
 
                 <ScrollView className="flex-1 px-5 mt-10">
                     <Text className="font-semibold text-base text-ink mb-4">Enter Academic Details</Text>

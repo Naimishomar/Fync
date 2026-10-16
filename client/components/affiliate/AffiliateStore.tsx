@@ -16,7 +16,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { C } from '../../constants/colors';
 import { AppBar } from '../ui/kit';
 import { Image } from 'expo-image';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const CATEGORIES = ['All', 'Education', 'Electronics', 'Fashion', 'Books', 'Lifestyle'];
 
@@ -27,7 +26,6 @@ const AffiliateStore = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
-    const insets = useSafeAreaInsets();
     // Switching chips quickly: only the latest request may fill the grid.
     const reqSeq = useRef(0);
 
@@ -102,15 +100,9 @@ const AffiliateStore = () => {
 
     return (
         <View style={styles.container}>
-            <View style={[styles.header, { paddingTop: insets.top }]}>
-                <AppBar onBack={() => navigation.goBack()} />
+            <AppBar title="Fync Store" onBack={() => navigation.goBack()} />
+            <View style={styles.header}>
                 <View style={styles.headerBody}>
-                {/* Two-line display headline on the left, matching Explore,
-                    Meet the Team and Fync Market. */}
-                <Text style={styles.display}>Fync</Text>
-                <Text style={[styles.display, styles.displayAccent]}>Store</Text>
-                <Text style={styles.displaySub}>Deals worth a student&apos;s money</Text>
-
                 <View style={styles.searchContainer}>
                     <Ionicons name="search" size={20} color={C.ink3} style={styles.searchIcon} />
                     <TextInput
@@ -184,27 +176,8 @@ const styles = StyleSheet.create({
     },
     headerBody: {
         paddingHorizontal: 20,
+        paddingTop: 4,
         paddingBottom: 16,
-    },
-    display: {
-        fontSize: 34,
-        lineHeight: 35,
-        letterSpacing: -1.2,
-        fontFamily: 'SpaceGrotesk_700Bold',
-        textTransform: 'uppercase',
-        color: '#12100E',
-    },
-    displayAccent: {
-        color: '#EA580C',
-    },
-    displaySub: {
-        marginTop: 12,
-        marginBottom: 18,
-        fontSize: 11,
-        letterSpacing: 1.4,
-        fontFamily: 'SpaceGrotesk_700Bold',
-        textTransform: 'uppercase',
-        color: '#8B857E',
     },
     searchContainer: {
         flexDirection: 'row',

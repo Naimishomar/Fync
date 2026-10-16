@@ -444,8 +444,8 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
     // A failed load used to render nothing at all: a blank screen with no way back.
     if (!data) {
         return (
-            <SafeAreaView className="bg-paper flex-1">
-                <AppBar onBack={() => navigation.goBack()} />
+            <SafeAreaView className="bg-paper flex-1" edges={['bottom']}>
+                <AppBar title="Post" onBack={() => navigation.goBack()} />
                 <Empty
                     icon="alert-circle-outline"
                     title="Could not load this"
@@ -551,7 +551,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                 </View>
             ) : (
                 /* --- POST VIEW --- */
-                <SafeAreaView className="bg-paper flex-1">
+                <SafeAreaView className="bg-paper flex-1" edges={['bottom']}>
                     <AppBar
                         onBack={() => navigation.goBack()}
                         right={<IconBtn name="ellipsis-horizontal" size={20} color="gray" onPress={() => {

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, memo, useMemo, useRef } from 'react';
 import {View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, RefreshControl, TextInput, Dimensions, StatusBar, Modal, ScrollView, KeyboardAvoidingView, Platform, Linking, Pressable} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image as ExpoImage } from 'expo-image';
 import axios from '../../context/axiosConfig';
 import { navigate, goBack } from '../../utils/navigation';
@@ -688,8 +687,8 @@ export default function BootcampScreen() {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            <SafeAreaView className="flex-1" edges={['top']}>
-                <AppBar onBack={() => goBack()}
+            <View className="flex-1">
+                <AppBar title="Bootcamp Hub" onBack={() => goBack()}
                     right={<>
                         <IconBtn name="ticket" size={20} color={C.brand[500]} boxed onPress={() => setTicketsModalVisible(true)} />
                         <IconBtn name="add" size={24} color="white" style={{ backgroundColor: C.ink, marginLeft: 12 }} onPress={() => {
@@ -704,17 +703,6 @@ export default function BootcampScreen() {
                     keyExtractor={(item) => item._id}
                     contentContainerStyle={{ paddingBottom: 120 }}
                     showsVerticalScrollIndicator={false}
-                    ListHeaderComponent={
-                        <View className="px-gutter pt-2">
-                            <View className="flex-row justify-between items-center mb-10">
-                                <View>
-                                    <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Bootcamp</Text>
-                                    <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Hub</Text>
-                                    <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Intelligence Archive</Text>
-                                </View>
-                            </View>
-                        </View>
-                    }
                     renderItem={({ item, index }) => (
                         <BootcampCard
                             item={item}
@@ -1403,7 +1391,7 @@ export default function BootcampScreen() {
                     </View>
                 </Modal>
 
-            </SafeAreaView>
+            </View>
         </View>
     );
 }

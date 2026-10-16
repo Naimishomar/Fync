@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import {View, Text, FlatList, Pressable, ActivityIndicator, TouchableOpacity, Animated, Easing, StatusBar} from 'react-native'
+import {View, Text, FlatList, Pressable, ActivityIndicator, Animated, Easing, StatusBar} from 'react-native'
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -199,29 +199,24 @@ const LeaderboardScreen = () => {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
-      <SafeAreaView className="flex-1">
+      <SafeAreaView className="flex-1" edges={['bottom']}>
         {/* HEADER — kit AppBar; there's no back here (reached via replace), so Home leads the actions. */}
         <AppBar
           title="Leaderboard"
           right={
-          <View className="flex-row items-center gap-3" style={{ marginRight: 11 }}>
+          <>
             <IconBtn name="home" onPress={() => navigation.navigate("Tabs")} />
-            {/* Animated Refresh Button */}
-            <TouchableOpacity onPress={handleManualRefresh} className="w-12 h-12 bg-card rounded-card items-center justify-center border border-line shadow-hair">
-              <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                <Ionicons name="refresh" size={20} color={C.ink} />
-              </Animated.View>
-            </TouchableOpacity>
-
-            {/* Download Button */}
-            <TouchableOpacity onPress={downloadPDF} disabled={downloading} className="w-12 h-12 bg-brand-500 items-center justify-center border-2 border-ink rounded-md">
-              {downloading ? (
+            <Animated.View style={{ transform: [{ rotate: spin }] }}>
+              <IconBtn name="refresh" onPress={handleManualRefresh} />
+            </Animated.View>
+            {downloading ? (
+              <View style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
                 <ActivityIndicator size="small" color={C.ink} />
-              ) : (
-                <Ionicons name="download" size={20} color={C.ink} />
-              )}
-            </TouchableOpacity>
-          </View>
+              </View>
+            ) : (
+              <IconBtn boxed name="download" onPress={downloadPDF} />
+            )}
+          </>
           }
         />
 

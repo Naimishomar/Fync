@@ -10,7 +10,6 @@ import {
   Animated
 } from "react-native";
 import { useRoute, useNavigation, useFocusEffect } from "@react-navigation/native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
@@ -137,17 +136,8 @@ const FollowersAndFollowing = () => {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
-      <SafeAreaView className="flex-1" edges={['top']}>
-        <AppBar onBack={() => navigation.goBack()} />
-        <View className="px-gutter pb-2">
-            <View className="flex-row items-center mb-3">
-                <View>
-                    <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Social</Text>
-                    <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>{type}</Text>
-                    <Text className="text-ink-3 text-label font-display uppercase">Network Grid Protocol</Text>
-                </View>
-            </View>
-        </View>
+      <View className="flex-1">
+        <AppBar title={type === "following" ? "Following" : "Followers"} onBack={() => navigation.goBack()} />
 
         {loading ? (
             <View className="pt-2">
@@ -171,7 +161,7 @@ const FollowersAndFollowing = () => {
                 }
             />
         )}
-      </SafeAreaView>
+      </View>
     </View>
   );
 };

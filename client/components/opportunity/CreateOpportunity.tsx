@@ -138,12 +138,12 @@ const CreateOpportunity = () => {
 
 
   return (
-    <SafeAreaView className="flex-1 bg-paper">
+    <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
+      <AppBar title={isEdit ? 'Edit Opportunity' : 'Post Opportunity'} onBack={() => navigation.goBack()} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
-        <AppBar title={isEdit ? 'Edit Opportunity' : 'Post Opportunity'} onBack={() => navigation.goBack()} />
 
         <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {/* Type Selector */}

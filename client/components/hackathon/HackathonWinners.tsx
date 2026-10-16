@@ -12,7 +12,6 @@ import {
   Modal,
   FlatList,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
@@ -23,7 +22,7 @@ import Toast from 'react-native-toast-message';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, Meta } from '../ui/kit';
 
 /**
  * Announcing winners.
@@ -352,9 +351,9 @@ const HackathonWinners = () => {
   return (
     <View className="flex-1 bg-paper">
       <StatusBar style="dark" />
-      <SafeAreaView className="flex-1" edges={['top']}>
+      <View className="flex-1">
         {/* Header */}
-        <AppBar title="Announce winners" subtitle={hackathonTitle || undefined} onBack={confirmLeave} />
+        <AppBar title="Announce Winners" onBack={confirmLeave} />
 
         <KeyboardAvoidingView
           behavior="padding"
@@ -367,6 +366,7 @@ const HackathonWinners = () => {
             contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16, paddingBottom: 120 + bottomInset }}
             showsVerticalScrollIndicator={false}
           >
+            {hackathonTitle ? <Meta numberOfLines={1} style={{ marginBottom: 12 }}>{hackathonTitle}</Meta> : null}
             <View className="flex-row items-start bg-card border border-line rounded-card p-3.5 mb-4">
               <Feather name="info" size={13} color={C.ink3} style={{ marginTop: 1 }} />
               <Text className="text-ink-2 text-label leading-4 ml-2 flex-1">
@@ -525,7 +525,7 @@ const HackathonWinners = () => {
             )}
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
 
       <StudentPicker
         visible={pickerFor !== null}

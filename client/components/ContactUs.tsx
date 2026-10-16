@@ -155,7 +155,7 @@ const ContactUs = () => {
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-paper">
+        <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
             <StatusBar barStyle="dark-content" />
             
             <AppBar title="Contact Us" onBack={() => navigation.goBack()} />

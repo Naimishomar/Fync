@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator } from "react-native";
 import { WebView } from "react-native-webview";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AppBar } from "../components/ui/kit";
 
 interface RazorpayWebViewProps {
   route: {
@@ -65,7 +66,8 @@ export default function RazorpayWebView({ route, navigation }: RazorpayWebViewPr
   }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1 }} edges={["bottom"]}>
+      <AppBar title="Payment" onBack={() => navigation.goBack()} />
       {html ? (
         <WebView
           source={{ html }}

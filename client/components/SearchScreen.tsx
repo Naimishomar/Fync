@@ -3,7 +3,6 @@ import { useTabBarAutoHide, useTabBarClearance } from '../constants/layout';
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Avatar from "./Avatar";
@@ -142,17 +141,10 @@ const SearchScreen = () => {
 
       {/* HEADER DECORATION */}
 
-      <SafeAreaView className="flex-1" edges={['top']}>
+      <View className="flex-1">
 
-        {/* Arena Header */}
-        <AppBar onBack={() => navigation.goBack()} />
+        <AppBar title="Find Friends" onBack={() => navigation.goBack()} />
         <View className="px-gutter bg-transparent">
-          <View className="mb-5">
-            <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>
-              Find <Text className="text-accent-text">Friends</Text>
-            </Text>
-            <Text className="font-display text-label text-ink-3 uppercase">Global Campus Directory</Text>
-          </View>
 
           {/* SEARCH DOCK */}
           <View className="flex-row items-center bg-card px-5 py-1 border-2 border-ink shadow-hair mb-5 rounded-md">
@@ -238,7 +230,7 @@ const SearchScreen = () => {
             />
           </>
         )}
-      </SafeAreaView>
+      </View>
     </View>
   );
 };

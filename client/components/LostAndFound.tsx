@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {View, Text, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Pressable, Animated, StatusBar, RefreshControl, ScrollView} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../context/axiosConfig';
@@ -305,20 +304,13 @@ const LostAndFound = () => {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            <SafeAreaView className="flex-1" edges={['top']}>
+            <View className="flex-1">
                 <AppBar
+                    title="Lost & Found"
                     onBack={() => navigation.goBack()}
                     right={<IconBtn name="add" size={28} color="white" boxed style={{ backgroundColor: C.ink }} onPress={() => setModalVisible(true)} />}
                 />
                 <View className="px-gutter">
-                    <View className="mb-8">
-                        <View>
-                            <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Lost &</Text>
-                            <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Found</Text>
-                            <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Asset Recovery Protocol</Text>
-                        </View>
-                    </View>
-
                     <View className="flex-row bg-card p-1.5 rounded-card mb-8 border border-line shadow-hair">
                         <TouchableOpacity
                             onPress={() => setActiveTab('lost')}
@@ -356,7 +348,7 @@ const LostAndFound = () => {
                         }
                     />
                 )}
-            </SafeAreaView>
+            </View>
 
             <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
                 <View className="flex-1 bg-ink/60 justify-end">

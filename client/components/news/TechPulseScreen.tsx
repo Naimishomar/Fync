@@ -8,7 +8,6 @@ import {
   View, Text, FlatList, TouchableOpacity, ActivityIndicator,
   RefreshControl, Linking, StatusBar,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
@@ -149,12 +148,10 @@ export default function TechPulseScreen() {
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
-      <SafeAreaView className="flex-1" edges={['top']}>
-        <AppBar onBack={() => navigation.goBack()} />
+      <View className="flex-1">
+        <AppBar title="Tech Pulse" onBack={() => navigation.goBack()} />
         <View className="px-gutter">
-          <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>Tech</Text>
-          <Text className="font-display text-accent-text uppercase text-display" style={{ letterSpacing: -1.2 }}>Pulse</Text>
-          <Text className="font-display text-label text-ink-3 uppercase mt-3" style={{ letterSpacing: 1.4 }}>
+          <Text className="font-display text-label text-ink-3 uppercase" style={{ letterSpacing: 1.4 }}>
             {FEEDS.find((f) => f.id === feed)?.blurb}
           </Text>
 
@@ -215,7 +212,7 @@ export default function TechPulseScreen() {
             }
           />
         )}
-      </SafeAreaView>
+      </View>
     </View>
   );
 }

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {View, Text, TouchableOpacity, TextInput, Image, ScrollView, ActivityIndicator, StatusBar, KeyboardAvoidingView, Platform} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from '@expo/vector-icons/Feather';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
@@ -76,11 +75,8 @@ const CreateSubGroupScreen = () => {
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
-            <SafeAreaView className="flex-1" edges={['top']}>
-                {/* Header */}
-                <View className="border-b border-line">
-                    <AppBar title="Generate Room" subtitle="Expanding your Hub" onBack={() => navigation.goBack()} />
-                </View>
+            <View className="flex-1">
+                <AppBar title="Generate Room" onBack={() => navigation.goBack()} />
 
                 <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
                     <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -138,7 +134,7 @@ const CreateSubGroupScreen = () => {
                         <View className="h-20" />
                     </ScrollView>
                 </KeyboardAvoidingView>
-            </SafeAreaView>
+            </View>
         </View>
     );
 };

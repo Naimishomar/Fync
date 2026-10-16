@@ -204,10 +204,9 @@ export default function CommunityFeed() {
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
-            <SafeAreaView className="flex-1" edges={['top']}>
+            <View className="flex-1">
                 <AppBar
                     title={subName}
-                    subtitle="Community Feed"
                     onBack={() => navigation.goBack()}
                     right={<IconBtn name="add" boxed onPress={() => setComposerOpen(true)} />}
                 />
@@ -249,26 +248,25 @@ export default function CommunityFeed() {
                         }
                     />
                 )}
-            </SafeAreaView>
+            </View>
 
-            <Modal visible={composerOpen} animationType="slide" onRequestClose={() => setComposerOpen(false)}>
-                <SafeAreaView className="flex-1 bg-paper" edges={['top', 'bottom']}>
+            <Modal visible={composerOpen} animationType="slide" statusBarTranslucent onRequestClose={() => setComposerOpen(false)}>
+                <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
                     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-                        <View className="border-b border-line">
-                            <AppBar
-                                title="New Post"
-                                onBack={() => setComposerOpen(false)}
-                                right={<TouchableOpacity
+                        <AppBar
+                            title="New Post"
+                            onBack={() => setComposerOpen(false)}
+                            right={<TouchableOpacity
                                 onPress={submitPost}
                                 disabled={posting || !title.trim()}
+                                style={{ marginRight: 11 }}
                                 className={`px-5 h-10 rounded-xl items-center justify-center ${posting || !title.trim() ? 'bg-paper-2' : 'bg-ink'}`}
                             >
                                 {posting
                                     ? <ActivityIndicator color="white" size="small" />
                                     : <Text className="text-white font-display uppercase text-label">Post</Text>}
                             </TouchableOpacity>}
-                            />
-                        </View>
+                        />
 
                         <View className="p-5 flex-1">
                             <TextInput

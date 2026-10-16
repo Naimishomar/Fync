@@ -7,7 +7,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { checkClubStatus, formatCountdown } from '../../utils/nightClub';
 import { C } from '../../constants/colors';
-import { AppBar, GUTTER } from '../ui/kit';
+import { AppBar } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
 
@@ -61,13 +61,9 @@ export default function TwelveAMLockScreen() {
         className="absolute w-full h-full"
       />
 
-      <SafeAreaView className="flex-1 justify-between mx-gutter my-4">
-        
-        {/* --- HEADER --- */}
-        {/* AppBar brings its own gutter; cancel the container's mx-gutter. */}
-        <View className="mt-2" style={{ marginHorizontal: -GUTTER }}>
-          <AppBar
+      <AppBar
             night
+            title="12 AM Club"
             onBack={() => navigation.goBack()}
             right={
               <View className={`px-4 py-2 rounded-full border flex-row items-center ${ isOpen ? 'bg-success/20 border-success' : 'bg-card/10 border-white/10' }`} style={{ marginRight: 11 }}>
@@ -78,7 +74,8 @@ export default function TwelveAMLockScreen() {
               </View>
             }
           />
-        </View>
+
+      <SafeAreaView className="flex-1 justify-between mx-gutter my-4" edges={['bottom']}>
 
         {/* --- CENTER CONTENT (Timer) --- */}
         <View className="items-center">
@@ -87,10 +84,6 @@ export default function TwelveAMLockScreen() {
                 <MaterialCommunityIcons name="moon-waning-crescent" size={64} color={isOpen ? "#DB2777" : "#8B857E"} />
             </View>
 
-            <Text className="text-brand-300 font-semibold text-sm uppercase mb-2">
-                The 12 AM Club
-            </Text>
-            
             <Text className="text-white font-display text-5xl text-center leading-tight shadow-hair">
                 {isOpen ? "NO RULES.\nNO HISTORY." : "SLEEP TIGHT.\nSEE YOU SOON."}
             </Text>

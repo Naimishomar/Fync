@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   Share,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
@@ -64,10 +63,10 @@ const MovieDetail = () => {
   // A failed fetch used to fall through to `movie.release_date` on null and crash.
   if (!movie) {
     return (
-      <SafeAreaView className="flex-1 bg-ink" edges={['top']}>
-        <AppBar night onBack={() => navigation.goBack()} />
+      <View className="flex-1 bg-ink">
+        <AppBar night title="Movie" onBack={() => navigation.goBack()} />
         <Empty icon="film-outline" title="Couldn't load this movie" hint="Check your connection and try again." />
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -90,12 +89,6 @@ const MovieDetail = () => {
             className="absolute top-0 w-full h-full"
           />
           
-          {/* Header Controls */}
-          <SafeAreaView className="absolute top-0 w-full" edges={['top']}>
-            <AppBar overlay onBack={() => navigation.goBack()}
-              right={<IconBtn overlay name="share-outline" size={24} onPress={handleShare} />} />
-          </SafeAreaView>
-
           {/* Action Buttons Overlay */}
           <View className="absolute bottom-6 w-full px-5">
             <Text className="text-white text-3xl font-display mb-2 shadow-hair">{movie.title}</Text>
@@ -144,6 +137,12 @@ const MovieDetail = () => {
           </View>
         </View>
       </ScrollView>
+
+      {/* Header Controls — outside the scroll so they stay put */}
+      <View className="absolute top-0 w-full" pointerEvents="box-none">
+        <AppBar overlay onBack={() => navigation.goBack()}
+          right={<IconBtn overlay name="share-outline" size={24} onPress={handleShare} />} />
+      </View>
     </View>
   );
 };

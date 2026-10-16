@@ -69,7 +69,7 @@ const MovieList = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-ink">
+    <SafeAreaView className="flex-1 bg-ink" edges={['bottom']}>
       {/* Header */}
       <AppBar night title={title} onBack={() => navigation.goBack()}
         right={<IconBtn name="search" size={24} color="white" onPress={() => navigation.navigate('MovieSearch')} />} />

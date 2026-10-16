@@ -11,7 +11,6 @@ import {
   Dimensions,
   StatusBar
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -222,18 +221,8 @@ export default function WorkshopList() {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
-      {/* HEADER DECORATION */}
-
-      <SafeAreaView className="flex-1" edges={['top']}>
-
-        <AppBar onBack={() => navigation.goBack()} />
-        <View className="px-gutter mb-3">
-          <View className="flex-row items-center">
-            <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Workshop</Text>
-            <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Hub</Text>
-          </View>
-          <Text className="text-ink-3 text-label font-display uppercase">Industry Masterclass Archive</Text>
-        </View>
+      <View className="flex-1">
+        <AppBar title="Workshop Hub" onBack={() => navigation.goBack()} />
 
         {/* 🔍 Arena Search Dock */}
         <View className="px-gutter mb-3">
@@ -281,7 +270,7 @@ export default function WorkshopList() {
             ) : null
           }
         />
-      </SafeAreaView>
+      </View>
     </View>
   );
 }

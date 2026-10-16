@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import {View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Keyboard, Platform, ActivityIndicator, Linking, TouchableOpacity, Modal} from 'react-native'
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
@@ -13,7 +13,7 @@ import socket from "../../utils/socket";
 import { useAuth } from "../../context/auth.context";
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, Meta } from '../ui/kit';
 
 const CollegeChatScreen = ({ navigation }: any) => {
     const { user } = useAuth();
@@ -384,20 +384,15 @@ const CollegeChatScreen = ({ navigation }: any) => {
             </View>
 
             {/* HEADER */}
-            <SafeAreaView edges={['top']} style={{ backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: 'rgba(249, 115, 22, 0.1)' }}>
-                <AppBar
-                    title={`${user?.college || 'Campus'} Hub`}
-                    subtitle="Vanish every 24h · Keep it real"
-                    onBack={() => navigation.goBack()}
-                />
+            <AppBar title="Campus Chat" onBack={() => navigation.goBack()} />
 
-                {/* The countdown is the point of this room, so it gets a strip of
-                    its own rather than a chip fighting the title for width. */}
-                <View className="flex-row items-center justify-center bg-brand-50 py-2.5" style={{ gap: 8 }}>
-                    <Ionicons name="timer-outline" size={15} color={C.brand[600]} />
-                    <Text className="font-display text-label text-brand-700 uppercase">Expires in {timeLeft}</Text>
-                </View>
-            </SafeAreaView>
+            {/* The countdown is the point of this room, so it gets a strip of
+                its own rather than a chip fighting the title for width. */}
+            <View className="flex-row items-center justify-center bg-brand-50 py-2.5" style={{ gap: 8 }}>
+                <Meta numberOfLines={1} style={{ flexShrink: 1 }}>{user?.college || 'Campus'} ·</Meta>
+                <Ionicons name="timer-outline" size={15} color={C.brand[600]} />
+                <Text className="font-display text-label text-brand-700 uppercase">Expires in {timeLeft}</Text>
+            </View>
 
             <KeyboardAvoidingView
                 behavior="padding"

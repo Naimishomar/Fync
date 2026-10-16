@@ -395,7 +395,7 @@ const HackathonCreate = () => {
   return (
     <View className="flex-1 bg-paper">
       <StatusBar style="dark" />
-      <SafeAreaView className="flex-1">
+      <SafeAreaView className="flex-1" edges={["bottom"]}>
 
         {/* Header */}
         <AppBar title="Host Mission" onBack={() => navigation.goBack()} />

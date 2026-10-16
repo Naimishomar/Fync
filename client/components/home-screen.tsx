@@ -3,7 +3,7 @@ import {View, Text, Pressable, Image, Dimensions, FlatList, Modal, TextInput, Ke
 import { FlashList, useRecyclingState } from '@shopify/flash-list';
 import { PostSkeleton } from "./Skeleton";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppBar, Body, IconBtn } from './ui/kit';
 import Reanimated, { Layout, FadeIn, FadeOut } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -512,7 +512,6 @@ const MAX_CHAR_LIMIT = 150;
 export default function HomeScreen() {
   const tabBarClearance = useTabBarClearance();
   const autoHideTabBar = useTabBarAutoHide();
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const [profileImage, setProfileImage] = useState<string | undefined>('');
   const [activeTab, setActiveTab] = useState<'forYou' | 'following'>('forYou');
@@ -839,75 +838,41 @@ export default function HomeScreen() {
 
 
 
-  const renderHeader = () => (
-    <View
-      style={{ paddingTop: insets.top - 10 }}
-      className="flex-row items-center justify-between px-4 bg-transparent z-10 mt-2 pb-2"
-    >
-      <View className="flex-row items-center py-2 gap-1 flex-1 min-w-0 mr-2">
-        <Pressable onPress={() => navigation.openDrawer()} accessibilityRole="button" accessibilityLabel="Open menu">
-          {/* mockup .av.ring-student: box-shadow 0 0 0 2px card, 0 0 0 4px student.
-              RN has no spread shadow, so the two rings are a 2px card-coloured
-              pad inside a 2px brand border. */}
-          <View className="rounded-full border-2 border-brand-500 bg-card" style={{ padding: 2 }}>
-            <ExpoImage
-              source={{ uri: getFullUrl(profileImage) || `https://ui-avatars.com/api/?name=${user?.username}&background=random&color=fff` }}
-              style={{ width: 30, height: 30, borderRadius: 999 }}
-              cachePolicy="disk"
-            />
-          </View>
-        </Pressable>
-        <Text className="font-display text-h2 text-ink shrink" numberOfLines={1}>{`Hi, ${user?.name?.split(" ")[0] || user?.username || ''}`}</Text>
-      </View>
-
-      <View className="flex-row items-center gap-3 shrink-0">
-        {/* Streak Display */}
-        <TouchableOpacity 
-          onPress={() => setShowLeaderboard(true)}
-          className="flex-row items-center bg-brand-100 px-2 py-1 rounded-full border border-ink"
-        >
-          <MaterialCommunityIcons 
-            name="fire" 
-            size={16} 
-            color={(user as any)?.streakCount > 0 ? "#F97316" : "#F97316"} 
+  // Greeting + drawer avatar live in the content now; the screen title is the AppBar's.
+  const renderGreeting = () => (
+    <View className="flex-row items-center px-4 pt-1 pb-3 gap-2">
+      <Pressable onPress={() => navigation.openDrawer()} accessibilityRole="button" accessibilityLabel="Open menu">
+        {/* mockup .av.ring-student: box-shadow 0 0 0 2px card, 0 0 0 4px student.
+            RN has no spread shadow, so the two rings are a 2px card-coloured
+            pad inside a 2px brand border. */}
+        <View className="rounded-full border-2 border-brand-500 bg-card" style={{ padding: 2 }}>
+          <ExpoImage
+            source={{ uri: getFullUrl(profileImage) || `https://ui-avatars.com/api/?name=${user?.username}&background=random&color=fff` }}
+            style={{ width: 30, height: 30, borderRadius: 999 }}
+            cachePolicy="disk"
           />
-          <Text className="font-display text-xs ml-0.5 text-brand-700">
-            {(user as any)?.streakCount || 0}
-          </Text>
-        </TouchableOpacity>
-
-        <Pressable onPress={() => navigation.navigate('SearchScreen')} hitSlop={10} accessibilityRole="button" accessibilityLabel="Search">
-          <Ionicons name="search-outline" size={22} color={C.ink} />
-        </Pressable>
-
-        <Pressable onPress={() => navigation.navigate('Notification')} hitSlop={10} accessibilityRole="button" accessibilityLabel="Notifications">
-          <View>
-            <Ionicons name="heart-outline" size={22} color={C.ink} />
-            {unreadCount > 0 && (
-              <View className="absolute -top-1.5 -right-1.5 bg-brand-500 rounded-full w-4 h-4 justify-center items-center border border-white">
-                <Text className="text-ink text-label font-semibold">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </Text>
-              </View>
-            )}
-          </View>
-        </Pressable>
-        <Pressable onPress={() => navigation.navigate('ChatList')} hitSlop={10} accessibilityRole="button" accessibilityLabel="Chats">
-          <View>
-            <Ionicons name="chatbubble-ellipses-outline" size={22} color={C.ink} />
-            {chatUnreadCount > 0 && (
-              <View className="absolute -top-1.5 -right-1.5 bg-fam-fun rounded-full w-4 h-4 justify-center items-center border border-white">
-                <Text className="text-white text-label font-semibold">
-                  {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
-                </Text>
-              </View>
-            )}
-          </View>
-        </Pressable>
-      </View>
-
-      {/* <View className='absolute bg-brand-200 w-48 h-48 rounded-full -right-14 -top-24 -z-10 opacity-40'></View> */}
+        </View>
+      </Pressable>
+      <Body style={{ flexShrink: 1 }} numberOfLines={1}>{`Hi, ${user?.name?.split(" ")[0] || user?.username || ''}`}</Body>
     </View>
+  );
+
+  const appBarRight = (
+    <>
+      {/* Streak Display */}
+      <TouchableOpacity
+        onPress={() => setShowLeaderboard(true)}
+        className="flex-row items-center bg-brand-100 px-2 py-1 rounded-full border border-ink"
+      >
+        <MaterialCommunityIcons name="fire" size={16} color="#F97316" />
+        <Text className="font-display text-xs ml-0.5 text-brand-700">
+          {(user as any)?.streakCount || 0}
+        </Text>
+      </TouchableOpacity>
+      <IconBtn name="search-outline" onPress={() => navigation.navigate('SearchScreen')} />
+      <IconBtn name="heart-outline" badge={unreadCount} onPress={() => navigation.navigate('Notification')} />
+      <IconBtn name="chatbubble-ellipses-outline" badge={chatUnreadCount} onPress={() => navigation.navigate('ChatList')} />
+    </>
   );
 
   const renderTabBar = () => (
@@ -1020,6 +985,7 @@ export default function HomeScreen() {
   const showSkeleton = loading && feed.length === 0;
   const listHeader = useMemo(() => (
     <View>
+      {renderGreeting()}
       {renderTabBar()}
       <View className="bg-transparent">
         <AdCarousel />
@@ -1033,13 +999,13 @@ export default function HomeScreen() {
       </View>
     </View>
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [activeTab, quickFeatures, openQuick, showSkeleton]);
+  ), [activeTab, quickFeatures, openQuick, showSkeleton, user, profileImage]);
 
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
       
-      {renderHeader()}
+      <AppBar title="Fync" right={appBarRight} />
 
       {/* FlashList recycles cells instead of keeping every mounted row alive,
           which is what stops the blank-cell flash on a fast scroll once the

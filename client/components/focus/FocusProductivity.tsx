@@ -15,6 +15,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
 const { width, height } = Dimensions.get('window');
 
@@ -216,16 +217,7 @@ export default function FocusProductivity() {
     };
 
     const renderSetup = () => (
-        <View className="flex-1 px-gutter pt-10">
-            <View className="flex-row justify-between items-center mb-10">
-                <View>
-                    <Text className="text-ink text-3xl font-display uppercase leading-tight">Focus <Text className="text-success">Forest</Text></Text>
-                    <Text className="text-ink-3 text-label font-display uppercase mt-1">Grow your productivity</Text>
-                </View>
-                <TouchableOpacity onPress={() => setActiveTab('forest')} className="bg-success/10 w-12 h-12 rounded-card items-center justify-center border border-success/15">
-                    <Ionicons name="leaf" size={24} color={C.success} />
-                </TouchableOpacity>
-            </View>
+        <View className="flex-1 px-gutter pt-4">
 
             <View className="flex-row flex-wrap justify-between gap-4">
                 {(Object.keys(SESSION_THEMES) as SessionType[]).map((type) => (
@@ -397,23 +389,17 @@ export default function FocusProductivity() {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            <SafeAreaView className="flex-1" edges={['top']}>
+            {/* Locked session has no bar, so it still needs the status-bar inset itself. */}
+            <SafeAreaView className="flex-1" edges={isAppLocked ? ['top'] : []}>
                 {!isAppLocked && (
-                    <View className="px-gutter py-6 flex-row justify-between items-center">
-                        <TouchableOpacity onPress={() => {
+                    <AppBar title="Focus Forest"
+                        onBack={() => {
                             if (activeTab === 'forest') setActiveTab('setup');
                             else navigation.goBack();
-                        }} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                            <Ionicons name={activeTab === 'forest' ? "arrow-back" : "close"} size={24} color={C.ink} />
-                        </TouchableOpacity>
-                        <View className="bg-card border border-line px-2.5 py-1 rounded-full">
-                            <Text className="text-label text-success font-display uppercase">Focus Forest</Text>
-                        </View>
-                        <View className="w-12 h-12 opacity-0" />
-                    </View>
+                        }}
+                        right={activeTab === 'setup'
+                            ? <IconBtn name="leaf" boxed color={C.success} onPress={() => setActiveTab('forest')} />
+                            : undefined} />
                 )}
 
                 <View className="flex-1">

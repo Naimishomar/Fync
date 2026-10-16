@@ -24,9 +24,9 @@ export default function TermsAndCondition() {
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
-      <SafeAreaView className="flex-1">
+      <SafeAreaView className="flex-1" edges={['bottom']}>
 
-        <AppBar title="Legal Hub" subtitle="Fync Ecosystem" onBack={() => navigation.goBack()} />
+        <AppBar title="Terms & Conditions" onBack={() => navigation.goBack()} />
 
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -37,7 +37,6 @@ export default function TermsAndCondition() {
             className="rounded-sheet p-card-pad mb-8 overflow-hidden relative"
            style={{ backgroundColor: '#4F46E5' }}>
             <Ionicons name="document-text" size={120} color="rgba(255,255,255,0.1)" style={{ position: 'absolute', right: -20, bottom: -20 }} />
-            <Text className="text-white text-3xl font-display mb-2">Terms & Conditions</Text>
             <Text className="text-white/80 text-xs font-semibold leading-5">
               Please read these terms carefully before joining the exclusive student network.
             </Text>

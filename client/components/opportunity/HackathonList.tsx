@@ -11,7 +11,6 @@ import {
   StatusBar
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image as ExpoImage } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { C } from '../../constants/colors';
@@ -195,21 +194,8 @@ const HackathonList = () => {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
-      <SafeAreaView className="flex-1" edges={['top']}>
-        <AppBar onBack={() => navigation.goBack()} />
-
-        {/* Header Title */}
-        <View className="px-gutter pb-4">
-          <View className="flex-row items-center gap-3">
-            <View className="w-12 h-12 bg-brand-500 rounded-card items-center justify-center shadow-hair">
-              <Ionicons name="rocket" size={24} color={C.ink} />
-            </View>
-            <View>
-              <Text className="text-ink text-3xl font-display uppercase">Hackathons</Text>
-              <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Build The Future Globally</Text>
-            </View>
-          </View>
-        </View>
+      <View className="flex-1">
+        <AppBar title="Hackathons" onBack={() => navigation.goBack()} />
 
         {/* 🔍 Search Bar */}
         <View className="px-gutter mt-2 mb-4">
@@ -257,7 +243,7 @@ const HackathonList = () => {
             ) : null
           }
         />
-      </SafeAreaView>
+      </View>
     </View>
   );
 };

@@ -7,7 +7,6 @@ import {
     TouchableOpacity,
     Linking,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { C } from '../constants/colors';
@@ -104,18 +103,12 @@ const MeetOurTeam = () => {
 
     return (
         <View className="flex-1 bg-paper">
-        <SafeAreaView className="flex-1" edges={['top']}>
+        <View className="flex-1">
             {/* App bar */}
-            <AppBar title="Meet" subtitle="Responsible for making the magic happen" onBack={() => navigation.goBack()} />
+            <AppBar title="Meet the Team" onBack={() => navigation.goBack()} />
 
             <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-gutter">
-                {/* Display headline */}
-                <View className="mt-4 mb-2">
-                    <Text className="font-display text-ink uppercase" style={{ fontSize: 40, lineHeight: 42, letterSpacing: -1.2 }}>Meet</Text>
-                    <Text className="font-display text-accent-text uppercase" style={{ fontSize: 40, lineHeight: 42, letterSpacing: -1.2 }}>Team</Text>
-                </View>
-
-                <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
+                <View className="flex-row items-center mt-2 mb-3" style={{ gap: 12 }}>
                     <Text className="text-ink text-label font-display uppercase">Core</Text>
                     <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
                     <Text className="text-ink-3 font-mono text-label">{TEAM_MEMBERS.length}</Text>
@@ -163,7 +156,7 @@ const MeetOurTeam = () => {
                 </TouchableOpacity>
                 <View style={{ height: 40 }} />
             </ScrollView>
-        </SafeAreaView>
+        </View>
         </View>
     );
 };

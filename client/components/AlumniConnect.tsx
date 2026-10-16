@@ -12,7 +12,7 @@ import { useAuth } from "../context/auth.context";
 import Avatar from "./Avatar";
 import { Alert } from './ui/AlertModal';
 
-import { RoleSticker, AppBar, IconBtn } from './ui/kit';
+import { RoleSticker, AppBar, IconBtn, Meta } from './ui/kit';
 import { C } from '../constants/colors';
 const { width, height } = Dimensions.get("window");
 
@@ -372,16 +372,17 @@ const AlumniConnect = ({ navigation }: any) => {
         <View className="flex-1 bg-paper">
             
 
-            <SafeAreaView className="flex-1">
-                {/* Header */}
-                <View className="border-b border-line">
-                    <AppBar
-                        title={user?.college ? `${user.college} Alumni` : 'Alumni'}
-                        subtitle={user?.graduationYear ? `Class of ${user.graduationYear}` : undefined}
-                        onBack={() => navigation.goBack()}
-                        right={<IconBtn name="people" color={C.alumniLit} size={20} onPress={() => setShowMembers(true)} />}
-                    />
-                </View>
+            <SafeAreaView className="flex-1" edges={['bottom']}>
+                <AppBar
+                    title="Alumni"
+                    onBack={() => navigation.goBack()}
+                    right={<IconBtn name="people" color={C.alumniLit} size={20} onPress={() => setShowMembers(true)} />}
+                />
+                {!!(user?.college || user?.graduationYear) && (
+                    <Meta numberOfLines={1} className="px-5 pb-2 border-b border-line">
+                        {[user?.college, user?.graduationYear ? `Class of ${user.graduationYear}` : null].filter(Boolean).join(' · ')}
+                    </Meta>
+                )}
 
                 {/* Messages */}
                 <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
@@ -448,16 +449,15 @@ const AlumniConnect = ({ navigation }: any) => {
                 visible={showMembers}
                 animationType="slide"
                 transparent={true}
+                statusBarTranslucent
                 onRequestClose={() => setShowMembers(false)}
             >
                 <View className="flex-1 bg-paper">
-                    <SafeAreaView className="flex-1">
-                        <View className="border-b border-line">
-                            <AppBar
-                                title="Batch Members"
-                                right={<IconBtn name="close" size={28} color={C.ink} onPress={() => setShowMembers(false)} />}
-                            />
-                        </View>
+                    <SafeAreaView className="flex-1" edges={['bottom']}>
+                        <AppBar
+                            title="Batch Members"
+                            right={<IconBtn name="close" size={28} color={C.ink} onPress={() => setShowMembers(false)} />}
+                        />
 
                         {/* Search Bar */}
                         <View className="px-5 py-4">

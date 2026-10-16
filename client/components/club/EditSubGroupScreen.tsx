@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {View, Text, TouchableOpacity, TextInput, Image, ScrollView, ActivityIndicator, StatusBar, KeyboardAvoidingView, Switch, Platform} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -236,11 +235,8 @@ const EditSubGroupScreen = () => {
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
-            <SafeAreaView className="flex-1" edges={['top']}>
-                {/* Header */}
-                <View className="border-b border-line">
-                    <AppBar title="Room Control" subtitle="Refining your community" onBack={() => navigation.goBack()} />
-                </View>
+            <View className="flex-1">
+                <AppBar title="Room Control" onBack={() => navigation.goBack()} />
 
                 <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
                     <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -411,7 +407,7 @@ const EditSubGroupScreen = () => {
                         <View className="h-20" />
                     </ScrollView>
                 </KeyboardAvoidingView>
-            </SafeAreaView>
+            </View>
         </View>
     );
 };

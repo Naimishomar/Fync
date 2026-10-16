@@ -190,9 +190,8 @@ function CreatePost() {
         style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
-        <SafeAreaView className='flex-1'>
-          {/* Header */}
-          <AppBar title="Create Post" subtitle="Mission Briefing" onBack={() => navigation.goBack()} />
+        <SafeAreaView className='flex-1' edges={['bottom']}>
+          <AppBar title="Create Post" onBack={() => navigation.goBack()} />
 
           <ScrollView className="flex-1 px-5 mt-4" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {/* Main Input Card */}

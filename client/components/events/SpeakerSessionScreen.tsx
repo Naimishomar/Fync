@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, memo, useMemo, useRef } from 'react';
 import {View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, RefreshControl, TextInput, Dimensions, StatusBar, Modal, ScrollView, KeyboardAvoidingView, Platform, Linking, BackHandler} from 'react-native'
 import { Image as ExpoImage } from 'expo-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from '../../context/axiosConfig';
 import { navigate, goBack } from '../../utils/navigation';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -1027,8 +1026,8 @@ export default function SpeakerSessionScreen() {
 
             {/* Background Protocol Gradient */}
 
-            <SafeAreaView className="flex-1" edges={['top']}>
-                <AppBar onBack={() => goBack()}
+            <View className="flex-1">
+                <AppBar title="Session Hub" onBack={() => goBack()}
                     right={<>
                         <IconBtn name="ticket" size={20} color={C.brand[500]} boxed onPress={() => setTicketsModalVisible(true)} />
                         {/* openSessionModal resets edit mode, speakers, fee and limit —
@@ -1044,17 +1043,6 @@ export default function SpeakerSessionScreen() {
                     refreshing={refreshing}
                     onEndReached={loadMore}
                     onEndReachedThreshold={0.5}
-                    ListHeaderComponent={
-                        <View className="px-gutter pt-2">
-                            <View className="flex-row justify-between items-center mb-10">
-                                <View>
-                                    <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Session</Text>
-                                    <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Hub</Text>
-                                    <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Intelligence Archive</Text>
-                                </View>
-                            </View>
-                        </View>
-                    }
                     renderItem={({ item, index }: { item: SpeakerSession; index: number }) => (
                         <SessionCard
                             item={item}
@@ -1113,7 +1101,7 @@ export default function SpeakerSessionScreen() {
                     }
                     ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color={C.brand[500]} className="mb-10" /> : <View className="h-20" />}
                 />
-            </SafeAreaView>
+            </View>
 
             {/* Speaker Add/Edit Modal */}
             <Modal visible={speakerModalVisible} transparent animationType="slide" onRequestClose={() => setSpeakerModalVisible(false)}>

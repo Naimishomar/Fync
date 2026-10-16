@@ -473,17 +473,9 @@ const NoticeBoard = () => {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
-      <SafeAreaView className="flex-1" edges={['top']}>
-        <AppBar onBack={() => navigation.goBack()} />
+      <View className="flex-1">
+        <AppBar title="Fync Board" onBack={() => navigation.goBack()} />
         <View className="px-gutter">
-          <View className="flex-row justify-between items-center mb-8">
-            <View>
-              <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
-              <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Board</Text>
-              <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Announcement Protocol</Text>
-            </View>
-          </View>
-
           <View className="flex-row bg-card p-1.5 rounded-card mb-8 border border-line shadow-hair">
             <TouchableOpacity
               onPress={() => setActiveTab('college')}
@@ -545,10 +537,11 @@ const NoticeBoard = () => {
         </TouchableOpacity>
 
         <Modal visible={createModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setCreateModalVisible(false)}>
-          <SafeAreaView className="flex-1 bg-paper" edges={['top', 'bottom']}>
+          <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
             <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
             <StatusBar barStyle="dark-content" />
             <AppBar
+              inset={false}
               title={activeTab === 'global' ? 'New Global Intel' : 'New Campus Intel'}
               right={<IconBtn name="close" onPress={() => setCreateModalVisible(false)} />}
             />
@@ -650,8 +643,8 @@ const NoticeBoard = () => {
         </Modal>
 
         {/* PAYMENT MODAL */}
-        <Modal visible={!!showPaymentParams} animationType="slide" transparent={false} onRequestClose={() => setShowPaymentParams(null)}>
-          <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F2EC' }}>
+        <Modal visible={!!showPaymentParams} animationType="slide" transparent={false} statusBarTranslucent onRequestClose={() => setShowPaymentParams(null)}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F2EC' }} edges={['bottom']}>
             <AppBar
               title="Secure Transaction"
               right={<IconBtn name="close" onPress={() => { setShowPaymentParams(null); Alert.alert('Cancelled', 'Payment is required to post a global notice.'); }} />}
@@ -671,7 +664,7 @@ const NoticeBoard = () => {
           </SafeAreaView>
         </Modal>
 
-      </SafeAreaView>
+      </View>
     </View>
   );
 };

@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef, memo, useCallback } from "react";
 import { readCache, writeCache } from "../utils/screenCache";
 import {View, Text, FlatList, Pressable, Dimensions, ScrollView, ActivityIndicator, TouchableOpacity, Linking, RefreshControl, StatusBar} from 'react-native'
 import { Image } from 'expo-image';
-import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Video, ResizeMode, AVPlaybackStatus, AVPlaybackStatusSuccess, Audio, InterruptionModeIOS, InterruptionModeAndroid } from "expo-av";
 import { useNavigation } from "@react-navigation/native";
@@ -579,18 +578,8 @@ export default function FundingFeed() {
         
         {/* Background Protocol Gradient */}
 
-        <SafeAreaView className="flex-1" edges={['top']}>
-          {/* Arena Header */}
-          <AppBar onBack={() => navigation.goBack()} />
-          <View className="px-gutter pb-4 flex-row justify-between items-center bg-transparent">
-            <View className="flex-row items-center">
-              <View>
-                <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Funding</Text>
-                <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Feed</Text>
-                <Text className="text-ink-3 text-label font-display uppercase">Innovation Hub</Text>
-              </View>
-            </View>
-          </View>
+        <View className="flex-1">
+          <AppBar title="Funding Feed" onBack={() => navigation.goBack()} />
 
           {loading ? (
             <View className="mt-4">
@@ -643,7 +632,7 @@ export default function FundingFeed() {
             targetId={activeProjectId}
             currentUser={user}
           />
-        </SafeAreaView>
+        </View>
       </View>
     </GestureHandlerRootView>
   );

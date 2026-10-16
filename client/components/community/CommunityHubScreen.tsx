@@ -424,7 +424,12 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
     };
 
     if (loading) return <CommunityHubSkeleton />;
-    if (!data) return <View className="flex-1 items-center justify-center bg-paper"><Text className="font-semibold text-base text-ink">Hub Not Found</Text></View>;
+    if (!data) return (
+        <View className="flex-1 bg-paper">
+            <AppBar title="Community" onBack={() => navigation.goBack()} />
+            <View className="flex-1 items-center justify-center"><Text className="font-semibold text-base text-ink">Hub Not Found</Text></View>
+        </View>
+    );
 
     const { community } = data;
     const subCommunities: any[] = data.subCommunities ?? [];
@@ -446,21 +451,15 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                     <Image source={{ uri: community.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070' }} className="w-full h-full" resizeMode="cover" />
                     <LinearGradient colors={['rgba(0,0,0,0.6)', 'transparent', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFill} />
                     
-                    <SafeAreaView edges={['top']} className="absolute top-0 left-0 right-0">
+                    <View className="absolute top-0 left-0 right-0">
                         <AppBar
-                            night
+                            overlay
                             onBack={() => navigation.goBack()}
                             right={isCreator ? (
-                                <IconBtn
-                                    name="settings-outline"
-                                    size={18}
-                                    color="white"
-                                    onPress={() => setEditHubModal(true)}
-                                    style={{ backgroundColor: 'rgba(0,0,0,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}
-                                />
+                                <IconBtn overlay name="settings-outline" size={18} onPress={() => setEditHubModal(true)} />
                             ) : undefined}
                         />
-                    </SafeAreaView>
+                    </View>
 
                     <View className="absolute bottom-8 left-8 right-8 flex-row items-end gap-6">
                         <View className="w-20 h-20 rounded-full border-4 border-white/20 shadow-hair overflow-hidden bg-ink">
@@ -920,11 +919,9 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                 </View>
             </Modal>
 
-            <Modal visible={showWebView} animationType="slide" onRequestClose={cancelWebPayment}>
-                <SafeAreaView className="flex-1 bg-paper">
-                    <View className="border-b border-line bg-paper">
-                        <AppBar title="Secure Signal Processor" onBack={cancelWebPayment} />
-                    </View>
+            <Modal visible={showWebView} animationType="slide" statusBarTranslucent onRequestClose={cancelWebPayment}>
+                <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
+                    <AppBar title="Secure Payment" onBack={cancelWebPayment} />
                     <WebView
                         source={{ html: webViewHtml }}
                         onMessage={handleWebMsg}

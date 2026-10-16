@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
 import {View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, RefreshControl, StatusBar} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -91,7 +90,7 @@ export default function CommunityPostDetail() {
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
-            <SafeAreaView className="flex-1" edges={['top']}>
+            <View className="flex-1">
                 <View className="flex-1">
                     <AppBar title={subName} onBack={() => navigation.goBack()} />
 
@@ -130,7 +129,7 @@ export default function CommunityPostDetail() {
                     </ScrollView>
 
                 </View>
-            </SafeAreaView>
+            </View>
 
             <CommentsSheet
                 visible={commentsOpen}

@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import {View, Text, TouchableOpacity, FlatList, TextInput, RefreshControl, StatusBar, Animated} from 'react-native'
 import { Image } from 'expo-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -186,19 +185,12 @@ const CommunityListScreen = () => {
             <StatusBar barStyle="dark-content" />
             
 
-            <SafeAreaView className="flex-1" edges={['top']}>
+            <View className="flex-1">
                 <AppBar
+                    title="Community Hub"
                     onBack={() => navigation.goBack()}
                     right={<IconBtn name="add" boxed onPress={() => navigation.navigate('CreateCommunity')} />}
                 />
-                <View className="px-gutter pb-2">
-                    <View>
-                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Community</Text>
-                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Hub</Text>
-                        <Text className="text-ink-3 text-label font-display uppercase">High-Velocity Network</Text>
-                    </View>
-                </View>
-
                 {/* Tabs & Search */}
                 <View className="px-gutter mt-6">
                     <View className="flex-row bg-card p-1.5 rounded-card mb-6 border border-line shadow-hair">
@@ -266,7 +258,7 @@ const CommunityListScreen = () => {
                         }
                     />
                 )}
-            </SafeAreaView>
+            </View>
         </View>
     );
 };

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import {View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, TextInput, Dimensions, ScrollView, Pressable, StatusBar, KeyboardAvoidingView, Platform} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
@@ -373,20 +372,13 @@ const MarketplaceScreen = () => {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
-            {/* HEADER DECORATION */}
-
-            <SafeAreaView className="flex-1" edges={['top']}>
+            <View className="flex-1">
                 <AppBar
+                    title="Fync Market"
                     onBack={() => navigation.goBack()}
-                    right={<IconBtn name="add" onPress={() => setSellModalVisible(true)} />}
+                    right={<IconBtn name="add" boxed onPress={() => setSellModalVisible(true)} />}
                 />
                 <View className='px-gutter bg-transparent'>
-                    <View className="mb-8">
-                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
-                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Market</Text>
-                        <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Campus Asset exchange</Text>
-                    </View>
-
                     {/* SEARCH DOCK */}
                     <View className="flex-row items-center bg-card px-5 py-1.5 border-2 border-ink shadow-hair mb-8 rounded-md">
                         <Ionicons name="search" size={20} color={C.ink3} />
@@ -460,7 +452,7 @@ const MarketplaceScreen = () => {
                     currentUserId={user?._id}
                     onDelete={handleDelete}
                 />
-            </SafeAreaView>
+            </View>
         </View>
     );
 };

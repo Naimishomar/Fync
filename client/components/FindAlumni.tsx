@@ -3,7 +3,6 @@ import {
     View, Text, FlatList, Pressable, Image, ActivityIndicator,
     TextInput, TouchableOpacity, Dimensions, RefreshControl, StatusBar, Modal, ScrollView
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import axios from "../context/axiosConfig";
@@ -180,8 +179,9 @@ const FindAlumni = ({ navigation }: any) => {
 
             {/* HEADER DECORATION */}
 
-            <SafeAreaView className="flex-1" edges={['top']}>
+            <View className="flex-1">
                 <AppBar
+                    title="Campus Alumni"
                     onBack={() => navigation.goBack()}
                     right={
                         <IconBtn
@@ -193,17 +193,6 @@ const FindAlumni = ({ navigation }: any) => {
                         />
                     }
                 />
-                {/* Arena Header */}
-                <View className="px-gutter">
-                    <View className="mb-4">
-                            <View className="flex-row items-center">
-                                <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Campus</Text>
-                                <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Alumni</Text>
-                            </View>
-                            <Text className="text-ink-3 text-label font-display uppercase">Professional Alumni Registry</Text>
-                    </View>
-                </View>
-
                 {/* 🔍 Arena Search Dock */}
                 <View className="px-gutter mb-2">
                     <View className="flex-row items-center bg-card px-5 h-14 border-2 border-ink shadow-hair rounded-md">
@@ -269,7 +258,7 @@ const FindAlumni = ({ navigation }: any) => {
                         }
                     />
                 )}
-            </SafeAreaView>
+            </View>
 
             {/* Filter Modal */}
             <Modal

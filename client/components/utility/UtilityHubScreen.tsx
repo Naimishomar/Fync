@@ -58,7 +58,7 @@ export default function UtilityHubScreen() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="Utility Hub" onBack={() => navigation.goBack()}
           right={<Ionicons name="construct-outline" size={24} color={C.brand[500]} style={{ marginRight: 11 }} />} />
 

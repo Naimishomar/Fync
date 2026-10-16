@@ -463,6 +463,10 @@ const PublicProfile = () => {
     // render, refetching its stats and jumping the ScrollView back to the top.
     const renderRecruiterProfile = () => {
         return (
+            <View className="flex-1 bg-paper">
+            <View className="absolute left-0 right-0 top-0 z-20" pointerEvents="box-none">
+                <AppBar overlay onBack={() => navigation.goBack()} />
+            </View>
             <ScrollView className="flex-1 bg-paper" showsVerticalScrollIndicator={false}>
                 {/* Banner & Actions */}
                 <View className="h-48 w-full relative">
@@ -472,9 +476,6 @@ const PublicProfile = () => {
                         contentFit="cover"
                     />
                     <View className="absolute inset-0 bg-black/30" />
-                    <View className="absolute left-0 right-0" style={{ top: insets.top }}>
-                        <AppBar overlay onBack={() => navigation.goBack()} />
-                    </View>
                 </View>
 
                 {/* Info Card Overlay */}
@@ -575,6 +576,7 @@ const PublicProfile = () => {
                 </View>
                 <View className="h-20" />
             </ScrollView>
+            </View>
         );
     };
 
@@ -590,7 +592,7 @@ const PublicProfile = () => {
     return (
         <View className="flex-1 bg-paper">
             {/* Back Button Overlay */}
-            <View className="absolute left-0 right-0 z-20" style={{ top: insets.top }} pointerEvents="box-none">
+            <View className="absolute left-0 right-0 top-0 z-20" pointerEvents="box-none">
                 <AppBar overlay onBack={() => navigation.goBack()} />
             </View>
 

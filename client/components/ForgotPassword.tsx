@@ -8,6 +8,7 @@ import axios from '../context/axiosConfig';
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
 import { useBottomInset } from '../constants/layout';
+import { AppBar } from './ui/kit';
 
 const ForgotPassword = ({ route, navigation }: any) => {
   const [email, setEmail] = useState(route.params?.email || '');
@@ -92,6 +93,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
         style={{ flex: 1 }}
         className="bg-paper"
       >
+        <AppBar title="Forgot Password" onBack={() => navigation.goBack()} />
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, backgroundColor: '#F5F2EC' }}
           keyboardShouldPersistTaps="handled"

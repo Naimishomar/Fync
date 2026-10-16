@@ -3,13 +3,12 @@ import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   ActivityIndicator, RefreshControl,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, Meta } from '../ui/kit';
 
 /**
  * Problem bank admin.
@@ -94,14 +93,10 @@ export default function ArenaAdminScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-      <AppBar onBack={() => navigation.goBack()} />
+    <View className="flex-1 bg-paper">
+      <AppBar title="Problem Bank" onBack={() => navigation.goBack()} />
       <View className="px-5">
-        <Text className="font-display text-display text-ink uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Problem</Text>
-        <Text className="font-display text-display text-brand-600 uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Bank</Text>
-        <Text className="font-display text-ink-3 uppercase mt-2 mb-4" style={{ fontSize: 11, letterSpacing: 1.4 }}>
-          {loading ? 'Loading' : `${problems.length} problems live`}
-        </Text>
+        <Meta className="mb-4">{loading ? 'Loading' : `${problems.length} problems live`}</Meta>
       </View>
 
       <ScrollView
@@ -199,6 +194,6 @@ export default function ArenaAdminScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

@@ -591,10 +591,9 @@ export default function FyncProfileBuilder() {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
-      {/* HEADER DECORATION - MATCHING DRIVE/STUDY MATERIAL */}
-
-      <SafeAreaView className="flex-1" edges={['top']}>
+      <View className="flex-1">
         <AppBar
+          title="Fync Portfolio"
           onBack={() => navigation.goBack()}
           right={
             <Pressable onPress={downloadResume}
@@ -605,12 +604,6 @@ export default function FyncProfileBuilder() {
             </Pressable>
           }
         />
-        <View className="px-gutter mb-8">
-          <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
-          <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Portfolio</Text>
-          <Text className="text-ink-3 text-label font-display uppercase">Core Interface</Text>
-        </View>
-
         {/* Modern Tab Strip */}
         <View className="flex-row bg-card/50 px-5 py-2 border-b border-line">
           {TABS.map(tab => (
@@ -671,7 +664,7 @@ export default function FyncProfileBuilder() {
           onClose={() => setShowCodingModal(false)}
           onSuccess={() => { setShowCodingModal(false); fetchProfile(); }}
         />
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
